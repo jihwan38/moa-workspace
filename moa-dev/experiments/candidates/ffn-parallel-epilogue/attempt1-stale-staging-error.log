@@ -1,0 +1,179 @@
+error[E0425]: cannot find function `prepare_fp8_split` in module `sliding::projection`
+  --> src/ops.rs:60:52
+   |
+60 |     let (q_packed, q_scale) = sliding::projection::prepare_fp8_split(device, &x);
+   |                                                    ^^^^^^^^^^^^^^^^^ not found in `sliding::projection`
+
+error[E0308]: mismatched types
+   --> src/ops.rs:59:61
+    |
+ 59 |     let x = shared::rmsnorm::normalize_output_fused(device, &x, input_rms_weight);
+    |             ---------------------------------------         ^^ expected `&DmTensor<bf16, Broadcast<1>, _, _, ...>`, found `&DmTensor<bf16, ..., ..., ..., ...>`
+    |             |
+    |             arguments to this function are incorrect
+    |
+    = note: expected reference `&furiosa_opt_std::prelude::DmTensor<_, _, _, _, furiosa_opt_std::prelude::Symbol<_>>`
+               found reference `&DmTensor<bf16, Broadcast<1>, Broadcast<2>, Pair<..., ...>, ...>`
+note: function defined here
+   --> src/device/shared/rmsnorm.rs:107:15
+    |
+107 | pub(crate) fn normalize_output_fused<Cluster: M, Slice: M>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+108 |     device: &mut Device,
+109 |     x: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+    |     -----------------------------------------------
+    = note: the full name for the type has been written to '/tmp/moa-ffn-parallel-epilogue/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-14568102608010299632.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0061]: this function takes 4 arguments but 5 arguments were supplied
+  --> src/ops.rs:63:9
+   |
+63 |         sliding::projection::project_query(device, &q_packed, &q_scale, q_weight, q_weight_scale);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                              -------- unexpected argument #4 of type `&furiosa_opt_std::prelude::HbmTensor<furiosa_opt_std::prelude::f8e4m3, furiosa_opt_std::prelude::Broadcast<1>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<axes::Qs>, furiosa_opt_std::prelude::Symbol<axes::H>>>`
+   |
+note: function defined here
+  --> src/device/sliding/projection.rs:7:15
+   |
+ 7 | pub(crate) fn project_query(
+   |               ^^^^^^^^^^^^^
+help: remove the extra argument
+   |
+63 -         sliding::projection::project_query(device, &q_packed, &q_scale, q_weight, q_weight_scale);
+63 +         sliding::projection::project_query(device, &q_packed, &q_scale, q_weight_scale);
+   |
+
+error[E0061]: this function takes 6 arguments but 7 arguments were supplied
+   --> src/ops.rs:64:18
+    |
+ 64 |     let (k, v) = sliding::projection::project_key_value(device, &q_packed, &q_scale, k_weight, v_weight, k_weight_scale, v_weight_s...
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                    -------- unexpected argument #3 of type `&furiosa_opt_std::prelude::HbmTensor<furiosa_opt_std::prelude::f8e4m3, furiosa_opt_std::prelude::Broadcast<1>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<axes::Qs>, furiosa_opt_std::prelude::Symbol<axes::H>>>`
+    |
+note: function defined here
+   --> src/device/sliding/projection.rs:147:15
+    |
+147 | pub(crate) fn project_key_value(
+    |               ^^^^^^^^^^^^^^^^^
+help: remove the extra argument
+    |
+ 64 -     let (k, v) = sliding::projection::project_key_value(device, &q_packed, &q_scale, k_weight, v_weight, k_weight_scale, v_weight_scale);
+ 64 +     let (k, v) = sliding::projection::project_key_value(device, &q_packed, k_weight, v_weight, k_weight_scale, v_weight_scale);
+    |
+
+error[E0308]: mismatched types
+   --> src/ops.rs:142:9
+    |
+141 |     let x: DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> =
+    |            --------------------------------------------------------------- expected due to this
+142 |         sliding::projection::project_output(device, x, o_weight, o_weight_scale);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Pair<Padding<..., ..., Top>, ...>`, found `Padding<Broadcast<1>, ..., Top>`
+    |
+    = note: expected struct `DmTensor<bf16, Broadcast<1>, Padding<..., ..., Top>, ..., ...>`
+               found struct `furiosa_opt_std::prelude::DmTensor<_, _, _, furiosa_opt_std::prelude::Padding<_, furiosa_opt_std::prelude::Broadcast<256>, _>, furiosa_opt_std::prelude::Symbol<_>>`
+    = note: the full name for the type has been written to '/tmp/moa-ffn-parallel-epilogue/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-4244682514755775219.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0308]: mismatched types
+   --> src/ops.rs:143:126
+    |
+143 | ...# 32, H / 480], m![H % 480]> = shared::rmsnorm::normalize_output_fused(device, &x, post_attn_rms_weight);
+    |                                   ---------------------------------------         ^^ expected `&DmTensor<bf16, Broadcast<1>, _, _, ...>`, found `&DmTensor<bf16, ..., ..., ..., ...>`
+    |                                   |
+    |                                   arguments to this function are incorrect
+    |
+    = note: expected reference `&furiosa_opt_std::prelude::DmTensor<_, _, _, _, furiosa_opt_std::prelude::Symbol<_>>`
+               found reference `&DmTensor<bf16, Broadcast<1>, Padding<..., ..., Top>, ..., ...>`
+note: function defined here
+   --> src/device/shared/rmsnorm.rs:107:15
+    |
+107 | pub(crate) fn normalize_output_fused<Cluster: M, Slice: M>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+108 |     device: &mut Device,
+109 |     x: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+    |     -----------------------------------------------
+    = note: the full name for the type has been written to '/tmp/moa-ffn-parallel-epilogue/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-1432946367045824179.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0308]: mismatched types
+   --> src/ops.rs:143:78
+    |
+143 | ...x: DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> = shared::rmsnorm::normalize_output_fused(device, &x, post_attn_rms_weight);
+    |       ---------------------------------------------------------------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `DmTensor<bf16, ..., ..., ..., ...>`, found `DmTensor<bf16, Broadcast<1>, _, _, ...>`
+    |       |
+    |       expected due to this
+    |
+    = note: expected struct `DmTensor<bf16, Broadcast<1>, Padding<..., ..., Top>, ..., ...>`
+               found struct `furiosa_opt_std::prelude::DmTensor<_, _, _, _, furiosa_opt_std::prelude::Symbol<_>>`
+    = note: the full name for the type has been written to '/tmp/moa-ffn-parallel-epilogue/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-4244682514755775219.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0308]: mismatched types
+   --> src/ops.rs:145:134
+    |
+145 | ...# 32, H / 480], m![H % 480]> = sliding::projection::add_output_residual(device, &x, residual_hbm);
+    |                                   ----------------------------------------         ^^ expected `Padding<Broadcast<1>, ..., Top>`, found `Pair<Padding<..., ..., Top>, ...>`
+    |                                   |
+    |                                   arguments to this function are incorrect
+    |
+    = note: expected reference `&furiosa_opt_std::prelude::DmTensor<_, _, _, furiosa_opt_std::prelude::Padding<_, furiosa_opt_std::prelude::Broadcast<256>, _>, furiosa_opt_std::prelude::Symbol<_>>`
+               found reference `&DmTensor<bf16, Broadcast<1>, Padding<..., ..., Top>, ..., ...>`
+note: function defined here
+   --> src/device/sliding/projection.rs:273:15
+    |
+273 | pub(crate) fn add_output_residual(
+    |               ^^^^^^^^^^^^^^^^^^^
+274 |     device: &mut Device,
+275 |     x: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+    |     -----------------------------------------------
+    = note: the full name for the type has been written to '/tmp/moa-ffn-parallel-epilogue/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-16376275364088922128.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0308]: mismatched types
+   --> src/ops.rs:145:85
+    |
+145 | ...l: DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> = sliding::projection::add_output_residual(device, &x, residual_hbm);
+    |       ---------------------------------------------------------------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Pair<Padding<..., ..., Top>, ...>`, found `Padding<Broadcast<1>, ..., Top>`
+    |       |
+    |       expected due to this
+    |
+    = note: expected struct `DmTensor<bf16, Broadcast<1>, Padding<..., ..., Top>, ..., ...>`
+               found struct `furiosa_opt_std::prelude::DmTensor<_, _, _, furiosa_opt_std::prelude::Padding<_, furiosa_opt_std::prelude::Broadcast<256>, _>, furiosa_opt_std::prelude::Symbol<_>>`
+    = note: the full name for the type has been written to '/tmp/moa-ffn-parallel-epilogue/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-4244682514755775219.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0308]: mismatched types
+   --> src/ops.rs:236:138
+    |
+236 | ...EpilogueSlices, m![H % 480]> = shared::rmsnorm::normalize_output_fused(device, &x, post_ff_rms_weight);
+    |                                   ---------------------------------------         ^^ expected `&DmTensor<bf16, Broadcast<1>, _, _, ...>`, found `&DmTensor<bf16, ..., ..., ..., ...>`
+    |                                   |
+    |                                   arguments to this function are incorrect
+    |
+    = note: expected reference `&furiosa_opt_std::prelude::DmTensor<_, _, _, _, furiosa_opt_std::prelude::Symbol<_>>`
+               found reference `&DmTensor<bf16, Broadcast<1>, Padding<..., ..., Top>, ..., ...>`
+note: function defined here
+   --> src/device/shared/rmsnorm.rs:107:15
+    |
+107 | pub(crate) fn normalize_output_fused<Cluster: M, Slice: M>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+108 |     device: &mut Device,
+109 |     x: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+    |     -----------------------------------------------
+    = note: the full name for the type has been written to '/tmp/moa-ffn-parallel-epilogue/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-12709954425557589082.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+error[E0308]: mismatched types
+   --> src/ops.rs:236:90
+    |
+236 | ...x: DmTensor<bf16, Chip, Cluster, shared::mlp::DownEpilogueSlices, m![H % 480]> = shared::rmsnorm::normalize_output_fused(device, &x, post_ff_rms_weight);
+    |       ---------------------------------------------------------------------------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `DmTensor<bf16, ..., ..., ..., ...>`, found `DmTensor<bf16, Broadcast<1>, _, _, ...>`
+    |       |
+    |       expected due to this
+    |
+    = note: expected struct `DmTensor<bf16, Broadcast<1>, Padding<..., ..., Top>, ..., ...>`
+               found struct `furiosa_opt_std::prelude::DmTensor<_, _, _, _, furiosa_opt_std::prelude::Symbol<_>>`
+    = note: the full name for the type has been written to '/tmp/moa-ffn-parallel-epilogue/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-4244682514755775219.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+Some errors have detailed explanations: E0061, E0308, E0425.
+For more information about an error, try `rustc --explain E0061`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 11 previous errors

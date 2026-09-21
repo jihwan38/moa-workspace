@@ -1,0 +1,372 @@
+{
+  "scalar": {
+    "makespan": 17538,
+    "instruction_count": 7,
+    "schedule_sha256": "51cb4ecb605bd24856f56d33fe1d3b10bc8fc342ec9b18f4d826f8586d3389ca",
+    "instructions": [
+      {
+        "index": "1",
+        "history": {
+          "resourcelir": "O1"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 1003,
+          "end": 4268
+        },
+        "input_tensors": [
+          1
+        ],
+        "output_tensors": [
+          0
+        ],
+        "description": "--> src/packet_probe.rs:16:72\n\nx.to_dm(&mut device.tdma)",
+        "util": {
+          "total_util": 0.0039816233,
+          "base_util": 0.0039816233,
+          "efficiency": 1.0
+        }
+      },
+      {
+        "index": "7",
+        "history": {
+          "resourcelir": "O7"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 4268,
+          "end": 4539
+        },
+        "input_tensors": [
+          0
+        ],
+        "output_tensors": [
+          2
+        ],
+        "description": "--> src/packet_probe.rs:18:82\n\ndevice.sub\n.begin(x.view()).fetch::<m![ProbeK / 32], m![ProbeK % 32]>()\n.collect::<m![ProbeK / 32], m![ProbeK % 32]>().to_trf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "8",
+        "history": {
+          "resourcelir": "O8"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 4268,
+          "end": 7533
+        },
+        "input_tensors": [
+          4
+        ],
+        "output_tensors": [
+          3
+        ],
+        "description": "--> src/packet_probe.rs:17:80\n\nweights.to_dm(&mut device.tdma)",
+        "util": {
+          "total_util": 0.015007657,
+          "base_util": 0.015007657,
+          "efficiency": 1.0
+        }
+      },
+      {
+        "index": "13",
+        "history": {
+          "resourcelir": "O13"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 7533,
+          "end": 7806
+        },
+        "input_tensors": [
+          3,
+          2
+        ],
+        "output_tensors": [
+          5
+        ],
+        "description": "--> src/packet_probe.rs:21:74\n\ndevice.main\n.begin(w.view()).fetch::<m![ProbeR, ProbeK / 32], m![ProbeK % 32]>()\n.collect::<m![ProbeR, ProbeK / 32], m![ProbeK % 32]>()\n.contract_outer::<m![ProbeR, ProbeK / 64], m![ProbeK % 64], _, _, _>(&trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![ProbeR]>()\n.contract_lane::<m![ProbeR], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![ProbeR / 2], m![ProbeR % 2 # 8]>()\n.commit_trim::<m![ProbeR % 2]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "16",
+        "history": {
+          "resourcelir": "O16"
+        },
+        "tpe": "DmaStore",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 7806,
+          "end": 16938
+        },
+        "input_tensors": [
+          5,
+          7
+        ],
+        "output_tensors": [
+          6
+        ],
+        "description": "--> src/packet_probe.rs:30:5\n\nresult.view().to_hbm_view(&mut device.tdma, out.view_mut())",
+        "util": {
+          "total_util": 0.00043802016,
+          "base_util": 0.00043802016,
+          "efficiency": 1.0
+        }
+      },
+      {
+        "index": "20",
+        "history": {
+          "resourcelir": "O20"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 16938,
+          "end": 16938
+        },
+        "input_tensors": [
+          6
+        ],
+        "output_tensors": [
+          8
+        ],
+        "description": "--> src/packet_probe.rs:30:5\n\nresult.view().to_hbm_view(&mut device.tdma, out.view_mut())",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(5)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 16938,
+          "end": 17538
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      }
+    ]
+  },
+  "blocks": {
+    "makespan": 12865,
+    "instruction_count": 7,
+    "schedule_sha256": "6effe2fc284e41f3f8ab7136fb2f1b9e42b4ab48b3b31a81113ef3aa627abed1",
+    "instructions": [
+      {
+        "index": "1",
+        "history": {
+          "resourcelir": "O1"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 1003,
+          "end": 4268
+        },
+        "input_tensors": [
+          1
+        ],
+        "output_tensors": [
+          0
+        ],
+        "description": "--> src/packet_probe.rs:40:72\n\nx.to_dm(&mut device.tdma)",
+        "util": {
+          "total_util": 0.0039816233,
+          "base_util": 0.0039816233,
+          "efficiency": 1.0
+        }
+      },
+      {
+        "index": "7",
+        "history": {
+          "resourcelir": "O7"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 4268,
+          "end": 4539
+        },
+        "input_tensors": [
+          0
+        ],
+        "output_tensors": [
+          2
+        ],
+        "description": "--> src/packet_probe.rs:42:82\n\ndevice.sub\n.begin(x.view()).fetch::<m![ProbeK / 32], m![ProbeK % 32]>()\n.collect::<m![ProbeK / 32], m![ProbeK % 32]>().to_trf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "8",
+        "history": {
+          "resourcelir": "O8"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 4268,
+          "end": 7533
+        },
+        "input_tensors": [
+          4
+        ],
+        "output_tensors": [
+          3
+        ],
+        "description": "--> src/packet_probe.rs:41:80\n\nweights.to_dm(&mut device.tdma)",
+        "util": {
+          "total_util": 0.015007657,
+          "base_util": 0.015007657,
+          "efficiency": 1.0
+        }
+      },
+      {
+        "index": "13",
+        "history": {
+          "resourcelir": "O13"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 7533,
+          "end": 7817
+        },
+        "input_tensors": [
+          3,
+          2
+        ],
+        "output_tensors": [
+          5
+        ],
+        "description": "--> src/packet_probe.rs:45:87\n\ndevice.main\n.begin(w.view()).fetch::<m![ProbeR, ProbeK / 32], m![ProbeK % 32]>()\n.collect::<m![ProbeR, ProbeK / 32], m![ProbeK % 32]>()\n.contract_outer::<m![ProbeR, ProbeK / 64], m![ProbeK % 64], _, _, _>(&trf)\n.contract_packet::<m![ProbeK / 16 % 4]>()\n.contract_time::<m![ProbeR, ProbeK / 64]>()\n.contract_lane::<m![ProbeR, ProbeK / 16], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![ProbeR, ProbeK / 16 / 2], m![ProbeK / 16 % 2 # 8]>()\n.commit_trim::<m![ProbeK / 16 % 2]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "16",
+        "history": {
+          "resourcelir": "O16"
+        },
+        "tpe": "DmaStore",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 7817,
+          "end": 12265
+        },
+        "input_tensors": [
+          5,
+          7
+        ],
+        "output_tensors": [
+          6
+        ],
+        "description": "--> src/packet_probe.rs:54:5\n\nresult.view().to_hbm_view(&mut device.tdma, out.view_mut())",
+        "util": {
+          "total_util": 0.0029226618,
+          "base_util": 0.0029226618,
+          "efficiency": 1.0
+        }
+      },
+      {
+        "index": "20",
+        "history": {
+          "resourcelir": "O20"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 12265,
+          "end": 12265
+        },
+        "input_tensors": [
+          6
+        ],
+        "output_tensors": [
+          8
+        ],
+        "description": "--> src/packet_probe.rs:54:5\n\nresult.view().to_hbm_view(&mut device.tdma, out.view_mut())",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(5)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 12265,
+          "end": 12865
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      }
+    ]
+  }
+}

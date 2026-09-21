@@ -3,8 +3,9 @@
 All rows in the main performance table use the unchanged official three-kernel, three-input harness.
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
-The latest passing screen is E31: all 15 official-harness comparisons and 30 separate
-additional-input comparisons pass. Three independent same-package jobs also pass; their median-of-medians is97085/45355/389335.
+E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
+additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.
+E36 has passed30 additional comparisons. E37 is the latest passing combined screen (94094/45796/376040); its additional-input and repeated-package checks are pending.
 E29 remains a passing earlier screen; E30 is a passing paired QKV control. E28/E32 timeout,
 and E33 has substantial FFN correctness failures. Diagnostic jobs are separated below.
 
@@ -49,6 +50,10 @@ and E33 has substantial FFN correctness failures. Diagnostic jobs are separated 
 | E31 same package repeated | 70441, 70459, 70465 | Pass | 97085 | 45355 | 389335 | Four-file package hashes identical; job-median ranges2.714%/1.965%/0.177% |
 | E32 pair-free native FP8 FFN diagnostic | 70447 | QKV/O pass; first FFN launch timeout | 99692 | 52233 | — | Reject; removing Sequential pair does not resolve common native packet4 path |
 | E33 BF16 down block/scale DPE + E31 | 70455 | QKV/O pass; FFN fail | 96585 | 45738 | — | Reject; only12.94–16.17% FFN values within tolerance; causes unresolved |
+| E34 O row2 interleave + E31 packed/parallel | 70472 | Pass | 97092 | 47308 | 389291 | Reject for performance; O4.31% above E31 repeat median |
+| E35 native FP8 full256 live rows + real zero tails | 70485 | Pass | 97301 | 45799 | 811219 | Diagnostic PASS; slower, establishes packet4+pair can execute in this configuration |
+| E36 FFN H480×8 epilogue + E31 | 70498 | Pass | 97052 | 45141 | 378021 | Retain; FFN2.91% below E31 repeat median; extra30 pass70506 |
+| E37 kernel-specific RMS + E36 FFN epilogue | 70519 | Pass | 94094 | 45796 | 376040 | Latest combined screen; each device image identical to its passing parent; repeats/extra pending |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.
@@ -134,3 +139,15 @@ Direct packing also changed between earlier failing E21 and E28/E30, so a compil
 precise mechanism remains unproven. E33 FFN runtime408287 is invalid performance because accuracy failed.
 
 E31 same-package repeat evidence: [e31-rms-repeats.json](e31-rms-repeats.json). Original-repeat speedups are2.514×/8.912×/10.953×. These are Arena cycles, not official ranking.
+
+E36 additional run3..8 passed all30 comparisons in job70506 ([record](e36-ffn-epilogue-extra-correctness.json)).
+Its QKV and O device binaries match E31; the changed FFN retains existing BF16 boundaries and uses
+H480×8 for down output/global scale/postnorm/residual/store. It has not yet completed package repeats.
+
+E29 control repeats70428/70482/70493 allpass: median94491/49228/388311, ranges1.812%/1.479%/0.476%.
+This motivates using its byte-identical QKV image in E37 while keeping E36 output/FFN.
+
+E31 cache-preservation job70507 passes15 original outputs plus12 sentinel checks. All12,570,624
+non-target cache elements checked after launch match exactly; upload binary/fixture/runner hashes match.
+[Record](e31-cache-preservation-correctness.json). This custom harness is diagnostic and establishes
+preservation for E31's device code and those3target slots, not arbitrary input or later QKV binaries.

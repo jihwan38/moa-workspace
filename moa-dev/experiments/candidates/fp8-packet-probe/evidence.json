@@ -1,0 +1,102 @@
+{
+  "date": "2026-09-21",
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "official_score_candidate": false,
+  "source_snapshot_base": "moa-dev/experiments/artifacts/e27-qk-pair-v-two-dot/src",
+  "release_build": "PASS; initialandcompact-control revisionbothPASS",
+  "compiler_failures": 0,
+  "exact_compiles": "bothPASS",
+  "cpu_oracle_only": "bothPASS; Devicecreationandlaunchbypassed",
+  "npu_validation": "NOT RUN; parent deferred after E35 full256 native FP8 FFN PASS established retained packet4 can run",
+  "dimensions": {
+    "chips": 1,
+    "active_clusters": 1,
+    "live_slices": 256,
+    "input_elements": 64,
+    "rows": 4,
+    "cases_per_binary": 3,
+    "result_dtype": "F32",
+    "scalar_values_checked_per_case": 1024,
+    "block_values_checked_per_case": 4096
+  },
+  "removed_paths": [
+    "pair",
+    "quantizer",
+    "FP4lookup",
+    "localscales",
+    "BF16cast",
+    "VEarithmetic"
+  ],
+  "unchanged_between_kernels": [
+    "Host-generatedFP8values",
+    "HBM->DMreplicationall256slices",
+    "singlelaneTRF",
+    "FP8native64elementouter",
+    "onecluster"
+  ],
+  "oracle": {
+    "host_input_quantum": "1/8; finite exactly representable inFP8",
+    "product_quantum": "1/64",
+    "absolute_sum_bound": 256,
+    "fp32_summation_exact_for_chosen_inputs": true,
+    "reference_dtype": "F64thenexactlycastF32",
+    "comparison": "exact finite numerical equality, no tolerance; signedzeroequal",
+    "output_prefill": "NaN detects unwritten cells"
+  },
+  "source_sha256": {
+    "packet_probe.rs": "612dd7f5f99181ab8aa9e53c9f4572d6b4cf386382d50797830ecc327764698e",
+    "probe_fp8_scalar.rs": "dc05ebbfc4ba60a05e2ff0b0177fe90085dfcdbe47d654c8a2f725f0f2488e57",
+    "probe_fp8_blocks.rs": "104fabdbb58fe9034e411a01e57370a60548ad403b83f50fe311149aa049b1d4",
+    "probe_common/mod.rs": "40a05850b5ba3f413f2871504b2647f9c9d12c6f891d2fbe5a5fe35615bb1be6",
+    "remote_entrypoint.sh": "d5291dacc1c7f50936d2da61cb26a6df21902c12df96ad557696f7d333a11dda",
+    "inspect_registry.py": "49720d4310e4a35058fd5c04b0cb32eba0e262b9f16ce04999a4a86c20d7ae21"
+  },
+  "binaries": {
+    "scalar": {
+      "binary_sha256": "9863c412947ae473c330f86033143b4016283fb8fd5b2323e8405f43257ec079",
+      "binary_bytes": 2126816,
+      "registry": [
+        {
+          "path": "furiosa_opt_gemma4::packet_probe::fp8_scalar",
+          "key": [],
+          "image_bytes": 34560,
+          "image_sha256": "7bf4f9116d672309116f4ead8ad4f52a212ba3dabefdd27b4ae58f4e22b4447d"
+        }
+      ],
+      "registry_bytes": 34636
+    },
+    "blocks": {
+      "binary_sha256": "87ad48b9d01c6c41ae0eeca8c1c7d41b42f458cd12f2f8748b93868f39b3a38e",
+      "binary_bytes": 2127120,
+      "registry": [
+        {
+          "path": "furiosa_opt_gemma4::packet_probe::fp8_blocks",
+          "key": [],
+          "image_bytes": 34560,
+          "image_sha256": "ff172ef6ec7c018db9751045ba088c9e04ee553dc6e0b78ea0f34fd6dde9cb20"
+        }
+      ],
+      "registry_bytes": 34636
+    }
+  },
+  "static_cycles": {
+    "scalar": 17538,
+    "blocks": 12865
+  },
+  "scratch": "/tmp/moa-fp8-packet-probe",
+  "cargo_target_dir": "/tmp/moa-fp8-packet-probe/target",
+  "furiosa_opt_out_dir": "/tmp/moa-fp8-packet-probe/target/furiosa-opt/kernel",
+  "build_command": "cargo furiosa-opt build --release --bin probe_fp8_scalar --bin probe_fp8_blocks",
+  "packages": {
+    "scalar": "moa-dev/experiments/artifacts/fp8-packet-probe/scalar",
+    "blocks": "moa-dev/experiments/artifacts/fp8-packet-probe/blocks"
+  },
+  "limitations": [
+    "K64usesoneouterpacket; FFNH3840has60packetsandlargerlifetime",
+    "4rowsnot32; oneclusternot2",
+    "256live,nostructuralpaddingslices",
+    "Differentresultcountsnecessarilydifferentoutputmapping",
+    "Noofficialaccuracy/performanceconclusionfromthisdiagnostic"
+  ]
+}

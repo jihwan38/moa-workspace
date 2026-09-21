@@ -1,0 +1,55 @@
+{
+  "date": "2026-09-21",
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "baseline": "ffn-native-fp8-full256 E35 job70485",
+  "baseline_mlp_sha256": "e835f288722aac9b6528ff0fb3504d53bb87e4da10ba2fe625113db6c55926dc",
+  "baseline_static_cycles": 324369,
+  "baseline_hardware_ffn_median": 811219,
+  "variants": {
+    "weights": {
+      "source_file": "mlp.rs",
+      "source_sha256": "fcab0ea8a694a07ab352dcd93c2ef3643181f840e1d3f081ab81ad6d2489678e",
+      "exact_compile": "PASS firstattempt",
+      "static_cycles": 207944,
+      "instruction_count": 226,
+      "delta_percent_vs_E35": -35.89276410507786,
+      "schedule_sha256": "341aa4cc6575eb64165fb66970bad1c1eac821960edb8075dba15481b882475d",
+      "schedule_file_untracked": "/tmp/moa-ffn-full256-weight-direct-schedule.json",
+      "npu_correctness": "NOT TESTED"
+    },
+    "weights_and_scales": {
+      "source_file": "mlp.direct-scales.rs",
+      "source_sha256": "7c363a7f116ff9ebf4027f6a9957faa5cb3ce74aac85b3c5f7b6579ff628b267",
+      "exact_compile": "PASS firstattempt",
+      "static_cycles": 191836,
+      "instruction_count": 224,
+      "delta_percent_vs_E35": -40.85871337889873,
+      "schedule_sha256": "946c9b05bc3fe9faaceaacde9361a3681d2a1e51072b95c95b90d7f1cf41e218",
+      "schedule_file_untracked": "/tmp/moa-ffn-full256-weight-scale-direct-schedule.json",
+      "npu_correctness": "NOT TESTED",
+      "kernel_bin_sha256": "07feb85132c46d9b06679c19f0ad8e671fbcd7c8b42db6c66656436bcc1b0cfe"
+    }
+  },
+  "ops_sha256": "afc2d11998903a5afc9750abd7f01ec6b54103964752de86efae49aa4e206560",
+  "residual_sha256": "83d001788e3c1ae073ec8720435569fde062a47e52c181ab859a2d3f047accfc",
+  "unchanged": [
+    "entireDPEhelperbyteidenticalE35",
+    "allruntimequant/globalScales",
+    "FP8/BF16roundingboundaries",
+    "full256rowlayout",
+    "outputgatheranddummyrowremoval",
+    "safeGeGLU/down/ops/residual"
+  ],
+  "actual_zero_invariant": "Bothvariantsretainfourwhole32rowFP8memsets; directwritescoveronlyfirst30rowswithBottom-maskedtile, leavingtwoactualzero rows",
+  "weights_change": "F4->F8lookupcommitsdirectlytozeroedlive32bufferfirst30tile; removes two115200B/slice intermediateFP8DMtensors andtwo61875cycleDMAcopies",
+  "scales_change": "SecondvariantHBMviewto_dm_viewdirectlyfillszeroedlive32first30tile; removes two7200B/slice intermediateFP8scaleDMtensors andtwo4275cycleDMAcopies",
+  "new_cast_count": 0,
+  "npu_jobs_by_this_agent": 0,
+  "scratch": "/tmp/moa-ffn-full256-directcommit",
+  "scratch_current_mlp": "mlp.direct-scales.rs",
+  "cargo_target_dir": "/tmp/moa-ffn-full256-directcommit/target",
+  "furiosa_opt_out_dir": "/tmp/moa-ffn-full256-directcommit/target/furiosa-opt/kernel",
+  "compile_command": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/<variant>.json",
+  "limitations": "Equivalentintendeddataflowdoesnotprovecompiler/NPUcorrectness; newNPUvalidationrequired beforeadoption"
+}

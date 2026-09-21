@@ -56,7 +56,7 @@ pub fn sliding_project_qkv(
     q_out: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
 ) {
     let x: DmTensor<bf16, Chip, m![2], m![1 # 32, H / 480], m![H % 480]> = x.to_dm(&mut device.tdma);
-    let x = shared::rmsnorm::normalize_output_fused(device, &x, input_rms_weight);
+    let x = shared::rmsnorm::normalize_sharded_inter_slice(device, &x, input_rms_weight);
     let (q_packed, q_scale) = sliding::projection::prepare_fp8_split(device, &x);
 
     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
@@ -219,7 +219,7 @@ pub fn decoder_feedforward(
     let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = residual_hbm.to_dm(&mut device.tdma);
     let x = shared::rmsnorm::normalize(device, &residual, pre_ff_rms_weight);
 
-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::mlp::feedforward(
+    let x: DmTensor<bf16, Chip, Cluster, shared::mlp::DownEpilogueSlices, m![H % 480]> = shared::mlp::feedforward_sharded(
         device,
         x,
         up_weight_packed,
@@ -233,9 +233,9 @@ pub fn decoder_feedforward(
         down_global_scale,
     );
 
-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::rmsnorm::normalize(device, &x, post_ff_rms_weight);
-    let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> =
-        shared::residual::add_and_scale_parallel(device, &x, &residual, layer_scalar);
+    let x: DmTensor<bf16, Chip, Cluster, shared::mlp::DownEpilogueSlices, m![H % 480]> = shared::rmsnorm::normalize_output_fused(device, &x, post_ff_rms_weight);
+    let residual: DmTensor<bf16, Chip, Cluster, shared::mlp::DownEpilogueSlices, m![H % 480]> =
+        shared::residual::add_and_scale_sharded(device, &x, &residual, layer_scalar);
     residual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut());
 }
 

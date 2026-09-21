@@ -1,0 +1,112 @@
+{
+  "date": "2026-09-21",
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "purpose": "Diagnostic full256 live slices with actual zero dummy rows; not a performance candidate",
+  "exact_compile": "PASS",
+  "compile_attempts": 2,
+  "static_cycles": 324369,
+  "baseline_E25_static_cycles": 166220,
+  "instruction_count": 228,
+  "source_sha256": {
+    "mlp.rs": "e835f288722aac9b6528ff0fb3504d53bb87e4da10ba2fe625113db6c55926dc",
+    "ops.rs": "afc2d11998903a5afc9750abd7f01ec6b54103964752de86efae49aa4e206560",
+    "mlp.attempt1.rs": "60475bd70ce0a93d3a20145ebe02ba56fac21fc6d01b0eec74a767698443006f"
+  },
+  "baseline_mlp_sha256": "098c4c01171dd59d209c4b07512387ee418306362eb4d3f79af53c0ddd109c20",
+  "residual_sha256": "83d001788e3c1ae073ec8720435569fde062a47e52c181ab859a2d3f047accfc",
+  "kernel_bin_sha256": "a4082c4987cd934b48d9bb2706caf0fcce2223aabd6f0e9691f06b130f15851f",
+  "schedule_sha256": "9754d4bdacb8d13db1228429ea45bd374bd33f8e8f85dcc379de1985389e3800",
+  "schedule_file_untracked": "/tmp/moa-ffn-native-fp8-full256-schedule.json",
+  "npu_correctness": "PASS: E35 job70485 all15officialchecks",
+  "npu_jobs_by_this_agent": 0,
+  "hypothesis": "Spatial padding may interact with nativeFP8 retained packet4; not established by source or schedule",
+  "same_baseline": {
+    "runtime_quantizer_and_broadcast": true,
+    "DPE_helper_after_row_axis_rename": true,
+    "FP8_weight_decode": true,
+    "BF16_boundaries": true,
+    "all_global_scales": true,
+    "safe_down_GeGLU_ops": true,
+    "additional_casts": 0
+  },
+  "mapping": {
+    "clusters": 2,
+    "slices_per_cluster": 256,
+    "slice_padding": 0,
+    "real_rows_per_slice": 30,
+    "live_rows_per_slice": 32,
+    "real_row_formula": "L=7680*cluster+256*row+slice, row0..29",
+    "dummy_rows": [
+      30,
+      31
+    ],
+    "total_real_rows": 15360,
+    "total_dummy_rows_per_projection": 1024,
+    "original_HBM_view": "[Dummy2,FfnRow=30,FfnSlice,H]",
+    "weight_DPE_DM": "ClusterDummy2,SliceFfnSlice,Element[FfnRow,H]",
+    "scale_DPE_DM": "ClusterDummy2,SliceFfnSlice,Element[FfnRow,H/16]",
+    "output_compaction": "view tile row0..29 -> Switch gather in[row,slice] order -> four BF16 values/8Bcommit -> canonicalL7680 -> original output layout"
+  },
+  "actual_initialization": {
+    "whole_memset_count": 4,
+    "zero_dtype": "f8e4m3",
+    "weight_rows32_initialized_before_valid30_copy": true,
+    "scale_rows32_initialized_before_valid30_copy": true,
+    "no_uninitialized_padding_promoted_to_live": true,
+    "extra_weight_zero_cells_per_projection": 3932160,
+    "extra_scale_zero_cells_per_projection": 245760
+  },
+  "payload_bytes_per_slice": {
+    "original_F4_weights30": 57600,
+    "decoded_FP8_weights30": 115200,
+    "live_FP8_weights32": 122880,
+    "original_FP8_scales30": 7200,
+    "live_FP8_scales32": 7680,
+    "BF16_output32": 64
+  },
+  "costs": {
+    "weight_full_memset_cycles_each": 15626,
+    "scale_full_memset_cycles_each": 1226,
+    "weight_valid30_copy_cycles_each": 61875,
+    "scale_valid30_copy_cycles_each": 4275,
+    "native_block_dot_cycles_each": 7964,
+    "second_scale_dot_cycles_each": 745,
+    "output_gather_cycles_each": 8457
+  },
+  "confounders": [
+    "Original row ownership changed from32contiguous rows/240slices to30interleaved rows/256slices",
+    "Added true memset and DM staging copies",
+    "Output gather changed; register/DM lifetimes and scheduling changed",
+    "Retains E25 extra BF16 block rounding, unverified even if timeout disappears"
+  ],
+  "attempts": [
+    {
+      "n": 1,
+      "result": "FAIL",
+      "error": "tail_size.is_multiple_of(min_align) at BF16 row30=60B output compact DMA",
+      "log": "attempt-1-alignment-failed.log"
+    },
+    {
+      "n": 2,
+      "result": "PASS",
+      "change": "Interleave original rows and Switch gather first30 in order,8Bcommits,no extra casts",
+      "log": "compile.log"
+    }
+  ],
+  "scratch": "/tmp/moa-ffn-native-fp8-full256",
+  "cargo_target_dir": "/tmp/moa-ffn-native-fp8-full256/target",
+  "furiosa_opt_out_dir": "/tmp/moa-ffn-native-fp8-full256/target/furiosa-opt/kernel",
+  "compile_command": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/full256.json",
+  "hardware_validation": {
+    "job": 70485,
+    "official_checks": "15/15PASS",
+    "median_cycles": {
+      "qkv": 97301,
+      "output": 45799,
+      "ffn": 811219
+    },
+    "conclusion": "NativeFP8 retainedpacket4 can run in this full256 real-zero layout; padding alone is not isolated as cause",
+    "record": "docs/experiments/e35-full256-native.json"
+  }
+}

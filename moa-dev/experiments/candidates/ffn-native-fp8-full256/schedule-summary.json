@@ -1,0 +1,497 @@
+{
+  "makespan": 324369,
+  "instructions": [
+    {
+      "index": "44",
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 2679,
+        "end": 32106
+      },
+      "input_tensors": [
+        4
+      ],
+      "output_tensors": [
+        42
+      ],
+      "description": "--> src/device/shared/mlp.rs:100:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "71",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 4430,
+        "end": 20056
+      },
+      "input_tensors": [
+        14
+      ],
+      "output_tensors": [
+        62
+      ],
+      "description": "--> src/device/shared/mlp.rs:113:5\n\nup_weight_dense.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "73",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 20056,
+        "end": 21282
+      },
+      "input_tensors": [
+        15
+      ],
+      "output_tensors": [
+        63
+      ],
+      "description": "--> src/device/shared/mlp.rs:123:5\n\nup_scale_dense.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "96",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 34328,
+        "end": 43591
+      },
+      "input_tensors": [
+        42,
+        68
+      ],
+      "output_tensors": [
+        74
+      ],
+      "description": "--> src/device/shared/mlp.rs:101:101\n\ndevice\n.main\n.begin(up_weight_packed.view())\n.fetch::<m![FfnRow = 30], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![FfnRow = 30, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()"
+    },
+    {
+      "index": "204",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 75891,
+        "end": 137766
+      },
+      "input_tensors": [
+        74,
+        64
+      ],
+      "output_tensors": [
+        109
+      ],
+      "description": "--> src/device/shared/mlp.rs:114:5\n\nup_weight_packed.view().to_dm_view(&mut device.tdma,\nup_weight_dense.view_mut().tile::<m![FfnRow], 30, m![FfnRow = 30 #{!} 32, H]>(0))"
+    },
+    {
+      "index": "231",
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 137766,
+        "end": 144331
+      },
+      "input_tensors": [
+        2
+      ],
+      "output_tensors": [
+        115
+      ],
+      "description": "--> src/device/shared/mlp.rs:120:9\n\nup_weight_scale.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "235",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 137766,
+        "end": 145730
+      },
+      "input_tensors": [
+        116,
+        114,
+        108,
+        118
+      ],
+      "output_tensors": [
+        117
+      ],
+      "description": "--> src/device/shared/mlp.rs:40:91\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow, H / 32], m![H % 32]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64, FfnTerm], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<FfnTerm, m![FfnRow, H / 64]>()\n.vector_narrow_split::<m![FfnRow, H / 64, 1 # 2], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)\n.vector_widen_concat::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+    },
+    {
+      "index": "247",
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 145757,
+        "end": 175184
+      },
+      "input_tensors": [
+        10
+      ],
+      "output_tensors": [
+        123
+      ],
+      "description": "--> src/device/shared/mlp.rs:134:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "263",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 176022,
+        "end": 180297
+      },
+      "input_tensors": [
+        115,
+        65
+      ],
+      "output_tensors": [
+        132
+      ],
+      "description": "--> src/device/shared/mlp.rs:124:5\n\nup_weight_scale.view().to_dm_view(&mut device.tdma,\nup_scale_dense.view_mut().tile::<m![FfnRow], 30, m![FfnRow = 30 #{!} 32, H / 16]>(0))"
+    },
+    {
+      "index": "270",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 177324,
+        "end": 186587
+      },
+      "input_tensors": [
+        123,
+        131
+      ],
+      "output_tensors": [
+        134
+      ],
+      "description": "--> src/device/shared/mlp.rs:135:103\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![FfnRow = 30], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![FfnRow = 30, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()"
+    },
+    {
+      "index": "274",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 180297,
+        "end": 181523
+      },
+      "input_tensors": [
+        135
+      ],
+      "output_tensors": [
+        136
+      ],
+      "description": "--> src/device/shared/mlp.rs:157:5\n\ngate_scale_dense.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "285",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 186587,
+        "end": 188050
+      },
+      "input_tensors": [
+        139,
+        111
+      ],
+      "output_tensors": [
+        142
+      ],
+      "description": "--> src/device/shared/mlp.rs:59:89\n\ndevice\n.main.begin(scales.view())\n.fetch::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.commit_trim::<m![H / 16 % 16]>()\n.commit()"
+    },
+    {
+      "index": "286",
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 186587,
+        "end": 193152
+      },
+      "input_tensors": [
+        8
+      ],
+      "output_tensors": [
+        143
+      ],
+      "description": "--> src/device/shared/mlp.rs:154:9\n\ngate_weight_scale.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "294",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 188062,
+        "end": 203688
+      },
+      "input_tensors": [
+        145
+      ],
+      "output_tensors": [
+        146
+      ],
+      "description": "--> src/device/shared/mlp.rs:147:5\n\ngate_weight_dense.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "297",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 193152,
+        "end": 197427
+      },
+      "input_tensors": [
+        143,
+        140
+      ],
+      "output_tensors": [
+        147
+      ],
+      "description": "--> src/device/shared/mlp.rs:158:5\n\ngate_weight_scale.view().to_dm_view(&mut device.tdma,\ngate_scale_dense.view_mut().tile::<m![FfnRow], 30, m![FfnRow = 30 #{!} 32, H / 16]>(0))"
+    },
+    {
+      "index": "310",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 203688,
+        "end": 205871
+      },
+      "input_tensors": [
+        142
+      ],
+      "output_tensors": [
+        162
+      ],
+      "description": "--> src/device/shared/mlp.rs:66:101\n\ndevice\n.sub.begin(scales.view())\n.fetch::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.to_trf()"
+    },
+    {
+      "index": "316",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 205871,
+        "end": 267746
+      },
+      "input_tensors": [
+        134,
+        163
+      ],
+      "output_tensors": [
+        164
+      ],
+      "description": "--> src/device/shared/mlp.rs:148:5\n\ngate_weight_packed.view().to_dm_view(&mut device.tdma,\ngate_weight_dense.view_mut().tile::<m![FfnRow], 30, m![FfnRow = 30 #{!} 32, H]>(0))"
+    },
+    {
+      "index": "318",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 205871,
+        "end": 206616
+      },
+      "input_tensors": [
+        117,
+        162,
+        16
+      ],
+      "output_tensors": [
+        165
+      ],
+      "description": "--> src/device/shared/mlp.rs:71:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![FfnRow, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![FfnRow]>()\n.contract_lane::<m![FfnRow], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![FfnRow / 4], m![FfnRow % 4 # 16]>()\n.commit_trim::<m![FfnRow % 4]>()\n.commit_view(output.view_mut())"
+    },
+    {
+      "index": "328",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 207164,
+        "end": 208627
+      },
+      "input_tensors": [
+        152,
+        166
+      ],
+      "output_tensors": [
+        168
+      ],
+      "description": "--> src/device/shared/mlp.rs:59:89\n\ndevice\n.main.begin(scales.view())\n.fetch::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.commit_trim::<m![H / 16 % 16]>()\n.commit()"
+    },
+    {
+      "index": "344",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 208627,
+        "end": 217084
+      },
+      "input_tensors": [
+        167
+      ],
+      "output_tensors": [
+        172
+      ],
+      "description": "--> src/device/shared/mlp.rs:178:5\n\ndevice.main\n.begin(x.view().tile::<m![FfnRow], 30, m![FfnRow = 30 # 32]>(0))\n.fetch::<m![FfnRow = 30], m![1 # 16]>()\n.switch::<Slice, m![FfnRow = 30, FfnSlice]>(SwitchConfig::Broadcast1 { slice1: 256, slice0: 1 })\n.collect::<m![FfnRow = 30, FfnSlice], m![1 # 16]>()\n.transpose::<m![FfnRow = 30, FfnSlice / 4], m![FfnSlice % 4 # 16]>()\n.commit_trim::<m![FfnSlice % 4]>()\n.commit()"
+    },
+    {
+      "index": "346",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 208627,
+        "end": 210810
+      },
+      "input_tensors": [
+        168
+      ],
+      "output_tensors": [
+        173
+      ],
+      "description": "--> src/device/shared/mlp.rs:66:101\n\ndevice\n.sub.begin(scales.view())\n.fetch::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.to_trf()"
+    },
+    {
+      "index": "356",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 267746,
+        "end": 269112
+      },
+      "input_tensors": [
+        175,
+        60
+      ],
+      "output_tensors": [
+        176
+      ],
+      "description": "--> src/device/shared/mlp.rs:171:6\n\nup.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "360",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 267746,
+        "end": 275710
+      },
+      "input_tensors": [
+        177,
+        114,
+        108,
+        179
+      ],
+      "output_tensors": [
+        178
+      ],
+      "description": "--> src/device/shared/mlp.rs:40:91\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow, H / 32], m![H % 32]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64, FfnTerm], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<FfnTerm, m![FfnRow, H / 64]>()\n.vector_narrow_split::<m![FfnRow, H / 64, 1 # 2], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)\n.vector_widen_concat::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+    },
+    {
+      "index": "371",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 275710,
+        "end": 276455
+      },
+      "input_tensors": [
+        178,
+        173,
+        133
+      ],
+      "output_tensors": [
+        182
+      ],
+      "description": "--> src/device/shared/mlp.rs:71:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![FfnRow, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![FfnRow]>()\n.contract_lane::<m![FfnRow], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![FfnRow / 4], m![FfnRow % 4 # 16]>()\n.commit_trim::<m![FfnRow % 4]>()\n.commit_view(output.view_mut())"
+    },
+    {
+      "index": "377",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 276534,
+        "end": 284991
+      },
+      "input_tensors": [
+        183
+      ],
+      "output_tensors": [
+        184
+      ],
+      "description": "--> src/device/shared/mlp.rs:178:5\n\ndevice.main\n.begin(x.view().tile::<m![FfnRow], 30, m![FfnRow = 30 # 32]>(0))\n.fetch::<m![FfnRow = 30], m![1 # 16]>()\n.switch::<Slice, m![FfnRow = 30, FfnSlice]>(SwitchConfig::Broadcast1 { slice1: 256, slice0: 1 })\n.collect::<m![FfnRow = 30, FfnSlice], m![1 # 16]>()\n.transpose::<m![FfnRow = 30, FfnSlice / 4], m![FfnSlice % 4 # 16]>()\n.commit_trim::<m![FfnSlice % 4]>()\n.commit()"
+    },
+    {
+      "index": "392",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 284991,
+        "end": 286357
+      },
+      "input_tensors": [
+        190,
+        144
+      ],
+      "output_tensors": [
+        192
+      ],
+      "description": "--> src/device/shared/mlp.rs:171:34\n\ngate.to_dm(&mut device.tdma)"
+    }
+  ]
+}

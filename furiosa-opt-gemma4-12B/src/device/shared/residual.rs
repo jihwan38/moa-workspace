@@ -184,3 +184,58 @@ pub(crate) fn add_and_scale_parallel(
         .commit_trim::<m![H % 16]>()
         .commit()
 }
+
+
+pub(crate) fn add_and_scale_sharded(
+    device: &mut Device,
+    x: &DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]>,
+    residual: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+    scalar: &HbmTensor<bf16, Chip, m![1 # 8]>,
+) -> DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> {
+    type ResidualSlices = m![1 # 32, H / 480];
+    let residual: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 480]> = residual.to_dm(&mut device.tdma);
+    let residual_vrf: VrfTensor<f32, Chip, Cluster, ResidualSlices, m![H % 480]> = device
+        .sub
+        .begin(residual.view())
+        .fetch::<m![1], m![H % 480]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H / 8 % 60], m![H % 8]>()
+        .to_vrf();
+    let scalar: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![1 # 8]> = scalar.to_dm(&mut device.tdma);
+    let scalar: VrfTensor<f32, Chip, Cluster, ResidualSlices, m![1 # 8]> = device
+        .sub
+        .begin(scalar.view())
+        .fetch::<m![1], m![1 # 8]>()
+        .fetch_cast::<f32>()
+        .collect::<m![1], m![1 # 8]>()
+        .to_vrf();
+    let sum: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 480]> = device
+        .main
+        .begin(x.view())
+        .fetch::<m![1], m![H % 480]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H / 8 % 60], m![H % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Add, &residual_vrf)
+        .vector_final()
+        .cast::<bf16, m![H % 8 # 16]>()
+        .commit_trim::<m![H % 8]>()
+        .commit();
+    let scaled: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 480]> = device
+        .main
+        .begin(sum.view())
+        .fetch::<m![H / 16 % 30], m![H % 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H / 8 % 60], m![H % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scalar)
+        .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()
+        .vector_final()
+        .cast::<bf16, m![H % 8 # 16]>()
+        .commit_trim::<m![H % 8]>()
+        .commit();
+    scaled
+}

@@ -23,7 +23,17 @@
 
 ## 실측 진행 상황
 
-최신 검증 후보 **E31**은 [job70441](experiments/e31-switch-gather-rms.json)에서
+최신 **E37**은 [job70519](experiments/e37-kernel-specific-rms.json)에서
+QKV94,094/O45,796/FFN376,040 cycles, 15개출력을모두통과했다.
+QKV deviceimage는E29, O/FFN은E36과byte-identical하다. 결합패키지의반복/추가입력검사는별도진행한다.
+
+직전 조합 **E36**은 [job70498](experiments/e36-ffn-parallel-epilogue.json)에서
+QKV97,052/O45,141/FFN378,021로15개출력통과, 추가run3..8도30개출력을 모두통과했다.
+FFN의down이후값을H480×8로유지해 globalScale/postnorm/residual의중복gather/scatter를줄인다.
+행렬계산과BF16경계는유지하지만postnorm합순서는바뀐다. FFN단일screen은E31반복중앙값보다2.91%낮다.
+E29재측정Q중앙값94,491을재현해, Q에만이전RMS를쓰는 E37조합을별도평가한다.
+
+반복 검증 후보 **E31**은 [job70441](experiments/e31-switch-gather-rms.json)에서
 QKV **98,797** / O **45,355** / FFN **389,335** cycles로 공식15개출력을 통과했다.
 RMS 부분합8개를 Switch로 모아 local sum하고 별도 EPS/Sqrt 및 scalar broadcast를 수행한다.
 추가run3..8도 [job70448](experiments/e31-rms-extra-correctness.json)에서30개출력을 전부통과했다.
@@ -199,3 +209,12 @@ host-device 동기화, NPU 시간을 분리해 측정한다. FlashAttention 계�
 
 공식 채점 서버 인증, 과거 `BEEF` 항목의 소속·소스, 변경 중인 평가 기준은 별도 확인 항목이다.
 이들 확인을 기다리는 동안 Arena의 소스 분석·정확성·성능 실험을 진행한다.
+
+공식사이트의 제출중단 공지를 2026-09-21 11:04 UTC경 다시확인했다. 평가기준수정 중에는
+공식제출이불가하고 Arena개발은가능하다고안내한다. 현재기록은공식순위가아니다.
+[공식공지](https://micro2026-moa.github.io/leaderboard.html), [확인기록](experiments/official-submission-status-20260921.json).
+
+FP8 FFN의E35full256변형은전체15개출력을통과했다. 단,811,219cycles여서현재채택하지않는다.
+240→256유효slice,행interleave,실제zero tail,중간copy와lifetime이함께바뀌므로padding만이원인이라고단정하지않는다.
+이통과경로의대형copy/전체zero-fill부터독립제거하고,메모리배치비용을다시측정한다.
+[원인구분](experiments/e35-full256-native-cause-audit.md), [잔여병목](../moa-dev/experiments/candidates/ffn-parallel-epilogue/remaining-bottlenecks.md).

@@ -1,0 +1,129 @@
+--- a/src/bin/test_kernels.rs
++++ b/src/bin/test_kernels.rs
+@@ -478,6 +478,78 @@
+     }
+ }
+ 
++// Independent side-effect check: this never alters fixture/oracle/tolerance.
++static CACHE_PRESERVATION_MISMATCHES: AtomicU64 = AtomicU64::new(0);
++
++fn cache_sentinel_bits(run: usize, cache_name: &str) -> Vec<u16> {
++    let seed = prng::name_hash(&format!("cache-preservation/{cache_name}/run{run}"));
++    (0..Ts::SIZE * Ns::SIZE * Ds::SIZE)
++        .map(|index| {
++            let word = prng::word(seed, index);
++            // Magnitudes 0x3e00..0x3fff are finite, normal and nonzero.
++            let magnitude = 0x3e00u16 + (word as u16 & 0x01ff);
++            magnitude | (((word >> 63) as u16) << 15)
++        })
++        .collect()
++}
++
++async fn upload_cache_sentinel(
++    device: &mut Device,
++    expected: &[u16],
++) -> HbmTensor<bf16, Chip, m![Ts, Ns, Ds]> {
++    let bytes: Vec<u8> = expected.iter().flat_map(|bits| bits.to_le_bytes()).collect();
++    HostTensor::<bf16, m![Ts, Ns, Ds]>::from_buf(bytes)
++        .to_hbm(&mut device.pdma).await.unwrap()
++}
++
++async fn read_cache_bits(
++    device: &mut Device,
++    cache: &HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
++) -> Vec<u16> {
++    let host: HostTensor<bf16, m![Ts, Ns, Ds]> = cache.to_host(&mut device.pdma).await.unwrap();
++    host.into_vec().into_iter().map(bf16::to_bits).collect()
++}
++
++fn check_cache_sentinel(
++    stage: &str,
++    cache_name: &str,
++    run: usize,
++    slot: usize,
++    expected: &[u16],
++    actual: &[u16],
++    exclude_target: bool,
++) {
++    let width = Ns::SIZE * Ds::SIZE;
++    let start = slot * width;
++    let end = start + width;
++    assert_eq!(expected.len(), Ts::SIZE * width);
++    assert_eq!(actual.len(), expected.len());
++    assert!(slot < Ts::SIZE && start < end && end <= actual.len());
++    let mut checked = 0usize;
++    let mut mismatches = 0usize;
++    for index in 0..actual.len() {
++        if exclude_target && (start..end).contains(&index) {
++            continue;
++        }
++        checked += 1;
++        if actual[index] != expected[index] {
++            if mismatches < 8 {
++                eprintln!(
++                    "CACHE_MISMATCH stage={stage} cache={cache_name} run={run} target_slot={slot} index={index} slot={} head={} dim={} byte_offset={} expected=0x{:04x} actual=0x{:04x}",
++                    index / width, index % width / Ds::SIZE, index % Ds::SIZE,
++                    index * 2, expected[index], actual[index],
++                );
++            }
++            mismatches += 1;
++        }
++    }
++    CACHE_PRESERVATION_MISMATCHES.fetch_add(mismatches as u64, Ordering::Relaxed);
++    println!(
++        "CACHE_CHECK stage={stage} cache={cache_name} run={run} target_slot={slot} target_elements=[{start},{end}) target_bytes=[{},{}) checked={checked} mismatches={mismatches}",
++        start * 2, end * 2,
++    );
++}
++
+ async fn sliding_project_qkv(device: &mut Device, fixture: &Fixture, run: usize) -> Vec<(&'static str, Vec<f32>)> {
+     let s = Synth::new("sliding_project_qkv", run, fixture);
+     let pos = pos(run);
+@@ -505,8 +577,16 @@
+     let offset = (slot * Ns::SIZE * Ds::SIZE * 2) as i32;
+     let kv_offset: HbmTensor<i32, Chip, m![1]> = s.constant_i32(device, "kv_offset", offset).await;
+ 
+-    let mut k_cache: HbmTensor<bf16, Chip, m![Ts, Ns, Ds]> = zeros(device).await;
+-    let mut v_cache: HbmTensor<bf16, Chip, m![Ts, Ns, Ds]> = zeros(device).await;
++    let expected_k_cache = cache_sentinel_bits(run, "k");
++    let expected_v_cache = cache_sentinel_bits(run, "v");
++    let mut k_cache = upload_cache_sentinel(device, &expected_k_cache).await;
++    let mut v_cache = upload_cache_sentinel(device, &expected_v_cache).await;
++    // Verify the actual device contents before launch, including the target slot.
++    let before_k = read_cache_bits(device, &k_cache).await;
++    let before_v = read_cache_bits(device, &v_cache).await;
++    check_cache_sentinel("before", "k", run, slot, &expected_k_cache, &before_k, false);
++    check_cache_sentinel("before", "v", run, slot, &expected_v_cache, &before_v, false);
++    assert_eq!(offset as usize, slot * Ns::SIZE * Ds::SIZE * 2);
+     let mut q_out: HbmTensor<bf16, Chip, m![Ns, Gs, Ds]> = zeros(device).await;
+ 
+     launch(
+@@ -536,8 +616,15 @@
+     .unwrap();
+ 
+     let width = Ns::SIZE * Ds::SIZE;
+-    let k = read_bf16(device, &k_cache).await[slot * width..(slot + 1) * width].to_vec();
+-    let v = read_bf16(device, &v_cache).await[slot * width..(slot + 1) * width].to_vec();
++    let after_k = read_cache_bits(device, &k_cache).await;
++    let after_v = read_cache_bits(device, &v_cache).await;
++    check_cache_sentinel("after", "k", run, slot, &expected_k_cache, &after_k, true);
++    check_cache_sentinel("after", "v", run, slot, &expected_v_cache, &after_v, true);
++    // Feed exactly the original target slot to the unmodified oracle comparison.
++    let k = after_k[slot * width..(slot + 1) * width].iter()
++        .map(|bits| prng::bf16_bits_to_f32(*bits)).collect();
++    let v = after_v[slot * width..(slot + 1) * width].iter()
++        .map(|bits| prng::bf16_bits_to_f32(*bits)).collect();
+     vec![
+         ("expected.q", read_bf16(device, &q_out).await),
+         ("expected.k", k),
+@@ -880,5 +967,8 @@
+             failures.join(", ")
+         );
+     }
+-    std::process::exit(i32::from(!failures.is_empty()));
+-}
++    let cache_mismatches = CACHE_PRESERVATION_MISMATCHES.load(Ordering::Relaxed);
++    println!("CACHE_PRESERVATION total_mismatches={cache_mismatches} status={}",
++        if cache_mismatches == 0 { "PASS" } else { "FAIL" });
++    std::process::exit(i32::from(!failures.is_empty() || cache_mismatches != 0));
++}

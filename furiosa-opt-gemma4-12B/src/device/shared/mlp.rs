@@ -160,6 +160,23 @@ pub(crate) fn feedforward(
     gate_global_scale: &HbmTensor<f32, Chip, m![1]>,
     down_global_scale: &HbmTensor<f32, Chip, m![1]>,
 ) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
+    let down = feedforward_sharded(device, x, up_weight_packed, gate_weight_packed, down_weight_packed, up_weight_scale, gate_weight_scale, down_weight_scale, up_global_scale, gate_global_scale, down_global_scale);
+    down.to_dm(&mut device.tdma)
+}
+
+pub(crate) fn feedforward_sharded(
+    device: &mut Device,
+    x: DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+    up_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+    gate_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+    down_weight_packed: &HbmTensor<f4e2m1, Chip, m![H, L]>,
+    up_weight_scale: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
+    gate_weight_scale: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
+    down_weight_scale: &HbmTensor<f8e4m3, Chip, m![H, L / 16]>,
+    up_global_scale: &HbmTensor<f32, Chip, m![1]>,
+    gate_global_scale: &HbmTensor<f32, Chip, m![1]>,
+    down_global_scale: &HbmTensor<f32, Chip, m![1]>,
+) -> DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]> {
     // Broadcast the normalized single-slice activation directly into
     // both row clusters before the up/gate projections.
     let x: DmTensor<bf16, Chip, UpGateCluster, m![Dummy256 / 16, 1 # 16], m![H]> = x.to_dm(&mut device.tdma);
@@ -190,27 +207,27 @@ pub(crate) fn feedforward(
         gate_weight_scale,
     );
     let x = geglu(device, up, gate, up_global_scale, gate_global_scale);
-    let down = project_down(device, &x, down_weight_packed, down_weight_scale);
+    let down = project_down_sharded(device, &x, down_weight_packed, down_weight_scale);
 
-    let down_global_scale: DmTensor<f32, Chip, Cluster, Slice, m![1 # 8]> = down_global_scale.to_dm(&mut device.tdma);
-    let down_global_scale_vrf: VrfTensor<f32, Chip, Cluster, Slice, m![1 # 8]> = device
+    let down_global_scale: DmTensor<f32, Chip, Cluster, DownEpilogueSlices, m![1 # 8]> = down_global_scale.to_dm(&mut device.tdma);
+    let down_global_scale_vrf: VrfTensor<f32, Chip, Cluster, DownEpilogueSlices, m![1 # 8]> = device
         .sub
         .begin(down_global_scale.view())
         .fetch::<m![1], m![1 # 8]>()
         .collect::<m![1], m![1 # 8]>()
         .to_vrf();
 
-    let down: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = device
+    let down: DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]> = device
         .main
         .begin(down.view())
-        .fetch::<m![H / 16], m![H % 16]>()
+        .fetch::<m![H / 16 % 30], m![H % 16]>()
         .fetch_cast::<f32>()
-        .collect::<m![H / 8], m![H % 8]>()
+        .collect::<m![H / 8 % 60], m![H % 8]>()
         .vector_init()
         .vector_intra_slice_tag(TagMode::Zero)
-        .vector_narrow_split::<m![H / 4], m![H % 4]>()
+        .vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &down_global_scale_vrf)
-        .vector_widen_concat::<m![H / 8], m![H % 8]>()
+        .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()
         .vector_final()
         .cast::<bf16, m![H % 8 # 16]>()
         .commit_trim::<m![H % 8]>()
@@ -338,6 +355,7 @@ pub(crate) fn geglu(
         .commit()
 }
 
+pub(crate) type DownEpilogueSlices = m![1 # 32, H / 480];
 pub(crate) type DownCluster = m![Dummy2];
 pub(crate) type DownRows = m![H / 60 % 32, 1 # 8];
 pub(crate) type DownRowsByColumns = m![H / 60 % 32, L / 1920];
@@ -348,6 +366,16 @@ pub(crate) fn project_down(
     down_weight_packed: &HbmTensor<f4e2m1, Chip, m![H, L]>,
     down_weight_scale: &HbmTensor<f8e4m3, Chip, m![H, L / 16]>,
 ) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
+    let down = project_down_sharded(device, x, down_weight_packed, down_weight_scale);
+    down.to_dm(&mut device.tdma)
+}
+
+pub(crate) fn project_down_sharded(
+    device: &mut Device,
+    x: &DmTensor<bf16, Chip, Cluster, UpGateRowsPaired, m![L % 120]>,
+    down_weight_packed: &HbmTensor<f4e2m1, Chip, m![H, L]>,
+    down_weight_scale: &HbmTensor<f8e4m3, Chip, m![H, L / 16]>,
+) -> DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]> {
     let x: DmTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![L % 1920]> = x.to_dm(&mut device.tdma);
     let x_trf: TrfTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![1], m![L % 1920]> = device
         .sub
@@ -419,8 +447,8 @@ pub(crate) fn project_down(
             .commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i));
     });
 
-    // Compact each cluster before joining its high row axis back into H.
-    let down: DmTensor<bf16, Chip, DownCluster, Slice, m![H % 1920]> = down.to_dm(&mut device.tdma);
-    let down: DmTensor<bf16, Chip, m![H / 1920], Slice, m![H % 1920]> = unsafe { down.reshape() };
+    // Only rename the existing high-row cluster axis. Typed DMA performs
+    // the actual gather: h = 1920 * cluster + 60 * row_group + local_row.
+    let down: DmTensor<bf16, Chip, m![H / 1920], DownRows, m![H % 60]> = unsafe { down.reshape() };
     down.to_dm(&mut device.tdma)
 }

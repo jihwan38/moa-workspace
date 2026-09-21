@@ -1,0 +1,5 @@
+# Kernel-specific sharded RMS reduction
+
+E37 preserves E29's inter-slice RMS reduction for QKV and E36's Switch-gather RMS for output/FFN. E29 repeated QKV median94,491 (94,070–95,782) is lower than E31's97,085 (96,162–98,797), despite the latter's lower static reduction-node duration. The old helper body is copied under normalize_sharded_inter_slice; only the QKV input-normalization caller changes. Public signatures remain unchanged.
+
+After full build, each of the three device images is byte-identical to its reference (QKV E29, output/FFN E36). This does not replace a combined package test; Arena70519 passes all15comparisons at Q94094/O45796/FFN376040 cycles. Extra inputs and repeated jobs are tracked separately. Sources/patch/hashes are frozen here.
