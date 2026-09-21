@@ -1,0 +1,44 @@
+--- a/mlp.rs
++++ b/mlp.rs
+@@ -47,13 +47,13 @@
+         .fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()
+         .collect::<m![L % 32 = 8, H / 16], m![H % 16]>()
+         // Keep each 16-element scale block separate through the DPE.
+-        .contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)
+-        .contract_packet::<m![1]>()
+-        .contract_time::<m![L % 32 = 8, H / 16]>()
+-        .contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)
+-        .vector_init()
+-        .vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![1 # 4]>()
++        .contract_outer::<m![L % 32 = 8, H / 32], m![H % 32], _, _, _>(x_trf)
++        .contract_packet::<m![H / 16 % 2]>()
++        .contract_time::<m![L % 32 = 8, H / 32]>()
++        .contract_lane::<m![L % 32 = 8, H / 32], m![H / 16 % 2 # 8]>(LaneMode::Sequential)
++        .vector_init()
++        .vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![H / 16 % 2 # 4]>()
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+         .vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)
+         .vector_widen_pad::<m![1 # 8]>()
+@@ -399,14 +399,14 @@
+             .begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))
+             .fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()
+             .collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()
+-            .contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)
+-            .contract_packet::<m![1]>()
+-            // Identity time contraction preserves 120 independent scale blocks.
+-            .contract_time::<m![H % 60 = 12, L / 16 % 120]>()
+-            .contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)
++            .contract_outer::<m![H % 60 = 12, L / 32 % 60], m![L % 32], _, _, _>(&x_trf)
++            .contract_packet::<m![L / 16 % 2]>()
++            // Keep two 16-element blocks in each 64-byte DPE input packet.
++            .contract_time::<m![H % 60 = 12, L / 32 % 60]>()
++            .contract_lane::<m![H % 60 = 12, L / 32 % 60], m![L / 16 % 2 # 8]>(LaneMode::Sequential)
+             .vector_init()
+             .vector_intra_slice_tag(TagMode::Zero)
+-            .vector_narrow_trim::<m![1 # 4]>()
++            .vector_narrow_trim::<m![L / 16 % 2 # 4]>()
+             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+             // Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.
+             .vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)

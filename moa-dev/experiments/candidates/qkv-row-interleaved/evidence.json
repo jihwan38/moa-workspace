@@ -1,0 +1,60 @@
+{
+  "created_utc": "2026-09-21T09:54:08.784001+00:00",
+  "candidate": "qkv-row-interleaved",
+  "basis": "E15 saved source artifact, exact QKV entrypoint only",
+  "scratch": "/tmp/moa-qkv-row-interleaved",
+  "baseline_compile_exit": 0,
+  "candidate_compile_exit": 0,
+  "hardware_correctness": "PASS in root E18 job70248, all15 official output comparisons",
+  "decision": "Hardware QKV gain despite static regression; repeat measurement pending",
+  "compiled_projection_sha256": "fb53914bbfab3b97236111be046b998d3df299146698cc1f2a5c13448ac35d6f",
+  "unchanged_compiled_sources": {
+    "ops.rs": "656ac6c6a65d429a4a912a90be5b3c796250aa63e3f5bfa31109a0b0fcd8021f",
+    "device/sliding/rmsnorm.rs": "48bce532c0e9c0e39d6f17a6c38b78e34bfb5a00691291849e460b7a9044281f",
+    "device/sliding/rope.rs": "cc23ad726baf191184b8b0ff000516cf38148e04c05b74925ec8a966e80b3c93",
+    "device/shared/rmsnorm.rs": "8a4f3d4410a656b725f573050ae93d9964c0c928aa264dbffa9328203fc44f3e",
+    "axes.rs": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+  },
+  "files_sha256": {
+    "README.md": "10684dbad753b7e1b15c8950bc84232d9bb54c9a58542bdf81eda23d37f2d5b5",
+    "candidate.patch": "1e06fce097760d865cf52eeb26aa31464c771451162bf48b163f8822fb83165c",
+    "projection.direct-scales-failed.rs": "f0543b009b35bcb4bc0a06498ba05bf26272527f4557a3f4dd9546e688feaa66",
+    "projection.original.rs": "11a20e8b225feb98019571677779764c88989c01935268ecca370da44a4874d5",
+    "projection.rs": "fb53914bbfab3b97236111be046b998d3df299146698cc1f2a5c13448ac35d6f",
+    "projection.staged-scales-failed.rs": "b14db44957efa3be18d5e64986fb67cede9a826ce984b7e69871cb450d07a985",
+    "static-comparison.json": "a9518942ad051a12dc6b7c54464d55487f4d5d98a9a84bba9e052aad02439c01",
+    "validate_layout.py": "c95fe4163f310eb5c485b82bd99c1852123b8a488272ae7b581538ed5d3cc673"
+  },
+  "artifacts_sha256": {
+    "baseline.json": "ddd165c7b12668dc360875d7a65af0d498bfb063ae496583b28687583b81d5c1",
+    "baseline.log": "142a04e935cc79a260d1a9ba92abb17b8b441cd092b2509b522cd041b7a2c2e0",
+    "interleave8-direct-scales-failure.log": "d4fc0d53cabf0f9fc3f3ea8af8c53888ca06198ff9905a279399388e94366a0c",
+    "interleave8-staged-scales-failure.log": "0f2b53f3e00c61f9b9b6c125a27d6f000e66a55a7575f18141123222798114d9",
+    "interleave8-switch.log": "142a04e935cc79a260d1a9ba92abb17b8b441cd092b2509b522cd041b7a2c2e0",
+    "interleave8.json": "5afb149e6dbe1d7e683dafb9029c4fc23854d3ecbd6d653571ca1eef9980d37d"
+  },
+  "known_failures": [
+    {
+      "source": "projection.direct-scales-failed.rs",
+      "log": "../../artifacts/qkv-row-interleaved/interleave8-direct-scales-failure.log",
+      "reason": "HBM BF16 scalar interleave DMA stride2 violates8-byte alignment"
+    },
+    {
+      "source": "projection.staged-scales-failed.rs",
+      "log": "../../artifacts/qkv-row-interleaved/interleave8-staged-scales-failure.log",
+      "reason": "Canonical DM to interleaved DM scalar DMA stride2 violates8-byte alignment"
+    }
+  ],
+  "hardware_performance": {
+    "job_id": 70248,
+    "root_experiment": "E18",
+    "qkv_median_cycles": 105502,
+    "output_median_cycles": 65139,
+    "ffn_median_cycles": 389781,
+    "e15_qkv_repeat_median_cycles": 115780,
+    "qkv_reduction_percent": 8.877180860252203,
+    "source_projection_sha256": "fb53914bbfab3b97236111be046b998d3df299146698cc1f2a5c13448ac35d6f",
+    "note": "Root confirmed applying frozen projection SHA and full harness; E18 repeat measurement pending.",
+    "source": "docs/experiments/e18-qkv-row-interleaved.json"
+  }
+}

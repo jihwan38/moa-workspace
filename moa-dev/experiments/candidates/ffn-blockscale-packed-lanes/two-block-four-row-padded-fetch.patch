@@ -1,0 +1,147 @@
+--- mlp.original.rs
++++ mlp.two-block-four-row-padded-fetch.rs
+@@ -25,7 +25,7 @@
+ 
+ // Local block scales apply to 16-element FP32 dot products. FP4*FP8 weight
+ // products are BF16-exact, but this changes FP32 reduction order; validate on NPU.
+-fn project_eight_rows_scaled_after_dot(
++fn project_four_rows_two_blocks(
+     device: &mut Device,
+     x_trf: &TrfTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![1], m![H]>,
+     weights: &DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]>,
+@@ -33,35 +33,35 @@
+     output: &mut DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]>,
+     row_offset: usize,
+ ) {
+-    let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![L % 32 = 8, H / 16]> = device
+-        .sub
+-        .begin(scales.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))
+-        .fetch::<m![L % 32 = 8], m![H / 16]>()
+-        .fetch_cast::<f32>()
+-        .collect::<m![L % 32 = 8, H / 16 / 8], m![H / 16 % 8]>()
++    let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![L % 32 = 4, H / 32, H / 16 % 2 # 4]> = device
++        .sub
++        .begin(scales.view().tile::<m![L % 32], 4, m![L % 32 = 4 # 32, H / 16]>(row_offset))
++        .fetch::<m![L % 32 = 4, H / 32], m![H / 16 % 2 # 4]>()
++        .fetch_cast::<f32>()
++        .collect::<m![L % 32 = 4, H / 64], m![H / 32 % 2, H / 16 % 2 # 4]>()
+         .to_vrf();
+ 
+     device
+         .main
+-        .begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))
+-        .fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()
+-        .collect::<m![L % 32 = 8, H / 16], m![H % 16]>()
++        .begin(weights.view().tile::<m![L % 32], 4, m![L % 32 = 4 # 32, H]>(row_offset))
++        .fetch::<m![L % 32 = 4, H / 16], m![H % 16]>()
++        .collect::<m![L % 32 = 4, H / 16], m![H % 16]>()
+         // Keep each 16-element scale block separate through the DPE.
+-        .contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)
+-        .contract_packet::<m![1]>()
+-        .contract_time::<m![L % 32 = 8, H / 16]>()
+-        .contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)
+-        .vector_init()
+-        .vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![1 # 4]>()
++        .contract_outer::<m![L % 32 = 4, H / 32], m![H % 32], _, _, _>(x_trf)
++        .contract_packet::<m![H / 16 % 2]>()
++        .contract_time::<m![L % 32 = 4, H / 32]>()
++        .contract_lane::<m![L % 32 = 4, H / 32], m![H / 16 % 2 # 8]>(LaneMode::Sequential)
++        .vector_init()
++        .vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![H / 16 % 2 # 4]>()
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+-        .vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)
++        .vector_intra_slice_reduce::<H, m![L % 32 = 4], m![1 # 4]>(IntraSliceReduceOpF32::Add)
+         .vector_widen_pad::<m![1 # 8]>()
+         .vector_final()
+         .cast::<bf16, m![1 # 16]>()
+-        .transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()
+-        .commit_trim::<m![L % 32 = 8 % 4]>()
+-        .commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset));
++        .transpose::<m![L % 32 = 4 / 4], m![L % 32 = 4 % 4 # 16]>()
++        .commit_trim::<m![L % 32 = 4 % 4]>()
++        .commit_view(output.view_mut().tile::<m![L % 32], 4, m![L % 32 = 4 #{!} 32]>(row_offset));
+ }
+ 
+ pub(crate) fn project_up_and_gate(
+@@ -103,8 +103,8 @@
+     let up_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]> =
+         up_weight_scale.to_dm(&mut device.tdma);
+ 
+-    static_passes!(i, [0, 1, 2, 3], {
+-        project_eight_rows_scaled_after_dot(device, x_trf, &up_weight_bf16, &up_weight_scale, &mut up, 8 * i);
++    static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7], {
++        project_four_rows_two_blocks(device, x_trf, &up_weight_bf16, &up_weight_scale, &mut up, 4 * i);
+     });
+ 
+     let mut gate: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]> = DmTensor::new();
+@@ -135,8 +135,8 @@
+     let gate_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]> =
+         gate_weight_scale.to_dm(&mut device.tdma);
+ 
+-    static_passes!(i, [0, 1, 2, 3], {
+-        project_eight_rows_scaled_after_dot(device, x_trf, &gate_weight_bf16, &gate_weight_scale, &mut gate, 8 * i);
++    static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7], {
++        project_four_rows_two_blocks(device, x_trf, &gate_weight_bf16, &gate_weight_scale, &mut gate, 4 * i);
+     });
+ 
+     // Remove padding with typed copies before reinterpreting the high row axis.
+@@ -385,38 +385,38 @@
+         .commit_trim::<m![L % 16]>()
+         .commit();
+ 
+-    static_passes!(i, [0, 1, 2, 3, 4], {
+-        let scale_vrf: VrfTensor<f32, Chip, DownCluster, DownRowsByColumns, m![H % 60 = 12, L / 16 % 120]> = device
++    static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], {
++        let scale_vrf: VrfTensor<f32, Chip, DownCluster, DownRowsByColumns, m![H % 60 = 4, L / 32 % 60, L / 16 % 2 # 4]> = device
+             .sub
+-            .begin(down_weight_scale.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i))
+-            .fetch::<m![H % 60 = 12], m![L / 16 % 120]>()
++            .begin(down_weight_scale.view().tile::<m![H % 60], 4, m![H % 60 = 4 # 60, L / 16 % 120]>(4 * i))
++            .fetch::<m![H % 60 = 4, L / 32 % 60], m![L / 16 % 2 # 4]>()
+             .fetch_cast::<f32>()
+-            .collect::<m![H % 60 = 12, L / 16 / 8 % 15], m![L / 16 % 8]>()
++            .collect::<m![H % 60 = 4, L / 64 % 30], m![L / 32 % 2, L / 16 % 2 # 4]>()
+             .to_vrf();
+ 
+         device
+             .main
+-            .begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))
+-            .fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()
+-            .collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()
+-            .contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)
+-            .contract_packet::<m![1]>()
+-            // Identity time contraction preserves 120 independent scale blocks.
+-            .contract_time::<m![H % 60 = 12, L / 16 % 120]>()
+-            .contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)
++            .begin(down_weight_bf16.view().tile::<m![H % 60], 4, m![H % 60 = 4 # 60, L % 1920]>(4 * i))
++            .fetch::<m![H % 60 = 4, L / 16 % 120], m![L % 16]>()
++            .collect::<m![H % 60 = 4, L / 16 % 120], m![L % 16]>()
++            .contract_outer::<m![H % 60 = 4, L / 32 % 60], m![L % 32], _, _, _>(&x_trf)
++            .contract_packet::<m![L / 16 % 2]>()
++            // Keep two 16-element blocks in each 64-byte DPE input packet.
++            .contract_time::<m![H % 60 = 4, L / 32 % 60]>()
++            .contract_lane::<m![H % 60 = 4, L / 32 % 60], m![L / 16 % 2 # 8]>(LaneMode::Sequential)
+             .vector_init()
+             .vector_intra_slice_tag(TagMode::Zero)
+-            .vector_narrow_trim::<m![1 # 4]>()
++            .vector_narrow_trim::<m![L / 16 % 2 # 4]>()
+             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+             // Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.
+-            .vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)
++            .vector_intra_slice_reduce::<L, m![H % 60 = 4], m![1 # 4]>(IntraSliceReduceOpF32::Add)
+             .vector_widen_pad::<m![1 # 8]>()
+-            .vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)
++            .vector_inter_slice_reduce::<DownRows, m![H % 60 = 4]>(InterSliceReduceOpF32::Add)
+             .vector_final()
+             .cast::<bf16, m![1 # 16]>()
+-            .transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()
+-            .commit_trim::<m![H % 60 = 12 % 4]>()
+-            .commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i));
++            .transpose::<m![H % 60 = 4 / 4], m![H % 60 = 4 % 4 # 16]>()
++            .commit_trim::<m![H % 60 = 4 % 4]>()
++            .commit_view(down.view_mut().tile::<m![H % 60], 4, m![H % 60 = 4 #{!} 60]>(4 * i));
+     });
+ 
+     // Compact each cluster before joining its high row axis back into H.

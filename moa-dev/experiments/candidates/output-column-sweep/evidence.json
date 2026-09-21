@@ -1,0 +1,236 @@
+{
+  "created_utc": "2026-09-21T09:43:38.670339+00:00",
+  "compiler": "cargo-furiosa-opt 0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "baseline": "Root output-two-cluster-column-split, 8 columns",
+  "scratch": "/tmp/moa-output-column-sweep",
+  "cargo_target_dir": "/tmp/moa-output-column-sweep/target",
+  "furiosa_opt_out_dir": "/tmp/moa-output-column-sweep/target/furiosa-opt/kernel",
+  "numerical_correctness": "4/2 column variants NOT TESTED ON NPU; 8-column baseline passed parent E14 job70174",
+  "selection": "Keep existing 8-column candidate; 4/2 regress static makespan",
+  "compiled_source_hashes": {
+    "ops.rs": "ce1b486ed5e3ceead0a7dbb0dcc81d840e64bb6cef83eb84fc667b521a4aadbe",
+    "projection.8.rs": "c0641e7ff4c0d6770f54dfd8e8d549a57608e77875ea38caa0648ebd95c1c124",
+    "projection.4.rs": "52ae71d0a6b072334afd27eba743a4a2849c3bbbceb3adb5e9c5edaa044d5d83",
+    "projection.2.rs": "535bba49738dbf93297b2b17b3d2bcee1455a725e2ea4bb388bcfbf9ba33cbdf"
+  },
+  "variants": {
+    "8": {
+      "compile_exit_code": 0,
+      "schedule_sha256": "bec1058cf56e0d2610f302b303eee68790e35baae1462109c64b0d6d4211bdc4",
+      "schedule_source": "moa-dev/experiments/artifacts/output-two-cluster-column-split/schedule.json",
+      "makespan_cycles": 32842,
+      "instruction_count": 38,
+      "stages": {
+        "activation_dma": {
+          "instruction_index": "15",
+          "begin": 1841,
+          "end": 3159,
+          "cycles": 1318
+        },
+        "weight_dma": {
+          "instruction_index": "21",
+          "begin": 3159,
+          "end": 16671,
+          "cycles": 13512
+        },
+        "fused_lookup_dot_fp32_reduce": {
+          "instruction_index": "27",
+          "begin": 16671,
+          "end": 21734,
+          "cycles": 5063
+        },
+        "result_dma_sequence": [
+          {
+            "instruction_index": "51",
+            "begin": 21734,
+            "end": 22203,
+            "cycles": 469
+          },
+          {
+            "instruction_index": "56",
+            "begin": 22203,
+            "end": 23011,
+            "cycles": 808
+          },
+          {
+            "instruction_index": "68",
+            "begin": 24922,
+            "end": 25391,
+            "cycles": 469
+          }
+        ]
+      },
+      "mapping": {
+        "clusters": 2,
+        "physical_slices_per_cluster": 256,
+        "column_groups": 8,
+        "row_groups_per_cluster": 32,
+        "rows_per_slice": 60,
+        "columns_per_slice": 512,
+        "row_formula": "1920*c+60*r+i",
+        "column_formula": "512*g+j",
+        "weight_valid_bytes_per_slice": 30720,
+        "weight_valid_bytes_total": 15728640,
+        "activation_valid_bytes_total": 524288,
+        "unique_output_rows": 3840,
+        "unique_reduction_columns": 4096,
+        "covered_weight_elements": 15728640
+      }
+    },
+    "4": {
+      "compile_exit_code": 0,
+      "schedule_sha256": "d4555f9320f36f2249f1ff66dbe6d03c8d24ae11b9a76b23eab9030632c6ed88",
+      "schedule_source": "/tmp/moa-output-column-sweep/schedules/sliding_attention_output-4.json (inside container)",
+      "makespan_cycles": 35834,
+      "instruction_count": 39,
+      "stages": {
+        "activation_dma": {
+          "instruction_index": "15",
+          "begin": 1841,
+          "end": 3931,
+          "cycles": 2090
+        },
+        "weight_dma": {
+          "instruction_index": "21",
+          "begin": 3931,
+          "end": 17443,
+          "cycles": 13512
+        },
+        "fused_lookup_dot_fp32_reduce": {
+          "instruction_index": "27",
+          "begin": 17443,
+          "end": 22506,
+          "cycles": 5063
+        },
+        "scalar_compaction": {
+          "instruction_index": "54",
+          "begin": 23010,
+          "end": 25195,
+          "cycles": 2185
+        },
+        "result_dma_sequence": [
+          {
+            "instruction_index": "51",
+            "begin": 22506,
+            "end": 23010,
+            "cycles": 504
+          },
+          {
+            "instruction_index": "60",
+            "begin": 25195,
+            "end": 26003,
+            "cycles": 808
+          },
+          {
+            "instruction_index": "73",
+            "begin": 27914,
+            "end": 28383,
+            "cycles": 469
+          }
+        ]
+      },
+      "mapping": {
+        "clusters": 2,
+        "physical_slices_per_cluster": 256,
+        "column_groups": 4,
+        "row_groups_per_cluster": 64,
+        "rows_per_slice": 30,
+        "columns_per_slice": 1024,
+        "row_formula": "1920*c+30*r+i",
+        "column_formula": "1024*g+j",
+        "weight_valid_bytes_per_slice": 30720,
+        "weight_valid_bytes_total": 15728640,
+        "activation_valid_bytes_total": 1048576,
+        "unique_output_rows": 3840,
+        "unique_reduction_columns": 4096,
+        "covered_weight_elements": 15728640
+      }
+    },
+    "2": {
+      "compile_exit_code": 0,
+      "schedule_sha256": "fafa8c87f252e74c7a28b762607f54c4941e44873d37a2e0abd6405b5a0b6fe3",
+      "schedule_source": "/tmp/moa-output-column-sweep/schedules/sliding_attention_output-2.json (inside container)",
+      "makespan_cycles": 37447,
+      "instruction_count": 39,
+      "stages": {
+        "activation_dma": {
+          "instruction_index": "15",
+          "begin": 1841,
+          "end": 5473,
+          "cycles": 3632
+        },
+        "weight_dma": {
+          "instruction_index": "21",
+          "begin": 5473,
+          "end": 18985,
+          "cycles": 13512
+        },
+        "fused_lookup_dot_fp32_reduce": {
+          "instruction_index": "27",
+          "begin": 18985,
+          "end": 24048,
+          "cycles": 5063
+        },
+        "scalar_compaction": {
+          "instruction_index": "54",
+          "begin": 24623,
+          "end": 26808,
+          "cycles": 2185
+        },
+        "result_dma_sequence": [
+          {
+            "instruction_index": "51",
+            "begin": 24048,
+            "end": 24623,
+            "cycles": 575
+          },
+          {
+            "instruction_index": "60",
+            "begin": 26808,
+            "end": 27616,
+            "cycles": 808
+          },
+          {
+            "instruction_index": "73",
+            "begin": 29527,
+            "end": 29996,
+            "cycles": 469
+          }
+        ]
+      },
+      "mapping": {
+        "clusters": 2,
+        "physical_slices_per_cluster": 256,
+        "column_groups": 2,
+        "row_groups_per_cluster": 128,
+        "rows_per_slice": 15,
+        "columns_per_slice": 2048,
+        "row_formula": "1920*c+15*r+i",
+        "column_formula": "2048*g+j",
+        "weight_valid_bytes_per_slice": 30720,
+        "weight_valid_bytes_total": 15728640,
+        "activation_valid_bytes_total": 2097152,
+        "unique_output_rows": 3840,
+        "unique_reduction_columns": 4096,
+        "covered_weight_elements": 15728640
+      }
+    }
+  },
+  "failed_attempt": {
+    "variant": 4,
+    "source": "failed-attempts/projection.4.direct-compact.rs",
+    "log": "failed-attempts/columns-4-direct-compact.log",
+    "diagnostic": "DmaCommand sram -> sram destination strides([2,480,60,2,0,0,0,0]) not aligned by 8",
+    "resolution": "Preserve H%1920,1#4 slots during typed DMA; TU transpose on full contiguous 1920-row axis then trim4",
+    "uncompiled_analogous_source": "failed-attempts/projection.2.direct-compact.rs"
+  },
+  "invariants": [
+    "All3840x4096weight elements used exactly once in mathematical partition",
+    "BF16 cast after FP32 inter-slice partial sum; scale follows BF16 output",
+    "Ops byte-identical to root8-column source",
+    "QKV prefix and HiddenRows scale/residual suffix byte-identical",
+    "Local30/15 row extent never divided by4; compaction only after1920-row gather"
+  ],
+  "precision_caveat": "FP32 partial-sum grouping changes from8x512 to4x1024 or2x2048; numerical equivalence is not bitwise guaranteed. No NPU correctness claim."
+}

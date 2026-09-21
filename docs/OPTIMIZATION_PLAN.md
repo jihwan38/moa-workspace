@@ -29,7 +29,11 @@ QKV는 두 cluster와 head별 정규화를 사용하고, O는 두 cluster·8개 
 FP32 inter-slice reduction을 사용한다. FFN은 세 행렬을 두 cluster에 배치하고,
 FP4→FP8 DM→unscaled BF16 DM 변환을 재사용해 16-element dot 이후 local scale을 적용한다.
 후자는 FP32 합산 순서를 바꾸므로 추가 입력 검사를 별도로 수행한다.
-현재 조합은 단일 job screening이며 동일 바이너리 반복 측정도 수행한다.
+동일 패키지 세 job(70181/70194/70200)의 중앙값도 위 수치였고 전부 통과했다.
+추가 run3..8의 30개 출력 비교도 job70186에서 통과했다. Job 중앙값 범위는 QKV4.25%,
+O2.50%, FFN0.27%여서 작은 QKV/O 개선은 반복 검증한다.
+후속 E16은 residual/layer-scale 병렬화로 FFN388,813 cycles를 기록했고 전체 정확성 통과다.
+E17의 down2-column/HBM-relay 변형은416,500으로 느려져 제외했다.
 
 이전 E5 four-row snapshot은 동일 패키지 세 job과 추가 run3..8의 30개 출력 비교를 모두
 통과했다. 후속 소스의 검증을 이 이전 결과로 대신하지 않는다.

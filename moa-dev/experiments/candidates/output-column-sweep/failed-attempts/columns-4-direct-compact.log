@@ -1,0 +1,49 @@
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling [1/1] ops::sliding_attention_output
+error: furiosa-opt: ops::sliding_attention_output: visa: while verifying DmaCommand
+       caused by: verification of operator failed:
+       DmaCommand
+       inner: DmaCommand: sram -> sram
+       -- assigned_pe: None --
+       src0: [H_1=30:8, H_30=8:16777216, H_240=2:134217728, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst0: [H_1=30:2, H_30=8:60, H_240=2:480, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src1: [H_1=30:8, H_30=8:16777216, H_240=2:134217728, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)
+       dst1: [H_1=30:2, H_30=8:60, H_240=2:480, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x3C0)
+       src2: [H_1=30:8, H_30=8:16777216, H_240=2:134217728, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)
+       dst2: [H_1=30:2, H_30=8:60, H_240=2:480, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x780)
+       src3: [H_1=30:8, H_30=8:16777216, H_240=2:134217728, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)
+       dst3: [H_1=30:2, H_30=8:60, H_240=2:480, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0xB40)
+       src4: [H_1=30:8, H_30=8:16777216, H_240=2:134217728, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst4: [H_1=30:2, H_30=8:60, H_240=2:480, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src5: [H_1=30:8, H_30=8:16777216, H_240=2:134217728, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)
+       dst5: [H_1=30:2, H_30=8:60, H_240=2:480, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x3C0)
+       src6: [H_1=30:8, H_30=8:16777216, H_240=2:134217728, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)
+       dst6: [H_1=30:2, H_30=8:60, H_240=2:480, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x780)
+       src7: [H_1=30:8, H_30=8:16777216, H_240=2:134217728, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)
+       dst7: [H_1=30:2, H_30=8:60, H_240=2:480, anonymdma_tail(0)_1=1:2], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0xB40)
+       
+       name: 
+       
+       input tensors: 1
+         input T13: MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 30 % 64, 1 # 4), Element: (H % 30, 1 # 4)], 122880 B, bf16, sram
+         source: unknown
+         total bytes: 122880
+       output tensors: 1
+         output T14: MappingShape[Chip: 1, Cluster: Dummy2, Slice: 1 # 256, Element: H % 1920], 1966080 B, bf16, sram
+         source: unknown
+         total bytes: 1966080
+       caused by: strides([2, 480, 60, 2, 0, 0, 0, 0]) is not aligned by 8 SequencerConfig { iteration_config: IterationConfig { limits: [1, 2, 8, 30, 1, 1, 1, 1] }, indexer_config: Indexer { base: 0, strides: [2, 480, 60, 2, 0, 0, 0, 0] } }
+   --> src/device/sliding/projection.rs:199:83
+    |
+199 |     let result: DmTensor<bf16, Chip, OutputCluster, Slice, m![H % 1920]> = result.to_dm(&mut device.tdma);
+    |                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 1 compiled, 14 not matching ops::sliding_attention_output
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 1 warning emitted

@@ -1,0 +1,17 @@
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling [1/1] ops::decoder_feedforward
+error: furiosa-opt: ops::decoder_feedforward: mir: vector_fp_binary: VRF operand (L % 32 = 8, H / 16) cannot feed the 4-element packet H / 16 % 2 # 4: the indexer reads one access as a single broadcast address or as 4 consecutive elements, and this operand gives it neither. Write the operand with the packet axes innermost and contiguous (change the `collect` / `to_vrf` that produced it), or drop them from it entirely (broadcast). `reshape` cannot fix this: it may not permute axes.
+  --> src/device/shared/mlp.rs:57:10
+   |
+57 |         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 1 compiled, 14 not matching ops::decoder_feedforward
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 1 warning emitted

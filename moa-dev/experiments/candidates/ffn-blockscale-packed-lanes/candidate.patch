@@ -1,0 +1,30 @@
+--- a/mlp.rs
++++ b/mlp.rs
+@@ -50,10 +50,10 @@
+         .contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)
+         .contract_packet::<m![1]>()
+         .contract_time::<m![L % 32 = 8, H / 16]>()
+-        .contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)
+-        .vector_init()
+-        .vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![1 # 4]>()
++        .contract_lane::<m![L % 32 = 8, H / 16 / 8], m![H / 16 % 8]>(LaneMode::Interleaved)
++        .vector_init()
++        .vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_split::<m![L % 32 = 8, H / 16 / 4], m![H / 16 % 4]>()
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+         .vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)
+         .vector_widen_pad::<m![1 # 8]>()
+@@ -403,10 +403,10 @@
+             .contract_packet::<m![1]>()
+             // Identity time contraction preserves 120 independent scale blocks.
+             .contract_time::<m![H % 60 = 12, L / 16 % 120]>()
+-            .contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)
++            .contract_lane::<m![H % 60 = 12, L / 16 / 8 % 15], m![L / 16 % 8]>(LaneMode::Interleaved)
+             .vector_init()
+             .vector_intra_slice_tag(TagMode::Zero)
+-            .vector_narrow_trim::<m![1 # 4]>()
++            .vector_narrow_split::<m![H % 60 = 12, L / 16 / 4 % 30], m![L / 16 % 4]>()
+             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+             // Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.
+             .vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-21",
+  "status": "rejected_at_compile",
+  "sdk_version": "0.8.1",
+  "kernel": "ops::decoder_feedforward",
+  "npu_submissions": 0,
+  "npu_correctness_verified": false,
+  "static_makespan": null,
+  "variants": [
+    {
+      "source": "mlp.rs",
+      "log": "compile.log",
+      "exit_code": 1,
+      "failure": "contract_lane OutPacket mismatch"
+    },
+    {
+      "source": "mlp.two-block.rs",
+      "log": "two-block-compile.log",
+      "exit_code": 1,
+      "failure": "vector_fp_binary VRF operand cannot feed packet 2#4"
+    },
+    {
+      "source": "mlp.two-block-four-row.rs",
+      "log": "two-block-four-row-compile.log",
+      "exit_code": 1,
+      "failure": "collect expects contiguous packet, cannot insert padding"
+    },
+    {
+      "source": "mlp.two-block-four-row-padded-fetch.rs",
+      "log": "two-block-four-row-padded-fetch-compile.log",
+      "exit_code": 1,
+      "failure": "padded fetch expects packet 2#8, cannot collect two packets 2#4"
+    },
+    {
+      "source": "mlp.two-block-padded-dm.rs",
+      "log": "two-block-padded-dm-compile.log",
+      "exit_code": 1,
+      "failure": "TensorUnit lower_fetch_unit: No valid fetch size found: pv=4 consec=4 in=Float8e4m3 out=Float32"
+    }
+  ],
+  "source_identity_file": "source-hashes.json",
+  "sdk_verifier": "furiosa-opt-lower-0.8.1/src/verify/engine/contraction/lane.rs:config_contract_lane",
+  "claims_limited_to": "Tested API layouts; this does not rule out a different packing pipeline."
+}

@@ -1,6 +1,6 @@
 # QKV를 head layout으로 직접 모아 RMSNorm/RoPE 연결
 
-확인일 2026-09-21, compiler/std 0.8.1. 현재 두 cluster QKV/input RMS + hier32 broadcast를 scratch에 복사하여 baseline **56,719 cycles**를 재현했다. 후보는 **52,971 cycles**, 3,748 cycles / **6.61% 감소**로 exact QKV 컴파일에 성공했다. NPU 정확성과 실제 성능은 이 실험에서 검증하지 않았다.
+확인일 2026-09-21, compiler/std 0.8.1. 현재 두 cluster QKV/input RMS + hier32 broadcast를 scratch에 복사하여 baseline **56,719 cycles**를 재현했다. 후보는 **52,971 cycles**, 3,748 cycles / **6.61% 감소**로 exact QKV 컴파일에 성공했다. 후속 root 통합 [E14 NPU 결과](../../../../docs/experiments/e14-headnorm-output-columns.json), job **70174**에서 QKV 9 output comparisons가 모두 통과했고 median **118,881 cycles**를 기록했다. root가 이 후보의 QKV 함수와 별도 O column-split 함수를 통합한 결과이며, 아래 정적 실험의 O snapshot은 해당 job 대상이 아니다.
 
 적용 패치는 `candidate.patch`다. `ops.rs`, `projection.rs`, `rmsnorm.rs`, `rope.rs` 네 파일의 QKV 연결을 함께 적용해야 한다. 이후 root의 다른 변경을 유지하려면 증분 패치를 사용한다. O projection/parallel residual suffix 및 다른 ops는 변경하지 않았다. 최종 네 파일의 hash가 실제 성공한 compile scratch와 일치함을 `evidence.json`으로 확인했다.
 

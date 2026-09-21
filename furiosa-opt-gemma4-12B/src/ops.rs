@@ -244,9 +244,8 @@ pub fn decoder_feedforward(
     );
 
     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::rmsnorm::normalize(device, &x, post_ff_rms_weight);
-    let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::residual::add(device, &x, &residual);
     let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> =
-        shared::residual::scale_by_layer_gate(device, &residual, layer_scalar);
+        shared::residual::add_and_scale_parallel(device, &x, &residual, layer_scalar);
     residual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut());
 }
 
