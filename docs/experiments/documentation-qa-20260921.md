@@ -49,10 +49,10 @@ Git whitespace 검사는 raw patch/log를 제외했다. 변경하지 않은 froz
 파일 끝 빈 줄이 있어 `core.whitespace=-blank-at-eof`로 이 항목만 제외하고 검사했다.
 실험 source의 hash를 보존하기 위해 해당 파일을 서식 목적으로 변경하지 않았다.
 
-최종 검사 `2026-09-21T19:31:26.347338+00:00`: Markdown 187개, 로컬 링크 1095개,
-JSON 610개에서 누락 파일·JSON 문법 오류0건. 외부 링크165개는 검사 범위에서 제외했다.
+최종 검사 `2026-09-21T23:01:20.628058+00:00`: Markdown 187개, 로컬 링크 1098개,
+JSON 611개에서 누락 파일·JSON 문법 오류0건. 외부 링크165개는 검사 범위에서 제외했다.
 검사 스크립트와 출력은 `/tmp/moa-local-doc-qa.py`, `/tmp/moa-local-doc-qa-result.json`에 있다.
 
 공식 score/rank는 아직 없다. [공식 상태](official-submission-status-20260921.json)의
-평가 기준 maintenance와 별도 제출기 인증 미완료를 유지한다. Arena PASS는 기록된
+공식 제출기 인증은 완료됐으나, [실제 E55 제출](e55-official-submit-attempt-20260922.json)은 평가 기준 maintenance 오류로 거절됐고 제출 내역이 없다. Arena PASS는 기록된
 입력·artifact에 한정하며 전체 모델 또는 모든 가능한 입력의 정확성 증명으로 확장하지 않는다.
