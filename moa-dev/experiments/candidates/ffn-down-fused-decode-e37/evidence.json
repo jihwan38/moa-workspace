@@ -1,0 +1,477 @@
+{
+  "schema_version": 1,
+  "candidate": "ffn-down-fused-decode-e37",
+  "audited_at_utc": "2026-09-21T12:23:25.922603+00:00",
+  "scope": "Independent read-only source/schedule/binary audit of root-compiled frozen E50; no new compile, NPU call, Git mutation, or live source edit by auditor.",
+  "status": "exact compile and full build passed; Arena 70700 all15 official comparisons passed; one job only, no extra seeds or repeats for E50 at audit time; not yet adopted",
+  "source": {
+    "candidate": {
+      "path": "moa-dev/experiments/candidates/ffn-down-fused-decode-e37/mlp.rs",
+      "bytes": 20770,
+      "sha256": "f4f541747934620d0a617549c79d392bc9f75bc7cb4e633ddfc91ddc042bcd34"
+    },
+    "patch": {
+      "path": "moa-dev/experiments/candidates/ffn-down-fused-decode-e37/candidate.patch",
+      "bytes": 1608,
+      "sha256": "179c10055136c14ab733c2b28abeae73c4272d4813481331182a6371fd30c65f"
+    },
+    "baseline_root": "moa-dev/experiments/artifacts/e37-kernel-specific-rms",
+    "frozen_candidate_root": "moa-dev/experiments/artifacts/e50-down-fused-decode",
+    "compared_src_files": 43,
+    "changed_paths": [
+      "device/shared/mlp.rs"
+    ],
+    "candidate_equals_frozen_snapshot": true,
+    "same_remaining_src_files": 42,
+    "up_gate_and_down_dot_epilogue_source_unchanged": true
+  },
+  "baseline": {
+    "schedule": {
+      "path": "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/baseline.json",
+      "bytes": 161975,
+      "sha256": "97cd593f04a79e79c6be5cd9375e4657448625142abb64b827d6aa1e62de5074"
+    },
+    "instruction_count": 242,
+    "makespan_cycles": 162209,
+    "context_interval_union_cycles": {
+      "DmaEngine": 135607,
+      "PeCore": 29352,
+      "SubContext": 19378,
+      "MainContext": 125274,
+      "VectorEngine": 34748
+    }
+  },
+  "candidate_static": {
+    "schedule": {
+      "path": "moa-dev/experiments/artifacts/ffn-down-fused-decode-e37/candidate.json",
+      "bytes": 160254,
+      "sha256": "3132c1fea62937a7c0f418d8d4ee993306b9d65f2b6d4fd6ea17d4541cc5af4d"
+    },
+    "instruction_count": 239,
+    "makespan_cycles": 157638,
+    "context_interval_union_cycles": {
+      "DmaEngine": 134769,
+      "PeCore": 29352,
+      "SubContext": 17826,
+      "MainContext": 114211,
+      "VectorEngine": 51211
+    }
+  },
+  "static_delta": {
+    "makespan_cycles": -4571,
+    "makespan_percent": -2.8179694098354635,
+    "context_interval_union_cycles": {
+      "DmaEngine": -838,
+      "PeCore": 0,
+      "SubContext": -1552,
+      "MainContext": -11063,
+      "VectorEngine": 16463
+    },
+    "contexts_overlap_do_not_sum": true,
+    "main_down_decode_cycles": {
+      "baseline_two_passes": [
+        9263,
+        18263
+      ],
+      "candidate_one_pass": 16463
+    },
+    "large_down_transfers_unchanged_cycles": {
+      "packed_weights": 29427,
+      "local_scales": 9774,
+      "activation_copy": 9392
+    },
+    "dma_removed_constant_load_cycles": 838
+  },
+  "schedule_key_nodes": {
+    "baseline": [
+      {
+        "index": "303",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 84977,
+          "end": 114404
+        },
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "391",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 115659,
+          "end": 124922
+        },
+        "description": "--> src/device/shared/mlp.rs:399:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()"
+      },
+      {
+        "index": "405",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 118130,
+          "end": 127904
+        },
+        "description": "--> src/device/shared/mlp.rs:391:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "431",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 125859,
+          "end": 144122
+        },
+        "description": "--> src/device/shared/mlp.rs:407:104\n\ndevice\n.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()"
+      },
+      {
+        "index": "432",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 127904,
+          "end": 137296
+        },
+        "description": "--> src/device/shared/mlp.rs:379:81\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "468",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 144401,
+          "end": 146186
+        },
+        "description": "--> src/device/shared/mlp.rs:425:9\n\ndevice\n.main\n.begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))"
+      }
+    ],
+    "candidate": [
+      {
+        "index": "307",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 84913,
+          "end": 114340
+        },
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "419",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 120063,
+          "end": 136526
+        },
+        "description": "--> src/device/shared/mlp.rs:399:104\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.fetch_cast::<f32>()\n.collect::<m![H % 60, L / 8 % 240], m![L % 8]>()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()"
+      },
+      {
+        "index": "420",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 120063,
+          "end": 129455
+        },
+        "description": "--> src/device/shared/mlp.rs:379:81\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "421",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 129455,
+          "end": 139229
+        },
+        "description": "--> src/device/shared/mlp.rs:391:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "436",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 131055,
+          "end": 131798
+        },
+        "description": "--> src/device/shared/mlp.rs:380:93\n\ndevice\n.sub\n.begin(x.view())\n.fetch::<m![L / 16 % 120], m![L % 16]>()\n.collect::<m![L / 16 % 120], m![L % 16]>()\n.to_trf()"
+      },
+      {
+        "index": "451",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 139308,
+          "end": 139751
+        },
+        "description": "--> src/device/shared/mlp.rs:411:110\n\ndevice\n.sub\n.begin(down_weight_scale.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i))\n.fetch::<m![H % 60 = 12], m![L / 16 % 120]>()\n.fetch_cast::<f32>()\n.collect::<m![H % 60 = 12, L / 16 / 8 % 15], m![L / 16 % 8]>()\n.to_vrf()"
+      },
+      {
+        "index": "460",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 139830,
+          "end": 141615
+        },
+        "description": "--> src/device/shared/mlp.rs:419:9\n\ndevice\n.main\n.begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))"
+      },
+      {
+        "index": "508",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 149058,
+          "end": 150843
+        },
+        "description": "--> src/device/shared/mlp.rs:419:9\n\ndevice\n.main\n.begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))"
+      }
+    ]
+  },
+  "materialization": {
+    "per_live_slice": {
+      "packed_fp4_bytes": 57600,
+      "removed_fp8_bytes": 115200,
+      "bf16_bytes": 230400
+    },
+    "removed_full_chip_fp8_payload_bytes": 58982400,
+    "baseline_tensors": [
+      {
+        "name": "vISA(T385)_i12_project_down_sharded_38",
+        "index": "168",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84977,
+          "end": 124922,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "size": 29491200,
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]"
+      },
+      {
+        "name": "vISA(T387)_i12_project_down_sharded_47",
+        "index": "195",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 115659,
+          "end": 144122,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "size": 58982400,
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]"
+      },
+      {
+        "name": "vISA(T424)_i12_project_down_sharded_314",
+        "index": "206",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 125859,
+          "end": 144152,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "size": 117964800,
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]"
+      }
+    ],
+    "candidate_tensors": [
+      {
+        "name": "vISA(T383)_i12_project_down_sharded_40",
+        "index": "169",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84913,
+          "end": 136526,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "size": 29491200,
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]"
+      },
+      {
+        "name": "vISA(T420)_i12_project_down_sharded_307",
+        "index": "202",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 120063,
+          "end": 136556,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "size": 117964800,
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]"
+      }
+    ],
+    "limitation": "Tensor extents and lifetimes are not a peak live-memory proof; packed tensor lives longer after fusion."
+  },
+  "mapping": {
+    "cluster": "Dummy2",
+    "slice": "[H/60%32,L/1920]",
+    "element": "[H%60,L%1920]",
+    "logical_dimensions": {
+      "H": 3840,
+      "L": 15360
+    },
+    "clusters": 2,
+    "live_slices_per_cluster": 256,
+    "physical_slices_per_cluster": 256,
+    "local_rows": 60,
+    "local_columns": 1920,
+    "row_reconstruction": "h=1920*cluster+60*row_group+local_row",
+    "column_reconstruction": "l=1920*column_group+local_column",
+    "scalar_weight_values": 58982400,
+    "packet_before": "FP4->FP8 commit32; FP8->BF16 commit16",
+    "packet_candidate": "FP4 LUT->FP8 fetch_cast F32; 8 values collected, BF16 cast to physical16, commit_trim valid8"
+  },
+  "tagged_probe_scope": {
+    "job": 70658,
+    "clusters": 2,
+    "live_slices_per_cluster": 240,
+    "physical_slices_per_cluster": 256,
+    "local_rows": 32,
+    "local_columns": 3840,
+    "same_total_weight_values": true,
+    "same_layout": false,
+    "does_not_cover": [
+      "down 256-live-slice mapping",
+      "DPE dot/local scales",
+      "full-FFN allocation and execution history"
+    ]
+  },
+  "binary": {
+    "host": {
+      "path": "moa-dev/experiments/artifacts/e50-down-fused-decode/target/release/test_kernels",
+      "bytes": 3666752,
+      "sha256": "8bfc029fe361b017dd8b2e8bc8a7e9dc372451b7c4c5a4cbf08237517d2b0c48"
+    },
+    "images": {
+      "qkv": {
+        "path": "moa-dev/experiments/artifacts/e37-clean-build-audit/kernels-canonical/furiosa_opt_gemma4::ops::sliding_project_qkv.bin",
+        "bytes": 187648,
+        "sha256": "91b232f0179b37b126f2ba8755b6125e532364418516948fd98dadcc9d7e77ea",
+        "embedded_occurrences": 1
+      },
+      "output": {
+        "path": "moa-dev/experiments/artifacts/e37-clean-build-audit/kernels-canonical/furiosa_opt_gemma4::ops::sliding_attention_output.bin",
+        "bytes": 88576,
+        "sha256": "e9d3402c62fd866f417053e618e7a7af1d5cb60485c04cc292f3a702f5996cde",
+        "embedded_occurrences": 1
+      },
+      "ffn": {
+        "path": "moa-dev/experiments/artifacts/ffn-down-fused-decode-e37/candidate.bin",
+        "bytes": 200960,
+        "sha256": "47ad23c027e27e255f2b0a0e1208d653c3de3594de26630b67f8dd1766700ad6",
+        "embedded_occurrences": 1
+      }
+    },
+    "baseline_ffn": {
+      "path": "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/baseline.bin",
+      "bytes": 204032,
+      "sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6"
+    },
+    "source_binary_limit": "Capture helper alone does not prove build provenance. Root compile/build completion logs, frozen source comparison and exact FFN image inclusion were independently checked; no clean rebuild performed for E50."
+  },
+  "hardware": {
+    "result_file": "docs/experiments/e50-down-fused-decode.json",
+    "job": 70700,
+    "status": "SUCCEEDED",
+    "all_output_comparisons": 15,
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 94030,
+        "cycles_by_run": [
+          103068,
+          93931,
+          94030
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 46072,
+        "cycles_by_run": [
+          49115,
+          45419,
+          46072
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 376184,
+        "cycles_by_run": [
+          390867,
+          375881,
+          376184
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "downloaded_package_hashes_match_frozen": true,
+    "ffn_vs_e37_repeat_median": {
+      "reference_cycles": 379741,
+      "candidate_cycles": 376184,
+      "percent": -0.9366910604859613,
+      "scope": "One E50 job versus E37 repeated-job median; no statistically established improvement."
+    },
+    "downloaded_package_checks": {
+      "fixtures.safetensors": {
+        "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359",
+        "matches": true
+      },
+      "remote_entrypoint.sh": {
+        "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d",
+        "matches": true
+      },
+      "test_runtime": {
+        "sha256": "8bfc029fe361b017dd8b2e8bc8a7e9dc372451b7c4c5a4cbf08237517d2b0c48",
+        "matches": true
+      }
+    }
+  },
+  "logs": [
+    {
+      "path": "moa-dev/logs/e50-down-fused-decode-compile.log",
+      "bytes": 1066,
+      "sha256": "5d240aeaa0a142b08d435edbf82663d4b3a1b4e3e38446ede89ed65cabe1f85d"
+    },
+    {
+      "path": "moa-dev/logs/e50-down-fused-decode-build.log",
+      "bytes": 1186,
+      "sha256": "196bed833fe3634c134dde7acebc95a03bdf493ca1c179f39ec844f3d8839b50"
+    },
+    {
+      "path": "moa-dev/logs/e50-down-fused-decode-job-70700.log",
+      "bytes": 2353,
+      "sha256": "7f95c6878f020f602fe3e69bb4a1f4dba140f23cb638e04d13a7aad5e87696f0"
+    }
+  ],
+  "limitations": [
+    "No E50 graph dump was provided; no claims about physical DMA descriptor changes.",
+    "Source scalar conversion is exact for finite FP4 codebook, but scalar exactness alone does not prove the hardware pipeline.",
+    "Passed three official configurations only; no universal accuracy or future-input equivalence claim.",
+    "Earlier E13 fused-decode failure is not explained or invalidated by this result.",
+    "Main and VectorEngine intervals overlap; summed busy cycles are not elapsed cycles."
+  ]
+}

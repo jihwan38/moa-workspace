@@ -1,0 +1,131 @@
+{
+  "recorded_at_utc": "2026-09-21T12:01:15.574804+00:00",
+  "status": "compiled_and_cpu_only_checks_passed_no_npu_result",
+  "official_score": false,
+  "performance_measurement": false,
+  "purpose": "Full E37 up/gate DM local shape FP4 decoder isolation; not a full FFN test",
+  "source_base": "moa-dev/experiments/artifacts/e37-kernel-specific-rms",
+  "previous_probe": "moa-dev/experiments/candidates/fp4-decode-probe",
+  "previous_probe_hardware_job": 70620,
+  "source_hashes": {
+    "decode_probe.rs": "53dc1a95300acfabd1dc12a60f7142ec042877e270e24530dce92121a527516d",
+    "probe_decode.rs": "0e93e2fe2b02762485f406c7f5f682c560d5a05139025cb0937efc08f25cb268",
+    "lib.patch": "da69b9346632421432153bcc61d1e08aa2d3dabd2dbb0860e87c17637e5e2313",
+    "remote_entrypoint.sh": "d5291dacc1c7f50936d2da61cb26a6df21902c12df96ad557696f7d333a11dda"
+  },
+  "compiled_input_count": 48,
+  "compiled_input_manifest": "compiled-input-hashes.json",
+  "files_changed_from_passed_small_probe": [
+    "src/bin/probe_decode.rs",
+    "src/decode_probe.rs"
+  ],
+  "existing_device_and_official_harness_unchanged": true,
+  "compile_invocations": 2,
+  "compile_failures": 0,
+  "compile_commands": [
+    "cargo furiosa-opt build --release --locked --bin probe_decode (shape expansion)",
+    "cargo furiosa-opt build --release --locked --bin probe_decode (CPU-only allocation/check branch)"
+  ],
+  "scratch": "/tmp/moa-fp4-decode-probe-fullshape",
+  "cargo_target_dir": "/tmp/moa-fp4-decode-probe-fullshape/target",
+  "furiosa_opt_out_dir": "/tmp/moa-fp4-decode-probe-fullshape/target/furiosa-opt/kernel",
+  "dependency_cache": "independent cp -a --reflink=auto of small probe target; no shared live target",
+  "host_binary": {
+    "bytes": 2228392,
+    "sha256": "f080a6a47e31f29764ddc0c5a55cfe670f0e3c99d7787ab0f478186aebba658e"
+  },
+  "device_images": [
+    {
+      "path": "furiosa_opt_gemma4::decode_probe::fused_decode",
+      "key": [],
+      "image_bytes": 43520,
+      "image_sha256": "5fc23bab020ef6f74f6089903ec316993707cdc162bbcbabd913d1d4b05d7dc6",
+      "elf_offset": 488822
+    },
+    {
+      "path": "furiosa_opt_gemma4::decode_probe::legacy_decode",
+      "key": [],
+      "image_bytes": 48640,
+      "image_sha256": "5b2a9a2fd337eb9780edec808321c6b984788e33e69ee2e64064a59c819c17eb",
+      "elf_offset": 532413
+    }
+  ],
+  "kernel_files_match_registry": true,
+  "cpu_oracle": {
+    "args": [
+      "--oracle-only"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.006699106888845563,
+    "max_rss_kib_child_process": 10540,
+    "npu_device_created": false
+  },
+  "cpu_fullshape_memory": {
+    "args": [
+      "--host-memory-only"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 1.1134493760764599,
+    "max_rss_kib_child_process": 234560,
+    "npu_device_created": false
+  },
+  "shape": {
+    "active_clusters": 2,
+    "live_slices_per_cluster": 240,
+    "physical_slices_per_cluster": 256,
+    "rows": 32,
+    "elements_per_row": 3840,
+    "input_bytes": 61440,
+    "output_bf16_elements_per_variant": 58982400,
+    "output_bytes_per_variant": 117964800,
+    "output_bytes_both_variants": 235929600,
+    "host_bf16_comparisons_both_variants": 117964800
+  },
+  "cases": [
+    {
+      "id": 1,
+      "name": "all_ordered_nibble_pairs",
+      "fp4_codes": 16,
+      "nibble_phases": 2,
+      "ordered_nibble_pairs": 256,
+      "all_codes_in_every_mod64_position": true
+    }
+  ],
+  "runtime_diagnostics": [
+    "packed HBM input round-trip",
+    "NaN-initialized output",
+    "per-cluster/code/nibble/mod64 mismatch counts",
+    "first32 badcoordinates perresult",
+    "representative bits per code/phase",
+    "nonfinite and signed-zero-only mismatch counts"
+  ],
+  "memory_controls": [
+    "one case only",
+    "legacy HBM output dropped before fused output allocation",
+    "full host tensor/check CPU simulation peak234560KiB and1.11345s locally",
+    "CPU-only simulation excludes runtime driver allocations and NPU/PDMA latency"
+  ],
+  "package": "moa-dev/experiments/artifacts/fp4-decode-probe-fullshape-package",
+  "fixture_required": false,
+  "hardware": {
+    "status": "NOT_SUBMITTED_BY_SUBAGENT",
+    "job_id": null
+  },
+  "new_npu_jobs_created_by_this_subagent": 0,
+  "limitations": [
+    "Inputs replicated identically across all480logical slices; no unique slice-tagging pattern.",
+    "Padding slices240..255 carry no logical elements and are excluded by typed HBM output, not promoted to data.",
+    "No DPE, scales, activation quantizer, adjacent up/gate buffers or full FFN allocation/lifetime context.",
+    "Two kernel compilation only; no extra exact schedule compile under parent budget.",
+    "Local CPU timing and memory are not an Arena 70-second runtime guarantee or device memory peak."
+  ],
+  "artifact_hashes": {
+    "build-1.log": "1bbdf696872d62001e0ed24d9ce8ff7ec93a90903facfb576bd7fa1a8118d4e0",
+    "build-2.log": "434ba85d80bb0e7c5a6ae4b9010cc6789c73e1b6f27e1079d6f1a599df8bac22",
+    "cpu-memory-stats.json": "e47c9014653fdcce5264c2b875b0a633bedcaf63f530c78c6ba4ee4f26add4ef",
+    "cpu-memory.log": "04cd752768e810b9c5091a1eb01ffaa50614ee536c3b0af9ca49ce65a5e742b8",
+    "cpu-oracle-stats.json": "7405f91670bf9344201fb7b822490608162ce5a1544dd06e7b19a0f6f1881fa2",
+    "cpu-oracle.log": "9c61fa40d9d2b43779c9f9ebab26e69041475b9eb2f2b99c4dc85c11a0a579f4",
+    "probe_decode": "f080a6a47e31f29764ddc0c5a55cfe670f0e3c99d7787ab0f478186aebba658e"
+  }
+}

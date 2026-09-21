@@ -5,7 +5,10 @@
 
 | 대상 | 확인한 상태와 범위 |
 |---|---|
-| E37 채택 조합 | [동일 패키지3회](e37-combined-repeats.json) 전부 PASS, 중앙값94,195/45,748/379,741. [별도 추가 입력6개](e37-combined-extra-correctness.json)도30개 비교 PASS. |
+| E37 이전 조합 | [동일 패키지3회](e37-combined-repeats.json) 전부 PASS, 중앙값94,195/45,748/379,741. [별도 추가 입력6개](e37-combined-extra-correctness.json)도30개 비교 PASS. |
+| E47 채택 조합 | [반복3회](e47-output-sixteen-columns-repeats.json) 모두15개 PASS, 중앙값94,662/44,588/377,564. [추가 입력6개](e47-output-sixteen-columns-extra-correctness.json)30개 PASS. 동일 source 복구 빌드와 extra host 내 device images도 검증. |
+| E44–E50 후속 | E44/E45/E46/E48 성능 이득 없음, E49 정적 회귀·NPU 미검사. E50은15개 PASS/376,184 단일 screen이며 E51 결합 검증 전 미채택. |
+| FP4 진단 | Small/fullshape-tagged 검사는 각각25,165,824/117,964,800 BF16 값 bit-exact PASS. 전체 FFN·모든 입력의 보장으로 확장하지 않음. |
 | E37 cache 보존 | [70589](e37-cache-preservation-correctness.json)는 E37과 동일한 device image를 쓴 별도 host harness. 기존15개 비교와 cache12개 검사 PASS, 비대상12,570,624개 bit-exact 보존. 진단 cycles는 성능 집계에서 제외. |
 | E37 소스·재현성 | [수정 범위 검사](e37-source-contract-audit.json), [복구 빌드](e37-final-restore-audit.json), [빈 target 빌드](e37-clean-build-audit.md)를 구분. 공식 harness와 공개 함수 선언 보존. |
 | E27/E29 반복 | E27은 원래 패키지의 단일 screen. E29는 [70428/70482/70493 반복](e29-qkv-input-control-repeats.json) PASS. 추가 입력과 같은 패키지 반복을 혼동하지 않음. |
@@ -28,8 +31,8 @@ Git whitespace 검사는 raw patch/log를 제외했다. 변경하지 않은 froz
 파일 끝 빈 줄이 있어 `core.whitespace=-blank-at-eof`로 이 항목만 제외하고 검사했다.
 실험 source의 hash를 보존하기 위해 해당 파일을 서식 목적으로 변경하지 않았다.
 
-최종 검사 `2026-09-21T11:43:58.373973+00:00`: Markdown 113개, 로컬 링크 290개,
-JSON 313개에서 누락 파일·JSON 문법 오류0건. 외부 링크152개는 검사 범위에서 제외했다.
+최종 검사 `2026-09-21T12:26:12.380545+00:00`: Markdown 129개, 로컬 링크 423개,
+JSON 394개에서 누락 파일·JSON 문법 오류0건. 외부 링크154개는 검사 범위에서 제외했다.
 검사 스크립트와 출력은 `/tmp/moa-local-doc-qa.py`, `/tmp/moa-local-doc-qa-result.json`에 있다.
 
 공식 score/rank는 아직 없다. [공식 상태](official-submission-status-20260921.json)의

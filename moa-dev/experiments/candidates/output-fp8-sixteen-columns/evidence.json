@@ -1,0 +1,339 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-21T12:08:25.110359+00:00",
+  "status": "adopted_three_same_package_repeats_and_six_extra_inputs_pass",
+  "baseline_snapshot": "moa-dev/experiments/artifacts/e37-kernel-specific-rms",
+  "candidate_projection_sha256": "db048b93d9b768bb4cb9cb6f8fd603783789d4a5eb609e42a00a23c69a330718",
+  "baseline_projection_sha256": "b58d2ce261f1d12d2a219fd4edc2a715b163b4bf033d5e973ca3d64ba2df08e5",
+  "candidate_kernel_image": "moa-dev/experiments/artifacts/output-fp8-sixteen-columns-static/sliding_attention_output.bin",
+  "candidate_kernel_sha256": "00d8a969edf26d5a34fbf9bc5430cdd889f60fa58f122ebcbd7aa2208f584353",
+  "candidate_kernel_bytes": 87040,
+  "source_scope": "Only project_output and private O quantizer/layout; QKV functions/public ops/H480x8 epilogue/other sources and harness unchanged.",
+  "static": {
+    "baseline": {
+      "makespan": 24997,
+      "instruction_count": 52,
+      "duration_sums_by_resource": {
+        "Sub": 2668,
+        "DmaLoad": 16468,
+        "Core": 7059,
+        "Main": 5252,
+        "DmaStos": 2298,
+        "DmaStore": 648
+      },
+      "duration_sums_are_not_critical_path_savings": true
+    },
+    "candidate": {
+      "makespan": 24621,
+      "instruction_count": 51,
+      "duration_sums_by_resource": {
+        "Sub": 2572,
+        "DmaLoad": 15954,
+        "Core": 5137,
+        "Main": 5196,
+        "DmaStos": 2019,
+        "DmaStore": 648
+      },
+      "duration_sums_are_not_critical_path_savings": true
+    }
+  },
+  "delta_cycles": -376,
+  "relative_static_change_percent": -1.5041805016601992,
+  "stage_cycles": {
+    "input_dma": [
+      1318,
+      933
+    ],
+    "input_dm_copy": [
+      947,
+      691
+    ],
+    "amax_main": [
+      409,
+      345
+    ],
+    "hi_quant_main": [
+      409,
+      345
+    ],
+    "lo_quant_main": [
+      409,
+      345
+    ],
+    "hi_vrf_sub": [
+      327,
+      295
+    ],
+    "paired_trf_sub": [
+      391,
+      327
+    ],
+    "weight_dma": [
+      13512,
+      13383
+    ],
+    "native_fp8_pair_main": [
+      1238,
+      1242
+    ],
+    "interslice_reduce_main": [
+      390,
+      522
+    ],
+    "canonical_gather": [
+      469,
+      446
+    ]
+  },
+  "timing": {
+    "weight_dma_end": [
+      17346,
+      16709
+    ],
+    "native_pair_end": [
+      18584,
+      17951
+    ],
+    "interslice_reduce_end": [
+      18974,
+      18473
+    ],
+    "canonical_gather_end": [
+      19448,
+      19072
+    ],
+    "channel_scale_epilogue_begin": [
+      21048,
+      20672
+    ],
+    "terminal_sync_cycles": 600,
+    "note": "Unchanged epilogue starts376 cycles earlier. Stage duration deltas overlap and cannot be added as total latency savings."
+  },
+  "memory_payload_per_slice": {
+    "bf16_input": [
+      1024,
+      512
+    ],
+    "paired_fp8_input_and_trf": [
+      1024,
+      512
+    ],
+    "hi_f32_vrf": [
+      2048,
+      1024
+    ],
+    "input_scale_vrf": [
+      32,
+      32
+    ],
+    "weight_fp8": [
+      30720,
+      30720
+    ],
+    "f32_partial_with_lane_padding": [
+      1920,
+      3840
+    ],
+    "reduced_bf16_physical_with_slice_padding": [
+      120,
+      240
+    ],
+    "trf_payload_note": "Schedule reserves a fixed TRF bank in both cases; halved payload does not claim halved allocated bank memory."
+  },
+  "dma_mapping_note": "Logical row stripe512->256, but baseline actual DMA already splits512 into two256-byte transfers. Do not claim physical burst width halved. See weight-dma-mapping.json.",
+  "precision_note": "Per-column amax groups512->256 and inter-slice F32 reduction8->16; quantizer algorithm and BF16 boundaries preserved, bitwise equality/all-input tolerance not proven.",
+  "compile": {
+    "attempts": 2,
+    "baseline_exit_code": 0,
+    "candidate_exit_code": 0,
+    "compile_failures": 0,
+    "kernel": "ops::sliding_attention_output",
+    "exact": true,
+    "scratch": "/tmp/moa-output-fp8-sixteen-columns",
+    "container": "moa2026-dev",
+    "cargo_home": "/tmp/moa-extra-seeds-e5-four-row-extra/cargo-home",
+    "cargo_target_dir": "/tmp/moa-output-fp8-sixteen-columns/target",
+    "furiosa_opt_out_dir": "/tmp/moa-output-fp8-sixteen-columns/target/furiosa-opt/kernel",
+    "xdg_cache_home": "/tmp/moa-output-fp8-sixteen-columns/cache",
+    "rustup_home": "/home/moa/.rustup",
+    "command_template": "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule /tmp/moa-output-fp8-sixteen-columns/{baseline,candidate}.json --dump-graph /tmp/moa-output-fp8-sixteen-columns/{baseline,candidate}-graph.json --dump-summary /tmp/moa-output-fp8-sixteen-columns/{baseline,candidate}-summary"
+  },
+  "verification": {
+    "status": "PASS",
+    "candidate_projection_sha256": "db048b93d9b768bb4cb9cb6f8fd603783789d4a5eb609e42a00a23c69a330718",
+    "qkv_and_h480_epilogue_byte_identical": true,
+    "public_project_output_signature_unchanged": true,
+    "all_other_source_and_manifests_unchanged": true,
+    "checked_source_and_manifest_files": 46,
+    "row_coordinates_checked": 3840,
+    "column_coordinates_checked": 4096,
+    "physical_row_column_tiles_checked": 61440,
+    "cartesian_weight_elements": 15728640,
+    "clusters": 2,
+    "physical_slices_per_cluster": 256,
+    "row_groups_per_cluster": 16,
+    "columns_per_row_group": 16,
+    "rows_per_slice": 120,
+    "columns_per_slice": 256,
+    "weight_bytes_per_slice": 30720,
+    "input_bf16_payload_bytes_per_slice": 512,
+    "paired_trf_payload_bytes_per_slice": 512,
+    "hi_vrf_bytes_per_slice": 1024,
+    "f32_partial_physical_bytes_per_slice": 3840,
+    "reduced_bf16_physical_bytes_per_slice": 240,
+    "bf16_commit_packets_per_slice": 30,
+    "bf16_values_per_commit": 4,
+    "precision_change": "Amax/scale groups512->256 and final F32 inter-slice sum8->16; arithmetic/cast boundaries preserved, bitwise equality not promised.",
+    "compiled_reduce_ratio": 16,
+    "compiled_commit_stride_verified": true,
+    "compiled_candidate_cycles": 24621,
+    "hardware_correctness_checked": false
+  },
+  "npu_submissions_by_this_subagent": 0,
+  "files_sha256": {
+    "projection.rs": "db048b93d9b768bb4cb9cb6f8fd603783789d4a5eb609e42a00a23c69a330718",
+    "verification.json": "2b152d4095fffe13ba97b0df3412f97999ca64d9cb393494fe3b4d20ab3fb993",
+    "weight-dma-mapping.json": "8d99956823e8a1321926d5eca1bcab5160c3c551476364d0e1bba34d6ce7b49e",
+    "baseline.json": "2c52c0eefc4ab746c69d875e7c0196ce25ff88dcbf29ca5963987111c3c3ad03",
+    "candidate.json": "9a28e7efb943e9edcd164f774c468687c08e2dfc1499157d13891d98b993c5fa",
+    "baseline-graph.json": "5900ff1a4200c8dc8dbf4a1f0750d747be318141af28bc87ad627390d14d59fe",
+    "candidate.patch": "1529cf5a80cd7e83ffebfde27ec61bd7f0e4d11ab1896199aa6d197464e326cf",
+    "verify_layout.py": "265c7637549e92d75500fa1d803221bc6ff3ee33c5dd394e0aee1bd871908a36",
+    "baseline-source-manifest.json": "4e2737388aecb19b05f57a473cb60f87f0d1349e2199347af265dfbbb06d361b",
+    "projection.original.rs": "b58d2ce261f1d12d2a219fd4edc2a715b163b4bf033d5e973ca3d64ba2df08e5",
+    "candidate-compile.log": "107b6832dd6e3bc185dbf061b91f43d4598e2f73d82a7d4d9e7a66f8ff14f422",
+    "baseline-compile.log": "107b6832dd6e3bc185dbf061b91f43d4598e2f73d82a7d4d9e7a66f8ff14f422",
+    "candidate-source-manifest.json": "1b4c23fdb4ed56bf4f3d3bff0f350d1141e17ae6675ba9528d8a44058746e15d",
+    "candidate-graph.json": "8340c7a22d85a3d2eea5d0475acf49f4dbd8ab54fa56ad338dcbf142a79df0c6",
+    "coverage-audit.json": "5d9dc351deb2af3da71793c9ab9795d3474c490752fd44f483e05e2935ef8903",
+    "correctness-audit.md": "0330da896c624b34be0595f7a22478bbbed1234f5518dc93a8c113ad0b05d4d6",
+    "repeat-artifact-verification.json": "0ec347aace88d50b07563da3e711ddd0466e7eb002d2cdd6adfc343cf737bea9",
+    "README.md": "5bac25efc79e4d14c6866e37757a1e97ec4be8695295b24615a72382d384b8b2"
+  },
+  "hardware": {
+    "experiment_record": "docs/experiments/e47-output-sixteen-columns.json",
+    "job_id": 70664,
+    "submitted_by": "root",
+    "valid": true,
+    "official_input_configurations": 3,
+    "output_comparisons_passed": 15,
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 94662,
+        "cycles_by_run": [
+          102696,
+          94267,
+          94662
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 44309,
+        "cycles_by_run": [
+          49067,
+          43476,
+          44309
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 377274,
+        "cycles_by_run": [
+          377274,
+          374600,
+          377718
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "log": "moa-dev/logs/e47-output-sixteen-columns-job-70664.log",
+    "log_sha256": "d0699a06ae33eeec663771f6ec73f8b3e6c25cec4679762779d6da1a748687a3",
+    "binary_sha256": "b656704d67dbc51b15765052a77fe16b999a1820f3c0f6456779b64bc31ec895",
+    "snapshot_projection_matches_candidate": true,
+    "reference_e37_repeated_o_median": 45748,
+    "screen_relative_o_change_percent": -3.145492699134389,
+    "repeat_status": "verified_three_same_package_jobs_pass",
+    "extra_status": "job70694_succeeded_30_comparisons_pass",
+    "decision": "root_adopted_E47_O16_retained_E37_QKV_FFN",
+    "npu_submissions_by_this_subagent": 0,
+    "repeat_experiment_record": "docs/experiments/e47-output-sixteen-columns-repeats.json",
+    "repeat_jobs": [
+      70664,
+      70681,
+      70688
+    ],
+    "aggregate": {
+      "sliding_project_qkv": {
+        "median_cycles": 94662,
+        "job_medians": [
+          94662,
+          94604,
+          94749
+        ],
+        "min_cycles": 94604,
+        "max_cycles": 94749,
+        "relative_range": 0.0015317656504193868
+      },
+      "sliding_attention_output": {
+        "median_cycles": 44588,
+        "job_medians": [
+          44309,
+          44663,
+          44588
+        ],
+        "min_cycles": 44309,
+        "max_cycles": 44663,
+        "relative_range": 0.007939355880505965
+      },
+      "decoder_feedforward": {
+        "median_cycles": 377564,
+        "job_medians": [
+          377274,
+          377564,
+          377606
+        ],
+        "min_cycles": 377274,
+        "max_cycles": 377606,
+        "relative_range": 0.0008793211217171128
+      }
+    },
+    "repeat_relative_o_change_percent": -2.5356299728949927,
+    "artifact_verification": "repeat-artifact-verification.json",
+    "extra_experiment_record": "docs/experiments/e47-output-sixteen-columns-extra-correctness.json",
+    "source_build_audit": "docs/experiments/e47-source-build-audit.json",
+    "extra_job_id": 70694,
+    "extra_run_ids": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "extra_comparisons_passed": 30,
+    "distinct_input_configurations_total": 9,
+    "o_elements_checked_across_distinct_inputs": 34560,
+    "official_host_rebuild_byte_identical": true,
+    "three_device_images_in_official_and_extra_hosts": true,
+    "extra_cycles_excluded_from_official_performance_aggregate": true
+  },
+  "updated_at_utc": "2026-09-21T12:25:04.395978+00:00",
+  "correctness_audit": {
+    "document": "correctness-audit.md",
+    "activation_analysis": "coverage-audit.json",
+    "official_runs_cpu_activation_reconstruction_exact": true,
+    "extra_runs_with_nonexact_tiny_activation": [
+      3,
+      4,
+      6,
+      7,
+      8
+    ],
+    "all_run_input_checksums_verified": true,
+    "npu_or_compiles_added": false,
+    "scope": "CPU input-only audit and source review; SDK hardware rounding not proven"
+  }
+}

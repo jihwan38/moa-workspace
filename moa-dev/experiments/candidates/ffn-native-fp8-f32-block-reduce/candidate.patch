@@ -1,0 +1,73 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -35,9 +35,9 @@
+     scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]>,
+     output: &mut DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, 1 # 4]>,
+ ) {
+-    // This deliberately adds BF16 rounding of each 16-element block dot.
+-    // The second contraction multiplies block scales and reduces the block axis.
+-    let partials: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> = device
++    // Keep the native FP8 block dot and hi/lo reconstruction in F32.
++    // Materializing F32 separates pair arithmetic from the standalone reduction.
++    let partials: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> = device
+         .main.begin(weights.view())
+         .fetch::<m![FfnRow, H / 32], m![H % 32]>()
+         .collect::<m![FfnRow, H / 32], m![H % 32]>()
+@@ -53,31 +53,34 @@
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)
+         .vector_widen_concat::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>()
+         .vector_final()
+-        .cast::<bf16, m![H / 16 % 4 # 16]>()
+         .commit_trim::<m![H / 16 % 4]>()
+         .commit();
+-    let scales: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> = device
+-        .main.begin(scales.view())
+-        .fetch::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()
+-        .fetch_table_lookup::<bf16>()
+-        .collect::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()
+-        .commit_trim::<m![H / 16 % 16]>()
+-        .commit();
+-    let scales_trf: TrfTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![1], m![FfnRow, H / 16]> = device
+-        .sub.begin(scales.view())
+-        .fetch::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()
+-        .collect::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()
+-        .to_trf();
+-    device.main.begin(partials.view())
+-        .fetch::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()
+-        .collect::<m![FfnRow, H / 16 / 16], m![H / 16 % 16]>()
+-        .contract_outer::<m![FfnRow, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)
+-        .contract_packet::<m![1]>()
+-        .contract_time::<m![FfnRow]>()
+-        .contract_lane::<m![FfnRow], m![1 # 8]>(LaneMode::Interleaved)
+-        .cast::<bf16, m![1 # 16]>()
+-        .commit_trim::<m![1 # 4]>()
+-        .commit_view(output.view_mut());
++    // Six actual rows x 240 FP32 scales occupy5760B of the per-slice VRF.
++    // Five disjoint tiles cover Row30; the scalar output remains8B per row.
++    static_passes!(i, [0, 1, 2, 3, 4], {
++        let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 6, H / 16]> = device
++            .sub
++            .begin(scales.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H / 16]>(6 * i))
++            .fetch::<m![FfnRow = 6], m![H / 16]>()
++            .fetch_cast::<f32>()
++            .collect::<m![FfnRow = 6, H / 128], m![H / 16 % 8]>()
++            .to_vrf();
++
++        device.main
++            .begin(partials.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H / 16]>(6 * i))
++            .fetch::<m![FfnRow = 6], m![H / 16]>()
++            .collect::<m![FfnRow = 6, H / 128], m![H / 16 % 8]>()
++            .vector_init()
++            .vector_intra_slice_tag(TagMode::Zero)
++            .vector_narrow_split::<m![FfnRow = 6, H / 64], m![H / 16 % 4]>()
++            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
++            .vector_intra_slice_reduce::<H, m![FfnRow = 6], m![1 # 4]>(IntraSliceReduceOpF32::Add)
++            .vector_widen_pad::<m![1 # 8]>()
++            .vector_final()
++            .cast::<bf16, m![1 # 16]>()
++            .commit_trim::<m![1 # 4]>()
++            .commit_view(output.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, 1 # 4]>(6 * i));
++    });
+ }
+ 
+ pub(crate) fn project_up_and_gate(

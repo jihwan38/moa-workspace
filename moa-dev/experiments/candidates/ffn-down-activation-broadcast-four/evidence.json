@@ -1,0 +1,76 @@
+{
+  "recorded_at_utc": "2026-09-21T11:51:16.550910+00:00",
+  "experiment": "E43",
+  "base_commit": "c79e433",
+  "status": "four exact compile attempts failed; no NPU submission",
+  "intended_change": "Stage down activation into one slice per four output-row groups, then copy across four rows with Switch while preserving 1920-element column segments. Arithmetic, weights, block scales, postnorm and residual unchanged.",
+  "attempts": [
+    {
+      "source": "mlp.named-row-failed.rs",
+      "switch": "Broadcast1(4,8)",
+      "status": "backend panic modulo must divide the size"
+    },
+    {
+      "source": "mlp.replica-broadcast1-failed.rs",
+      "switch": "Broadcast1(4,8)",
+      "status": "same backend panic"
+    },
+    {
+      "source": "mlp.named-custom-failed.rs",
+      "switch": "CustomBroadcast ring32",
+      "status": "Switch snoop bitmap disagrees with enumeration at output slice8"
+    },
+    {
+      "source": "mlp.rs",
+      "switch": "Broadcast1(4,8), explicit anonymous4 replication before rename",
+      "status": "same backend panic"
+    }
+  ],
+  "files": {
+    "mlp.named-custom-failed.rs": {
+      "sha256": "a329927d0e5e85a066741aff3ecb4fef3ede48de5b0a5b64ecf5b713c1327a31",
+      "bytes": 21773
+    },
+    "named-row-compile.log": {
+      "sha256": "29e9762ce9f0a1b6a1ff0e629f552b6aed6a4592e7f597befb9b18ed313d3ee1",
+      "bytes": 4174
+    },
+    "mlp.named-row-failed.rs": {
+      "sha256": "61d59ca96b9bff2d757684c7f310d9c9739e5aeb64633db62cfa17ed29a34087",
+      "bytes": 21589
+    },
+    "named-custom-compile.log": {
+      "sha256": "410b23629b4715137057a7b77a5c5c7a63739d01ac9df82087f32dd88d989295",
+      "bytes": 1398
+    },
+    "mlp.replica-broadcast1-failed.rs": {
+      "sha256": "5b41886668691a32a507bebe57d1b31ef370fa640f298c5e8bdfbd57323af212",
+      "bytes": 21775
+    },
+    "candidate.patch": {
+      "sha256": "0a7e39cca9b647cbc0a0e2ae10b2b87b5989d675b46b7e02a9b8d79620d9f2a1",
+      "bytes": 1375
+    },
+    "replica-broadcast1-compile.log": {
+      "sha256": "2f9768c41216c86b8d7b7fe73c35ce9dc13bd35500c214caef6a5d5728f8f32c",
+      "bytes": 4174
+    },
+    "explicit-broadcast1-compile.log": {
+      "sha256": "8a2c9f955f48ac9e6af06a951b82f8efa470c8f7d3d033b6cddf926baf0728f1",
+      "bytes": 4174
+    },
+    "mlp.rs": {
+      "sha256": "b7528533cc80d0760226f94877d3700fde3205cff0e4c983584a84317f880af2",
+      "bytes": 21783
+    }
+  },
+  "scope": "No valid schedule or device image was produced. Intended fourfold activation staging payload reduction is not measured DMA or runtime evidence. Root cause remains unresolved.",
+  "followup": {
+    "status": "EXACT_COMPILE_PASS_NPU_DEFERRED_STATIC_REGRESSION",
+    "evidence": "custom-explicit-evidence.json",
+    "source": "mlp.custom-explicit.rs",
+    "source_sha256": "bde02fcad8e40d6a3f210cf91b3bbb59079cd8456dff22af97962a542ddfd134",
+    "makespan_cycles": 166181,
+    "npu_submitted": false
+  }
+}

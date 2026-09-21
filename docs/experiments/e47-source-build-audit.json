@@ -1,0 +1,48 @@
+{
+  "checked_at_utc": "2026-09-21T12:19:05.852856+00:00",
+  "adoption_pending_extra_job": null,
+  "live_source_matches_frozen_e47_source": true,
+  "source_file_count": 43,
+  "changed_from_e37": [
+    "src/device/sliding/projection.rs"
+  ],
+  "e37_source_contract_audit_carried_forward": "docs/experiments/e37-source-contract-audit.json",
+  "unchanged_ops_and_official_harness": true,
+  "rebuilt_binary_sha256": "b656704d67dbc51b15765052a77fe16b999a1820f3c0f6456779b64bc31ec895",
+  "rebuilt_binary_bytes": 3668288,
+  "rebuilt_binary_matches_measured_official_package": true,
+  "extra_harness_binary_sha256": "f191cf80b53d02e84ea633aaa5f719b5223dd0ad859bc5eca10e1f55e2a94a5a",
+  "device_images": {
+    "furiosa_opt_gemma4::ops::decoder_feedforward.bin": {
+      "sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+      "bytes": 204032,
+      "official_host_occurrences": 1,
+      "extra_host_occurrences": 1
+    },
+    "furiosa_opt_gemma4::ops::sliding_attention_output.bin": {
+      "sha256": "00d8a969edf26d5a34fbf9bc5430cdd889f60fa58f122ebcbd7aa2208f584353",
+      "bytes": 87040,
+      "official_host_occurrences": 1,
+      "extra_host_occurrences": 1
+    },
+    "furiosa_opt_gemma4::ops::sliding_project_qkv.bin": {
+      "sha256": "91b232f0179b37b126f2ba8755b6125e532364418516948fd98dadcc9d7e77ea",
+      "bytes": 187648,
+      "official_host_occurrences": 1,
+      "extra_host_occurrences": 1
+    }
+  },
+  "note": "After restoring E37 MLP and installing frozen O16 projection, successful full build reproduced the entire measured E47 executable. All three device images also occur exactly once in the separately compiled extra-input host executable. E37 source-contract scope carries forward because only private O code/layout changed; public project_output signature was separately checked by candidate verify_layout.py. This is not an all-input numerical proof.",
+  "adoption": {
+    "checked_at_utc": "2026-09-21T12:21:02.019486+00:00",
+    "extra_job": 70694,
+    "extra_comparisons_passed": 30,
+    "repeated_jobs": [
+      70664,
+      70681,
+      70688
+    ],
+    "all_repeated_jobs_pass": true,
+    "decision": "adopt E47 O16; retain E37 QKV/FFN"
+  }
+}

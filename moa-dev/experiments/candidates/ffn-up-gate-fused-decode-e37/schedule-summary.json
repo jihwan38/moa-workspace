@@ -1,0 +1,2483 @@
+{
+  "e48": {
+    "path": "moa-dev/experiments/artifacts/ffn-up-fused-decode-e37/schedule.json",
+    "sha256": "c7d9738db9e9c691a385c5c09067dcfcca6f8de372661e5a6e54e147dea15a65",
+    "makespan": 157866,
+    "instruction_duration_sum_by_type": {
+      "Sub": 17826,
+      "DmaLoad": 109907,
+      "Core": 18730,
+      "DmaStos": 24214,
+      "Main": 113491,
+      "DmaStore": 648
+    },
+    "instruction_count_by_type": {
+      "Sub": 51,
+      "DmaLoad": 19,
+      "Core": 122,
+      "DmaStos": 10,
+      "Main": 36,
+      "DmaStore": 1
+    },
+    "decode_main_duration_sum": 74395,
+    "decode_ops": [
+      {
+        "index": "142",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 30708,
+          "end": 40571
+        },
+        "input_tensors": [
+          60,
+          23
+        ],
+        "output_tensors": [
+          101
+        ],
+        "duration": 9863,
+        "description": "--> src/device/shared/mlp.rs:109:98\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()",
+        "schedule_tensors": [
+          {
+            "name": "vISA(T306)_i2_project_up_and_gate_104",
+            "index": "60",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 4221,
+              "end": 40571,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67108864,
+            "size": 31457280,
+            "physical_pages": [
+              2,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "23",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 1841,
+              "end": 40571,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 16908288,
+            "size": 8388608,
+            "physical_pages": [
+              0
+            ],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "name": "vISA(T308)_i2_project_up_and_gate_113",
+            "index": "101",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 30708,
+              "end": 64250,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 100663296,
+            "size": 62914560,
+            "physical_pages": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "187",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 44787,
+          "end": 64250
+        },
+        "input_tensors": [
+          101,
+          53
+        ],
+        "output_tensors": [
+          117
+        ],
+        "duration": 19463,
+        "description": "--> src/device/shared/mlp.rs:119:94\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32, H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()",
+        "schedule_tensors": [
+          {
+            "name": "vISA(T308)_i2_project_up_and_gate_113",
+            "index": "101",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 30708,
+              "end": 64250,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 100663296,
+            "size": 62914560,
+            "physical_pages": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "53",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3134,
+              "end": 64250,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 8388608,
+            "physical_pages": [
+              1
+            ],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "name": "vISA(T340)_i10_project_eight_rows_scaled_after_dot_39",
+            "index": "117",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 44787,
+              "end": 64274,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 168034304,
+            "size": 125829120,
+            "physical_pages": [
+              2,
+              3,
+              8,
+              9,
+              10,
+              11,
+              12,
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "258",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 75014,
+          "end": 92557
+        },
+        "input_tensors": [
+          119,
+          141
+        ],
+        "output_tensors": [
+          142
+        ],
+        "duration": 17543,
+        "description": "--> src/device/shared/mlp.rs:85:92\n\ndevice\n.main\n.begin(up_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.fetch_cast::<f32>()\n.collect::<m![L % 32, H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "schedule_tensors": [
+          {
+            "name": "vISA(T265)_i2_project_up_and_gate_24",
+            "index": "119",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 44896,
+              "end": 92557,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 301989888,
+            "size": 31457280,
+            "physical_pages": [
+              13,
+              14
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "141",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 72805,
+              "end": 92557,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 4194304,
+            "physical_pages": [
+              1
+            ],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "name": "vISA(T297)_i6_project_eight_rows_scaled_after_dot_39",
+            "index": "142",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 75014,
+              "end": 92581,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67371008,
+            "size": 125829120,
+            "physical_pages": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "369",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 110088,
+          "end": 119351
+        },
+        "input_tensors": [
+          158,
+          157
+        ],
+        "output_tensors": [
+          183
+        ],
+        "duration": 9263,
+        "description": "--> src/device/shared/mlp.rs:393:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()",
+        "schedule_tensors": [
+          {
+            "name": "vISA(T381)_i12_project_down_sharded_38",
+            "index": "158",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 80658,
+              "end": 119351,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 201326592,
+            "size": 29491200,
+            "physical_pages": [
+              9,
+              10
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "157",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 80652,
+              "end": 119351,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 234881024,
+            "size": 8388608,
+            "physical_pages": [
+              11
+            ],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "name": "vISA(T383)_i12_project_down_sharded_47",
+            "index": "183",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 110088,
+              "end": 138554,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67108864,
+            "size": 58982400,
+            "physical_pages": [
+              2,
+              3,
+              4,
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "417",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 120291,
+          "end": 138554
+        },
+        "input_tensors": [
+          183,
+          190
+        ],
+        "output_tensors": [
+          202
+        ],
+        "duration": 18263,
+        "description": "--> src/device/shared/mlp.rs:401:104\n\ndevice\n.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()",
+        "schedule_tensors": [
+          {
+            "name": "vISA(T383)_i12_project_down_sharded_47",
+            "index": "183",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 110088,
+              "end": 138554,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67108864,
+            "size": 58982400,
+            "physical_pages": [
+              2,
+              3,
+              4,
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "190",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 113318,
+              "end": 138554,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 243269632,
+            "size": 8388608,
+            "physical_pages": [
+              11
+            ],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "name": "vISA(T420)_i12_project_down_sharded_314",
+            "index": "202",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 120291,
+              "end": 138584,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 264241152,
+            "size": 117964800,
+            "physical_pages": [
+              0,
+              1,
+              5,
+              6,
+              7,
+              8,
+              9,
+              14
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "dma_load_ops": [
+      {
+        "index": "15",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 1003,
+          "end": 1841
+        },
+        "input_tensors": [
+          21
+        ],
+        "output_tensors": [
+          20
+        ],
+        "duration": 838,
+        "description": ""
+      },
+      {
+        "index": "26",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 1841,
+          "end": 2679
+        },
+        "input_tensors": [
+          25
+        ],
+        "output_tensors": [
+          24
+        ],
+        "duration": 838,
+        "description": ""
+      },
+      {
+        "index": "45",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 2679,
+          "end": 3226
+        },
+        "input_tensors": [
+          45
+        ],
+        "output_tensors": [
+          44
+        ],
+        "duration": 547,
+        "description": "--> src/ops.rs:219:65\n\nresidual_hbm.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "63",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 3675,
+          "end": 4221
+        },
+        "input_tensors": [
+          58
+        ],
+        "output_tensors": [
+          57
+        ],
+        "duration": 546,
+        "description": "--> src/device/shared/rmsnorm.rs:63:81\n\nrms_weight.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "70",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 4221,
+          "end": 30696
+        },
+        "input_tensors": [
+          0
+        ],
+        "output_tensors": [
+          60
+        ],
+        "duration": 26475,
+        "description": "--> src/device/shared/mlp.rs:108:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "148",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 39060,
+          "end": 39779
+        },
+        "input_tensors": [
+          104
+        ],
+        "output_tensors": [
+          103
+        ],
+        "duration": 719,
+        "description": ""
+      },
+      {
+        "index": "160",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 39779,
+          "end": 43568
+        },
+        "input_tensors": [
+          10
+        ],
+        "output_tensors": [
+          106
+        ],
+        "duration": 3789,
+        "description": "--> src/device/shared/mlp.rs:130:9\n\ngate_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "168",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 43568,
+          "end": 44896
+        },
+        "input_tensors": [
+          109
+        ],
+        "output_tensors": [
+          108
+        ],
+        "duration": 1328,
+        "description": "--> src/device/shared/mlp.rs:275:9\n\ngate_global_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "191",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 44896,
+          "end": 71371
+        },
+        "input_tensors": [
+          6
+        ],
+        "output_tensors": [
+          119
+        ],
+        "duration": 26475,
+        "description": "--> src/device/shared/mlp.rs:82:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "233",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 71371,
+          "end": 72209
+        },
+        "input_tensors": [
+          135
+        ],
+        "output_tensors": [
+          134
+        ],
+        "duration": 838,
+        "description": ""
+      },
+      {
+        "index": "240",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 72302,
+          "end": 76091
+        },
+        "input_tensors": [
+          2
+        ],
+        "output_tensors": [
+          139
+        ],
+        "duration": 3789,
+        "description": "--> src/device/shared/mlp.rs:98:9\n\nup_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "276",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 78483,
+          "end": 79811
+        },
+        "input_tensors": [
+          153
+        ],
+        "output_tensors": [
+          152
+        ],
+        "duration": 1328,
+        "description": "--> src/device/shared/mlp.rs:250:9\n\nup_global_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "282",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 79811,
+          "end": 80649
+        },
+        "input_tensors": [
+          156
+        ],
+        "output_tensors": [
+          155
+        ],
+        "duration": 838,
+        "description": ""
+      },
+      {
+        "index": "288",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 80658,
+          "end": 110085
+        },
+        "input_tensors": [
+          8
+        ],
+        "output_tensors": [
+          158
+        ],
+        "duration": 29427,
+        "description": "--> src/device/shared/mlp.rs:391:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "376",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 112480,
+          "end": 113318
+        },
+        "input_tensors": [
+          188
+        ],
+        "output_tensors": [
+          187
+        ],
+        "duration": 838,
+        "description": ""
+      },
+      {
+        "index": "385",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 113318,
+          "end": 113805
+        },
+        "input_tensors": [
+          192
+        ],
+        "output_tensors": [
+          191
+        ],
+        "duration": 487,
+        "description": "--> src/device/shared/mlp.rs:206:90\n\ndown_global_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "386",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 113805,
+          "end": 114351
+        },
+        "input_tensors": [
+          194
+        ],
+        "output_tensors": [
+          193
+        ],
+        "duration": 546,
+        "description": "--> src/device/shared/rmsnorm.rs:167:81\n\nrms_weight.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "393",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 114800,
+          "end": 115287
+        },
+        "input_tensors": [
+          198
+        ],
+        "output_tensors": [
+          197
+        ],
+        "duration": 487,
+        "description": "--> src/device/shared/residual.rs:204:76\n\nscalar.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "419",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 129683,
+          "end": 139457
+        },
+        "input_tensors": [
+          4
+        ],
+        "output_tensors": [
+          204
+        ],
+        "duration": 9774,
+        "description": "--> src/device/shared/mlp.rs:385:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      }
+    ],
+    "up_gate_dot_ops_in_scheduled_order": [
+      {
+        "index": "205",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 64529,
+          "end": 66732
+        },
+        "input_tensors": [
+          121,
+          118,
+          111,
+          51
+        ],
+        "output_tensors": [
+          122
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "220",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 67314,
+          "end": 69517
+        },
+        "input_tensors": [
+          123,
+          118,
+          126,
+          128
+        ],
+        "output_tensors": [
+          129
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "232",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 70099,
+          "end": 72302
+        },
+        "input_tensors": [
+          124,
+          118,
+          130,
+          132
+        ],
+        "output_tensors": [
+          133
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "245",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 72805,
+          "end": 75008
+        },
+        "input_tensors": [
+          125,
+          118,
+          136,
+          138
+        ],
+        "output_tensors": [
+          140
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "298",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 92757,
+          "end": 94960
+        },
+        "input_tensors": [
+          159,
+          118,
+          146,
+          91
+        ],
+        "output_tensors": [
+          160
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "320",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 95542,
+          "end": 97745
+        },
+        "input_tensors": [
+          161,
+          118,
+          165,
+          167
+        ],
+        "output_tensors": [
+          168
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "341",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 98791,
+          "end": 100994
+        },
+        "input_tensors": [
+          162,
+          118,
+          170,
+          172
+        ],
+        "output_tensors": [
+          175
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "361",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 101497,
+          "end": 103700
+        },
+        "input_tensors": [
+          163,
+          118,
+          178,
+          180
+        ],
+        "output_tensors": [
+          181
+        ],
+        "duration": 2203
+      }
+    ],
+    "down_dot_ops": [
+      {
+        "index": "460",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 140058,
+          "end": 141843
+        },
+        "input_tensors": [
+          207,
+          206,
+          213,
+          98
+        ],
+        "output_tensors": [
+          218
+        ],
+        "duration": 1785
+      },
+      {
+        "index": "472",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 142365,
+          "end": 144150
+        },
+        "input_tensors": [
+          208,
+          206,
+          219,
+          221
+        ],
+        "output_tensors": [
+          222
+        ],
+        "duration": 1785
+      },
+      {
+        "index": "484",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 144672,
+          "end": 146457
+        },
+        "input_tensors": [
+          209,
+          206,
+          223,
+          225
+        ],
+        "output_tensors": [
+          226
+        ],
+        "duration": 1785
+      },
+      {
+        "index": "496",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 146979,
+          "end": 148764
+        },
+        "input_tensors": [
+          210,
+          206,
+          227,
+          229
+        ],
+        "output_tensors": [
+          230
+        ],
+        "duration": 1785
+      },
+      {
+        "index": "508",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 149286,
+          "end": 151071
+        },
+        "input_tensors": [
+          211,
+          206,
+          231,
+          233
+        ],
+        "output_tensors": [
+          234
+        ],
+        "duration": 1785
+      }
+    ],
+    "last_down_dot_end": 151071,
+    "tail_cycles": 6795,
+    "explicit_sync_ops": [
+      {
+        "index": "ExplicitSync(15)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 1206,
+          "end": 1806
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(93)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 39060,
+          "end": 39660
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(139)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 78483,
+          "end": 92781
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(171)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 112480,
+          "end": 113080
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(184)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 129683,
+          "end": 130283
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(219)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 151916,
+          "end": 152516
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(231)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 157266,
+          "end": 157866
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      }
+    ],
+    "no_main_duration": 44375,
+    "no_main_intervals_over1000": [
+      {
+        "begin": 0,
+        "end": 3675,
+        "duration": 3675,
+        "next_op": "62"
+      },
+      {
+        "begin": 8349,
+        "end": 30708,
+        "duration": 22359,
+        "next_op": "142"
+      },
+      {
+        "begin": 103700,
+        "end": 110088,
+        "duration": 6388,
+        "next_op": "369"
+      },
+      {
+        "begin": 138554,
+        "end": 140058,
+        "duration": 1504,
+        "next_op": "460"
+      },
+      {
+        "begin": 151071,
+        "end": 153516,
+        "duration": 2445,
+        "next_op": "537"
+      },
+      {
+        "begin": 156618,
+        "end": 157866,
+        "duration": 1248,
+        "next_op": null
+      }
+    ],
+    "first_main_begin": 3675
+  },
+  "e49": {
+    "path": "moa-dev/experiments/artifacts/ffn-up-gate-fused-decode-e37/schedule.json",
+    "sha256": "927ef9c23ee096549b3726020b087b5422a690392548b57f578e4aae33d7dedc",
+    "makespan": 189967,
+    "instruction_duration_sum_by_type": {
+      "Sub": 16274,
+      "DmaLoad": 109069,
+      "Core": 56755,
+      "DmaStos": 24214,
+      "Main": 101708,
+      "DmaStore": 648
+    },
+    "instruction_count_by_type": {
+      "Sub": 50,
+      "DmaLoad": 18,
+      "Core": 122,
+      "DmaStos": 10,
+      "Main": 35,
+      "DmaStore": 1
+    },
+    "decode_main_duration_sum": 62612,
+    "decode_ops": [
+      {
+        "index": "113",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 31126,
+          "end": 48669
+        },
+        "input_tensors": [
+          44,
+          89
+        ],
+        "output_tensors": [
+          95
+        ],
+        "duration": 17543,
+        "description": "--> src/device/shared/mlp.rs:85:92\n\ndevice\n.main\n.begin(up_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.fetch_cast::<f32>()\n.collect::<m![L % 32, H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "schedule_tensors": [
+          {
+            "name": "vISA(T263)_i2_project_up_and_gate_24",
+            "index": "44",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2679,
+              "end": 48669,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67108864,
+            "size": 31457280,
+            "physical_pages": [
+              2,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "89",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 29992,
+              "end": 48669,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 25296896,
+            "size": 4194304,
+            "physical_pages": [
+              0
+            ],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "name": "vISA(T295)_i6_project_eight_rows_scaled_after_dot_39",
+            "index": "95",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 31126,
+              "end": 48693,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 109051904,
+            "size": 125829120,
+            "physical_pages": [
+              1,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "313",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 109311,
+          "end": 126854
+        },
+        "input_tensors": [
+          168,
+          108
+        ],
+        "output_tensors": [
+          172
+        ],
+        "duration": 17543,
+        "description": "--> src/device/shared/mlp.rs:110:94\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.fetch_cast::<f32>()\n.collect::<m![L % 32, H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "schedule_tensors": [
+          {
+            "name": "vISA(T304)_i2_project_up_and_gate_106",
+            "index": "168",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 82836,
+              "end": 126854,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 68157440,
+            "size": 31457280,
+            "physical_pages": [
+              2,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "108",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 38408,
+              "end": 126854,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 7864320,
+            "size": 4194304,
+            "physical_pages": [
+              11
+            ],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "name": "vISA(T336)_i10_project_eight_rows_scaled_after_dot_39",
+            "index": "172",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 109311,
+              "end": 126878,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 109051904,
+            "size": 125829120,
+            "physical_pages": [
+              1,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "412",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 144330,
+          "end": 153593
+        },
+        "input_tensors": [
+          173,
+          23
+        ],
+        "output_tensors": [
+          204
+        ],
+        "duration": 9263,
+        "description": "--> src/device/shared/mlp.rs:386:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()",
+        "schedule_tensors": [
+          {
+            "name": "vISA(T377)_i12_project_down_sharded_38",
+            "index": "173",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 109317,
+              "end": 153593,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 251658240,
+            "size": 29491200,
+            "physical_pages": [
+              12,
+              13
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "23",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 1841,
+              "end": 153593,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 16908288,
+            "size": 8388608,
+            "physical_pages": [
+              0
+            ],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "name": "vISA(T379)_i12_project_down_sharded_47",
+            "index": "204",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 144330,
+              "end": 171880,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 117440512,
+            "size": 58982400,
+            "physical_pages": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "419",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 153617,
+          "end": 171880
+        },
+        "input_tensors": [
+          204,
+          81
+        ],
+        "output_tensors": [
+          206
+        ],
+        "duration": 18263,
+        "description": "--> src/device/shared/mlp.rs:394:104\n\ndevice\n.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()",
+        "schedule_tensors": [
+          {
+            "name": "vISA(T379)_i12_project_down_sharded_47",
+            "index": "204",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 144330,
+              "end": 171880,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 117440512,
+            "size": 58982400,
+            "physical_pages": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "81",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3137,
+              "end": 171880,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 100663296,
+            "size": 8388608,
+            "physical_pages": [
+              1
+            ],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "name": "vISA(T416)_i12_project_down_sharded_314",
+            "index": "206",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 153617,
+              "end": 171910,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 260308992,
+            "size": 117964800,
+            "physical_pages": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              13
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "dma_load_ops": [
+      {
+        "index": "15",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 1003,
+          "end": 1841
+        },
+        "input_tensors": [
+          21
+        ],
+        "output_tensors": [
+          20
+        ],
+        "duration": 838,
+        "description": ""
+      },
+      {
+        "index": "26",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 1841,
+          "end": 2679
+        },
+        "input_tensors": [
+          25
+        ],
+        "output_tensors": [
+          24
+        ],
+        "duration": 838,
+        "description": ""
+      },
+      {
+        "index": "46",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 2679,
+          "end": 29154
+        },
+        "input_tensors": [
+          8
+        ],
+        "output_tensors": [
+          44
+        ],
+        "duration": 26475,
+        "description": "--> src/device/shared/mlp.rs:82:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "96",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 29154,
+          "end": 29992
+        },
+        "input_tensors": [
+          88
+        ],
+        "output_tensors": [
+          87
+        ],
+        "duration": 838,
+        "description": ""
+      },
+      {
+        "index": "102",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 29992,
+          "end": 30539
+        },
+        "input_tensors": [
+          91
+        ],
+        "output_tensors": [
+          90
+        ],
+        "duration": 547,
+        "description": "--> src/ops.rs:219:65\n\nresidual_hbm.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "105",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 30988,
+          "end": 31534
+        },
+        "input_tensors": [
+          94
+        ],
+        "output_tensors": [
+          93
+        ],
+        "duration": 546,
+        "description": "--> src/device/shared/rmsnorm.rs:63:81\n\nrms_weight.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "118",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 31734,
+          "end": 32453
+        },
+        "input_tensors": [
+          98
+        ],
+        "output_tensors": [
+          97
+        ],
+        "duration": 719,
+        "description": ""
+      },
+      {
+        "index": "119",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 32453,
+          "end": 36242
+        },
+        "input_tensors": [
+          4
+        ],
+        "output_tensors": [
+          99
+        ],
+        "duration": 3789,
+        "description": "--> src/device/shared/mlp.rs:98:9\n\nup_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "122",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 36242,
+          "end": 37570
+        },
+        "input_tensors": [
+          101
+        ],
+        "output_tensors": [
+          100
+        ],
+        "duration": 1328,
+        "description": "--> src/device/shared/mlp.rs:243:9\n\nup_global_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "129",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 37570,
+          "end": 38408
+        },
+        "input_tensors": [
+          107
+        ],
+        "output_tensors": [
+          106
+        ],
+        "duration": 838,
+        "description": ""
+      },
+      {
+        "index": "133",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 38408,
+          "end": 42197
+        },
+        "input_tensors": [
+          2
+        ],
+        "output_tensors": [
+          109
+        ],
+        "duration": 3789,
+        "description": "--> src/device/shared/mlp.rs:123:9\n\ngate_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "136",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 42197,
+          "end": 43525
+        },
+        "input_tensors": [
+          111
+        ],
+        "output_tensors": [
+          110
+        ],
+        "duration": 1328,
+        "description": "--> src/device/shared/mlp.rs:268:9\n\ngate_global_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "144",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 43525,
+          "end": 53299
+        },
+        "input_tensors": [
+          10
+        ],
+        "output_tensors": [
+          116
+        ],
+        "duration": 9774,
+        "description": "--> src/device/shared/mlp.rs:378:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "208",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 62881,
+          "end": 63368
+        },
+        "input_tensors": [
+          139
+        ],
+        "output_tensors": [
+          138
+        ],
+        "duration": 487,
+        "description": "--> src/device/shared/mlp.rs:199:90\n\ndown_global_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "220",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 63368,
+          "end": 63914
+        },
+        "input_tensors": [
+          142
+        ],
+        "output_tensors": [
+          141
+        ],
+        "duration": 546,
+        "description": "--> src/device/shared/rmsnorm.rs:167:81\n\nrms_weight.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "222",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 64363,
+          "end": 64850
+        },
+        "input_tensors": [
+          145
+        ],
+        "output_tensors": [
+          144
+        ],
+        "duration": 487,
+        "description": "--> src/device/shared/residual.rs:204:76\n\nscalar.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "292",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 82836,
+          "end": 109311
+        },
+        "input_tensors": [
+          6
+        ],
+        "output_tensors": [
+          168
+        ],
+        "duration": 26475,
+        "description": "--> src/device/shared/mlp.rs:108:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "315",
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 109317,
+          "end": 138744
+        },
+        "input_tensors": [
+          0
+        ],
+        "output_tensors": [
+          173
+        ],
+        "duration": 29427,
+        "description": "--> src/device/shared/mlp.rs:384:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      }
+    ],
+    "up_gate_dot_ops_in_scheduled_order": [
+      {
+        "index": "237",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 69807,
+          "end": 72010
+        },
+        "input_tensors": [
+          119,
+          149,
+          131,
+          28
+        ],
+        "output_tensors": [
+          150
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "250",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 72592,
+          "end": 74795
+        },
+        "input_tensors": [
+          120,
+          149,
+          151,
+          153
+        ],
+        "output_tensors": [
+          154
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "265",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 75377,
+          "end": 77580
+        },
+        "input_tensors": [
+          121,
+          149,
+          155,
+          157
+        ],
+        "output_tensors": [
+          158
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "277",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 78162,
+          "end": 80365
+        },
+        "input_tensors": [
+          122,
+          149,
+          159,
+          161
+        ],
+        "output_tensors": [
+          162
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "321",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 127054,
+          "end": 129257
+        },
+        "input_tensors": [
+          174,
+          149,
+          163,
+          82
+        ],
+        "output_tensors": [
+          175
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "336",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 129839,
+          "end": 132042
+        },
+        "input_tensors": [
+          176,
+          149,
+          179,
+          181
+        ],
+        "output_tensors": [
+          182
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "348",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 132624,
+          "end": 134827
+        },
+        "input_tensors": [
+          177,
+          149,
+          183,
+          185
+        ],
+        "output_tensors": [
+          186
+        ],
+        "duration": 2203
+      },
+      {
+        "index": "360",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 135409,
+          "end": 137612
+        },
+        "input_tensors": [
+          178,
+          149,
+          187,
+          189
+        ],
+        "output_tensors": [
+          190
+        ],
+        "duration": 2203
+      }
+    ],
+    "down_dot_ops": [
+      {
+        "index": "443",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 172159,
+          "end": 173944
+        },
+        "input_tensors": [
+          209,
+          208,
+          191,
+          85
+        ],
+        "output_tensors": [
+          210
+        ],
+        "duration": 1785
+      },
+      {
+        "index": "459",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 174466,
+          "end": 176251
+        },
+        "input_tensors": [
+          211,
+          208,
+          215,
+          217
+        ],
+        "output_tensors": [
+          218
+        ],
+        "duration": 1785
+      },
+      {
+        "index": "471",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 176773,
+          "end": 178558
+        },
+        "input_tensors": [
+          212,
+          208,
+          219,
+          221
+        ],
+        "output_tensors": [
+          222
+        ],
+        "duration": 1785
+      },
+      {
+        "index": "483",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 179080,
+          "end": 180865
+        },
+        "input_tensors": [
+          213,
+          208,
+          223,
+          225
+        ],
+        "output_tensors": [
+          226
+        ],
+        "duration": 1785
+      },
+      {
+        "index": "495",
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 181387,
+          "end": 183172
+        },
+        "input_tensors": [
+          214,
+          208,
+          227,
+          229
+        ],
+        "output_tensors": [
+          230
+        ],
+        "duration": 1785
+      }
+    ],
+    "last_down_dot_end": 183172,
+    "tail_cycles": 6795,
+    "explicit_sync_ops": [
+      {
+        "index": "ExplicitSync(15)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 1206,
+          "end": 53529
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(123)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 62881,
+          "end": 63481
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(150)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 82836,
+          "end": 83436
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(178)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 141136,
+          "end": 141736
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(187)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 153722,
+          "end": 154322
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(216)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 184017,
+          "end": 184617
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "ExplicitSync(228)",
+        "history": {},
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 189367,
+          "end": 189967
+        },
+        "input_tensors": [],
+        "output_tensors": [],
+        "description": "",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      }
+    ],
+    "no_main_duration": 88259,
+    "no_main_intervals_over1000": [
+      {
+        "begin": 0,
+        "end": 31126,
+        "duration": 31126,
+        "next_op": "113"
+      },
+      {
+        "begin": 53343,
+        "end": 64481,
+        "duration": 11138,
+        "next_op": "226"
+      },
+      {
+        "begin": 68584,
+        "end": 69807,
+        "duration": 1223,
+        "next_op": "237"
+      },
+      {
+        "begin": 80365,
+        "end": 84436,
+        "duration": 4071,
+        "next_op": "301"
+      },
+      {
+        "begin": 85041,
+        "end": 109311,
+        "duration": 24270,
+        "next_op": "313"
+      },
+      {
+        "begin": 137612,
+        "end": 142736,
+        "duration": 5124,
+        "next_op": "386"
+      },
+      {
+        "begin": 183172,
+        "end": 185617,
+        "duration": 2445,
+        "next_op": "524"
+      },
+      {
+        "begin": 188719,
+        "end": 189967,
+        "duration": 1248,
+        "next_op": null
+      }
+    ],
+    "first_main_begin": 31126
+  },
+  "difference": {
+    "makespan": 32101,
+    "main_active": -11783,
+    "no_main": 43884,
+    "instruction_duration_sum_by_type": {
+      "Sub": -1552,
+      "DmaLoad": -838,
+      "Core": 38025,
+      "DmaStos": 0,
+      "Main": -11783,
+      "DmaStore": 0
+    }
+  }
+}

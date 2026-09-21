@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-21T11:51:48.856361+00:00",
+  "status": "official_configs_pass_not_adopted_single_screen_slower_than_e37",
+  "source_commit": "c79e433cce3b908d07436e72d7ff4bc4672d7fcf",
+  "baseline_snapshot": "moa-dev/experiments/artifacts/e37-kernel-specific-rms",
+  "scope": "One V call in project_key_value; all other source, harness, signatures and manifests byte-identical to E37",
+  "source_sha256": {
+    "baseline": "b58d2ce261f1d12d2a219fd4edc2a715b163b4bf033d5e973ca3d64ba2df08e5",
+    "candidate": "a1bad7a8e909a50130725860f88e32a52cb6a575a75fa817a0911dc96f20e863"
+  },
+  "static": {
+    "baseline": {
+      "makespan": 50364,
+      "instruction_count": 171,
+      "duration_sums_by_resource": {
+        "Sub": 9803,
+        "DmaLoad": 32402,
+        "Core": 49662,
+        "Main": 27938,
+        "DmaStos": 8744,
+        "DmaGather": 1868,
+        "DmaStore": 441,
+        "DmaScatter": 1740
+      },
+      "sums_are_not_critical_path_savings": true
+    },
+    "candidate": {
+      "makespan": 50728,
+      "instruction_count": 162,
+      "duration_sums_by_resource": {
+        "Sub": 8038,
+        "DmaLoad": 32402,
+        "Core": 23132,
+        "Main": 27194,
+        "DmaStos": 8744,
+        "DmaGather": 1868,
+        "DmaScatter": 1740,
+        "DmaStore": 441
+      },
+      "sums_are_not_critical_path_savings": true
+    }
+  },
+  "delta_cycles": 364,
+  "delta_percent": 0.7227384639822095,
+  "v_projection": {
+    "baseline_dot_instructions": [
+      171,
+      184
+    ],
+    "baseline_dot_cycles": [
+      745,
+      745
+    ],
+    "candidate_dot_instruction": 166,
+    "candidate_dot_cycles": 746,
+    "dot_main_saved_cycles": 744,
+    "removed_sub_instructions": [
+      167,
+      175,
+      180
+    ],
+    "removed_sub_cycles": [
+      743,
+      743,
+      279
+    ],
+    "removed_sub_total": 1765,
+    "baseline_low_dot_sram_tensor": 92,
+    "baseline_low_dot_sram_bytes": 65536,
+    "baseline_low_vrf_tensor": 94,
+    "baseline_low_vrf_bytes": 65536,
+    "candidate_internal_pair_vrf_tensor": 88,
+    "candidate_internal_pair_vrf_bytes": 65536,
+    "total_vrf_reduction_claimed": false
+  },
+  "critical_tail": {
+    "baseline_k_normalize_final_main": [
+      46406,
+      46751
+    ],
+    "candidate_k_normalize_final_main": [
+      46770,
+      47115
+    ],
+    "baseline_k_scatter": [
+      48894,
+      49764
+    ],
+    "candidate_k_scatter": [
+      49258,
+      50128
+    ],
+    "terminal_sync_cycles": 600,
+    "interpretation": "Projection command savings do not reduce makespan. Reordered Q/K postprocessing delays the final K normalization/rope/scatter chain by364 cycles; compiler scheduling cause not isolated."
+  },
+  "pair_trf": {
+    "payload_bytes_per_slice": 7680,
+    "baseline_k_lifetime": [
+      29009,
+      42098
+    ],
+    "candidate_shared_kv_lifetime": [
+      25782,
+      41993
+    ],
+    "runtime_lifetime_correctness_not_proven": true
+  },
+  "compile": {
+    "attempts": 2,
+    "baseline_exit_code": 0,
+    "candidate_exit_code": 0,
+    "kernel": "ops::sliding_project_qkv",
+    "exact": true,
+    "container": "moa2026-dev",
+    "scratch": "/tmp/moa-qkv-e37-paired-value",
+    "image_id": "sha256:518d7b7ddaca5a97344d8bbd60e04f5e87ca7c50d883bfb5930a64a0c6ff382f",
+    "cargo_home": "/tmp/moa-extra-seeds-e5-four-row-extra/cargo-home",
+    "cargo_target_dir": "/tmp/moa-qkv-e37-paired-value/target",
+    "furiosa_opt_out_dir": "/tmp/moa-qkv-e37-paired-value/target/furiosa-opt/kernel",
+    "xdg_cache_home": "/tmp/moa-qkv-e37-paired-value/cache",
+    "rustup_home": "/home/moa/.rustup",
+    "command_template": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule /tmp/moa-qkv-e37-paired-value/{baseline,candidate}.json --dump-graph /tmp/moa-qkv-e37-paired-value/{baseline,candidate}-graph.json --dump-summary /tmp/moa-qkv-e37-paired-value/{baseline,candidate}-summary"
+  },
+  "e30_control": {
+    "job_id": 70440,
+    "result": "all15PASS",
+    "qkv_median": 98599,
+    "same_paired_helper": true,
+    "input_quantizer_same_as_e37": false,
+    "root_cause_of_prior_v_failure": "unresolved"
+  },
+  "verification": {
+    "status": "PASS",
+    "checked_source_files": 43,
+    "checked_source_and_manifest_files": 46,
+    "only_change": "project_key_value V call uses existing paired helper",
+    "helper_byte_identical_to_e30_and_e37": true,
+    "helper_sha256": "2846e54a56d761313720bde0b1bef4aba356f42d781e98b6cf3d0433ec229054",
+    "input_quantizer_unchanged": true,
+    "verified_row_coordinates": 2048,
+    "baseline_cycles": 50364,
+    "candidate_cycles": 50728,
+    "named_low_dot_sram_and_low_vrf_removed": true,
+    "hardware_correctness_checked": false,
+    "limits": "Source/shape/static checks do not prove runtime numerical tolerance or correct resource lifetimes."
+  },
+  "files_sha256": {
+    "baseline-compile.log": "88197427b21682ab1cec8892c23fef0e35454d4bc5c3cebbeda31e335f70ce5a",
+    "baseline-graph.json": "7b732f3e099fd45ab3f7b711dc280d492be0e844bb586150edf666cdb3743a1a",
+    "baseline.json": "fa48e2be4e744498a93a482c5e6fa5d68efaa242d2504345caad811dcecadf49",
+    "build-manifest.json": "838eff56680b8e4a551f5697a161239e662d50fa24e54c0b1030e0ec7730e6ac",
+    "candidate-compile.log": "340fe261a4ddf5a2b7a94ab721fbe5c9b0f3263021da35c21e82322484d46e3b",
+    "candidate-graph.json": "24e372aaec3900d6d7fc22773b63f91400952a915728934af610115986337eee",
+    "candidate.json": "adeb4648ea9ef6b2c51c383310b8b5b068683d54b63bae9b09910ddbaddad3be",
+    "candidate.patch": "bc333d23ed4ccd98b321379a734fe2755475ad8c4d96ca10c6ae2a6d2ae0b66b",
+    "projection.original.rs": "b58d2ce261f1d12d2a219fd4edc2a715b163b4bf033d5e973ca3d64ba2df08e5",
+    "projection.rs": "a1bad7a8e909a50130725860f88e32a52cb6a575a75fa817a0911dc96f20e863",
+    "verification.json": "ce9aaf0a67e67df2ed84d227b6585143635b21978b74c6e6e8d5f33a6d86ada0",
+    "verify_candidate.py": "ad6ab14847ed690c5c28e8f3fb482f3f56bbb780069c94c4753f36641653937d"
+  },
+  "hardware": {
+    "experiment_record": "docs/experiments/e44-paired-value.json",
+    "job_id": 70625,
+    "submitted_by": "root",
+    "valid": true,
+    "official_input_configurations": 3,
+    "output_comparisons_passed": 15,
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 95892,
+        "cycles_by_run": [
+          101787,
+          95892,
+          93942
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 46090,
+        "cycles_by_run": [
+          49812,
+          45863,
+          46090
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 378002,
+        "cycles_by_run": [
+          390687,
+          377688,
+          378002
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "log": "moa-dev/logs/e44-paired-value-job-70625.log",
+    "log_sha256": "40280bd411017d103f4a80a1dafd430888701439f656080dcb3ae20b94079d4d",
+    "binary_sha256": "b0ffcb5a977574edc7cd84d19ff8185c3f4dd91cdc66ce4c453a6dec56a7e60a",
+    "snapshot_projection_matches_candidate": true,
+    "reference_e37_repeated_qkv_median": 94195,
+    "relative_qkv_change_percent": 1.801581824937637,
+    "decision": "not_adopted_after_single_screen",
+    "extra_configurations_tested": false
+  },
+  "updated_at_utc": "2026-09-21T11:57:38.854571+00:00"
+}

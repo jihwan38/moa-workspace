@@ -1,0 +1,166 @@
+{
+  "recorded_at_utc": "2026-09-21T12:09:03.971698+00:00",
+  "status": "fullshape_tagged_both_paths_exact_pass",
+  "official_score": false,
+  "performance_measurement": false,
+  "purpose": "Full E37 up/gate DM local shape decode isolation with independently tagged cluster/slice/row input; not a full FFN test",
+  "source_base": "moa-dev/experiments/artifacts/e37-kernel-specific-rms",
+  "previous_probe": "moa-dev/experiments/candidates/fp4-decode-probe-fullshape",
+  "previous_probe_hardware_job": 70620,
+  "source_hashes": {
+    "decode_probe.rs": "b6e52e2b8042e16e20d89f93d67c32fb4bd5f19f243eff7684612b6d891cec7e",
+    "probe_decode.rs": "9cc4f770d4fd3b494fb59e376263013dee70d009433a31f450bc7dacf8b794d4",
+    "lib.patch": "da69b9346632421432153bcc61d1e08aa2d3dabd2dbb0860e87c17637e5e2313",
+    "remote_entrypoint.sh": "d5291dacc1c7f50936d2da61cb26a6df21902c12df96ad557696f7d333a11dda"
+  },
+  "compiled_input_count": 48,
+  "compiled_input_manifest": "compiled-input-hashes.json",
+  "files_changed_from_passed_small_probe": [
+    "src/bin/probe_decode.rs",
+    "src/decode_probe.rs"
+  ],
+  "existing_device_and_official_harness_unchanged": true,
+  "compile_invocations": 1,
+  "compile_failures": 0,
+  "compile_commands": [
+    "cargo furiosa-opt build --release --locked --bin probe_decode"
+  ],
+  "scratch": "/tmp/moa-fp4-decode-probe-fullshape-tagged",
+  "cargo_target_dir": "/tmp/moa-fp4-decode-probe-fullshape-tagged/target",
+  "furiosa_opt_out_dir": "/tmp/moa-fp4-decode-probe-fullshape-tagged/target/furiosa-opt/kernel",
+  "dependency_cache": "independent cp -a --reflink=auto of replicated fullshape target; no shared live target",
+  "host_binary": {
+    "bytes": 2856704,
+    "sha256": "1c4e6c32ee59efa7e444e9feb0aeae4143e345bd3fb8cafbe124c2156f5d961c"
+  },
+  "device_images": [
+    {
+      "path": "furiosa_opt_gemma4::decode_probe::fused_decode",
+      "key": [],
+      "image_bytes": 44544,
+      "image_sha256": "60e04c720876e3046ed9bc8e4eaafc5043dae84fb6054b4caea21a5f4d99770b",
+      "elf_offset": 1109742
+    },
+    {
+      "path": "furiosa_opt_gemma4::decode_probe::legacy_decode",
+      "key": [],
+      "image_bytes": 50176,
+      "image_sha256": "bf7332230ed2855d484960af3946e0b6ccb26bca22128d8181f0e72debd5c91f",
+      "elf_offset": 1154357
+    }
+  ],
+  "kernel_files_match_registry": true,
+  "cpu_oracle": {
+    "args": [
+      "--oracle-only"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.21613332186825573,
+    "max_rss_kib_child_process": 207272,
+    "npu_device_created": false
+  },
+  "cpu_fullshape_memory": {
+    "args": [
+      "--host-memory-only"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 1.2748787731397897,
+    "max_rss_kib_child_process": 437328,
+    "npu_device_created": false
+  },
+  "shape": {
+    "active_clusters": 2,
+    "live_slices_per_cluster": 240,
+    "physical_slices_per_cluster": 256,
+    "rows": 32,
+    "elements_per_row": 3840,
+    "input_hbm_mapping": "[DecodeC,DecodeS,DecodeR,DecodeK]",
+    "input_bytes": 29491200,
+    "input_fp4_elements": 58982400,
+    "output_bf16_elements_per_variant": 58982400,
+    "output_bytes_per_variant": 117964800,
+    "output_bytes_both_variants": 235929600,
+    "host_bf16_comparisons_both_variants": 117964800
+  },
+  "cases": [
+    {
+      "id": 1,
+      "name": "coordinate_tagged_ordered_pairs",
+      "fp4_codes": 16,
+      "nibble_phases": 2,
+      "ordered_nibble_pairs": 256,
+      "all_pairs_in_first512_elements_of_every_row": true,
+      "all_codes_in_every_mod64_position": true,
+      "unique_row_sequences": 15360,
+      "unique_cluster_slice_sequences": 480,
+      "uniqueness_proof": "CPU recovers identity=(cluster*240+slice)*32+row from low codes at k=0,512,1024,1536 (four identity nibbles); all15360 identities inserted uniquely."
+    }
+  ],
+  "runtime_diagnostics": [
+    "packed HBM input round-trip",
+    "NaN-initialized output",
+    "per-cluster/code/nibble/mod64 mismatch counts",
+    "first32 badcoordinates perresult",
+    "representative bits per code/phase",
+    "nonfinite and signed-zero-only mismatch counts"
+  ],
+  "memory_controls": [
+    "one case only",
+    "legacy HBM output dropped before fused output allocation",
+    "input packed29,491,200B; code58,982,400B and oracle117,964,800B retained",
+    "CPU-only full host tensor/sentinel/check simulation peak437328KiB and1.274879s locally",
+    "CPU-only simulation excludes actual driver allocations and NPU/PDMA latency"
+  ],
+  "package": "moa-dev/experiments/artifacts/fp4-decode-probe-fullshape-tagged-package",
+  "fixture_required": false,
+  "hardware": {
+    "status": "SUCCEEDED",
+    "job_id": 70658,
+    "submitted_by": "root",
+    "exit_code": 0,
+    "duration_sec": 1.961302854,
+    "result_record": "docs/experiments/fp4-decode-probe-fullshape-tagged.json",
+    "log": "moa-dev/logs/fp4-decode-probe-fullshape-tagged-job-70658.log",
+    "log_sha256": "0fba213475fc15ca199f903c6b1c32674761cb11f288fa231d77f276a1cf85f7",
+    "uploaded_package_matches_frozen_build": true,
+    "input_roundtrip_fp4_elements": 58982400,
+    "bf16_values_compared": 117964800,
+    "total_mismatches": 0,
+    "nonfinite_mismatches": 0,
+    "signed_zero_only_mismatches": 0,
+    "input_coverage": {
+      "runtime_assertions_passed": true,
+      "fp4_elements": 58982400,
+      "packed_bytes": 29491200,
+      "fp4_codes": 16,
+      "nibble_phases": 2,
+      "ordered_nibble_pairs": 256,
+      "all_pairs_in_first512_elements_of_every_row": true,
+      "all_codes_at_every_mod64_position": true,
+      "unique_row_sequences": 15360,
+      "unique_cluster_slice_sequences": 480,
+      "proof": "Executed make_case recovers all15360 row identities from k=0,512,1024,1536 and asserts unique; coverage line is printed only after these assertions."
+    },
+    "legacy_exact": true,
+    "fused_exact": true
+  },
+  "new_npu_jobs_created_by_this_subagent": 0,
+  "limitations": [
+    "Each row pattern is unique by four-block identity encoding, but this finite pattern family is not exhaustive over all possible full tensors.",
+    "Padding slices240..255 carry no logical elements and are excluded by typed HBM output, not promoted to data.",
+    "No DPE, scales, activation quantizer, adjacent up/gate buffers or full FFN allocation/lifetime context.",
+    "One additional host build only; no extra exact schedule compile under parent budget.",
+    "Local CPU timing and memory are not an Arena 70-second runtime guarantee or device memory peak."
+  ],
+  "artifact_hashes": {
+    "build-1.log": "e60d565dbb747430d2e16fe009eaaf749bc0c8484fb4b224206d902250753c14",
+    "cpu-memory-stats.json": "db64f5c2ad76afe805edc0d3309c024807ef80fd4071f6c17291684fc4aa3687",
+    "cpu-memory.log": "f131eb3d1796db5b67596294b9671c9c98082c9f21bd189a72c7574688037b33",
+    "cpu-oracle-stats.json": "425b61f25946eaa8ea322198c8430f4f71f87e07dd6e54148e92b56596d57054",
+    "cpu-oracle.log": "d23e7c89f00ac997eacbe972955235f5ec73731b6c1c96b0f3cc8b303027bfdd",
+    "probe_decode": "1c4e6c32ee59efa7e444e9feb0aeae4143e345bd3fb8cafbe124c2156f5d961c"
+  },
+  "parent_authorized_additional_compile": true,
+  "prior_replicated_fullshape_builds_preserved": 2,
+  "source_diff_proof": "Device source equals preserved replicated-fullshape source after changing ONLY both input HBM argument mappings from [R,K] to [C,S,R,K]. No lookup/collect/cast/commit/output change."
+}

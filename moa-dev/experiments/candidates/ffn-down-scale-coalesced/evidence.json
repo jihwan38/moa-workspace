@@ -1,0 +1,389 @@
+{
+  "created_utc": "2026-09-21T11:57:17.627266+00:00",
+  "status": "HARDWARE_OFFICIAL_15_PASS_NOT_ADOPTED_PERFORMANCE_REGRESSION",
+  "base": "E37 frozen kernel-specific-rms, safe BF16 FFN",
+  "source_change": "Only three lines inserted in project_down_sharded to stage down local scales in DownRows before typed eight-column scatter.",
+  "source_hashes": {
+    "candidate.patch": "1dd65edfdc81defa92eb350bfb19dea39586b7983be36f46eb765abee432b255",
+    "mlp.baseline.rs": "331088a000ca972d8fdad97c76d9d6ff093a3712bc2cda95e9a3b15fa05856e1",
+    "mlp.rs": "0315d47ff355c1ce9becfa943ea9bf04bd49e44d3874a24f4e7058f77c0431b3",
+    "verify_layout.py": "66801e7d8fd5f63a73003b71bd08742987d7d66ffade0f12ed2ffb66a032bca2"
+  },
+  "baseline_source_matches_frozen_e37": true,
+  "arithmetic_source_preserved": true,
+  "baseline_image_matches_e37": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+  "candidate_image_sha256": "78869dc870464afebd1208dd3b85add2984195e8277d8ec35be50d3c099fd310",
+  "environment": {
+    "container": "moa2026-dev",
+    "scratch": "/tmp/moa-ffn-down-scale-coalesced",
+    "CARGO_HOME": "/home/moa/.cargo",
+    "CARGO_TARGET_DIR": "/tmp/moa-ffn-down-scale-coalesced/target",
+    "FURIOSA_OPT_OUT_DIR": "/tmp/moa-ffn-down-scale-coalesced/target/furiosa-opt/kernel",
+    "CARGO_NET_OFFLINE": "true",
+    "rustc": "1.97.0-nightly (f53b654a8 2026-04-30)",
+    "cargo": "1.97.0-nightly (eb9b60f1f 2026-04-24)",
+    "cargo-furiosa-opt": "0.8.1",
+    "target_scope": "Independent scratch; dependency/compiler cache reused from prior independent clean-build target; not an empty-target test."
+  },
+  "compile_commands": [
+    "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/baseline.json --dump-graph schedules/baseline-graph.json",
+    "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/candidate.json --dump-graph schedules/candidate-graph.json"
+  ],
+  "compile_count": 2,
+  "compile_exit_codes": [
+    0,
+    0
+  ],
+  "profiles": {
+    "baseline": {
+      "makespan_cycles": 162209,
+      "instruction_count": 242,
+      "context_interval_union_cycles": {
+        "Noop": 0,
+        "DmaEngine": 135607,
+        "PeCore": 29352,
+        "SubContext": 19378,
+        "MainContext": 125274,
+        "VectorEngine": 34748
+      },
+      "main_dma_overlap_cycles": 104921,
+      "selected_dma": [
+        {
+          "schedule_instruction_id": "71",
+          "type": "DmaLoad",
+          "begin": 4285,
+          "end": 30760,
+          "duration_cycles": 26475,
+          "description": "--> src/device/shared/mlp.rs:114:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "145",
+          "type": "DmaStos",
+          "begin": 30772,
+          "end": 39124,
+          "duration_cycles": 8352,
+          "description": "--> src/device/shared/mlp.rs:182:84\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "160",
+          "type": "DmaLoad",
+          "begin": 39843,
+          "end": 43632,
+          "duration_cycles": 3789,
+          "description": "--> src/device/shared/mlp.rs:136:9\n\ngate_weight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "191",
+          "type": "DmaLoad",
+          "begin": 44960,
+          "end": 71435,
+          "duration_cycles": 26475,
+          "description": "--> src/device/shared/mlp.rs:82:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "250",
+          "type": "DmaLoad",
+          "begin": 73204,
+          "end": 76993,
+          "duration_cycles": 3789,
+          "description": "--> src/device/shared/mlp.rs:104:9\n\nup_weight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "303",
+          "type": "DmaLoad",
+          "begin": 84977,
+          "end": 114404,
+          "duration_cycles": 29427,
+          "description": "--> src/device/shared/mlp.rs:397:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "405",
+          "type": "DmaLoad",
+          "begin": 118130,
+          "end": 127904,
+          "duration_cycles": 9774,
+          "description": "--> src/device/shared/mlp.rs:391:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "432",
+          "type": "DmaStos",
+          "begin": 127904,
+          "end": 137296,
+          "duration_cycles": 9392,
+          "description": "--> src/device/shared/mlp.rs:379:81\n\nx.to_dm(&mut device.tdma)"
+        }
+      ]
+    },
+    "candidate": {
+      "makespan_cycles": 161517,
+      "instruction_count": 243,
+      "context_interval_union_cycles": {
+        "Noop": 0,
+        "DmaEngine": 137505,
+        "PeCore": 27384,
+        "SubContext": 19378,
+        "MainContext": 125274,
+        "VectorEngine": 34748
+      },
+      "main_dma_overlap_cycles": 107459,
+      "selected_dma": [
+        {
+          "schedule_instruction_id": "101",
+          "type": "DmaLoad",
+          "begin": 4221,
+          "end": 30696,
+          "duration_cycles": 26475,
+          "description": "--> src/device/shared/mlp.rs:114:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "145",
+          "type": "DmaStos",
+          "begin": 30708,
+          "end": 39060,
+          "duration_cycles": 8352,
+          "description": "--> src/device/shared/mlp.rs:182:84\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "160",
+          "type": "DmaLoad",
+          "begin": 39779,
+          "end": 43568,
+          "duration_cycles": 3789,
+          "description": "--> src/device/shared/mlp.rs:136:9\n\ngate_weight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "191",
+          "type": "DmaLoad",
+          "begin": 44896,
+          "end": 71371,
+          "duration_cycles": 26475,
+          "description": "--> src/device/shared/mlp.rs:82:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "266",
+          "type": "DmaLoad",
+          "begin": 76113,
+          "end": 79902,
+          "duration_cycles": 3789,
+          "description": "--> src/device/shared/mlp.rs:104:9\n\nup_weight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "303",
+          "type": "DmaLoad",
+          "begin": 84895,
+          "end": 114322,
+          "duration_cycles": 29427,
+          "description": "--> src/device/shared/mlp.rs:400:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "403",
+          "type": "DmaLoad",
+          "begin": 118060,
+          "end": 121617,
+          "duration_cycles": 3557,
+          "description": "--> src/device/shared/mlp.rs:392:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "434",
+          "type": "DmaStos",
+          "begin": 125246,
+          "end": 134638,
+          "duration_cycles": 9392,
+          "description": "--> src/device/shared/mlp.rs:379:81\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "schedule_instruction_id": "436",
+          "type": "DmaStos",
+          "begin": 134638,
+          "end": 142753,
+          "duration_cycles": 8115,
+          "description": "--> src/device/shared/mlp.rs:394:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+        }
+      ]
+    }
+  },
+  "arithmetic_duration_multisets_equal": {
+    "MainContext": true,
+    "SubContext": true,
+    "VectorEngine": true
+  },
+  "delta": {
+    "makespan_cycles": -692,
+    "makespan_percent": -0.42661011411204064,
+    "dma_union_cycles": 1898,
+    "scale_transfer_total_baseline": 9774,
+    "scale_transfer_total_candidate": 11672,
+    "scale_transfer_percent": 19.41886638019235,
+    "packed_weight_and_activation_durations_unchanged": true
+  },
+  "layout_validation": {
+    "status": "PASS",
+    "coordinates": 3686400,
+    "unique_destination_coordinates": 3686400,
+    "intermediate_valid_slices": 64,
+    "intermediate_elements_per_valid_slice": 57600,
+    "source_and_destination_logical_bytes": 3686400,
+    "intermediate_physical_extent_bytes": 29491200,
+    "scope": "Integer coordinate bijection only; no SDK execution or hardware correctness claim."
+  },
+  "staging_tensor": {
+    "name": "down_weight_scale",
+    "index": "201",
+    "buffer_type": "Sram",
+    "lifetime": {
+      "begin": 118060,
+      "end": 142753,
+      "block_begin": 0,
+      "block_end": 0
+    },
+    "address": 67108864,
+    "size": 29491200,
+    "physical_pages": [
+      11,
+      12
+    ],
+    "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, 1 # 8), Element: (H % 60, L / 16)]",
+    "fingerprint": null
+  },
+  "dma_descriptors": {
+    "baseline": [
+      {
+        "graph_operator_key": "148",
+        "kind": "Dma.DtoS",
+        "name": "DmaCommand#O154",
+        "src_descriptor_count": 8,
+        "first_src": "src0: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x0)",
+        "first_dst": "dst0: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)"
+      },
+      {
+        "graph_operator_key": "179",
+        "kind": "Dma.DtoS",
+        "name": "DmaCommand#O152",
+        "src_descriptor_count": 8,
+        "first_src": "src0: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x0)",
+        "first_dst": "dst0: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)"
+      },
+      {
+        "graph_operator_key": "185",
+        "kind": "Dma.StoS",
+        "name": "DmaCommand#O147",
+        "src_descriptor_count": 32,
+        "first_src": "src0: [anonymbroadcast(5)_1=2:0, anonymbroadcast(4)_1=4:0, L_120=16:8388608, L_1920=2:134217728, None=1:240], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)",
+        "first_dst": "dst0: [anonymbroadcast(5)_1=2:134217728, anonymbroadcast(4)_1=4:33554432, L_120=16:240, L_1920=2:4194304, None=1:240], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)"
+      }
+    ],
+    "candidate": [
+      {
+        "graph_operator_key": "179",
+        "kind": "Dma.DtoS",
+        "name": "DmaCommand#O152",
+        "src_descriptor_count": 8,
+        "first_src": "src0: [None=225:256, H_60=4:57600, H_240=2:230400, None=1:256], Dram(chip=0, in_chip=0x0)",
+        "first_dst": "dst0: [None=225:256, H_60=4:33554432, H_240=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)"
+      },
+      {
+        "graph_operator_key": "187",
+        "kind": "Dma.StoS",
+        "name": "DmaCommand#O153",
+        "src_descriptor_count": 8,
+        "first_src": "src0: [H_1=60:960, L_1920=8:120, H_60=4:33554432, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)",
+        "first_dst": "dst0: [H_1=60:120, L_1920=8:4194304, H_60=4:33554432, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)"
+      }
+    ]
+  },
+  "artifact_files": {
+    "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/baseline-graph.json": {
+      "bytes": 322062,
+      "sha256": "78fd84de32ec4aab5bade1d518b3ed15ce34371918b3c734a0a18620e9419cc1"
+    },
+    "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/baseline.bin": {
+      "bytes": 204032,
+      "sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6"
+    },
+    "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/baseline.json": {
+      "bytes": 161975,
+      "sha256": "97cd593f04a79e79c6be5cd9375e4657448625142abb64b827d6aa1e62de5074"
+    },
+    "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/baseline.log": {
+      "bytes": 1066,
+      "sha256": "5d240aeaa0a142b08d435edbf82663d4b3a1b4e3e38446ede89ed65cabe1f85d"
+    },
+    "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/candidate-graph.json": {
+      "bytes": 325097,
+      "sha256": "feec162af2142b94fbad7cbdcbc75b84a4d8f547d4ed6e0e039a547e6d2f4ae3"
+    },
+    "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/candidate.bin": {
+      "bytes": 206592,
+      "sha256": "78869dc870464afebd1208dd3b85add2984195e8277d8ec35be50d3c099fd310"
+    },
+    "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/candidate.json": {
+      "bytes": 162600,
+      "sha256": "68c6d951c766f9c63113be2e5cea9d2fa38b20d0f85b06de94e19ee764391e27"
+    },
+    "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/candidate.log": {
+      "bytes": 1066,
+      "sha256": "5d240aeaa0a142b08d435edbf82663d4b3a1b4e3e38446ede89ed65cabe1f85d"
+    }
+  },
+  "limitations": [
+    "NPU job was performed by root; only three official input configurations were tested, without extra-input or repeated-job validation for this candidate.",
+    "Integer coordinate proof does not validate SDK lowering or physical DMA implementation.",
+    "Overall DMA work increases; makespan reduction includes overlap/allocation/scheduling changes.",
+    "Descriptor segment sizes are not measured HBM transaction counts.",
+    "No live source, shared target, Git mutation, harness, fixture, or rule changes."
+  ],
+  "hardware_followup": {
+    "experiment": "E45",
+    "arena_job_id": 70641,
+    "status": "all_15_official_comparisons_passed",
+    "result_path": "docs/experiments/e45-down-scale-coalesced.json",
+    "log": "moa-dev/logs/e45-down-scale-coalesced-job-70641.log",
+    "log_sha256": "0a597b08491f192f0c08998e6dd86bed7428a52f09aa055d4c96d46915d788d3",
+    "kernel_results": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 94492,
+        "cycles_by_run": [
+          102662,
+          94212,
+          94492
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 45842,
+        "cycles_by_run": [
+          49226,
+          45765,
+          45842
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 394044,
+        "cycles_by_run": [
+          399656,
+          393945,
+          394044
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "repeat_jobs": 1,
+    "extra_input_jobs": 0,
+    "decision": "not adopted",
+    "ffn_reference": "E37 repeat median 379741",
+    "ffn_reference_path": "docs/experiments/e37-combined-repeats.json",
+    "ffn_regression_percent": 3.7665145454401916,
+    "source_matches_frozen_candidate": true,
+    "host_binary_sha256": "7d38c2cf102ef4836e57a46646289c0397e371166ccefd257da5f1e9be90ed21",
+    "exact_ffn_image_occurrences_in_host_binary": 1,
+    "interpretation": "Static DMA increase and hardware regression point in the same direction, but this single screen does not establish the complete causal explanation."
+  },
+  "scratch_src_files_compared_to_frozen_e37": 43,
+  "changed_src_paths": [
+    "device/shared/mlp.rs"
+  ]
+}

@@ -1,0 +1,235 @@
+{
+  "recorded_at_utc": "2026-09-21T12:00:12.179685+00:00",
+  "experiment": "E43 followup fifth combination",
+  "status": "EXACT_COMPILE_PASS_NPU_DEFERRED_STATIC_REGRESSION",
+  "prior_attempts": "Four failed combinations remain frozen in evidence.json. This combination is not one of those failures.",
+  "source": "mlp.custom-explicit.rs",
+  "source_sha256": "bde02fcad8e40d6a3f210cf91b3bbb59079cd8456dff22af97962a542ddfd134",
+  "base": "E37 frozen source; no E45 scale-coalesced change",
+  "scratch_src_files_compared_to_frozen_e37": 43,
+  "changed_src_paths": [
+    "device/shared/mlp.rs"
+  ],
+  "difference_from_fourth_attempt": "Only Broadcast1 { slice1: 4, slice0: 8 } -> CustomBroadcast { ring_size: 32 }; explicit anonymous4 output and final rename retained.",
+  "input_mapping": "Cluster Dummy2; Slice [Dummy256/32,1#4,L/1920]; Element L%1920",
+  "output_mapping": "Cluster Dummy2; Slice [Dummy256/32,4,L/1920]; Element L%1920",
+  "graph_bitmap_check": {
+    "status": "PASS",
+    "operator_key": "195",
+    "slices_checked": 256,
+    "source_formula": "32*(output_slice//32)+(output_slice%8)",
+    "all_sources_are_valid": true,
+    "scope": "Integer comparison of emitted compiler bitmap; no NPU execution."
+  },
+  "profiles": {
+    "baseline": {
+      "makespan_cycles": 162209,
+      "instruction_count": 242,
+      "context_interval_union_cycles": {
+        "Noop": 0,
+        "DmaEngine": 135607,
+        "PeCore": 29352,
+        "SubContext": 19378,
+        "MainContext": 125274,
+        "VectorEngine": 34748
+      }
+    },
+    "candidate": {
+      "makespan_cycles": 166181,
+      "instruction_count": 245,
+      "context_interval_union_cycles": {
+        "Noop": 0,
+        "DmaEngine": 131718,
+        "PeCore": 36764,
+        "SubContext": 19378,
+        "MainContext": 129377,
+        "VectorEngine": 34748
+      }
+    }
+  },
+  "duration_multiset_difference": {
+    "DmaEngine": {
+      "removed": {
+        "9392": 1
+      },
+      "added": {
+        "719": 1,
+        "4784": 1
+      }
+    },
+    "MainContext": {
+      "removed": {},
+      "added": {
+        "4103": 1
+      }
+    },
+    "SubContext": {
+      "removed": {},
+      "added": {}
+    },
+    "VectorEngine": {
+      "removed": {},
+      "added": {}
+    }
+  },
+  "makespan_delta_cycles": 3972,
+  "makespan_delta_percent": 2.4486927359147765,
+  "selected_schedule_nodes": [
+    {
+      "index": "287",
+      "history": {
+        "resourcelir": "O287"
+      },
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 81280,
+        "end": 81999
+      },
+      "input_tensors": [
+        158
+      ],
+      "output_tensors": [
+        157
+      ],
+      "description": "",
+      "util": {
+        "total_util": 0.018080669,
+        "base_util": 0.018080669,
+        "efficiency": 1.0
+      }
+    },
+    {
+      "index": "434",
+      "history": {
+        "resourcelir": "O434"
+      },
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 125264,
+        "end": 130048
+      },
+      "input_tensors": [
+        207,
+        93
+      ],
+      "output_tensors": [
+        209
+      ],
+      "description": "--> src/device/shared/mlp.rs:381:98\n\nx.to_dm(&mut device.tdma)",
+      "util": {
+        "total_util": 0.0,
+        "base_util": 0.0,
+        "efficiency": 0.0
+      }
+    },
+    {
+      "index": "435",
+      "history": {
+        "resourcelir": "O435"
+      },
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 130048,
+        "end": 139822
+      },
+      "input_tensors": [
+        2
+      ],
+      "output_tensors": [
+        210
+      ],
+      "description": "--> src/device/shared/mlp.rs:403:9\n\ndown_weight_scale.to_dm(&mut device.tdma)",
+      "util": {
+        "total_util": 0.27736852,
+        "base_util": 0.27736852,
+        "efficiency": 1.0
+      }
+    },
+    {
+      "index": "466",
+      "history": {
+        "resourcelir": "O466"
+      },
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 143527,
+        "end": 147630
+      },
+      "input_tensors": [
+        211,
+        157
+      ],
+      "output_tensors": [
+        218
+      ],
+      "description": "--> src/device/shared/mlp.rs:382:94\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![L % 1920]>()\n.switch::<m![Dummy256 / 32, 4, L / 1920], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()",
+      "util": {
+        "total_util": 0.0,
+        "base_util": 0.0,
+        "efficiency": 0.0
+      }
+    }
+  ],
+  "candidate_image_sha256": "bca2ed2682ec74232e951a4ca4c6d0980f73e381251ee5fb1a420e109599e84e",
+  "candidate_image_bytes": 222976,
+  "environment": {
+    "container": "moa2026-dev",
+    "scratch": "/tmp/moa-ffn-down-activation-custom-explicit",
+    "CARGO_HOME": "/home/moa/.cargo",
+    "CARGO_TARGET_DIR": "/tmp/moa-ffn-down-activation-custom-explicit/target",
+    "FURIOSA_OPT_OUT_DIR": "/tmp/moa-ffn-down-activation-custom-explicit/target/furiosa-opt/kernel",
+    "CARGO_NET_OFFLINE": "true",
+    "cargo-furiosa-opt": "0.8.1",
+    "rustc": "1.97.0-nightly (f53b654a8 2026-04-30)"
+  },
+  "command": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/custom-explicit.json --dump-graph schedules/custom-explicit-graph.json",
+  "compile_count": 1,
+  "compile_exit_code": 0,
+  "source_log_files": {
+    "mlp.custom-explicit.rs": {
+      "sha256": "bde02fcad8e40d6a3f210cf91b3bbb59079cd8456dff22af97962a542ddfd134",
+      "bytes": 21781
+    },
+    "custom-explicit.patch": {
+      "sha256": "4c4026f761bbb0c745140faf1c8c5dcd39fecfcf2c8f2dad55e6af47860e11f5",
+      "bytes": 1373
+    },
+    "custom-explicit-compile.log": {
+      "sha256": "5d240aeaa0a142b08d435edbf82663d4b3a1b4e3e38446ede89ed65cabe1f85d",
+      "bytes": 1066
+    }
+  },
+  "artifact_files": {
+    "moa-dev/experiments/artifacts/ffn-down-activation-custom-explicit/custom-explicit-graph.json": {
+      "sha256": "cf37260c4042e0cf0f091a7d814d3f43c212f859165c92c1e094514d102fad40",
+      "bytes": 331400
+    },
+    "moa-dev/experiments/artifacts/ffn-down-activation-custom-explicit/custom-explicit.bin": {
+      "sha256": "bca2ed2682ec74232e951a4ca4c6d0980f73e381251ee5fb1a420e109599e84e",
+      "bytes": 222976
+    },
+    "moa-dev/experiments/artifacts/ffn-down-activation-custom-explicit/custom-explicit.json": {
+      "sha256": "bd6e6a93f271e9986355fca372ceec3bd4370a6928194dedf264bb96421763cf",
+      "bytes": 163868
+    }
+  },
+  "limitations": [
+    "No hardware execution; correctness and actual cycle behavior remain unverified.",
+    "Lower DMA does not imply faster whole kernel; added Switch follows BF16 decode on Main.",
+    "May become useful if future decode-removal work changes Main critical path; this is an untested hypothesis.",
+    "Compile success does not diagnose every earlier modulo/bitmap failure.",
+    "No live source/main target/Git/NPU changes; no additional variants or compiles."
+  ]
+}

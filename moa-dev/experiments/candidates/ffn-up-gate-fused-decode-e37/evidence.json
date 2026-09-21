@@ -1,0 +1,142 @@
+{
+  "recorded_at_utc": "2026-09-21T12:19:07.139262+00:00",
+  "status": "compile_only_rejected_static_schedule_regression",
+  "hardware": {
+    "npu_tested": false,
+    "full_host_build": false
+  },
+  "source_base": "E48 up-only fused decode, hardware all15PASS job70683",
+  "source_hashes": {
+    "e48_mlp": "3a7449532a74223fefddb96bca519ff2e6945722f86e38409e6cd0bc3f9a74ac",
+    "e49_mlp": "083e53e4dd8077a805f785fe8b7a1c8c5b0b8098a27f62bcf902c6b6059b40bd"
+  },
+  "source_delta": "Only gate decoder additionally fused, plus explanatory comments; up decoder, eight-row DPE/local scale arithmetic, GeGLU, down and epilogue remain unchanged.",
+  "exact_compile": "ops::decoder_feedforward --exact; root compile successful; auditor performed no compile",
+  "schedule_summary": "schedule-summary.json",
+  "schedule_source": "moa-dev/experiments/artifacts/ffn-up-gate-fused-decode-e37/schedule.json",
+  "schedule_sha256": "927ef9c23ee096549b3726020b087b5422a690392548b57f578e4aae33d7dedc",
+  "static": {
+    "e37_reference": 162209,
+    "e48": 157866,
+    "e49": 189967,
+    "fraction_vs_e48": 0.2033433418215449,
+    "fraction_vs_e37": 0.1711249067560987,
+    "main_duration_e48": 113491,
+    "main_duration_e49": 101708,
+    "dma_load_duration_e48": 109907,
+    "dma_load_duration_e49": 109069,
+    "no_main_e48": 44375,
+    "no_main_e49": 88259,
+    "delta": {
+      "makespan": 32101,
+      "main_active": -11783,
+      "no_main": 43884,
+      "instruction_duration_sum_by_type": {
+        "Sub": -1552,
+        "DmaLoad": -838,
+        "Core": 38025,
+        "DmaStos": 0,
+        "Main": -11783,
+        "DmaStore": 0
+      }
+    }
+  },
+  "decode_costs": {
+    "e49_up_fused": 17543,
+    "e49_gate_fused": 17543,
+    "e48_up_fused": 17543,
+    "e48_gate_two_pass": [
+      9863,
+      19463
+    ],
+    "e49_down_two_pass": [
+      9263,
+      18263
+    ],
+    "local_upgate_shape_unchanged": "2clusters x240live/256physical slices x32rows x3840columns"
+  },
+  "critical_path_facts": {
+    "e48_first_main": 3675,
+    "e49_first_main": 31126,
+    "e48_pre_rms_main_done": 8349,
+    "e49_pre_rms_main_done": 53343,
+    "e49_residual_hbm_dma": [
+      29992,
+      30539
+    ],
+    "e49_up_hbm_dma": [
+      2679,
+      29154
+    ],
+    "e49_up_fused": [
+      31126,
+      48669
+    ],
+    "e49_activation_trf_ready": 69807,
+    "e48_activation_trf_ready": 46010,
+    "e49_up_four_dot_end": 80365,
+    "e49_up_gather_done": 82836,
+    "e49_gate_hbm_dma": [
+      82836,
+      109311
+    ],
+    "e49_no_main_gap_before_gate": [
+      85041,
+      109311
+    ],
+    "e48_second_projection_hbm_dma": [
+      44896,
+      71371
+    ],
+    "e48_first_projection_decode_and_dots_end": 75008,
+    "e49_second_projection_decode_and_dots_end": 137612,
+    "e48_second_projection_decode_and_dots_end": 103700,
+    "e49_last_down_dot_end": 183172,
+    "e48_last_down_dot_end": 151071,
+    "tail_both": 6795
+  },
+  "allocation_observation": {
+    "e49_up_bf16_tensor": "T95",
+    "e49_gate_bf16_tensor": "T172",
+    "both_schedule_address": 109051904,
+    "both_physical_pages": [
+      1,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "both_physical_size": 125829120,
+    "interpretation": "Observed sequential buffer reuse. This does not prove allocation requires the late gate HBM DMA; detailed compiler heuristic is not exposed."
+  },
+  "reject_reason": "One additional fused decoder saves11783Main cycles but source change triggers a different schedule: late pre-RMS/activation readiness, up-first order, lost gate-weight DMA overlap. No-Main intervals grow43884, so makespan grows32101. Preserve as compile-only rejection; no claim of hardware slowdown/correctness failure.",
+  "uncertainties": [
+    "No saved E49 lowered graph or allocator reasoning; source/operator selection unchanged does not reveal heuristic cause.",
+    "Static makespan is not a measured NPU result.",
+    "Main inactivity includes necessary setup and waits, not solely wasted hardware stall.",
+    "E13 failure cannot be attributed to the additional gate fusion from this untested candidate."
+  ],
+  "audit": {
+    "additional_compiles": 0,
+    "npu_jobs_created": 0,
+    "live_source_edits": 0,
+    "git_operations": 0
+  },
+  "preserved_artifacts": {
+    "candidate.patch": {
+      "bytes": 3261,
+      "sha256": "d48ef435ace14632cd8a08b93963e74b6ebfbe5ed24b888e0c715ee0f3297d31"
+    },
+    "mlp.rs": {
+      "bytes": 20576,
+      "sha256": "083e53e4dd8077a805f785fe8b7a1c8c5b0b8098a27f62bcf902c6b6059b40bd"
+    },
+    "schedule.json": {
+      "bytes": 158612,
+      "sha256": "927ef9c23ee096549b3726020b087b5422a690392548b57f578e4aae33d7dedc"
+    }
+  }
+}

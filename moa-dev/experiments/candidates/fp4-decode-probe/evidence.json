@@ -1,0 +1,135 @@
+{
+  "recorded_at_utc": "2026-09-21T11:53:09.755190+00:00",
+  "status": "standalone_decode_both_paths_exact_pass",
+  "purpose": "localize E13 FP4->FP8->F32->BF16 decode failure independently of FFN",
+  "source_base": "moa-dev/experiments/artifacts/e37-kernel-specific-rms",
+  "source_hashes": {
+    "decode_probe.rs": "59dc42f10e9aed5e694c4f1853166b69aa86f4d3e0ede86ddf2087aafac6a5ca",
+    "probe_decode.rs": "c4f1b0897b22f80581650164a78fb2b3fb6b3a2a8313c8757387fde82b59b0f9",
+    "lib.patch": "da69b9346632421432153bcc61d1e08aa2d3dabd2dbb0860e87c17637e5e2313",
+    "remote_entrypoint.sh": "d5291dacc1c7f50936d2da61cb26a6df21902c12df96ad557696f7d333a11dda"
+  },
+  "added_files": [
+    "src/decode_probe.rs",
+    "src/bin/probe_decode.rs"
+  ],
+  "changed_existing_files": [
+    "src/lib.rs"
+  ],
+  "existing_device_and_official_harness_unchanged": true,
+  "compiled_input_count": 51,
+  "compiled_input_manifest": "compiled-input-hashes.json",
+  "sdk_source_evidence": "sdk-sources.json",
+  "api_findings": {
+    "direct_f4_to_bf16_lookup": "Unsupported by actual TableLookupCast implementations: cast.rs60/66 onlyF4->F8E4/F8E5; BF16 outputs72/80 requireF8 source.",
+    "direct_f4_fetch_cast": "No FetchCast<F32/BF16> forF4; cast.rs27-40 lists identities/int widen/F8,BF16->F32/F32->BF16.",
+    "fused_chain": "Explicitly documented by fetch_adapter.rs197-202 and enabled by engine/mod.rs272; therefore E13 failure does not make this chain an illegal API.",
+    "double_lookup_same_pipeline": "PositionFetchTableLookup lacks CanApplyFetchTableLookup, so a second lookup is not directly chainable."
+  },
+  "compile_invocations": 3,
+  "compile_failures": 0,
+  "variant_count": 2,
+  "compile_commands": [
+    "cargo furiosa-opt build --release --locked --bin probe_decode",
+    "cargo furiosa-opt compile decode_probe::legacy_decode --exact --dump-schedule schedules/legacy.json",
+    "cargo furiosa-opt compile decode_probe::fused_decode --exact --dump-schedule schedules/fused.json"
+  ],
+  "scratch": "/tmp/moa-fp4-decode-probe",
+  "cargo_target_dir": "/tmp/moa-fp4-decode-probe/target",
+  "furiosa_opt_out_dir": "/tmp/moa-fp4-decode-probe/target/furiosa-opt/kernel",
+  "dependency_cache": "independent copied /tmp/moa-e37-cache-preservation/target",
+  "host_binary": {
+    "bytes": 2191152,
+    "sha256": "2ac07eba5d2578b44ae6946b81fcc89bf3e9bd5cedbab7e891f0a92fbdfe6349"
+  },
+  "device_images": [
+    {
+      "path": "furiosa_opt_gemma4::decode_probe::fused_decode",
+      "key": [],
+      "image_bytes": 41728,
+      "image_sha256": "e0089c97e35cc9cacf2bd310cb6555c176616af97d37f3090c87ce5ccd4690d4",
+      "elf_offset": 482926
+    },
+    {
+      "path": "furiosa_opt_gemma4::decode_probe::legacy_decode",
+      "key": [],
+      "image_bytes": 46592,
+      "image_sha256": "114b6e78437c171b57100de65befa9f12ff3d97cb49ee076ab2d4e03e9f38f0a",
+      "elf_offset": 524725
+    }
+  ],
+  "cpu_oracle_only_exit_code": 0,
+  "cpu_oracle_log_sha256": "4eb18ff7206239288c84caae7050ed69235cbb0b28cea3b3050f03393e7f01a2",
+  "build_log_sha256": "95f7c35a423adbc88beb4b4543c4b75a38c6b96e2094fcb6731e60040a27a252",
+  "shape": {
+    "active_clusters": 1,
+    "live_slices": 256,
+    "rows": 32,
+    "elements_per_row": 512,
+    "input_bytes": 8192,
+    "output_bf16_elements_per_variant_case": 4194304
+  },
+  "cases": [
+    "constant_code_rows",
+    "all_ordered_nibble_pairs",
+    "packet_staggered"
+  ],
+  "input_coverage": {
+    "fp4_codes": 16,
+    "nibble_phases": 2,
+    "ordered_nibble_pairs": 256,
+    "all_codes_in_every_mod64_position": true
+  },
+  "oracle": "explicit independent16-entry BF16bit table including signedzero; manual low-nibble-first packing; exact bit comparison/no tolerance",
+  "runtime_diagnostics": [
+    "HBM input nibble round-trip",
+    "NaN-initialized output",
+    "per-code/nibble/mod64 mismatch counts",
+    "first32 badcoordinates perresult",
+    "representative bits for each code/phase",
+    "separate nonfinite and signed-zero-only mismatch counts"
+  ],
+  "static_makespan": {
+    "legacy": 41390,
+    "fused": 39003
+  },
+  "main_decode_cycles": {
+    "legacy": [
+      1543,
+      2823
+    ],
+    "fused": [
+      2567
+    ]
+  },
+  "package": "moa-dev/experiments/artifacts/fp4-decode-probe-package",
+  "fixture_required": false,
+  "hardware": {
+    "job_id": 70620,
+    "submitted_by": "root",
+    "status": "SUCCEEDED",
+    "exit_code": 0,
+    "result_record": "docs/experiments/fp4-decode-probe.json",
+    "log": "moa-dev/logs/fp4-decode-probe-job-70620.log",
+    "log_sha256": "ece0e16a48efb60c33b0c6b9a32e853315fb0b2565ad3968ee8edce0ae27c7fb",
+    "uploaded_package_matches_frozen_build": true,
+    "legacy_cases_exact": 3,
+    "fused_cases_exact": 3,
+    "bf16_values_compared": 25165824,
+    "total_mismatches": 0,
+    "nonfinite_mismatches": 0,
+    "signed_zero_only_mismatches": 0,
+    "input_roundtrip_cases": [
+      0,
+      1,
+      2
+    ]
+  },
+  "new_npu_jobs_created_by_this_subagent": 0,
+  "limitations": [
+    "Onecluster256live slices and32x512 differ from E13two-cluster240live/256physical,32x3840 fullFFN context.",
+    "Both paths passing would not validate E13 fullshape or its resource/lifetime behavior.",
+    "No official score or performance claim."
+  ],
+  "exact_compile_images_match_uploaded_registry": true
+}

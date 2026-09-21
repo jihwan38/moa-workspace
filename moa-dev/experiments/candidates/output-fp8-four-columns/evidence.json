@@ -1,0 +1,660 @@
+{
+  "recorded_at_utc": "2026-09-21T12:11:06.705160+00:00",
+  "candidate": "O native FP8 four columns x1024, local60 rows",
+  "status": "EXACT_COMPILE_PASS_STATIC_REGRESSION_NPU_NOT_RUN",
+  "base": "Frozen E37 kernel-specific-rms source",
+  "source_sha256": "3a996dd4171fde0ba0ac2d97d5576d7d1bd7a9ca03ea84cd811dc283c899ed77",
+  "source_files": {
+    "projection.original.rs": {
+      "sha256": "b58d2ce261f1d12d2a219fd4edc2a715b163b4bf033d5e973ca3d64ba2df08e5",
+      "bytes": 29227
+    },
+    "projection.rs": {
+      "sha256": "3a996dd4171fde0ba0ac2d97d5576d7d1bd7a9ca03ea84cd811dc283c899ed77",
+      "bytes": 29252
+    },
+    "candidate.patch": {
+      "sha256": "19e77967db4b6eee3a4628c5a9cce44ea4cc2533c0c6f2e3b60e4efc187925c3",
+      "bytes": 7771
+    },
+    "verify_layout.py": {
+      "sha256": "1d8e65df27b22b00bdf29ee4419359a1306c0cb7d0e019ca32f2fd8a517572c1",
+      "bytes": 1780
+    }
+  },
+  "scratch_src_files_compared_to_e37": 43,
+  "changed_src_paths": [
+    "device/sliding/projection.rs"
+  ],
+  "unchanged_sections": {
+    "qkv_projection_prefix": {
+      "byte_identical": true,
+      "sha256": "134713ebf19a5a610058000f376eb78c046592d29d9beab7fb295a106070fee3"
+    },
+    "qkv_quantizer_suffix": {
+      "byte_identical": true,
+      "sha256": "c59d12546a81a4fa29324c1552a78ce5295a425532845264e28f21b445c3cf92"
+    },
+    "o_epilogue_helpers": {
+      "byte_identical": true,
+      "sha256": "e6a29806cbb21958582269f18ab3f1cc42d126a9625e6eb0c20d745f5d5dae07"
+    }
+  },
+  "layout_validation": {
+    "status": "PASS",
+    "row_axis_coordinates_checked": 3840,
+    "column_axis_coordinates_checked": 4096,
+    "weight_coordinates_proved_by_cartesian_product": 15728640,
+    "valid_physical_slices_across_two_clusters": 256,
+    "physical_slices_across_two_clusters": 512,
+    "valid_column_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "epilogue_output_coordinates_checked": 3840,
+    "scope": "Integer layout factors only; no SDK execution, FP8 numerical comparison, or NPU test."
+  },
+  "profiles": {
+    "baseline": {
+      "makespan_cycles": 24997,
+      "instruction_count": 52,
+      "context_interval_union_cycles": {
+        "Noop": 0,
+        "DmaEngine": 19414,
+        "PeCore": 6981,
+        "MainContext": 5252,
+        "VectorEngine": 5252,
+        "SubContext": 2668
+      },
+      "main_and_dma_instructions": [
+        {
+          "id": "5",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 1003,
+          "end": 2321,
+          "duration_cycles": 1318,
+          "source": "--> src/device/sliding/projection.rs:290:79"
+        },
+        {
+          "id": "20",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 2321,
+          "end": 2730,
+          "duration_cycles": 409,
+          "source": "--> src/device/sliding/projection.rs:414:78"
+        },
+        {
+          "id": "21",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 2321,
+          "end": 3268,
+          "duration_cycles": 947,
+          "source": "--> src/device/sliding/projection.rs:444:79"
+        },
+        {
+          "id": "26",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 2730,
+          "end": 3012,
+          "duration_cycles": 282,
+          "source": "--> src/device/sliding/projection.rs:429:79"
+        },
+        {
+          "id": "32",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 3268,
+          "end": 3831,
+          "duration_cycles": 563,
+          "source": "--> src/device/sliding/projection.rs:440:85"
+        },
+        {
+          "id": "39",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 3834,
+          "end": 17346,
+          "duration_cycles": 13512,
+          "source": "--> src/device/sliding/projection.rs:301:94"
+        },
+        {
+          "id": "44",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 4098,
+          "end": 4507,
+          "duration_cycles": 409,
+          "source": "--> src/device/sliding/projection.rs:446:5"
+        },
+        {
+          "id": "57",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 5113,
+          "end": 5522,
+          "duration_cycles": 409,
+          "source": "--> src/device/sliding/projection.rs:461:5"
+        },
+        {
+          "id": "68",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 17346,
+          "end": 18584,
+          "duration_cycles": 1238,
+          "source": "--> src/device/sliding/projection.rs:302:89"
+        },
+        {
+          "id": "70",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 17425,
+          "end": 17971,
+          "duration_cycles": 546,
+          "source": "--> src/device/sliding/projection.rs:345:90"
+        },
+        {
+          "id": "75",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 17971,
+          "end": 18517,
+          "duration_cycles": 546,
+          "source": "--> src/device/shared/rmsnorm.rs:167:81"
+        },
+        {
+          "id": "85",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 18584,
+          "end": 18974,
+          "duration_cycles": 390,
+          "source": "--> src/device/sliding/projection.rs:320:79"
+        },
+        {
+          "id": "94",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 18979,
+          "end": 19448,
+          "duration_cycles": 469,
+          "source": "--> src/device/sliding/projection.rs:334:84"
+        },
+        {
+          "id": "96",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 19448,
+          "end": 19994,
+          "duration_cycles": 546,
+          "source": "--> src/device/sliding/projection.rs:378:80"
+        },
+        {
+          "id": "111",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 21048,
+          "end": 21449,
+          "duration_cycles": 401,
+          "source": "--> src/device/sliding/projection.rs:354:5"
+        },
+        {
+          "id": "116",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 21449,
+          "end": 21850,
+          "duration_cycles": 401,
+          "source": "--> src/device/shared/rmsnorm.rs:115:80"
+        },
+        {
+          "id": "121",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 21850,
+          "end": 22139,
+          "duration_cycles": 289,
+          "source": "--> src/device/shared/rmsnorm.rs:135:83"
+        },
+        {
+          "id": "126",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 22139,
+          "end": 22421,
+          "duration_cycles": 282,
+          "source": "--> src/device/shared/rmsnorm.rs:151:69"
+        },
+        {
+          "id": "129",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 22421,
+          "end": 22740,
+          "duration_cycles": 319,
+          "source": "--> src/device/shared/rmsnorm.rs:165:72"
+        },
+        {
+          "id": "137",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 23007,
+          "end": 23408,
+          "duration_cycles": 401,
+          "source": "--> src/device/shared/rmsnorm.rs:183:5"
+        },
+        {
+          "id": "142",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 23408,
+          "end": 23749,
+          "duration_cycles": 341,
+          "source": "--> src/device/sliding/projection.rs:386:78"
+        },
+        {
+          "id": "147",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 23749,
+          "end": 24397,
+          "duration_cycles": 648,
+          "source": "--> src/ops.rs:146:5"
+        }
+      ]
+    },
+    "candidate": {
+      "makespan_cycles": 25873,
+      "instruction_count": 51,
+      "context_interval_union_cycles": {
+        "Noop": 0,
+        "DmaEngine": 19268,
+        "PeCore": 6101,
+        "MainContext": 6588,
+        "VectorEngine": 6588,
+        "SubContext": 2860
+      },
+      "main_and_dma_instructions": [
+        {
+          "id": "5",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 1003,
+          "end": 2316,
+          "duration_cycles": 1313,
+          "source": "--> src/device/sliding/projection.rs:290:80"
+        },
+        {
+          "id": "21",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 2316,
+          "end": 2853,
+          "duration_cycles": 537,
+          "source": "--> src/device/sliding/projection.rs:414:78"
+        },
+        {
+          "id": "22",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 2316,
+          "end": 3263,
+          "duration_cycles": 947,
+          "source": "--> src/device/sliding/projection.rs:444:80"
+        },
+        {
+          "id": "27",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 2853,
+          "end": 3135,
+          "duration_cycles": 282,
+          "source": "--> src/device/sliding/projection.rs:429:79"
+        },
+        {
+          "id": "33",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 3335,
+          "end": 3834,
+          "duration_cycles": 499,
+          "source": "--> src/device/sliding/projection.rs:440:85"
+        },
+        {
+          "id": "40",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 3840,
+          "end": 17275,
+          "duration_cycles": 13435,
+          "source": "--> src/device/sliding/projection.rs:301:95"
+        },
+        {
+          "id": "45",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 4101,
+          "end": 4638,
+          "duration_cycles": 537,
+          "source": "--> src/device/sliding/projection.rs:446:5"
+        },
+        {
+          "id": "58",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 5308,
+          "end": 5845,
+          "duration_cycles": 537,
+          "source": "--> src/device/sliding/projection.rs:461:5"
+        },
+        {
+          "id": "69",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 17275,
+          "end": 19465,
+          "duration_cycles": 2190,
+          "source": "--> src/device/sliding/projection.rs:302:89"
+        },
+        {
+          "id": "71",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 17354,
+          "end": 17900,
+          "duration_cycles": 546,
+          "source": "--> src/device/sliding/projection.rs:345:90"
+        },
+        {
+          "id": "76",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 17900,
+          "end": 18446,
+          "duration_cycles": 546,
+          "source": "--> src/device/shared/rmsnorm.rs:167:81"
+        },
+        {
+          "id": "83",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 18446,
+          "end": 18992,
+          "duration_cycles": 546,
+          "source": "--> src/device/sliding/projection.rs:378:80"
+        },
+        {
+          "id": "95",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 19465,
+          "end": 19855,
+          "duration_cycles": 390,
+          "source": "--> src/device/sliding/projection.rs:320:79"
+        },
+        {
+          "id": "101",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 19855,
+          "end": 20324,
+          "duration_cycles": 469,
+          "source": "--> src/device/sliding/projection.rs:334:84"
+        },
+        {
+          "id": "110",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 21924,
+          "end": 22325,
+          "duration_cycles": 401,
+          "source": "--> src/device/sliding/projection.rs:354:5"
+        },
+        {
+          "id": "115",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 22325,
+          "end": 22726,
+          "duration_cycles": 401,
+          "source": "--> src/device/shared/rmsnorm.rs:115:80"
+        },
+        {
+          "id": "120",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 22726,
+          "end": 23015,
+          "duration_cycles": 289,
+          "source": "--> src/device/shared/rmsnorm.rs:135:83"
+        },
+        {
+          "id": "125",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 23015,
+          "end": 23297,
+          "duration_cycles": 282,
+          "source": "--> src/device/shared/rmsnorm.rs:151:69"
+        },
+        {
+          "id": "128",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 23297,
+          "end": 23616,
+          "duration_cycles": 319,
+          "source": "--> src/device/shared/rmsnorm.rs:165:72"
+        },
+        {
+          "id": "136",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 23883,
+          "end": 24284,
+          "duration_cycles": 401,
+          "source": "--> src/device/shared/rmsnorm.rs:183:5"
+        },
+        {
+          "id": "141",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 24284,
+          "end": 24625,
+          "duration_cycles": 341,
+          "source": "--> src/device/sliding/projection.rs:386:78"
+        },
+        {
+          "id": "144",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 24625,
+          "end": 25273,
+          "duration_cycles": 648,
+          "source": "--> src/ops.rs:146:5"
+        }
+      ]
+    }
+  },
+  "descriptor_evidence": {
+    "baseline": {
+      "weight_dma_graph_operator_key": "18",
+      "src_descriptor_count": 8,
+      "first_src": "src0: [H_1=60:4096, Qs_256=2:256, H_60=4:245760, Qs_512=8:512, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0x0)",
+      "first_dst": "dst0: [H_1=60:512, Qs_256=2:256, H_60=4:33554432, Qs_512=8:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)",
+      "logical_256_byte_segments": 61440,
+      "column_reduce": {
+        "graph_operator_key": "32",
+        "physical_ratio": 8,
+        "input_partition_line": "input: [ Chip: [] | C: [Dummy2_1=2] | P: [H_60=32, Qs_512=8] | H: [H_1=60, [[]+7]=8] ] (1)",
+        "reduction_line": "GReduceAdd: GReduceAddF [ratio=8] [promotion: false] [true] , "
+      }
+    },
+    "candidate": {
+      "weight_dma_graph_operator_key": "18",
+      "src_descriptor_count": 8,
+      "first_src": "src0: [H_1=60:4096, Qs_256=4:256, H_60=4:245760, Qs_1024=4:1024, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0x0)",
+      "first_dst": "dst0: [H_1=60:1024, Qs_256=4:256, H_60=4:33554432, Qs_1024=4:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)",
+      "logical_256_byte_segments": 61440,
+      "column_reduce": {
+        "graph_operator_key": "34",
+        "physical_ratio": 8,
+        "input_partition_line": "input: [ Chip: [] | C: [Dummy2_1=2] | P: [H_60=32, [[Qs_1024=4]+4]=8] | H: [H_1=60, [[]+7]=8] ] (1)",
+        "reduction_line": "GReduceAdd: GReduceAddF [ratio=8] [promotion: false] [true] , "
+      }
+    }
+  },
+  "baseline_kernel_matches_e37": true,
+  "baseline_kernel_sha256": "e9d3402c62fd866f417053e618e7a7af1d5cb60485c04cc292f3a702f5996cde",
+  "candidate_kernel_sha256": "a6421b94ac74a466dd6cb14ad476a9a4b14013367364a4867641a619be0f06fb",
+  "candidate_kernel_bytes": 85760,
+  "delta": {
+    "makespan_cycles": 876,
+    "makespan_percent": 3.5044205304636553,
+    "dma_interval_union_cycles": -146,
+    "main_interval_union_cycles": 1336,
+    "sub_interval_union_cycles": 192,
+    "weight_dma_cycles": -77,
+    "pair_dot_cycles": 952,
+    "amax_hi_lo_each_cycles": 128
+  },
+  "numerical_changes": [
+    "amax grouping grows from512 to1024; a larger local power-of-two scale can change small-value FP8 approximation.",
+    "Native FP8 dot reduction length doubles and column partial reduction groups change from8 to4 valid inputs.",
+    "BF16 projection/channel-scale/RMS/residual boundaries preserved; inherited approximation is not universally equivalent to BF16 dot."
+  ],
+  "padding_scope": "Qs/1024 #8 retains four valid columns and four padding columns. No padding-to-valid reshape or padding-zero assumption added. Graph retains padding and uses physical GReduce ratio8. SDK logical reduction semantics verified; actual NPU correctness untested.",
+  "environment": {
+    "container": "moa2026-dev",
+    "scratch": "/tmp/moa-output-fp8-four-columns",
+    "CARGO_HOME": "/home/moa/.cargo",
+    "CARGO_TARGET_DIR": "/tmp/moa-output-fp8-four-columns/target",
+    "FURIOSA_OPT_OUT_DIR": "/tmp/moa-output-fp8-four-columns/target/furiosa-opt/kernel",
+    "CARGO_NET_OFFLINE": "true",
+    "cargo-furiosa-opt": "0.8.1",
+    "rustc": "1.97.0-nightly (f53b654a8 2026-04-30)",
+    "target_note": "Independent scratch with existing dependency cache; not an empty-target audit."
+  },
+  "commands": [
+    "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/output-baseline.json --dump-graph schedules/output-baseline-graph.json",
+    "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/output-candidate.json --dump-graph schedules/output-candidate-graph.json"
+  ],
+  "compile_count": 2,
+  "compile_exit_codes": [
+    0,
+    0
+  ],
+  "artifact_files": {
+    "moa-dev/experiments/artifacts/output-fp8-four-columns/baseline-graph.json": {
+      "sha256": "5900ff1a4200c8dc8dbf4a1f0750d747be318141af28bc87ad627390d14d59fe",
+      "bytes": 72050
+    },
+    "moa-dev/experiments/artifacts/output-fp8-four-columns/baseline.bin": {
+      "sha256": "e9d3402c62fd866f417053e618e7a7af1d5cb60485c04cc292f3a702f5996cde",
+      "bytes": 88576
+    },
+    "moa-dev/experiments/artifacts/output-fp8-four-columns/baseline.json": {
+      "sha256": "2c52c0eefc4ab746c69d875e7c0196ce25ff88dcbf29ca5963987111c3c3ad03",
+      "bytes": 35385
+    },
+    "moa-dev/experiments/artifacts/output-fp8-four-columns/baseline.log": {
+      "sha256": "107b6832dd6e3bc185dbf061b91f43d4598e2f73d82a7d4d9e7a66f8ff14f422",
+      "bytes": 1076
+    },
+    "moa-dev/experiments/artifacts/output-fp8-four-columns/candidate-graph.json": {
+      "sha256": "8cc6b0b3c6886f664fce4ef1885e9afdb32556c26021ad76ca5a9fd5d95dc4e3",
+      "bytes": 73792
+    },
+    "moa-dev/experiments/artifacts/output-fp8-four-columns/candidate.bin": {
+      "sha256": "a6421b94ac74a466dd6cb14ad476a9a4b14013367364a4867641a619be0f06fb",
+      "bytes": 85760
+    },
+    "moa-dev/experiments/artifacts/output-fp8-four-columns/candidate.json": {
+      "sha256": "d20e1690ee693d7260e487a2dd3f4af61db7fe82fdd7b414144a0fa673746974",
+      "bytes": 35287
+    },
+    "moa-dev/experiments/artifacts/output-fp8-four-columns/candidate.log": {
+      "sha256": "107b6832dd6e3bc185dbf061b91f43d4598e2f73d82a7d4d9e7a66f8ff14f422",
+      "bytes": 1076
+    }
+  },
+  "scope": [
+    "One candidate plus mandatory exact baseline, no additional attempts.",
+    "No live source/main target/Git mutation/NPU/fixture changes.",
+    "No physical HBM transaction or performance claim from logical chunk size."
+  ]
+}

@@ -1,0 +1,98 @@
+--- small-probe/probe_decode.rs
++++ fullshape-probe/probe_decode.rs
+@@ -1,6 +1,6 @@
+ use furiosa_opt_std::prelude::*;
+ use furiosa_opt_gemma4::{Chip,decode_probe};
+-use decode_probe::{DecodeK,DecodeR,DecodeS};
++use decode_probe::{DecodeC,DecodeK,DecodeR,DecodeS};
+ use std::io::Write;
+ 
+ // Independent explicit e2m1 value specification encoded as exact BF16 bits.
+@@ -43,8 +43,8 @@
+     println!("DECODE_PROBE mode={mode} case={id} {stage}");std::io::stdout().flush().unwrap();
+ }
+ fn check(mode:&str,c:&Case,actual:&[bf16])->usize {
+-    let local=c.expected.len();assert_eq!(actual.len(),DecodeS::SIZE*local);
+-    let mut failures=0usize;let mut code_fail=[0usize;16];let mut nibble_fail=[0usize;2];let mut lane_fail=[0usize;64];
++    let local=c.expected.len();assert_eq!(actual.len(),DecodeC::SIZE*DecodeS::SIZE*local);
++    let mut failures=0usize;let mut cluster_fail=[0usize;2];let mut code_fail=[0usize;16];let mut nibble_fail=[0usize;2];let mut lane_fail=[0usize;64];
+     let mut nonfinite=0usize;let mut signed_zero_only=0usize;let mut samples=[[None;16];2];
+     for (index,&value) in actual.iter().enumerate() {
+         let i=index%local;let code=c.codes[i] as usize;let got=value.to_bits();let want=c.expected[i];
+@@ -52,9 +52,9 @@
+         if got==want {continue;}
+         if failures<32 {
+             let neighbor=c.codes[i^1];
+-            println!("DECODE_MISMATCH mode={mode} case={} slice={} row={} k={} nibble={} code=0x{code:x} neighbor=0x{neighbor:x} packed=0x{:02x} mod64={} expected=0x{want:04x} actual=0x{got:04x}",c.id,index/local,i/DecodeK::SIZE,i%DecodeK::SIZE,i%2,c.packed[i/2],i%64);
++            println!("DECODE_MISMATCH mode={mode} case={} cluster={} slice={} row={} k={} nibble={} code=0x{code:x} neighbor=0x{neighbor:x} packed=0x{:02x} mod64={} expected=0x{want:04x} actual=0x{got:04x}",c.id,index/(DecodeS::SIZE*local),(index/local)%DecodeS::SIZE,i/DecodeK::SIZE,i%DecodeK::SIZE,i%2,c.packed[i/2],i%64);
+         }
+-        failures+=1;code_fail[code]+=1;nibble_fail[i%2]+=1;lane_fail[i%64]+=1;
++        failures+=1;cluster_fail[index/(DecodeS::SIZE*local)]+=1;code_fail[code]+=1;nibble_fail[i%2]+=1;lane_fail[i%64]+=1;
+         if got&0x7f80==0x7f80 {nonfinite+=1;}
+         if got&0x7fff==0 && want&0x7fff==0 {signed_zero_only+=1;}
+     }
+@@ -62,16 +62,31 @@
+         let hex:Vec<_>=values.iter().map(|v|v.map_or("missing".into(),|v|format!("0x{v:04x}"))).collect();
+         println!("DECODE_SAMPLES mode={mode} case={} nibble={phase} by_code={hex:?}",c.id);
+     }
+-    println!("DECODE_COUNTS mode={mode} case={} by_code={code_fail:?} by_nibble={nibble_fail:?} by_mod64={lane_fail:?}",c.id);
++    println!("DECODE_COUNTS mode={mode} case={} by_cluster={cluster_fail:?} by_code={code_fail:?} by_nibble={nibble_fail:?} by_mod64={lane_fail:?}",c.id);
+     println!("DECODE_RESULT mode={mode} case={} checked={} mismatches={failures} nonfinite={nonfinite} signed_zero_only={signed_zero_only} status={}",c.id,actual.len(),if failures==0 {"PASS"} else {"FAIL"});
+     failures
+ }
+ 
+ #[tokio::main]
+ async fn main() {
+-    let cases:Vec<_>=(0..3).map(make_case).collect();
++    let cases:Vec<_>=[1usize].into_iter().map(make_case).collect();
+     if std::env::args().any(|a|a=="--oracle-only") {
+-        println!("CPU_ORACLE_PASS variants=2 cases=3; no Device created, no NPU launch");return;
++        println!("CPU_ORACLE_PASS variants=2 cases=1 clusters=2 live_slices=240 rows=32 columns=3840; no Device created, no NPU launch");return;
++    }
++    if std::env::args().any(|a|a=="--host-memory-only") {
++        let started=std::time::Instant::now();
++        let mut total_failures=0;
++        for c in &cases {
++            for mode in ["host_legacy", "host_fused"] {
++                let sentinel:HostTensor<bf16,m![DecodeC,DecodeS,DecodeR,DecodeK]>=HostTensor::from_vec(vec![bf16::from_bits(0x7fc1);<m![DecodeC,DecodeS,DecodeR,DecodeK]>::SIZE]);
++                assert!(sentinel.into_vec().iter().all(|v|v.to_bits()==0x7fc1));
++                let synthetic:HostTensor<bf16,m![DecodeC,DecodeS,DecodeR,DecodeK]>=HostTensor::from_vec((0..<m![DecodeC,DecodeS,DecodeR,DecodeK]>::SIZE).map(|i|bf16::from_bits(c.expected[i%c.expected.len()])));
++                total_failures+=check(mode,c,&synthetic.into_vec());
++            }
++        }
++        assert_eq!(total_failures,0);
++        println!("CPU_FULLSHAPE_MEMORY_PASS elapsed_seconds={:.6} output_bytes_each={} total_bf16_checked={} no Device created, no NPU launch",started.elapsed().as_secs_f64(),<m![DecodeC,DecodeS,DecodeR,DecodeK]>::SIZE*2,<m![DecodeC,DecodeS,DecodeR,DecodeK]>::SIZE*2);
++        return;
+     }
+     let mut device=Device::new(decode_probe::legacy_decode.topology()).expect("create NPU Device");
+     let mut total_failures=0usize;
+@@ -81,21 +96,24 @@
+         let copied:HostTensor<f4e2m1,m![DecodeR,DecodeK]>=input.to_host(&mut device.pdma).await.unwrap();
+         assert_eq!(copied.into_vec().into_iter().map(f4e2m1::to_bits).collect::<Vec<_>>(),c.codes,"packed HBM input round-trip");
+         println!("INPUT_ROUNDTRIP case={} elements={} status=PASS",c.id,c.codes.len());
+-        let mut legacy:HbmTensor<bf16,Chip,m![DecodeS,DecodeR,DecodeK]>=HostTensor::<bf16,m![DecodeS,DecodeR,DecodeK]>::from_vec(vec![bf16::from_bits(0x7fc1);<m![DecodeS,DecodeR,DecodeK]>::SIZE])
++        let mut legacy:HbmTensor<bf16,Chip,m![DecodeC,DecodeS,DecodeR,DecodeK]>=HostTensor::<bf16,m![DecodeC,DecodeS,DecodeR,DecodeK]>::from_vec(vec![bf16::from_bits(0x7fc1);<m![DecodeC,DecodeS,DecodeR,DecodeK]>::SIZE])
+             .to_hbm(&mut device.pdma).await.unwrap();
+         mark("legacy",c.id,"LAUNCH_BEGIN");
+         launch(decode_probe::legacy_decode,(&mut device,&input,&mut legacy)).await.expect("legacy decode launch");
+         mark("legacy",c.id,"LAUNCH_RETURNED");
+-        let a:HostTensor<bf16,m![DecodeS,DecodeR,DecodeK]>=legacy.to_host(&mut device.pdma).await.unwrap();
++        let a:HostTensor<bf16,m![DecodeC,DecodeS,DecodeR,DecodeK]>=legacy.to_host(&mut device.pdma).await.unwrap();
+         total_failures+=check("legacy",&c,&a.into_vec());
+-        let mut fused:HbmTensor<bf16,Chip,m![DecodeS,DecodeR,DecodeK]>=HostTensor::<bf16,m![DecodeS,DecodeR,DecodeK]>::from_vec(vec![bf16::from_bits(0x7fc1);<m![DecodeS,DecodeR,DecodeK]>::SIZE])
++        // Readback and check are complete; release HBM before the next117,964,800B output.
++        drop(legacy);
++        let mut fused:HbmTensor<bf16,Chip,m![DecodeC,DecodeS,DecodeR,DecodeK]>=HostTensor::<bf16,m![DecodeC,DecodeS,DecodeR,DecodeK]>::from_vec(vec![bf16::from_bits(0x7fc1);<m![DecodeC,DecodeS,DecodeR,DecodeK]>::SIZE])
+             .to_hbm(&mut device.pdma).await.unwrap();
+         mark("fused",c.id,"LAUNCH_BEGIN");
+         launch(decode_probe::fused_decode,(&mut device,&input,&mut fused)).await.expect("fused decode launch");
+         mark("fused",c.id,"LAUNCH_RETURNED");
+-        let b:HostTensor<bf16,m![DecodeS,DecodeR,DecodeK]>=fused.to_host(&mut device.pdma).await.unwrap();
++        let b:HostTensor<bf16,m![DecodeC,DecodeS,DecodeR,DecodeK]>=fused.to_host(&mut device.pdma).await.unwrap();
+         total_failures+=check("fused",&c,&b.into_vec());
++        drop(fused);
+     }
+-    println!("FP4_DECODE_PROBE variants=2 cases=3 total_mismatches={total_failures} status={}",if total_failures==0 {"PASS"} else {"FAIL"});
++    println!("FP4_DECODE_FULLSHAPE variants=2 cases=1 clusters=2 live_slices=240 rows=32 columns=3840 total_mismatches={total_failures} status={}",if total_failures==0 {"PASS"} else {"FAIL"});
+     if total_failures!=0 {std::process::exit(1);}
+ }

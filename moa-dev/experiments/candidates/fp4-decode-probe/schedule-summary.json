@@ -1,0 +1,168 @@
+{
+  "legacy": {
+    "makespan": 41390,
+    "instructions": 10,
+    "raw_schedule_sha256": "0dd03dd436f5039692c611a7e0da7f6096d7928aea68df51f10a3f2cd8e3a574",
+    "main": [
+      {
+        "index": "14",
+        "history": {
+          "resourcelir": "O14"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 21433,
+          "end": 22976
+        },
+        "input_tensors": [
+          3,
+          2
+        ],
+        "output_tensors": [
+          5
+        ],
+        "description": "--> src/decode_probe.rs:16:84\n\ndevice.main\n.begin(packed.view())\n.fetch::<m![DecodeR], m![DecodeK]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![DecodeR, DecodeK / 32], m![DecodeK % 32]>()\n.commit_trim::<m![DecodeK % 32]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      {
+        "index": "25",
+        "history": {
+          "resourcelir": "O25"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 23564,
+          "end": 26387
+        },
+        "input_tensors": [
+          5,
+          8
+        ],
+        "output_tensors": [
+          9
+        ],
+        "description": "--> src/decode_probe.rs:22:86\n\ndevice.main\n.begin(fp8.view())\n.fetch::<m![DecodeR], m![DecodeK]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![DecodeR, DecodeK / 16], m![DecodeK % 16]>()\n.commit_trim::<m![DecodeK % 16]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      }
+    ],
+    "main_auxiliary_inputs": [
+      {
+        "main_index": "14",
+        "tensor": {
+          "name": "",
+          "index": "2",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1841,
+            "end": 22976,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 131072,
+          "size": 8388608,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        "interpretation": "unnamed auxiliary input to lookup pipeline; inferred lookup table from source/dataflow, register table layout is not exposed in this schedule"
+      },
+      {
+        "main_index": "25",
+        "tensor": {
+          "name": "",
+          "index": "8",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 22271,
+            "end": 26387,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 25165824,
+          "size": 8388608,
+          "physical_pages": [
+            1
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        "interpretation": "unnamed auxiliary input to lookup pipeline; inferred lookup table from source/dataflow, register table layout is not exposed in this schedule"
+      }
+    ]
+  },
+  "fused": {
+    "makespan": 39003,
+    "instructions": 7,
+    "raw_schedule_sha256": "2ac7af2ecec2bcd2c84e51d159cd8db3aab9f7cea099ddebb18dfecaebced374",
+    "main": [
+      {
+        "index": "14",
+        "history": {
+          "resourcelir": "O14"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 21433,
+          "end": 24000
+        },
+        "input_tensors": [
+          3,
+          2
+        ],
+        "output_tensors": [
+          5
+        ],
+        "description": "--> src/decode_probe.rs:38:86\n\ndevice.main\n.begin(packed.view())\n.fetch::<m![DecodeR], m![DecodeK]>()\n.fetch_table_lookup::<f8e4m3>()\n.fetch_cast::<f32>()\n.collect::<m![DecodeR, DecodeK / 8], m![DecodeK % 8]>()\n.cast::<bf16, m![DecodeK % 8 # 16]>()\n.commit_trim::<m![DecodeK % 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      }
+    ],
+    "main_auxiliary_inputs": [
+      {
+        "main_index": "14",
+        "tensor": {
+          "name": "",
+          "index": "2",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1841,
+            "end": 24000,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 131072,
+          "size": 4194304,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        "interpretation": "unnamed auxiliary input to lookup pipeline; inferred lookup table from source/dataflow, register table layout is not exposed in this schedule"
+      }
+    ]
+  }
+}

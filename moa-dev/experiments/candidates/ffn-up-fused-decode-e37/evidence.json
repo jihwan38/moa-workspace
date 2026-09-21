@@ -1,0 +1,221 @@
+{
+  "recorded_at_utc": "2026-09-21T12:17:22.143922+00:00",
+  "status": "all15_pass_single_screen_no_performance_adoption",
+  "source_base": "moa-dev/experiments/artifacts/e37-kernel-specific-rms",
+  "source_sha256": {
+    "e37_mlp": "331088a000ca972d8fdad97c76d9d6ff093a3712bc2cda95e9a3b15fa05856e1",
+    "e48_mlp": "3a7449532a74223fefddb96bca519ff2e6945722f86e38409e6cd0bc3f9a74ac",
+    "candidate_patch": "1f67fb2493f1a2509848a0d61f83c836f00e40851d80ec7c21c1462222832b0b"
+  },
+  "source_delta": "Only up FP4->FP8 DM->BF16 two-pass decode replaced by FP4 LUT->F32 fetchcast->BF16 single stream. Prefix and suffix outside that block byte-identical.",
+  "invariants": {
+    "changed_snapshot_source_files": [
+      "src/device/shared/mlp.rs"
+    ],
+    "ops_unchanged": true,
+    "eight_row_dot_scale_helper_unchanged": true,
+    "gate_and_down_unchanged": true,
+    "global_scales_geglu_rms_residual_unchanged": true,
+    "up_hbm_and_bf16_dm_mapping_unchanged": true
+  },
+  "binary_audit": "binary-audit.json",
+  "host": {
+    "bytes": 3667008,
+    "sha256": "5bb1965a48e3be5fd7001235b61b94b4d5d1f547a2d3f49b7b69b243fb7e733c"
+  },
+  "images": [
+    {
+      "path": "furiosa_opt_gemma4::ops::decoder_feedforward",
+      "image_bytes": 201216,
+      "image_sha256": "40f60d35c02925a94e8455ab62c8198fe97860c632d75a04bae16f3317087e2b",
+      "image_occurrences_in_e48_host": 1,
+      "image_occurrences_in_e37_host": 0
+    },
+    {
+      "path": "furiosa_opt_gemma4::ops::sliding_attention_output",
+      "image_bytes": 88576,
+      "image_sha256": "e9d3402c62fd866f417053e618e7a7af1d5cb60485c04cc292f3a702f5996cde",
+      "image_occurrences_in_e48_host": 1,
+      "image_occurrences_in_e37_host": 1
+    },
+    {
+      "path": "furiosa_opt_gemma4::ops::sliding_project_qkv",
+      "image_bytes": 187648,
+      "image_sha256": "91b232f0179b37b126f2ba8755b6125e532364418516948fd98dadcc9d7e77ea",
+      "image_occurrences_in_e48_host": 1,
+      "image_occurrences_in_e37_host": 1
+    }
+  ],
+  "schedule_summary": "schedule-summary.json",
+  "schedule": {
+    "e37_reference": {
+      "path": "moa-dev/experiments/candidates/ffn-parallel-epilogue/candidate.json",
+      "sha256": "97cd593f04a79e79c6be5cd9375e4657448625142abb64b827d6aa1e62de5074",
+      "makespan": 162209,
+      "instruction_duration_sum_by_type": {
+        "Sub": 19378,
+        "DmaLoad": 110745,
+        "Core": 29708,
+        "DmaStos": 24214,
+        "Main": 125274,
+        "DmaStore": 648
+      },
+      "decode_main_duration_sum": 86178,
+      "last_down_dot_end": 155414,
+      "tail_cycles": 6795
+    },
+    "e48": {
+      "path": "moa-dev/experiments/artifacts/ffn-up-fused-decode-e37/schedule.json",
+      "sha256": "c7d9738db9e9c691a385c5c09067dcfcca6f8de372661e5a6e54e147dea15a65",
+      "makespan": 157866,
+      "instruction_duration_sum_by_type": {
+        "Sub": 17826,
+        "DmaLoad": 109907,
+        "Core": 18730,
+        "DmaStos": 24214,
+        "Main": 113491,
+        "DmaStore": 648
+      },
+      "decode_main_duration_sum": 74395,
+      "last_down_dot_end": 151071,
+      "tail_cycles": 6795
+    }
+  },
+  "static_difference": {
+    "makespan": -4343,
+    "makespan_fraction": -0.026774100080759977,
+    "instruction_duration_sum_by_type": {
+      "Sub": -1552,
+      "DmaLoad": -838,
+      "Core": -10978,
+      "DmaStos": 0,
+      "Main": -11783,
+      "DmaStore": 0
+    }
+  },
+  "decode_shape": {
+    "clusters": 2,
+    "live_slices_per_cluster": 240,
+    "physical_slices_per_cluster": 256,
+    "rows_per_slice": 32,
+    "columns": 3840,
+    "f4_input_bytes_per_slice": 61440,
+    "bf16_output_bytes_per_slice": 245760,
+    "f4_physical_allocation_bytes": 31457280,
+    "bf16_physical_allocation_bytes": 125829120,
+    "removed_fp8_intermediate_physical_bytes": 62914560,
+    "old_lookup_aux_bytes": [
+      8388608,
+      8388608
+    ],
+    "new_lookup_aux_bytes": [
+      4194304
+    ],
+    "fused_source_packet": "8 F32 values -> BF16 packet8#16 -> trim8valid ->16B commit; actual low-level graph not saved"
+  },
+  "lifetime_evidence": {
+    "fused_main": "O25875014..92557, MainContext+VectorEngine",
+    "up_f4": "T11944896..92557; physical pages13,14",
+    "up_bf16_parent": "T14275014..92581; physical pages2,3,4,5,6,7,8,0; alias descriptors continue to four dot consumers",
+    "up_fused_lookup": "T14172805..92557;4MiB physical page1",
+    "up_tile_consumers": [
+      "O29892757..94960",
+      "O32095542..97745",
+      "O34198791..100994",
+      "O361101497..103700"
+    ],
+    "resident_x_trf": "T11844787..103700",
+    "first_up_scale_vrf": "T14676170..94960, populated by O26676170..76673 during fused decode",
+    "no_register_collision_conclusion": true
+  },
+  "critical_path_observations": {
+    "up_decode_main_saved": 11783,
+    "down_weight_dma_e37": [
+      84977,
+      114404
+    ],
+    "down_weight_dma_e48": [
+      80658,
+      110085
+    ],
+    "down_scale_dma_e37": [
+      118130,
+      127904
+    ],
+    "down_scale_dma_e48": [
+      129683,
+      139457
+    ],
+    "last_down_dot_saved": 4343,
+    "tail_unchanged": 6795,
+    "note": "Scheduler overlap/order changed; duration sums do not directly predict makespan or hardware cycles."
+  },
+  "hardware": {
+    "job": {
+      "id": 70683,
+      "owner": "jihwan38",
+      "mine": true,
+      "name": "beef-e48-up-only-fused-decode",
+      "status": "SUCCEEDED",
+      "created_at": "2026-09-21T12:13:13Z",
+      "started_at": "2026-09-21T12:14:29Z",
+      "finished_at": "2026-09-21T12:14:36Z",
+      "duration_sec": 6.68544379,
+      "exit_code": 0,
+      "device_id": null
+    },
+    "record": "docs/experiments/e48-up-only-fused-decode.json",
+    "log": "moa-dev/logs/e48-up-only-fused-decode-job-70683.log",
+    "log_sha256": "1be4cf47c19a56bc819b127313407e40ee2303f812db0eadaeebd119110aea8a",
+    "all_output_comparisons_passed": 15,
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 94545,
+        "cycles_by_run": [
+          102564,
+          94481,
+          94545
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 47079,
+        "cycles_by_run": [
+          48903,
+          45919,
+          47079
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 381532,
+        "cycles_by_run": [
+          387277,
+          381532,
+          380694
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "uploaded_host_sha256": "5bb1965a48e3be5fd7001235b61b94b4d5d1f547a2d3f49b7b69b243fb7e733c",
+    "e37_repeated_ffn_reference": 379741,
+    "single_screen_ffn_fraction_vs_e37": 0.004716372474923736,
+    "performance_adopted": false
+  },
+  "relation_to_e13_and_probe": "E13 fused both up/gate in earlier fullFFN and failed; tagged fullshape70658 decode-only passed; E48 now proves up-only fused chain also passes3 official completeFFN inputs. It does not identify E13 failure cause or prove all-input correctness.",
+  "read_only_audit": {
+    "extra_compiles": 0,
+    "npu_jobs_created": 0,
+    "live_source_edits": 0,
+    "git_operations": 0
+  },
+  "limitations": [
+    "E37reference schedule is E36 FFNparallel epilogue artifact; same MLP and FFN device image reused by frozenE37.",
+    "E48 graph not saved; table stride details from E13graph are not asserted as E48 observed IR.",
+    "Tensor SSA lifetimes do not prove backing memory is freed before tile consumers.",
+    "One hardware screen is insufficient to establish a0.47percent regression reliably."
+  ]
+}

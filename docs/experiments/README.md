@@ -5,13 +5,17 @@ An Arena result is a development measurement; official ranking requires `moa-sub
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.
-E36 has passed30 additional comparisons. E37 is the adopted repeated checkpoint: jobs70519/70528/70541
+E36 has passed30 additional comparisons. E37 is a previous repeated checkpoint: jobs70519/70528/70541
 and30 additional-input comparisons all pass; its median-of-job-medians is94195/45748/379741.
 E29 also completed three passing control jobs70428/70482/70493; E27 remains a single official-package screen
 with separate additional-input coverage. E30 is a passing paired QKV control. E41 passes all15 comparisons
 but its native FFN remains slower than the adopted checkpoint. E42 also passes and is slower.
 E28/E32 time out, E33 has substantial FFN correctness failures, and E40 produces non-finite FFN output.
 Diagnostic jobs are separated below.
+E44/E45/E46 pass the official screen but are slower in their changed kernel and are not adopted.
+E47 is the adopted checkpoint: jobs70664/70681/70688 all pass, median94662/44588/377564;
+additional30 comparisons pass70694. Only O changes from E37; QKV/FFN device images are identical.
+E48 up-only fused decode passes its first screen, without a demonstrated performance gain.
 
 | Variant | Arena jobs | Accuracy | QKV cycles | O cycles | FFN cycles | Decision |
 |---|---|---|---:|---:|---:|---|
@@ -59,12 +63,19 @@ Diagnostic jobs are separated below.
 | E35 native FP8 full256 live rows + real zero tails | 70485 | Pass | 97301 | 45799 | 811219 | Diagnostic PASS; slower, establishes packet4+pair can execute in this configuration |
 | E36 FFN H480×8 epilogue + E31 | 70498 | Pass | 97052 | 45141 | 378021 | Retain; FFN2.91% below E31 repeat median; extra30 pass70506 |
 | E37 kernel-specific RMS + E36 FFN epilogue | 70519 | Pass | 94094 | 45796 | 376040 | Initial screen; each device image identical to its passing parent; completed repeats/extra below |
-| E37 same package repeated | 70519, 70528, 70541 | Pass | 94195 | 45748 | 379741 | Adopted checkpoint; four uploaded file hashes identical; extra30 pass70544 |
+| E37 same package repeated | 70519, 70528, 70541 | Pass | 94195 | 45748 | 379741 | Previous checkpoint; four uploaded file hashes identical; extra30 pass70544 |
 | E38 full256 direct weight/scale writes | 70525 | Pass | 96579 | 45101 | 482511 | Faster than E35, slower than adopted BF16 FFN; reject as performance replacement |
 | E39 native FP8 with actual2-row tail initialization | 70551 | Pass | 97459 | 45220 | 415457 | Improves native branch but still slower than adopted BF16 FFN |
 | E40 native FP8 row2 mapping + tail-only initialization | 70552 | QKV/O pass; FFN non-finite | 96455 | 45927 | — | Reject; all3 FFN runs non-finite at output0; recorded432862 cycles invalid |
 | E41 native FP8 actual30-row view | 70562 | Pass | 96917 | 46477 | 426442 | Single-job screen; native branch passes but FFN is slower than E39 and adopted E37 |
 | E42 actual30 rows + row256 mapping | 70576 | Pass | 98728 | 45794 | 456849 | Reject for performance; slower than E37 |
+| E44 E37 with paired V | 70625 | Pass | 95892 | 46090 | 378002 | Do not adopt; QKV screen1.80% above E37 repeat median |
+| E45 coalesced down-scale HBM staging | 70641 | Pass | 94492 | 45842 | 394044 | Do not adopt; FFN3.77% above E37 repeat median despite static -0.43% |
+| E46 native FP8 with F32 block partials/VE reduce | 70652 | Pass | 97797 | 45852 | 434284 | Do not adopt; FFN14.36% above E37,1.84% above direct parent E41 |
+| E47 sixteen-column O projection | 70664 | Pass | 94662 | 44309 | 377274 | Initial screen; completed repeats and extra inputs below |
+| E47 same package repeated | 70664, 70681, 70688 | Pass | 94662 | 44588 | 377564 | Adopted; O2.54% below E37 repeat median, extra30 pass70694 |
+| E48 up-only fused FP4 decode + E37 QKV/O | 70683 | Pass | 94545 | 47079 | 381532 | First screen; FFN0.47% above E37 repeat median; no adoption or general fused-FFN claim |
+| E50 down-only fused FP4 decode + E37 QKV/O | 70700 | Pass | 94030 | 46072 | 376184 | First screen; FFN0.94% below E37, pending combined repeats before adoption |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.
@@ -144,7 +155,7 @@ establishes NPU correctness or runtime performance.
 The [Arena version probe](../../moa-dev/experiments/candidates/arena-version-probe/README.md) is an
 environment observation, not a kernel benchmark. Driver/firmware query failures must remain unknown;
 they do not prove a mismatch or explain the FP8 failures. Follow-up measurement priorities are tracked
-in [the optimization plan](../OPTIMIZATION_PLAN.md#초기-실험-계보와-현재-우선순위).
+in [the optimization plan](../OPTIMIZATION_PLAN.md#남은-병목과-다음-실험의-조건).
 
 E31 additional run3..8 passed all30 comparisons in job70448 ([record](e31-rms-extra-correctness.json)).
 The eight-way RMS sum order changes; passing nine configurations is not an all-input proof.
@@ -178,3 +189,31 @@ E37 also passed a separate non-target KV cache sentinel check in job70589
 The original15 output comparisons and12 cache checks pass; all12,570,624 non-target BF16 elements
 across the three tested slots are preserved bit-for-bit. This custom host harness is correctness-only evidence;
 its diagnostic cycles are not included in the E37 repeated performance aggregate.
+
+
+Follow-up diagnostics after the E37 checkpoint:
+
+- [E43 down activation broadcast](../../moa-dev/experiments/candidates/ffn-down-activation-broadcast-four/README.md): four compile failures were followed by a passing explicit-anonymous4 + CustomBroadcast32 mapping. DMA decreases3,889 cycles, but Main grows4,103 and total static schedule162,209→166,181. NPU not run; no speedup claim.
+- [O4×1024](../../moa-dev/experiments/candidates/output-fp8-four-columns/README.md): exact compile passes but regresses24,997→25,873(+3.50%). DMA decreases146 while Main increases1,336. Four valid columns remain padded to eight physical slots; the physical global-reduce ratio remains8. Weight DMA uses256B inner packets in both layouts, not a demonstrated1KB hardware burst. NPU not run.
+- [FP4 decode probe job70620](fp4-decode-probe.json): both legacy two-pass and fused conversion pass bitwise comparisons for all25,165,824 BF16 values across three patterns. Scope is one cluster,256 live slices,32×512 local values. This does not reproduce the E13 full-FFN shape, resource lifetimes or failure.
+- [Tagged fullshape decode job70658](fp4-decode-probe-fullshape-tagged.json): both paths pass all117,964,800 BF16 value comparisons with zero mismatches. Scope is two clusters,240 valid/256 physical slices each,32×3840 local values, and input sequences distinguishing all15,360 rows/480 cluster-slice locations. This covers E37 up/gate decoder shape, but excludes DPE, scales, activation quantization and full-FFN buffer lifetimes. It neither proves E13's root cause nor validates a whole fused FFN.
+- [E45 job70641](e45-down-scale-coalesced.json) passes all15 official comparisons, but FFN394,044 is3.77% slower than E37's repeated379,741. Static scale HBM transfer decreases while the new SRAM scatter raises total DMA by1,898. That agrees with the direction of hardware regression without proving its complete cause; the candidate is not adopted.
+- [E46 job70652](e46-native-f32-block-reduce.json) passes all15 comparisons, but FFN434,284 is14.36% above E37 and1.84% above E41. Removing the intermediate BF16 block rounding does not establish better overall accuracy or speed. No extra-input or repeated-job evidence is claimed for this candidate.
+- [E47 repeats](e47-output-sixteen-columns-repeats.json): jobs70664/70681/70688 all15 PASS, medians94662/44588/377564. O job-median range0.794%, repeated improvement2.54% over E37. [Extra job70694](e47-output-sixteen-columns-extra-correctness.json) passes all30 comparisons across six additional configurations. Adopted after both checks; the first screen44309 is not substituted for the repeat aggregate.
+- [E48 up-only fused decode job70683](e48-up-only-fused-decode.json) passes all15 comparisons, Q94,545/O47,079/FFN381,532. FFN is0.47% above E37's repeated median, so this first screen does not demonstrate a gain. It changes only up decode relative to safe E37 FFN, retaining legacy gate/down; QKV/O sources match E37 rather than E47. Correctness scope is these three official inputs for this exact combined kernel, not all-input or all-fused FFN equivalence.
+
+The adopted checkpoint is E47. Its [source/build audit](e47-source-build-audit.json) reproduces the
+measured host binary exactly; all three device images also match the independent extra-input build.
+Earlier E37 restore/clean-build audits remain evidence about their captured artifacts. E48/E49/E50
+are separate FFN experiments and are not part of the adopted E47 package.
+
+[E49 up+gate fused](../../moa-dev/experiments/candidates/ffn-up-gate-fused-decode-e37/README.md)
+reduces Main work but delays pre-RMS and removes overlap of the second weight load with the first
+projection. Static makespan rises157866→189967 versus E48; no full build or NPU run was made.
+[E50 down-only fused](e50-down-fused-decode.json) passes15 comparisons in job70700 with FFN376184.
+Its small single-screen improvement is being checked in a separate E51 package combining E47 O16
+and E50 FFN. E51 is experimental and is not adopted while repeats/additional inputs are pending.
+
+[O32×128 compile-only candidate](../../moa-dev/experiments/candidates/output-fp8-thirtytwo-columns/README.md)
+regresses24621→37344 compared with E47 O16. Weight DMA rises13383→26218 while Main grows only171.
+No NPU execution or correctness claim is made; this candidate is not adopted.

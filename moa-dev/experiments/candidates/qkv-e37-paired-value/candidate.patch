@@ -1,0 +1,11 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -275,7 +275,7 @@
+     let k: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> =
+         project_one_kv_matrix(device, &x_trf, &scale_vrf, k_weight, k_weight_scale);
+     let v: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> =
+-        project_value_two_dot(device, unsafe { x.view().reshape() }, &scale_vrf, v_weight, v_weight_scale);
++        project_one_kv_matrix(device, &x_trf, &scale_vrf, v_weight, v_weight_scale);
+ 
+     (k, v)
+ }

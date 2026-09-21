@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-21T11:59:26.134115+00:00",
+  "status": "official_configs_pass_not_adopted_slower_than_e41_and_e37",
+  "candidate_mlp_sha256": "b9b7d6e07127c4747f3a39f83f1480a8e7e546e3303723e260f4903c60be7551",
+  "baseline_mlp_sha256": "dff506dea523b17c7e32c4c200cda8c5138a800ea61e40ed805da1b1e3df3129",
+  "baseline_snapshot": "moa-dev/experiments/artifacts/e41-native-row30",
+  "baseline_hardware_record": "docs/experiments/e41-native-row30.json",
+  "baseline_hardware_ffn_cycles": 426442,
+  "ops_sha256": "48cfec9c9fd390d54e1ef1e560f984d8968d7c75d3faf41a397663e6a3cd2a1a",
+  "residual_sha256": "83d001788e3c1ae073ec8720435569fde062a47e52c181ab859a2d3f047accfc",
+  "candidate_kernel_image": "moa-dev/experiments/artifacts/ffn-native-fp8-f32-block-reduce-static/decoder_feedforward.bin",
+  "candidate_kernel_bytes": 215040,
+  "candidate_kernel_sha256": "476baf365346b947bd28367dc5e66d0e803596f07ec4a4aad2e947ceaf81744c",
+  "static": {
+    "baseline": {
+      "makespan": 170176,
+      "instruction_count": 196,
+      "duration_sums_by_resource": {
+        "Sub": 20337,
+        "DmaLoad": 122161,
+        "Core": 61965,
+        "Main": 97895,
+        "DmaStos": 21460,
+        "DmaStore": 434
+      },
+      "instruction_duration_sums_are_not_makespan_savings": true,
+      "schedule_sha256": "c2d3967678d2f910b7dcd7afa5377e0fa1a2818a224c2e82dcdafa584fd2eeb0",
+      "graph_sha256": "dbcc00287e6a340c53d018982c6a5048f867b8fc12fe6b4fdf043f0a797b0f95"
+    },
+    "candidate": {
+      "makespan": 172313,
+      "instruction_count": 286,
+      "duration_sums_by_resource": {
+        "Sub": 18055,
+        "DmaLoad": 120485,
+        "Core": 71890,
+        "Main": 100095,
+        "DmaStos": 21460,
+        "DmaStore": 434
+      },
+      "instruction_duration_sums_are_not_makespan_savings": true,
+      "schedule_sha256": "d28a3bbc19884d2ca83ee50e193765e7b70983bbf62e82d82a063e7f214d4a0c",
+      "graph_sha256": "328a4f5b45092f718fd635da6faea78c0104a183c12078c880360e697c79cf42"
+    }
+  },
+  "delta_cycles": 2137,
+  "relative_static_change_percent": 1.25575874388868,
+  "scope": "Only project_rows_with_scale_contraction body; first native DPE/pair/xscale preserved, F32 partials replace BF16 partials and VE Mul/reduce replaces second scale DPE.",
+  "compile": {
+    "attempts": 2,
+    "baseline_exit_code": 0,
+    "candidate_exit_code": 0,
+    "compile_failures": 0,
+    "kernel": "ops::decoder_feedforward",
+    "exact": true,
+    "scratch": "/tmp/moa-ffn-native-fp8-f32-block-reduce",
+    "container": "moa2026-dev",
+    "cargo_home": "/tmp/moa-extra-seeds-e5-four-row-extra/cargo-home",
+    "cargo_target_dir": "/tmp/moa-ffn-native-fp8-f32-block-reduce/target",
+    "furiosa_opt_out_dir": "/tmp/moa-ffn-native-fp8-f32-block-reduce/target/furiosa-opt/kernel",
+    "xdg_cache_home": "/tmp/moa-ffn-native-fp8-f32-block-reduce/cache",
+    "rustup_home": "/home/moa/.rustup",
+    "command_template": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule /tmp/moa-ffn-native-fp8-f32-block-reduce/{baseline,candidate}.json --dump-graph /tmp/moa-ffn-native-fp8-f32-block-reduce/{baseline,candidate}-graph.json --dump-summary /tmp/moa-ffn-native-fp8-f32-block-reduce/{baseline,candidate}-summary"
+  },
+  "verification": {
+    "status": "PASS",
+    "candidate_mlp_sha256": "b9b7d6e07127c4747f3a39f83f1480a8e7e546e3303723e260f4903c60be7551",
+    "only_helper_changed": "project_rows_with_scale_contraction",
+    "first_native_dpe_pair_xscale_preserved": true,
+    "hbm_views_gather_quantizer_down_epilogue_preserved": true,
+    "all_other_source_and_manifests_unchanged": true,
+    "source_and_manifest_count": 46,
+    "row_tiles": 5,
+    "rows_per_tile": 6,
+    "covered_rows_per_slice": 30,
+    "physical_output_bytes_per_slice": 240,
+    "poison_padding_never_promoted": true,
+    "f32_partial_bytes_per_slice": 28800,
+    "scale_vrf_bytes_per_slice": 5760,
+    "graph_f32_producers": [
+      "RenegadeCommand#O51",
+      "RenegadeCommand#O110"
+    ],
+    "graph_scalar_bf16_commit_ops": [
+      "RenegadeCommand#O139",
+      "RenegadeCommand#O90",
+      "RenegadeCommand#O70",
+      "RenegadeCommand#O149",
+      "RenegadeCommand#O100",
+      "RenegadeCommand#O80",
+      "RenegadeCommand#O159",
+      "RenegadeCommand#O60",
+      "RenegadeCommand#O119",
+      "RenegadeCommand#O129"
+    ],
+    "bf16_intermediate_example": {
+      "partials": [
+        1.00390625,
+        0.00390625
+      ],
+      "baseline_result": 1.0,
+      "candidate_result": 1.0078125,
+      "scope": "IEEE round-to-nearest-even CPU precision-boundary illustration, not NPU verification"
+    },
+    "baseline_cycles": 170176,
+    "candidate_cycles": 172313,
+    "hardware_correctness_checked": false,
+    "limitations": "No all-input correctness, overflow-freedom, output-error monotonicity or runtime scheduling claim."
+  },
+  "stage_cost_per_projection": {
+    "first_native_dot_baseline": 7484,
+    "first_native_dot_candidate": 7484,
+    "baseline_scale_lookup_main": 1388,
+    "baseline_second_scale_dot_main": 717,
+    "candidate_scale_reduce_main": 3205,
+    "main_duration_delta": 1100,
+    "baseline_scale_trf_sub": 2063,
+    "candidate_scale_vrf_sub": 2215,
+    "note": "These are instruction durations, not isolated latency savings. Removed table setup and whole-kernel reordering also change aggregate Sub/DMA timing."
+  },
+  "npu_submissions_by_this_subagent": 0,
+  "files_sha256": {
+    "verification.json": "6b2903e987e908c7d44ae1f7a1031f3634dae945c00d31c116d2de78b8f0e77f",
+    "baseline.json": "c2d3967678d2f910b7dcd7afa5377e0fa1a2818a224c2e82dcdafa584fd2eeb0",
+    "candidate.json": "d28a3bbc19884d2ca83ee50e193765e7b70983bbf62e82d82a063e7f214d4a0c",
+    "baseline-graph.json": "dbcc00287e6a340c53d018982c6a5048f867b8fc12fe6b4fdf043f0a797b0f95",
+    "candidate.patch": "c530131503b83c2544db34e30315fce777e33ac23258909807a1a20aa0c38350",
+    "mlp.original.rs": "dff506dea523b17c7e32c4c200cda8c5138a800ea61e40ed805da1b1e3df3129",
+    "baseline-source-manifest.json": "bc8b4b2cb2cb2a029513d38a84fa364e6f2803bdda8643c4e2ba0f8fe51c2ee3",
+    "candidate-compile.log": "0637f8374beccc439bb7a640addc745474ca238a484f0fea6cabd7e69db66452",
+    "baseline-compile.log": "0637f8374beccc439bb7a640addc745474ca238a484f0fea6cabd7e69db66452",
+    "candidate-source-manifest.json": "f03ee5aa9a2e697ec61fc81b14907ed66462d0240a7dc3e5d9e3af66e9e6daa1",
+    "mlp.rs": "b9b7d6e07127c4747f3a39f83f1480a8e7e546e3303723e260f4903c60be7551",
+    "candidate-graph.json": "328a4f5b45092f718fd635da6faea78c0104a183c12078c880360e697c79cf42",
+    "verify_invariants.py": "e92f72cdd4ba4cba86cee498bfa01ff9b1111b82de5a308fe3f622209f5abb01"
+  },
+  "updated_at_utc": "2026-09-21T12:07:39.513009+00:00",
+  "hardware": {
+    "experiment_record": "docs/experiments/e46-native-f32-block-reduce.json",
+    "job_id": 70652,
+    "submitted_by": "root",
+    "valid": true,
+    "output_comparisons_passed": 15,
+    "official_input_configurations": 3,
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 97797,
+        "cycles_by_run": [
+          104074,
+          97797,
+          96551
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 45852,
+        "cycles_by_run": [
+          48881,
+          45148,
+          45852
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 434284,
+        "cycles_by_run": [
+          435776,
+          434284,
+          433596
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "log": "moa-dev/logs/e46-native-f32-block-reduce-job-70652.log",
+    "log_sha256": "26f58661d24772e256a519e223e4b075969096feb3f2e4d97f9ddc157127bf54",
+    "binary_sha256": "bb0660df5743410d1db3b6d257400e16756fd98d7ca6c5c38e0b039ae39578a7",
+    "snapshot_mlp_matches_candidate": true,
+    "reference_e41_ffn": 426442,
+    "relative_ffn_change_percent": 1.8389370652984516,
+    "decision": "not_adopted_after_single_screen",
+    "extra_configurations_tested": false
+  }
+}

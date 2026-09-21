@@ -1,0 +1,353 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-21T12:23:52.927296+00:00",
+  "status": "compile_pass_static_regression_rejected_no_npu",
+  "baseline": "E47 frozen O16 candidate",
+  "baseline_snapshot": "moa-dev/experiments/artifacts/e47-output-sixteen-columns",
+  "baseline_schedule_reused_without_recompile": true,
+  "baseline_projection_sha256": "db048b93d9b768bb4cb9cb6f8fd603783789d4a5eb609e42a00a23c69a330718",
+  "candidate_projection_sha256": "0358b2443825fc55412b050f54f3a69216202da5b4500e6cf858d1f1861897f7",
+  "candidate_kernel_image": "moa-dev/experiments/artifacts/output-fp8-thirtytwo-columns-static/sliding_attention_output.bin",
+  "candidate_kernel_sha256": "dd6472ab1f232fa0a8b026a5904200f6d5488fd329f98d79d6b5c5642f93854b",
+  "candidate_kernel_bytes": 89600,
+  "source_scope": "Only project_output and private O quantizer/layout changed; exactly one of46 source/manifest inputs changed. QKV functions, public signature, H480 epilogue and official harness preserved.",
+  "static": {
+    "baseline": {
+      "makespan": 24621,
+      "duration_sums_by_resource": {
+        "Sub": 2572,
+        "DmaLoad": 15954,
+        "Core": 5137,
+        "Main": 5196,
+        "DmaStos": 2019,
+        "DmaStore": 648
+      },
+      "duration_sums_are_not_critical_path_savings": true,
+      "nonzero_duration_instruction_count": 43
+    },
+    "candidate": {
+      "makespan": 37344,
+      "duration_sums_by_resource": {
+        "Sub": 2524,
+        "DmaLoad": 28594,
+        "Core": 5230,
+        "Main": 5367,
+        "DmaStos": 1892,
+        "DmaStore": 648
+      },
+      "duration_sums_are_not_critical_path_savings": true,
+      "nonzero_duration_instruction_count": 44
+    }
+  },
+  "delta_cycles": 12723,
+  "relative_static_change_percent": 51.67539904959182,
+  "stage_timing": {
+    "input_dma": {
+      "baseline": {
+        "instruction_index": "5",
+        "resource": "DmaLoad",
+        "begin": 1003,
+        "end": 1936,
+        "duration": 933
+      },
+      "candidate": {
+        "instruction_index": "5",
+        "resource": "DmaLoad",
+        "begin": 1003,
+        "end": 1741,
+        "duration": 738
+      }
+    },
+    "input_dm_copy": {
+      "baseline": {
+        "instruction_index": "22",
+        "resource": "DmaStos",
+        "begin": 1936,
+        "end": 2627,
+        "duration": 691
+      },
+      "candidate": {
+        "instruction_index": "22",
+        "resource": "DmaStos",
+        "begin": 1741,
+        "end": 2304,
+        "duration": 563
+      }
+    },
+    "amax_main": {
+      "baseline": {
+        "instruction_index": "21",
+        "resource": "Main",
+        "begin": 1936,
+        "end": 2281,
+        "duration": 345
+      },
+      "candidate": {
+        "instruction_index": "21",
+        "resource": "Main",
+        "begin": 1741,
+        "end": 2054,
+        "duration": 313
+      }
+    },
+    "hi_quant_main": {
+      "baseline": {
+        "instruction_index": "44",
+        "resource": "Main",
+        "begin": 3593,
+        "end": 3938,
+        "duration": 345
+      },
+      "candidate": {
+        "instruction_index": "44",
+        "resource": "Main",
+        "begin": 3366,
+        "end": 3679,
+        "duration": 313
+      }
+    },
+    "lo_quant_main": {
+      "baseline": {
+        "instruction_index": "57",
+        "resource": "Main",
+        "begin": 4512,
+        "end": 4857,
+        "duration": 345
+      },
+      "candidate": {
+        "instruction_index": "57",
+        "resource": "Main",
+        "begin": 4037,
+        "end": 4350,
+        "duration": 313
+      }
+    },
+    "hi_vrf_sub": {
+      "baseline": {
+        "instruction_index": "53",
+        "resource": "Sub",
+        "begin": 4217,
+        "end": 4512,
+        "duration": 295
+      },
+      "candidate": {
+        "instruction_index": "51",
+        "resource": "Sub",
+        "begin": 3758,
+        "end": 4037,
+        "duration": 279
+      }
+    },
+    "paired_trf_sub": {
+      "baseline": {
+        "instruction_index": "63",
+        "resource": "Sub",
+        "begin": 4857,
+        "end": 5184,
+        "duration": 327
+      },
+      "candidate": {
+        "instruction_index": "63",
+        "resource": "Sub",
+        "begin": 4350,
+        "end": 4645,
+        "duration": 295
+      }
+    },
+    "weight_dma": {
+      "baseline": {
+        "instruction_index": "39",
+        "resource": "DmaLoad",
+        "begin": 3326,
+        "end": 16709,
+        "duration": 13383
+      },
+      "candidate": {
+        "instruction_index": "39",
+        "resource": "DmaLoad",
+        "begin": 3099,
+        "end": 29317,
+        "duration": 26218
+      }
+    },
+    "native_fp8_pair_main": {
+      "baseline": {
+        "instruction_index": "68",
+        "resource": "Main",
+        "begin": 16709,
+        "end": 17951,
+        "duration": 1242
+      },
+      "candidate": {
+        "instruction_index": "68",
+        "resource": "Main",
+        "begin": 29317,
+        "end": 30562,
+        "duration": 1245
+      }
+    },
+    "interslice_reduce_main": {
+      "baseline": {
+        "instruction_index": "86",
+        "resource": "Main",
+        "begin": 17951,
+        "end": 18473,
+        "duration": 522
+      },
+      "candidate": {
+        "instruction_index": "86",
+        "resource": "Main",
+        "begin": 30562,
+        "end": 31348,
+        "duration": 786
+      }
+    },
+    "canonical_gather": {
+      "baseline": {
+        "instruction_index": "99",
+        "resource": "DmaStos",
+        "begin": 18626,
+        "end": 19072,
+        "duration": 446
+      },
+      "candidate": {
+        "instruction_index": "95",
+        "resource": "DmaStos",
+        "begin": 31348,
+        "end": 31795,
+        "duration": 447
+      }
+    },
+    "channel_scale_epilogue": {
+      "baseline": {
+        "instruction_index": "109",
+        "resource": "Main",
+        "begin": 20672,
+        "end": 21073,
+        "duration": 401
+      },
+      "candidate": {
+        "instruction_index": "104",
+        "resource": "Main",
+        "begin": 33395,
+        "end": 33796,
+        "duration": 401
+      }
+    },
+    "residual": {
+      "baseline": {
+        "instruction_index": "140",
+        "resource": "Main",
+        "begin": 23032,
+        "end": 23373,
+        "duration": 341
+      },
+      "candidate": {
+        "instruction_index": "142",
+        "resource": "Main",
+        "begin": 35755,
+        "end": 36096,
+        "duration": 341
+      }
+    }
+  },
+  "timing_note": "Weight load gates paired dot; downstream channel-scale epilogue begins12723 cycles later, equal to total makespan increase. Individual duration changes overlap and cannot be added as total latency.",
+  "memory_payload_per_slice": {
+    "bf16_input": [
+      512,
+      256
+    ],
+    "paired_fp8_input_and_trf": [
+      512,
+      256
+    ],
+    "hi_f32_vrf": [
+      1024,
+      512
+    ],
+    "input_scale_vrf": [
+      32,
+      32
+    ],
+    "weight_fp8": [
+      30720,
+      30720
+    ],
+    "f32_partial_with_lane_padding": [
+      3840,
+      7680
+    ],
+    "reduced_bf16_physical_local": [
+      240,
+      480
+    ],
+    "trf_note": "Payload only, fixed bank reservation not claimed to halve."
+  },
+  "compile": {
+    "attempts": 1,
+    "candidate_exit_code": 0,
+    "compile_failures": 0,
+    "kernel": "ops::sliding_attention_output",
+    "exact": true,
+    "scratch": "/tmp/moa-output-fp8-thirtytwo-columns",
+    "container": "moa2026-dev",
+    "cargo_home": "/tmp/moa-extra-seeds-e5-four-row-extra/cargo-home",
+    "cargo_target_dir": "/tmp/moa-output-fp8-thirtytwo-columns/target",
+    "furiosa_opt_out_dir": "/tmp/moa-output-fp8-thirtytwo-columns/target/furiosa-opt/kernel",
+    "xdg_cache_home": "/tmp/moa-output-fp8-thirtytwo-columns/cache",
+    "rustup_home": "/home/moa/.rustup",
+    "command": "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule /tmp/moa-output-fp8-thirtytwo-columns/candidate.json --dump-graph /tmp/moa-output-fp8-thirtytwo-columns/candidate-graph.json --dump-summary /tmp/moa-output-fp8-thirtytwo-columns/candidate-summary"
+  },
+  "verification": {
+    "status": "PASS",
+    "candidate_projection_sha256": "0358b2443825fc55412b050f54f3a69216202da5b4500e6cf858d1f1861897f7",
+    "baseline_files_match_e47_snapshot": true,
+    "checked_source_and_manifest_files": 46,
+    "only_O_core_and_private_quantizer_layout_changed": true,
+    "qkv_public_ops_h480_epilogue_unchanged": true,
+    "row_coordinates_checked": 3840,
+    "physical_row_column_tiles_checked": 122880,
+    "column_coordinates_checked": 4096,
+    "cartesian_weight_elements": 15728640,
+    "clusters": 2,
+    "row_groups_per_cluster": 8,
+    "columns_per_row_group": 32,
+    "local_rows": 240,
+    "local_columns": 128,
+    "all512_slices_used": true,
+    "weight_fp8_bytes_per_slice": 30720,
+    "bf16_input_bytes_per_slice": 256,
+    "paired_fp8_and_trf_payload_bytes_per_slice": 256,
+    "hi_f32_vrf_bytes_per_slice": 512,
+    "f32_partial_with_lane_padding_bytes_per_slice": 7680,
+    "reduced_bf16_physical_local_bytes_per_slice": 480,
+    "bf16_commit_packets_per_slice": 60,
+    "bf16_values_per_commit": 4,
+    "compiled_reduce_ratio": 32,
+    "compiled_commit_stride_verified": true,
+    "compiled_candidate_cycles": 37344,
+    "precision_change": "Per-column scale groups256->128; F32 column reduction16->32. Same BF16 boundaries, no bitwise/all-input guarantee.",
+    "hardware_correctness_checked": false
+  },
+  "precision_note": "Per-column amax groups256->128 and inter-slice F32 reduction16->32; quantizer and BF16 boundaries preserved, bitwise equivalence/all-input tolerance not proven.",
+  "decision": "Reject this static layout; do not screen on NPU under bounded experiment policy. No measured hardware speed/correctness claim.",
+  "hardware_correctness_checked": false,
+  "npu_submissions": 0,
+  "files_sha256": {
+    "README.md": "ce4d676ab56b25ec30ef9dc249cc39aba036a9d1cf9dd4ac3203cf06246bfc26",
+    "baseline-graph.json": "8340c7a22d85a3d2eea5d0475acf49f4dbd8ab54fa56ad338dcbf142a79df0c6",
+    "baseline-origin-compile.log": "107b6832dd6e3bc185dbf061b91f43d4598e2f73d82a7d4d9e7a66f8ff14f422",
+    "baseline-source-manifest.json": "d2b70145f9a6acb1b0404a43d87533ba9f41fc47da7d8520f79296de2948f913",
+    "baseline.json": "9a28e7efb943e9edcd164f774c468687c08e2dfc1499157d13891d98b993c5fa",
+    "candidate-compile.log": "107b6832dd6e3bc185dbf061b91f43d4598e2f73d82a7d4d9e7a66f8ff14f422",
+    "candidate-graph.json": "fc5ab78f5aec9f7eeceea7ec3f92b506669e7234867fb555aff68217d6cb7a59",
+    "candidate-source-manifest.json": "f4eab9dbff5bace14c3991138ce3f1dcba5f14c176a32c3ed2a45f823e41be78",
+    "candidate.json": "527e33c5e307d71fd74b1c85b221c7e274e65ad7e48615b030826bf20895975c",
+    "candidate.patch": "80e2fdc11d95d1fedda1b64b72b8297bacf3a96ae07109074952be73a00102d4",
+    "projection.original.rs": "db048b93d9b768bb4cb9cb6f8fd603783789d4a5eb609e42a00a23c69a330718",
+    "projection.rs": "0358b2443825fc55412b050f54f3a69216202da5b4500e6cf858d1f1861897f7",
+    "verification.json": "acd5d46e89c525b27ea59310409ef34a1e28d9e9c07f7973832b275f12aea163",
+    "verify_layout.py": "8ce003a80e85d13efede53c03264cb86da4d4b07e2ca24e0f47a462e8ca3f253",
+    "weight-dma-mapping.json": "b15a9acab9e0bdf82a8675ca953076fbc5305d0934d78433082beb680924a6f1"
+  }
+}
