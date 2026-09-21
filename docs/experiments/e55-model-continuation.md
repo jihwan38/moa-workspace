@@ -67,7 +67,7 @@ E55를 기준 구현으로 유지한다. 이 결과는 정답이 있는 독립 �
 다음 실험은 가장 작은 margin이 나온 Python prompt 하나를 최대40 checkpoint로
 연장하는 원본/E55 pair다. 기존28-token prompt가 같다면 최대67forward·position66이며
 원본 EOS가 먼저 나오면 거기서 정상 종료한다. 첫8개 checkpoint를 기존 결과와 대조하고
-그 이후의 선택·margin·분포를 관측한다. 새 host 구현과 실행은 아직 하지 않았다.
+그 이후의 선택·margin·분포를 관측한다. 이후 [실제71362](e55-model-continuation-python40.md)에서14번째 EOS까지 완료했다. 첫8개 보고값이 재현됐고 새 step9에 E55 동점2개를 관측했다.
 현재 측정한 적재·workspace·decode/read·JSON 비용으로 조립한 예상은 약33초이나
 다른 실행의 시간 보장은 아니다. 512-token 문맥은 원본 prefill만 단순 외삽 약66초여서
 같은70초 pair에 포함하지 않는다. 임의로 position을 건너뛴 빈 cache 검사는 실제 긴

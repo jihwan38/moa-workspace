@@ -321,6 +321,9 @@ def main():
         saved = json.loads(path.read_text())
         if 'job' not in saved or 'log' not in saved or 'submitted_archive' not in saved:
             continue
+        # Related adapters keep distinct event contracts and their own tests.
+        if not saved.get('continuation_events') or saved['continuation_events'][0].get('schema') != collector.SCHEMA:
+            continue
         log = Path(saved['log']['path'])
         status = log.with_name('status-' + str(saved['job']['id']) + '.json')
         actual = collector.collect(status, log, Path(saved['submitted_archive']['path']))

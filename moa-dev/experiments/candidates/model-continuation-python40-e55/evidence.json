@@ -1,0 +1,237 @@
+{
+  "schema": "MOA_MODEL_CONTINUATION_PYTHON40_BUILD_EVIDENCE_V1",
+  "status": "BOTH_HOSTS_BUILT_IMAGES_AND_CPU_GUARDS_VERIFIED",
+  "date": "2026-09-22 Asia/Seoul",
+  "host_source": {
+    "bytes": 38682,
+    "sha256": "d23555ec84eb1b8c3045ff605b6d25862ad734ee605ea1ecd7278f774af7ca4c"
+  },
+  "parent_host_delta": {
+    "schema": "MOA_PYTHON40_HOST_DELTA_V1",
+    "parent_host_sha256": "e098585658c1533d5248eeff86574d60753e0bea5825cd86a9d1b463e19ce791",
+    "python40_host_sha256": "d23555ec84eb1b8c3045ff605b6d25862ad734ee605ea1ecd7278f774af7ca4c",
+    "runtime_main_byte_identical": true,
+    "runtime_main_sha256": "5fe664fa5e171d3ee0eab5466f1fb126b0bc1a2fdb68693d7b52d0c3bb1b0033",
+    "cpu_test_annotation_count": 11,
+    "scope": "Runtime entrypoint/teacher-forcing flow unchanged; helper constants/policy validation/errors and tests separately visible in source.patch."
+  },
+  "workload": {
+    "schema": "moa-model-continuation-python40-v1",
+    "prompt": "Complete the Python expression: len([1, 2, 3])",
+    "prompt_count": 1,
+    "max_new_tokens": 40,
+    "max_total_tokens": 128,
+    "previously_observed_prompt_tokens": 28,
+    "conditional_guard_with_28_prompt_tokens": 68,
+    "conditional_max_forward_with_28_prompt_tokens": 67,
+    "max_checkpoints": 40,
+    "max_logits_compared": 10485760,
+    "replay_policy": "reference_tokens_even_if_candidate_diverges_or_stops",
+    "termination_policy": "reference_original_eos_or_max_new_tokens",
+    "actual_tokenization_checked_at_runtime": true
+  },
+  "source_inputs_each": 47,
+  "base_inputs_unchanged_each": 46,
+  "old_prefix_probe_excluded": true,
+  "actual_compiled_inputs_verified_before_and_after_build": true,
+  "hosts": {
+    "original": {
+      "path": "moa-dev/experiments/artifacts/model-continuation-python40-e55/original/probe_model_continuation",
+      "bytes": 11533872,
+      "sha256": "6adf3fc2ba27a2238ee444fb29667756d42a10c724c69c9bc113afe007de0c19",
+      "registry": {
+        "bytes": 1102002,
+        "sha256": "c434f0343535e43864ccfbd8f2ff85246b86c21484a37ad171c8d31946e55781"
+      },
+      "ten_images_equal_frozen_prefix_suite": true,
+      "build": {
+        "variant": "original",
+        "command": [
+          "docker",
+          "exec",
+          "-w",
+          "/tmp/moa-model-continuation-python40-e55/original",
+          "-e",
+          "CARGO_HOME=/home/moa/.cargo",
+          "-e",
+          "CARGO_TARGET_DIR=/tmp/moa-model-continuation-python40-e55/original/target",
+          "-e",
+          "FURIOSA_OPT_OUT_DIR=/tmp/moa-model-continuation-python40-e55/original/target/furiosa-opt/kernel",
+          "moa2026-dev",
+          "cargo",
+          "furiosa-opt",
+          "build",
+          "--release",
+          "--locked",
+          "--bin",
+          "probe_model_continuation"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 46.03215761901811,
+        "completed_at_utc": "2026-09-21T16:25:27.500125+00:00",
+        "target_was_empty_before_build": true,
+        "log_sha256": "69a6eb5ec620700cea0151941843d1f08f77682c40a8542141d583b2ae02ad60",
+        "model_or_npu_executed": false
+      }
+    },
+    "e55": {
+      "path": "moa-dev/experiments/artifacts/model-continuation-python40-e55/e55/probe_model_continuation",
+      "bytes": 11532592,
+      "sha256": "6e9d625971b47fa65859851e2753b2d3fdf3f97eba6424141630028826a29731",
+      "registry": {
+        "bytes": 1100722,
+        "sha256": "56921925970a12258dea04d1626803e59619a0a0763d61516212fdd89da5bf71"
+      },
+      "ten_images_equal_frozen_prefix_suite": true,
+      "build": {
+        "variant": "e55",
+        "command": [
+          "docker",
+          "exec",
+          "-w",
+          "/tmp/moa-model-continuation-python40-e55/e55",
+          "-e",
+          "CARGO_HOME=/home/moa/.cargo",
+          "-e",
+          "CARGO_TARGET_DIR=/tmp/moa-model-continuation-python40-e55/e55/target",
+          "-e",
+          "FURIOSA_OPT_OUT_DIR=/tmp/moa-model-continuation-python40-e55/e55/target/furiosa-opt/kernel",
+          "moa2026-dev",
+          "cargo",
+          "furiosa-opt",
+          "build",
+          "--release",
+          "--locked",
+          "--bin",
+          "probe_model_continuation"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 57.69608448003419,
+        "completed_at_utc": "2026-09-21T16:26:25.373368+00:00",
+        "target_was_empty_before_build": true,
+        "log_sha256": "a081fdf66d0c8b63c26be58a10e1a6a09720dac9e08d0e5afe1e7c5162e13569",
+        "model_or_npu_executed": false
+      }
+    }
+  },
+  "original_e55_changed_image_set": [
+    "furiosa_opt_gemma4::ops::decoder_feedforward",
+    "furiosa_opt_gemma4::ops::full_attention_output",
+    "furiosa_opt_gemma4::ops::sliding_attention_output",
+    "furiosa_opt_gemma4::ops::sliding_project_qkv"
+  ],
+  "cpu_tests": {
+    "expected_from_frozen_source": 11,
+    "passed": 11,
+    "failed": 0,
+    "source": "exact host pure helpers and cfg(test) module, frozen public sampling.rs; E/W constants independently checked",
+    "sdk_or_npu_linked": false,
+    "log": {
+      "path": "moa-dev/experiments/artifacts/model-continuation-python40-e55/guard-tests.log",
+      "bytes": 4130,
+      "sha256": "9b970cf2c49e3ae477572b6e6877e708085feb6b8d8188dc7d4d616ce5e54700"
+    },
+    "build_record": {
+      "path": "moa-dev/experiments/artifacts/model-continuation-python40-e55/guard-test-build.json",
+      "bytes": 1407,
+      "sha256": "bb2e6426d5ad4077f641ee7930626eed44f37270742ae9c0c25302ff53222675"
+    },
+    "evidence": {
+      "bytes": 1078,
+      "sha256": "fac01047d061becee824035ad4283318fc376b0b19b9a3c3bd29b5f4ab763702"
+    }
+  },
+  "records": {
+    "host-source.json": {
+      "bytes": 859,
+      "sha256": "f015740adea2adba8d45de345833d039d7f7ebb99517a3d8225bbd91f1559008"
+    },
+    "parent-host-delta.json": {
+      "bytes": 551,
+      "sha256": "cebd9c0d5bb6f742effe75e78eeae808769716e8e5d817c1587cb536d17d31bb"
+    },
+    "source.patch": {
+      "bytes": 6778,
+      "sha256": "1df80ecb2ee28d8fc5782cfb823cb4ff9cf35203f96700360a910dd6ea0b845c"
+    },
+    "source-verification.json": {
+      "bytes": 306,
+      "sha256": "59553777a4d858f18033a5e6b7a8e0aac209980238396643e310e01e982193b9"
+    },
+    "registry-summary.json": {
+      "bytes": 6425,
+      "sha256": "9de76cd1265a7c84d5f84743241c0b2c699edbb19ca2afd10ff11e74753d9f20"
+    },
+    "cpu-test-evidence.json": {
+      "bytes": 1078,
+      "sha256": "fac01047d061becee824035ad4283318fc376b0b19b9a3c3bd29b5f4ab763702"
+    },
+    "original-source-manifest.json": {
+      "bytes": 7177,
+      "sha256": "01b92895bda6d9e344ebfcf15f66d61371995797f4e76d1d05172e2ced515541"
+    },
+    "original-compiled-source-manifest.json": {
+      "bytes": 6835,
+      "sha256": "2b13beddb9ddeb3116a3cbf4b396574035d935bf92f39bb5658bd1dbcb19133f"
+    },
+    "original-build-result.json": {
+      "bytes": 806,
+      "sha256": "cd8d8b7316314bb9797709f14205a91da47de6ae6e41e885b4d7e36b7ee841e9"
+    },
+    "e55-source-manifest.json": {
+      "bytes": 7168,
+      "sha256": "b7f48d5b55b940dc213d29ecfeac1ed644dd5dddeec6fecd93fc416eac61c8c9"
+    },
+    "e55-compiled-source-manifest.json": {
+      "bytes": 6826,
+      "sha256": "f63fac647fc712061f337811169977a901cc4617e4ba293ae87cbc3830738f10"
+    },
+    "e55-build-result.json": {
+      "bytes": 786,
+      "sha256": "098255f339fab4ec2bae2ece4485bea96b06e66c0619d96509c8fcb34cec62dd"
+    }
+  },
+  "reproduction_scripts": {
+    "prepare_sources.py": {
+      "bytes": 3420,
+      "sha256": "bd0ff9efa022b2299cccf90e71591180239e72ede7d8938d0bb7b42040abfe35"
+    },
+    "build.py": {
+      "bytes": 3851,
+      "sha256": "b74f6f3c314117539637d75d4618bfaa40697c6d2504fe41e7b8311a368cfe18"
+    },
+    "build.sh": {
+      "bytes": 133,
+      "sha256": "30f1811a6c1c7729dd487f494bde53a0f4ba7a30a3c604a14fb4315018e766d7"
+    },
+    "verify_source_inputs.py": {
+      "bytes": 2513,
+      "sha256": "c93d33f926d4bc5c57f10cdd272c50ee305b5ae9771f1eb523647b4a9ffdf6e1"
+    },
+    "verify_registry.py": {
+      "bytes": 3722,
+      "sha256": "5a76a1e085300049ac858c3a6f0641e3badf94b7ed6fbc4dcf0edccc1eed25a9"
+    },
+    "test_guards.py": {
+      "bytes": 5471,
+      "sha256": "b9bb358e8d3d9b66f899a736529812e5a274ac2b136822b1ac98239f4cadee94"
+    }
+  },
+  "readme": {
+    "bytes": 7322,
+    "sha256": "93fd822cb9ea070ccfc759acea293acd9667394fe56d3d7095d2b9115b5bf305"
+  },
+  "remote_package_owner": "root: model-continuation-python40-pair-e55",
+  "npu_execution_by_builder": false,
+  "model_execution_by_builder": false,
+  "official_evaluation": false,
+  "accuracy_pass": null,
+  "accuracy_acceptance_threshold": null,
+  "limitations": [
+    "Source/image identity and CPU guard checks do not prove NPU execution or model accuracy.",
+    "Candidate replays original choices after divergence; this is not independent E55 free generation.",
+    "One fixed Python prompt and at most40 checkpoints; no long-context/page/ring/multimodal coverage.",
+    "The 67-forward bound assumes the observed28-token prompt and does not guarantee a70-second remote budget.",
+    "Timing and diagnostic comparisons are not official performance or ranking."
+  ]
+}

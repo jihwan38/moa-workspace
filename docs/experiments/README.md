@@ -53,7 +53,12 @@ greedy choices match, including the arithmetic case's final EOS; model forwards
 are110 each. The minimum observed legal margin is0.875 and maximum absolute
 logit difference1.6875. This does not establish independent task accuracy,
 near-tie/long-context coverage, or official performance. Accuracy verdicts remain null.
-The unchanged live E55 remains the accepted checkpoint.
+The [Python maximum40 follow-up71362](e55-model-continuation-python40.md) ended
+at reference EOS on checkpoint14: all14 selections match and3670016 logits are finite.
+The first eight reported comparisons reproduce71329. Among the six new checkpoints,
+step9 changes the original margin0.125 to an E55 two-token tie; the actual selection
+remains the same. This is observed tie coverage on one history, not general selection
+preservation or task accuracy. The unchanged live E55 remains the accepted checkpoint.
 Earlier adoption decisions describe the checkpoint retained at that experiment's date.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.

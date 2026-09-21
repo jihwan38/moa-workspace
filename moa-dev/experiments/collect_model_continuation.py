@@ -5,6 +5,7 @@ Validate the frozen host's reported statistics and actual uploaded payload.
 Reference arrays stay remote; this collector does not recompute their errors.
 """
 import argparse
+from dataclasses import dataclass
 import hashlib
 import json
 import math
@@ -28,6 +29,20 @@ TERMINATION = 'reference_original_eos_or_max_new_tokens'
 PACKAGE = 'moa-dev/experiments/candidates/model-continuation-pair-e55/package-manifest.json'
 MEMBERS = {'probe_model_original', 'probe_model_e55', 'moa-model-asset-inspector', 'remote_entrypoint.sh'}
 require = common.require
+
+
+@dataclass(frozen=True)
+class CollectorConfig:
+    schema: str = SCHEMA
+    prompts: tuple[str, ...] = tuple(PROMPTS)
+    max_new: int = MAX_NEW
+    max_total: int = MAX_TOTAL
+    marker_prefix: str = 'MODEL_CONTINUATION'
+    package: str = PACKAGE
+    scope_intro: str = 'Four short prompts with 1..8 reference-defined checkpoints each'
+
+
+DEFAULT_CONFIG = CollectorConfig()
 
 
 def unique_object(pairs):
@@ -67,8 +82,8 @@ def timing_fields(value, names):
     require(all(common.finite_nonnegative(value[key]) for key in names), 'invalid finite timing')
 
 
-def disagreement(value, expected, message):
-    require((value is None or integer(value, 0, MAX_NEW - 1)) and value == expected, message)
+def disagreement(value, expected, message, max_new=MAX_NEW):
+    require((value is None or integer(value, 0, max_new - 1)) and value == expected, message)
 
 
 def f32_bits(value):
@@ -131,10 +146,11 @@ def comparison_stats(value):
     require(value['bit_equal_count'] <= counts[0]['count'], 'bit-equal count exceeds zero-error count')
 
 
-def validated_inputs(event):
-    require(event['case_count'] == 4 and event['prompts'] == PROMPTS,
+def validated_inputs(event, config=DEFAULT_CONFIG):
+    count = len(config.prompts)
+    require(integer(event['case_count']) and event['case_count'] == count and event['prompts'] == list(config.prompts),
             'wrong continuation prompt suite')
-    require(event['max_new_tokens'] == MAX_NEW and event['max_total_tokens'] == MAX_TOTAL
+    require(event['max_new_tokens'] == config.max_new and event['max_total_tokens'] == config.max_total
             and event['guard_before_device_new'] is True, 'wrong continuation guard')
     require(event['thinking'] is False and event['add_generation_prompt'] is True,
             'wrong chat policy')
@@ -153,21 +169,21 @@ def validated_inputs(event):
             'reference checkpoints were not validated before device creation')
     timing_fields(event, ('reference_parse_seconds', 'elapsed_seconds'))
     ids = event['token_ids']
-    require(isinstance(ids, list) and len(ids) == 4, 'wrong tokenized case count')
+    require(isinstance(ids, list) and len(ids) == count, 'wrong tokenized case count')
     for case_ids in ids:
         token_ids(case_ids)
-        require(len(case_ids) + MAX_NEW <= 32768, 'runtime context guard exceeded')
+        require(len(case_ids) + config.max_new <= 32768, 'runtime context guard exceeded')
     total = sum(map(len, ids))
-    guarded = total + MAX_NEW * 4
+    guarded = total + config.max_new * count
     require(event['total_prompt_tokens'] == total and event['guarded_total_tokens'] == guarded
-            and guarded <= MAX_TOTAL, 'continuation token budget mismatch')
+            and guarded <= config.max_total, 'continuation token budget mismatch')
     return ids, total, guarded
 
 
-def validate_events(events):
+def validate_events(events, config=DEFAULT_CONFIG):
     """Validate variable EOS-complete sequences independently of package I/O."""
     for event in events:
-        require(event['schema'] == SCHEMA and event['mode'] in ('emit', 'compare'), 'wrong event schema/mode')
+        require(event['schema'] == config.schema and event['mode'] in ('emit', 'compare'), 'wrong event schema/mode')
         null_verdict(event)
     cursor = 0
     phases = {}
@@ -184,7 +200,7 @@ def validate_events(events):
 
     for mode in ('emit', 'compare'):
         input_event = take('continuation_inputs_validated', mode)
-        ids, prompt_total, guarded = validated_inputs(input_event)
+        ids, prompt_total, guarded = validated_inputs(input_event, config)
         if mode == 'compare':
             require(ids == phases['emit']['token_ids'], 'candidate prompt IDs differ from reference')
         counts, reasons, first_steps, forward_total = [], [], [], 0
@@ -196,7 +212,7 @@ def validate_events(events):
             while cursor < len(events) and events[cursor]['event'] == checkpoint_event:
                 item = take(checkpoint_event, mode)
                 step = len(selected)
-                require(step < MAX_NEW and integer(item['case_index']) and integer(item['step'])
+                require(step < config.max_new and integer(item['case_index']) and integer(item['step'])
                         and item['case_index'] == case_index and item['step'] == step,
                         'checkpoint case/step is duplicated, missing or reordered')
                 integer_fields(item, {'position': len(prefix) - 1 + step, 'element_count': N, 'nonfinite_count': 0},
@@ -226,7 +242,7 @@ def validate_events(events):
                     if not match and first_disagreement is None:
                         first_disagreement = step
                     disagreement(item['first_legal_greedy_disagreement_step'], first_disagreement,
-                                 'incorrect first legal greedy disagreement')
+                                 'incorrect first legal greedy disagreement', config.max_new)
                     rank = item['reference_choice_candidate_rank']
                     require(integer(rank, 1, N - len(BANNED)) and (not match or rank == 1),
                             'invalid reference choice candidate rank')
@@ -236,10 +252,10 @@ def validate_events(events):
                     comparison_stats(item['comparison'])
                 selected.append(token)
                 checkpoints.append(item)
-            require(1 <= len(selected) <= MAX_NEW, 'case has no checkpoints or exceeds budget')
+            require(1 <= len(selected) <= config.max_new, 'case has no checkpoints or exceeds budget')
             count = len(selected)
             reason = 'eos' if selected[-1] in EOS else 'length'
-            require(reason == 'eos' or count == MAX_NEW, 'non-EOS case stopped before length budget')
+            require(reason == 'eos' or count == config.max_new, 'non-EOS case stopped before length budget')
             if mode == 'compare':
                 require(count == len(reference_cases[case_index]['checkpoints']), 'candidate omitted reference checkpoints')
             end = take('reference_case_complete' if mode == 'emit' else 'comparison_case_complete', mode)
@@ -250,7 +266,7 @@ def validate_events(events):
             token_ids(end['reference_selected_tokens'])
             token_ids(end['token_ids'])
             token_ids(end['consumed_token_ids'])
-            require(end['prompt'] == PROMPTS[case_index] and end['token_ids'] == prefix
+            require(end['prompt'] == config.prompts[case_index] and end['token_ids'] == prefix
                     and end['consumed_token_ids'] == prefix + selected[:-1], 'case completed with wrong prompt/feed history')
             require(end['fresh_workspace'] is True and end['replay_policy'] == REPLAY,
                     'case workspace/replay policy mismatch')
@@ -260,11 +276,11 @@ def validate_events(events):
             integer_fields(end, {'completion_tokens': completion_tokens, 'forward_tokens': forward,
                                  'total_elements': count * N}, 'case completion counters mismatch')
             disagreement(end['first_legal_greedy_disagreement_step'], first_disagreement,
-                         'case first disagreement mismatch')
+                         'case first disagreement mismatch', config.max_new)
             if mode == 'emit':
                 reference_cases.append({'checkpoints': checkpoints, 'finish_reason': reason})
             else:
-                summaries.append({'case_index': case_index, 'prompt': PROMPTS[case_index],
+                summaries.append({'case_index': case_index, 'prompt': config.prompts[case_index],
                                   'prompt_token_count': len(prefix), 'checkpoint_count': count,
                                   'completion_tokens': completion_tokens, 'forward_tokens': forward,
                                   'finish_reason': reason, 'reference_selected_tokens': selected,
@@ -275,21 +291,21 @@ def validate_events(events):
             first_steps.append(first_disagreement)
             forward_total += forward
         final = take('continuation_reference_complete' if mode == 'emit' else 'continuation_comparison_complete', mode)
-        integer_fields(final, {'completed_cases': 4, 'total_prompt_tokens': prompt_total,
-                               'guarded_total_tokens': guarded, 'max_total_tokens': MAX_TOTAL,
-                               'max_new_tokens': MAX_NEW}, 'continuation final case/guard mismatch')
+        integer_fields(final, {'completed_cases': len(config.prompts), 'total_prompt_tokens': prompt_total,
+                               'guarded_total_tokens': guarded, 'max_total_tokens': config.max_total,
+                               'max_new_tokens': config.max_new}, 'continuation final case/guard mismatch')
         require(isinstance(final['case_checkpoint_counts'], list)
-                and all(integer(count, 1, MAX_NEW) for count in final['case_checkpoint_counts'])
+                and all(integer(count, 1, config.max_new) for count in final['case_checkpoint_counts'])
                 and final['case_checkpoint_counts'] == counts
                 and final['case_finish_reasons'] == reasons, 'continuation final case/guard mismatch')
         require(final['elements_per_checkpoint'] == N and final['manifest_file'] == 'manifest.json'
                 and final['termination_policy'] == TERMINATION and final['replay_policy'] == REPLAY,
                 'continuation final file/shape/policy mismatch')
         require(isinstance(final['first_legal_greedy_disagreement_steps'], list)
-                and len(final['first_legal_greedy_disagreement_steps']) == 4,
+                and len(final['first_legal_greedy_disagreement_steps']) == len(config.prompts),
                 'continuation final first-disagreement list mismatch')
         for reported, actual in zip(final['first_legal_greedy_disagreement_steps'], first_steps):
-            disagreement(reported, actual, 'continuation final first-disagreement list mismatch')
+            disagreement(reported, actual, 'continuation final first-disagreement list mismatch', config.max_new)
         timing_fields(final, ('reference_parse_seconds', 'load_seconds', 'total_seconds'))
         require(final['reference_parse_seconds'] == input_event['reference_parse_seconds'],
                 'reference parse timing changed in final event')
@@ -309,16 +325,19 @@ def unique_marker(lines, marker):
     return lines.index(marker)
 
 
-def hash_lines(lines):
+def hash_lines(lines, config=DEFAULT_CONFIG):
     result = {}
+    cases = '|'.join(map(str, range(len(config.prompts))))
+    steps = '|'.join(map(str, range(config.max_new)))
+    pattern = rf'([0-9a-f]{{64}})  (reference/(?:manifest|case-(?:{cases})-step-(?:{steps}))\.json)'
     for line in lines:
-        match = re.fullmatch(r'([0-9a-f]{64})  (reference/(?:manifest|case-[0-3]-step-[0-7])\.json)', line)
+        match = re.fullmatch(pattern, line)
         require(match is not None and match[2] not in result, 'invalid/duplicate reference file hash')
         result[match[2]] = match[1]
     return result
 
 
-def validate_log(lines):
+def validate_log(lines, config=DEFAULT_CONFIG):
     markers = [
         'MODEL_CONTINUATION_PAIR_BEGIN', 'MODEL_CONTINUATION_ASSETS_BEFORE_BEGIN',
         'MODEL_CONTINUATION_ASSETS_BEFORE_END', 'MODEL_CONTINUATION_REFERENCE_MANIFEST_SHA256',
@@ -327,11 +346,12 @@ def validate_log(lines):
         'MODEL_CONTINUATION_ASSETS_AFTER_BEGIN', 'MODEL_CONTINUATION_ASSETS_AFTER_END',
         'MODEL_CONTINUATION_PAIR_STRUCTURAL_COMPLETION_NO_ACCURACY_VERDICT', 'MODEL_CONTINUATION_PAIR_EXIT=0',
     ]
-    positions = {marker: unique_marker(lines, marker) for marker in markers}
+    positions = {marker: unique_marker(lines, marker.replace('MODEL_CONTINUATION', config.marker_prefix, 1))
+                 for marker in markers}
     require(list(positions.values()) == sorted(positions.values()), 'runner markers are out of order')
     records = [(i, parse_json(line)) for i, line in enumerate(lines) if line.startswith('{')]
     assets = [(i, item) for i, item in records if item.get('schema') == common.ASSET_SCHEMA]
-    events = [(i, item) for i, item in records if item.get('schema') == SCHEMA]
+    events = [(i, item) for i, item in records if item.get('schema') == config.schema]
     require(len(assets) == 2 and len(records) == len(events) + 2, 'unexpected/missing JSON records')
     for (line, _), moment in zip(assets, ('BEFORE', 'AFTER')):
         require(positions['MODEL_CONTINUATION_ASSETS_' + moment + '_BEGIN'] < line
@@ -342,18 +362,18 @@ def validate_log(lines):
                        ('MODEL_CONTINUATION_REFERENCE_FILES_SHA256_END', 'MODEL_CONTINUATION_REFERENCE_FILES_AFTER_SHA256_BEGIN'))
         require(positions[left] < line < positions[right], 'continuation event outside its runner phase')
     identity = common.checked_assets(assets[0][1], assets[1][1])
-    validated = validate_events([item for _, item in events])
+    validated = validate_events([item for _, item in events], config)
     expected_files = {'reference/manifest.json'} | {
         f'reference/case-{case}-step-{step}.json'
         for case, count in enumerate(validated['scope']['case_checkpoint_counts']) for step in range(count)}
     before = hash_lines(lines[positions['MODEL_CONTINUATION_REFERENCE_FILES_SHA256_BEGIN'] + 1:
-                             positions['MODEL_CONTINUATION_REFERENCE_FILES_SHA256_END']])
+                             positions['MODEL_CONTINUATION_REFERENCE_FILES_SHA256_END']], config)
     after = hash_lines(lines[positions['MODEL_CONTINUATION_REFERENCE_FILES_AFTER_SHA256_BEGIN'] + 1:
-                            positions['MODEL_CONTINUATION_REFERENCE_FILES_AFTER_SHA256_END']])
+                            positions['MODEL_CONTINUATION_REFERENCE_FILES_AFTER_SHA256_END']], config)
     require(set(before) == set(after) == expected_files, 'reference checkpoint file set mismatch')
     require(before == after, 'reference files changed during candidate replay')
     index = positions['MODEL_CONTINUATION_REFERENCE_MANIFEST_SHA256']
-    standalone = hash_lines(lines[index + 1:index + 2])
+    standalone = hash_lines(lines[index + 1:index + 2], config)
     require(standalone == {'reference/manifest.json': before['reference/manifest.json']},
             'standalone manifest hash disagrees with reference file inventory')
     return {**validated, 'events': [item for _, item in events], 'assets': [item for _, item in assets],
@@ -387,13 +407,13 @@ def verify_archive(archive_path, package, status, lines):
     return archive
 
 
-def collect(status_path, log_path, archive_path, package_path=None):
+def collect(status_path, log_path, archive_path, package_path=None, config=DEFAULT_CONFIG):
     status = parse_json(status_path.read_text())
     require(status['status'] == 'SUCCEEDED' and type(status['exit_code']) is int and status['exit_code'] == 0,
             'job has not succeeded with exit0')
     lines = log_path.read_text().splitlines()
-    data = validate_log(lines)
-    package_path = ROOT / PACKAGE if package_path is None else package_path
+    data = validate_log(lines, config)
+    package_path = ROOT / config.package if package_path is None else package_path
     package = parse_json(package_path.read_text())
     archive = verify_archive(archive_path, package, status, lines)
     known = common.read_json(ROOT / 'docs/experiments/e55-arena-model-identity.json')['identities']
@@ -413,7 +433,7 @@ def collect(status_path, log_path, archive_path, package_path=None):
         'reference_file_sha256_before_and_after': data['reference_file_hashes'],
         'reference_files_unchanged_by_reported_hash': True, 'reference_json_downloaded': False,
         'continuation_events': data['events'], 'case_summaries': data['case_summaries'],
-        'distinct_prompts': 4, 'total_prompt_tokens': scope['total_prompt_tokens'],
+        'distinct_prompts': len(config.prompts), 'total_prompt_tokens': scope['total_prompt_tokens'],
         'guarded_total_tokens': scope['guarded_total_tokens'],
         'total_forward_tokens_per_model': scope['total_forward_tokens'],
         'total_checkpoints': scope['total_checkpoints'], 'total_logits_compared': scope['total_elements'],
@@ -421,7 +441,7 @@ def collect(status_path, log_path, archive_path, package_path=None):
         'first_legal_greedy_disagreement_steps': [c['first_legal_greedy_disagreement_step'] for c in data['case_summaries']],
         'replay_policy': REPLAY, 'accuracy_acceptance_threshold': None, 'accuracy_pass': None,
         'official_evaluation': False,
-        'scope': 'Four short prompts with 1..8 reference-defined checkpoints each, full finite arrays, original-token forced replay after candidate disagreement/EOS. Public greedy sampler uses total_cmp and its unspecified unstable tie order. No free-running answer accuracy, independent oracle, long context, multimodal result, official score or controlled performance claim. Statistics are validated host reports, not independently recomputed arrays.',
+        'scope': config.scope_intro + ', full finite arrays, original-token forced replay after candidate disagreement/EOS. Public greedy sampler uses total_cmp and its unspecified unstable tie order. No free-running answer accuracy, independent oracle, long context, multimodal result, official score or controlled performance claim. Statistics are validated host reports, not independently recomputed arrays.',
     }
 
 

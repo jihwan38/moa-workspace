@@ -59,6 +59,8 @@ Rust weight loader는 모델 `config.json`을 읽어 축을 바꾸지 않는다.
 
 [실제 단일-kernel 복원 대조](../experiments/e55-model-single-kernel-controls.md)는 대상 image 하나만 원본으로 바꾸고 나머지9개를 E55와 동일하게 유지한다. Full-O 복원은 네 prefix의1,048,576개 logits 모두 E55와 bit-identical이었다. O/FFN 복원은 입력마다 원본과의 차이가 커지거나 줄었으며 오차의 가산 기여율로 해석하지 않는다. 이후 [생성 토큰 고정 진단71329](../experiments/e55-model-continuation.md)는32개 checkpoint·8,388,608개 finite logits와 모델당110forward를42.448초에 완료했다. 실제 공개 sampler의 greedy 선택32개가 모두 같았고 산수 case는8번째 선택 EOS106으로 끝났다. 최소 허용-token margin0.875, 최대 절대 차이1.6875이며 정확도 판정은 null이다. 원본 토큰만 다음 입력으로 공급하는 짧은 문맥 진단이라 자유 생성·정답률·cache 경계·멀티모달이나 다른 workload의70초 완료를 보장하지 않는다.
 
+[Python 최대40 진단71362](../experiments/e55-model-continuation-python40.md)는 실제로14번째 EOS에서 종료했고14개 선택이 모두 일치했다. 전체3,670,016개 finite logits와41forward를 비교했으며 이전 첫8개의 보고값/자산이 재현됐다. 새 step9에서는 원본 margin0.125가 E55 margin0·tie2로 바뀌어 실제 동점을 관측했다. 원본/E55 모델 커널은 변경하지 않았고 정확도 판정은 null이다. 기존의 짧은 문맥 범위를 넓혔으나 문자열 decode/callback·정답률·cache 경계 검증을 대신하지 않는다.
+
 ## 원본/E55 정확도·성능 비교 조건
 
 원본 `8559916`과 E55를 **같은 체크포인트·tokenizer/template·입력 bytes·토큰 ID·SDK/driver·RNGD 구성**으로 실행해야 한다. 모델/metadata 및 두 host와 registry image의 hash를 기록하고, cold load와 이미 적재된 모델의 실행을 분리한다. 원본의 이전 Stage1 수치나 다른 HF BF16 모델을 E55 NVFP4 E2E 대조군으로 대신하지 않는다.

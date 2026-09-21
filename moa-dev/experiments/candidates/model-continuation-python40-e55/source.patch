@@ -1,0 +1,129 @@
+--- model-continuation-e55/probe_model_continuation.rs
++++ model-continuation-python40-e55/probe_model_continuation.rs
+@@ -19,18 +19,15 @@
+ use serde_json::{json, Value};
+ 
+ type Result<T> = std::result::Result<T, Box<dyn Error>>;
+-const SCHEMA: &str = "moa-model-continuation-v1";
++const SCHEMA: &str = "moa-model-continuation-python40-v1";
+ const VOCABULARY: usize = 262_144;
+-const MAX_NEW_TOKENS: usize = 8;
++const MAX_NEW_TOKENS: usize = 40;
+ const MAX_TOTAL_TOKENS: usize = 128;
+ const BANNED_TOKENS: [usize; 2] = [258882, 258883];
+ const EXPECTED_EOS: [usize; 3] = [1, 106, 50];
+ const REPLAY_POLICY: &str = "reference_tokens_even_if_candidate_diverges_or_stops";
+ const TERMINATION_POLICY: &str = "reference_original_eos_or_max_new_tokens";
+-const PROMPTS: [&str; 4] = [
+-    "Hi",
+-    "What is 2 + 2?",
+-    "대한민국의 수도는?",
++const PROMPTS: [&str; 1] = [
+     "Complete the Python expression: len([1, 2, 3])",
+ ];
+ 
+@@ -227,7 +224,7 @@
+ 
+ fn case_counts(prompt_len: usize, selected: &[usize]) -> Result<(usize, usize, FinishReason)> {
+     if selected.is_empty() || selected.len() > MAX_NEW_TOKENS {
+-        return Err("checkpoint count must be 1..=8".into());
++        return Err(format!("checkpoint count must be 1..={MAX_NEW_TOKENS}").into());
+     }
+     if selected.iter().any(|&token| token >= VOCABULARY || is_banned(token)) {
+         return Err("invalid or suppressed reference selected token".into());
+@@ -237,7 +234,7 @@
+     }
+     let eos = is_eos(*selected.last().ok_or("no selected token")?);
+     if !eos && selected.len() != MAX_NEW_TOKENS {
+-        return Err("non-EOS reference must have all eight checkpoints".into());
++        return Err(format!("non-EOS reference must have all {MAX_NEW_TOKENS} checkpoints").into());
+     }
+     let completion = selected.len() - usize::from(eos);
+     let forwards = prompt_len.checked_add(selected.len() - 1).ok_or("forward count overflow")?;
+@@ -605,12 +602,12 @@
+     }
+ 
+     fn manifest_fixture() -> Manifest {
+-        Manifest { schema: SCHEMA.to_owned(), thinking: false, add_generation_prompt: true, case_count: 4,
+-            element_count_per_checkpoint: VOCABULARY, max_new_tokens: 8, max_total_tokens: 128,
++        Manifest { schema: SCHEMA.to_owned(), thinking: false, add_generation_prompt: true, case_count: PROMPTS.len(),
++            element_count_per_checkpoint: VOCABULARY, max_new_tokens: MAX_NEW_TOKENS, max_total_tokens: MAX_TOTAL_TOKENS,
+             sampler: sampler_settings(), banned_tokens: BANNED_TOKENS, eos_tokens: EXPECTED_EOS,
+-            termination_policy: TERMINATION_POLICY.to_owned(), total_prompt_tokens: 8, guarded_total_tokens: 40,
+-            total_checkpoints: 4, total_forward_tokens: 8, total_elements: 4 * VOCABULARY,
+-            accuracy_acceptance_threshold: None, accuracy_pass: None, cases: (0..4).map(eos_case).collect() }
++            termination_policy: TERMINATION_POLICY.to_owned(), total_prompt_tokens: 2, guarded_total_tokens: 2 + MAX_NEW_TOKENS,
++            total_checkpoints: 1, total_forward_tokens: 2, total_elements: VOCABULARY,
++            accuracy_acceptance_threshold: None, accuracy_pass: None, cases: (0..PROMPTS.len()).map(eos_case).collect() }
+     }
+ 
+     fn checkpoint_fixture() -> Checkpoint {
+@@ -655,25 +652,29 @@
+     }
+ 
+     #[test]
+-    fn eos_and_eighth_choice_are_never_fed() {
+-        assert_eq!(case_counts(14, &[1]).unwrap(), (0, 14, FinishReason::Eos));
+-        assert_eq!(case_counts(14, &[7, 8, 106]).unwrap(), (2, 16, FinishReason::Eos));
+-        assert_eq!(case_counts(14, &[7; 8]).unwrap(), (8, 21, FinishReason::Length));
+-        assert_eq!(case_counts(14, &[7, 7, 7, 7, 7, 7, 7, 50]).unwrap(), (7, 21, FinishReason::Eos));
+-        assert!(case_counts(14, &[7; 7]).is_err());
+-        assert!(case_counts(14, &[1, 7]).is_err());
+-        assert!(case_counts(14, &[7; 9]).is_err());
+-        assert!(case_counts(14, &[]).is_err());
+-    }
+-
+-    #[test]
+-    fn conservative_budget_is_114_and_forward_bound_is_110() {
+-        assert_eq!(token_budget([14, 21, 19, 28]).unwrap(), (82, 114));
+-        let actual = [14, 21, 19, 28].into_iter().map(|length| case_counts(length, &[7; 8]).unwrap().1).sum::<usize>();
+-        assert_eq!(actual, 110);
++    fn eos_and_fortieth_choice_are_never_fed() {
++        assert_eq!(case_counts(28, &[1]).unwrap(), (0, 28, FinishReason::Eos));
++        assert_eq!(case_counts(28, &[7, 8, 106]).unwrap(), (2, 30, FinishReason::Eos));
++        assert_eq!(case_counts(28, &[7; MAX_NEW_TOKENS]).unwrap(), (40, 67, FinishReason::Length));
++        let mut eos_on_last_choice = [7; MAX_NEW_TOKENS];
++        eos_on_last_choice[MAX_NEW_TOKENS - 1] = 50;
++        assert_eq!(case_counts(28, &eos_on_last_choice).unwrap(), (39, 67, FinishReason::Eos));
++        assert!(case_counts(28, &[7; 8]).is_err()); // The old eight-step budget is now incomplete.
++        assert!(case_counts(28, &[7; MAX_NEW_TOKENS - 1]).is_err());
++        assert!(case_counts(28, &[1, 7]).is_err());
++        assert!(case_counts(28, &[7; MAX_NEW_TOKENS + 1]).is_err());
++        assert!(case_counts(28, &[]).is_err());
++    }
++
++    #[test]
++    fn conservative_budget_is_68_and_forward_bound_is_67() {
++        assert_eq!(token_budget([28]).unwrap(), (28, 68));
++        assert_eq!(case_counts(28, &[7; MAX_NEW_TOKENS]).unwrap().1, 67);
++        assert_eq!(28 - 1 + MAX_NEW_TOKENS - 1, 66); // Last consumed token's absolute position.
++        assert_eq!(token_budget([MAX_TOTAL_TOKENS - MAX_NEW_TOKENS]).unwrap(), (88, 128));
++        assert!(token_budget([MAX_TOTAL_TOKENS - MAX_NEW_TOKENS + 1]).is_err());
+         assert!(token_budget([usize::MAX]).is_err());
+-        assert!(token_budget([E::SIZE - 7]).is_err());
+-        assert!(token_budget([121]).is_err());
++        assert!(token_budget([E::SIZE - MAX_NEW_TOKENS + 1]).is_err());
+         assert!(token_budget([0]).is_err());
+     }
+ 
+@@ -714,9 +715,9 @@
+     #[test]
+     fn changed_tokenization_fails_before_device_creation() {
+         let loaded = LoadedReference { manifest: manifest_fixture(), checkpoints: Vec::new() };
+-        let mut encoded = vec![vec![2, 101]; 4];
++        let mut encoded = vec![vec![2, 101]; PROMPTS.len()];
+         validate_encoded_tokens(&encoded, Some(&loaded)).unwrap();
+-        encoded[2][1] = 100;
++        encoded[0][1] = 100;
+         assert!(validate_encoded_tokens(&encoded, Some(&loaded)).is_err());
+     }
+ 
+@@ -726,7 +727,7 @@
+         actual[7] = 0.5;
+         assert_eq!(greedy_choice(&actual).unwrap().selected_id, 50);
+         assert_eq!(reference_choice_candidate_rank(&actual, 7), 2);
+-        assert_eq!(case_counts(2, &[7; 8]).unwrap().2, FinishReason::Length);
++        assert_eq!(case_counts(2, &[7; MAX_NEW_TOKENS]).unwrap().2, FinishReason::Length);
+     }
+ 
+     #[test]
