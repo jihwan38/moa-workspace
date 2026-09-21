@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+moa_dev_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+moa_repo_dir="$(dirname -- "$moa_dev_dir")/furiosa-opt-gemma4-12B"
+moa_container="moa2026-dev"
+moa_image="moa2026-dev:0.8.1"
+
+if [[ ! -f "$moa_repo_dir/Cargo.toml" || ! -f "$moa_repo_dir/src/ops.rs" ]]; then
+    echo "Baseline crate is missing: $moa_repo_dir" >&2
+    exit 1
+fi
+
+if ! docker container inspect "$moa_container" >/dev/null 2>&1; then
+    mkdir -p "$moa_dev_dir/state/config"
+    docker run -d --name "$moa_container" --init \
+        --mount "type=bind,src=$moa_repo_dir,dst=/workspace" \
+        --mount "type=bind,src=$moa_dev_dir/state/config,dst=/home/moa/.config" \
+        -p 127.0.0.1:9254:9254 \
+        "$moa_image" >/dev/null
+elif [[ "$(docker inspect --format '{{.State.Running}}' "$moa_container")" != true ]]; then
+    docker start "$moa_container" >/dev/null
+fi
+
+moa_exec_flags=()
+if [[ -t 0 && -t 1 ]]; then
+    moa_exec_flags=(-it)
+fi
+if [[ $# -eq 0 ]]; then
+    set -- bash
+fi
+exec docker exec "${moa_exec_flags[@]}" --workdir /workspace "$moa_container" "$@"

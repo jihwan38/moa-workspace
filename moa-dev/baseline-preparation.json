@@ -1,0 +1,81 @@
+{
+  "recorded_at_utc": "2026-09-21T06:31:31.933895+00:00",
+  "source_commit": "8559916051162e5fd682c29ec0fe3e9cc6e420cf",
+  "checks": {
+    "reference_generation": "passed",
+    "npu_test_binary_build": "passed",
+    "hardware_accuracy": "passed; 3 kernels x 3 independently seeded input configurations, all 15 output comparisons within tolerance",
+    "hardware_cycles": "measured; median of 3 runs per kernel"
+  },
+  "artifacts": {
+    "ref/fixtures.safetensors": {
+      "bytes": 202632,
+      "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+    },
+    "target/release/test_kernels": {
+      "bytes": 3650368,
+      "sha256": "942c1958f8e643a4625e111e312e469263598e5da2efeebcaf74fb08f7a5336c"
+    },
+    "target/schedules/baseline_sliding_attention_output.json": {
+      "bytes": 96874,
+      "sha256": "8feab753a46594a680ed6ab99b88e80dceba0d70253c1a8d3e64885256eed1ae"
+    }
+  },
+  "arena_authentication": {
+    "checked_at_utc": "2026-09-21T07:53:17.306522+00:00",
+    "client_version": "0.8.0",
+    "controller": "https://arena.furiosa.ai",
+    "user": "jihwan38",
+    "result": "authenticated; health status ok",
+    "npu_job_submitted": true
+  },
+  "arena_baseline_run": {
+    "job_id": 69783,
+    "name": "beef_initial_baseline",
+    "remote_timeout_sec": 70,
+    "status": "SUCCEEDED",
+    "log": "/home/jihwan38/moa-workspace/moa-dev/logs/baseline-rngd-20260921T075227Z.log",
+    "timeout_note": "The upstream default 120-second timeout was rejected before job creation; server maximum is 70 seconds.",
+    "exit_code": 0,
+    "started_at": "2026-09-21T07:54:19Z",
+    "finished_at": "2026-09-21T07:54:25Z",
+    "duration_sec": 6.526486697,
+    "device_id": null,
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "independent_configurations": 3,
+        "median_cycles": 244051,
+        "cycles_by_run": [
+          251764,
+          244051,
+          243259
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "independent_configurations": 3,
+        "median_cycles": 404373,
+        "cycles_by_run": [
+          404373,
+          402874,
+          404457
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "independent_configurations": 3,
+        "median_cycles": 4264297,
+        "cycles_by_run": [
+          4263585,
+          4267547,
+          4264297
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "result_file": "/home/jihwan38/moa-workspace/moa-dev/baseline-result-69783.json"
+  }
+}
