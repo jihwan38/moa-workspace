@@ -1,0 +1,79 @@
+{
+  "status": "FROZEN_AFTER_FIRST_EXACT_COMPILE_FAILURE",
+  "created_at_utc": "2026-09-21T14:55:45.161901+00:00",
+  "based_on": "E55 adopted commit d50eb159d9a260c411f2ebdc96adc5e0dc82afcb; frozen qkv-bf16-fused-channel-scale-e54/crate",
+  "candidate_projection": {
+    "path": "moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/projection.rs",
+    "bytes": 12934,
+    "sha256": "8428c339a053c3835862f6e68a544a24c220f241b2469e5b7a20f6c01f143fdc"
+  },
+  "baseline_projection": {
+    "path": "moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/projection.rs.original",
+    "bytes": 12324,
+    "sha256": "380e57d6502e26086bd6d933ce762f4ad5de18587d52a8ef4aac7fa87e3b9c9f"
+  },
+  "changed_source_paths": [
+    "src/device/sliding/projection.rs"
+  ],
+  "other_42_sources_and_3_cargo_inputs_unchanged": true,
+  "query_prefix_output_suffix_ops_and_harness_unchanged": true,
+  "actual_compile_inputs": {
+    "path": "moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/compiled-source-manifest.json",
+    "bytes": 6826,
+    "sha256": "01ddd537d1d36801a0338e6d152524fe740d09073c571b4acbd3d9ae388b5342"
+  },
+  "postcompile_inputs_match_precompile_manifest": true,
+  "coordinate_audit": {
+    "path": "moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/coordinate-verification.json",
+    "bytes": 927,
+    "sha256": "d666f7cb3788e9bb024ef7baf5b76ad96784dbba94b4475f892f148fb8a5de2c"
+  },
+  "coordinate_audit_scope": "Intended source/coordinate model only; no lowered graph or NPU execution exists.",
+  "compile_attempts": [
+    {
+      "number": 1,
+      "exit_code": 1,
+      "log": {
+        "path": "moa-dev/experiments/artifacts/qkv-bf16-interleaved-kv-e55/compile-attempt1.log",
+        "bytes": 1705,
+        "sha256": "65385a35ef55d999307856cc1ca803375199380b096b94a0f02687e00d0ecf81"
+      },
+      "source_sha256": "8428c339a053c3835862f6e68a544a24c220f241b2469e5b7a20f6c01f143fdc",
+      "phase": "native visa contraction lowering",
+      "error": "kernel-declared input shape does not match the shape the pipeline delivers",
+      "declared_shape": "[Chip: [] | Cluster: [Ps_1024=2] | InSlice: [Dummy2_1=2, Ps_8=4, H_1=3840]] (1)",
+      "pipeline_shape": "[Chip: [] | Cluster: [Ps_1024=2] | InSlice: [interleave_1=2, Ps_8=4, H_1=3840]] (16)"
+    }
+  ],
+  "compile_command": "cd /tmp/moa-qkv-bf16-interleaved-kv-e55 && CARGO_HOME=/home/moa/.cargo CARGO_TARGET_DIR=/tmp/moa-qkv-bf16-interleaved-kv-e55/target FURIOSA_OPT_OUT_DIR=/tmp/moa-qkv-bf16-interleaved-kv-e55/target/furiosa-opt/kernel cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule candidate.json --dump-graph candidate-graph.json",
+  "initial_target_was_absent": true,
+  "toolchain": {
+    "path": "moa-dev/experiments/artifacts/qkv-bf16-interleaved-kv-e55/toolchain.txt",
+    "bytes": 189,
+    "sha256": "38e850cc00a9519b31f9fedc49b049bafdca8e4b073663c13ee0ed332bb4e24b"
+  },
+  "toolchain_text": "cargo 1.97.0-nightly (eb9b60f1f 2026-04-24)\nrustc 1.97.0-nightly (f53b654a8 2026-04-30)\ncargo-furiosa-opt 0.8.1\naaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09  Cargo.lock\n",
+  "sdk_root": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f",
+  "sdk_sha256": {
+    "furiosa-opt-std-0.8.1/src/context.rs": "775a00a8ecbb4360b4605c1c93618ed71bd72747b68a627ab86e10398a74e8c4",
+    "furiosa-opt-std-0.8.1/src/tensor/memory.rs": "fec623ddf8fadd5cf31b32beb747243c2c463c48e4f73bb29bb2b6ef5d1aaff1",
+    "furiosa-opt-std-0.8.1/src/tensor/view.rs": "a6a93cc4487300b80fc19164f8206badd6ed79df46c9d33e1e9cb2afaf457e58",
+    "furiosa-opt-std-0.8.1/src/engine/contraction/time.rs": "0e708fa5e393dcee7b2c62819e061e563e8bf947f32a1cdfa46ef6654449b11f",
+    "furiosa-opt-std-0.8.1/src/engine/commit.rs": "3b73e0c943a685c8c9a8c558223443e82b8be88117825bbdfed048b78578406f",
+    "furiosa-opt-std-0.8.1/src/engine/vector/operand.rs": "2324b08b20d4339abcd0f0e6a3c92e99d149d5e43b0015da19328a7ebf496ba6",
+    "furiosa-mapping-types-0.8.1/src/lib.rs": "147cd39cd824b15eb7b5c9dfb0039700ca2bb13a41053c7e6f450e30db902edc",
+    "furiosa-mapping-macro-0.8.1/src/lib.rs": "4168caeae59206e3e1f0dfb5d0deedc0b34a3e523f249b4f97c85852fac7c83d"
+  },
+  "known_public_api_constraint": "Ident::new requires uppercase first ASCII letter; axes! expands to Ident::new(stringify!(name)); lowercase axes![interleave=2] is invalid. No public TuTensor rename/reshape found.",
+  "no_unverified_axis_or_private_lowering_workaround_attempted": true,
+  "baseline_static_makespan": 51293,
+  "candidate_static_makespan": null,
+  "candidate_schedule": null,
+  "candidate_graph": null,
+  "candidate_device_image": null,
+  "performance_or_accuracy_claimed": false,
+  "full_host_build": false,
+  "npu_executed": false,
+  "git_or_live_source_target_changes": false,
+  "followup_condition": "Official compiler support/fix evidence that preserves the public begin_interleaved I axis through this contraction pipeline; no claim that all interleave uses are unsupported."
+}

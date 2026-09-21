@@ -14,6 +14,12 @@ The [official CLI local preflight](e55-official-submit-preflight.json) captured 
 byte-identical uploads containing the exact23 allowed E55 source files. It tested
 packaging against a loopback receiver; no official submission, authentication,
 server-contract check, or new NPU measurement was performed.
+The [model-host build](e55-model-host-build.json) separately compiled `gemma4`
+and `server` and verified their14-entry ELF kernel registries. Both include the
+exact three measured E55 images. No model assets were loaded and no end-to-end
+accuracy or throughput test was run. The [interleaved K/V candidate](../../moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/README.md)
+failed its first exact compile at an axis-identity check; it has no valid image,
+schedule, or NPU result and does not replace E55.
 Earlier adoption decisions describe the checkpoint retained at that experiment's date.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.
