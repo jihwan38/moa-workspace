@@ -1,0 +1,73 @@
+--- a/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs
++++ b/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs
+@@ -7,8 +7,8 @@
+ pub(crate) fn project_query(
+     device: &mut Device,
+     x: &DmTensor<bf16, Chip, m![2], Replicated, m![H]>,
+-    weight: &HbmTensor<f8e4m3, Chip, m![Qs, H]>,
+-    weight_scale: &HbmTensor<bf16, Chip, m![Qs]>,
++    weight: &DmTensor<f8e4m3, Chip, m![Qs / 2048], m![Qs / 8 % 256], m![Qs % 8, H]>,
++    weight_scale: &DmTensor<bf16, Chip, m![Qs / 2048], m![Qs / 8 % 256], m![Qs % 8]>,
+ ) -> DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> {
+     type QueryCluster = m![Qs / 2048];
+     type QueryRows = m![Qs / 8 % 256];
+@@ -22,10 +22,9 @@
+         .collect::<m![H / 16], m![H % 16]>()
+         .to_trf();
+ 
+-    let weight_f8: DmTensor<f8e4m3, Chip, QueryCluster, QueryRows, m![Qs % 8, H]> = weight.to_dm(&mut device.tdma);
+     let contraction: DmTensor<bf16, Chip, QueryCluster, QueryRows, m![Qs % 8]> = device
+         .main
+-        .begin(weight_f8.view())
++        .begin(weight.view())
+         .fetch::<m![Qs % 8, H / 16], m![H % 16]>()
+         .fetch_table_lookup::<bf16>()
+         .collect::<m![Qs % 8, H / 16], m![H % 16]>()
+@@ -38,7 +37,6 @@
+         .commit_trim::<m![Qs % 4]>()
+         .commit();
+ 
+-    let weight_scale: DmTensor<bf16, Chip, QueryCluster, QueryRows, m![Qs % 8]> = weight_scale.to_dm(&mut device.tdma);
+     let weight_scale_vrf: VrfTensor<f32, Chip, QueryCluster, QueryRows, m![Qs % 8]> = device
+         .sub
+         .begin(weight_scale.view())
+@@ -82,13 +80,12 @@
+ fn project_one_kv_matrix(
+     device: &mut Device,
+     x_trf: &TrfTensor<bf16, Chip, KvCluster, KvRows, m![1], m![H]>,
+-    weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+-    weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
++    weight: &DmTensor<f8e4m3, Chip, KvCluster, KvRows, m![Ps % 4, H]>,
++    weight_scale: &DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps % 4]>,
+ ) -> DmTensor<bf16, Chip, Cluster, Slice, m![Ps]> {
+-    let weight_f8: DmTensor<f8e4m3, Chip, KvCluster, KvRows, m![Ps % 4, H]> = weight.to_dm(&mut device.tdma);
+     let contraction: DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps % 4]> = device
+         .main
+-        .begin(weight_f8.view())
++        .begin(weight.view())
+         .fetch::<m![Ps % 4, H / 16], m![H % 16]>()
+         .fetch_table_lookup::<bf16>()
+         .collect::<m![Ps % 4, H / 16], m![H % 16]>()
+@@ -101,7 +98,6 @@
+         .commit_trim::<m![Ps % 4]>()
+         .commit();
+ 
+-    let weight_scale: DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps % 4]> = weight_scale.to_dm(&mut device.tdma);
+     let weight_scale_vrf: VrfTensor<f32, Chip, KvCluster, KvRows, m![Ps % 4 # 8]> = device
+         .sub
+         .begin(weight_scale.view())
+@@ -140,10 +136,10 @@
+ pub(crate) fn project_key_value(
+     device: &mut Device,
+     x: &DmTensor<bf16, Chip, m![2], Replicated, m![H]>,
+-    k_weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+-    v_weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+-    k_weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
+-    v_weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
++    k_weight: &DmTensor<f8e4m3, Chip, KvCluster, KvRows, m![Ps % 4, H]>,
++    v_weight: &DmTensor<f8e4m3, Chip, KvCluster, KvRows, m![Ps % 4, H]>,
++    k_weight_scale: &DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps % 4]>,
++    v_weight_scale: &DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps % 4]>,
+ ) -> (
+     DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]>,
+     DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]>,

@@ -1,0 +1,20 @@
+--- a/furiosa-opt-gemma4-12B/src/ops.rs
++++ b/furiosa-opt-gemma4-12B/src/ops.rs
+@@ -240,7 +240,16 @@
+     let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = residual_hbm.to_dm(&mut device.tdma);
+     let x = shared::rmsnorm::normalize(device, &residual, pre_ff_rms_weight);
+ 
+-    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![H]> = x.to_dm(&mut device.tdma);
++    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 1 # 16], m![H]> = x.to_dm(&mut device.tdma);
++    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 16], m![H]> = device
++        .main
++        .begin(x.view())
++        .fetch::<m![1], m![H]>()
++        .switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })
++        .collect::<m![H / 16], m![H % 16]>()
++        .commit_trim::<m![H % 16]>()
++        .commit();
++    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![H]> = unsafe { x.reshape() };
+     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::mlp::feedforward(
+         device,
+         x,

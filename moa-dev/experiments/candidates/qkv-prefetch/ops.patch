@@ -1,0 +1,22 @@
+--- a/furiosa-opt-gemma4-12B/src/ops.rs
++++ b/furiosa-opt-gemma4-12B/src/ops.rs
+@@ -69,9 +69,17 @@
+         .commit();
+     let x: DmTensor<bf16, Chip, m![2], Replicated, m![H]> = unsafe { x.reshape() };
+ 
++    // Queue every projection weight before result-gather DMAs can block later loads.
++    let q_weight: DmTensor<f8e4m3, Chip, m![Qs / 2048], m![Qs / 8 % 256], m![Qs % 8, H]> = q_weight.to_dm(&mut device.tdma);
++    let q_weight_scale: DmTensor<bf16, Chip, m![Qs / 2048], m![Qs / 8 % 256], m![Qs % 8]> = q_weight_scale.to_dm(&mut device.tdma);
++    let k_weight: DmTensor<f8e4m3, Chip, m![Ps / 1024], m![Ps / 4 % 256], m![Ps % 4, H]> = k_weight.to_dm(&mut device.tdma);
++    let k_weight_scale: DmTensor<bf16, Chip, m![Ps / 1024], m![Ps / 4 % 256], m![Ps % 4]> = k_weight_scale.to_dm(&mut device.tdma);
++    let v_weight: DmTensor<f8e4m3, Chip, m![Ps / 1024], m![Ps / 4 % 256], m![Ps % 4, H]> = v_weight.to_dm(&mut device.tdma);
++    let v_weight_scale: DmTensor<bf16, Chip, m![Ps / 1024], m![Ps / 4 % 256], m![Ps % 4]> = v_weight_scale.to_dm(&mut device.tdma);
++
+     let q: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> =
+-        sliding::projection::project_query(device, &x, q_weight, q_weight_scale);
+-    let (k, v) = sliding::projection::project_key_value(device, &x, k_weight, v_weight, k_weight_scale, v_weight_scale);
++        sliding::projection::project_query(device, &x, &q_weight, &q_weight_scale);
++    let (k, v) = sliding::projection::project_key_value(device, &x, &k_weight, &v_weight, &k_weight_scale, &v_weight_scale);
+ 
+     let q: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> =
+         sliding::rmsnorm::normalize_query(device, &q, q_rms_weight);

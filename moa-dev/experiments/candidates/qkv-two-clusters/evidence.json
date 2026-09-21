@@ -1,0 +1,408 @@
+{
+  "created_utc": "2026-09-21T09:01:58.278000+00:00",
+  "baseline_commit": "90f3c3fe16f4fe445f81e82d30b17b1b951e0082",
+  "candidate": "qkv-two-clusters",
+  "based_on": "hierarchical-broadcast-16 combined (QKV fusion + O256)",
+  "compiler": "cargo-furiosa-opt 0.8.1",
+  "std": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "numerical_correctness": "NOT TESTED",
+  "hardware_performance": "NOT MEASURED",
+  "scratch_directory": "/tmp/moa-qkv-two-clusters",
+  "cargo_target_dir": "/tmp/moa-qkv-two-clusters/target",
+  "furiosa_opt_out_dir": "/tmp/moa-qkv-two-clusters/target/furiosa-opt/kernel",
+  "command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule schedules/sliding_project_qkv.json",
+  "compile_exit_code": 0,
+  "ops_sha256": "1566b0ebe38b0392ec1df00574386c5e11b22fd140f9b3412cf8877ea301a274",
+  "projection_sha256": "30cec961c0364d35243043a9658752663e7d2b1cef9f314a5f391056cc17e309",
+  "schedules": {
+    "baseline": {
+      "schedule_sha256": "d6b0a8823b5268094ed75a04836b7206f76a3eb0a3b5e6190e4c916322340ae9",
+      "makespan_cycles": 118815,
+      "instruction_count": 135,
+      "longest_instructions": [
+        {
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 7514,
+            "end": 69729
+          },
+          "cycles": 62215,
+          "description": "--> src/device/layout.rs:15:65\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 256 })\n.collect::<m![H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 18612,
+            "end": 45087
+          },
+          "cycles": 26475,
+          "description": "--> src/device/sliding/projection.rs:23:81\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 4302,
+            "end": 17814
+          },
+          "cycles": 13512,
+          "description": "--> src/device/sliding/projection.rs:92:77\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 49723,
+            "end": 63235
+          },
+          "cycles": 13512,
+          "description": "--> src/device/sliding/projection.rs:92:77\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 69741,
+            "end": 79604
+          },
+          "cycles": 9863,
+          "description": "--> src/device/sliding/projection.rs:24:79\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Qs % 16, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Qs % 16, H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 86615,
+            "end": 91678
+          },
+          "cycles": 5063,
+          "description": "--> src/device/sliding/projection.rs:93:75\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 8, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 8, H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 102339,
+            "end": 107402
+          },
+          "cycles": 5063,
+          "description": "--> src/device/sliding/projection.rs:93:75\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 8, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 8, H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 79604,
+            "end": 83709
+          },
+          "cycles": 4105,
+          "description": "--> src/device/sliding/projection.rs:33:78\n\ndevice\n.main\n.begin(weight_dm.view())\n.fetch::<m![Qs % 16, H / 16], m![H % 16]>()\n.collect::<m![Qs % 16, H / 16], m![H % 16]>()\n.contract_outer::<m![Qs % 16, H / 32], m![H % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs % 16]>()\n.contract_lane::<m![Qs % 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Qs / 4 % 4], m![Qs % 4 # 16]>()\n.commit_trim::<m![Qs % 4]>()\n.commit()"
+        }
+      ]
+    },
+    "hierarchical_fused_single_cluster": {
+      "schedule_sha256": "ab795b081194c51898e8f0db631d3719798ef95f665be8149043e42bca632078",
+      "makespan_cycles": 79148,
+      "instruction_count": 133,
+      "longest_instructions": [
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 11015,
+            "end": 37490
+          },
+          "cycles": 26475,
+          "description": "--> src/device/sliding/projection.rs:23:81\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 38865,
+            "end": 52377
+          },
+          "cycles": 13512,
+          "description": "--> src/device/sliding/projection.rs:84:77\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 55305,
+            "end": 68817
+          },
+          "cycles": 13512,
+          "description": "--> src/device/sliding/projection.rs:84:77\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 37490,
+            "end": 47353
+          },
+          "cycles": 9863,
+          "description": "--> src/device/sliding/projection.rs:24:78\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Qs % 16, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Qs % 16, H / 16], m![H % 16]>()\n.contract_outer::<m![Qs % 16, H / 32], m![H % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs % 16]>()\n.contract_lane::<m![Qs % 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Qs / 4 % 4], m![Qs % 4 # 16]>()\n.commit_trim::<m![Qs % 4]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 55714,
+            "end": 60777
+          },
+          "cycles": 5063,
+          "description": "--> src/device/sliding/projection.rs:85:74\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 8, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 8, H / 16], m![H % 16]>()\n.contract_outer::<m![Ps % 8, H / 32], m![H % 32], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 8]>()\n.contract_lane::<m![Ps % 8], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Ps / 4 % 2], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 69165,
+            "end": 74228
+          },
+          "cycles": 5063,
+          "description": "--> src/device/sliding/projection.rs:85:74\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 8, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 8, H / 16], m![H % 16]>()\n.contract_outer::<m![Ps % 8, H / 32], m![H % 32], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 8]>()\n.contract_lane::<m![Ps % 8], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Ps / 4 % 2], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 6833,
+            "end": 11009
+          },
+          "cycles": 4176,
+          "description": "--> src/ops.rs:61:78\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 11009,
+            "end": 15112
+          },
+          "cycles": 4103,
+          "description": "--> src/ops.rs:62:74\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })\n.collect::<m![H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+        }
+      ]
+    },
+    "two_clusters_per_helper_replication": {
+      "schedule_sha256": "0cf8bef9198dcfc32eda4f26d6a16946a8f9068db05acf9d275bc0f55a23d1c4",
+      "makespan_cycles": 72577,
+      "instruction_count": 160,
+      "longest_instructions": [
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 10933,
+            "end": 24445
+          },
+          "cycles": 13512,
+          "description": "--> src/device/sliding/projection.rs:26:85\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 24445,
+            "end": 32995
+          },
+          "cycles": 8550,
+          "description": "--> src/device/sliding/projection.rs:16:61\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 32995,
+            "end": 41545
+          },
+          "cycles": 8550,
+          "description": "--> src/device/sliding/projection.rs:152:61\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 43507,
+            "end": 50537
+          },
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:89:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 55922,
+            "end": 62952
+          },
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:89:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 35818,
+            "end": 40881
+          },
+          "cycles": 5063,
+          "description": "--> src/device/sliding/projection.rs:27:82\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Qs % 8, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Qs % 8, H / 16], m![H % 16]>()\n.contract_outer::<m![Qs % 8, H / 32], m![H % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs % 8]>()\n.contract_lane::<m![Qs % 8], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Qs / 4 % 2], m![Qs % 4 # 16]>()\n.commit_trim::<m![Qs % 4]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 6757,
+            "end": 10933
+          },
+          "cycles": 4176,
+          "description": "--> src/ops.rs:61:78\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 10933,
+            "end": 15036
+          },
+          "cycles": 4103,
+          "description": "--> src/ops.rs:62:74\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })\n.collect::<m![H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+        }
+      ]
+    },
+    "two_clusters_shared_hierarchical_replication": {
+      "schedule_sha256": "84968b22b3043c8f4618e654fd37cebd6a9941fc289572c4f84893666dcda950",
+      "makespan_cycles": 61994,
+      "instruction_count": 153,
+      "longest_instructions": [
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 15047,
+            "end": 28559
+          },
+          "cycles": 13512,
+          "description": "--> src/device/sliding/projection.rs:25:85\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 6695,
+            "end": 15047
+          },
+          "cycles": 8352,
+          "description": "--> src/ops.rs:61:76\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 28638,
+            "end": 35668
+          },
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:88:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 41653,
+            "end": 48683
+          },
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:88:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 28559,
+            "end": 33622
+          },
+          "cycles": 5063,
+          "description": "--> src/device/sliding/projection.rs:26:82\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Qs % 8, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Qs % 8, H / 16], m![H % 16]>()\n.contract_outer::<m![Qs % 8, H / 32], m![H % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs % 8]>()\n.contract_lane::<m![Qs % 8], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Qs / 4 % 2], m![Qs % 4 # 16]>()\n.commit_trim::<m![Qs % 4]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 16647,
+            "end": 20750
+          },
+          "cycles": 4103,
+          "description": "--> src/ops.rs:62:72\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })\n.collect::<m![H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 35668,
+            "end": 38331
+          },
+          "cycles": 2663,
+          "description": "--> src/device/sliding/projection.rs:89:76\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 4, H / 16], m![H % 16]>()\n.contract_outer::<m![Ps % 4, H / 32], m![H % 32], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 48683,
+            "end": 51346
+          },
+          "cycles": 2663,
+          "description": "--> src/device/sliding/projection.rs:89:76\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 4, H / 16], m![H % 16]>()\n.contract_outer::<m![Ps % 4, H / 32], m![H % 32], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        }
+      ]
+    }
+  }
+}
