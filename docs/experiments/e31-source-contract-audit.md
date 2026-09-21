@@ -75,6 +75,11 @@ SDK0.8.1 `tensor/memory.rs:899–932`의 `dma_scatter` 구현과 doc에서 index
 
 **기존 harness는 non-target cache 보존을 동적으로 검사하지 않는다.** :508–509에서 K/V 전체 cache를0으로 초기화한 후, :539–540에서 cache 전체를 CPU로 읽어도 `[slot*width..(slot+1)*width]`만 잘라 expected K/V와 비교한다. 다른1023개 슬롯의 값은 비교하지 않는다. O는:572에서 residual 전체3840개를 비교한다. 따라서 공식/extra PASS는 대상 슬롯의 K/V와 Q/O/FFN 출력 정확성 증거이며, 모든 cache 슬롯 보존의 동적 증거로 확장할 수 없다.
 
-[E31 공식 job70441](e31-switch-gather-rms.json)은3개 입력×5개 출력=15 comparisons PASS, [추가 job70448](e31-rms-extra-correctness.json)은 run ids3–8의6개 입력×5개 출력=30 comparisons PASS다. 추가 harness는 별도 개발 artifact이며 frozen 공식 harness를 바꾸지 않았다. 이번 source 검토에서 비대상 cache write는 발견하지 못했지만, 보존을 실측으로 확인하려면 별도 개발 harness에서 cache를 서로 다른 nonzero sentinel로 채우고 대상 슬롯 이외 전체를 호출 전후 비교해야 한다. 현재 보고서는 그 검사를 실행했다고 주장하지 않는다.
+[E31 공식 job70441](e31-switch-gather-rms.json)은3개 입력×5개 출력=15 comparisons PASS, [추가 job70448](e31-rms-extra-correctness.json)은 run ids3–8의6개 입력×5개 출력=30 comparisons PASS다. 추가 harness는 별도 개발 artifact이며 frozen 공식 harness를 바꾸지 않았다. 이번 source 검토에서 비대상 cache write는 발견하지 못했지만, 보존을 실측으로 확인하려면 별도 개발 harness에서 cache를 서로 다른 nonzero sentinel로 채우고 대상 슬롯 이외 전체를 호출 전후 비교해야 한다. 이 source 감사 자체는 그 검사를 실행하지 않았으며, 이후 별도 harness 실측은 아래 후속 기록으로 구분한다.
 
 확인한 작은 문서 불일치는 shared RMS helper 위의 `O-only experiment` 주석이다. E31에서는 Q 입력 RMS도 이 helper를 호출한다. 코드 계약 오류는 아니며, 이후 정리 시 주석 범위를 갱신하면 된다. Stage1 PASS를 shared MLP가 쓰이는 vision/audio/full 모델 전체 실행 검증으로 확장하지 않는다.
+
+후속 별도검증: 원본harness의위한계를보강한 sentinel host harness가 Arena70507에서통과했다.
+E31 devicekernel은byte-identical하고, 기존15출력비교에더해 비대상cache12,570,624개가
+모두exact일치했다. [기록](e31-cache-preservation-correctness.json). 이검사는E31과해당3slot의검증이며
+원래공식harness나후속QKV의검사범위를바꾸지않는다. 위O-only주석은E36에서공용경로로수정했다.

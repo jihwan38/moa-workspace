@@ -7,7 +7,7 @@
   "generic_normalize_byte_identical": true,
   "unsafe_reshape_count_delta": -1,
   "compile_exit_code": 0,
-  "npu": "Integrated E31 job70441 all15 official comparisons PASS; extra inputs pending",
+  "npu": "Integrated E31 job70441 all15PASS; extra70448 all30PASS; repeated E31 packages passed. Standalone E26-base package not submitted.",
   "candidate_O_cycles": 27399,
   "candidate_instruction_count": 51,
   "baseline_instruction_count": 50,
@@ -83,6 +83,21 @@
       }
     },
     "integration_scope": "E29 sharded Q + direct-packed O; both call revised helper",
-    "performance_limitation": "Single job screen; Q slower and O faster than E29, repeats required"
+    "performance_limitation": "E31 integrated package repeated; E29 versus E31 QKV control favored the older inter-slice Q input RMS. E37 keeps Switch-gather for O/FFN and restores that older Q helper. Not an all-kernel or all-input speedup claim.",
+    "repeat_record": "docs/experiments/e31-rms-repeats.json"
+  },
+  "extra_correctness": {
+    "job": 70448,
+    "record": "docs/experiments/e31-rms-extra-correctness.json",
+    "run_ids": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "output_comparisons_passed": 30,
+    "official_score": false
   }
 }

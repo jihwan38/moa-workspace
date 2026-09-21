@@ -1,8 +1,8 @@
 # E31 KV cache의 비대상 슬롯 보존 검사
 
-Frozen `e31-switch-gather-rms`의 **device/ops와3개 device kernel binary를 그대로 사용**하는 독립 개발 harness다. 원래 Stage1 target15 comparisons를 유지하면서, QKV가 target slot 외 cache 데이터를 훼손하지 않는지 검사한다. full host build 및 CPU checker selftest PASS이며 **NPU 실행은 아직 하지 않았다.** 이 검사는 기존 출력 정확성 검사를 대신하지 않는다.
+Frozen `e31-switch-gather-rms`의 **device/ops와3개 device kernel binary를 그대로 사용**하는 독립 개발 harness다. 원래 Stage1 target15 comparisons를 유지하면서, QKV가 target slot 외 cache 데이터를 훼손하지 않는지 검사한다. full host build 및 CPU checker selftest PASS에 이어 **[Arena70507](../../../../docs/experiments/e31-cache-preservation-correctness.json)에서 기존15개 출력 비교와 sentinel12개 검사를 모두 통과했다.** Kernel 호출 후 비대상 cache12,570,624개 BF16 bits가 전부 일치했고 mismatch는0이었다. 이 검사는 기존 출력 정확성 검사를 대신하지 않는다.
 
-실행할 host binary는 `../../artifacts/e31-cache-preservation/test_kernels`, SHA256 `cf7a328218c42fd010e6954df7e79bdc2cacb0e93aa19cb2758e570591330241`(3,694,192 bytes)다. fixture는 frozen E31의 `ref/fixtures.safetensors`, SHA256 `338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359`를 그대로 사용한다. remote entrypoint도 frozen E31 사본을 사용할 수 있다. NPU 제출은 root가 수행한다.
+실행할 host binary는 `../../artifacts/e31-cache-preservation/test_kernels`, SHA256 `cf7a328218c42fd010e6954df7e79bdc2cacb0e93aa19cb2758e570591330241`(3,694,192 bytes)다. fixture는 frozen E31의 `ref/fixtures.safetensors`, SHA256 `338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359`를 그대로 사용한다. remote entrypoint도 frozen E31 사본을 사용할 수 있다. NPU 제출과 결과 수집은 root가 수행했다. 이 별도 host harness의 cycles는 진단값이며 성능·공식 score로 사용하지 않는다.
 
 `src/bin/test_kernels.rs`만 바꿨다. 원래 RUNS=3, seed/position/input 생성, fixture loader·expectation, TESTS, `compare` 함수와 tolerance, Q/O/FFN kernel launch 인자는 그대로다. QKV shim에서 K/V zero initialization을 비영 finite BF16 pattern으로 대체하고 별도 before/after 검사를 추가했다. target K/V를 BF16 bits로 읽은 뒤 정확한 F32 값으로 확장하여 원래 oracle에 넘긴다. Q/O/FFN 비교는 원래대로다.
 
@@ -30,4 +30,4 @@ CPU 검사에서는 **실제 추가한 순수 Rust 함수**를 `checker-selftest
 
 `build-manifest.json`에는49개 실제 compile input hash, 변경된 host 파일, 공식 E31 ELF와 새 ELF에 동일하게 포함된3개 device kernel의 hash/offset, build log와 checker log hash가 있다. full build는 독립 `/tmp/moa-e31-cache-preservation`와 독립 복사 target에서 `cargo furiosa-opt build --release --locked --bin test_kernels`로 수행했다. 빌드 뒤 실제 Docker source49개 hash가 사전 manifest와 같은지 재검사했다.
 
-Raw binary/kernel/log는 `../../artifacts/e31-cache-preservation/`, host source와 최소 diff는 이 폴더의 `test_kernels.rs`, `candidate.patch`다. live main source·Git mutation·NPU는 변경하지 않았다. 추가 source는 제출용 device 구현 변경이 아니라 테스트용 host harness다.
+Raw binary/kernel/log는 `../../artifacts/e31-cache-preservation/`, host source와 최소 diff는 이 폴더의 `test_kernels.rs`, `candidate.patch`다. harness 준비 단계에서 live main source·Git mutation·NPU는 변경하지 않았다. 후속 NPU 결과는 위 Arena70507 기록으로 구분한다. 추가 source는 제출용 device 구현 변경이 아니라 테스트용 host harness다.

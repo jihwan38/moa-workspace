@@ -1,6 +1,6 @@
-# FFN 후단 H480×8 유지 — exact compile PASS, NPU 미검증
+# FFN 후단 H480×8 유지 — E36 공식·추가 입력 PASS
 
-2026-09-21. 고정된 [E31 source](../../artifacts/e31-switch-gather-rms/src)에 safe E27 FFN 본체를 유지하고, down 결과를 8개 H480 slice에 남겨 global scale → post RMS → residual → HBM까지 처리했다. **같은 scratch의 exact FFN schedule은 167,296 → 162,209 cycles(-5,087, -3.04%)**다. NPU 제출·공식 정확도·실측 속도는 아직 없다. [evidence.json](evidence.json)에 43개 전체 소스 hash, 환경 ID, schedule hash와 한계를 기록했다.
+2026-09-21. 고정된 [E31 source](../../artifacts/e31-switch-gather-rms/src)에 safe E27 FFN 본체를 유지하고, down 결과를 8개 H480 slice에 남겨 global scale → post RMS → residual → HBM까지 처리했다. **같은 scratch의 exact FFN schedule은 167,296 → 162,209 cycles(-5,087, -3.04%)**다. [E36 job70498](../../../../docs/experiments/e36-ffn-parallel-epilogue.json)은 공식15개 비교를 통과했고 FFN median378,021 cycles(Q97,052/O45,141)다. [추가 job70506](../../../../docs/experiments/e36-ffn-epilogue-extra-correctness.json)도 run3–8의30개 비교를 모두 통과했다. [evidence.json](evidence.json)에 43개 전체 소스 hash, 환경 ID, schedule hash와 한계를 기록했다.
 
 적용 파일은 [mlp.rs](mlp.rs), [residual.rs](residual.rs), [ops.rs](ops.rs) 세 개다. [candidate.patch](candidate.patch)는 E31 대비 diff이며 `rmsnorm.rs`는 E31의 기존 RMS-gather helper를 그대로 사용한다. 함께 보관한 [rmsnorm.snapshot.rs](rmsnorm.snapshot.rs)의 SHA256은 `3c3c9525f21fe9916e0f6db00863cbb05e4f0c8cc35501ed08b1bbcdb4635cb0`이다. 다른 snapshot에 적용할 경우 이 의존성을 먼저 확인해야 한다.
 
@@ -69,4 +69,4 @@ Duration 합은 서로 겹칠 수 있으며 critical path나 하드웨어 counte
 | Residual add/BF16, gate/BF16 | 341 + 401 | 341 + 401 |
 | Final canonical gather | 504 | 제거 |
 
-정적 기준 [baseline.json](baseline.json)과 후보 [candidate.json](candidate.json), 각 graph를 보존했다. 이 결과만으로 하드웨어 speedup을 주장하지 않는다. 적용 후에는 해당 snapshot의 공식 15개 비교, 추가 30개 비교, 반복 측정을 순서대로 수행해야 한다.
+정적 기준 [baseline.json](baseline.json)과 후보 [candidate.json](candidate.json), 각 graph를 보존했다. 정적 수치를 그대로 하드웨어 speedup으로 해석하지 않는다. 이후 E36 공식15개·추가30개 비교가 통과했고, 같은 FFN device image를 유지한 [E37 반복 측정](../../../../docs/experiments/e37-combined-repeats.json)도 완료됐다. E37은 QKV helper 선택이 달라지는 별도 combined package이므로 package 전체와 FFN image의 동일성을 구분한다.

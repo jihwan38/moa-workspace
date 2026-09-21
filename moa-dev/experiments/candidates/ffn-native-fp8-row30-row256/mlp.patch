@@ -1,0 +1,72 @@
+--- row30/mlp.rs
++++ row30-row256/mlp.rs
+@@ -94,7 +94,7 @@
+ ) {
+     let mut up: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, 1 # 4]> = DmTensor::new();
+ 
+-    let up_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnSlice / 2, FfnRow, FfnSlice % 2, H]> = unsafe { up_weight_packed.view().reshape() };
++    let up_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnRow, FfnSlice, H]> = unsafe { up_weight_packed.view().reshape() };
+     let up_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> =
+         up_weight_packed.to_dm(&mut device.tdma);
+     // Decode all30 actual rows directly; no row padding or zero staging.
+@@ -106,7 +106,7 @@
+         .commit_trim::<m![H % 32]>()
+         .commit();
+ 
+-    let up_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnSlice / 2, FfnRow, FfnSlice % 2, H / 16]> = unsafe { up_weight_scale.view().reshape() };
++    let up_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnRow, FfnSlice, H / 16]> = unsafe { up_weight_scale.view().reshape() };
+ 
+     let up_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> =
+         up_weight_scale.to_dm(&mut device.tdma);
+@@ -115,7 +115,7 @@
+ 
+     let mut gate: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, 1 # 4]> = DmTensor::new();
+ 
+-    let gate_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnSlice / 2, FfnRow, FfnSlice % 2, H]> = unsafe { gate_weight_packed.view().reshape() };
++    let gate_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnRow, FfnSlice, H]> = unsafe { gate_weight_packed.view().reshape() };
+     let gate_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> =
+         gate_weight_packed.to_dm(&mut device.tdma);
+     // Decode all30 actual rows directly; no row padding or zero staging.
+@@ -127,33 +127,33 @@
+         .commit_trim::<m![H % 32]>()
+         .commit();
+ 
+-    let gate_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnSlice / 2, FfnRow, FfnSlice % 2, H / 16]> = unsafe { gate_weight_scale.view().reshape() };
++    let gate_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnRow, FfnSlice, H / 16]> = unsafe { gate_weight_scale.view().reshape() };
+ 
+     let gate_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> =
+         gate_weight_scale.to_dm(&mut device.tdma);
+ 
+     project_rows_with_scale_contraction(device, x_trf, x_scale_vrf, &gate_weight_packed, &gate_weight_scale, &mut gate);
+ 
+-    // L = 7680*cluster + 60*(slice/2) + 2*row + (slice%2).
++    // L = 7680*cluster + 256*row + slice: verified row256 wire order.
+     // All30 rows are actual values; scalar transport padding is never a logical row.
+     let up = compact_full256_rows(device, &up);
+     let gate = compact_full256_rows(device, &gate);
+-    let up: DmTensor<bf16, Chip, m![L / 7680], m![L / 60 % 128, 1 # 2], m![L % 60]> = unsafe { up.reshape() };
+-    let gate: DmTensor<bf16, Chip, m![L / 7680], m![L / 60 % 128, 1 # 2], m![L % 60]> = unsafe { gate.reshape() };
++    let up: DmTensor<bf16, Chip, m![L / 7680], Slice, m![L % 7680]> = unsafe { up.reshape() };
++    let gate: DmTensor<bf16, Chip, m![L / 7680], Slice, m![L % 7680]> = unsafe { gate.reshape() };
+     (up.to_dm(&mut device.tdma), gate.to_dm(&mut device.tdma))
+ }
+ 
+ fn compact_full256_rows(
+     device: &mut Device,
+     x: &DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, 1 # 4]>,
+-) -> DmTensor<bf16, Chip, UpGateCluster, m![FfnSlice / 2, 1 # 2], m![FfnRow, FfnSlice % 2]> {
++) -> DmTensor<bf16, Chip, UpGateCluster, Slice, m![FfnRow, FfnSlice]> {
+     device.main
+         .begin(x.view())
+         .fetch::<m![FfnRow], m![1 # 16]>()
+-        .switch::<m![FfnSlice / 2, 1 # 2], m![FfnRow, FfnSlice % 2]>(SwitchConfig::Broadcast1 { slice1: 2, slice0: 1 })
+-        .collect::<m![FfnRow, FfnSlice % 2], m![1 # 16]>()
+-        .transpose::<m![FfnRow / 2], m![(FfnRow % 2, FfnSlice % 2) # 16]>()
+-        .commit_trim::<m![FfnRow % 2, FfnSlice % 2]>()
++        .switch::<Slice, m![FfnRow, FfnSlice]>(SwitchConfig::Broadcast1 { slice1: 256, slice0: 1 })
++        .collect::<m![FfnRow, FfnSlice], m![1 # 16]>()
++        .transpose::<m![FfnRow, FfnSlice / 4], m![FfnSlice % 4 # 16]>()
++        .commit_trim::<m![FfnSlice % 4]>()
+         .commit()
+ }
+ 

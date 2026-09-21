@@ -14,10 +14,68 @@
   },
   "kernel_identity_verified_by": "Each freshly built device bin occurs exactly once byte-for-byte in the stated reference ELF",
   "npu_job": 70519,
-  "npu_status": "all15PASS",
+  "npu_status": "Initial all15PASS; three repeated packages all15PASS each; extra70544 all30PASS",
   "cycles": {
     "qkv": 94094,
     "output": 45796,
     "ffn": 376040
+  },
+  "repeated_hardware": {
+    "record": "docs/experiments/e37-combined-repeats.json",
+    "jobs": [
+      70519,
+      70528,
+      70541
+    ],
+    "aggregate": {
+      "sliding_project_qkv": {
+        "median_cycles": 94195,
+        "job_medians": [
+          94094,
+          94195,
+          94229
+        ],
+        "min_cycles": 94094,
+        "max_cycles": 94229,
+        "relative_range": 0.0014331970911407187
+      },
+      "sliding_attention_output": {
+        "median_cycles": 45748,
+        "job_medians": [
+          45796,
+          45748,
+          45214
+        ],
+        "min_cycles": 45214,
+        "max_cycles": 45796,
+        "relative_range": 0.012721867622628311
+      },
+      "decoder_feedforward": {
+        "median_cycles": 379741,
+        "job_medians": [
+          376040,
+          379741,
+          379775
+        ],
+        "min_cycles": 376040,
+        "max_cycles": 379775,
+        "relative_range": 0.009835651141172536
+      }
+    },
+    "scope": "Median of the three per-job medians. Same immutable package; not an official score or rank."
+  },
+  "extra_correctness": {
+    "job": 70544,
+    "record": "docs/experiments/e37-combined-extra-correctness.json",
+    "run_ids": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "output_comparisons_passed": 30,
+    "official_score": false
   }
 }

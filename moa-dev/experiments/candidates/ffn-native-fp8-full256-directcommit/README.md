@@ -1,6 +1,6 @@
 # Full256 FFN의 FP8 weight/scale 중간 복사 제거
 
-2026-09-21, compiler/std0.8.1. E35 job70485에서15개 검사를 통과한 full256 FFN을 기준으로 두 후보를 만들었다. **두 후보 모두 첫 exact compile에 성공했다. NPU 정확성·성능은 아직 검증하지 않았다.** 기존 full256 source와 두 후보를 각각 보존한다.
+2026-09-21, compiler/std0.8.1. E35 job70485에서15개 검사를 통과한 full256 FFN을 기준으로 두 후보를 만들었다. **두 후보 모두 첫 exact compile에 성공했다. Weight+scale 변형 `mlp.direct-scales.rs`만 E38 job70525에서 공식15개 비교를 모두 통과했다. Weight-only `mlp.rs`는 NPU 미실행이다.** 기존 full256 source와 두 후보를 각각 보존한다.
 
 | source | 변경 | 정적 cycles | E35 대비 |
 |---|---|---:|---:|
@@ -9,6 +9,8 @@
 | `mlp.direct-scales.rs` |위 변경+scale HBM을 valid30 destination에 직접 DMA|191,836|−40.86%|
 
 기준 E35의 실측 FFN median은811,219cycles다. 위 수치는 compiler 정적 schedule이며 같은 비율의 NPU 속도 향상을 보장하지 않는다. Source를 적용할 때 선택한 파일 하나를 `src/device/shared/mlp.rs`로 사용한다. `mlp.rs`는 weight-only로 동결했고 `mlp.direct-scales.rs`와 서로 다르다.
+
+[E38 측정 기록](../../../../docs/experiments/e38-full256-directcommit.json)의 Q/O/FFN median은 96,579 /45,101 /482,511 cycles다. 이 결과는 SHA256 `7c363a7f116ff9ebf4027f6a9957faa5cb3ce74aac85b3c5f7b6579ff628b267`의 `mlp.direct-scales.rs`와 frozen E38 MLP가 일치함을 확인한 뒤 연결했다. FFN은 E35의811,219보다 빨라졌지만 safe BF16 E36의378,021보다 느리다. 서로 다른 package의 단일 screen 비교이며 추가 입력·반복 검증이나 공식 순위는 아니다.
 
 ## 원래값과 실제zero tail 유지
 

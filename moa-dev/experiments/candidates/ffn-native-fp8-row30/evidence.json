@@ -1,0 +1,115 @@
+{
+  "recorded_at_utc": "2026-09-21T11:26:53.823593+00:00",
+  "status": "npu_official_configs_pass_not_adopted_slower_than_e37",
+  "kernel": "ops::decoder_feedforward",
+  "candidate_source": "mlp.rs",
+  "candidate_mlp_sha256": "dff506dea523b17c7e32c4c200cda8c5138a800ea61e40ed805da1b1e3df3129",
+  "baseline_source": "../ffn-native-fp8-full256-row-two/mlp.rs",
+  "baseline_mlp_sha256": "bf5e8c153ec6b226136cf0a9887267fedefd562a67b74ef34d47429960dbf602",
+  "scratch": "docker:moa2026-dev:/tmp/moa-ffn-native-fp8-row30",
+  "compile_attempts": 1,
+  "compile_failures": 0,
+  "npu_submissions": 1,
+  "kernel_image_sha256": "638a4a3e396e1a29344201a0f8656bd396fdad137104e9b9dd42267e7424da88",
+  "compiled_source_manifest_file": "source-manifest.json",
+  "only_source_changed_from_baseline": "src/device/shared/mlp.rs",
+  "ops_sha256": "afc2d11998903a5afc9750abd7f01ec6b54103964752de86efae49aa4e206560",
+  "residual_sha256": "83d001788e3c1ae073ec8720435569fde062a47e52c181ab859a2d3f047accfc",
+  "baseline_static": {
+    "makespan": 182868,
+    "instruction_count": 224,
+    "sha256": "1f6c9b68bac1590857bf60ed94b924a5b73035ee5713851b732bbd1a8398bbea"
+  },
+  "candidate_static": {
+    "makespan": 170176,
+    "instruction_count": 196,
+    "sha256": "c2d3967678d2f910b7dcd7afa5377e0fa1a2818a224c2e82dcdafa584fd2eeb0"
+  },
+  "makespan_saved": 12692,
+  "relative_change": -0.06940525406303999,
+  "layout_validation": {
+    "status": "PASS",
+    "candidate_sha256": "dff506dea523b17c7e32c4c200cda8c5138a800ea61e40ed805da1b1e3df3129",
+    "logical_rows_bijective": 15360,
+    "live_slices_per_cluster": 256,
+    "actual_rows_per_slice": 30,
+    "dummy_rows_per_slice": 0,
+    "weight_fp8_bytes_per_slice": 115200,
+    "scale_fp8_bytes_per_slice": 7200,
+    "output_scalar_logical_values_per_slice": 30,
+    "output_scalar_physical_bytes_per_slice": 240,
+    "poison_padding_never_selected": true,
+    "output_8byte_packets": 3840,
+    "native_helper_arithmetic_and_casts_unchanged": true,
+    "feedforward_and_suffix_byte_identical": true,
+    "limitations": "Finite coordinate/source proof only. Backend execution and numerical tolerance require NPU validation."
+  },
+  "transport": "second DPE BF16 cast unchanged; BF16scalar1#4 commit then logical scalar fetch+row2 gather",
+  "invariants": [
+    "all256 slices live",
+    "exact30 real rows per slice",
+    "no zero/dummy rows",
+    "no memset or row-expansion copies",
+    "native arithmetic and cast positions preserved",
+    "feedforward suffix byte-identical",
+    "padding never promoted to logical data"
+  ],
+  "limitations": [
+    "Official three configurations passed; this is not an all-input correctness proof.",
+    "Inherited FP8 activation approximation and BF16 block rounding remain.",
+    "Static makespan is not a runtime cycle prediction; no cause of the170176 vs426442 difference has been established."
+  ],
+  "updated_at_utc": "2026-09-21T11:33:02.797051+00:00",
+  "npu_submissions_by_this_subagent": 0,
+  "hardware": {
+    "experiment_record": "docs/experiments/e41-native-row30.json",
+    "job_id": 70562,
+    "submitted_by": "root",
+    "job_status": "SUCCEEDED",
+    "exit_code": 0,
+    "valid": true,
+    "official_input_configurations": 3,
+    "output_comparisons_passed": 15,
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 96917,
+        "cycles_by_run": [
+          106380,
+          96917,
+          96629
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 46477,
+        "cycles_by_run": [
+          50019,
+          45172,
+          46477
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 426442,
+        "cycles_by_run": [
+          429663,
+          426154,
+          426442
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "log": "moa-dev/logs/e41-native-row30-job-70562.log",
+    "log_sha256": "8f90185259c861bf1c6d338318caef7c55cd7e3321b34ee9d1b48b7e04b1e016",
+    "full_binary_sha256": "4c6a8c0f9cc360f11d74721c1f2490d5f5e0f5fd91591ec5b970f2be4edb2760",
+    "snapshot_mlp_matches_candidate": true,
+    "integrated_ops_sha256": "48cfec9c9fd390d54e1ef1e560f984d8968d7c75d3faf41a397663e6a3cd2a1a",
+    "static_and_runtime_context_note": "Scratch static170176 and root integrated runtime426442 are separate measurements; the integrated ops snapshot differs. The gap has no established causal explanation.",
+    "decision": "not_adopted",
+    "reference_e37_best_ffn_cycles": 379741,
+    "decision_reason": "FFN426442 is slower than E37 best379741."
+  }
+}

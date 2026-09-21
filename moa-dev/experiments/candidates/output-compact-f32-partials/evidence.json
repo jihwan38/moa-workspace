@@ -1,0 +1,59 @@
+{
+  "base": "frozen e31-switch-gather-rms/src",
+  "compiler": "furiosa-opt 0.8.1",
+  "baseline_exact_compile_exit": 0,
+  "candidate_exact_compile_exit": 1,
+  "baseline_cycles": 24997,
+  "candidate_cycles": null,
+  "candidate_npu": "not run; candidate does not compile",
+  "candidate_kernel": null,
+  "source_sha256": {
+    "base_projection.rs": "b58d2ce261f1d12d2a219fd4edc2a715b163b4bf033d5e973ca3d64ba2df08e5",
+    "projection.rs": "e13a9370a8c37da79de313e0632d6820defff2ba3516e56e0956d27b6547aecd",
+    "ops.rs": "48cfec9c9fd390d54e1ef1e560f984d8968d7c75d3faf41a397663e6a3cd2a1a",
+    "rmsnorm.rs": "3c3c9525f21fe9916e0f6db00863cbb05e4f0c8cc35501ed08b1bbcdb4635cb0",
+    "candidate.patch": "248f1adb44e4833f47ac12bda7e2df3a271d032830ad1380255c62c055f29d2c"
+  },
+  "baseline_kernel_sha256": "e9d3402c62fd866f417053e618e7a7af1d5cb60485c04cc292f3a702f5996cde",
+  "baseline_kernel_bytes": 88576,
+  "baseline_matches_frozen_E31": true,
+  "baseline_schedule_sha256": "2c52c0eefc4ab746c69d875e7c0196ce25ff88dcbf29ca5963987111c3c3ad03",
+  "candidate_compile_log_sha256": "7ee5682c96102bec4bec90d3acf2db1456dac2123f35c76904cb88ce5911e92a",
+  "outside_project_output_unchanged": true,
+  "new_unsafe_reshape_count": 0,
+  "logical_partial_coordinate_count": 30720,
+  "partial_bytes_per_slice": {
+    "baseline": 1920,
+    "proposed": 240
+  },
+  "partial_bytes_across_512_slices": {
+    "baseline": 983040,
+    "proposed": 122880
+  },
+  "failure": "Transpose: output packet beyond max_in_rows (2) must be `1 # n` pure padding, got: H / 2 % 2 # 4",
+  "raw_artifacts": "../../artifacts/output-compact-f32-partials",
+  "scratch": "/tmp/moa-output-compact-f32-partials",
+  "cargo_home": "/tmp/moa-extra-seeds-e31-rms-extra/cargo-home",
+  "commands": [
+    "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/baseline.json",
+    "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/four-row.json"
+  ],
+  "variant": "four-F32-row compact commit, failed",
+  "attempts": [
+    {
+      "name": "two-row",
+      "source": "projection.two-row.failed.rs",
+      "patch": "attempt-1.patch",
+      "evidence": "attempt-1-evidence.json",
+      "exit_code": 1,
+      "failure": "Final BF16 transpose cannot obtain H % 4 solely from Time H / 2 % 30; packet already contains H % 2."
+    },
+    {
+      "name": "four-row",
+      "source": "projection.rs",
+      "patch": "candidate.patch",
+      "exit_code": 1,
+      "failure": "Transpose: output packet beyond max_in_rows (2) must be `1 # n` pure padding, got: H / 2 % 2 # 4"
+    }
+  ]
+}

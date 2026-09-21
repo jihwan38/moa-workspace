@@ -1,6 +1,6 @@
 # RMS 8개 부분합을 Switch gather 후 local sum
 
-Frozen E26 `output-parallel-epilogue`의 shared `normalize_output_fused`에서 scalar reduction만 바꾼 후보다. **Exact O compile PASS, 정적29,088→27,399 cycles(-5.81%)**다. 비교 기준은 E26 O이며 이후 direct-packed O와 결합한 성능이 아니다. NPU는 미검증이다.
+Frozen E26 `output-parallel-epilogue`의 shared `normalize_output_fused`에서 scalar reduction만 바꾼 후보다. **Exact O compile PASS, 정적29,088→27,399 cycles(-5.81%)**다. 비교 기준은 E26 O이며 이후 direct-packed O와 결합한 성능이 아니다. 이 E26-base standalone package 자체는 NPU 미실행이며, helper를 통합한 E31의 공식·추가 입력 검증은 아래 후속 결과로 구분한다.
 
 기존 경로는 각 slice의 H480 square/sum을 H3840으로 나눈 FP32 부분합을 만든 뒤, inter-slice Add로8개를 더하고 EPS/Sqrt를 수행했다. 이 마지막 Main의 정적 비용2,579 cycles를 baseline schedule에서 직접 확인했다.
 
@@ -35,4 +35,4 @@ H480 부분합 계산과 Div3840, EPS→Sqrt 순서, 후속 DivF/gamma, BF16 cas
 소스 SHA256: `3c3c9525f21fe9916e0f6db00863cbb05e4f0c8cc35501ed08b1bbcdb4635cb0`.
 Patch는 `candidate.patch`, source/kernel/schedule 증거는 `evidence.json`, probe는 `cpu-order-probe.json`이다. Raw log/schedule은 `../../artifacts/rmsnorm-switch-gather/`, 독립 Docker scratch/target은 `/tmp/moa-rmsnorm-switch-gather`에 있다. live source·Git·NPU 제출은 하지 않았다.
 
-후속 E31 job70441에서 이 helper를 E29 sharded Q와 direct-packed O에 결합해 공식15 comparisons 모두 PASS했다. Q98,797 / O45,355 / FFN389,335 cycles다. E29 단일 screen 대비 O는 빨라졌지만 Q는 느려졌으므로 반복 측정 없이 전체 개선으로 확정하지 않는다. 추가 입력 검증은 당시 pending이며 일반 입력 동등성을 증명한 것은 아니다. 로그는 `../../../logs/e31-switch-gather-rms-job-70441.log`, 통합 결과는 `docs/experiments/e31-switch-gather-rms.json`에 있다.
+후속 E31 job70441에서 이 helper를 E29 sharded Q와 direct-packed O에 결합해 공식15 comparisons 모두 PASS했다. Q98,797 / O45,355 / FFN389,335 cycles다. E29 단일 screen 대비 O는 빨라졌지만 Q는 느려졌으므로 반복 측정 없이 전체 개선으로 확정하지 않는다. 이후 [추가 job70448](../../../../docs/experiments/e31-rms-extra-correctness.json)의30개 비교와 [E31 반복 측정](../../../../docs/experiments/e31-rms-repeats.json)도 통과했다. E29/E31 QKV 반복 대조는 예전 inter-slice Q RMS가 유리했고, E37은 Q에 예전 helper를 선택하면서 O/FFN에는 이 gather helper를 유지한다. 임의 입력 동등성을 증명한 것은 아니다. 로그는 `../../../logs/e31-switch-gather-rms-job-70441.log`, 통합 결과는 `docs/experiments/e31-switch-gather-rms.json`에 있다.

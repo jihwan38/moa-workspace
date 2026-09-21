@@ -27,8 +27,48 @@
       "delta_percent_vs_E35": -40.85871337889873,
       "schedule_sha256": "946c9b05bc3fe9faaceaacde9361a3681d2a1e51072b95c95b90d7f1cf41e218",
       "schedule_file_untracked": "/tmp/moa-ffn-full256-weight-scale-direct-schedule.json",
-      "npu_correctness": "NOT TESTED",
-      "kernel_bin_sha256": "07feb85132c46d9b06679c19f0ad8e671fbcd7c8b42db6c66656436bcc1b0cfe"
+      "npu_correctness": "PASS: E38 job70525 all15 official comparisons",
+      "kernel_bin_sha256": "07feb85132c46d9b06679c19f0ad8e671fbcd7c8b42db6c66656436bcc1b0cfe",
+      "hardware": {
+        "job": 70525,
+        "record": "docs/experiments/e38-full256-directcommit.json",
+        "log": "moa-dev/logs/e38-full256-directcommit-job-70525.log",
+        "correctness": "all15PASS",
+        "kernels": {
+          "sliding_project_qkv": {
+            "correctness": "passed",
+            "median_cycles": 96579,
+            "cycles_by_run": [
+              105138,
+              96579,
+              96538
+            ],
+            "output_comparisons_passed": 9
+          },
+          "sliding_attention_output": {
+            "correctness": "passed",
+            "median_cycles": 45101,
+            "cycles_by_run": [
+              48694,
+              45101,
+              45078
+            ],
+            "output_comparisons_passed": 3
+          },
+          "decoder_feedforward": {
+            "correctness": "passed",
+            "median_cycles": 482511,
+            "cycles_by_run": [
+              486419,
+              482511,
+              482479
+            ],
+            "output_comparisons_passed": 3
+          }
+        },
+        "official_rank": null,
+        "scope": "Only mlp.direct-scales.rs; weight-only mlp.rs remains untested. Three official inputs, one package screen; no extra-input or repeat result."
+      }
     }
   },
   "ops_sha256": "afc2d11998903a5afc9750abd7f01ec6b54103964752de86efae49aa4e206560",

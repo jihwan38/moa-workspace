@@ -3,7 +3,7 @@
   "base_snapshot": "moa-dev/experiments/artifacts/e31-switch-gather-rms",
   "candidate_directory": "moa-dev/experiments/candidates/ffn-parallel-epilogue",
   "scratch_crate": "/tmp/moa-ffn-parallel-epilogue",
-  "npu_status": "NOT_SUBMITTED",
+  "npu_status": "E36 job70498 all15PASS; extra job70506 all30PASS",
   "compiler_scope": "ops::decoder_feedforward --exact",
   "compile_success": true,
   "compile_attempts": {
@@ -188,8 +188,61 @@
   },
   "limitations": [
     "Static schedule improvement does not prove lower hardware cycles.",
-    "Changed postnorm summation order requires full official and independent extra-seed validation.",
+    "Changed postnorm summation order passed official and six additional inputs; this does not prove all-input equivalence.",
     "Shared generic RMS, existing residual functions, up/gate/GeGLU, and down arithmetic through final BF16 commit remain unchanged.",
     "Instruction duration sums overlap and are not critical-path or hardware counters."
-  ]
+  ],
+  "hardware": {
+    "job": 70498,
+    "record": "docs/experiments/e36-ffn-parallel-epilogue.json",
+    "log": "moa-dev/logs/e36-ffn-parallel-epilogue-job-70498.log",
+    "correctness": "all15PASS",
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 97052,
+        "cycles_by_run": [
+          106346,
+          97052,
+          96662
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 45141,
+        "cycles_by_run": [
+          48986,
+          45141,
+          45141
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 378021,
+        "cycles_by_run": [
+          378775,
+          373944,
+          378021
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "official_rank": null
+  },
+  "extra_correctness": {
+    "job": 70506,
+    "record": "docs/experiments/e36-ffn-epilogue-extra-correctness.json",
+    "run_ids": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "output_comparisons_passed": 30,
+    "official_score": false
+  }
 }

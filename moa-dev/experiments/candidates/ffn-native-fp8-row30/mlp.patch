@@ -1,0 +1,146 @@
+--- row-two/mlp.rs
++++ row30/mlp.rs
+@@ -15,7 +15,7 @@
+     };
+ }
+ 
+-axes![FfnTerm = 2, FfnSlice = 256, FfnRow = 32];
++axes![FfnTerm = 2, FfnSlice = 256, FfnRow = 30];
+ 
+ const INVSQRT2: f32 = 0.70710678118f32;
+ 
+@@ -33,7 +33,7 @@
+     x_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
+     weights: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]>,
+     scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]>,
+-    output: &mut DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow]>,
++    output: &mut DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, 1 # 4]>,
+ ) {
+     // This deliberately adds BF16 rounding of each 16-element block dot.
+     // The second contraction multiplies block scales and reduces the block axis.
+@@ -76,8 +76,7 @@
+         .contract_time::<m![FfnRow]>()
+         .contract_lane::<m![FfnRow], m![1 # 8]>(LaneMode::Interleaved)
+         .cast::<bf16, m![1 # 16]>()
+-        .transpose::<m![FfnRow / 4], m![FfnRow % 4 # 16]>()
+-        .commit_trim::<m![FfnRow % 4]>()
++        .commit_trim::<m![1 # 4]>()
+         .commit_view(output.view_mut());
+ }
+ 
+@@ -93,62 +92,50 @@
+     DmTensor<bf16, Chip, Cluster, UpGateRows, m![L % 60]>,
+     DmTensor<bf16, Chip, Cluster, UpGateRows, m![L % 60]>,
+ ) {
+-    let mut up: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow]> = DmTensor::new();
+-
+-    let up_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnSlice / 2, FfnRow = 30, FfnSlice % 2, H]> = unsafe { up_weight_packed.view().reshape() };
+-    let up_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 30, H]> =
++    let mut up: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, 1 # 4]> = DmTensor::new();
++
++    let up_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnSlice / 2, FfnRow, FfnSlice % 2, H]> = unsafe { up_weight_packed.view().reshape() };
++    let up_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> =
+         up_weight_packed.to_dm(&mut device.tdma);
+-    // Initialize every live row before directly committing the30 real decoded rows.
+-    let mut up_weight_dense: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> = DmTensor::new();
+-    up_weight_dense.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub);
+-    device.main
++    // Decode all30 actual rows directly; no row padding or zero staging.
++    let up_weight_packed: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> = device.main
+         .begin(up_weight_packed.view())
+-        .fetch::<m![FfnRow = 30], m![H]>()
++        .fetch::<m![FfnRow], m![H]>()
+         .fetch_table_lookup::<f8e4m3>()
+-        .collect::<m![FfnRow = 30, H / 32], m![H % 32]>()
++        .collect::<m![FfnRow, H / 32], m![H % 32]>()
+         .commit_trim::<m![H % 32]>()
+-        .commit_view(up_weight_dense.view_mut().tile::<m![FfnRow], 30, m![FfnRow = 30 #{!} 32, H]>(0));
+-    let up_weight_packed = up_weight_dense;
+-
+-    let up_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnSlice / 2, FfnRow = 30, FfnSlice % 2, H / 16]> = unsafe { up_weight_scale.view().reshape() };
+-
+-    let mut up_scale_dense: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> = DmTensor::new();
+-    up_scale_dense.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub);
+-    up_weight_scale.to_dm_view(&mut device.tdma,
+-        up_scale_dense.view_mut().tile::<m![FfnRow], 30, m![FfnRow = 30 #{!} 32, H / 16]>(0));
+-    let up_weight_scale = up_scale_dense;
++        .commit();
++
++    let up_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnSlice / 2, FfnRow, FfnSlice % 2, H / 16]> = unsafe { up_weight_scale.view().reshape() };
++
++    let up_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> =
++        up_weight_scale.to_dm(&mut device.tdma);
+ 
+     project_rows_with_scale_contraction(device, x_trf, x_scale_vrf, &up_weight_packed, &up_weight_scale, &mut up);
+ 
+-    let mut gate: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow]> = DmTensor::new();
+-
+-    let gate_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnSlice / 2, FfnRow = 30, FfnSlice % 2, H]> = unsafe { gate_weight_packed.view().reshape() };
+-    let gate_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 30, H]> =
++    let mut gate: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, 1 # 4]> = DmTensor::new();
++
++    let gate_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnSlice / 2, FfnRow, FfnSlice % 2, H]> = unsafe { gate_weight_packed.view().reshape() };
++    let gate_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> =
+         gate_weight_packed.to_dm(&mut device.tdma);
+-    // Initialize every live row before directly committing the30 real decoded rows.
+-    let mut gate_weight_dense: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> = DmTensor::new();
+-    gate_weight_dense.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub);
+-    device.main
++    // Decode all30 actual rows directly; no row padding or zero staging.
++    let gate_weight_packed: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> = device.main
+         .begin(gate_weight_packed.view())
+-        .fetch::<m![FfnRow = 30], m![H]>()
++        .fetch::<m![FfnRow], m![H]>()
+         .fetch_table_lookup::<f8e4m3>()
+-        .collect::<m![FfnRow = 30, H / 32], m![H % 32]>()
++        .collect::<m![FfnRow, H / 32], m![H % 32]>()
+         .commit_trim::<m![H % 32]>()
+-        .commit_view(gate_weight_dense.view_mut().tile::<m![FfnRow], 30, m![FfnRow = 30 #{!} 32, H]>(0));
+-    let gate_weight_packed = gate_weight_dense;
+-
+-    let gate_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnSlice / 2, FfnRow = 30, FfnSlice % 2, H / 16]> = unsafe { gate_weight_scale.view().reshape() };
+-
+-    let mut gate_scale_dense: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> = DmTensor::new();
+-    gate_scale_dense.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub);
+-    gate_weight_scale.to_dm_view(&mut device.tdma,
+-        gate_scale_dense.view_mut().tile::<m![FfnRow], 30, m![FfnRow = 30 #{!} 32, H / 16]>(0));
+-    let gate_weight_scale = gate_scale_dense;
++        .commit();
++
++    let gate_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnSlice / 2, FfnRow, FfnSlice % 2, H / 16]> = unsafe { gate_weight_scale.view().reshape() };
++
++    let gate_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> =
++        gate_weight_scale.to_dm(&mut device.tdma);
+ 
+     project_rows_with_scale_contraction(device, x_trf, x_scale_vrf, &gate_weight_packed, &gate_weight_scale, &mut gate);
+ 
+     // L = 7680*cluster + 60*(slice/2) + 2*row + (slice%2).
+-    // Only the first30 actual rows participate; rows30/31 remain real zeros.
++    // All30 rows are actual values; scalar transport padding is never a logical row.
+     let up = compact_full256_rows(device, &up);
+     let gate = compact_full256_rows(device, &gate);
+     let up: DmTensor<bf16, Chip, m![L / 7680], m![L / 60 % 128, 1 # 2], m![L % 60]> = unsafe { up.reshape() };
+@@ -158,15 +145,15 @@
+ 
+ fn compact_full256_rows(
+     device: &mut Device,
+-    x: &DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow]>,
+-) -> DmTensor<bf16, Chip, UpGateCluster, m![FfnSlice / 2, 1 # 2], m![FfnRow = 30, FfnSlice % 2]> {
++    x: &DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![FfnRow, 1 # 4]>,
++) -> DmTensor<bf16, Chip, UpGateCluster, m![FfnSlice / 2, 1 # 2], m![FfnRow, FfnSlice % 2]> {
+     device.main
+-        .begin(x.view().tile::<m![FfnRow], 30, m![FfnRow = 30 # 32]>(0))
+-        .fetch::<m![FfnRow = 30], m![1 # 16]>()
+-        .switch::<m![FfnSlice / 2, 1 # 2], m![FfnRow = 30, FfnSlice % 2]>(SwitchConfig::Broadcast1 { slice1: 2, slice0: 1 })
+-        .collect::<m![FfnRow = 30, FfnSlice % 2], m![1 # 16]>()
+-        .transpose::<m![FfnRow = 30 / 2], m![(FfnRow = 30 % 2, FfnSlice % 2) # 16]>()
+-        .commit_trim::<m![FfnRow = 30 % 2, FfnSlice % 2]>()
++        .begin(x.view())
++        .fetch::<m![FfnRow], m![1 # 16]>()
++        .switch::<m![FfnSlice / 2, 1 # 2], m![FfnRow, FfnSlice % 2]>(SwitchConfig::Broadcast1 { slice1: 2, slice0: 1 })
++        .collect::<m![FfnRow, FfnSlice % 2], m![1 # 16]>()
++        .transpose::<m![FfnRow / 2], m![(FfnRow % 2, FfnSlice % 2) # 16]>()
++        .commit_trim::<m![FfnRow % 2, FfnSlice % 2]>()
+         .commit()
+ }
+ 

@@ -1,0 +1,250 @@
+{
+  "makespan": 179710,
+  "instruction_count": 196,
+  "sha256": "ac0e4978cab2ddefb550f505da97f1f8a73b55b35f22b0c6df745e22b82c30a3",
+  "instruction_duration_sum_by_type": {
+    "Sub": 20337,
+    "DmaLoad": 122161,
+    "Core": 61965,
+    "Main": 114159,
+    "DmaStos": 23132,
+    "DmaStore": 434
+  },
+  "stages": {
+    "native_first_contraction": [
+      {
+        "index": "255",
+        "type": "Main",
+        "begin": 92004,
+        "end": 99488,
+        "cycles": 7484
+      },
+      {
+        "index": "322",
+        "type": "Main",
+        "begin": 123727,
+        "end": 131211,
+        "cycles": 7484
+      }
+    ],
+    "scale_bf16_lookup": [
+      {
+        "index": "178",
+        "type": "Main",
+        "begin": 74732,
+        "end": 76120,
+        "cycles": 1388
+      },
+      {
+        "index": "305",
+        "type": "Main",
+        "begin": 122339,
+        "end": 123727,
+        "cycles": 1388
+      }
+    ],
+    "scale_trf_load": [
+      {
+        "index": "215",
+        "type": "Sub",
+        "begin": 78139,
+        "end": 80202,
+        "cycles": 2063
+      },
+      {
+        "index": "324",
+        "type": "Sub",
+        "begin": 123727,
+        "end": 125790,
+        "cycles": 2063
+      }
+    ],
+    "second_contraction": [
+      {
+        "index": "260",
+        "type": "Main",
+        "begin": 99488,
+        "end": 100205,
+        "cycles": 717
+      },
+      {
+        "index": "331",
+        "type": "Main",
+        "begin": 131211,
+        "end": 131928,
+        "cycles": 717
+      }
+    ],
+    "gather256": [
+      {
+        "index": "265",
+        "type": "Main",
+        "begin": 100205,
+        "end": 108662,
+        "cycles": 8457
+      },
+      {
+        "index": "337",
+        "type": "Main",
+        "begin": 131928,
+        "end": 140385,
+        "cycles": 8457
+      }
+    ],
+    "up_weight_hbm": [
+      {
+        "index": "84",
+        "type": "DmaLoad",
+        "begin": 34507,
+        "end": 63934,
+        "cycles": 29427
+      }
+    ],
+    "gate_weight_hbm": [
+      {
+        "index": "244",
+        "type": "DmaLoad",
+        "begin": 82838,
+        "end": 112265,
+        "cycles": 29427
+      }
+    ],
+    "up_scale_hbm": [
+      {
+        "index": "148",
+        "type": "DmaLoad",
+        "begin": 65625,
+        "end": 72190,
+        "cycles": 6565
+      }
+    ],
+    "gate_scale_hbm": [
+      {
+        "index": "276",
+        "type": "DmaLoad",
+        "begin": 113643,
+        "end": 120208,
+        "cycles": 6565
+      }
+    ],
+    "up_typed_gather": [
+      {
+        "index": "274",
+        "type": "DmaStos",
+        "begin": 112277,
+        "end": 113643,
+        "cycles": 1366
+      },
+      {
+        "index": "281",
+        "type": "Core",
+        "begin": 113643,
+        "end": 113643,
+        "cycles": 0
+      }
+    ],
+    "gate_typed_gather": [
+      {
+        "index": "356",
+        "type": "DmaStos",
+        "begin": 140385,
+        "end": 141751,
+        "cycles": 1366
+      },
+      {
+        "index": "361",
+        "type": "Core",
+        "begin": 141751,
+        "end": 141751,
+        "cycles": 0
+      }
+    ]
+  },
+  "scalar_storage": [
+    {
+      "second_dpe": "260",
+      "scalar_tensor": {
+        "name": "vISA(T314)_i7_compact_full256_rows_10",
+        "index": "125",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 99488,
+          "end": 108662,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 50200576,
+        "size": 122880,
+        "physical_pages": [
+          13
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, 1 # 4)]",
+        "fingerprint": null
+      },
+      "gather": "265",
+      "gather_tensor": {
+        "name": "vISA(T315)_i7_compact_full256_rows_0",
+        "index": "126",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 100205,
+          "end": 108662,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 235667456,
+        "size": 7864320,
+        "physical_pages": [
+          6
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: 1 # 256, Element: (FfnRow, FfnSlice)]",
+        "fingerprint": null
+      },
+      "gather_waits_for_scalar_commit": true
+    },
+    {
+      "second_dpe": "331",
+      "scalar_tensor": {
+        "name": "vISA(T316)_i8_compact_full256_rows_10",
+        "index": "148",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 131211,
+          "end": 140385,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 32243712,
+        "size": 122880,
+        "physical_pages": [
+          11
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, 1 # 4)]",
+        "fingerprint": null
+      },
+      "gather": "337",
+      "gather_tensor": {
+        "name": "vISA(T317)_i8_compact_full256_rows_0",
+        "index": "149",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 131928,
+          "end": 140385,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 50855936,
+        "size": 7864320,
+        "physical_pages": [
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: 1 # 256, Element: (FfnRow, FfnSlice)]",
+        "fingerprint": null
+      },
+      "gather_waits_for_scalar_commit": true
+    }
+  ],
+  "row2_row30_makespan": 170176,
+  "e39_tailzero_row256_makespan": 175459,
+  "warning": "Static schedule only; overlap means stage durations are not additive runtime cycles. Gather Slice1#256 has one live slice and256 physical slice slots."
+}

@@ -1,0 +1,584 @@
+{
+  "date": "2026-09-21",
+  "candidate_mlp_sha256": "28cf2313c22e5065c0e32a09e44dc28f7375991a31602d20e898a6fca25e087f",
+  "captured_e40_mlp_sha256": "28cf2313c22e5065c0e32a09e44dc28f7375991a31602d20e898a6fca25e087f",
+  "raw_log": "moa-dev/logs/e40-row2-tail-zero-job-70552.log",
+  "raw_log_sha256": "7cab6ba9d0510d68d6df0d2b52f9a8066f09b63862e62f9bbee064766115dd69",
+  "schedule_sha256": "b0314dbe0613227d44365ca66a398a1d78eb456b1bcf5a223f6eeaa8b4451af7",
+  "graph_sha256": "53a894dc4cf6b44ad13336f55bc5d7949b6437ed8b02ca9d74d54200e08e09a6",
+  "npu_result": {
+    "job": 70552,
+    "status": "FAILED",
+    "official_ffn_runs": 3,
+    "failure_each": "non-finite device output at 0",
+    "qkv_median": 96455,
+    "output_median": 45927,
+    "ffn_reported_cycles_invalid_for_performance": 432862,
+    "valid_combined_score": false
+  },
+  "wire_layout_assessment": "No static evidence of Row30 retaining32 physical rows after compact commit. Before alias and after alias are same61440B allocation, same addresses, same Slice1#2 padding. Commit stores60 BF16/active slice; following DMA copies120B/group. This does not prove NPU execution of Switch/transpose or identify failure origin.",
+  "cases": [
+    {
+      "projection": "up",
+      "graph_input_view_id": "141",
+      "input_view": {
+        "name": "",
+        "buffer_type": "Sram",
+        "shape": {
+          "MappingShape": {
+            "inner": {
+              "region": "Sram",
+              "mappings": {
+                "Chip": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "Cluster": {
+                  "Symbol": {
+                    "symbol": "Dummy2",
+                    "size": 2
+                  }
+                },
+                "Partitioning": {
+                  "Symbol": {
+                    "symbol": "FfnSlice",
+                    "size": 256
+                  }
+                },
+                "InSlice": {
+                  "Padding": {
+                    "inner": {
+                      "Resize": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "FfnRow",
+                            "size": 32
+                          }
+                        },
+                        "resize": 30
+                      }
+                    },
+                    "padding": 32,
+                    "kind": "Top"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "element_type": "Bfloat16",
+        "size": 32768,
+        "optionals": {
+          "address": "62464"
+        }
+      },
+      "graph_gather_output_id": "142",
+      "gather_output": {
+        "name": "",
+        "buffer_type": "Sram",
+        "shape": {
+          "MappingShape": {
+            "inner": {
+              "region": "Sram",
+              "mappings": {
+                "Chip": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "Cluster": {
+                  "Symbol": {
+                    "symbol": "Dummy2",
+                    "size": 2
+                  }
+                },
+                "Partitioning": {
+                  "Pair": {
+                    "left": {
+                      "Stride": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "FfnSlice",
+                            "size": 256
+                          }
+                        },
+                        "stride": 2
+                      }
+                    },
+                    "right": {
+                      "Padding": {
+                        "inner": {
+                          "Broadcast": {
+                            "size": 1
+                          }
+                        },
+                        "padding": 2,
+                        "kind": "Top"
+                      }
+                    }
+                  }
+                },
+                "InSlice": {
+                  "Pair": {
+                    "left": {
+                      "Resize": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "FfnRow",
+                            "size": 32
+                          }
+                        },
+                        "resize": 30
+                      }
+                    },
+                    "right": {
+                      "Modulo": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "FfnSlice",
+                            "size": 256
+                          }
+                        },
+                        "modulo": 2
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "element_type": "Bfloat16",
+        "size": 61440,
+        "optionals": {
+          "address": "246016"
+        }
+      },
+      "graph_alias_output_id": "146",
+      "alias_output": {
+        "name": "",
+        "buffer_type": "Sram",
+        "shape": {
+          "MappingShape": {
+            "inner": {
+              "region": "Sram",
+              "mappings": {
+                "Chip": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "Cluster": {
+                  "Stride": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "L",
+                        "size": 15360
+                      }
+                    },
+                    "stride": 7680
+                  }
+                },
+                "Partitioning": {
+                  "Pair": {
+                    "left": {
+                      "Modulo": {
+                        "inner": {
+                          "Stride": {
+                            "inner": {
+                              "Symbol": {
+                                "symbol": "L",
+                                "size": 15360
+                              }
+                            },
+                            "stride": 60
+                          }
+                        },
+                        "modulo": 128
+                      }
+                    },
+                    "right": {
+                      "Padding": {
+                        "inner": {
+                          "Broadcast": {
+                            "size": 1
+                          }
+                        },
+                        "padding": 2,
+                        "kind": "Top"
+                      }
+                    }
+                  }
+                },
+                "InSlice": {
+                  "Modulo": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "L",
+                        "size": 15360
+                      }
+                    },
+                    "modulo": 60
+                  }
+                }
+              }
+            }
+          }
+        },
+        "element_type": "Bfloat16",
+        "size": 61440,
+        "optionals": {
+          "address": "246016"
+        }
+      },
+      "gather_operator_id": "162",
+      "gather_operator": {
+        "name": "RenegadeCommand#O121",
+        "description": "Renegade::TuExec\n[] | [Dummy2_1=2] | [FfnSlice_1=256] | [FfnRow_1=32] | [](1)\nfetch_sequencer: 0+[None=30:1, None=16:1]\nfetch_size: 32\n\nfetch_network:\n  broadcast_kind: Dim1Broadcast { dim0_volume: 1, dim1_volume: 2, dim0_chunk_volume: 1, tile_label: None }, bf16\n   input: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_1=256] | H: [FfnRow_1=30, [[]+15]=16] ] (1)\n  stream: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_1=30, FfnSlice_1=2, <fn_packet>[[]+15]=16<fn_packet>] ] (1)\n  output: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_1=30, FfnSlice_1=2, [[]+15]=16] ] (16), (channels: 1 = flit_length: 16)\n\n\ntranspose_engine:\nTransposeEngine { num_flit: NumFlit(1u8), in_rows: InRows(4u5), out_rows: OutRows(1u6), data_type: Bfloat16, pack_mode: Single } TransposeEngineWiring { input_shape: [ Chip: [] | Cluster: [Dummy2_1=2] | Partitioning: [FfnSlice_2=128, [[]+1]=2] | InSlice: [FfnRow_1=30, FfnSlice_1=2, [[]+15]=16] ] (1), output_shape: [ Chip: [] | Cluster: [Dummy2_1=2] | Partitioning: [FfnSlice_2=128, [[]+1]=2] | InSlice: [FfnRow_2=15, [[FfnRow_1=2]+6]=8, FfnSlice_1=2] ] (1), execution_context: Main { dual_channel: false } }\ncommit_unit:\n   input: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_2=15, [[FfnRow_1=2]+6]=8, FfnSlice_1=2] ] (1)\n  commit_in_size: 8B (=4EA)\n  sliced: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_2=15, FfnRow_1=2, FfnSlice_1=2] ] (1)\n  output: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_1=30, FfnSlice_1=2] ] (1)\n  commit_projection: 0+[None=15:4, None=4:1]\n\ncontext: Main\n\n\nname: RenegadeCommand#O121\n",
+        "inputs": [
+          141
+        ],
+        "outputs": [
+          142
+        ],
+        "context": "Main",
+        "kind": "TuExec",
+        "subgraph": null,
+        "loop_info": null,
+        "history": {},
+        "optionals": {},
+        "is_external": false
+      },
+      "alias_operator_id": "163",
+      "alias_operator": {
+        "name": "LowLevelReshape#O125",
+        "description": "LowLevelReshape\nname: LowLevelReshape#O125\n",
+        "inputs": [
+          142
+        ],
+        "outputs": [
+          146
+        ],
+        "context": "Sub",
+        "kind": "LowLevelReshape",
+        "subgraph": null,
+        "loop_info": null,
+        "history": {},
+        "optionals": {},
+        "is_external": false
+      },
+      "dma_operator_id": "165",
+      "dma_operator": {
+        "name": "DmaCommand#O129",
+        "description": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\ndst1: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=0, dmn=1, slice=0, in_slice=0x0)\nsrc2: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\ndst2: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc3: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\ndst3: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=1, dmn=1, slice=0, in_slice=0x0)\nsrc4: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst4: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc5: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\ndst5: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=2, dmn=1, slice=0, in_slice=0x0)\nsrc6: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\ndst6: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\ndst7: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=3, dmn=1, slice=0, in_slice=0x0)\n\nname: DmaCommand#O129\nhistory: ",
+        "inputs": [
+          146,
+          150
+        ],
+        "outputs": [
+          151
+        ],
+        "context": "Dma",
+        "kind": "Dma.StoS",
+        "subgraph": null,
+        "loop_info": null,
+        "history": {},
+        "optionals": {},
+        "is_external": false
+      },
+      "same_address_and_size_through_alias": true,
+      "commit_logical_elements": 60,
+      "commit_bytes_per_active_slice": 120,
+      "dma_bytes_per_group": 120
+    },
+    {
+      "projection": "gate",
+      "graph_input_view_id": "144",
+      "input_view": {
+        "name": "",
+        "buffer_type": "Sram",
+        "shape": {
+          "MappingShape": {
+            "inner": {
+              "region": "Sram",
+              "mappings": {
+                "Chip": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "Cluster": {
+                  "Symbol": {
+                    "symbol": "Dummy2",
+                    "size": 2
+                  }
+                },
+                "Partitioning": {
+                  "Symbol": {
+                    "symbol": "FfnSlice",
+                    "size": 256
+                  }
+                },
+                "InSlice": {
+                  "Padding": {
+                    "inner": {
+                      "Resize": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "FfnRow",
+                            "size": 32
+                          }
+                        },
+                        "resize": 30
+                      }
+                    },
+                    "padding": 32,
+                    "kind": "Top"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "element_type": "Bfloat16",
+        "size": 32768,
+        "optionals": {
+          "address": "97792"
+        }
+      },
+      "graph_gather_output_id": "145",
+      "gather_output": {
+        "name": "",
+        "buffer_type": "Sram",
+        "shape": {
+          "MappingShape": {
+            "inner": {
+              "region": "Sram",
+              "mappings": {
+                "Chip": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "Cluster": {
+                  "Symbol": {
+                    "symbol": "Dummy2",
+                    "size": 2
+                  }
+                },
+                "Partitioning": {
+                  "Pair": {
+                    "left": {
+                      "Stride": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "FfnSlice",
+                            "size": 256
+                          }
+                        },
+                        "stride": 2
+                      }
+                    },
+                    "right": {
+                      "Padding": {
+                        "inner": {
+                          "Broadcast": {
+                            "size": 1
+                          }
+                        },
+                        "padding": 2,
+                        "kind": "Top"
+                      }
+                    }
+                  }
+                },
+                "InSlice": {
+                  "Pair": {
+                    "left": {
+                      "Resize": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "FfnRow",
+                            "size": 32
+                          }
+                        },
+                        "resize": 30
+                      }
+                    },
+                    "right": {
+                      "Modulo": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "FfnSlice",
+                            "size": 256
+                          }
+                        },
+                        "modulo": 2
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "element_type": "Bfloat16",
+        "size": 61440,
+        "optionals": {
+          "address": "26880"
+        }
+      },
+      "graph_alias_output_id": "147",
+      "alias_output": {
+        "name": "",
+        "buffer_type": "Sram",
+        "shape": {
+          "MappingShape": {
+            "inner": {
+              "region": "Sram",
+              "mappings": {
+                "Chip": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "Cluster": {
+                  "Stride": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "L",
+                        "size": 15360
+                      }
+                    },
+                    "stride": 7680
+                  }
+                },
+                "Partitioning": {
+                  "Pair": {
+                    "left": {
+                      "Modulo": {
+                        "inner": {
+                          "Stride": {
+                            "inner": {
+                              "Symbol": {
+                                "symbol": "L",
+                                "size": 15360
+                              }
+                            },
+                            "stride": 60
+                          }
+                        },
+                        "modulo": 128
+                      }
+                    },
+                    "right": {
+                      "Padding": {
+                        "inner": {
+                          "Broadcast": {
+                            "size": 1
+                          }
+                        },
+                        "padding": 2,
+                        "kind": "Top"
+                      }
+                    }
+                  }
+                },
+                "InSlice": {
+                  "Modulo": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "L",
+                        "size": 15360
+                      }
+                    },
+                    "modulo": 60
+                  }
+                }
+              }
+            }
+          }
+        },
+        "element_type": "Bfloat16",
+        "size": 61440,
+        "optionals": {
+          "address": "26880"
+        }
+      },
+      "gather_operator_id": "189",
+      "gather_operator": {
+        "name": "RenegadeCommand#O124",
+        "description": "Renegade::TuExec\n[] | [Dummy2_1=2] | [FfnSlice_1=256] | [FfnRow_1=32] | [](1)\nfetch_sequencer: 0+[None=30:1, None=16:1]\nfetch_size: 32\n\nfetch_network:\n  broadcast_kind: Dim1Broadcast { dim0_volume: 1, dim1_volume: 2, dim0_chunk_volume: 1, tile_label: None }, bf16\n   input: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_1=256] | H: [FfnRow_1=30, [[]+15]=16] ] (1)\n  stream: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_1=30, FfnSlice_1=2, <fn_packet>[[]+15]=16<fn_packet>] ] (1)\n  output: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_1=30, FfnSlice_1=2, [[]+15]=16] ] (16), (channels: 1 = flit_length: 16)\n\n\ntranspose_engine:\nTransposeEngine { num_flit: NumFlit(1u8), in_rows: InRows(4u5), out_rows: OutRows(1u6), data_type: Bfloat16, pack_mode: Single } TransposeEngineWiring { input_shape: [ Chip: [] | Cluster: [Dummy2_1=2] | Partitioning: [FfnSlice_2=128, [[]+1]=2] | InSlice: [FfnRow_1=30, FfnSlice_1=2, [[]+15]=16] ] (1), output_shape: [ Chip: [] | Cluster: [Dummy2_1=2] | Partitioning: [FfnSlice_2=128, [[]+1]=2] | InSlice: [FfnRow_2=15, [[FfnRow_1=2]+6]=8, FfnSlice_1=2] ] (1), execution_context: Main { dual_channel: false } }\ncommit_unit:\n   input: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_2=15, [[FfnRow_1=2]+6]=8, FfnSlice_1=2] ] (1)\n  commit_in_size: 8B (=4EA)\n  sliced: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_2=15, FfnRow_1=2, FfnSlice_1=2] ] (1)\n  output: [ Chip: [] | C: [Dummy2_1=2] | P: [FfnSlice_2=128, [[]+1]=2] | H: [FfnRow_1=30, FfnSlice_1=2] ] (1)\n  commit_projection: 0+[None=15:4, None=4:1]\n\ncontext: Main\n\n\nname: RenegadeCommand#O124\n",
+        "inputs": [
+          144
+        ],
+        "outputs": [
+          145
+        ],
+        "context": "Main",
+        "kind": "TuExec",
+        "subgraph": null,
+        "loop_info": null,
+        "history": {},
+        "optionals": {},
+        "is_external": false
+      },
+      "alias_operator_id": "190",
+      "alias_operator": {
+        "name": "LowLevelReshape#O126",
+        "description": "LowLevelReshape\nname: LowLevelReshape#O126\n",
+        "inputs": [
+          145
+        ],
+        "outputs": [
+          147
+        ],
+        "context": "Sub",
+        "kind": "LowLevelReshape",
+        "subgraph": null,
+        "loop_info": null,
+        "history": {},
+        "optionals": {},
+        "is_external": false
+      },
+      "dma_operator_id": "191",
+      "dma_operator": {
+        "name": "DmaCommand#O133",
+        "description": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\ndst1: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=0, dmn=1, slice=0, in_slice=0x0)\nsrc2: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\ndst2: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc3: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\ndst3: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=1, dmn=1, slice=0, in_slice=0x0)\nsrc4: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst4: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc5: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\ndst5: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=2, dmn=1, slice=0, in_slice=0x0)\nsrc6: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\ndst6: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [L_60=16:8388608, L_960=2:134217728, None=1:120], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\ndst7: [L_60=16:4194304, L_960=2:67108864, None=1:120], Sram(chip=0, cluster=0, pe=3, dmn=1, slice=0, in_slice=0x0)\n\nname: DmaCommand#O133\nhistory: ",
+        "inputs": [
+          147,
+          154
+        ],
+        "outputs": [
+          155
+        ],
+        "context": "Dma",
+        "kind": "Dma.StoS",
+        "subgraph": null,
+        "loop_info": null,
+        "history": {},
+        "optionals": {},
+        "is_external": false
+      },
+      "same_address_and_size_through_alias": true,
+      "commit_logical_elements": 60,
+      "commit_bytes_per_active_slice": 120,
+      "dma_bytes_per_group": 120
+    }
+  ],
+  "later_comparison": {
+    "e41_job": 70562,
+    "official_all15_pass": true,
+    "ffn_median": 426442,
+    "measurement": "../../../../docs/experiments/e41-native-row30.json",
+    "confounders": [
+      "actual row30 instead of row32+zero tail",
+      "output BF16 scalar slot1#4 (8-byte row stride) instead of contiguous BF162-byte row stride",
+      "removed zero staging and changed allocation/scheduling"
+    ],
+    "conclusion": "Row2 alone and the final60-row alias cannot be identified as the E40 root cause. No further experiment in this audit.",
+    "e42_submitted_job": 70576,
+    "e42_result_not_assumed": true
+  }
+}

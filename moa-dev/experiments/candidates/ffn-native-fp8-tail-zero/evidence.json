@@ -1,0 +1,110 @@
+{
+  "date": "2026-09-21",
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "baseline_source_sha256": "7c363a7f116ff9ebf4027f6a9957faa5cb3ce74aac85b3c5f7b6579ff628b267",
+  "baseline_static_cycles": 191836,
+  "source_sha256": {
+    "mlp.rs": "07910fa5b11bd23c7da97c7c31c431db6629fe7db95cead2eaf5cdda482f1514",
+    "ops.rs": "afc2d11998903a5afc9750abd7f01ec6b54103964752de86efae49aa4e206560",
+    "mlp.attempt1.rs": "31c312de7217721c2ee37c31d9bbb5c256b2b6f32040455c31b09800c564e045"
+  },
+  "exact_compile": "PASS secondattempt",
+  "static_cycles": 175459,
+  "instruction_count": 248,
+  "delta_percent": -8.536979503325759,
+  "npu_correctness": "NOT TESTED",
+  "npu_jobs_by_this_agent": 0,
+  "sdk_constraint": {
+    "source": "furiosa-opt-std0.8.1/src/tensor/memory.rs:1375-1377",
+    "rule": "Only whole-regionmemset; tiledviewmemsetrejectedattranslation",
+    "consequence": "Actual2-rowzeroDm+typedSubcopytoview,notclaimedpaddingzeros"
+  },
+  "initialization": {
+    "weight": {
+      "valid_byte_range": [
+        0,
+        115200
+      ],
+      "tail_byte_range": [
+        115200,
+        122880
+      ],
+      "zero_source_bytes_per_slice": 7680
+    },
+    "scale": {
+      "valid_byte_range": [
+        0,
+        7200
+      ],
+      "tail_byte_range": [
+        7200,
+        7680
+      ],
+      "zero_source_bytes_per_slice": 480
+    },
+    "same_protocol_buffers": [
+      "up_weight",
+      "gate_weight",
+      "up_scale",
+      "gate_scale"
+    ],
+    "source_zero_fills": 4,
+    "destination_full_fills": 0,
+    "logical_coverage": "Each destinationbyte exactly once;valid30directwrite andtail2zero write disjoint",
+    "dependency_evidence": "dependency-evidence.json",
+    "first_consumers_after_both_writes": true,
+    "zero_producer_and_both_writes_are_DAG_ancestors": true
+  },
+  "costs": {
+    "old_weight32_memset_each": 15626,
+    "new_weight2_memset_each": 1226,
+    "new_weight_tail_Subcopy_each": 1227,
+    "old_scale32_memset_each": 1226,
+    "new_scale2_memset_each": 326,
+    "new_scale_tail_Subcopy_each": 385
+  },
+  "unchanged": [
+    "all32live rows and256live slices",
+    "first30F4->F8directcommit",
+    "first30scaleHBMdirectDMA",
+    "DPEhelperbyteidentical",
+    "outputgatherandallfollowingMLPbyteidentical",
+    "ops/residual",
+    "allFP8/BF16boundaries"
+  ],
+  "new_cast_count": 0,
+  "merge_note": "Only fourbufferinitializationreplacements; independentofrow2HBMview/outputgather changes",
+  "attempts": [
+    {
+      "n": 1,
+      "result": "FAIL",
+      "error": "DmaCommand source_accessing_range_local.end <= input_tensor_range failed copying2rowzero tooffset30tile",
+      "log": "attempt-1-dma-range-failed.log"
+    },
+    {
+      "n": 2,
+      "result": "PASS",
+      "change": "ReplaceTDMAzero copywithtypedSubfetch/collect/commit_view; sourceactual2rowzero remains",
+      "log": "compile.log"
+    }
+  ],
+  "schedule_sha256": "85bc0b33a49cdd42ef8ede20e5e02162274d31735ac072ecb146271ede68d3e6",
+  "schedule_file_untracked": "/tmp/moa-ffn-native-fp8-tail-zero-schedule.json",
+  "scratch": "/tmp/moa-ffn-native-fp8-tail-zero",
+  "cargo_target_dir": "/tmp/moa-ffn-native-fp8-tail-zero/target",
+  "furiosa_opt_out_dir": "/tmp/moa-ffn-native-fp8-tail-zero/target/furiosa-opt/kernel",
+  "compile_command": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/tail-zero.json",
+  "kernel_bin_sha256": "d2004f373a97b649090a91a9e448f609d2955a9a6f50e327a23ec33baea776ba",
+  "arena_screen": {
+    "job": 70551,
+    "valid": true,
+    "cycles": {
+      "qkv": 97459,
+      "output": 45220,
+      "ffn": 415457
+    },
+    "extra_inputs": "not tested",
+    "decision": "Not adopted; FFN slower than E37 repeated median379741"
+  }
+}

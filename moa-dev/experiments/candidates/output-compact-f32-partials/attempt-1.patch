@@ -1,0 +1,37 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -299,7 +299,7 @@
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H % 1920, Qs]> = unsafe { weight.view().reshape() };
+     let weight: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 60, Qs % 512]> = weight.to_dm(&mut device.tdma);
+-    let partial: DmTensor<f32, Chip, OutputCluster, OutputColumns, m![H % 60, 1 # 8]> = device
++    let partial: DmTensor<f32, Chip, OutputCluster, OutputColumns, m![H % 60]> = device
+         .main.begin(weight.view())
+         .fetch::<m![H % 60, Qs / 32 % 16], m![Qs % 32]>()
+         .collect::<m![H % 60, Qs / 32 % 16], m![Qs % 32]>()
+@@ -315,16 +315,17 @@
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &input_scale_vrf)
+         .vector_widen_concat::<m![H % 60], m![1 # 8]>()
+         .vector_final()
+-        .commit_trim::<m![1 # 8]>().commit();
+-    // Pair sum and inter-slice sum share an AddF unit; retain F32 in DM.
++        .transpose::<m![H / 2 % 30], m![H % 2 # 8]>()
++        .commit_trim::<m![H % 2]>().commit();
++    // Keep the pair/column arithmetic unchanged; pack two F32 rows per 8B DM word.
+     let result: DmTensor<bf16, Chip, OutputCluster, OutputRows, m![H % 60]> = device
+         .main.begin(partial.view())
+-        .fetch::<m![H % 60], m![1 # 8]>()
+-        .collect::<m![H % 60], m![1 # 8]>()
+-        .vector_init()
+-        .vector_inter_slice_reduce::<OutputRows, m![H % 60]>(InterSliceReduceOpF32::Add)
+-        .vector_final()
+-        .cast::<bf16, m![1 # 16]>()
++        .fetch::<m![H / 2 % 30], m![H % 2 # 8]>()
++        .collect::<m![H / 2 % 30], m![H % 2 # 8]>()
++        .vector_init()
++        .vector_inter_slice_reduce::<OutputRows, m![H / 2 % 30]>(InterSliceReduceOpF32::Add)
++        .vector_final()
++        .cast::<bf16, m![H % 2 # 16]>()
+         .transpose::<m![H / 4 % 15], m![H % 4 # 16]>()
+         .commit_trim::<m![H % 4]>()
+         .commit();

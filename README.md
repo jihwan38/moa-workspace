@@ -6,6 +6,20 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
+현재 `baseline`의 검증된 E37은 세 커널을 같은 패키지로 3회 실행하고 추가 입력 6세트 검사를 통과했다.
+아래는 각 job 중앙값의 중앙값이며, 전체 Gemma 추론 속도나 공식 순위를 뜻하지 않는다.
+
+| 커널 | 원본 cycles | E37 cycles | 원본 대비 |
+|---|---:|---:|---:|
+| QKV | 244,051 | 94,195 | 2.59× |
+| Attention output | 404,222 | 45,748 | 8.84× |
+| FFN | 4,264,297 | 379,741 | 11.23× |
+
+[반복 측정](docs/experiments/e37-combined-repeats.json), [추가 입력 검사](docs/experiments/e37-combined-extra-correctness.json),
+[채택·실패 실험 원장](docs/experiments/README.md)에 소스/바이너리/업로드 패키지의 SHA256과 근거를 기록한다.
+공식 제출 서버는 평가 기준 수정으로 중단 중이며, 별도 제출기 인증도 아직 완료하지 않았다.
+[공식 상태 확인](docs/experiments/official-submission-status-20260921.json).
+
 ```text
 moa-workspace/
 ├── furiosa-opt-gemma4-12B/   # 공식 대회 코드와 빌드 결과

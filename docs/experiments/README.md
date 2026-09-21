@@ -5,9 +5,13 @@ An Arena result is a development measurement; official ranking requires `moa-sub
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.
-E36 has passed30 additional comparisons. E37 is the latest passing combined screen (94094/45796/376040); its additional-input and repeated-package checks are pending.
-E29 remains a passing earlier screen; E30 is a passing paired QKV control. E28/E32 timeout,
-and E33 has substantial FFN correctness failures. Diagnostic jobs are separated below.
+E36 has passed30 additional comparisons. E37 is the adopted repeated checkpoint: jobs70519/70528/70541
+and30 additional-input comparisons all pass; its median-of-job-medians is94195/45748/379741.
+E29 also completed three passing control jobs70428/70482/70493; E27 remains a single official-package screen
+with separate additional-input coverage. E30 is a passing paired QKV control. E41 passes all15 comparisons
+but its native FFN remains slower than the adopted checkpoint. E42 also passes and is slower.
+E28/E32 time out, E33 has substantial FFN correctness failures, and E40 produces non-finite FFN output.
+Diagnostic jobs are separated below.
 
 | Variant | Arena jobs | Accuracy | QKV cycles | O cycles | FFN cycles | Decision |
 |---|---|---|---:|---:|---:|---|
@@ -44,23 +48,35 @@ and E33 has substantial FFN correctness failures. Diagnostic jobs are separated 
 | E26 O channel scale/RMS/residual on eight slices | 70361 | Pass | 104895 | 52579 | 389949 | Retain; O10.93% below E24 screen, additional30 comparisons pass70381 |
 | E27 Q/K two-lane, V separate hi/lo dots + E26 O | 70382 | Pass | 97247 | 52543 | 386729 | Extended-check checkpoint; extra30 pass70409; V workaround does not establish root cause |
 | E28 explicit ×1 on pair group0, native FP8 FFN | 70410 | QKV/O pass; first FFN launch timeout | 98428 | 53363 | — | Reject; exit101/rank0, no FFN output or cycles; no valid combined score |
-| E29 sharded QKV input + direct-packed O + safe FFN | 70428 | Pass | 94491 | 49352 | 389199 | Latest passing screen; QKV/O2.83%/6.07% below E27 screen; extra inputs and repeats outstanding |
+| E29 sharded QKV input + direct-packed O + safe FFN | 70428 | Pass | 94491 | 49352 | 389199 | Initial screen; QKV/O2.83%/6.07% below E27 screen; completed control repeats below |
+| E29 same package control repeated | 70428, 70482, 70493 | Pass | 94491 | 49228 | 388311 | Medians across3 jobs; QKV image retained in E37; distinct from E27 single-screen evidence |
 | E30 all-pair skip control + safe FFN | 70440 | Pass | 98599 | 52113 | 389137 | Direct-packed QKV passes without explicit ×1; identity is not required for these inputs |
-| E31 Switch gather/local RMS sum + E29 | 70441 | Pass | 98797 | 45355 | 389335 | O improves; QKV screen slower, repeat required; extra30 pass70448 |
+| E31 Switch gather/local RMS sum + E29 | 70441 | Pass | 98797 | 45355 | 389335 | Initial screen; completed package repeats below; extra30 pass70448 |
 | E31 same package repeated | 70441, 70459, 70465 | Pass | 97085 | 45355 | 389335 | Four-file package hashes identical; job-median ranges2.714%/1.965%/0.177% |
 | E32 pair-free native FP8 FFN diagnostic | 70447 | QKV/O pass; first FFN launch timeout | 99692 | 52233 | — | Reject; removing Sequential pair does not resolve common native packet4 path |
 | E33 BF16 down block/scale DPE + E31 | 70455 | QKV/O pass; FFN fail | 96585 | 45738 | — | Reject; only12.94–16.17% FFN values within tolerance; causes unresolved |
 | E34 O row2 interleave + E31 packed/parallel | 70472 | Pass | 97092 | 47308 | 389291 | Reject for performance; O4.31% above E31 repeat median |
 | E35 native FP8 full256 live rows + real zero tails | 70485 | Pass | 97301 | 45799 | 811219 | Diagnostic PASS; slower, establishes packet4+pair can execute in this configuration |
 | E36 FFN H480×8 epilogue + E31 | 70498 | Pass | 97052 | 45141 | 378021 | Retain; FFN2.91% below E31 repeat median; extra30 pass70506 |
-| E37 kernel-specific RMS + E36 FFN epilogue | 70519 | Pass | 94094 | 45796 | 376040 | Latest combined screen; each device image identical to its passing parent; repeats/extra pending |
+| E37 kernel-specific RMS + E36 FFN epilogue | 70519 | Pass | 94094 | 45796 | 376040 | Initial screen; each device image identical to its passing parent; completed repeats/extra below |
+| E37 same package repeated | 70519, 70528, 70541 | Pass | 94195 | 45748 | 379741 | Adopted checkpoint; four uploaded file hashes identical; extra30 pass70544 |
+| E38 full256 direct weight/scale writes | 70525 | Pass | 96579 | 45101 | 482511 | Faster than E35, slower than adopted BF16 FFN; reject as performance replacement |
+| E39 native FP8 with actual2-row tail initialization | 70551 | Pass | 97459 | 45220 | 415457 | Improves native branch but still slower than adopted BF16 FFN |
+| E40 native FP8 row2 mapping + tail-only initialization | 70552 | QKV/O pass; FFN non-finite | 96455 | 45927 | — | Reject; all3 FFN runs non-finite at output0; recorded432862 cycles invalid |
+| E41 native FP8 actual30-row view | 70562 | Pass | 96917 | 46477 | 426442 | Single-job screen; native branch passes but FFN is slower than E39 and adopted E37 |
+| E42 actual30 rows + row256 mapping | 70576 | Pass | 98728 | 45794 | 456849 | Reject for performance; slower than E37 |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.
-No same-package repeat has yet been completed for E27 or E29; their JSON `relative_range=0` reflects one job,
-not demonstrated zero variance. The older public-reference `indicative_score` of 5.748681 is an estimate,
-not an official score or current rank. See [E27 measurement](e27-qk-pair-v-two-dot.json),
-[E28 failure](e28-explicit-pair-identity.json), and [E29 measurement](e29-sharded-qkv-packed-output.json).
+E27 has one official-package screen; its JSON `relative_range=0` reflects one job, not demonstrated zero variance.
+Its separate additional-input job is a correctness check, not a same-package performance repeat.
+E29 completed three same-package control jobs, recorded separately from its original single-job JSON in
+[E29 control repeats](e29-qkv-input-control-repeats.json). See also [E27 measurement](e27-qk-pair-v-two-dot.json),
+[E28 failure](e28-explicit-pair-identity.json), and [E29 initial measurement](e29-sharded-qkv-packed-output.json).
+Public-reference `indicative_score` values remain estimates, not official scores or current ranks.
+
+[E41 job70562](e41-native-row30.json) passed all15 official-harness comparisons.
+[E42 native row30/row256 layout](e42-native-row30-row256.json), job70576, also passed all15 comparisons; FFN456849 cycles is slower than E37.
 
 The failed E4 and E5 experiments have identical reported FFN max/mean errors and tolerance pass rates
 for all three inputs. Their common two-row contraction/reduction/commit/copy path is the current
@@ -144,10 +160,15 @@ E36 additional run3..8 passed all30 comparisons in job70506 ([record](e36-ffn-ep
 Its QKV and O device binaries match E31; the changed FFN retains existing BF16 boundaries and uses
 H480×8 for down output/global scale/postnorm/residual/store. It has not yet completed package repeats.
 
-E29 control repeats70428/70482/70493 allpass: median94491/49228/388311, ranges1.812%/1.479%/0.476%.
+[E29 control repeats](e29-qkv-input-control-repeats.json)70428/70482/70493 allpass: median94491/49228/388311, ranges1.812%/1.479%/0.476%.
 This motivates using its byte-identical QKV image in E37 while keeping E36 output/FFN.
 
 E31 cache-preservation job70507 passes15 original outputs plus12 sentinel checks. All12,570,624
 non-target cache elements checked after launch match exactly; upload binary/fixture/runner hashes match.
 [Record](e31-cache-preservation-correctness.json). This custom harness is diagnostic and establishes
 preservation for E31's device code and those3target slots, not arbitrary input or later QKV binaries.
+
+E37 repeats70519/70528/70541 allpass, median94195/45748/379741. Job-median ranges0.143%/1.272%/0.984%.
+[Repeated package](e37-combined-repeats.json), [extra30 PASS job70544](e37-combined-extra-correctness.json).
+Nine independent configurations are tested: official runs0–2 repeated in3jobs, plus6development runs3–8.
+The repeated official inputs are not counted as nine different configurations. Public-reference indicative score6.121695 is not an official score or rank.
