@@ -75,7 +75,8 @@ E48 up-only fused decode passes its first screen, without a demonstrated perform
 | E47 sixteen-column O projection | 70664 | Pass | 94662 | 44309 | 377274 | Initial screen; completed repeats and extra inputs below |
 | E47 same package repeated | 70664, 70681, 70688 | Pass | 94662 | 44588 | 377564 | Adopted; O2.54% below E37 repeat median, extra30 pass70694 |
 | E48 up-only fused FP4 decode + E37 QKV/O | 70683 | Pass | 94545 | 47079 | 381532 | First screen; FFN0.47% above E37 repeat median; no adoption or general fused-FFN claim |
-| E50 down-only fused FP4 decode + E37 QKV/O | 70700 | Pass | 94030 | 46072 | 376184 | First screen; FFN0.94% below E37, pending combined repeats before adoption |
+| E50 down-only fused FP4 decode + E37 QKV/O | 70700 | Pass | 94030 | 46072 | 376184 | Initial screen; apparent gain was not reproduced by E51 repeats |
+| E51 E47 O16 + E50 down fused, repeated | 70712, 70722, 70736 | Pass | 94451 | 44876 | 381286 | Reject; FFN0.99% above E47 median; extra30 pass70719 |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.
@@ -211,9 +212,18 @@ are separate FFN experiments and are not part of the adopted E47 package.
 reduces Main work but delays pre-RMS and removes overlap of the second weight load with the first
 projection. Static makespan rises157866→189967 versus E48; no full build or NPU run was made.
 [E50 down-only fused](e50-down-fused-decode.json) passes15 comparisons in job70700 with FFN376184.
-Its small single-screen improvement is being checked in a separate E51 package combining E47 O16
-and E50 FFN. E51 is experimental and is not adopted while repeats/additional inputs are pending.
+The separate E51 package combines E47 O16 and E50 FFN. [All3 repeated jobs](e51-o16-down-fused-repeats.json)
+and [extra30 comparisons](e51-o16-down-fused-extra-correctness.json) pass, but FFN median381286 is0.99%
+above E47 377564. Its observed job-median range377392..384033 overlaps E47 377274..377606.
+The initial E50 apparent speedup was not reproduced; E47 remains adopted. [Combination audit](e51-combination-audit.json).
 
 [O32×128 compile-only candidate](../../moa-dev/experiments/candidates/output-fp8-thirtytwo-columns/README.md)
 regresses24621→37344 compared with E47 O16. Weight DMA rises13383→26218 while Main grows only171.
 No NPU execution or correctness claim is made; this candidate is not adopted.
+
+[Up-only eight-row staging](../../moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/README.md)
+is compile-only: in-place slots failed an abstract-buffer owner check; the owned-tensor correction
+compiled but regressed162209→162644. Main work decreases10994 while DMA grows3321 and Main/DMA
+overlap shrinks7340. The schedule memory-occupancy proxy falls8.97%, not a measured runtime peak.
+The final schedule has four simultaneously live FP4 tiles, so it is not a forced physical two-slot buffer.
+No NPU run or adoption was made.

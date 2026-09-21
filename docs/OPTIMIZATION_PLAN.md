@@ -193,9 +193,19 @@ Main에4,103이 추가되어162,209→166,181(+2.45%)로 회귀했고 NPU는 보
 E49는 up·gate를 모두 fused로 바꾸자 정적 Main 연산은 줄었지만 pre-RMS와 두 번째 weight
 전송이 늦어져 전체189,967 cycles로 회귀했다. [실행 순서 분석](../moa-dev/experiments/candidates/ffn-up-gate-fused-decode-e37/README.md)에
 근거해 NPU 없이 제외했다. E50은 down만 fused로 바꿔 job70700에서 공식15개 PASS,
-FFN376,184를 얻었다. 차이가 작아 E47 O16과 결합한 E51의 반복·추가 입력 검증으로
-판단하며, 그 전까지 채택 FFN은 E37을 유지한다.
+FFN376,184를 얻었다. E47 O16과 결합한 [E51 반복](experiments/e51-o16-down-fused-repeats.json)은 세 job 모두 PASS였으나
+FFN 중앙값381,286으로 E47의377,564보다0.99% 높았다. [추가30개](experiments/e51-o16-down-fused-extra-correctness.json)도
+통과했지만 성능 이득은 재현되지 않아 채택 FFN은 E37 구현을 유지한다.
 
 O32×128 분할도 exact compile로 비교했으나 E47의24,621→37,344(+51.68%)로 회귀했다.
 Weight DMA가13,383→26,218로 늘어 [O32 후보](../moa-dev/experiments/candidates/output-fp8-thirtytwo-columns/README.md)는
 NPU 없이 제외했다. O4/O8/O16/O32 비교에서는 검증된 O16을 유지한다.
+
+[Up 8행 staging](../moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/README.md)도 두 번의 compile으로
+검토했다. In-place slot 경로는 owner mismatch로 실패했고 owned tensor 경로는 통과했지만
+Main−10,994보다 DMA+3,321과 overlap 감소의 영향이 커 정적162,644로 회귀했다.
+메모리 점유 지표 약9% 감소를 속도 개선으로 취급하지 않고 NPU 없이 제외했다.
+현재 SDK에는 공개 prefetch priority/barrier/lifetime 강제 API가 없으므로
+[SDK API 검토](../moa-dev/experiments/candidates/ffn-up-gate-fused-decode-e37/scheduling-options.md)에 없는
+설정을 가정하지 않는다. 다음 변경은 새로운 데이터 배치·연산 경로 또는 공식 평가 조건의
+근거가 있을 때 시작하며, 같은 실패 변형을 다시 실행하지 않는다.

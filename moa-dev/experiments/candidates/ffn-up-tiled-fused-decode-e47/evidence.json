@@ -1,0 +1,424 @@
+{
+  "schema_version": 1,
+  "candidate": "ffn-up-tiled-fused-decode-e47",
+  "recorded_at_utc": "2026-09-21T12:33:56.378587+00:00",
+  "status": "compile-only, not adopted, no NPU execution; final exact compile passes but makespan regresses 435 cycles",
+  "compile_count": 2,
+  "attempts": [
+    {
+      "number": 1,
+      "result": "FAILED",
+      "reason": "abstract_buffer owner mismatch on overwritten FP4 8-row DM slot; same shape, T43 versus T61",
+      "source": {
+        "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/mlp.in-place-owner-failed.rs",
+        "bytes": 24491,
+        "sha256": "e0bf519dcc345db1f04da08eb1e1f50000910f5c64ae13c118e749bc653aa3f1"
+      },
+      "log": {
+        "path": "moa-dev/experiments/artifacts/ffn-up-tiled-fused-decode-e47/attempt-1.log",
+        "bytes": 5472,
+        "sha256": "2ae15701715a1f4d26ca3c44b05fd17f4692b33538978c1281775d1e3ae2552a"
+      }
+    },
+    {
+      "number": 2,
+      "result": "PASS",
+      "correction": "Fresh owned tensor revisions via to_dm/commit; compiler controls physical allocation, four FP4 tiles may coexist",
+      "source": {
+        "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/mlp.rs",
+        "bytes": 24102,
+        "sha256": "19362bb3f421b3295905825378748ab26d52fd45f6fa53400c5873e7b520d755"
+      },
+      "log": {
+        "path": "moa-dev/experiments/artifacts/ffn-up-tiled-fused-decode-e47/attempt-2.log",
+        "bytes": 1066,
+        "sha256": "c652fa79700bcf25c7c09ea293f44c6ebaffcf5ffb9730d49462bfbfd0457716"
+      }
+    }
+  ],
+  "source_contract": {
+    "frozen_parent": "moa-dev/experiments/artifacts/e47-output-sixteen-columns",
+    "src_file_count": 43,
+    "changed_paths": [
+      "device/shared/mlp.rs"
+    ],
+    "other_src_files_byte_identical": 42,
+    "ops_and_harness_unchanged": true,
+    "gate_down_and_geglu_suffix_byte_identical": true,
+    "staged_dot_helper_identical_except_compact_input_type_and_removing_full_matrix_tile": true,
+    "cargo_toolchain_lock_unchanged": true,
+    "candidate_matches_isolated_crate": true,
+    "compiled_container_46_input_hashes_match": true
+  },
+  "static_comparison": {
+    "baseline_makespan": 162209,
+    "candidate_makespan": 162644,
+    "delta_cycles": 435,
+    "delta_percent": 0.26817254283053593,
+    "context_deltas": {
+      "DmaEngine": 3321,
+      "PeCore": -24676,
+      "SubContext": 1550,
+      "MainContext": -10994,
+      "VectorEngine": 18332
+    },
+    "main_dma_overlap_delta": -7340,
+    "up_weight_dma": {
+      "baseline": 26475,
+      "candidate_each": 7030,
+      "candidate_count": 4,
+      "delta": 1645
+    },
+    "up_decode_main": {
+      "baseline": [
+        9863,
+        19463
+      ],
+      "candidate": [
+        4583,
+        4583,
+        4583,
+        4583
+      ],
+      "delta": -10994
+    },
+    "extra_table_dma": {
+      "838_cycle_load_count_delta": 2,
+      "delta_cycles": 1676
+    },
+    "lookup_sub_setup": {
+      "baseline": [
+        1293,
+        1293
+      ],
+      "candidate": [
+        1034,
+        1034,
+        1034,
+        1034
+      ],
+      "delta_cycles": 1550
+    },
+    "contexts_overlap": true
+  },
+  "buffer_findings": {
+    "designed_in_place_two_slot_version_compiled": false,
+    "final_maximum_simultaneously_live_fp4_tiles": 4,
+    "final_maximum_simultaneously_live_bf16_tiles": 2,
+    "scale_vrf_lifetimes_nonoverlapping": true,
+    "scale_vrf_shared_address": 262144,
+    "scale_vrf_bytes_per_live_slice": 7680,
+    "peak_metric_baseline_bytes": 250052608,
+    "peak_metric_candidate_bytes": 227627008,
+    "peak_metric_scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy.",
+    "peak_is_not_runtime_measurement": true
+  },
+  "selected_schedule_nodes": {
+    "tile_hbm_dma": [
+      {
+        "index": "193",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 44896,
+          "end": 51926
+        },
+        "description": "--> src/device/shared/mlp.rs:113:5\n\nsource.tile::<m![L % 32], 8, m![Dummy2, L / 32 % 240, L % 32 = 8 # 32, H]>(row_offset)\n.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "206",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 56553,
+          "end": 63583
+        },
+        "description": "--> src/device/shared/mlp.rs:113:5\n\nsource.tile::<m![L % 32], 8, m![Dummy2, L / 32 % 240, L % 32 = 8 # 32, H]>(row_offset)\n.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "231",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 64453,
+          "end": 71483
+        },
+        "description": "--> src/device/shared/mlp.rs:113:5\n\nsource.tile::<m![L % 32], 8, m![Dummy2, L / 32 % 240, L % 32 = 8 # 32, H]>(row_offset)\n.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "307",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 77553,
+          "end": 84583
+        },
+        "description": "--> src/device/shared/mlp.rs:113:5\n\nsource.tile::<m![L % 32], 8, m![Dummy2, L / 32 % 240, L % 32 = 8 # 32, H]>(row_offset)\n.to_dm(&mut device.tdma)"
+      }
+    ],
+    "fused_tile_decode": [
+      {
+        "index": "293",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 75003,
+          "end": 79586
+        },
+        "description": "--> src/device/shared/mlp.rs:121:5\n\ndevice\n.main\n.begin(packed.view())\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.fetch_cast::<f32>()\n.collect::<m![L % 32 = 8, H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      },
+      {
+        "index": "350",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 82740,
+          "end": 87323
+        },
+        "description": "--> src/device/shared/mlp.rs:121:5\n\ndevice\n.main\n.begin(packed.view())\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.fetch_cast::<f32>()\n.collect::<m![L % 32 = 8, H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      },
+      {
+        "index": "377",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 89529,
+          "end": 94112
+        },
+        "description": "--> src/device/shared/mlp.rs:121:5\n\ndevice\n.main\n.begin(packed.view())\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.fetch_cast::<f32>()\n.collect::<m![L % 32 = 8, H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      },
+      {
+        "index": "392",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 94121,
+          "end": 98704
+        },
+        "description": "--> src/device/shared/mlp.rs:121:5\n\ndevice\n.main\n.begin(packed.view())\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.fetch_cast::<f32>()\n.collect::<m![L % 32 = 8, H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      }
+    ],
+    "staged_dot": [
+      {
+        "index": "333",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 80534,
+          "end": 82737
+        },
+        "description": "--> src/device/shared/mlp.rs:83:5\n\ndevice\n.main\n.begin(weights.view())\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))"
+      },
+      {
+        "index": "371",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 87323,
+          "end": 89526
+        },
+        "description": "--> src/device/shared/mlp.rs:83:5\n\ndevice\n.main\n.begin(weights.view())\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))"
+      },
+      {
+        "index": "397",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 98704,
+          "end": 100907
+        },
+        "description": "--> src/device/shared/mlp.rs:83:5\n\ndevice\n.main\n.begin(weights.view())\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))"
+      },
+      {
+        "index": "408",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 101410,
+          "end": 103613
+        },
+        "description": "--> src/device/shared/mlp.rs:83:5\n\ndevice\n.main\n.begin(weights.view())\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))"
+      }
+    ],
+    "down_scale_dma": [
+      {
+        "index": "466",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 134461,
+          "end": 144235
+        },
+        "description": "--> src/device/shared/mlp.rs:449:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      }
+    ],
+    "down_bf16_decode": [
+      {
+        "index": "464",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 125069,
+          "end": 143332
+        },
+        "description": "--> src/device/shared/mlp.rs:465:104\n\ndevice\n.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()"
+      }
+    ]
+  },
+  "tile_dma_graph_nodes": [
+    {
+      "graph_key": "125",
+      "name": "DmaCommand#O43",
+      "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=60:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=60:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=60:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=60:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=60:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=60:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=60:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=60:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O43\nhistory: ",
+      "inputs": [
+        58
+      ],
+      "outputs": [
+        59
+      ]
+    },
+    {
+      "graph_key": "108",
+      "name": "DmaCommand#O26",
+      "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=60:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=60:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=60:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=60:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=60:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=60:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=60:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=60:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O26\nhistory: ",
+      "inputs": [
+        40
+      ],
+      "outputs": [
+        41
+      ]
+    },
+    {
+      "graph_key": "113",
+      "name": "DmaCommand#O29",
+      "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=60:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=60:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=60:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=60:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=60:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=60:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=60:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=60:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O29\nhistory: ",
+      "inputs": [
+        43
+      ],
+      "outputs": [
+        44
+      ]
+    },
+    {
+      "graph_key": "151",
+      "name": "DmaCommand#O57",
+      "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=60:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=60:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=60:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=60:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=60:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=60:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=60:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=60:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=60:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=60:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O57\nhistory: ",
+      "inputs": [
+        73
+      ],
+      "outputs": [
+        74
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/mlp.rs",
+      "bytes": 24102,
+      "sha256": "19362bb3f421b3295905825378748ab26d52fd45f6fa53400c5873e7b520d755"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/mlp.original.rs",
+      "bytes": 21056,
+      "sha256": "331088a000ca972d8fdad97c76d9d6ff093a3712bc2cda95e9a3b15fa05856e1"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/mlp.in-place-owner-failed.rs",
+      "bytes": 24491,
+      "sha256": "e0bf519dcc345db1f04da08eb1e1f50000910f5c64ae13c118e749bc653aa3f1"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/candidate.patch",
+      "bytes": 6390,
+      "sha256": "168d3cfbc8528a4cb93785e0623f3bf63a0ff4f4b98181912e5eb513fdca278b"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/verify_layout.py",
+      "bytes": 4259,
+      "sha256": "7a69eb98cf2aa612fb5b8e104bee5a05fdd03391dabbf986feba4731342a9a12"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/verification.json",
+      "bytes": 906,
+      "sha256": "8f079e16d9d2593b9a448249cc75b51e9219226d83c6aefa556b542698aace63"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/analyze_schedule.py",
+      "bytes": 4720,
+      "sha256": "4c9445315563fbd76d6127d3dbb579bb45bc02d53b64baa7f7f4ac5929c2dfe2"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/schedule-summary.json",
+      "bytes": 10772,
+      "sha256": "33e564a948592d10142284de563a89a3fa62283d700a35c621bbff6be179b143"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/ffn-up-tiled-fused-decode-e47/candidate.json",
+      "bytes": 167681,
+      "sha256": "ca319467e9571a7eba74ede18858bdcf576698f0554b9525125c76783b557e72"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/ffn-up-tiled-fused-decode-e47/candidate-graph.json",
+      "bytes": 344343,
+      "sha256": "601c781f12b213f004703a6be70ba679456a23e163d02cf2de9cb06818cc218b"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/ffn-up-tiled-fused-decode-e47/candidate.bin",
+      "bytes": 229376,
+      "sha256": "85fb3721867c8d0901f69a0ee8b8d2b25545f7c2faf343815262c0fe61d307cd"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/compiled-source-manifest.json",
+      "bytes": 4670,
+      "sha256": "5c24ad713526e0c855cf24dfed77eeaf68dddcbfc7cabbc1a5ecaa7dcda61162"
+    }
+  ],
+  "baseline_schedule": {
+    "path": "moa-dev/experiments/artifacts/ffn-down-scale-coalesced/baseline.json",
+    "bytes": 161975,
+    "sha256": "97cd593f04a79e79c6be5cd9375e4657448625142abb64b827d6aa1e62de5074"
+  },
+  "commands": {
+    "copy": "Copy frozen E47 src + Cargo.toml/Cargo.lock/rust-toolchain.toml into /tmp/moa-ffn-up-tiled-fused-decode-e47; replace only src/device/shared/mlp.rs with candidate. Source snapshot permissions made writable only in scratch.",
+    "environment": {
+      "CARGO_HOME": "/home/moa/.cargo",
+      "CARGO_TARGET_DIR": "/tmp/moa-ffn-up-tiled-fused-decode-e47/target",
+      "FURIOSA_OPT_OUT_DIR": "/tmp/moa-ffn-up-tiled-fused-decode-e47/target/furiosa-opt/kernel",
+      "CARGO_NET_OFFLINE": "true"
+    },
+    "compile": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/candidate.json --dump-graph schedules/candidate-graph.json",
+    "container": "moa2026-dev",
+    "working_directory": "/tmp/moa-ffn-up-tiled-fused-decode-e47",
+    "target_initially_absent": true,
+    "main_workspace_target_used": false
+  },
+  "limits": [
+    "No full test executable build or NPU run for this candidate.",
+    "CPU coordinate proof does not validate the compiler-generated HBM DMA or fused decode on NPU.",
+    "Final owned version does not enforce physical two-slot buffering.",
+    "Schedule peak metric includes padding/aliases mapped by recorded physical pages; not runtime or per-slice telemetry.",
+    "No third compile or further variant after static regression."
+  ]
+}

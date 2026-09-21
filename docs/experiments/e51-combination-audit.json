@@ -1,0 +1,59 @@
+{
+  "recorded_at_utc": "2026-09-21T12:25:09.446070+00:00",
+  "label": "e51-o16-down-fused",
+  "host_sha256": "0232e80c2eb348eb9c3a6b3ef84a5268249dd0f6983358a198d8620523e7a2e6",
+  "host_bytes": 3665216,
+  "parents": {
+    "qkv": "E37 unchanged",
+    "output": "E47 O16",
+    "feedforward": "E50 down-only fused decode"
+  },
+  "images": {
+    "furiosa_opt_gemma4::ops::decoder_feedforward.bin": {
+      "sha256": "47ad23c027e27e255f2b0a0e1208d653c3de3594de26630b67f8dd1766700ad6",
+      "bytes": 200960,
+      "host_occurrences": 1,
+      "extra_host_occurrences": 1
+    },
+    "furiosa_opt_gemma4::ops::sliding_attention_output.bin": {
+      "sha256": "00d8a969edf26d5a34fbf9bc5430cdd889f60fa58f122ebcbd7aa2208f584353",
+      "bytes": 87040,
+      "host_occurrences": 1,
+      "extra_host_occurrences": 1
+    },
+    "furiosa_opt_gemma4::ops::sliding_project_qkv.bin": {
+      "sha256": "91b232f0179b37b126f2ba8755b6125e532364418516948fd98dadcc9d7e77ea",
+      "bytes": 187648,
+      "host_occurrences": 1,
+      "extra_host_occurrences": 1
+    }
+  },
+  "adopted": false,
+  "status": "complete: all standard and extra comparisons pass; not adopted for performance",
+  "performance_comparison_rule": "Compare whole-package independent job medians against E47; report overlap of observed FFN job-median ranges instead of interpreting every sub-percent screen change as a gain.",
+  "extra_harness_binary_sha256": "c8f208f2fb7af4271dd0e237fb491eef959134bdcd224135ca37a66260b4138b",
+  "extra_harness_binary_bytes": 3668656,
+  "extra_validation": {
+    "job": 70719,
+    "output_comparisons_passed": 30,
+    "record": "docs/experiments/e51-o16-down-fused-extra-correctness.json"
+  },
+  "decision": {
+    "checked_at_utc": "2026-09-21T12:36:24.698730+00:00",
+    "adopted": false,
+    "retained": "E47",
+    "jobs": [
+      70712,
+      70722,
+      70736
+    ],
+    "aggregate_medians": {
+      "sliding_project_qkv": 94451,
+      "sliding_attention_output": 44876,
+      "decoder_feedforward": 381286
+    },
+    "ffn_change_vs_e47_percent": 0.9857931370575557,
+    "ffn_observed_job_median_ranges_overlap": true,
+    "reason": "E51 repeated FFN median381286 is0.986% above E47 377564. E51 range377392..384033 overlaps E47 377274..377606; the initial E50 single-screen apparent gain was not reproduced. All3 official jobs and additional6 configurations pass, but correctness alone is not a speedup."
+  }
+}
