@@ -17,6 +17,9 @@
 
 [반복 측정](docs/experiments/e37-combined-repeats.json), [추가 입력 검사](docs/experiments/e37-combined-extra-correctness.json),
 [채택·실패 실험 원장](docs/experiments/README.md)에 소스/바이너리/업로드 패키지의 SHA256과 근거를 기록한다.
+동일한 NPU 커널을 쓴 별도 [KV cache 보존 검사](docs/experiments/e37-cache-preservation-correctness.json)에서도
+세 구성의 비대상 원소 12,570,624개가 모두 유지됐다.
+빈 target의 [clean build](docs/experiments/e37-clean-build-audit.md)에서도 검증 실행 파일을 재현했다.
 공식 제출 서버는 평가 기준 수정으로 중단 중이며, 별도 제출기 인증도 아직 완료하지 않았다.
 [공식 상태 확인](docs/experiments/official-submission-status-20260921.json).
 

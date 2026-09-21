@@ -1,0 +1,286 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-21T11:43:28.826627+00:00",
+  "result": "PASS: clean offline build with canonical Cargo home is byte-identical to frozen E37 official test binary; both builds reproduce all three device images",
+  "snapshot": "moa-dev/experiments/artifacts/e37-kernel-specific-rms",
+  "snapshot_provenance_sha256": "57ff4bfc78f557cb5ab0757ddf67f87c9a6420f4cbb35bc0da98b39d2971d958",
+  "source_scope": "43 source files + Cargo.toml/Cargo.lock/rust-toolchain.toml + scripts/ref = 49 captured input files",
+  "input_files_count": 49,
+  "inputs_match_frozen_provenance": true,
+  "inputs_unchanged_after_both_builds": true,
+  "cargo_lock_sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09",
+  "fixture_sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359",
+  "environment": {
+    "container_name": "moa2026-dev",
+    "container_id": "b51cd7ad282bb776bd74f39dcbcfadfb857b9c6852b15cf4b45480861b92626f",
+    "image_id": "sha256:518d7b7ddaca5a97344d8bbd60e04f5e87ca7c50d883bfb5930a64a0c6ff382f",
+    "container_started_at": "2026-09-21T08:04:48.939958709Z",
+    "scratch": "/tmp/moa-e37-clean-build-audit-20260921",
+    "commands": {
+      "rustc": {
+        "exit_code": 0,
+        "output": "rustc 1.97.0-nightly (f53b654a8 2026-04-30)\nbinary: rustc\ncommit-hash: f53b654a8882fd5fc036c4ca7a4ff41ce32497a6\ncommit-date: 2026-04-30\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.0-nightly\nLLVM version: 22.1.4"
+      },
+      "cargo": {
+        "exit_code": 0,
+        "output": "cargo 1.97.0-nightly (eb9b60f1f 2026-04-24)"
+      },
+      "cargo_furiosa_opt": {
+        "exit_code": 0,
+        "output": "cargo-furiosa-opt 0.8.1"
+      },
+      "active_toolchain": {
+        "exit_code": 0,
+        "output": "nightly-2026-05-01-x86_64-unknown-linux-gnu (overridden by '/tmp/moa-e37-clean-build-audit-20260921/rust-toolchain.toml')"
+      },
+      "kernel": {
+        "exit_code": 0,
+        "output": "Linux b51cd7ad282b 7.0.0-30-generic #30-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 18:22:54 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux"
+      },
+      "linker": {
+        "exit_code": 0,
+        "output": "GNU ld (GNU Binutils for Ubuntu) 2.38\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) a later version.\nThis program has absolutely no warranty."
+      },
+      "glibc": {
+        "exit_code": 0,
+        "output": "ldd (Ubuntu GLIBC 2.35-0ubuntu3.14) 2.35\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\nWritten by Roland McGrath and Ulrich Drepper."
+      },
+      "cargo-furiosa-opt_sha256": {
+        "exit_code": 0,
+        "output": "79073be60fd2d7ec439de3e288df0a6571e7469bd76ec1e8c99eb673d4795316  /home/moa/.cargo/bin/cargo-furiosa-opt"
+      },
+      "furiosa-opt-driver_sha256": {
+        "exit_code": 0,
+        "output": "32e7654f5f906ffd9c8542492f241b00e1ba3783105641cc6946d41f258ab049  /home/moa/.cargo/bin/furiosa-opt-driver"
+      }
+    }
+  },
+  "cargo_config_files": {
+    "/home/moa/.cargo/config": {
+      "exists": false,
+      "sha256": null
+    },
+    "/home/moa/.cargo/config.toml": {
+      "exists": false,
+      "sha256": null
+    },
+    "/tmp/moa-extra-seeds-e31-rms-extra/cargo-home/config": {
+      "exists": false,
+      "sha256": null
+    },
+    "/tmp/moa-extra-seeds-e31-rms-extra/cargo-home/config.toml": {
+      "exists": false,
+      "sha256": null
+    }
+  },
+  "command": "cargo furiosa-opt build --release --locked --offline --bin test_kernels -j 8",
+  "attempts": [
+    {
+      "name": "alternate_cargo_home",
+      "target_absent_before_build": true,
+      "environment": {
+        "CARGO_HOME": "/tmp/moa-extra-seeds-e31-rms-extra/cargo-home",
+        "CARGO_TARGET_DIR": "/tmp/moa-e37-clean-build-audit-20260921/target",
+        "FURIOSA_OPT_OUT_DIR": "/tmp/moa-e37-clean-build-audit-20260921/target/furiosa-opt/kernel",
+        "CARGO_NET_OFFLINE": "true",
+        "RUSTUP_TOOLCHAIN": "nightly-2026-05-01",
+        "RUSTFLAGS": null,
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTC_WORKSPACE_WRAPPER": null
+      },
+      "started_at_utc": "2026-09-21T11:38:41.033108+00:00",
+      "finished_at_utc": "2026-09-21T11:39:42.515831+00:00",
+      "exit_code": 0,
+      "shell_real_seconds": 61.46,
+      "binary": "moa-dev/experiments/artifacts/e37-clean-build-audit/test_kernels",
+      "binary_bytes": 3672320,
+      "binary_sha256": "ea165d75ae5b8636fd2ec540e6e3ebf4273951ed0c57eceed34fec7b6fa27885",
+      "elf_build_id": "9cf6b8e86279ed9229bc25365a6b1b6b5f119460",
+      "full_binary_matches_E37": false,
+      "device_images_match_E37": true,
+      "build_log_sha256": "e4a1ed0b11280778f3f9acd11f08ac78f10e1326917b274261c5af43157388cf"
+    },
+    {
+      "name": "canonical_cargo_home",
+      "target_absent_before_build": true,
+      "environment": {
+        "CARGO_HOME": "/home/moa/.cargo",
+        "CARGO_TARGET_DIR": "/tmp/moa-e37-clean-build-audit-20260921/target-canonical-cargo-home",
+        "FURIOSA_OPT_OUT_DIR": "/tmp/moa-e37-clean-build-audit-20260921/target-canonical-cargo-home/furiosa-opt/kernel",
+        "CARGO_NET_OFFLINE": "true",
+        "RUSTUP_TOOLCHAIN": "nightly-2026-05-01",
+        "RUSTFLAGS": null,
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTC_WORKSPACE_WRAPPER": null
+      },
+      "started_at_utc": "2026-09-21T11:40:59.048414+00:00",
+      "finished_at_utc": "2026-09-21T11:41:58.649177+00:00",
+      "exit_code": 0,
+      "shell_real_seconds": 59.58,
+      "binary": "moa-dev/experiments/artifacts/e37-clean-build-audit/test_kernels.canonical",
+      "binary_bytes": 3669824,
+      "binary_sha256": "5527080606282675b04ad56deae87b3efd704b8e043b260e9dfbd3127c604035",
+      "elf_build_id": "cf86a182e0ff410425252990fb9492cef4663fc5",
+      "full_binary_matches_E37": true,
+      "byte_comparison_not_only_hash": true,
+      "device_images_match_E37": true,
+      "build_log_sha256": "0a5939da8e2cffbd22ab2e871d47191147dfeefdc1e9a0f8d30128dfeddab8c7"
+    }
+  ],
+  "official_binary_sha256": "5527080606282675b04ad56deae87b3efd704b8e043b260e9dfbd3127c604035",
+  "official_binary_bytes": 3669824,
+  "device_images": {
+    "sliding_project_qkv": {
+      "bytes": 187648,
+      "sha256": "91b232f0179b37b126f2ba8755b6125e532364418516948fd98dadcc9d7e77ea",
+      "expected_sha256": "91b232f0179b37b126f2ba8755b6125e532364418516948fd98dadcc9d7e77ea",
+      "hash_matches": true,
+      "old_elf_occurrences": 1,
+      "old_elf_offset": 1269953,
+      "new_elf_occurrences": 1,
+      "new_elf_offset": 1272449,
+      "canonical_kernel_sha256": "91b232f0179b37b126f2ba8755b6125e532364418516948fd98dadcc9d7e77ea",
+      "canonical_elf_offset": 1269953,
+      "canonical_elf_occurrences": 1,
+      "all_three_artifacts_byte_identical": true
+    },
+    "sliding_attention_output": {
+      "bytes": 88576,
+      "sha256": "e9d3402c62fd866f417053e618e7a7af1d5cb60485c04cc292f3a702f5996cde",
+      "expected_sha256": "e9d3402c62fd866f417053e618e7a7af1d5cb60485c04cc292f3a702f5996cde",
+      "hash_matches": true,
+      "old_elf_occurrences": 1,
+      "old_elf_offset": 1181309,
+      "new_elf_occurrences": 1,
+      "new_elf_offset": 1183805,
+      "canonical_kernel_sha256": "e9d3402c62fd866f417053e618e7a7af1d5cb60485c04cc292f3a702f5996cde",
+      "canonical_elf_offset": 1181309,
+      "canonical_elf_occurrences": 1,
+      "all_three_artifacts_byte_identical": true
+    },
+    "decoder_feedforward": {
+      "bytes": 204032,
+      "sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+      "expected_sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+      "hash_matches": true,
+      "old_elf_occurrences": 1,
+      "old_elf_offset": 977204,
+      "new_elf_occurrences": 1,
+      "new_elf_offset": 979700,
+      "canonical_kernel_sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+      "canonical_elf_offset": 977204,
+      "canonical_elf_occurrences": 1,
+      "all_three_artifacts_byte_identical": true
+    }
+  },
+  "host_elf_difference": {
+    "alternate_cargo_home": "/tmp/moa-extra-seeds-e31-rms-extra/cargo-home",
+    "canonical_cargo_home": "/home/moa/.cargo",
+    "dependency_path_strings": 85,
+    "rodata_bytes_delta": 2496,
+    "full_file_bytes_delta": 2496,
+    "changed_sections": [
+      {
+        "name": ".note.gnu.build-id",
+        "original_size": 36,
+        "clean_size": 36,
+        "byte_identical": false,
+        "original_sha256": "4820565bc23ba2bca98cf0f24a927c2f600c443936d0c4418fe82c6c88960cde",
+        "clean_sha256": "9c4afc86fa6560f8ac674b137f827b0009405bcc160ad8ea96fade1060e2739c"
+      },
+      {
+        "name": ".rela.dyn",
+        "original_size": 84624,
+        "clean_size": 84624,
+        "byte_identical": false,
+        "original_sha256": "d2cb51538b366ab1ff303b94b594269d9b34f087f16c63f8a88635f6d3496e0a",
+        "clean_sha256": "6743e6dd0750c51537b761d946bba90c49359c08bb71814fe69146e535bf9c96"
+      },
+      {
+        "name": ".rela.plt",
+        "original_size": 96,
+        "clean_size": 96,
+        "byte_identical": false,
+        "original_sha256": "10134710a63a16e41ac873e2199e2bb89220e585e7f5af51201b396adb6c7daf",
+        "clean_sha256": "abb9fc76fd42d4cc5264b5ddf9ea2439fdc7d55008a04df7d1071962ebf2f2a4"
+      },
+      {
+        "name": ".rodata",
+        "original_size": 198440,
+        "clean_size": 200936,
+        "byte_identical": false,
+        "original_sha256": "7020e89d722a5739a86d7394048bd33da59c411411d01344b63463c5b4c62ba4",
+        "clean_sha256": "ff81661fee6e56c6b897ddd4fa711d7dcd5458f1466bfa509552e8a1d28ece37"
+      },
+      {
+        "name": ".eh_frame",
+        "original_size": 184848,
+        "clean_size": 184848,
+        "byte_identical": false,
+        "original_sha256": "b5f8abc679dce910dec6c365852f9ffbbc7076ab3e7e325020415d7d4acbdd55",
+        "clean_sha256": "c2b7dad680ea252170fda9b614a43688889ddbfd94bd61b8bd9b0f4a2051061d"
+      },
+      {
+        "name": ".text",
+        "original_size": 1928456,
+        "clean_size": 1928456,
+        "byte_identical": false,
+        "original_sha256": "80b77f7e3088442661f8d320da1803b2dc6adefae3a0a88ae02ae097db367a1e",
+        "clean_sha256": "0dbf2cabe837d09aef237c7a09dde60d8c1cfba8815e642bb502d7ac229f708a"
+      },
+      {
+        "name": ".data.rel.ro",
+        "original_size": 48088,
+        "clean_size": 48088,
+        "byte_identical": false,
+        "original_sha256": "a4b8fbfbeec873a175bf50bc32117d5550222a392c6b790079f59717da7c2aec",
+        "clean_sha256": "cab1cbf7787dabdcb5f988ba3ffddbd36c435f162cdf82677b6b617faded9536"
+      },
+      {
+        "name": ".dynamic",
+        "original_size": 496,
+        "clean_size": 496,
+        "byte_identical": false,
+        "original_sha256": "6101adf28da35afc72b496252ad1b3b9ff99688dbe7ff72b5a9a346d6cdf4b71",
+        "clean_sha256": "495852a5560c95e4662e4b2e55a716cca600bbeff930987f9de6642cb8d1e5ae"
+      },
+      {
+        "name": ".got.plt",
+        "original_size": 56,
+        "clean_size": 56,
+        "byte_identical": false,
+        "original_sha256": "a0ae4fb73152a88f5a31d8b2bb1795cb101bcfa263ffc841377f461ba88cec72",
+        "clean_sha256": "5b060c4e45350a1e8332f7def74cbeca95d39d25eb439141499a25c267bab087"
+      }
+    ],
+    "interpretation": "Dependency source paths are embedded in the host binary. Restoring the canonical Cargo home with another absent target reproduces the complete official binary, including BuildID. This is not merely a BuildID difference; host rodata and linked addresses differ in the alternate-home build."
+  },
+  "warnings": [
+    "broadcast_sliding_heads unused",
+    "feedforward unused",
+    "project_down unused",
+    "scale_by_layer_gate unused",
+    "add_and_scale_parallel unused"
+  ],
+  "preflight_note": "The optional /usr/bin/time wrapper was absent and exited127 before Cargo was invoked. Target absence was rechecked; Bash time was used for both successful builds. No dependency/compiler installation was changed.",
+  "scope": {
+    "fresh_target_for_each_build": true,
+    "dependency_sources_and_installed_toolchain_reused": true,
+    "fresh_docker_image": false,
+    "live_source_or_target_changed_by_audit": false,
+    "container_id_image_start_unchanged": true,
+    "npu_executions": 0,
+    "git_mutations": 0,
+    "fixture_regenerated": false,
+    "full_model_runtime_test": false
+  },
+  "raw_artifacts": "moa-dev/experiments/artifacts/e37-clean-build-audit",
+  "scratch": "/tmp/moa-e37-clean-build-audit-20260921",
+  "limitations": [
+    "Byte reproduction is established in the recorded installed environment with the same Cargo home path; arbitrary cache paths change host diagnostic strings.",
+    "Offline Cargo used existing dependency source caches and installed compiler/toolchain. This audit does not rebuild the OS/image or prove network-level isolation.",
+    "The official fixture was copied unchanged, not independently regenerated. No new NPU or full-model execution was performed."
+  ]
+}

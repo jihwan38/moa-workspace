@@ -1,6 +1,6 @@
 # E37 KV cache 비대상 슬롯 보존 검사
 
-Frozen `e37-kernel-specific-rms`에 E31의 cache sentinel host 계측을 그대로 붙인 독립 harness다. **전체 build PASS, 세 device image가 frozen E37 ELF와 byte-identical**임을 검증했다. Root가 **job70589**를 제출했으며 현재 결과 수집 중이다. E31 job70507의 결과를 E37 결과로 대체하지 않는다.
+Frozen `e37-kernel-specific-rms`에 E31의 cache sentinel host 계측을 그대로 붙인 독립 harness다. **전체 build PASS, 세 device image가 frozen E37 ELF와 byte-identical**임을 검증했다. Root가 제출한 **[job70589](../../../../docs/experiments/e37-cache-preservation-correctness.json)가 exit0으로 완료됐고 원래15개 출력 비교와 cache guard12개가 모두 PASS**했다. Kernel 호출 후 비대상 cache **12,570,624개 BF16 bits**가 전부 일치했고 mismatch는0이었다. 이는 E37 device image를 직접 실행한 결과이며 E31 job70507의 관측을 대신 인용한 것이 아니다.
 
 제출 패키지는 `../../artifacts/e37-cache-preservation-package/`다. 실행 파일 `test_runtime` SHA256은 `aca22dfb587b301cb0767a5fef30a00ed7cd171e69b75a1d1e3328634d1ae279`(3,688,624B)이다. fixture는 E37 원본 SHA `338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359`, remote entrypoint도 원본 그대로다. 추가 cache upload/readback을 하는 진단 harness이므로 **cycles는 공식 성능·score·rank 판정에 사용하지 않는다.**
 
@@ -42,7 +42,7 @@ before에는 target도 포함한다. after에 제외하는 범위는 정확히 t
 - 마지막 `CACHE_PRESERVATION total_mismatches=0 status=PASS`가 정확히 한 번 존재.
 - Arena에서 다시 다운로드한 실제 package의 binary/fixture/runner hash가 동결 package와 일치.
 
-`collect_job.py`는 job70589의 status/log/download만 읽는다. submit/rerun 기능이 없고 새 NPU job을 만들지 않는다. `moa-dev/measure.py`의 원래15개 출력 비교 parser를 그대로 재사용하며 위12개 guard와 실제주소/개수도 별도로 검증한다. 결과는 `docs/experiments/e37-cache-preservation-correctness.json`, raw log는 `moa-dev/logs/e37-cache-preservation-job-70589.log`에 남긴다.
+`collect_job.py`는 job70589의 status/log/download만 읽는다. submit/rerun 기능이 없고 새 NPU job을 만들지 않는다. `moa-dev/measure.py`의 원래15개 출력 비교 parser를 그대로 재사용하며 위12개 guard와 실제주소/개수도 별도로 검증한다. 결과는 `docs/experiments/e37-cache-preservation-correctness.json`, raw log는 `moa-dev/logs/e37-cache-preservation-job-70589.log`에 남겼다. 원본 로그의12개 guard coordinate/range/검사 개수와 마지막 mismatch0을 확인했고, 실제 업로드 tar의 binary/fixture/runner hash도 모두 동결 package와 같았다. 이 결과는3개 공식 입력 구성과 해당 sentinel 패턴에 대한 관측이며 모든 입력·모든 손상 형태의 보장을 뜻하지 않는다.
 
 ## 재현
 

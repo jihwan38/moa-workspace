@@ -172,3 +172,9 @@ E37 repeats70519/70528/70541 allpass, median94195/45748/379741. Job-median range
 [Repeated package](e37-combined-repeats.json), [extra30 PASS job70544](e37-combined-extra-correctness.json).
 Nine independent configurations are tested: official runs0–2 repeated in3jobs, plus6development runs3–8.
 The repeated official inputs are not counted as nine different configurations. Public-reference indicative score6.121695 is not an official score or rank.
+
+E37 also passed a separate non-target KV cache sentinel check in job70589
+([record](e37-cache-preservation-correctness.json)). All three device images match the adopted E37 binary exactly.
+The original15 output comparisons and12 cache checks pass; all12,570,624 non-target BF16 elements
+across the three tested slots are preserved bit-for-bit. This custom host harness is correctness-only evidence;
+its diagnostic cycles are not included in the E37 repeated performance aggregate.

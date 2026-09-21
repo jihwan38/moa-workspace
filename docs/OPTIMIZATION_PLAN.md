@@ -22,8 +22,13 @@
 - 별도 개발 harness의 run3..8, 입력 구성 6개·출력 비교 30개도 job70544에서 통과했다.
   공식 구성 3개를 합하면 서로 다른 구성은 9개다. 반복 job을 별도 입력으로 세지 않는다.
   [추가 입력 검사](experiments/e37-combined-extra-correctness.json).
+- 동일한 E37 device image를 쓴 별도 sentinel harness의 job70589도 출력 비교15개와 cache 검사12개를
+  통과했다. 검사한 세 슬롯 이외의 BF16 원소12,570,624개가 호출 뒤 모두 bit-exact로 보존됐다.
+  [Cache 보존 검사](experiments/e37-cache-preservation-correctness.json). 이 진단의 cycles는 성능표에 섞지 않는다.
 - 작업 소스를 E37로 복구하고 다시 빌드한 실행 파일도 NPU 검증 파일과 byte-identical하다.
-  [복구·빌드 검사](experiments/e37-final-restore-audit.json).
+  [복구·빌드 검사](experiments/e37-final-restore-audit.json). 빈 target에서 의존성과 커널을 다시 컴파일한 offline clean build도
+  원래 Cargo source 경로를 사용했을 때 전체 실행 파일과 세 NPU 커널이 byte-identical했다.
+  [Clean build 재현성](experiments/e37-clean-build-audit.md).
 
 이 값은 세 커널의 개발용 NPU cycles이며, 전체 Gemma 추론 처리량이나 공식 순위가 아니다.
 기존 공개 기준 cycles로 계산한 참고 기하평균은 약 6.122다. 9월 21일 이전 공개 3위의
