@@ -1,0 +1,64 @@
+--- a/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs
++++ b/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs
+@@ -21,19 +21,11 @@
+         .to_trf();
+ 
+     let weight_f8: DmTensor<f8e4m3, Chip, Cluster, QueryRows, m![Qs % 16, H]> = weight.to_dm(&mut device.tdma);
+-    let weight_dm: DmTensor<bf16, Chip, Cluster, QueryRows, m![Qs % 16, H]> = device
++    let contraction: DmTensor<bf16, Chip, Cluster, QueryRows, m![Qs % 16]> = device
+         .main
+         .begin(weight_f8.view())
+         .fetch::<m![Qs % 16, H / 16], m![H % 16]>()
+         .fetch_table_lookup::<bf16>()
+-        .collect::<m![Qs % 16, H / 16], m![H % 16]>()
+-        .commit_trim::<m![H % 16]>()
+-        .commit();
+-
+-    let contraction: DmTensor<bf16, Chip, Cluster, QueryRows, m![Qs % 16]> = device
+-        .main
+-        .begin(weight_dm.view())
+-        .fetch::<m![Qs % 16, H / 16], m![H % 16]>()
+         .collect::<m![Qs % 16, H / 16], m![H % 16]>()
+         .contract_outer::<m![Qs % 16, H / 32], m![H % 32], _, _, _>(&x_trf)
+         .contract_packet::<m![1]>()
+@@ -90,19 +82,11 @@
+     weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
+ ) -> DmTensor<bf16, Chip, Cluster, Slice, m![Ps]> {
+     let weight_f8: DmTensor<f8e4m3, Chip, Cluster, KvRows, m![Ps % 8, H]> = weight.to_dm(&mut device.tdma);
+-    let weight_dm: DmTensor<bf16, Chip, Cluster, KvRows, m![Ps % 8, H]> = device
++    let contraction: DmTensor<bf16, Chip, Cluster, KvRows, m![Ps % 8]> = device
+         .main
+         .begin(weight_f8.view())
+         .fetch::<m![Ps % 8, H / 16], m![H % 16]>()
+         .fetch_table_lookup::<bf16>()
+-        .collect::<m![Ps % 8, H / 16], m![H % 16]>()
+-        .commit_trim::<m![H % 16]>()
+-        .commit();
+-
+-    let contraction: DmTensor<bf16, Chip, Cluster, KvRows, m![Ps % 8]> = device
+-        .main
+-        .begin(weight_dm.view())
+-        .fetch::<m![Ps % 8, H / 16], m![H % 16]>()
+         .collect::<m![Ps % 8, H / 16], m![H % 16]>()
+         .contract_outer::<m![Ps % 8, H / 32], m![H % 32], _, _, _>(x_trf)
+         .contract_packet::<m![1]>()
+@@ -215,18 +199,11 @@
+         .view()
+         .tile::<m![Qs], 1024, m![H, Qs = 1024 # 4096]>(offset)
+         .to_dm(&mut device.tdma);
+-    let weight: DmTensor<bf16, Chip, Cluster, HiddenRows, m![H % 120, Qs = 1024]> = device
++    device
+         .main
+         .begin(weight_f8.view())
+         .fetch::<m![H % 120, Qs = 1024 / 32], m![Qs = 1024 % 32]>()
+         .fetch_table_lookup::<bf16>()
+-        .collect::<m![H % 120, Qs = 1024 / 16], m![Qs = 1024 % 16]>()
+-        .commit_trim::<m![Qs = 1024 % 16]>()
+-        .commit();
+-    device
+-        .main
+-        .begin(weight.view())
+-        .fetch::<m![H % 120, Qs = 1024 / 16], m![Qs = 1024 % 16]>()
+         .collect::<m![H % 120, Qs = 1024 / 16], m![Qs = 1024 % 16]>()
+         .contract_outer::<m![H % 120, Qs = 1024 / 32], m![Qs = 1024 % 32], _, _, _>(&x_trf)
+         .contract_packet::<m![1]>()

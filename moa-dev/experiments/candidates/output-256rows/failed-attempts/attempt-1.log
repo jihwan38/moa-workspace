@@ -1,0 +1,10 @@
+   Compiling [1/1] ops::sliding_attention_output
+error: furiosa-opt: ops::sliding_attention_output: visa: src RngdShape { region: Dram, chip: [], cluster: [Dummy=2], pe: [Dummy=4], dmn: [Dummy=2], slice: [Dummy=32], local: [H_1=3840:4096, Qs_1=4096:1], padded_tail_size: 1 }, dst RngdShape { region: Sram, chip: [], cluster: [Dummy=2], pe: [H_960=4], dmn: [H_480=2], slice: [H_15=32], local: [H_1=16:4096, Qs_1=4096:1], padded_tail_size: 1 }
+       caused by: cannot factorize common axis H
+   --> src/device/sliding/projection.rs:192:91
+    |
+192 |     let weight: DmTensor<f8e4m3, Chip, Cluster, OutputRows, m![H % 15 # 16, Qs]> = weight.to_dm(&mut device.tdma);
+    |                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 1 compiled, 14 not matching ops::sliding_attention_output
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error
