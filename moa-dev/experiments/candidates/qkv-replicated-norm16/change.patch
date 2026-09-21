@@ -1,0 +1,11 @@
+--- a/furiosa-opt-gemma4-12B/src/ops.rs
++++ b/furiosa-opt-gemma4-12B/src/ops.rs
+@@ -55,7 +55,7 @@
+     v_cache: &mut HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
+     q_out: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
+ ) {
+-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = x.to_dm(&mut device.tdma);
++    let x: DmTensor<bf16, Chip, m![2], Slice, m![H]> = x.to_dm(&mut device.tdma);
+     let x = shared::rmsnorm::normalize(device, &x, input_rms_weight);
+ 
+     let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 16, 1 # 16], m![H]> = x.to_dm(&mut device.tdma);

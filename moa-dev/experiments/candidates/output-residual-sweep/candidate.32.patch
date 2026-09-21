@@ -1,0 +1,52 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -249,22 +249,22 @@
+     x: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+     residual: &HbmTensor<bf16, Chip, m![H]>,
+ ) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
+-    type ResidualSlices = m![1 # 32, H / 480];
+-    let x: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
+-    let residual: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 480]> = residual.to_dm(&mut device.tdma);
+-    let residual_vrf: VrfTensor<f32, Chip, Cluster, ResidualSlices, m![H % 480]> = device
++    type ResidualSlices = m![1 # 8, H / 120];
++    let x: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 120]> = x.to_dm(&mut device.tdma);
++    let residual: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 120]> = residual.to_dm(&mut device.tdma);
++    let residual_vrf: VrfTensor<f32, Chip, Cluster, ResidualSlices, m![H % 120]> = device
+         .sub
+         .begin(residual.view())
+-        .fetch::<m![1], m![H % 480]>()
+-        .fetch_cast::<f32>()
+-        .collect::<m![H / 8 % 60], m![H % 8]>()
+-        .to_vrf();
+-    let result: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 480]> = device
++        .fetch::<m![1], m![H % 120]>()
++        .fetch_cast::<f32>()
++        .collect::<m![H / 8 % 15], m![H % 8]>()
++        .to_vrf();
++    let result: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 120]> = device
+         .main
+         .begin(x.view())
+-        .fetch::<m![1], m![H % 480]>()
+-        .fetch_cast::<f32>()
+-        .collect::<m![H / 8 % 60], m![H % 8]>()
++        .fetch::<m![1], m![H % 120]>()
++        .fetch_cast::<f32>()
++        .collect::<m![H / 8 % 15], m![H % 8]>()
+         .vector_init()
+         .vector_intra_slice_tag(TagMode::Zero)
+         .vector_clip(ClipBinaryOpF32::Add, &residual_vrf)
+@@ -272,12 +272,5 @@
+         .cast::<bf16, m![H % 8 # 16]>()
+         .commit_trim::<m![H % 8]>()
+         .commit();
+-    device
+-        .main
+-        .begin(result.view())
+-        .fetch::<m![1], m![H % 480]>()
+-        .switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })
+-        .collect::<m![H / 16], m![H % 16]>()
+-        .commit_trim::<m![H % 16]>()
+-        .commit()
+-}
++    result.to_dm(&mut device.tdma)
++}

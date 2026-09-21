@@ -1,6 +1,6 @@
 # FFN four-row kernel의 고정 반복 전개
 
-상태: MLP만 전개한 버전과 residual까지 전개한 버전 모두 독립 컴파일 성공. **이 두 새 버전의 NPU 정확성·성능은 아직 미검증**이다. 출발점 four-row direct-layout는 Arena job 70029에서 모두 통과했고 FFN 중앙값 1139366 cycles였다.
+상태: MLP만 전개한 버전과 residual까지 전개한 버전 모두 독립 컴파일 성공. **MLP + residual 전개는 Arena job 70070에서 3개 kernel × 3개 독립 seed 전부 PASS**다. FFN 중앙값 **820226 cycles**, run별 822292 / 820107 / 820226이다. 원본 실측 4264297 대비 5.199×, four-row rolled 실측 대비 1.389×다. [하드웨어 로그](../../../logs/e6-all-unrolled-job-70070.log). MLP-only의 독립 NPU 측정은 없다. 출발점 four-row direct-layout는 Arena job 70029에서 모두 통과했고 FFN 중앙값 1139366 cycles였다.
 
 ## 변경
 
@@ -42,4 +42,4 @@ Scratch `/tmp/moa-ffn-four-row-unrolled`, 독립 target `/tmp/moa-ffn-four-row-u
 - [MLP-only 컴파일 로그](../../artifacts/ffn-four-row-unrolled/compile-mlp.log)
 - [전체 전개 컴파일 로그](../../artifacts/ffn-four-row-unrolled/compile-all.log)
 
-두 파일을 적용한 binary로 모든 공식 입력의 정확성을 확인하고 FFN 중앙값을 재측정해야 한다. 코드 전개만으로도 scheduler와 register reuse가 바뀌므로 기존 four-row PASS를 새 후보의 PASS로 간주하지 않는다.
+Job 70070에서 FFN run별 max absolute error는 0.00781 / 0.01172 / 0.00781, mean은 0.000270 / 0.000380 / 0.000400으로 four-row rolled와 표시 정밀도에서 동일하다. QKV 중앙값 165134, attention-output 113136도 모두 PASS였다. 하드웨어 실행은 root가 수행했고 이 후보 작성자는 scratch 컴파일만 수행했다.

@@ -23,19 +23,26 @@
 
 ## 실측 진행 상황
 
-2026-09-21 job `70029`에서 QKV 227,578 / O 154,254 / FFN 1,139,366 cycles와
-전체 정확성 통과를 확인했다. 원본 대비 각각 약 1.07× / 2.62× / 3.74×이며 단일 job 결과다.
-같은 패키지의 독립 세 job 반복과 추가 run3..8의30개 출력 비교도 통과했다.
-QKV HBM relay를 더한 job `70039`도 통과했고 QKV는188,573 cycles였다.
-후속 hier16 broadcast와 MLP/residual 반복 전개 조합인 job `70070`은
-QKV165,134 / O113,136 / FFN820,226 cycles로 모두 통과했다. 이 후속 조합은
-단일 job 결과이며, 두 cluster 분산을 추가 검증 중이다.
+2026-09-21 job `70135`에서 QKV **126,444** / O **68,813** / FFN **479,755** cycles와
+전체 정확성 통과를 확인했다. 원본 대비 각각 약 **1.93× / 5.87× / 8.89×**다.
+이 조합은 QKV 두 cluster·계층형 복제, O 두 cluster·병렬 residual,
+FFN direct layout·반복 전개·up/gate/down 두 cluster를 사용한다. 단일 job screening이며
+최종 후보에서는 동일 패키지 반복과 추가 seed 검사를 다시 수행한다.
+
+이전 E5 four-row snapshot은 동일 패키지 세 job과 추가 run3..8의 30개 출력 비교를 모두
+통과했다. 후속 소스의 검증을 이 이전 결과로 대신하지 않는다.
 [실험 원장](experiments/README.md)과 개별 JSON이 최신 채택·실패·변동 근거다.
 
-초기 FFN two-row commit 변형 두 개는 정확성에 실패해 폐기했다. 원본 four-row 출력
-경로를 복원하고 direct column placement만 유지한 후보가 통과했다.
-TDMA broadcast는 QKV에서 정적 회귀해 채택하지 않았고, 계층형 broadcast를 별도 검증한다.
-현재 속도는 공개 상위3위 목표에 아직 못 미치며 공식 제출·순위 확인은 별도 인증 대기다.
+FFN two-row 출력 경로 두 개는 같은 정확성 실패를 보여 제외했다. Blockscale-after-dot은
+FP4×FP8의 BF16 표현 가능성을 확인하고 NPU 정확성도 통과했지만, up/gate에만 적용한
+버전은 반복 lookup table 적재 때문에 FFN이 E6보다 12.37% 느려 그대로 채택하지 않았다.
+QKV lane 병렬화도 weight BF16 materialization과 TRF 적재 때문에 정적 13.7% 회귀했다.
+실패 후보와 근거도 보존하며, compiler schedule 개선만으로 실제 speedup을 주장하지 않는다.
+
+다음 주요 검증은 FFN 타일 크기 확대,
+blockscale lookup 재사용, residual/정규화의 데이터 이동 축소다.
+공개 상위3위 목표에는 아직 못 미치며 공식 제출·순위 확인은 별도 인증 대기다.
+공개 상위 기록은 9월21일 입력·평가 환경 변경 이전 제출이므로 같은 환경의 성능으로 단정하지 않는다.
 
 ## 조사에서 얻은 설계 근거
 
@@ -61,10 +68,9 @@ down weight assembly copy 486,900, layout redistribution 256,500이 명확한 �
 | E6 tile/unroll/overlap | pass 크기·반복 전개로 staging과 계산 중첩 | 중간: capacity·padding·compile 비용 | 작은 탐색표, 컴파일 실패 포함 기록 |
 | E7 cluster/epilogue | 현재 padding인 cluster 활용, RMSNorm/RoPE/residual 중간 이동 축소 | 높음: 축 분할·reduction·부수효과 | 앞 단계 병목 재측정 후 별도 설계 |
 
-E2와 E4는 독립 scratch crate에서 compile되는 후보가 확보됐으나, 이 표 작성 시
-실제 NPU 정확성이나 speedup으로 인정한 상태는 아니다. 정적 후보를 live 소스에
-하나씩 적용하고 실제 바이너리를 만든 후 검증한다. E1/E2/E4가 통과하면 조합을 별도
-실험으로 측정한다. 개선분의 단순 합이나 곱을 조합 결과로 대신하지 않는다.
+E1–E7은 구현·정적 비교·NPU 측정을 거쳤고 채택·기각 내역은 실험 원장에 기록했다.
+각 후보는 직전 소스 대비 변경을 분리하고, 결합한 바이너리는 다시 실제 NPU에서 검사한다.
+개선분의 단순 합이나 곱을 조합 결과로 대신하지 않는다.
 
 실제 compiler/SDK 제약도 실험표에 남긴다. 예를 들어 BF16 2개를 그대로 commit하면
 4-byte packet이 되어 거절되므로 허용되는 padding/commit 경로가 필요하다. 또한 15-row

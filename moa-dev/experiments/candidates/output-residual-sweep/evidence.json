@@ -1,0 +1,264 @@
+{
+  "created_utc": "2026-09-21T09:27:36.140859+00:00",
+  "candidate": "output-residual-sweep",
+  "compiler": "cargo-furiosa-opt 0.8.1",
+  "std": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "numerical_correctness": "NOT TESTED",
+  "hardware_performance": "NOT MEASURED",
+  "scratch_directory": "/tmp/moa-output-residual-sweep",
+  "cargo_target_dir": "/tmp/moa-output-residual-sweep/target",
+  "furiosa_opt_out_dir": "/tmp/moa-output-residual-sweep/target/furiosa-opt/kernel",
+  "command_prefix": "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule ",
+  "compile_exit_code": 0,
+  "ops_sha256": "857eee3f9f53e16706184038ca0edc92c13691fbc2e4ce483a514f200c1179e0",
+  "decision": "Keep hardware-tested eight-slice implementation; static best gain is only 100 cycles / 0.28 percent",
+  "projection_32_sha256": "775f52fb8c4b0bc0efc4063cac19527c13a5cd899923bb9847dfd9dbaa6c152e",
+  "schedules": {
+    "8": {
+      "schedule_sha256": "230b0f7fe0ffca981c075567c27ab46cb519b4188d9d492ba8442071fddf5ed1",
+      "makespan_cycles": 35557,
+      "instruction_count": 43,
+      "tail": [
+        {
+          "index": "118",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 33229,
+            "end": 33678
+          },
+          "cycles": 449,
+          "description": "--> src/device/sliding/projection.rs:253:73\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "122",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 33678,
+            "end": 34019
+          },
+          "cycles": 341,
+          "description": "--> src/device/sliding/projection.rs:262:78\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &residual_vrf)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "index": "127",
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 34019,
+            "end": 34523
+          },
+          "cycles": 504,
+          "description": "--> src/device/sliding/projection.rs:275:5\n\ndevice\n.main\n.begin(result.view())\n.fetch::<m![1], m![H % 480]>()\n.switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+        },
+        {
+          "index": "130",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 34523,
+            "end": 34957
+          },
+          "cycles": 434,
+          "description": "--> src/ops.rs:166:5\n\nresidual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut())"
+        },
+        {
+          "index": "134",
+          "contexts": [
+            "PeCore"
+          ],
+          "lifetime": {
+            "begin": 34957,
+            "end": 34957
+          },
+          "cycles": 0,
+          "description": "--> src/ops.rs:166:5\n\nresidual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut())"
+        },
+        {
+          "index": "ExplicitSync(39)",
+          "contexts": [
+            "PeCore"
+          ],
+          "lifetime": {
+            "begin": 34957,
+            "end": 35557
+          },
+          "cycles": 600,
+          "description": ""
+        }
+      ]
+    },
+    "16": {
+      "schedule_sha256": "fe0c45aea98823e0141562f1c57553a3a1bf8f52f6ecffec792cd69f089e0b15",
+      "makespan_cycles": 35527,
+      "instruction_count": 43,
+      "tail": [
+        {
+          "index": "118",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 33229,
+            "end": 33678
+          },
+          "cycles": 449,
+          "description": "--> src/device/sliding/projection.rs:253:73\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "122",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 33678,
+            "end": 33989
+          },
+          "cycles": 311,
+          "description": "--> src/device/sliding/projection.rs:262:78\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H % 240]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 30], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &residual_vrf)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "index": "127",
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 33989,
+            "end": 34493
+          },
+          "cycles": 504,
+          "description": "--> src/device/sliding/projection.rs:275:5\n\ndevice\n.main\n.begin(result.view())\n.fetch::<m![1], m![H % 240]>()\n.switch::<Slice, m![H / 240]>(SwitchConfig::Broadcast1 { slice1: 16, slice0: 1 })\n.collect::<m![H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+        },
+        {
+          "index": "130",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 34493,
+            "end": 34927
+          },
+          "cycles": 434,
+          "description": "--> src/ops.rs:166:5\n\nresidual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut())"
+        },
+        {
+          "index": "134",
+          "contexts": [
+            "PeCore"
+          ],
+          "lifetime": {
+            "begin": 34927,
+            "end": 34927
+          },
+          "cycles": 0,
+          "description": "--> src/ops.rs:166:5\n\nresidual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut())"
+        },
+        {
+          "index": "ExplicitSync(39)",
+          "contexts": [
+            "PeCore"
+          ],
+          "lifetime": {
+            "begin": 34927,
+            "end": 35527
+          },
+          "cycles": 600,
+          "description": ""
+        }
+      ]
+    },
+    "32": {
+      "schedule_sha256": "6eff97fe67e5b0a06e08071260dd1e3a519ee972bc9f752a86b6228b0815bb3a",
+      "makespan_cycles": 35457,
+      "instruction_count": 43,
+      "tail": [
+        {
+          "index": "118",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 33229,
+            "end": 33678
+          },
+          "cycles": 449,
+          "description": "--> src/device/sliding/projection.rs:253:73\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "122",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "lifetime": {
+            "begin": 33678,
+            "end": 33974
+          },
+          "cycles": 296,
+          "description": "--> src/device/sliding/projection.rs:262:78\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H % 120]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 15], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &residual_vrf)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "index": "125",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 33974,
+            "end": 34423
+          },
+          "cycles": 449,
+          "description": "--> src/device/sliding/projection.rs:275:5\n\nresult.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "127",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 34423,
+            "end": 34857
+          },
+          "cycles": 434,
+          "description": "--> src/ops.rs:166:5\n\nresidual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut())"
+        },
+        {
+          "index": "131",
+          "contexts": [
+            "PeCore"
+          ],
+          "lifetime": {
+            "begin": 34857,
+            "end": 34857
+          },
+          "cycles": 0,
+          "description": "--> src/ops.rs:166:5\n\nresidual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut())"
+        },
+        {
+          "index": "ExplicitSync(39)",
+          "contexts": [
+            "PeCore"
+          ],
+          "lifetime": {
+            "begin": 34857,
+            "end": 35457
+          },
+          "cycles": 600,
+          "description": ""
+        }
+      ]
+    }
+  },
+  "variant_notes": {
+    "8": "Original eight-slice TU gather",
+    "16": "Sixteen slices, TU gather",
+    "32": "Thirty-two slices, typed DMA gather; initial TU gather failed collect packet normalization for local H%120"
+  }
+}

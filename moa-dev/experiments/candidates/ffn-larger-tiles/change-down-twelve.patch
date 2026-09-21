@@ -1,0 +1,86 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -403,56 +403,58 @@
+         .commit_trim::<m![L % 32]>()
+         .commit();
+ 
+-    static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], {
+-        let down_weight_scale_vrf: VrfTensor<f32, Chip, DownCluster, DownRowsByColumns, m![H % 60 = 4, L / 16 % 120]> = device
++    static_passes!(i, [0, 1, 2, 3, 4], {
++        let down_weight_scale_vrf: VrfTensor<f32, Chip, DownCluster, DownRowsByColumns, m![H % 60 = 12, L / 16 % 120]> = device
+             .sub
+             .begin(
+                 down_weight_scale
+                     .view()
+-                    .tile::<m![H % 60], 4, m![H % 60 = 4 # 60, L / 16 % 120]>(4 * i),
+-            )
+-            .fetch::<m![H % 60 = 4], m![L / 16 % 120]>()
+-            .fetch_cast::<f32>()
+-            .collect::<m![H % 60 = 4, L / 16 / 8 % 15], m![L / 16 % 8]>()
++                    .tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i),
++            )
++            .fetch::<m![H % 60 = 12], m![L / 16 % 120]>()
++            .fetch_cast::<f32>()
++            .collect::<m![H % 60 = 12, L / 16 / 8 % 15], m![L / 16 % 8]>()
+             .to_vrf();
+ 
+-        let down_weight_tile: DmTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![H % 60 = 4, L % 1920]> = device
++        let down_weight_tile: DmTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![H % 60 = 12, L % 1920]> = device
+             .main
+             .begin(
+                 down_weight_packed
+                     .view()
+-                    .tile::<m![H % 60], 4, m![H % 60 = 4 # 60, L % 1920]>(4 * i),
+-            )
+-            .fetch::<m![H % 60 = 4, L / 32 % 60], m![L % 32]>()
+-            .fetch_cast::<f32>()
+-            .collect::<m![H % 60 = 4, L / 8 % 240], m![L % 8]>()
++                    .tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i),
++            )
++            .fetch::<m![H % 60 = 12, L / 32 % 60], m![L % 32]>()
++            .fetch_cast::<f32>()
++            .collect::<m![H % 60 = 12, L / 8 % 240], m![L % 8]>()
+             .vector_init()
+             .vector_intra_slice_tag(TagMode::Zero)
+-            .vector_narrow_split::<m![H % 60 = 4, L / 4 % 480], m![L % 4]>()
++            .vector_narrow_split::<m![H % 60 = 12, L / 4 % 480], m![L % 4]>()
+             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &down_weight_scale_vrf)
+-            .vector_widen_concat::<m![H % 60 = 4, L / 8 % 240], m![L % 8]>()
++            .vector_widen_concat::<m![H % 60 = 12, L / 8 % 240], m![L % 8]>()
+             .vector_final()
+             .cast::<bf16, m![L % 8 # 16]>()
+             .commit_trim::<m![L % 8]>()
+             .commit();
+ 
+-        // Keep the original four-row contraction and direct output commit.
++        // Canonical 12-row axis lets transpose emit three 4-row packets.
++        let down_weight_tile: DmTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![H % 12, L % 1920]> = unsafe { down_weight_tile.reshape() };
++        // Preserve per-row reduction while committing three packets of four BF16 rows.
+         device
+             .main
+             .begin(down_weight_tile.view())
+-            .fetch::<m![H % 60 = 4, L / 16 % 120], m![L % 16]>()
+-            .collect::<m![H % 60 = 4, L / 16 % 120], m![L % 16]>()
+-            .contract_outer::<m![H % 60 = 4, L / 32 % 60], m![L % 32], _, _, _>(&x_trf)
++            .fetch::<m![H % 12, L / 16 % 120], m![L % 16]>()
++            .collect::<m![H % 12, L / 16 % 120], m![L % 16]>()
++            .contract_outer::<m![H % 12, L / 32 % 60], m![L % 32], _, _, _>(&x_trf)
+             .contract_packet::<m![1]>()
+-            .contract_time::<m![H % 60 = 4]>()
+-            .contract_lane::<m![H % 60 = 4], m![1 # 8]>(LaneMode::Interleaved)
++            .contract_time::<m![H % 12]>()
++            .contract_lane::<m![H % 12], m![1 # 8]>(LaneMode::Interleaved)
+             .vector_init()
+-            .vector_inter_slice_reduce::<DownRows, m![H % 60 = 4]>(InterSliceReduceOpF32::Add)
++            .vector_inter_slice_reduce::<DownRows, m![H % 12]>(InterSliceReduceOpF32::Add)
+             .vector_final()
+             .cast::<bf16, m![1 # 16]>()
+-            .transpose::<m![1], m![H % 60 = 4 # 16]>()
+-            .commit_trim::<m![H % 60 = 4]>()
+-            .commit_view(down.view_mut().tile::<m![H % 60], 4, m![H % 60 = 4 #{!} 60]>(4 * i));
++            .transpose::<m![H / 4 % 3], m![H % 4 # 16]>()
++            .commit_trim::<m![H % 4]>()
++            .commit_view(down.view_mut().tile::<m![H / 12 % 5], 1, m![H / 12 % 5 = 1 #{!} 5, H % 12]>(i));
+     });
+ 
+     // Compact each cluster before joining its high row axis back into H.
