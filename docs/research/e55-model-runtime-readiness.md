@@ -57,7 +57,7 @@ Rust weight loader는 모델 `config.json`을 읽어 축을 바꾸지 않는다.
 
 [4-prefix 확장71239](../experiments/e55-model-prefix-suite.md)는 인사·산수·한국어·Python의82개 고정 input token에 대해1,048,576개 logits를 비교했다. 네 raw top1이 모두 같았고 max abs는0.583984375–1.5였다. 각 case는 새 Workspace를 사용했고 같은 job의 전체 weight hash 및 전후 stat/header·metadata hash를 확인했다. 순차1회 prefix/read 비율4.837–4.866은 공식 성능이 아니며, 생성 답변·near-tie·long context·멀티모달 정확도를 평가하지 않았다. [산술 차이와 다음 단일-kernel 대조](e55-model-numerical-differences.md)에 가능한 차이 발생 위치를 정리했다.
 
-[실제 단일-kernel 복원 대조](../experiments/e55-model-single-kernel-controls.md)는 대상 image 하나만 원본으로 바꾸고 나머지9개를 E55와 동일하게 유지한다. Full-O 복원은 네 prefix의1,048,576개 logits 모두 E55와 bit-identical이었다. O/FFN 복원은 입력마다 원본과의 차이가 커지거나 줄었으며 오차의 가산 기여율로 해석하지 않는다. 다음 [생성 토큰 고정 진단 설계](model-continuation-diagnostic-design.md)는 동일 문맥에서 최대32개 checkpoint와 실제 sampler 선택을 비교한다. 아직 구현·실행하지 않았고, 추가 logits head와 JSON I/O 비용 때문에70초 완료도 미검증이다.
+[실제 단일-kernel 복원 대조](../experiments/e55-model-single-kernel-controls.md)는 대상 image 하나만 원본으로 바꾸고 나머지9개를 E55와 동일하게 유지한다. Full-O 복원은 네 prefix의1,048,576개 logits 모두 E55와 bit-identical이었다. O/FFN 복원은 입력마다 원본과의 차이가 커지거나 줄었으며 오차의 가산 기여율로 해석하지 않는다. 이후 [생성 토큰 고정 진단71329](../experiments/e55-model-continuation.md)는32개 checkpoint·8,388,608개 finite logits와 모델당110forward를42.448초에 완료했다. 실제 공개 sampler의 greedy 선택32개가 모두 같았고 산수 case는8번째 선택 EOS106으로 끝났다. 최소 허용-token margin0.875, 최대 절대 차이1.6875이며 정확도 판정은 null이다. 원본 토큰만 다음 입력으로 공급하는 짧은 문맥 진단이라 자유 생성·정답률·cache 경계·멀티모달이나 다른 workload의70초 완료를 보장하지 않는다.
 
 ## 원본/E55 정확도·성능 비교 조건
 

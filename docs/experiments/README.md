@@ -47,6 +47,12 @@ QKV, O, FFN, or full O independently while preserving the other nine E55 images.
 All four jobs71275/71281/71282/71290 completed. The full-O pair is bit-identical
 to E55 across the four full vectors; QKV/O/FFN original-reference differences
 are not additive kernel error contributions.
+The [forced-continuation job71329](e55-model-continuation.md) completed32
+checkpoints and8388608 finite logits on original-token history. All32 legal
+greedy choices match, including the arithmetic case's final EOS; model forwards
+are110 each. The minimum observed legal margin is0.875 and maximum absolute
+logit difference1.6875. This does not establish independent task accuracy,
+near-tie/long-context coverage, or official performance. Accuracy verdicts remain null.
 The unchanged live E55 remains the accepted checkpoint.
 Earlier adoption decisions describe the checkpoint retained at that experiment's date.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate

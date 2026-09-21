@@ -1,6 +1,6 @@
 # 원본 생성 토큰을 고정한 후속 logits 진단 설계
 
-2026-09-22 KST. **설계 검토만 수행했다. 새 host 구현·빌드·Arena 실행은 하지 않았다.** 기준은 `model-prefix-suite-e55`의 원본/E55 frozen crate와 실제 `generate`/`sampling`/`Tokenizer`/`Workspace` 구현이다. 아래 읽은 host 파일과 `lm_head.rs`, `ops.rs`는 검사 시 live E55와 frozen E55가 byte-identical이었다.
+2026-09-22 KST. 아래는 구현 전의 설계와 소스 검토다. 이후 [동일 설계의 host를 구현·빌드](../../moa-dev/experiments/candidates/model-continuation-e55/README.md)했고 [Arena71329](../experiments/e55-model-continuation.md)에서32개 checkpoint·8,388,608개 finite logits 비교와32개 greedy 선택 일치를 확인했다. 해당 실행은42.448초에 완료됐으며 아래의 사전 예산 검토를 일반적인70초 보장으로 바꾸지 않는다. 기준은 `model-prefix-suite-e55`의 원본/E55 frozen crate와 실제 `generate`/`sampling`/`Tokenizer`/`Workspace` 구현이다. 아래 읽은 host 파일과 `lm_head.rs`, `ops.rs`는 검사 시 live E55와 frozen E55가 byte-identical이었다.
 
 기존 [4-prefix 결과](../experiments/e55-model-prefix-suite.json)는 네 문장의 마지막 분포 1,048,576개 원소를 비교했고, 네 top-1이 같았다. 다음 진단은 원본이 선택한 후속 토큰을 E55에도 그대로 입력하여 **동일한 문맥에서 다음 분포가 달라지는지** 확인한다. 원본의 정답성, 자유 생성한 두 답변의 동등성, 공식 정확도 기준을 입증하는 실험은 아니다. `accuracy_acceptance_threshold`와 `accuracy_pass`는 계속 `null`이다.
 
@@ -60,6 +60,8 @@ checkpoint별 max/mean absolute error, RMSE, bit-equal 개수, 기존 절대 오
 기존 71239의 같은-job 자산 검사+원본/E55 네 prefill은 **34.074초**였다. 이는 새 workload의 시간 보장이 아니다. [`Decode::run_layers`](../../moa-dev/experiments/artifacts/model-prefix-suite-e55/e55/crate/src/host/runtime.rs#L365)는 `compute_logits=true`일 때마다 마지막 vocab projection을 실행한다. [`lm_head::logits`](../../moa-dev/experiments/artifacts/model-prefix-suite-e55/e55/crate/src/device/shared/lm_head.rs#L15)의 16-band loop는 `W * H * 2 = 2,013,265,920 B`의 BF16 weight를 논리적으로 읽는다. 기존 4회에서 최대 32회로 늘면 모델당 28회, 원본/E55 합계 56회의 logits head가 추가된다. 해당 weight payload 합은 **105 GiB**이며 여기에 56회의 decoder token 계산, logits 다운로드, sampler, JSON I/O가 더해진다. 이 숫자는 구현상 전송량 계산이며 실측 대역폭이나 실행 시간 추정이 아니다.
 
 토큰 수만 비례시켜 70초 이내라고 단정할 근거는 없다. 구현한다면 기존 before/after load·case progress에 checkpoint별 decode/read/write 시간을 추가하고, 전체 70초 제한 아래 시도하는 bounded 진단으로 취급해야 한다. 호스트 deadline 확인은 다음 launch를 막을 수 있지만 이미 실행 중인 NPU 작업의 완료를 보장하지 않는다. 시간 부족 시 checkpoint를 조용히 생략하거나 완료로 표시하지 않고 불완전 실행으로 종료한다. 8-step 완료 여부가 확인되기 전에는 성능 측정이나 시간 보장으로 사용하지 않는다.
+
+현재 네 prompt와8-step 예산의 최대 position은34라 모든 full attention은 첫 page만 사용한다. `Decode::run`→`run_layers`→`sliding`/`full`→`mlp` 호출을 세면, 이 범위에서 token 하나당 embedding1회+48layer×4회=193개의 `launch` 호출이 있고 `compute_logits=true`일 때1회가 추가된다. 따라서 기존82forward/4checkpoint는 모델당15,830호출, 새 진단의 상한110forward/32checkpoint는21,262호출이다. 이는 소스 수준 호출 수이며 SDK 내부 실행 수·장치 cycles·host overhead의 실측 분해가 아니다. 새 진단도512-page나1024-ring 경계를 검사하지 않는다.
 
 원본/E55 host·47-input manifests·10-device-image registry를 기존 방식으로 별도 묶고, 동일 job에서 full asset hash를 먼저 수집한 뒤 두 모델을 실행하며 마지막 header/stat·metadata 검사를 유지한다. 이는 두 실행의 자산 provenance를 강화하지만 마지막에 weight 전체를 재해시하지 않는 한 외부의 탐지 불가능한 payload 변경까지 배제하는 증명은 아니다. reference array를 job 밖에 내려받지 않는다면 collector가 수치통계를 독립 재계산한 것이 아니라 host 보고를 검증한 것임도 계속 구분한다.
 

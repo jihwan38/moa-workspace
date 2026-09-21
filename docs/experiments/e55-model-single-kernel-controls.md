@@ -67,10 +67,10 @@ independent accuracy oracle, near-tie coverage guarantee, long-context/page/ring
 boundary, shared-Workspace multi-request, or multimodal result is established.
 Sequential per-case timings are recorded in each JSON but are not repeated,
 order-controlled benchmarks or official scores. E55 remains the accepted
-checkpoint. The [next continuation diagnostic](../research/model-continuation-diagnostic-design.md)
-will replay original-generated tokens and compare up to32 distributions and
-actual legal greedy choices. That design is not implemented or executed yet;
-its added logits-head and JSON cost has no70-second completion guarantee.
+checkpoint. The subsequent [continuation diagnostic71329](e55-model-continuation.md)
+replayed original-generated tokens and compared32 distributions and actual
+legal greedy choices. All32 choices matched, while numerical differences remained.
+That run completed in42.448 seconds; it does not guarantee other workloads fit70 seconds.
 Official submissions remain unavailable according to the
 [maintenance notice](https://micro2026-moa.github.io/leaderboard.html); no rank
 has been obtained.
