@@ -1,0 +1,63 @@
+{
+  "candidate": "FP4 blockscale after 16-element dot product for up/gate",
+  "base": "moa-dev/experiments/artifacts/e6-all-unrolled",
+  "candidate_mlp_sha256": "e79fc490f16f94959990c32356b7e96999aa69dc8541a8d579d417f2120ad780",
+  "prototype_status": "Release NPU compile passed; root Arena job 70107 passed the official three-seed sweep but regressed in FFN cycles.",
+  "compile_elapsed_seconds": 20.32,
+  "binary_container_path": "/tmp/moa-ffn-blockscale-api/target/release/test_kernels",
+  "binary_sha256": "36cbc65314abb4232f4760941f65c61a8b7bf33d975cfb3eae113ffbfe6a62bc",
+  "container_image_id": "sha256:518d7b7ddaca5a97344d8bbd60e04f5e87ca7c50d883bfb5930a64a0c6ff382f",
+  "compiler": "cargo-furiosa-opt 0.8.1",
+  "cargo_lock_sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09",
+  "changed_runtime_semantics": "Weight local scales move from per-weight multiplication to one multiplication per 16-element block dot; accumulation order changes. All other helper arithmetic is preserved.",
+  "official_test_harness_modified": false,
+  "npu_correctness_validated": true,
+  "performance_measured": true,
+  "logical_local_scale_multiplications": {
+    "before": 117964800,
+    "after": 7372800,
+    "reduction_factor": 16,
+    "hardware_cycle_reduction_claimed": false
+  },
+  "compile_command": [
+    "docker",
+    "exec",
+    "--workdir",
+    "/tmp/moa-ffn-blockscale-api",
+    "moa2026-dev",
+    "env",
+    "CARGO_HOME=/tmp/moa-extra-seeds-e5-four-row-extra/cargo-home",
+    "CARGO_TARGET_DIR=/tmp/moa-ffn-blockscale-api/target",
+    "XDG_CACHE_HOME=/tmp/moa-ffn-blockscale-api/cache",
+    "RUSTUP_HOME=/home/moa/.rustup",
+    "cargo",
+    "furiosa-opt",
+    "build",
+    "--release",
+    "--frozen",
+    "--bin",
+    "test_kernels"
+  ],
+  "hardware": {
+    "job_id": 70107,
+    "source_snapshot": "moa-dev/experiments/artifacts/e8-blockscale-o2-ring32",
+    "candidate_mlp_sha256_verified": true,
+    "log_path": "moa-dev/logs/e8-blockscale-o2-ring32-job-70107.log",
+    "log_sha256": "06ed8b0d464ed2f613b68f00aa7244600abdc30c8cd32ab32d470c011d4bd13f",
+    "official_seed_ids": [
+      0,
+      1,
+      2
+    ],
+    "all_outputs_passed": true,
+    "ffn_cycles_by_run": [
+      923075,
+      921510,
+      921693
+    ],
+    "ffn_median_cycles": 921693,
+    "e6_all_unrolled_ffn_median_cycles": 820226,
+    "ffn_latency_change_fraction": 0.12370614928080803,
+    "extra_seed_validation_completed": false
+  }
+}

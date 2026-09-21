@@ -1,0 +1,25 @@
+   Compiling [1/1] ops::decoder_feedforward
+error: furiosa-opt: ops::decoder_feedforward: visa: while verifying IndexAccess
+       caused by: verification of operator failed:
+       IndexAccess
+       axis: stride 1 x 32, window_size: 8
+       name: 
+       
+       input tensors: 2
+         input T35: MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: L % 32], 32768 B, bf16, sram
+         source: unknown
+         input T49: [Broadcast=1]|[Broadcast=2]|[Dummy=4]|[], 32 B, raw_i32, spm
+         source: unknown
+         total bytes: 32800
+       output tensors: 1
+         output T50: MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: L % 32 = 8 #{!} 60], 61440 B, bf16, sram
+         source: unknown
+         total bytes: 61440
+       caused by: Output shape mismatch for IndexAccess (expected MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: L % 32 = 8 # 32], got MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: L % 32 = 8 #{!} 60])
+  --> src/device/shared/mlp.rs:65:40
+   |
+65 |         .commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 60]>(row_offset));
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 1 compiled, 14 not matching ops::decoder_feedforward
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error

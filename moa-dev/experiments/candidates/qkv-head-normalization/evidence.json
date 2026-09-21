@@ -1,0 +1,138 @@
+{
+  "created_utc": "2026-09-21T09:35:22.527879+00:00",
+  "candidate": "qkv-head-normalization",
+  "baseline": "current QKV two-cluster input RMS plus hier32 broadcast; O2cluster and O8slice residual unaffected",
+  "compiler": "cargo-furiosa-opt 0.8.1",
+  "std": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "numerical_correctness": "NOT TESTED",
+  "hardware_performance": "NOT MEASURED",
+  "scratch_directory": "/tmp/moa-qkv-head-normalization",
+  "cargo_target_dir": "/tmp/moa-qkv-head-normalization/target",
+  "furiosa_opt_out_dir": "/tmp/moa-qkv-head-normalization/target/furiosa-opt/kernel",
+  "command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule schedules/sliding_project_qkv.json",
+  "compile_exit_code": 0,
+  "compiled_source_hashes": {
+    "ops.rs": "2f2dbf23eb5a6e2c7678c7f14198c3ca0d529f650d93a1fd6a9d85092e3b9f75",
+    "projection.rs": "c4747ab2d2f176d23df5cc0c8aa9afe13479641c5f5c3aa7ad19dca6b7381a9a",
+    "rmsnorm.rs": "48bce532c0e9c0e39d6f17a6c38b78e34bfb5a00691291849e460b7a9044281f",
+    "rope.rs": "cc23ad726baf191184b8b0ff000516cf38148e04c05b74925ec8a966e80b3c93"
+  },
+  "baseline_schedule": {
+    "schedule_sha256": "a129f249c18a71c2383408253bd736d8437cf6a7fcd94ea1ebba9c7d01982bdf",
+    "makespan_cycles": 56719,
+    "instruction_count": 149,
+    "source_stats": {
+      "sliding/projection.rs": {
+        "context_cycle_sums": {
+          "DmaEngine": 31351,
+          "SubContext": 3241,
+          "Noop": 0,
+          "MainContext": 14332,
+          "VectorEngine": 11236,
+          "PeCore": 0
+        },
+        "instruction_counts_by_context": {
+          "DmaEngine": 9,
+          "SubContext": 5,
+          "Noop": 5,
+          "MainContext": 9,
+          "VectorEngine": 6,
+          "PeCore": 3
+        }
+      },
+      "sliding/rmsnorm.rs": {
+        "context_cycle_sums": {
+          "DmaEngine": 900,
+          "SubContext": 1459,
+          "MainContext": 6630,
+          "VectorEngine": 6630
+        },
+        "instruction_counts_by_context": {
+          "DmaEngine": 2,
+          "SubContext": 5,
+          "MainContext": 9,
+          "VectorEngine": 9
+        }
+      },
+      "sliding/rope.rs": {
+        "context_cycle_sums": {
+          "Noop": 0,
+          "PeCore": 152,
+          "DmaEngine": 2592,
+          "SubContext": 1564,
+          "MainContext": 8356,
+          "VectorEngine": 2166
+        },
+        "instruction_counts_by_context": {
+          "Noop": 8,
+          "PeCore": 20,
+          "DmaEngine": 4,
+          "SubContext": 4,
+          "MainContext": 16,
+          "VectorEngine": 6
+        }
+      }
+    },
+    "note": "Context durations per source are sums, not makespan or independent speedup."
+  },
+  "candidate_schedule": {
+    "schedule_sha256": "ddd165c7b12668dc360875d7a65af0d498bfb063ae496583b28687583b81d5c1",
+    "makespan_cycles": 52971,
+    "instruction_count": 143,
+    "source_stats": {
+      "sliding/projection.rs": {
+        "context_cycle_sums": {
+          "DmaEngine": 32188,
+          "SubContext": 3241,
+          "Noop": 0,
+          "MainContext": 11236,
+          "VectorEngine": 11236,
+          "PeCore": 0
+        },
+        "instruction_counts_by_context": {
+          "DmaEngine": 9,
+          "SubContext": 5,
+          "Noop": 5,
+          "MainContext": 6,
+          "VectorEngine": 6,
+          "PeCore": 3
+        }
+      },
+      "sliding/rmsnorm.rs": {
+        "context_cycle_sums": {
+          "DmaEngine": 1006,
+          "SubContext": 1459,
+          "MainContext": 3045,
+          "VectorEngine": 3045
+        },
+        "instruction_counts_by_context": {
+          "DmaEngine": 2,
+          "SubContext": 5,
+          "MainContext": 9,
+          "VectorEngine": 9
+        }
+      },
+      "sliding/rope.rs": {
+        "context_cycle_sums": {
+          "Noop": 0,
+          "PeCore": 152,
+          "DmaEngine": 2592,
+          "SubContext": 1564,
+          "MainContext": 4182,
+          "VectorEngine": 2166
+        },
+        "instruction_counts_by_context": {
+          "Noop": 8,
+          "PeCore": 20,
+          "DmaEngine": 4,
+          "SubContext": 4,
+          "MainContext": 12,
+          "VectorEngine": 6
+        }
+      }
+    },
+    "note": "Context durations per source are sums, not makespan or independent speedup."
+  },
+  "layout_validation": "PASS: all 4096 Q and 2048 KV output indices preserve order/bijection; O suffix and RoPE arithmetic/final gather unchanged"
+}

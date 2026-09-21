@@ -1,0 +1,42 @@
+{
+  "candidate_source_sha256": "656d308ecbc11bd11b4a71cf24e67f867d9eda81e5ddcef9a1f684dde5bd3f7f",
+  "exact_kernel": "ops::decoder_feedforward",
+  "compile_passed": true,
+  "release_binary_built": false,
+  "npu_submitted": true,
+  "scratch_path": "/tmp/moa-ffn-blockscale-two-cluster-fused-bf16",
+  "schedule_sha256": "28ee86a1f96eceb5ad349470ac06d7bf8a932f548ce5327a5a0826ae4cd6c64d",
+  "static_makespan": 176264,
+  "normal_dequant_up8_down12_static_makespan": 204460,
+  "static_reduction_fraction": 0.1379047246405165,
+  "context_union_cycles": {
+    "Noop": 0,
+    "DmaEngine": 132947,
+    "PeCore": 25817,
+    "SubContext": 17662,
+    "MainContext": 120386,
+    "VectorEngine": 106775
+  },
+  "lookup_dram_constant_count": 3,
+  "spill_io_cycle": 0,
+  "compiler": "cargo-furiosa-opt 0.8.1",
+  "container_image_id": "sha256:518d7b7ddaca5a97344d8bbd60e04f5e87ca7c50d883bfb5930a64a0c6ff382f",
+  "limitations": [
+    "No hardware latency/correctness claim.",
+    "FP32 sum order changes when moving scale after dot.",
+    "2-cluster/8-row blockdot commit requires hardware correctness validation."
+  ],
+  "hardware_result": "FAIL",
+  "hardware": {
+    "job_id": 70162,
+    "raw_log_path": "moa-dev/logs/e13-ffn-blockscale-fused-bf16-job-70162.log",
+    "raw_log_sha256": "67c670a28776a3dec870b0197fafc41c317b9b53eb1f898b89a4821404431da7",
+    "ffn_run0_max_absolute_delta": 0.63281,
+    "ffn_run0_mean_absolute_delta": 0.04177,
+    "ffn_run0_within_tolerance_percent": 30.96,
+    "subsequent_npu_launch_timeout": true,
+    "exit_code": 101,
+    "root_cause": "Unresolved: mathematical cast exactness and compile success did not establish hardware packet/decode correctness."
+  },
+  "candidate_rejected": true
+}

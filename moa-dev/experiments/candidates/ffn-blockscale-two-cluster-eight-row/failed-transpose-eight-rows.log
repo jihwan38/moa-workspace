@@ -1,0 +1,11 @@
+   Compiling [1/1] ops::decoder_feedforward
+error: furiosa-opt: ops::decoder_feedforward: visa: while lowering TensorUnit
+       caused by: configuring the transpose engine
+       caused by: Transpose: output packet beyond max_in_rows (4) must be `1 # n` pure padding, got: L / 4 % 8 = 2 # 4
+  --> src/device/shared/mlp.rs:65:10
+   |
+65 |         .commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset));
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 1 compiled, 14 not matching ops::decoder_feedforward
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error

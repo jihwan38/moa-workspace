@@ -1,0 +1,10 @@
+--- a/src/ops.rs
++++ b/src/ops.rs
+@@ -223,7 +223,6 @@
+     let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = residual_hbm.to_dm(&mut device.tdma);
+     let x = shared::rmsnorm::normalize(device, &residual, pre_ff_rms_weight);
+ 
+-    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![H]> = x.to_dm(&mut device.tdma);
+     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::mlp::feedforward(
+         device,
+         x,

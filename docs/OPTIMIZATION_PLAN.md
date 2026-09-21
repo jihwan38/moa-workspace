@@ -23,11 +23,13 @@
 
 ## 실측 진행 상황
 
-2026-09-21 job `70135`에서 QKV **126,444** / O **68,813** / FFN **479,755** cycles와
-전체 정확성 통과를 확인했다. 원본 대비 각각 약 **1.93× / 5.87× / 8.89×**다.
-이 조합은 QKV 두 cluster·계층형 복제, O 두 cluster·병렬 residual,
-FFN direct layout·반복 전개·up/gate/down 두 cluster를 사용한다. 단일 job screening이며
-최종 후보에서는 동일 패키지 반복과 추가 seed 검사를 다시 수행한다.
+2026-09-21 job `70181`에서 QKV **115,780** / O **65,476** / FFN **397,675** cycles와
+전체 정확성 통과를 확인했다. 원본 대비 각각 약 **2.11× / 6.17× / 10.72×**다.
+QKV는 두 cluster와 head별 정규화를 사용하고, O는 두 cluster·8개 column 분할과
+FP32 inter-slice reduction을 사용한다. FFN은 세 행렬을 두 cluster에 배치하고,
+FP4→FP8 DM→unscaled BF16 DM 변환을 재사용해 16-element dot 이후 local scale을 적용한다.
+후자는 FP32 합산 순서를 바꾸므로 추가 입력 검사를 별도로 수행한다.
+현재 조합은 단일 job screening이며 동일 바이너리 반복 측정도 수행한다.
 
 이전 E5 four-row snapshot은 동일 패키지 세 job과 추가 run3..8의 30개 출력 비교를 모두
 통과했다. 후속 소스의 검증을 이 이전 결과로 대신하지 않는다.
@@ -37,10 +39,11 @@ FFN two-row 출력 경로 두 개는 같은 정확성 실패를 보여 제외했
 FP4×FP8의 BF16 표현 가능성을 확인하고 NPU 정확성도 통과했지만, up/gate에만 적용한
 버전은 반복 lookup table 적재 때문에 FFN이 E6보다 12.37% 느려 그대로 채택하지 않았다.
 QKV lane 병렬화도 weight BF16 materialization과 TRF 적재 때문에 정적 13.7% 회귀했다.
+FP4 lookup→F32→BF16 단일-pass decode는 컴파일되지만 NPU FFN 정확도 실패와 timeout이
+발생해 제외했다. 수학적 표현 가능성과 실제 compiler/실행 경로의 정확성을 구분한다.
 실패 후보와 근거도 보존하며, compiler schedule 개선만으로 실제 speedup을 주장하지 않는다.
 
-다음 주요 검증은 FFN 타일 크기 확대,
-blockscale lookup 재사용, residual/정규화의 데이터 이동 축소다.
+다음 주요 검증은 FFN 후처리 병렬화, down column 분할·입력 전달 방식, O column 분할 수 조정이다.
 공개 상위3위 목표에는 아직 못 미치며 공식 제출·순위 확인은 별도 인증 대기다.
 공개 상위 기록은 9월21일 입력·평가 환경 변경 이전 제출이므로 같은 환경의 성능으로 단정하지 않는다.
 

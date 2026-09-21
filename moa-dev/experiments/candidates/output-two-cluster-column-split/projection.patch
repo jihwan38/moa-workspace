@@ -1,0 +1,65 @@
+--- projection.previous.rs
++++ projection.rs
+@@ -166,42 +166,36 @@
+ 
+ pub(crate) fn project_output(
+     device: &mut Device,
+-    x: &DmTensor<bf16, Chip, m![2], Replicated, m![Qs]>,
++    x: HbmTensorView<'_, bf16, Chip, m![Qs]>,
+     weight: &HbmTensor<f8e4m3, Chip, m![H, Qs]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![H]>,
+ ) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
+     type OutputCluster = m![Dummy2];
+-    type OutputRows = m![H / 8 % 240 # 256];
+-    let x: DmTensorView<'_, bf16, Chip, OutputCluster, OutputRows, m![Qs]> = unsafe { x.view().reshape() };
+-    let x_trf: TrfTensor<bf16, Chip, OutputCluster, OutputRows, m![1], m![Qs]> = device
+-        .sub
+-        .begin(x)
+-        .fetch::<m![Qs / 16], m![Qs % 16]>()
+-        .collect::<m![Qs / 16], m![Qs % 16]>()
++    type OutputColumns = m![H / 60 % 32, Qs / 512];
++    type OutputRows = m![H / 60 % 32, 1 # 8];
++    let x: DmTensor<bf16, Chip, OutputCluster, OutputColumns, m![Qs % 512]> = x.to_dm(&mut device.tdma);
++    let x_trf: TrfTensor<bf16, Chip, OutputCluster, OutputColumns, m![1], m![Qs % 512]> = device
++        .sub.begin(x.view())
++        .fetch::<m![Qs / 16 % 32], m![Qs % 16]>()
++        .collect::<m![Qs / 16 % 32], m![Qs % 16]>()
+         .to_trf();
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H % 1920, Qs]> = unsafe { weight.view().reshape() };
+-    let weight: DmTensor<f8e4m3, Chip, OutputCluster, OutputRows, m![H % 8, Qs]> = weight.to_dm(&mut device.tdma);
+-    let result: DmTensor<bf16, Chip, OutputCluster, OutputRows, m![H % 8]> = device
+-        .main
+-        .begin(weight.view())
+-        .fetch::<m![H % 8, Qs / 16], m![Qs % 16]>()
++    let weight: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 60, Qs % 512]> = weight.to_dm(&mut device.tdma);
++    let result: DmTensor<bf16, Chip, OutputCluster, OutputRows, m![H % 60]> = device
++        .main.begin(weight.view())
++        .fetch::<m![H % 60, Qs / 16 % 32], m![Qs % 16]>()
+         .fetch_table_lookup::<bf16>()
+-        .collect::<m![H % 8, Qs / 16], m![Qs % 16]>()
+-        .contract_outer::<m![H % 8, Qs / 32], m![Qs % 32], _, _, _>(&x_trf)
++        .collect::<m![H % 60, Qs / 16 % 32], m![Qs % 16]>()
++        .contract_outer::<m![H % 60, Qs / 32 % 16], m![Qs % 32], _, _, _>(&x_trf)
+         .contract_packet::<m![1]>()
+-        .contract_time::<m![H % 8]>()
+-        .contract_lane::<m![H % 8], m![1 # 8]>(LaneMode::Interleaved)
++        .contract_time::<m![H % 60]>()
++        .contract_lane::<m![H % 60], m![1 # 8]>(LaneMode::Interleaved)
++        .vector_init()
++        .vector_inter_slice_reduce::<OutputRows, m![H % 60]>(InterSliceReduceOpF32::Add)
++        .vector_final()
+         .cast::<bf16, m![1 # 16]>()
+-        .transpose::<m![H / 4 % 2], m![H % 4 # 16]>()
++        .transpose::<m![H / 4 % 15], m![H % 4 # 16]>()
+         .commit_trim::<m![H % 4]>()
+-        .commit();
+-    let result: DmTensor<bf16, Chip, OutputCluster, Slice, m![H / 8 % 240 # 256, H % 8]> = device
+-        .main
+-        .begin(result.view())
+-        .fetch::<m![1], m![H % 8 # 16]>()
+-        .switch::<Slice, m![H / 8 % 240 # 256]>(SwitchConfig::Broadcast1 { slice1: 256, slice0: 1 })
+-        .collect::<m![H / 8 % 240 # 256], m![H % 8 # 16]>()
+-        .commit_trim::<m![H % 8]>()
+         .commit();
+     let result: DmTensor<bf16, Chip, OutputCluster, Slice, m![H % 1920]> = result.to_dm(&mut device.tdma);
+     let result: DmTensor<bf16, Chip, m![H / 1920], Slice, m![H % 1920]> = unsafe { result.reshape() };

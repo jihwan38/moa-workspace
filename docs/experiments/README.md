@@ -21,6 +21,12 @@ Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916
 | E8 ring32 QKV + two-cluster O + blockscale up/gate | 70107 | Pass | 129964 | 76147 | 921693 | Retain QKV/O; blockscale FFN is 12.37% slower than E6 |
 | E9 replicated QKV norm + parallel O residual + two-cluster up/gate | 70118 | Pass | 130496 | 69651 | 657198 | O and FFN improve; QKV change is within observed variance |
 | E10 all FFN matrices on two clusters | 70135 | Pass | 126444 | 68813 | 479755 | Retain; FFN 8.889× original, 27% faster than E9 |
+| E11 up/gate8 and down12 row tiles | 70149 | Pass | 125967 | 68677 | 448221 | Retain; FFN 6.57% faster than E10 |
+| E12 blockscale up/gate with reused unscaled BF16 weights | 70157 | Pass | 125619 | 68945 | 436380 | Retain for further tests; FP32 sum order changes |
+| E13 fused FP4 LUT→F32→BF16 materialization | 70162 | FFN fail/timeout | — | — | — | Rejected; run0 only30.96% within tolerance, run1 launch timeout |
+
+| E14 head-parallel QKV norm and eight-column O | 70174 | Pass | 118881 | 65694 | 436791 | Retain QKV/O, all official input comparisons pass |
+| E15 blockscale down with two-stage decode | 70181 | Pass | 115780 | 65476 | 397675 | Retain; new best, extra seeds and repeats pending |
 
 The failed E4 and E5 experiments have identical reported FFN max/mean errors and tolerance pass rates
 for all three inputs. Their common two-row contraction/reduction/commit/copy path is the current
@@ -44,3 +50,5 @@ The helper itself does not claim to prove that a binary was built from the curre
 Additional development seeds run3..8 passed all 30 output comparisons for the E5 four-row
 snapshot (job70057). Binary, fixture and entrypoint matched the submitted package. This result
 is in `e5-four-row-extra-correctness.json` and is separate from the official three-input score.
+
+E10 also passed all30 additional run3..8 comparisons in job70150 (`e10-all-two-cluster-extra-correctness.json`). This predates the blockscale summation-order change and does not validate E12 or later candidates.

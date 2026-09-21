@@ -55,33 +55,34 @@ pub fn sliding_project_qkv(
     v_cache: &mut HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
     q_out: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
 ) {
-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = x.to_dm(&mut device.tdma);
+    let x: DmTensor<bf16, Chip, m![2], Slice, m![H]> = x.to_dm(&mut device.tdma);
     let x = shared::rmsnorm::normalize(device, &x, input_rms_weight);
 
-    let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 16, 1 # 16], m![H]> = x.to_dm(&mut device.tdma);
-    let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 16, 16], m![H]> = device
+    let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 32, 1 # 32], m![H]> = x.to_dm(&mut device.tdma);
+    let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 32, 32], m![H]> = device
         .main
         .begin(x.view())
         .fetch::<m![1], m![H]>()
-        .switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })
+        .switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
         .collect::<m![H / 16], m![H % 16]>()
         .commit_trim::<m![H % 16]>()
         .commit();
     let x: DmTensor<bf16, Chip, m![2], Replicated, m![H]> = unsafe { x.reshape() };
 
-    let q: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> =
+    let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
         sliding::projection::project_query(device, &x, q_weight, q_weight_scale);
     let (k, v) = sliding::projection::project_key_value(device, &x, k_weight, v_weight, k_weight_scale, v_weight_scale);
 
-    let q: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> =
+    let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
         sliding::rmsnorm::normalize_query(device, &q, q_rms_weight);
-    let k: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]> = sliding::rmsnorm::normalize_key(device, &k, k_rms_weight);
-    let v: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]> = sliding::rmsnorm::normalize_value(device, &v);
+    let k: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> = sliding::rmsnorm::normalize_key(device, &k, k_rms_weight);
+    let v: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> = sliding::rmsnorm::normalize_value(device, &v);
 
     let (q, k) = sliding::rope::apply_rope(device, &q, &k, rope_offset, cos, sin);
 
     q.view().to_hbm_view(&mut device.tdma, q_out.view_mut());
     k.dma_scatter::<m![1], _, _>(kv_offset, k_cache);
+    let v: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]> = v.to_dm(&mut device.tdma);
     v.dma_scatter::<m![1], _, _>(kv_offset, v_cache);
 }
 
@@ -146,24 +147,12 @@ pub fn sliding_attention_output(
     o_weight_scale: &HbmTensor<bf16, Chip, m![H]>,
     residual_hbm: &mut HbmTensor<bf16, Chip, m![H]>,
 ) {
-    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 1 # 16], m![Ns, Gs, Ds]> = x.to_dm(&mut device.tdma);
-    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 1 # 16], m![Qs]> = unsafe { x.reshape() };
-    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 16], m![Qs]> = device
-        .main
-        .begin(x.view())
-        .fetch::<m![1], m![Qs]>()
-        .switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })
-        .collect::<m![Qs / 16], m![Qs % 16]>()
-        .commit_trim::<m![Qs % 16]>()
-        .commit();
-    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![Qs]> = unsafe { x.reshape() };
-
+    let x: HbmTensorView<'_, bf16, Chip, m![Qs]> = unsafe { x.view().reshape() };
     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> =
-        sliding::projection::project_output(device, &x, o_weight, o_weight_scale);
+        sliding::projection::project_output(device, x, o_weight, o_weight_scale);
     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::rmsnorm::normalize(device, &x, post_attn_rms_weight);
 
-    let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = residual_hbm.to_dm(&mut device.tdma);
-    let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::residual::add(device, &x, &residual);
+    let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = sliding::projection::add_output_residual(device, &x, residual_hbm);
     residual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut());
 }
 
@@ -240,16 +229,6 @@ pub fn decoder_feedforward(
     let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = residual_hbm.to_dm(&mut device.tdma);
     let x = shared::rmsnorm::normalize(device, &residual, pre_ff_rms_weight);
 
-    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 1 # 16], m![H]> = x.to_dm(&mut device.tdma);
-    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 16], m![H]> = device
-        .main
-        .begin(x.view())
-        .fetch::<m![1], m![H]>()
-        .switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })
-        .collect::<m![H / 16], m![H % 16]>()
-        .commit_trim::<m![H % 16]>()
-        .commit();
-    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![H]> = unsafe { x.reshape() };
     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::mlp::feedforward(
         device,
         x,
