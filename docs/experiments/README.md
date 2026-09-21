@@ -118,7 +118,8 @@ The helper itself does not claim to prove that a binary was built from the curre
 
 Additional development seeds run3..8 passed all 30 output comparisons for the E5 four-row
 snapshot (job70057). Binary, fixture and entrypoint matched the submitted package. This result
-is in `e5-four-row-extra-correctness.json` and is separate from the official three-input score.
+is in `e5-four-row-extra-correctness.json` and is separate from the Arena performance
+measurements using the official three-input harness.
 
 E10 also passed all30 additional run3..8 comparisons in job70150 (`e10-all-two-cluster-extra-correctness.json`). This predates the blockscale summation-order change and does not validate E12 or later candidates.
 
@@ -161,7 +162,7 @@ establishes NPU correctness or runtime performance.
 The [Arena version probe](../../moa-dev/experiments/candidates/arena-version-probe/README.md) is an
 environment observation, not a kernel benchmark. Driver/firmware query failures must remain unknown;
 they do not prove a mismatch or explain the FP8 failures. Follow-up measurement priorities are tracked
-in [the optimization plan](../OPTIMIZATION_PLAN.md#남은-병목과-다음-실험의-조건).
+in [the optimization plan](../OPTIMIZATION_PLAN.md#다음-작업과-실험을-시작할-조건).
 
 E31 additional run3..8 passed all30 comparisons in job70448 ([record](e31-rms-extra-correctness.json)).
 The eight-way RMS sum order changes; passing nine configurations is not an all-input proof.
@@ -211,7 +212,7 @@ Follow-up diagnostics after the E37 checkpoint:
 E47 was adopted at this stage. Its [source/build audit](e47-source-build-audit.json) reproduces the
 measured host binary exactly; all three device images also match the independent extra-input build.
 Earlier E37 restore/clean-build audits remain evidence about their captured artifacts. E48/E49/E50
-are separate FFN experiments and are not part of the adopted E47 package.
+are separate FFN experiments and were not part of that frozen E47 package.
 
 [E49 up+gate fused](../../moa-dev/experiments/candidates/ffn-up-gate-fused-decode-e37/README.md)
 reduces Main work but delays pre-RMS and removes overlap of the second weight load with the first
