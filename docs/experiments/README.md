@@ -146,6 +146,8 @@ E48 up-only fused decode passes its first screen, without a demonstrated perform
 | E54 same package repeated | 70933, 70974, 70987 | Pass | 108700 | 50970 | 382268 | Previous correctness checkpoint; QKV13.68% above E53; original speedups2.245×/7.931×/11.155×; job-median ranges1.262%/1.173%/0.081% |
 | E55 fused BF16 QKV dot and F32 channel scale | 71027 | Pass | 103478 | 50725 | 381093 | First screen; completed repeats below; extra30 pass71052, QKV boundary2 cases pass71032 |
 | E55 same package repeated | 71027, 71057, 71072 | Pass | 102878 | 51249 | 380339 | Current checkpoint; QKV5.36% below E54 and7.59% above lossy E53; original speedups2.372×/7.887×/11.212×; ranges0.976%/1.169%/1.036% |
+| E56 up sixteen-row staging | 72023 | Fail | 103176 | 50977 | — | [Candidate](../../moa-dev/experiments/candidates/ffn-up-sixteen-row-e55/README.md): static−1.83%, but FFN run0 only30.96% within tolerance; subsequent device launch timeout; rejected |
+| E55 paired control for E56 | 72024 | Pass | 104432 | 51283 | 380911 | [Unchanged package rerun](e55-up16-control.json), all15 comparisons PASS; single control, not a new aggregate |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.

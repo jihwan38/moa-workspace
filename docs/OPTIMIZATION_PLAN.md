@@ -4,6 +4,12 @@
 
 ## 현재 기준과 채택 근거
 
+2026-09-22: 검증된 E55의30개 커밋을 `main`에 fast-forward 병합하고
+`baseline-e55` 태그(873f64e)를 남겼다. 후속 작업은 `opt/ffn-dataflow`에서 진행한다.
+첫 [16행 up staging 후보 E56](../moa-dev/experiments/candidates/ffn-up-sixteen-row-e55/README.md)는
+정적−1.83%였지만 Arena72023에서 FFN 정확도 실패 및 후속 device launch timeout으로 제외했다.
+같은 시기의 E55 대조군72024는15개 비교 모두 PASS였다. 현재 채택 소스는 E55를 유지한다.
+
 E55는 E54의 O·FFN device image를 유지하고 QKV의 완전한 F32 dot 뒤 같은 Main에서 channel scale을 곱한다. 첫 BF16 cast 뒤 row Switch를 수행해 E54의 F32 재배치와 별도 scale pass를 없앴다. QKV 입력의 FP8 hi/lo 근사는 E54에서 제거됐고, O 입력 근사와 scale 전 BF16 반올림은 E53에서 제거됐다. [E55 소스·빌드 감사](experiments/e55-source-build-audit.json), [O 수치 검토](../moa-dev/experiments/candidates/output-bf16-activation-e47/math-review.md).
 
 | 커널 | 원본 반복 중앙값 cycles | 이전 E54 반복 중앙값 cycles | E55 반복 중앙값 cycles |
