@@ -1,0 +1,109 @@
+{
+  "status": "EXACT_COMPILE_PASS_REJECT_STATIC_REGRESSION",
+  "npu_run": false,
+  "full_host_build": false,
+  "compile_attempts": 1,
+  "corrections": 0,
+  "further_compile_allowed_but_not_used": 1,
+  "baseline": "qkv-bf16-fused-channel-scale-e54",
+  "baseline_projection_sha256": "380e57d6502e26086bd6d933ce762f4ad5de18587d52a8ef4aac7fa87e3b9c9f",
+  "e54_base_checkpoint_parent_provided": "2fceb2d",
+  "reconstruction_lock": "moa-dev/locks/gemma4-Cargo.lock",
+  "reconstruction_lock_matches_compiled_lock": true,
+  "compiled_input_count": 46,
+  "actual_scratch_inputs_match_host_copy": true,
+  "other_41_source_files_unchanged": true,
+  "o_suffix_unchanged": true,
+  "source_changes": [
+    "src/device/sliding/projection.rs",
+    "src/ops.rs"
+  ],
+  "before_compile_validation": "verification-before-compile.json",
+  "source_reproducer_byte_identical": true,
+  "scratch": "/tmp/moa-qkv-bf16-shared-trf-e55",
+  "CARGO_HOME": "/home/moa/.cargo",
+  "CARGO_TARGET_DIR": "/tmp/moa-qkv-bf16-shared-trf-e55/target",
+  "FURIOSA_OPT_OUT_DIR": "/tmp/moa-qkv-bf16-shared-trf-e55/target/furiosa-opt/kernel",
+  "command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule candidate.json --dump-graph candidate-graph.json",
+  "static": {
+    "baseline_makespan": 51293,
+    "candidate_makespan": 52562,
+    "delta_cycles": 1269,
+    "delta_percent": 2.4740217963464817,
+    "sub_duration_delta": -1223,
+    "other_resource_duration_sums_identical": true,
+    "activation_trf_count_before": 2,
+    "activation_trf_count_after": 1,
+    "trf_reservation_bytes_per_slice_before": 65536,
+    "trf_reservation_bytes_per_slice_after": 32768
+  },
+  "decision": "Reject whole-program static regression; no hardware screen requested by this agent.",
+  "causal_limit": "Q/K lookup DM address reuse and changed preparation are observed; why the allocator/scheduler selected them is not established.",
+  "numerical_scope": "BF16 input and exact source DPE/reduction/scale/cast sequence preserved; physical row addresses checked before compile; NPU correctness and all-input equivalence not proven.",
+  "files": {
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/projection.rs": {
+      "sha256": "26b7ada776900a82ccc716deaa26e1f6d7ed55c4e86fce9f1098132e1d766fb5",
+      "bytes": 13403
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/ops.rs": {
+      "sha256": "288d6d27561462ec480956ef40cd8cd8f6a3855ccfb3a3ca3df881b1bb66872e",
+      "bytes": 13518
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/projection.rs.original": {
+      "sha256": "380e57d6502e26086bd6d933ce762f4ad5de18587d52a8ef4aac7fa87e3b9c9f",
+      "bytes": 12324
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/ops.rs.original": {
+      "sha256": "ffdab428fd4c8126b77e145b75073c907732bf0fa9ca830a123fe828e7b08888",
+      "bytes": 13439
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/prepare_source.py": {
+      "sha256": "32aed48a7948edfcc7dcab75a2d685b201df9c2afafbdee8ab90f46f483b6f0f",
+      "bytes": 4994
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/verify_candidate.py": {
+      "sha256": "78eb02cbe71dc0b05bf804260c46976a65231510a88ad757af1648b74c68b876",
+      "bytes": 5016
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/analyze_artifacts.py": {
+      "sha256": "3952bc3fce3a3eebb2b59b4c7157f954281b81ff5473b2c45a4912a2c43e9dba",
+      "bytes": 5882
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/candidate.patch": {
+      "sha256": "36a4f55794d81a414e3c3fed9573edc4087fc29dc2457f7ee7065f2a6b742c85",
+      "bytes": 7629
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/compiled-source-manifest.json": {
+      "sha256": "02e849906d81bbdfdbb1b0ef38351fda3175d14e9c6876d4fc2c7d3823fcf6f8",
+      "bytes": 6162
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/verification-before-compile.json": {
+      "sha256": "d0df6fc50c900efc65e3e3c83516f110b033613e14574d22e0308dd8191df9a7",
+      "bytes": 1538
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/verification.json": {
+      "sha256": "d0df6fc50c900efc65e3e3c83516f110b033613e14574d22e0308dd8191df9a7",
+      "bytes": 1538
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/static-comparison.json": {
+      "sha256": "6cc0b769dc4692de60135783a1f9766e8c1fb46fe08d5815cbba35c65030ab5c",
+      "bytes": 11061
+    },
+    "moa-dev/experiments/artifacts/qkv-bf16-shared-trf-e55/candidate.bin": {
+      "sha256": "19896d832e5f20f753591868c4f535b42fc02837562bdfa8aed1cbe48bb9097b",
+      "bytes": 169984
+    },
+    "moa-dev/experiments/artifacts/qkv-bf16-shared-trf-e55/candidate.json": {
+      "sha256": "01a0c211b5db4770f952d8b3b29fd3b1246b18c3ae31366a7c7dd1471319eef8",
+      "bytes": 91836
+    },
+    "moa-dev/experiments/artifacts/qkv-bf16-shared-trf-e55/candidate-graph.json": {
+      "sha256": "6a773547c815b27bdd320cef57bcac8e51275e6a5c4b82c49c7651dd5458e81d",
+      "bytes": 197709
+    },
+    "moa-dev/experiments/artifacts/qkv-bf16-shared-trf-e55/compile-attempt1.log": {
+      "sha256": "88197427b21682ab1cec8892c23fef0e35454d4bc5c3cebbeda31e335f70ce5a",
+      "bytes": 1066
+    }
+  }
+}

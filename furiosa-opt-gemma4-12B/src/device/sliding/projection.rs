@@ -23,7 +23,18 @@ pub(crate) fn project_query(
         .to_trf();
 
     let weight_f8: DmTensor<f8e4m3, Chip, QueryCluster, QueryRows, m![Qs / 8 % 8, H]> = weight.to_dm(&mut device.tdma);
-    let contraction: DmTensor<f32, Chip, QueryCluster, QueryRows, m![Qs / 8 % 8]> = device
+    // Canonical contiguous scale DMA satisfies TDMA's 8-byte alignment.
+    // Inverse row Switch routes the matching scale into each raw dot slice.
+    // VRF stores one valid scalar in each 32-byte Time slot; padding is unread.
+    let weight_scale: DmTensor<bf16, Chip, QueryCluster, m![Qs / 8 % 256], m![Qs % 8]> = weight_scale.to_dm(&mut device.tdma);
+    let weight_scale_vrf: VrfTensor<f32, Chip, QueryCluster, QueryRows, m![Qs / 8 % 8, 1 # 8]> = device
+        .sub.begin(weight_scale.view())
+        .fetch::<m![Qs % 8], m![1 # 4]>()
+        .fetch_cast::<f32>()
+        .switch::<QueryRows, m![Qs / 8 % 8]>(SwitchConfig::InterTranspose { slice1: 8, slice0: 1, time0: 1 })
+        .collect::<m![Qs / 8 % 8], m![1 # 8]>()
+        .to_vrf();
+    let contraction: DmTensor<bf16, Chip, QueryCluster, QueryRows, m![Qs / 8 % 8]> = device
         .main
         .begin(weight_f8.view())
         .fetch::<m![Qs / 8 % 8, H / 16], m![H % 16]>()
@@ -33,43 +44,26 @@ pub(crate) fn project_query(
         .contract_packet::<m![1]>()
         .contract_time::<m![Qs / 8 % 8]>()
         .contract_lane::<m![Qs / 8 % 8], m![1 # 8]>(LaneMode::Interleaved)
-        .transpose::<m![Qs / 16 % 4], m![Qs / 8 % 2 # 8]>()
-        .commit_trim::<m![Qs / 8 % 2]>()
-        .commit();
-
-    // Raw dot and row transpose stay F32; the first BF16 cast follows channel scale.
-    // Switch swaps the low slice coordinate with the local row coordinate.
-    let contraction: DmTensor<f32, Chip, QueryCluster, m![Qs / 8 % 256], m![Qs % 8]> = device
-        .main.begin(contraction.view())
-        .fetch::<m![Qs / 8 % 8], m![1 # 2]>()
-        .switch::<m![Qs / 8 % 256], m![Qs % 8]>(SwitchConfig::InterTranspose { slice1: 8, slice0: 1, time0: 1 })
-        .collect::<m![Qs % 8], m![1 # 8]>()
-        .transpose::<m![Qs / 2 % 4], m![Qs % 2 # 8]>()
-        .commit_trim::<m![Qs % 2]>()
-        .commit();
-
-    let weight_scale: DmTensor<bf16, Chip, QueryCluster, m![Qs / 8 % 256], m![Qs % 8]> = weight_scale.to_dm(&mut device.tdma);
-    let weight_scale_vrf: VrfTensor<f32, Chip, QueryCluster, m![Qs / 8 % 256], m![Qs % 8]> = device
-        .sub
-        .begin(weight_scale.view())
-        .fetch::<m![1], m![Qs % 8]>()
-        .fetch_cast::<f32>()
-        .collect::<m![1], m![Qs % 8]>()
-        .to_vrf();
-
-    let scaled: DmTensor<bf16, Chip, QueryCluster, m![Qs / 8 % 256], m![Qs % 8]> = device
-        .main
-        .begin(contraction.view())
-        .fetch::<m![1], m![Qs % 8]>()
-        .collect::<m![1], m![Qs % 8]>()
         .vector_init()
         .vector_intra_slice_tag(TagMode::Zero)
-        .vector_narrow_split::<m![Qs / 4 % 2], m![Qs % 4]>()
+        .vector_narrow_trim::<m![1 # 4]>()
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)
-        .vector_widen_concat::<m![1], m![Qs % 8]>()
+        .vector_widen_pad::<m![1 # 8]>()
         .vector_final()
-        .cast::<bf16, m![Qs % 8 # 16]>()
-        .commit_trim::<m![Qs % 8]>()
+        .cast::<bf16, m![1 # 16]>()
+        .transpose::<m![Qs / 32 % 2], m![Qs / 8 % 4 # 16]>()
+        .commit_trim::<m![Qs / 8 % 4]>()
+        .commit();
+
+    // The complete F32 dot is scaled before its first BF16 cast; Switch only moves BF16 values.
+    // Switch swaps the low slice coordinate with the local row coordinate.
+    let scaled: DmTensor<bf16, Chip, QueryCluster, m![Qs / 8 % 256], m![Qs % 8]> = device
+        .main.begin(contraction.view())
+        .fetch::<m![Qs / 8 % 8], m![1 # 4]>()
+        .switch::<m![Qs / 8 % 256], m![Qs % 8]>(SwitchConfig::InterTranspose { slice1: 8, slice0: 1, time0: 1 })
+        .collect::<m![Qs % 8], m![1 # 16]>()
+        .transpose::<m![Qs / 4 % 2], m![Qs % 4 # 16]>()
+        .commit_trim::<m![Qs % 4]>()
         .commit();
 
     let output: DmTensor<bf16, Chip, m![Ns / 4], m![Ns % 4, Gs, Ds / 8], m![Ds % 8]> =
@@ -87,7 +81,18 @@ fn project_one_kv_matrix(
     weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
 ) -> DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> {
     let weight_f8: DmTensor<f8e4m3, Chip, KvCluster, KvRows, m![Ps / 8 % 4, H]> = weight.to_dm(&mut device.tdma);
-    let contraction: DmTensor<f32, Chip, KvCluster, KvRows, m![Ps / 8 % 4]> = device
+    // Canonical contiguous scale DMA satisfies TDMA's 8-byte alignment.
+    // Inverse row Switch routes the matching scale into each raw dot slice.
+    // VRF stores one valid scalar in each 32-byte Time slot; padding is unread.
+    let weight_scale: DmTensor<bf16, Chip, KvCluster, m![Ps / 32 % 32, Ps / 8 % 4 # 8], m![Ps % 8]> = weight_scale.to_dm(&mut device.tdma);
+    let weight_scale_vrf: VrfTensor<f32, Chip, KvCluster, KvRows, m![Ps / 8 % 4 # 8, 1 # 8]> = device
+        .sub.begin(weight_scale.view())
+        .fetch::<m![Ps % 8], m![1 # 4]>()
+        .fetch_cast::<f32>()
+        .switch::<KvRows, m![Ps / 8 % 4 # 8]>(SwitchConfig::InterTranspose { slice1: 8, slice0: 1, time0: 1 })
+        .collect::<m![Ps / 8 % 4 # 8], m![1 # 8]>()
+        .to_vrf();
+    let contraction: DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps / 8 % 4]> = device
         .main
         .begin(weight_f8.view())
         .fetch::<m![Ps / 8 % 4, H / 16], m![H % 16]>()
@@ -97,44 +102,27 @@ fn project_one_kv_matrix(
         .contract_packet::<m![1]>()
         .contract_time::<m![Ps / 8 % 4]>()
         .contract_lane::<m![Ps / 8 % 4], m![1 # 8]>(LaneMode::Interleaved)
-        .transpose::<m![Ps / 16 % 2], m![Ps / 8 % 2 # 8]>()
-        .commit_trim::<m![Ps / 8 % 2]>()
-        .commit();
-
-    // Preserve F32 raw dots across Switch; cast only after per-channel scale.
-    // Four valid local rows are padded to an eight-way Switch group. Invalid
-    // row slots stay padded in Slice until the final typed head gather.
-    let contraction: DmTensor<f32, Chip, KvCluster, m![Ps / 32 % 32, Ps / 8 % 4 # 8], m![Ps % 8]> = device
-        .main.begin(contraction.view())
-        .fetch::<m![Ps / 8 % 4 # 8], m![1 # 2]>()
-        .switch::<m![Ps / 32 % 32, Ps / 8 % 4 # 8], m![Ps % 8]>(SwitchConfig::InterTranspose { slice1: 8, slice0: 1, time0: 1 })
-        .collect::<m![Ps % 8], m![1 # 8]>()
-        .transpose::<m![Ps / 2 % 4], m![Ps % 2 # 8]>()
-        .commit_trim::<m![Ps % 2]>()
-        .commit();
-
-    let weight_scale: DmTensor<bf16, Chip, KvCluster, m![Ps / 32 % 32, Ps / 8 % 4 # 8], m![Ps % 8]> = weight_scale.to_dm(&mut device.tdma);
-    let weight_scale_vrf: VrfTensor<f32, Chip, KvCluster, m![Ps / 32 % 32, Ps / 8 % 4 # 8], m![Ps % 8]> = device
-        .sub
-        .begin(weight_scale.view())
-        .fetch::<m![1], m![Ps % 8]>()
-        .fetch_cast::<f32>()
-        .collect::<m![1], m![Ps % 8]>()
-        .to_vrf();
-
-    let scaled: DmTensor<bf16, Chip, KvCluster, m![Ps / 32 % 32, Ps / 8 % 4 # 8], m![Ps % 8]> = device
-        .main
-        .begin(contraction.view())
-        .fetch::<m![1], m![Ps % 8]>()
-        .collect::<m![1], m![Ps % 8]>()
         .vector_init()
         .vector_intra_slice_tag(TagMode::Zero)
-        .vector_narrow_split::<m![Ps / 4 % 2], m![Ps % 4]>()
+        .vector_narrow_trim::<m![1 # 4]>()
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)
-        .vector_widen_concat::<m![1], m![Ps % 8]>()
+        .vector_widen_pad::<m![1 # 8]>()
         .vector_final()
-        .cast::<bf16, m![Ps % 8 # 16]>()
-        .commit_trim::<m![Ps % 8]>()
+        .cast::<bf16, m![1 # 16]>()
+        .transpose::<m![1], m![Ps / 8 % 4 # 16]>()
+        .commit_trim::<m![Ps / 8 % 4]>()
+        .commit();
+
+    // Scale the complete F32 dot before BF16 cast, then preserve the scaled value across Switch.
+    // Four valid local rows are padded to an eight-way Switch group. Invalid
+    // row slots stay padded in Slice until the final typed head gather.
+    let scaled: DmTensor<bf16, Chip, KvCluster, m![Ps / 32 % 32, Ps / 8 % 4 # 8], m![Ps % 8]> = device
+        .main.begin(contraction.view())
+        .fetch::<m![Ps / 8 % 4 # 8], m![1 # 4]>()
+        .switch::<m![Ps / 32 % 32, Ps / 8 % 4 # 8], m![Ps % 8]>(SwitchConfig::InterTranspose { slice1: 8, slice0: 1, time0: 1 })
+        .collect::<m![Ps % 8], m![1 # 16]>()
+        .transpose::<m![Ps / 4 % 2], m![Ps % 4 # 16]>()
+        .commit_trim::<m![Ps % 4]>()
         .commit();
 
     let output: DmTensor<bf16, Chip, m![Ns / 4], m![Ns % 4, Ds / 32, Ds / 8 % 4 # 8], m![Ds % 8]> =

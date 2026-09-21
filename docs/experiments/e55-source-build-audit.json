@@ -1,0 +1,135 @@
+{
+  "status": "ADOPTED_AFTER_OFFICIAL_REPEATS_EXTRA_AND_QKV_BOUNDARY_PASS",
+  "host_sha256": "b22444012a01de7f700bb4ecb8316a87093d5c5bde7cdd6ec96c8bfb8afa682f",
+  "host_bytes": 3633728,
+  "images": [
+    {
+      "path": "furiosa_opt_gemma4::ops::decoder_feedforward",
+      "sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+      "bytes": 204032,
+      "occurrences": 1
+    },
+    {
+      "path": "furiosa_opt_gemma4::ops::sliding_attention_output",
+      "sha256": "359473814839effc16ade242bad3c598a93610601bc650f550ff44228898d88b",
+      "bytes": 71168,
+      "occurrences": 1
+    },
+    {
+      "path": "furiosa_opt_gemma4::ops::sliding_project_qkv",
+      "sha256": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e",
+      "bytes": 168960,
+      "occurrences": 1
+    }
+  ],
+  "O_FFN_unchanged_from_E54": true,
+  "exact_compile_QKV_image_matches_full_build": true,
+  "build_log": "moa-dev/logs/e55-fused-qkv-isolated-build.log",
+  "source": "moa-dev/experiments/candidates/qkv-bf16-fused-channel-scale-e54/manifest.json",
+  "created_at_utc": "2026-09-21T14:04:32.790791+00:00",
+  "live_host_byte_identical_to_isolated_build": true,
+  "live_build_log": "moa-dev/logs/e55-fused-qkv-live-build.log",
+  "source_snapshot": "moa-dev/experiments/artifacts/e55-fused-qkv",
+  "provenance": "docs/experiments/e55-fused-qkv-provenance.json",
+  "independent_review": "Source/SDK/graph and all Q4096/KV2048 scale/weight/Switch coordinates reviewed; no blocker found. Independent archive/log/image audit covered the first two repeats, extra inputs and QKV boundary. Root separately recalculated all three final job medians, ranges, log hashes and identical uploaded packages.",
+  "first_job": 71027,
+  "adoption": {
+    "decision": "Adopt E55 fused F32 QKV channel scale with BF16 activation and the first BF16 cast after the scale. All three repeated jobs, extra inputs and QKV boundary pass; QKV cycle reduction exceeds observed job-median range.",
+    "previous_checkpoint": "E54 commit 2fceb2d45c25510489c73a9c4db969bf6cc7421b",
+    "jobs": [
+      71027,
+      71057,
+      71072
+    ],
+    "output_comparisons_passed_per_job": 15,
+    "median_cycles": {
+      "sliding_project_qkv": 102878,
+      "sliding_attention_output": 51249,
+      "decoder_feedforward": 380339
+    },
+    "relative_job_median_ranges": {
+      "sliding_project_qkv": 0.009759132175975427,
+      "sliding_attention_output": 0.011688032937228043,
+      "decoder_feedforward": 0.010361808807406024
+    },
+    "qkv_percent_vs_E54": -5.35602575896964,
+    "qkv_percent_vs_lossy_E53": 7.589337070308821,
+    "O_FFN_images_unchanged": true,
+    "O_boundary_evidence": "E53 job70810 tests the identical O image; no new O-boundary run in E55.",
+    "result": "docs/experiments/e55-fused-qkv-repeats.json",
+    "official_score_or_rank_confirmed": false,
+    "all_input_equivalence_claimed": false
+  },
+  "compile_inputs": {
+    "count": 46,
+    "live_matches_frozen_candidate": true,
+    "actual_isolated_container_matches_frozen_candidate": true,
+    "frozen_manifest": "moa-dev/experiments/candidates/qkv-bf16-fused-channel-scale-e54/compiled-source-manifest.json"
+  },
+  "extra_host_sha256": "ebed9ef519d4482290788fd5c4302b9d10de71cbed0504fce03627e6c39d3e25",
+  "extra_host_same_images": [
+    {
+      "name": "furiosa_opt_gemma4::ops::decoder_feedforward",
+      "sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+      "bytes": 204032,
+      "extra_host_occurrences": 1
+    },
+    {
+      "name": "furiosa_opt_gemma4::ops::sliding_attention_output",
+      "sha256": "359473814839effc16ade242bad3c598a93610601bc650f550ff44228898d88b",
+      "bytes": 71168,
+      "extra_host_occurrences": 1
+    },
+    {
+      "name": "furiosa_opt_gemma4::ops::sliding_project_qkv",
+      "sha256": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e",
+      "bytes": 168960,
+      "extra_host_occurrences": 1
+    }
+  ],
+  "boundary_job": 71032,
+  "reproducible_source_base": {
+    "commit": "2fceb2d45c25510489c73a9c4db969bf6cc7421b",
+    "base_all_46_files_match_E54_clean_snapshot": true,
+    "cargo_lock_tracked_separately": "moa-dev/locks/gemma4-Cargo.lock",
+    "change": "In an isolated checkout, restore tracked gemma4-Cargo.lock to the ignored crate Cargo.lock and replace src/device/sliding/projection.rs with tracked qkv-bf16-fused-channel-scale-e54/projection.rs; all other inputs unchanged."
+  },
+  "first_screen": {
+    "job": 71027,
+    "official_output_comparisons_passed": 15,
+    "median_cycles": {
+      "sliding_project_qkv": 103478,
+      "sliding_attention_output": 50725,
+      "decoder_feedforward": 381093
+    },
+    "result": "docs/experiments/e55-fused-qkv-screen.json",
+    "qkv_percent_vs_E54_repeated": -4.804047838086478,
+    "scope": "Single screen only; not a completed same-package repeat aggregate or official score."
+  },
+  "boundary_result": {
+    "job": 71032,
+    "cases_passed": 2,
+    "output_comparisons_passed": 6,
+    "input_checks_passed": 38,
+    "non_target_cache_BF16_elements_preserved": 8380416,
+    "result": "docs/experiments/e55-qkv-boundary-probe.json",
+    "scope": "Two deterministic QKV cancellation diagnostics outside the official QKV input-generator support; not a performance result, rank, or all-input proof."
+  },
+  "extra_job": 71052,
+  "extra_result": {
+    "job": 71052,
+    "output_comparisons_passed": 30,
+    "run_ids": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "result": "docs/experiments/e55-fused-qkv-extra-correctness.json",
+    "uploaded_host_sha256": "ebed9ef519d4482290788fd5c4302b9d10de71cbed0504fce03627e6c39d3e25"
+  },
+  "final_live_source_host_fixture_match_frozen_capture": true,
+  "final_live_host_sha256": "b22444012a01de7f700bb4ecb8316a87093d5c5bde7cdd6ec96c8bfb8afa682f"
+}

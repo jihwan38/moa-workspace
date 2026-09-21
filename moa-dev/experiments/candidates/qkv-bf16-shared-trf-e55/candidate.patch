@@ -1,0 +1,158 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -4,23 +4,31 @@
+ use crate::axes::{Ds, Dummy2, Gs, H, Ns, Ps, Qs};
+ use crate::device::layout::{Cluster, Replicated};
+ 
++// Both physical clusters and all 256 slices hold the same real BF16 input.
++// Named neutral axes let Q/K/V borrow one TRF without a TRF reshape API.
++type InputClusters = m![Dummy2];
++pub(crate) type SharedInputTrf = TrfTensor<bf16, Chip, InputClusters, Replicated, m![1], m![H]>;
++
++pub(crate) fn prepare_shared_input(
++    device: &mut Device,
++    x: &DmTensor<bf16, Chip, m![2], Replicated, m![H]>,
++) -> SharedInputTrf {
++    let x: DmTensorView<'_, bf16, Chip, InputClusters, Replicated, m![H]> = unsafe { x.view().reshape() };
++    device.sub.begin(x)
++        .fetch::<m![H / 16], m![H % 16]>()
++        .collect::<m![H / 16], m![H % 16]>()
++        .to_trf()
++}
++
+ pub(crate) fn project_query(
+     device: &mut Device,
+-    x: &DmTensor<bf16, Chip, m![2], Replicated, m![H]>,
++    x_trf: &SharedInputTrf,
+     weight: &HbmTensor<f8e4m3, Chip, m![Qs, H]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![Qs]>,
+ ) -> DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> {
+     type QueryCluster = m![Qs / 2048];
+     type QueryRows = m![Qs / 64 % 32, Qs % 8];
+ 
+-
+-    let x: DmTensorView<'_, bf16, Chip, QueryCluster, QueryRows, m![H]> = unsafe { x.view().reshape() };
+-    let x_trf: TrfTensor<bf16, Chip, QueryCluster, QueryRows, m![1], m![H]> = device
+-        .sub
+-        .begin(x)
+-        .fetch::<m![1], m![H]>()
+-        .collect::<m![H / 16], m![H % 16]>()
+-        .to_trf();
+ 
+     let weight_f8: DmTensor<f8e4m3, Chip, QueryCluster, QueryRows, m![Qs / 8 % 8, H]> = weight.to_dm(&mut device.tdma);
+     // Canonical contiguous scale DMA satisfies TDMA's 8-byte alignment.
+@@ -34,13 +42,18 @@
+         .switch::<QueryRows, m![Qs / 8 % 8]>(SwitchConfig::InterTranspose { slice1: 8, slice0: 1, time0: 1 })
+         .collect::<m![Qs / 8 % 8], m![1 # 8]>()
+         .to_vrf();
+-    let contraction: DmTensor<bf16, Chip, QueryCluster, QueryRows, m![Qs / 8 % 8]> = device
+-        .main
+-        .begin(weight_f8.view())
++    // Relabel identical physical coordinates; never transpose rows or H.
++    let weight_f8_view: DmTensorView<'_, f8e4m3, Chip, InputClusters, Replicated, m![Qs / 8 % 8, H]> =
++        unsafe { weight_f8.view().reshape() };
++    let weight_scale_vrf: VrfTensor<f32, Chip, InputClusters, Replicated, m![Qs / 8 % 8, 1 # 8]> =
++        unsafe { weight_scale_vrf.reshape() };
++    let contraction: DmTensor<bf16, Chip, InputClusters, Replicated, m![Qs / 8 % 8]> = device
++        .main
++        .begin(weight_f8_view)
+         .fetch::<m![Qs / 8 % 8, H / 16], m![H % 16]>()
+         .fetch_table_lookup::<bf16>()
+         .collect::<m![Qs / 8 % 8, H / 16], m![H % 16]>()
+-        .contract_outer::<m![Qs / 8 % 8, H / 32], m![H % 32], _, _, _>(&x_trf)
++        .contract_outer::<m![Qs / 8 % 8, H / 32], m![H % 32], _, _, _>(x_trf)
+         .contract_packet::<m![1]>()
+         .contract_time::<m![Qs / 8 % 8]>()
+         .contract_lane::<m![Qs / 8 % 8], m![1 # 8]>(LaneMode::Interleaved)
+@@ -54,6 +67,9 @@
+         .transpose::<m![Qs / 32 % 2], m![Qs / 8 % 4 # 16]>()
+         .commit_trim::<m![Qs / 8 % 4]>()
+         .commit();
++    // Restore the original row names before the existing BF16 output Switch.
++    let contraction: DmTensor<bf16, Chip, QueryCluster, QueryRows, m![Qs / 8 % 8]> =
++        unsafe { contraction.reshape() };
+ 
+     // The complete F32 dot is scaled before its first BF16 cast; Switch only moves BF16 values.
+     // Switch swaps the low slice coordinate with the local row coordinate.
+@@ -76,7 +92,7 @@
+ 
+ fn project_one_kv_matrix(
+     device: &mut Device,
+-    x_trf: &TrfTensor<bf16, Chip, KvCluster, KvRows, m![1], m![H]>,
++    x_trf: &SharedInputTrf,
+     weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
+ ) -> DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> {
+@@ -92,9 +108,14 @@
+         .switch::<KvRows, m![Ps / 8 % 4 # 8]>(SwitchConfig::InterTranspose { slice1: 8, slice0: 1, time0: 1 })
+         .collect::<m![Ps / 8 % 4 # 8], m![1 # 8]>()
+         .to_vrf();
+-    let contraction: DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps / 8 % 4]> = device
+-        .main
+-        .begin(weight_f8.view())
++    // Relabel identical physical coordinates; never transpose rows or H.
++    let weight_f8_view: DmTensorView<'_, f8e4m3, Chip, InputClusters, Replicated, m![Ps / 8 % 4, H]> =
++        unsafe { weight_f8.view().reshape() };
++    let weight_scale_vrf: VrfTensor<f32, Chip, InputClusters, Replicated, m![Ps / 8 % 4 # 8, 1 # 8]> =
++        unsafe { weight_scale_vrf.reshape() };
++    let contraction: DmTensor<bf16, Chip, InputClusters, Replicated, m![Ps / 8 % 4]> = device
++        .main
++        .begin(weight_f8_view)
+         .fetch::<m![Ps / 8 % 4, H / 16], m![H % 16]>()
+         .fetch_table_lookup::<bf16>()
+         .collect::<m![Ps / 8 % 4, H / 16], m![H % 16]>()
+@@ -112,6 +133,9 @@
+         .transpose::<m![1], m![Ps / 8 % 4 # 16]>()
+         .commit_trim::<m![Ps / 8 % 4]>()
+         .commit();
++    // Restore the original row names before the existing BF16 output Switch.
++    let contraction: DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps / 8 % 4]> =
++        unsafe { contraction.reshape() };
+ 
+     // Scale the complete F32 dot before BF16 cast, then preserve the scaled value across Switch.
+     // Four valid local rows are padded to an eight-way Switch group. Invalid
+@@ -132,7 +156,7 @@
+ 
+ pub(crate) fn project_key_value(
+     device: &mut Device,
+-    x: &DmTensor<bf16, Chip, m![2], Replicated, m![H]>,
++    x_trf: &SharedInputTrf,
+     k_weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+     v_weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+     k_weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
+@@ -141,18 +165,10 @@
+     DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]>,
+     DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]>,
+ ) {
+-    let x: DmTensorView<'_, bf16, Chip, KvCluster, KvRows, m![H]> = unsafe { x.view().reshape() };
+-    let x_trf: TrfTensor<bf16, Chip, KvCluster, KvRows, m![1], m![H]> = device
+-        .sub
+-        .begin(x)
+-        .fetch::<m![H / 16], m![H % 16]>()
+-        .collect::<m![H / 16], m![H % 16]>()
+-        .to_trf();
+-
+     let k: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> =
+-        project_one_kv_matrix(device, &x_trf, k_weight, k_weight_scale);
++        project_one_kv_matrix(device, x_trf, k_weight, k_weight_scale);
+     let v: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> =
+-        project_one_kv_matrix(device, &x_trf, v_weight, v_weight_scale);
++        project_one_kv_matrix(device, x_trf, v_weight, v_weight_scale);
+ 
+     (k, v)
+ }
+--- a/src/ops.rs
++++ b/src/ops.rs
+@@ -68,9 +68,10 @@
+         .commit();
+     let x: DmTensor<bf16, Chip, m![2], Replicated, m![H]> = unsafe { x.reshape() };
+ 
++    let x_trf = sliding::projection::prepare_shared_input(device, &x);
+     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
+-        sliding::projection::project_query(device, &x, q_weight, q_weight_scale);
+-    let (k, v) = sliding::projection::project_key_value(device, &x, k_weight, v_weight, k_weight_scale, v_weight_scale);
++        sliding::projection::project_query(device, &x_trf, q_weight, q_weight_scale);
++    let (k, v) = sliding::projection::project_key_value(device, &x_trf, k_weight, v_weight, k_weight_scale, v_weight_scale);
+ 
+     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
+         sliding::rmsnorm::normalize_query(device, &q, q_rms_weight);

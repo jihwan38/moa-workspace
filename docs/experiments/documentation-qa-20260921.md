@@ -8,9 +8,10 @@
 | E37 이전 조합 | [동일 패키지3회](e37-combined-repeats.json) 전부 PASS, 중앙값94,195/45,748/379,741. [별도 추가 입력6개](e37-combined-extra-correctness.json)도30개 비교 PASS. |
 | E47 이전 조합 | [반복3회](e47-output-sixteen-columns-repeats.json) 모두15개 PASS, 중앙값94,662/44,588/377,564. [추가 입력6개](e47-output-sixteen-columns-extra-correctness.json)30개 PASS. 동일 source 복구 빌드와 extra host 내 device images도 검증. |
 | E53 이전 채택 | [동일 패키지3회](e53-bf16-output-repeats.json) 각각15개 PASS, 중앙값95,621/50,882/377,880. 추가30개 및 O 경계8개 PASS. 이후 별도 QKV 상쇄 입력에서8,072개 실패하여 E54로 교체. |
-| E54 현재 채택 | 공식15개·추가30개 PASS. 원본/E53/E54의 동일 QKV 경계2개 대조에서 E53만 실패, E54는 비대상 cache8,380,416개도 보존. 정리한 source의 전체 host byte-identical, 별도 extra host의3개 image 일치. [반복3회](e54-bf16-qkv-repeats.json) 각각15개 PASS, 중앙값108,700/50,970/382,268. |
+| E54 이전 정확도 기준 | 공식15개·추가30개 PASS. 원본/E53/E54의 동일 QKV 경계2개 대조에서 E53만 실패, E54는 비대상 cache8,380,416개도 보존. 정리한 source의 전체 host byte-identical, 별도 extra host의3개 image 일치. [반복3회](e54-bf16-qkv-repeats.json) 각각15개 PASS, 중앙값108,700/50,970/382,268. |
 | E52 및 QKV BF16 대안 | E52 공식15개 PASS이나 속도 이득 없어 미채택. BF16 QKV 대안은 exact compile만 확인했고 장치 미검증이며 E53 O를 덮어쓰지 않도록 통합 주의 기록. |
-| E54 후속 정적 후보 | BF16 QKV dot·scale 결합 exact compile 세 번째 성공, 전체52,282→51,293. 전수 행 좌표·첫 BF16 cast 위치 검사 PASS이며 NPU 검증 전. |
+| E55 현재 채택 | [동일 패키지3회](e55-fused-qkv-repeats.json) 각각15개 PASS, Q/O/FFN 중앙값102,878/51,249/380,339. [추가30개](e55-fused-qkv-extra-correctness.json)와 [QKV 경계2개](e55-qkv-boundary-probe.json) PASS. QKV는 E54보다5.36% 낮다. 같은source의 isolated/live full host byte-identical, extra/probe image와 업로드 package 검증. |
+| E54 후속 정적 후보 | BF16 QKV dot·scale 결합 exact compile 세 번째 성공, 전체52,282→51,293. 이후 별도 E55 NPU 검증으로 채택. 공통 TRF는51,293→52,562 회귀로 제외; broadcast→TRF는 첫 compile의 bitmap 검증 실패, 유효 성능 수치 없음. |
 | E53 후속 정적 후보 | BF16 O8, FFN sharded pre-RMS 두 경로, F32 channel-scale fused O의 exact compile 성공. 네 변형 모두 전체 정적 일정이 회귀해 NPU 미실행·미채택. 실제 성능 또는 수치 정확성 통과로 표시하지 않음. |
 | E44–E50 후속 | E44/E45/E46/E48 성능 이득 없음, E49 정적 회귀·NPU 미검사. E50은15개 PASS/376,184 단일 screen. E51 반복·추가 입력 모두 PASS지만 FFN381,286으로 미채택. |
 | FP4 진단 | Small/fullshape-tagged 검사는 각각25,165,824/117,964,800 BF16 값 bit-exact PASS. 전체 FFN·모든 입력의 보장으로 확장하지 않음. |
@@ -36,8 +37,8 @@ Git whitespace 검사는 raw patch/log를 제외했다. 변경하지 않은 froz
 파일 끝 빈 줄이 있어 `core.whitespace=-blank-at-eof`로 이 항목만 제외하고 검사했다.
 실험 source의 hash를 보존하기 위해 해당 파일을 서식 목적으로 변경하지 않았다.
 
-최종 검사 `2026-09-21T14:02:22.360067+00:00`: Markdown 154개, 로컬 링크 639개,
-JSON 485개에서 누락 파일·JSON 문법 오류0건. 외부 링크160개는 검사 범위에서 제외했다.
+최종 검사 `2026-09-21T14:35:01.428821+00:00`: Markdown 157개, 로컬 링크 707개,
+JSON 508개에서 누락 파일·JSON 문법 오류0건. 외부 링크160개는 검사 범위에서 제외했다.
 검사 스크립트와 출력은 `/tmp/moa-local-doc-qa.py`, `/tmp/moa-local-doc-qa-result.json`에 있다.
 
 공식 score/rank는 아직 없다. [공식 상태](official-submission-status-20260921.json)의

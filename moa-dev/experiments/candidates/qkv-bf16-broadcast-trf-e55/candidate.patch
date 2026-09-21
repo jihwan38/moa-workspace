@@ -1,0 +1,51 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -1,21 +1,23 @@
+ use furiosa_opt_std::prelude::*;
+ 
+ use crate::Chip;
+-use crate::axes::{Ds, Dummy2, Gs, H, Ns, Ps, Qs};
++use crate::axes::{Ds, Dummy2, Dummy256, Gs, H, Ns, Ps, Qs};
+ use crate::device::layout::{Cluster, Replicated};
+ 
+-// Both physical clusters and all 256 slices hold the same real BF16 input.
+-// Named neutral axes let Q/K/V borrow one TRF without a TRF reshape API.
++// Both clusters have a real full-H BF16 vector at every ring32 leader.
++// Sub broadcasts those initialized leaders directly into one shared TRF.
+ type InputClusters = m![Dummy2];
+ pub(crate) type SharedInputTrf = TrfTensor<bf16, Chip, InputClusters, Replicated, m![1], m![H]>;
+ 
+ pub(crate) fn prepare_shared_input(
+     device: &mut Device,
+-    x: &DmTensor<bf16, Chip, m![2], Replicated, m![H]>,
++    x: &DmTensor<bf16, Chip, m![2], m![Dummy256 / 32, 1 # 32], m![H]>,
+ ) -> SharedInputTrf {
+-    let x: DmTensorView<'_, bf16, Chip, InputClusters, Replicated, m![H]> = unsafe { x.view().reshape() };
++    // Only name the two already initialized cluster copies; Slice padding stays padding.
++    let x: DmTensorView<'_, bf16, Chip, InputClusters, m![Dummy256 / 32, 1 # 32], m![H]> = unsafe { x.view().reshape() };
+     device.sub.begin(x)
+-        .fetch::<m![H / 16], m![H % 16]>()
++        .fetch::<m![1], m![H]>()
++        .switch::<Replicated, m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
+         .collect::<m![H / 16], m![H % 16]>()
+         .to_trf()
+ }
+--- a/src/ops.rs
++++ b/src/ops.rs
+@@ -58,16 +58,6 @@
+     let x: DmTensor<bf16, Chip, m![2], m![1 # 32, H / 480], m![H % 480]> = x.to_dm(&mut device.tdma);
+     let x = shared::rmsnorm::normalize_sharded_inter_slice(device, &x, input_rms_weight);
+     let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 32, 1 # 32], m![H]> = x.to_dm(&mut device.tdma);
+-    let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 32, 32], m![H]> = device
+-        .main
+-        .begin(x.view())
+-        .fetch::<m![1], m![H]>()
+-        .switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
+-        .collect::<m![H / 16], m![H % 16]>()
+-        .commit_trim::<m![H % 16]>()
+-        .commit();
+-    let x: DmTensor<bf16, Chip, m![2], Replicated, m![H]> = unsafe { x.reshape() };
+-
+     let x_trf = sliding::projection::prepare_shared_input(device, &x);
+     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
+         sliding::projection::project_query(device, &x_trf, q_weight, q_weight_scale);

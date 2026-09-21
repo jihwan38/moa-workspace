@@ -1,4 +1,4 @@
-# QKV 상쇄 진단: E53·원본·E54 NPU 대조
+# QKV 상쇄 진단: E53·원본·E54 대조와 E55 후속
 
 2026-09-21. **E53 job70943은 작은 성분이 `2^-23`인 case0에서 Q/K/V 총8,072개가 tolerance를 벗어났고, 원본 job70944와 BF16 QKV 대안 E54 job70958은 같은 두 case의 Q/K/V를 모두 통과했다.** 세 실행 모두 계획된2개 case를 완료했고 nonfinite=0이었다. E53의 exit1은 출력 수치 실패이며 launch timeout이나 실행 누락이 아니다. 근거는 [E53 결과](e53-qkv-boundary-probe.json), [원본 결과](original-qkv-boundary-probe.json), [E54 결과](e54-qkv-boundary-probe.json)다.
 
@@ -44,4 +44,19 @@ CPU 준비 단계에서 E53·원본 host가 실제 생성한38개 입력 전체 
 
 선행 [CPU 감사](../research/qkv-boundary-design-audit.md)의 단일 행/해석적 raw dot은1.6956024169921875였다. 이번 실제 전체 크기 Q4096×H3840, K/V2048×H3840 행렬을 원래 함수에 넣은 oracle의 F32 raw dot은 **1.69500732421875**다. 합산 순서에 따른 차이를 그대로 보존했고, 두 계산의 channel scale 뒤 BF16 및 최종 Q/K/V BF16은 같았다. 원본 NPU의 Q/K 최대 오차0.0078125와 이 CPU raw 차이를 같은 현상으로 단정하지 않는다.
 
-**E54 job70958의 두 case 정확도 PASS는 실제 실행으로 확인했다.** 이 probe는 cycles를 측정하지 않으며 E54의 성능 반복 검사는 별도 진행 중이다. 이 기록에는 최종 cycles나 채택 결정을 포함하지 않는다.
+**E54 job70958의 두 case 정확도 PASS는 실제 실행으로 확인했다.** 이 probe는 cycles를 측정하지 않는다. 당시 별도 진행하던 [E54 공식 harness 반복](e54-bf16-qkv-repeats.json)은 이후 완료됐으며, 그 성능 근거와 이 정확도 진단을 구분한다.
+
+## E55 후속 — job71032
+
+**[E55 job71032](e55-qkv-boundary-probe.json)는 같은2개 case의 Q/K/V6개 비교를 모두 PASS했고 exit0으로 완료됐다.** nonfinite=0, 출력 실패0이었다. case0은 Q/K 최대 절대 오차0.0078125, exact count는 Q2928/K1464/V2048이며 V는 전부 정확히 일치했다. case1은 Q/K/V8,192개 모두 expected와 정확히 일치했다. 원본·E54와 요약값이 같지만 전체 출력 배열의 동일성을 추론하지 않는다.
+
+E55도 기존과 같은 probe source·138,912B payload·runner를 사용했다. 입력 checksum38/38, K/V before/after cache 검사8/8이 통과했으며 **비대상 KV cache8,380,416개 BF16 bits가 보존**됐다. 준비 시 실제 Rust 입력38개 전체 SHA256이 Python 원장과 같았고, collector가 실제 업로드한 binary/payload/runner hash 및 아래 E55 QKV image의1회 포함을 확인했다.
+
+| E55 artifact | 크기 | SHA256 |
+|---|---:|---|
+| `test_runtime` |2,657,592B|`c1e2e5fa47e1f4d1b5cfafca7135eb6f14aa9497c1cbc1f89f85ab7dc32e8316`|
+| QKV image |168,960B|`5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e`|
+
+Package는 `moa-dev/experiments/candidates/qkv-boundary-probe-e53/artifacts/e55-package/`다. [E55 manifest](../../moa-dev/experiments/candidates/qkv-boundary-probe-e53/e55-manifest.json), [source 감사](../../moa-dev/experiments/candidates/qkv-boundary-probe-e53/e55-source-audit.json), [registry 감사](../../moa-dev/experiments/candidates/qkv-boundary-probe-e53/e55-registry-summary.json)는 빌드 준비 시점의 동결 증거이고 실제 NPU 상태는 위 결과 JSON을 따른다.
+
+이 결과도 공식 generator 지원 범위 밖인 두 배열·단일 RoPE/cache 위치·일정 sentinel 패턴에 한정된다. E55의 [성능 반복3회](e55-fused-qkv-repeats.json)와 [추가 seed30개 비교](e55-fused-qkv-extra-correctness.json)도 별도 완료됐다. 이 정확도 probe 자체에서 성능 개선·최종 순위·모든 입력의 동치를 도출하지 않는다.

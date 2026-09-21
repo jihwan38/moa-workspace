@@ -1,0 +1,62 @@
+{
+  "recorded_at_utc": "2026-09-21T14:08:24.463074+00:00",
+  "upstream_commit": "8559916051162e5fd682c29ec0fe3e9cc6e420cf",
+  "source_files": 43,
+  "changed_source_files": [
+    "src/device/shared/mlp.rs",
+    "src/device/shared/residual.rs",
+    "src/device/shared/rmsnorm.rs",
+    "src/device/sliding/projection.rs",
+    "src/device/sliding/rmsnorm.rs",
+    "src/device/sliding/rope.rs",
+    "src/ops.rs"
+  ],
+  "all_source_changes_in_allowed_paths": true,
+  "public_device_signatures_exactly_unchanged": 10,
+  "ops_text_outside_all_device_bodies_exactly_unchanged": true,
+  "body_only_basis": "All ten #[device(chip = 1)] public signatures and the entire ops.rs text after masking only their balanced function bodies were compared byte-for-byte against upstream.",
+  "unchanged_official_harness": {
+    "src/bin/test_kernels.rs": "42db4e99ae788020726d530d1cd799e647779b7b9912e593401d6981cffc7516",
+    "scripts/generate_references.py": "eb3454334609f30796be776230e324eedc1354fe81371b057dac914332fb1860",
+    "scripts/reference/gemma4.py": "0095a36a51dca34bd162a0c41aeb9fdbe1a779f91228ee398f2b655922264775",
+    "scripts/fixture_prng.py": "a07e785fbc0c452e7933d6a6184bc6625b0ae0d81b5f0fd20b0eb1f8d1469d6d",
+    "scripts/rngd_test.sh": "ae7ee28d9ec7eea3408a1442948c7253aeb4ce0da2d3a67ee8a9ab23e5efe613",
+    "scripts/rngd/remote_entrypoint.sh": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+  },
+  "projection_sha256": "380e57d6502e26086bd6d933ce762f4ad5de18587d52a8ef4aac7fa87e3b9c9f",
+  "ops_sha256": "ffdab428fd4c8126b77e145b75073c907732bf0fa9ca830a123fe828e7b08888",
+  "comparison_to_E54": {
+    "source_snapshot": "moa-dev/experiments/artifacts/e54-bf16-qkv-clean-source",
+    "changed_source_files": [
+      "src/device/sliding/projection.rs"
+    ],
+    "changed_projection_functions": [
+      "project_query",
+      "project_one_kv_matrix"
+    ],
+    "projection_signatures_and_text_outside_function_bodies_unchanged": true,
+    "ops_entire_file_byte_identical": true,
+    "O_suffix_byte_identical": true,
+    "head_norm_RoPE_cache_tail_unchanged": true,
+    "other_42_sources_byte_identical": true
+  },
+  "boundary_package_review": {
+    "source_audit": "moa-dev/experiments/candidates/qkv-boundary-probe-e53/e55-source-audit.json",
+    "registry_summary": "moa-dev/experiments/candidates/qkv-boundary-probe-e53/e55-registry-summary.json",
+    "manifest": "moa-dev/experiments/candidates/qkv-boundary-probe-e53/e55-manifest.json",
+    "frozen_original_compile_inputs_verified": 46,
+    "source_files_before_probe": 43,
+    "source_files_with_probe": 44,
+    "actual_compile_inputs_including_probe_verified": 47,
+    "actual_docker_sources_match_recorded_hashes": true,
+    "probe_source_sha256": "893e8d17e21387962f5ff97ac8fb25420272c6c4469fd277ac30bcbad4b25292",
+    "probe_fixture_runner_same_as_E54": true,
+    "package_files_sha256_and_sizes_verified": 3,
+    "host_sha256": "c1e2e5fa47e1f4d1b5cfafca7135eb6f14aa9497c1cbc1f89f85ab7dc32e8316",
+    "registry_entries": 1,
+    "qkv_image_sha256": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e",
+    "image_occurrences_in_host": 1,
+    "image_byte_identical_to_frozen_exact_candidate": true
+  },
+  "scope": "Read-only source, saved artifacts and ELF-registry audit. No compile, NPU execution, performance measurement, adoption decision or all-input correctness claim was made in this audit."
+}

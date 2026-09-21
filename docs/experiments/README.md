@@ -3,12 +3,13 @@
 All rows in the main performance table use the unchanged official three-kernel, three-input harness.
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
-Current adopted source: E54, which preserves BF16 QKV inputs and scales F32 raw dots before the BF16 cast.
-Its three same-package jobs70933/70974/70987 each pass all15 official-harness comparisons;
-the median-of-job-medians is108700/50970/382268. The first screen remains a separate historical row.
-Its30 extra-input comparisons and two QKV boundary cases also pass.
-O/FFN device images are unchanged from E53. The earlier E53 O-boundary job tests that identical O
-image; it is inherited evidence, not a newly executed E54 O-boundary suite.
+Current adopted source: E55, which combines the BF16 QKV dot and F32 channel multiply in one Main
+pipeline before the first BF16 cast and row Switch. Its three same-package jobs71027/71057/71072
+each pass all15 official-harness comparisons; the median-of-job-medians is102878/51249/380339.
+The first screen remains a separate historical row. E54 is the previous correctness checkpoint.
+E55's 30 extra-input comparisons and two QKV boundary cases also pass.
+O/FFN device images are unchanged from E54. The earlier E53 O-boundary job tests that identical O
+image; it is inherited evidence, not a newly executed E55 O-boundary suite.
 Earlier adoption decisions describe the checkpoint retained at that experiment's date.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.
@@ -88,7 +89,9 @@ E48 up-only fused decode passes its first screen, without a demonstrated perform
 | E53 BF16 O activation and F32 scale-before-cast | 70806 | Pass | 93987 | 50882 | 376814 | Previous O correctness fix; extra30 pass70814 and O boundary8 pass70810; performance repeats separately |
 | E53 same package repeated | 70806, 70818, 70827 | Pass | 95621 | 50882 | 377880 | Previous checkpoint, superseded by E54 QKV correction; O14.12% above E47, original speedups2.552×/7.944×/11.285× |
 | E54 BF16 QKV input and F32 channel-scale boundary | 70933 | Pass | 107845 | 50590 | 382182 | First screen; completed repeats below; extra30 pass70959, QKV boundary2 cases pass70958 |
-| E54 same package repeated | 70933, 70974, 70987 | Pass | 108700 | 50970 | 382268 | Current checkpoint; QKV13.68% above E53; original speedups2.245×/7.931×/11.155×; job-median ranges1.262%/1.173%/0.081% |
+| E54 same package repeated | 70933, 70974, 70987 | Pass | 108700 | 50970 | 382268 | Previous correctness checkpoint; QKV13.68% above E53; original speedups2.245×/7.931×/11.155×; job-median ranges1.262%/1.173%/0.081% |
+| E55 fused BF16 QKV dot and F32 channel scale | 71027 | Pass | 103478 | 50725 | 381093 | First screen; completed repeats below; extra30 pass71052, QKV boundary2 cases pass71032 |
+| E55 same package repeated | 71027, 71057, 71072 | Pass | 102878 | 51249 | 380339 | Current checkpoint; QKV5.36% below E54 and7.59% above lossy E53; original speedups2.372×/7.887×/11.212×; ranges0.976%/1.169%/1.036% |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.
@@ -257,10 +260,10 @@ E53 follow-up static-only checks left E53 unchanged at that stage. [BF16 O8×512
 
 The E53 [fused F32 channel-scale O](../../moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/README.md) compiles on its second attempt but predicts27393 vs27239(+154/+0.57%). A per-row scalar VRF is supported and the graph preserves F32 column sum→channel multiply→BF16 cast. Moving the scale into the dot pipeline adds a579-cycle precondition before dot; removing the separate401-cycle Main and saving24 in result DMA gives net+154. The candidate was not run on NPU and was not adopted.
 
-E54 is the current adopted source. `ops::sliding_project_qkv` keeps the pre-RMS activation BF16,
-gathers the H480 shards and broadcasts via ring32. `project_query` and `project_one_kv_matrix`
-look up FP8 weights as BF16, contract against BF16 input, retain F32 raw dots through `InterTranspose`,
-apply channel scale in F32, then cast to BF16 before head norm/RoPE/cache writes. Removed FP8
+E54 was the previous adopted correctness checkpoint. Its `ops::sliding_project_qkv` keeps the pre-RMS
+activation BF16, gathers the H480 shards and broadcasts via ring32. Its `project_query` and
+`project_one_kv_matrix` look up FP8 weights as BF16, contract against BF16 input, retain F32 raw dots
+through `InterTranspose`, apply channel scale in F32, then cast to BF16 before head norm/RoPE/cache writes. Removed FP8
 helpers belong to the [frozen E53 projection](../../moa-dev/experiments/candidates/qkv-bf16-f32-scale-e53/projection.rs.original), not the current execution path.
 
 [E54 job70933](e54-bf16-qkv-f32-scale.json) passes all15 official-harness comparisons with
@@ -269,7 +272,7 @@ Q107845/O50590/FFN382182; these remain its **single-screen** values. Completed
 with median-of-job-medians **Q108700/O50970/FFN382268** and relative job-median ranges
 1.262%/1.173%/0.081%. All four submitted package file hashes match across the three jobs.
 Original-repeat speedups are2.245×/7.931×/11.155×. QKV is13.68% slower than E53's repeated95621;
-the change is retained for general-input correctness, not as a performance gain. O/FFN images
+the change was retained at that stage for general-input correctness, not as a performance gain. O/FFN images
 are identical to E53, so their cycle shifts do not indicate source changes. These Arena measurements
 are not official ranking or end-to-end Gemma throughput. [Extra job70959](e54-bf16-qkv-extra-correctness.json)
 passes all30 comparisons for runs3..8; its cycles are diagnostic and are not added to the performance aggregate.
@@ -287,3 +290,35 @@ images are unchanged from E53. The existing O8-boundary PASS in E53 job70810 the
 same O image; it is inherited evidence, **not a new E54 O-boundary job**. [Source contract audit](e54-source-contract-audit.json)
 confirms the43-source scope,10 unchanged public signatures and6 unchanged official harness files.
 Official submission, score and rank remain unconfirmed, and the top-three goal has not been achieved.
+
+E55 now replaces E54. The BF16 pre-RMS, full-H gather and ring32 broadcast remain unchanged.
+Canonical channel scales are loaded contiguously, converted to F32 and routed with inverse row
+Switch into VRF. The BF16 DPE completes the entire F32 dot, multiplies that result by the channel
+scale in the **same Main pipeline**, then casts to BF16. Row Switch therefore moves BF16 values
+before the unchanged head RMS/RoPE/cache path. Only `project_query` and `project_one_kv_matrix`
+bodies change from E54; no FP8 activation approximation or earlier BF16 rounding is introduced.
+
+[First screen job71027](e55-fused-qkv-screen.json) passes15 comparisons at103478/50725/381093.
+Completed [same-package repeats](e55-fused-qkv-repeats.json)71027/71057/71072 each pass all15,
+with median-of-job-medians **Q102878/O51249/FFN380339**. Relative job-median ranges are
+0.976%/1.169%/1.036%, and all four submitted package file hashes match across the jobs.
+QKV cycles are5.36% lower than E54's108700, while still7.59% higher than E53's lossy95621.
+Original-repeat speedups are2.372×/7.887×/11.212×. O/FFN device images are identical to E54,
+so their cycle changes are not attributed to source changes. Static QKV52282→51293(−1.89%) is
+a compiler schedule comparison, separate from this repeated hardware result.
+
+[Extra job71052](e55-fused-qkv-extra-correctness.json) passes all30 comparisons for runs3..8.
+[Boundary job71032](e55-qkv-boundary-probe.json) passes both cases/all6 QKV comparisons,38 input
+checks and8 cache checks, preserving8,380,416 non-target BF16 elements. The [same-probe comparison](qkv-boundary-comparison.md)
+retains E53's failure and the original/E54/E55 passing summaries without inferring identical output
+arrays. Those diagnostic inputs remain outside the official QKV generator support; nine seeded
+configurations plus two boundary inputs do not prove all-input correctness. O8-boundary evidence
+is still E53 job70810 on the identical O image, not a new E55 O-boundary execution.
+
+[E55 source/build audit](e55-source-build-audit.json) verifies all46 frozen source/Cargo/toolchain
+inputs, byte-identical isolated/live full hosts, exact QKV image identity and the three same images
+in the independent extra host. [Source contract audit](e55-source-contract-audit.json) verifies43
+source files,10 unchanged public signatures and6 unchanged official harness files; E54's other42
+source files and the entire `ops.rs` remain byte-identical. E55's current adoption follows the
+completed screen, repeats, extra-input and boundary checks. These are Arena development results;
+official submission/authentication and top-three ranking remain unresolved.

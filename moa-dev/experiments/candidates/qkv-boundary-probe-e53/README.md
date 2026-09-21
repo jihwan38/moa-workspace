@@ -12,6 +12,14 @@
 
 E54는 같은 probe와 payload로 추가 빌드한 `artifacts/e54-package/`다. [E54 manifest](e54-manifest.json)에 host SHA256 `515a45f43281df98d1f8fa07b857fab3e1dbdc43ee2ccd051fc29e7cb4352720`, QKV image SHA256 `57a52d1aa37f16116d14638b30f34947d2c7e7ed653986436cdfa51ee54089dc`와171,776B/1회 포함을 기록했다. **각 manifest의 상태는 빌드 준비 당시 동결 기록이며, 실제 NPU 판정은 위 job별 결과 JSON을 기준으로 읽는다.**
 
+## E55 실제 후속 결과
+
+**[E55 job71032](../../../../docs/experiments/e55-qkv-boundary-probe.json)는 같은2개 case의 Q/K/V6개 비교를 모두 PASS했다.** exit0, nonfinite=0, 출력·cache 실패0이었다. case0의 Q/K 최대 절대 오차는0.0078125이고 exact count는 Q2928/K1464/V2048, case1은 Q/K/V8,192개 모두 exact다. 원본/E54와 같은 집계가 전체 출력 배열의 동일성을 입증하지는 않는다.
+
+기존 probe·payload·runner를 그대로 사용한 `artifacts/e55-package/`의 결과다. 입력 checksum38/38, cache 검사8/8이 PASS하며 비대상 cache8,380,416개 BF16 bits가 보존됐다. CPU 준비에서도 실제 Rust 입력 전체38개 SHA256이 Python과 일치했다. [E55 manifest](e55-manifest.json)에 host2,657,592B SHA256 `c1e2e5fa47e1f4d1b5cfafca7135eb6f14aa9497c1cbc1f89f85ab7dc32e8316`과 QKV image168,960B SHA256 `5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e`를 기록했다. [Source 감사](e55-source-audit.json)는 동결 source43개와 Cargo/toolchain3개가 일치하고 동일 probe만 추가됐음을 확인하며, [registry 감사](e55-registry-summary.json)는 QKV image가 정확히 한 번 포함됨을 확인한다. 실제 업로드 package hash도 collector가 대조했다.
+
+manifest의 `NOT_NPU_TESTED`는 준비 당시 보존한 상태이며 현재 판정은 job71032 결과 JSON이다. 이 후속은 공식 generator 지원 범위 밖의 두 입력에 대한 정확도 관측이다. [성능 반복3회](../../../../docs/experiments/e55-fused-qkv-repeats.json)와 [추가 seed30개 비교](../../../../docs/experiments/e55-fused-qkv-extra-correctness.json)도 별도 완료됐다. 이 probe만으로 성능 개선이나 모든 입력 동치를 주장하지 않는다. [기존 대조와 E55 후속](../../../../docs/experiments/qkv-boundary-comparison.md#e55-후속--job71032).
+
 ## 준비 당시의 구현·검증 기록
 
 2026-09-21. **E53와 upstream 원본의 별도 host 패키지를 빌드하고 CPU 입력 검증을 완료했다. 이 준비 작업에서는 NPU를 실행하지 않았다.** 공식 `test_kernels.rs`나 device 코드를 변경하지 않고 `probe_qkv.rs`만 추가했다. 공식 성능·점수·순위 측정이 아닌 일반 입력의 수치 진단이다. NPU 제출과 결과 수집은 root가 담당한다.

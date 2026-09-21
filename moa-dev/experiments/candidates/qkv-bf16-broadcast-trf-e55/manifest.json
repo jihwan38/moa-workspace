@@ -1,0 +1,84 @@
+{
+  "status": "EXACT_COMPILE_FAIL_MIR_BITMAP_NO_RUNTIME_ARTIFACT",
+  "compile_attempts": 1,
+  "corrections": 0,
+  "second_attempt_not_used": "No evidenced safe public API correction; parent instructed freeze after first failure.",
+  "npu_run": false,
+  "full_host_build": false,
+  "image_generated": false,
+  "schedule_generated": false,
+  "graph_generated": false,
+  "mechanical_base": "qkv-bf16-shared-trf-e55",
+  "mechanical_base_projection_sha256": "26b7ada776900a82ccc716deaa26e1f6d7ed55c4e86fce9f1098132e1d766fb5",
+  "comparison_baselines_only": {
+    "e55_fused_static_makespan": 51293,
+    "shared_trf_static_makespan": 52562
+  },
+  "candidate_makespan": null,
+  "scope": "Only prepare_shared_input and removal of Main broadcast-DM materialization; all projection arithmetic/gather/public signature/head/cache/O/FFN unchanged.",
+  "other_41_sources_unchanged": true,
+  "actual_attempted_input_count": 46,
+  "actual_attempted_inputs_match_frozen_host_copy": true,
+  "intended_address_proof": "verification-before-compile.json",
+  "actual_bitmap_verified": false,
+  "failure": {
+    "stage": "mir",
+    "message": "Switch snoop bitmap disagrees with the (OutSlice x OutTime) enumeration at output slice 1",
+    "source_location": "src/device/sliding/projection.rs:22:10 (.to_trf())"
+  },
+  "safety": "Input padding was not promoted; no unsafe TRF transmute; no anonymous broadcast relabel of nonidentical weight rows.",
+  "generalization_limit": "This named output mapping failed; not proof that every Sub switch-to-TRF fusion is impossible.",
+  "scratch": "/tmp/moa-qkv-bf16-broadcast-trf-e55",
+  "CARGO_HOME": "/home/moa/.cargo",
+  "CARGO_TARGET_DIR": "/tmp/moa-qkv-bf16-broadcast-trf-e55/target",
+  "FURIOSA_OPT_OUT_DIR": "/tmp/moa-qkv-bf16-broadcast-trf-e55/target/furiosa-opt/kernel",
+  "command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule candidate.json --dump-graph candidate-graph.json",
+  "reconstruction_checkpoint_parent_provided": "2fceb2d",
+  "reconstruction_lock": "moa-dev/locks/gemma4-Cargo.lock",
+  "files": {
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/projection.rs": {
+      "sha256": "41d67eee289f5e995f0f4a79f64f03f63e530cd42925742ae27f8d83def3530b",
+      "bytes": 13605
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/ops.rs": {
+      "sha256": "a79a53f749d5161118ef77f52a758babfce4844f72c7fc8ce99a821e66b453c7",
+      "bytes": 13085
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/projection.rs.original": {
+      "sha256": "26b7ada776900a82ccc716deaa26e1f6d7ed55c4e86fce9f1098132e1d766fb5",
+      "bytes": 13403
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/ops.rs.original": {
+      "sha256": "288d6d27561462ec480956ef40cd8cd8f6a3855ccfb3a3ca3df881b1bb66872e",
+      "bytes": 13518
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/prepare_source.py": {
+      "sha256": "4daa4746aa3a2ad67688beb459c059ef3b4d7603deaac81e93cf5868b50b450e",
+      "bytes": 2692
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/verify_candidate.py": {
+      "sha256": "2e153389551cea1c169c0afff17e8c12ef0eb8dbf9e1c8dfccb37b1768158fdf",
+      "bytes": 3255
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/verification-before-compile.json": {
+      "sha256": "46b131a67213739e5544ee89fe49534f602d1ffe870d9825eb383484f385d1e1",
+      "bytes": 2906
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/candidate.patch": {
+      "sha256": "6fd59b64b39c3186a69c5221cde5f3cc24d3f31f8cd155bb37c28099984fd42a",
+      "bytes": 2568
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/compiled-source-manifest.json": {
+      "sha256": "d0625424ebe4f675e0d42b16b0aa278a4932b66f8b51805566e6b3996cff7c4f",
+      "bytes": 6162
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/output-artifact-check.json": {
+      "sha256": "679b44cf67dc0494a4a4978b5c94e373ede606c18d5ab27d6182417a1e4d8d19",
+      "bytes": 286
+    },
+    "moa-dev/experiments/artifacts/qkv-bf16-broadcast-trf-e55/compile-attempt1.log": {
+      "sha256": "7b235462743809e58cbc22921444bdc4ddf552cd65e09ed13abd04c57cdd7c54",
+      "bytes": 1400
+    }
+  }
+}

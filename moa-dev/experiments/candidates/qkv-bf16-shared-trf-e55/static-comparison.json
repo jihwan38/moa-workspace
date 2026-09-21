@@ -1,0 +1,432 @@
+{
+  "decision": "REJECT_STATIC_REGRESSION_NO_NPU",
+  "baseline": {
+    "makespan": 51293,
+    "instruction_count": 140,
+    "duration_sum_by_resource": {
+      "Sub": 10979,
+      "DmaLoad": 34916,
+      "Core": 3192,
+      "Main": 29969,
+      "DmaStos": 5604,
+      "DmaGather": 1868,
+      "DmaStore": 441,
+      "DmaScatter": 1740
+    },
+    "graph_activation_trf_ids": [
+      32,
+      47
+    ],
+    "schedule_trfs": [
+      {
+        "name": "x_trf",
+        "index": "76",
+        "buffer_type": "Trf",
+        "lifetime": {
+          "begin": 15866,
+          "end": 45704,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 16777216,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: (Ps / 32 % 32, Ps % 8), Lane: 1, Element: H]",
+        "fingerprint": null
+      },
+      {
+        "name": "x_trf",
+        "index": "77",
+        "buffer_type": "Trf",
+        "lifetime": {
+          "begin": 17089,
+          "end": 31963,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 16777216,
+        "size": 16777216,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Qs / 2048, Slice: (Qs / 64 % 32, Qs % 8), Lane: 1, Element: H]",
+        "fingerprint": null
+      }
+    ],
+    "trf_loads": [
+      {
+        "id": "134",
+        "resource": "Sub",
+        "begin": 15866,
+        "end": 17089,
+        "duration": 1223
+      },
+      {
+        "id": "138",
+        "resource": "Sub",
+        "begin": 17089,
+        "end": 18312,
+        "duration": 1223
+      }
+    ],
+    "trf_reservation_bytes_per_slice": 65536,
+    "paths": {
+      "K": {
+        "graph_dot": "RenegadeCommand#O33",
+        "graph_weight_chain": [
+          "DmaCommand#O28"
+        ],
+        "graph_scale_chain": [
+          "RenegadeCommand#O30",
+          "DmaCommand#O29"
+        ],
+        "weight_hbm": "IO(2)+0",
+        "graph_activation_trf": 47,
+        "weight_dma": {
+          "id": "145",
+          "resource": "DmaLoad",
+          "begin": 25528,
+          "end": 32494,
+          "duration": 6966
+        },
+        "dot": {
+          "id": "163",
+          "resource": "Main",
+          "begin": 32494,
+          "end": 35157,
+          "duration": 2663
+        },
+        "lookup_dma": {
+          "id": "52",
+          "resource": "DmaLoad",
+          "begin": 3827,
+          "end": 4665,
+          "duration": 838
+        },
+        "lookup_sub": {
+          "id": "76",
+          "resource": "Sub",
+          "begin": 4870,
+          "end": 6163,
+          "duration": 1293
+        },
+        "lookup_schedule_tensor": 56,
+        "lookup_dm_address": 1835008,
+        "lookup_dm_lifetime": {
+          "begin": 4870,
+          "end": 35157,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "scale_then_first_bf16_cast": true,
+        "bf16_commit_bytes": 8
+      },
+      "Q": {
+        "graph_dot": "RenegadeCommand#O19",
+        "graph_weight_chain": [
+          "DmaCommand#O14"
+        ],
+        "graph_scale_chain": [
+          "RenegadeCommand#O16",
+          "DmaCommand#O15"
+        ],
+        "weight_hbm": "IO(1)+0",
+        "graph_activation_trf": 32,
+        "weight_dma": {
+          "id": "125",
+          "resource": "DmaLoad",
+          "begin": 11307,
+          "end": 24690,
+          "duration": 13383
+        },
+        "dot": {
+          "id": "151",
+          "resource": "Main",
+          "begin": 26900,
+          "end": 31963,
+          "duration": 5063
+        },
+        "lookup_dma": {
+          "id": "139",
+          "resource": "DmaLoad",
+          "begin": 24690,
+          "end": 25528,
+          "duration": 838
+        },
+        "lookup_sub": {
+          "id": "144",
+          "resource": "Sub",
+          "begin": 25528,
+          "end": 26821,
+          "duration": 1293
+        },
+        "lookup_schedule_tensor": 80,
+        "lookup_dm_address": 33554432,
+        "lookup_dm_lifetime": {
+          "begin": 25528,
+          "end": 31963,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "scale_then_first_bf16_cast": true,
+        "bf16_commit_bytes": 8
+      },
+      "V": {
+        "graph_dot": "RenegadeCommand#O45",
+        "graph_weight_chain": [
+          "DmaCommand#O40"
+        ],
+        "graph_scale_chain": [
+          "RenegadeCommand#O42",
+          "DmaCommand#O41"
+        ],
+        "weight_hbm": "IO(3)+0",
+        "graph_activation_trf": 47,
+        "weight_dma": {
+          "id": "204",
+          "resource": "DmaLoad",
+          "begin": 36075,
+          "end": 43041,
+          "duration": 6966
+        },
+        "dot": {
+          "id": "328",
+          "resource": "Main",
+          "begin": 43041,
+          "end": 45704,
+          "duration": 2663
+        },
+        "lookup_dma": {
+          "id": "183",
+          "resource": "DmaLoad",
+          "begin": 34378,
+          "end": 35216,
+          "duration": 838
+        },
+        "lookup_sub": {
+          "id": "220",
+          "resource": "Sub",
+          "begin": 36463,
+          "end": 37756,
+          "duration": 1293
+        },
+        "lookup_schedule_tensor": 108,
+        "lookup_dm_address": 2359296,
+        "lookup_dm_lifetime": {
+          "begin": 36463,
+          "end": 45704,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "scale_then_first_bf16_cast": true,
+        "bf16_commit_bytes": 8
+      }
+    }
+  },
+  "candidate": {
+    "makespan": 52562,
+    "instruction_count": 147,
+    "duration_sum_by_resource": {
+      "Sub": 9756,
+      "DmaLoad": 34916,
+      "Core": 3192,
+      "Main": 29969,
+      "DmaGather": 1868,
+      "DmaStos": 5604,
+      "DmaScatter": 1740,
+      "DmaStore": 441
+    },
+    "graph_activation_trf_ids": [
+      32
+    ],
+    "schedule_trfs": [
+      {
+        "name": "vISA(T181)_i1_prepare_shared_input_0",
+        "index": "63",
+        "buffer_type": "Trf",
+        "lifetime": {
+          "begin": 16032,
+          "end": 46973,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 16777216,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: Dummy256, Lane: 1, Element: H]",
+        "fingerprint": null
+      }
+    ],
+    "trf_loads": [
+      {
+        "id": "101",
+        "resource": "Sub",
+        "begin": 16032,
+        "end": 17255,
+        "duration": 1223
+      }
+    ],
+    "trf_reservation_bytes_per_slice": 32768,
+    "paths": {
+      "K": {
+        "graph_dot": "RenegadeCommand#O36",
+        "graph_weight_chain": [
+          "LowLevelReshape#O32",
+          "DmaCommand#O29"
+        ],
+        "graph_scale_chain": [
+          "LowLevelReshape#O33",
+          "RenegadeCommand#O31",
+          "DmaCommand#O30"
+        ],
+        "weight_hbm": "IO(2)+0",
+        "graph_activation_trf": 32,
+        "weight_dma": {
+          "id": "136",
+          "resource": "DmaLoad",
+          "begin": 24587,
+          "end": 31553,
+          "duration": 6966
+        },
+        "dot": {
+          "id": "172",
+          "resource": "Main",
+          "begin": 33763,
+          "end": 36426,
+          "duration": 2663
+        },
+        "lookup_dma": {
+          "id": "153",
+          "resource": "DmaLoad",
+          "begin": 31553,
+          "end": 32391,
+          "duration": 838
+        },
+        "lookup_sub": {
+          "id": "157",
+          "resource": "Sub",
+          "begin": 32391,
+          "end": 33684,
+          "duration": 1293
+        },
+        "lookup_schedule_tensor": 88,
+        "lookup_dm_address": 33554432,
+        "lookup_dm_lifetime": {
+          "begin": 32391,
+          "end": 36426,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "scale_then_first_bf16_cast": true,
+        "bf16_commit_bytes": 8
+      },
+      "V": {
+        "graph_dot": "RenegadeCommand#O51",
+        "graph_weight_chain": [
+          "LowLevelReshape#O47",
+          "DmaCommand#O44"
+        ],
+        "graph_scale_chain": [
+          "LowLevelReshape#O48",
+          "RenegadeCommand#O46",
+          "DmaCommand#O45"
+        ],
+        "weight_hbm": "IO(3)+0",
+        "graph_activation_trf": 32,
+        "weight_dma": {
+          "id": "211",
+          "resource": "DmaLoad",
+          "begin": 37344,
+          "end": 44310,
+          "duration": 6966
+        },
+        "dot": {
+          "id": "326",
+          "resource": "Main",
+          "begin": 44310,
+          "end": 46973,
+          "duration": 2663
+        },
+        "lookup_dma": {
+          "id": "183",
+          "resource": "DmaLoad",
+          "begin": 34275,
+          "end": 35113,
+          "duration": 838
+        },
+        "lookup_sub": {
+          "id": "189",
+          "resource": "Sub",
+          "begin": 35113,
+          "end": 36406,
+          "duration": 1293
+        },
+        "lookup_schedule_tensor": 101,
+        "lookup_dm_address": 24117248,
+        "lookup_dm_lifetime": {
+          "begin": 35113,
+          "end": 46973,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "scale_then_first_bf16_cast": true,
+        "bf16_commit_bytes": 8
+      },
+      "Q": {
+        "graph_dot": "RenegadeCommand#O21",
+        "graph_weight_chain": [
+          "LowLevelReshape#O17",
+          "DmaCommand#O14"
+        ],
+        "graph_scale_chain": [
+          "LowLevelReshape#O18",
+          "RenegadeCommand#O16",
+          "DmaCommand#O15"
+        ],
+        "weight_hbm": "IO(1)+0",
+        "graph_activation_trf": 32,
+        "weight_dma": {
+          "id": "92",
+          "resource": "DmaLoad",
+          "begin": 8089,
+          "end": 21472,
+          "duration": 13383
+        },
+        "dot": {
+          "id": "142",
+          "resource": "Main",
+          "begin": 24914,
+          "end": 29977,
+          "duration": 5063
+        },
+        "lookup_dma": {
+          "id": "48",
+          "resource": "DmaLoad",
+          "begin": 3162,
+          "end": 4000,
+          "duration": 838
+        },
+        "lookup_sub": {
+          "id": "70",
+          "resource": "Sub",
+          "begin": 4870,
+          "end": 6163,
+          "duration": 1293
+        },
+        "lookup_schedule_tensor": 54,
+        "lookup_dm_address": 33554432,
+        "lookup_dm_lifetime": {
+          "begin": 4870,
+          "end": 29977,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "scale_then_first_bf16_cast": true,
+        "bf16_commit_bytes": 8
+      }
+    }
+  },
+  "delta_cycles": 1269,
+  "delta_percent": 2.4740217963464817,
+  "critical_observation": "Candidate K weight DMA ends31553 then lookup DMA838+Sub1293+79 gap precedes dot33763. Baseline table ready6163, K weight ends32494 and dot begins immediately. Net1269 propagates through V/cache tail.",
+  "causal_limit": "Q/K lookup DM address reuse and changed preparation are observed; why the allocator/scheduler selected them is not established.",
+  "scope": "Static schedule/graph/source only; no NPU or all-input equivalence proof."
+}
