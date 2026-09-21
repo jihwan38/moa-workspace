@@ -3,10 +3,10 @@
 All rows in the main performance table use the unchanged official three-kernel, three-input harness.
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
-The latest passing screen is E29: all 15 official-harness comparisons pass, with additional-input and
-independent repeat measurements still outstanding. E27 has passed 15 official-harness and 30 separate
-additional-input comparisons. Both performance records still have only one independent job. E28 failed.
-Additional-input and instrumented diagnostic jobs are recorded separately below.
+The latest passing screen is E31: all 15 official-harness comparisons and 30 separate
+additional-input comparisons pass. Three independent same-package jobs also pass; their median-of-medians is97085/45355/389335.
+E29 remains a passing earlier screen; E30 is a passing paired QKV control. E28/E32 timeout,
+and E33 has substantial FFN correctness failures. Diagnostic jobs are separated below.
 
 | Variant | Arena jobs | Accuracy | QKV cycles | O cycles | FFN cycles | Decision |
 |---|---|---|---:|---:|---:|---|
@@ -44,6 +44,11 @@ Additional-input and instrumented diagnostic jobs are recorded separately below.
 | E27 Q/K two-lane, V separate hi/lo dots + E26 O | 70382 | Pass | 97247 | 52543 | 386729 | Extended-check checkpoint; extra30 pass70409; V workaround does not establish root cause |
 | E28 explicit ×1 on pair group0, native FP8 FFN | 70410 | QKV/O pass; first FFN launch timeout | 98428 | 53363 | — | Reject; exit101/rank0, no FFN output or cycles; no valid combined score |
 | E29 sharded QKV input + direct-packed O + safe FFN | 70428 | Pass | 94491 | 49352 | 389199 | Latest passing screen; QKV/O2.83%/6.07% below E27 screen; extra inputs and repeats outstanding |
+| E30 all-pair skip control + safe FFN | 70440 | Pass | 98599 | 52113 | 389137 | Direct-packed QKV passes without explicit ×1; identity is not required for these inputs |
+| E31 Switch gather/local RMS sum + E29 | 70441 | Pass | 98797 | 45355 | 389335 | O improves; QKV screen slower, repeat required; extra30 pass70448 |
+| E31 same package repeated | 70441, 70459, 70465 | Pass | 97085 | 45355 | 389335 | Four-file package hashes identical; job-median ranges2.714%/1.965%/0.177% |
+| E32 pair-free native FP8 FFN diagnostic | 70447 | QKV/O pass; first FFN launch timeout | 99692 | 52233 | — | Reject; removing Sequential pair does not resolve common native packet4 path |
+| E33 BF16 down block/scale DPE + E31 | 70455 | QKV/O pass; FFN fail | 96585 | 45738 | — | Reject; only12.94–16.17% FFN values within tolerance; causes unresolved |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.
@@ -68,7 +73,9 @@ Raw logs, binary snapshots and large schedules are under Git-ignored `moa-dev/lo
 `moa-dev/experiments/candidates`; static schedule predictions do not establish correctness or speedup.
 
 The `capture.py` helper snapshots current source and an existing binary independently. The root
-experiment sequence builds successfully, captures immediately, and submits before the next edit.
+experiment sequence builds successfully and captures immediately. It either submits before the next
+edit or freezes an upload package from that snapshot, verifies its hashes, and submits the frozen files.
+The uploaded package is downloaded and checked against the captured binary/fixture after each job.
 The helper itself does not claim to prove that a binary was built from the current source.
 
 Additional development seeds run3..8 passed all 30 output comparisons for the E5 four-row
@@ -117,3 +124,13 @@ The [Arena version probe](../../moa-dev/experiments/candidates/arena-version-pro
 environment observation, not a kernel benchmark. Driver/firmware query failures must remain unknown;
 they do not prove a mismatch or explain the FP8 failures. Follow-up measurement priorities are tracked
 in [the optimization plan](../OPTIMIZATION_PLAN.md#초기-실험-계보와-현재-우선순위).
+
+E31 additional run3..8 passed all30 comparisons in job70448 ([record](e31-rms-extra-correctness.json)).
+The eight-way RMS sum order changes; passing nine configurations is not an all-input proof.
+E30 has a clean paired control audit: the E28/E30 QKV binaries differ in exactly24 bytes,
+while their instruction fields, allocation, O kernel and QKV entry point match. Both QKV paths pass.
+See [control audit](../../moa-dev/experiments/candidates/qkv-fp8-explicit-hi-identity/control-audit.md).
+Direct packing also changed between earlier failing E21 and E28/E30, so a compiler defect or its
+precise mechanism remains unproven. E33 FFN runtime408287 is invalid performance because accuracy failed.
+
+E31 same-package repeat evidence: [e31-rms-repeats.json](e31-rms-repeats.json). Original-repeat speedups are2.514×/8.912×/10.953×. These are Arena cycles, not official ranking.

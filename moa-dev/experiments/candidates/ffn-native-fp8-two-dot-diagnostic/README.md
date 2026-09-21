@@ -1,6 +1,6 @@
 # Native FP8 packet4를 유지하는 pair-free FFN 진단
 
-2026-09-21, compiler/std 0.8.1. E22/E25 첫 FFN timeout을 분리하기 위한 후보다. Native FP8 64-element packet의 네 16-element block 결과는 유지하되 **Sequential two-lane과 pair unzip/zip을 없애고 lane1 두 dot**으로 계산한다. 첫 exact compile에서 성공했고 static makespan은 **181,640 cycles**다. 성능 채택보다 실행 경로 분리를 위한 진단이며 **NPU는 아직 실행하지 않았다**.
+2026-09-21, compiler/std 0.8.1. E22/E25 첫 FFN timeout을 분리하기 위한 후보다. Native FP8 64-element packet의 네 16-element block 결과는 유지하되 **Sequential two-lane과 pair unzip/zip을 없애고 lane1 두 dot**으로 계산한다. 첫 exact compile에서 성공했고 static makespan은 **181,640 cycles**다. 성능 채택보다 실행 경로 분리를 위한 진단이다. **E32 job70447에서 첫 FFN launch가 다시 timeout(exit101, rank0)으로 종료됐다.** FFN output/cycles는 없고, 같은 package의 Q/O는 개별 PASS(Q99,692/O52,233 cycles)였다. [실험 기록](../../../../docs/experiments/e32-pair-free-ffn.json)과 `moa-dev/logs/e32-pair-free-ffn-job-70447.log`가 근거다. Pair 제거만으로 timeout이 해소되지 않았으며, 공통 native packet4/padded-slice/quantizer 중 어느 것이 원인인지는 아직 알 수 없다.
 
 기준은 first-party `ffn-native-fp8-upgate/mlp.postreduce-div.rs`다. quantizer, F4→F8 DM, local/global scales, up/gate row mapping, GeGLU/down을 유지한다. 완성 소스는 `mlp.rs`, 기준 대비 diff는 `candidate.patch`다. `ops.rs`는 E16 tail을 사용한 scratch snapshot이며 이 실험에서 수정하지 않았다.
 

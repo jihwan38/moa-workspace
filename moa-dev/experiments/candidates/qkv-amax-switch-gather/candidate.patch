@@ -1,0 +1,25 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -515,13 +515,17 @@
+         .vector_widen_pad::<m![1 # 8]>()
+         .vector_clip(ClipBinaryOpF32::Max, 1.504632769052528e-36f32)
+         .vector_final().commit_trim::<m![1 # 8]>().commit();
+-    // Output has exactly one logical scalar per cluster. No padded element
+-    // is reinterpreted as valid input; this typed reduction must compile.
++    // Gather the eight valid local maxima into Time H/480 on scalar Slice.
++    // Max only selects a finite, positive value: its order adds no rounding.
+     let amax: DmTensor<f32, Chip, m![2], Slice, m![1 # 8]> = device
+         .main.begin(local_amax.view())
+-        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+-        .vector_init()
+-        .vector_inter_slice_reduce::<Slice, m![1]>(InterSliceReduceOpF32::Max)
++        .fetch::<m![1], m![1 # 8]>()
++        .switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })
++        .collect::<m![H / 480], m![1 # 8]>()
++        .vector_init().vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![1 # 4]>()
++        .vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)
++        .vector_widen_pad::<m![1 # 8]>()
+         .vector_final().commit_trim::<m![1 # 8]>().commit();
+     // Exponent mask produces 2^floor(log2(amax)); floor 2^-119 guarantees
+     // scale >= 2^-126, and finite BF16 inputs imply scale <= 2^120.

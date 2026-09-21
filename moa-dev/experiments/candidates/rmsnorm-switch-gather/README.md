@@ -34,3 +34,5 @@ H480 부분합 계산과 Div3840, EPS→Sqrt 순서, 후속 DivF/gamma, BF16 cas
 
 소스 SHA256: `3c3c9525f21fe9916e0f6db00863cbb05e4f0c8cc35501ed08b1bbcdb4635cb0`.
 Patch는 `candidate.patch`, source/kernel/schedule 증거는 `evidence.json`, probe는 `cpu-order-probe.json`이다. Raw log/schedule은 `../../artifacts/rmsnorm-switch-gather/`, 독립 Docker scratch/target은 `/tmp/moa-rmsnorm-switch-gather`에 있다. live source·Git·NPU 제출은 하지 않았다.
+
+후속 E31 job70441에서 이 helper를 E29 sharded Q와 direct-packed O에 결합해 공식15 comparisons 모두 PASS했다. Q98,797 / O45,355 / FFN389,335 cycles다. E29 단일 screen 대비 O는 빨라졌지만 Q는 느려졌으므로 반복 측정 없이 전체 개선으로 확정하지 않는다. 추가 입력 검증은 당시 pending이며 일반 입력 동등성을 증명한 것은 아니다. 로그는 `../../../logs/e31-switch-gather-rms-job-70441.log`, 통합 결과는 `docs/experiments/e31-switch-gather-rms.json`에 있다.

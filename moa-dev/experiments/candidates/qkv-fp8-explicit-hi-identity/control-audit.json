@@ -1,0 +1,114 @@
+{
+  "scope": "Read-only frozen E28/E30 clean A/B audit; no NPU action",
+  "frozen_source_changed_files": [
+    "device/shared/mlp.rs",
+    "device/sliding/projection.rs"
+  ],
+  "projection_only_two_group0_mul1_to_skip_operands": true,
+  "ops_and_other_source_identical": true,
+  "e30_mlp_equal_safe_e27": true,
+  "q_kernel_bytes": 183296,
+  "skip_q_sha256": "29a2e06c9876d8fd12259fe3bdf9f818d40944769ba10e73202630f4e6787fd9",
+  "identity_q_sha256": "0acfd2e3511b29ac4760a5c33facef17dc06acc958f6f8dc6e8b168d405d0538",
+  "differing_byte_offsets": [
+    79785,
+    79787,
+    79788,
+    79795,
+    79798,
+    79799,
+    82905,
+    82907,
+    82908,
+    82915,
+    82918,
+    82919,
+    160921,
+    160923,
+    160924,
+    160931,
+    160934,
+    160935,
+    164041,
+    164043,
+    164044,
+    164051,
+    164054,
+    164055
+  ],
+  "output_kernel_sha256": "daa37cb4ef8bfe947e41b8b5a19552f16681741e64896c09b11e4d3ab8edd83a",
+  "output_kernel_bytes": 82944,
+  "all_instruction_fields_except_description_equal": true,
+  "all_tensor_fields_except_generated_name_equal": true,
+  "static_cycles": 51574,
+  "instruction_count": 165,
+  "embedded_device_kernels": {
+    "e28-explicit-pair-identity": {
+      "elf_sha256": "f30d878c02f4329171fc3645a0168a239b3df7b54739caf0964bba646dcb3253",
+      "identity_offsets": [
+        1276353
+      ],
+      "skip_offsets": [],
+      "output_offsets": [
+        1193341
+      ]
+    },
+    "e29-sharded-qkv-packed-output": {
+      "elf_sha256": "d9f276c684cfa95759ea6a42f46a61299ffd9fdbd33264650afd716daee99ea0",
+      "identity_offsets": [],
+      "skip_offsets": [],
+      "output_offsets": []
+    },
+    "e30-pair-skip-control": {
+      "elf_sha256": "19615e72ef0b4c3aa3cffb34e0d3a0a99f6c38782b1fde7dfe4c3a3d72fbb8f2",
+      "identity_offsets": [],
+      "skip_offsets": [
+        1263041
+      ],
+      "output_offsets": [
+        1180029
+      ]
+    }
+  },
+  "e29_sharded_q_not_in_e30": true,
+  "limitation": "No claim identity fixes skip-state bug before exact hardware control. FFN differs between full jobs, but Q and O device payloads are isolated as stated.",
+  "hardware_control": {
+    "log": "moa-dev/logs/e30-pair-skip-control-job-70440.log",
+    "log_sha256": "6b0c58ee4e875817d1f3a7d94a852ec35aa475c38c2ec0b20122e4c0570b6731",
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 98599,
+        "cycles_by_run": [
+          105346,
+          98174,
+          98599
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 52113,
+        "cycles_by_run": [
+          55137,
+          51711,
+          52113
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 389137,
+        "cycles_by_run": [
+          395627,
+          386853,
+          389137
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "valid": true,
+    "job": 70440
+  },
+  "conclusion": "E30 skip() and E28 identity both pass QKV official inputs; explicit hi*1 is not necessary for observed E28 PASS. Underlying E20/E21 V corruption root cause remains unresolved."
+}

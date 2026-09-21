@@ -1,0 +1,610 @@
+{
+  "makespan": 170270,
+  "instruction_count": 217,
+  "down_instructions": [
+    {
+      "index": "22",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 1003,
+        "end": 1589
+      },
+      "input_tensors": [
+        18
+      ],
+      "output_tensors": [
+        26
+      ],
+      "description": "--> src/device/shared/mlp.rs:397:9\n\nscales128.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "49",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 4512,
+        "end": 5418
+      },
+      "input_tensors": [
+        20
+      ],
+      "output_tensors": [
+        37
+      ],
+      "description": "--> src/device/shared/mlp.rs:392:9\n\npartials128.view_mut().memset(const { bf16::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "51",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 5418,
+        "end": 6324
+      },
+      "input_tensors": [
+        21
+      ],
+      "output_tensors": [
+        38
+      ],
+      "description": "--> src/device/shared/mlp.rs:392:9\n\npartials128.view_mut().memset(const { bf16::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "73",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 6324,
+        "end": 6910
+      },
+      "input_tensors": [
+        22
+      ],
+      "output_tensors": [
+        59
+      ],
+      "description": "--> src/device/shared/mlp.rs:397:9\n\nscales128.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "75",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 6910,
+        "end": 7496
+      },
+      "input_tensors": [
+        23
+      ],
+      "output_tensors": [
+        60
+      ],
+      "description": "--> src/device/shared/mlp.rs:397:9\n\nscales128.view_mut().memset(const { f8e4m3::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "98",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 7499,
+        "end": 8405
+      },
+      "input_tensors": [
+        24
+      ],
+      "output_tensors": [
+        71
+      ],
+      "description": "--> src/device/shared/mlp.rs:392:9\n\npartials128.view_mut().memset(const { bf16::from_f32(0.0) }, &mut device.sub)"
+    },
+    {
+      "index": "282",
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 84047,
+        "end": 113474
+      },
+      "input_tensors": [
+        0
+      ],
+      "output_tensors": [
+        137
+      ],
+      "description": "--> src/device/shared/mlp.rs:357:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "334",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 116341,
+        "end": 125604
+      },
+      "input_tensors": [
+        137,
+        30
+      ],
+      "output_tensors": [
+        151
+      ],
+      "description": "--> src/device/shared/mlp.rs:359:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()"
+    },
+    {
+      "index": "349",
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 118761,
+        "end": 128535
+      },
+      "input_tensors": [
+        6
+      ],
+      "output_tensors": [
+        156
+      ],
+      "description": "--> src/device/shared/mlp.rs:351:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "385",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 127210,
+        "end": 145473
+      },
+      "input_tensors": [
+        151,
+        35
+      ],
+      "output_tensors": [
+        164
+      ],
+      "description": "--> src/device/shared/mlp.rs:367:104\n\ndevice\n.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()"
+    },
+    {
+      "index": "389",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 128535,
+        "end": 137927
+      },
+      "input_tensors": [
+        163,
+        58
+      ],
+      "output_tensors": [
+        168
+      ],
+      "description": "--> src/device/shared/mlp.rs:339:81\n\nx.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "395",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 137927,
+        "end": 140922
+      },
+      "input_tensors": [
+        169,
+        57
+      ],
+      "output_tensors": [
+        172
+      ],
+      "description": "--> src/device/shared/mlp.rs:402:9\n\nscales.to_dm_view(&mut device.tdma,\nscales128.view_mut().tile::<m![DownScaleBlock], 120, m![H % 60 = 20, DownScaleBlock = 120 #{!} 128]>(0))"
+    },
+    {
+      "index": "410",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 139527,
+        "end": 140270
+      },
+      "input_tensors": [
+        173
+      ],
+      "output_tensors": [
+        174
+      ],
+      "description": "--> src/device/shared/mlp.rs:340:93\n\ndevice\n.sub\n.begin(x.view())\n.fetch::<m![L / 16 % 120], m![L % 16]>()\n.collect::<m![L / 16 % 120], m![L % 16]>()\n.to_trf()"
+    },
+    {
+      "index": "411",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 140922,
+        "end": 143917
+      },
+      "input_tensors": [
+        170,
+        70
+      ],
+      "output_tensors": [
+        175
+      ],
+      "description": "--> src/device/shared/mlp.rs:402:9\n\nscales.to_dm_view(&mut device.tdma,\nscales128.view_mut().tile::<m![DownScaleBlock], 120, m![H % 60 = 20, DownScaleBlock = 120 #{!} 128]>(0))"
+    },
+    {
+      "index": "420",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 144755,
+        "end": 147750
+      },
+      "input_tensors": [
+        171,
+        72
+      ],
+      "output_tensors": [
+        181
+      ],
+      "description": "--> src/device/shared/mlp.rs:402:9\n\nscales.to_dm_view(&mut device.tdma,\nscales128.view_mut().tile::<m![DownScaleBlock], 120, m![H % 60 = 20, DownScaleBlock = 120 #{!} 128]>(0))"
+    },
+    {
+      "index": "425",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 145473,
+        "end": 146136
+      },
+      "input_tensors": [
+        176,
+        149
+      ],
+      "output_tensors": [
+        182
+      ],
+      "description": "--> src/device/shared/mlp.rs:404:112\n\ndevice\n.main.begin(scales128.view())\n.fetch::<m![H % 60 = 20, DownScaleBlock / 32], m![DownScaleBlock % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.commit_trim::<m![DownScaleBlock % 16]>().commit()"
+    },
+    {
+      "index": "435",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 146136,
+        "end": 148804
+      },
+      "input_tensors": [
+        183,
+        174
+      ],
+      "output_tensors": [
+        186
+      ],
+      "description": "--> src/device/shared/mlp.rs:377:109\n\ndevice\n.main.begin(down_weight_bf16.view().tile::<m![H % 60], 20, m![H % 60 = 20 # 60, L % 1920]>(20 * i))\n.fetch::<m![H % 60 = 20, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 20, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 20, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60 = 20, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 20, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 20, L / 16 / 4 % 30], m![L / 16 % 4 # 16]>()\n.commit_trim::<m![L / 16 % 4]>().commit()"
+    },
+    {
+      "index": "437",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 146136,
+        "end": 147039
+      },
+      "input_tensors": [
+        182
+      ],
+      "output_tensors": [
+        187
+      ],
+      "description": "--> src/device/shared/mlp.rs:410:121\n\ndevice\n.sub.begin(scales128.view())\n.fetch::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.collect::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>().to_trf()"
+    },
+    {
+      "index": "450",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 148804,
+        "end": 151472
+      },
+      "input_tensors": [
+        184,
+        174
+      ],
+      "output_tensors": [
+        193
+      ],
+      "description": "--> src/device/shared/mlp.rs:377:109\n\ndevice\n.main.begin(down_weight_bf16.view().tile::<m![H % 60], 20, m![H % 60 = 20 # 60, L % 1920]>(20 * i))\n.fetch::<m![H % 60 = 20, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 20, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 20, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60 = 20, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 20, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 20, L / 16 / 4 % 30], m![L / 16 % 4 # 16]>()\n.commit_trim::<m![L / 16 % 4]>().commit()"
+    },
+    {
+      "index": "451",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 148804,
+        "end": 151799
+      },
+      "input_tensors": [
+        192,
+        62
+      ],
+      "output_tensors": [
+        194
+      ],
+      "description": "--> src/device/shared/mlp.rs:394:9\n\npartials.view().to_dm_view(&mut device.tdma,\npartials128.view_mut().tile::<m![DownScaleBlock], 120, m![H % 60 = 20, DownScaleBlock = 120 #{!} 128]>(0))"
+    },
+    {
+      "index": "458",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 151799,
+        "end": 154794
+      },
+      "input_tensors": [
+        195,
+        69
+      ],
+      "output_tensors": [
+        196
+      ],
+      "description": "--> src/device/shared/mlp.rs:394:9\n\npartials.view().to_dm_view(&mut device.tdma,\npartials128.view_mut().tile::<m![DownScaleBlock], 120, m![H % 60 = 20, DownScaleBlock = 120 #{!} 128]>(0))"
+    },
+    {
+      "index": "462",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 151799,
+        "end": 152291
+      },
+      "input_tensors": [
+        197,
+        187,
+        61
+      ],
+      "output_tensors": [
+        198
+      ],
+      "description": "--> src/device/shared/mlp.rs:414:9\n\ndevice.main.begin(partials128.view())\n.fetch::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.collect::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.contract_outer::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60 = 20]>()\n.contract_lane::<m![H % 60 = 20], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 20]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 20 / 4], m![H % 60 = 20 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 20 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 20, m![H % 60 = 20 #{!} 60]>(20 * i))"
+    },
+    {
+      "index": "467",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 152291,
+        "end": 154959
+      },
+      "input_tensors": [
+        185,
+        174
+      ],
+      "output_tensors": [
+        199
+      ],
+      "description": "--> src/device/shared/mlp.rs:377:109\n\ndevice\n.main.begin(down_weight_bf16.view().tile::<m![H % 60], 20, m![H % 60 = 20 # 60, L % 1920]>(20 * i))\n.fetch::<m![H % 60 = 20, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 20, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 20, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60 = 20, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 20, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 20, L / 16 / 4 % 30], m![L / 16 % 4 # 16]>()\n.commit_trim::<m![L / 16 % 4]>().commit()"
+    },
+    {
+      "index": "477",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 154959,
+        "end": 155622
+      },
+      "input_tensors": [
+        190,
+        191
+      ],
+      "output_tensors": [
+        204
+      ],
+      "description": "--> src/device/shared/mlp.rs:404:112\n\ndevice\n.main.begin(scales128.view())\n.fetch::<m![H % 60 = 20, DownScaleBlock / 32], m![DownScaleBlock % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.commit_trim::<m![DownScaleBlock % 16]>().commit()"
+    },
+    {
+      "index": "478",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 154959,
+        "end": 157954
+      },
+      "input_tensors": [
+        203,
+        73
+      ],
+      "output_tensors": [
+        205
+      ],
+      "description": "--> src/device/shared/mlp.rs:394:9\n\npartials.view().to_dm_view(&mut device.tdma,\npartials128.view_mut().tile::<m![DownScaleBlock], 120, m![H % 60 = 20, DownScaleBlock = 120 #{!} 128]>(0))"
+    },
+    {
+      "index": "484",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 155622,
+        "end": 156285
+      },
+      "input_tensors": [
+        179,
+        180
+      ],
+      "output_tensors": [
+        206
+      ],
+      "description": "--> src/device/shared/mlp.rs:404:112\n\ndevice\n.main.begin(scales128.view())\n.fetch::<m![H % 60 = 20, DownScaleBlock / 32], m![DownScaleBlock % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.commit_trim::<m![DownScaleBlock % 16]>().commit()"
+    },
+    {
+      "index": "486",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 155622,
+        "end": 156525
+      },
+      "input_tensors": [
+        204
+      ],
+      "output_tensors": [
+        207
+      ],
+      "description": "--> src/device/shared/mlp.rs:410:121\n\ndevice\n.sub.begin(scales128.view())\n.fetch::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.collect::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>().to_trf()"
+    },
+    {
+      "index": "493",
+      "tpe": "Sub",
+      "contexts": [
+        "SubContext"
+      ],
+      "lifetime": {
+        "begin": 156525,
+        "end": 157428
+      },
+      "input_tensors": [
+        206
+      ],
+      "output_tensors": [
+        208
+      ],
+      "description": "--> src/device/shared/mlp.rs:410:121\n\ndevice\n.sub.begin(scales128.view())\n.fetch::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.collect::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>().to_trf()"
+    },
+    {
+      "index": "498",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 157428,
+        "end": 157920
+      },
+      "input_tensors": [
+        202,
+        208,
+        201
+      ],
+      "output_tensors": [
+        209
+      ],
+      "description": "--> src/device/shared/mlp.rs:414:9\n\ndevice.main.begin(partials128.view())\n.fetch::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.collect::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.contract_outer::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60 = 20]>()\n.contract_lane::<m![H % 60 = 20], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 20]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 20 / 4], m![H % 60 = 20 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 20 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 20, m![H % 60 = 20 #{!} 60]>(20 * i))"
+    },
+    {
+      "index": "509",
+      "tpe": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "lifetime": {
+        "begin": 158120,
+        "end": 158612
+      },
+      "input_tensors": [
+        214,
+        207,
+        211
+      ],
+      "output_tensors": [
+        215
+      ],
+      "description": "--> src/device/shared/mlp.rs:414:9\n\ndevice.main.begin(partials128.view())\n.fetch::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.collect::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16]>()\n.contract_outer::<m![H % 60 = 20, DownScaleBlock / 16], m![DownScaleBlock % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60 = 20]>()\n.contract_lane::<m![H % 60 = 20], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 20]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 20 / 4], m![H % 60 = 20 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 20 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 20, m![H % 60 = 20 #{!} 60]>(20 * i))"
+    },
+    {
+      "index": "517",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 158641,
+        "end": 159110
+      },
+      "input_tensors": [
+        217
+      ],
+      "output_tensors": [
+        218
+      ],
+      "description": "--> src/device/shared/mlp.rs:431:72\n\ndown.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "522",
+      "tpe": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 159110,
+        "end": 159577
+      },
+      "input_tensors": [
+        219,
+        74
+      ],
+      "output_tensors": [
+        220
+      ],
+      "description": "--> src/device/shared/mlp.rs:433:5\n\ndown.to_dm(&mut device.tdma)"
+    }
+  ]
+}

@@ -23,10 +23,14 @@
 
 ## 실측 진행 상황
 
-최신 공식 harness 통과 후보는 **E29**이며 [job70428](experiments/e29-sharded-qkv-packed-output.json)에서
-QKV **94,491** / O **49,352** / FFN **389,199** cycles를 기록했다.
-15개 출력 비교를 모두 통과했으나 추가 seed 검사와 독립 job 반복은 아직 완료하지 않았다.
-QKV/O는 E27 단일 측정보다 각각 2.83%/6.07% 낮다. 변경하지 않은 FFN의 차이는 개선으로 주장하지 않는다.
+최신 검증 후보 **E31**은 [job70441](experiments/e31-switch-gather-rms.json)에서
+QKV **98,797** / O **45,355** / FFN **389,335** cycles로 공식15개출력을 통과했다.
+RMS 부분합8개를 Switch로 모아 local sum하고 별도 EPS/Sqrt 및 scalar broadcast를 수행한다.
+추가run3..8도 [job70448](experiments/e31-rms-extra-correctness.json)에서30개출력을 전부통과했다.
+동일패키지3회(70441/70459/70465)가 모두통과했고 중앙값은 **97,085 /45,355 /389,335**다.
+원본 반복중앙값 대비 **2.514× /8.912× /10.953×**이며 job중앙값 범위는2.714%/1.965%/0.177%다.
+[반복 근거](experiments/e31-rms-repeats.json)에 실제 업로드4파일의 동일SHA를 확인했다.
+직전E29(Q94,491/O49,352/FFN389,199)는단일screen이므로 작은Q차이를확정하지않는다.
 
 추가 입력까지 통과한 checkpoint **E27**은 [job70382](experiments/e27-qk-pair-v-two-dot.json)에서
 QKV **97,247** / O **52,543** / FFN **386,729** cycles를 기록했고,
@@ -87,7 +91,12 @@ E19의 runtime power-of-two FP8 hi/lo 두 내적도 통과했지만110,479로 E1
 producer/allocator 결함을 확정하지 않으며, E27의 두-dot V 우회가 통과해도 원인이 증명되는 것은 아니다.
 E21의 O native FP8는3개입력 전부통과,59,016 cycles였지만 결합job은 QKV때문에 실패했다.
 이 O 경로를 safe QKV/FFN과 결합한 E24는 전체 및 추가 입력 검사까지 통과했다.
-FFN native FP8는 E22/E25/E28의 첫 launch timeout 때문에 채택하지 않았다.
+E30의 clean paired QKV control도 통과했으므로 E28의 명시적 ×1은 통과에 필수이지 않았다.
+FFN native FP8는 E22/E25/E28 및 pair-free E32의 첫 launch timeout 때문에 채택하지 않았다.
+E33의 down BF16 scale-DPE는 큰 정확성 오류(허용오차 통과12.94–16.17%)로 제외했다.
+후속은 safe FFN 후단 H480×8 유지와 native FP8의240유효slice/256물리slice 경로 분리다.
+실제 Arena job70431에서 driver2026.4.0~rc2와 firmware2026.2.0을 별도로 확인했으며,
+이 사실만으로 compiler/driver 결함을 확정하지 않는다.
 상위 3위 달성을 입증한 공식 결과는 아직 없다. 공식 제출·순위 확인은 별도 인증 흐름을 따른다.
 공개 상위 기록은 9월21일 입력·평가 환경 변경 이전 제출이므로 같은 환경의 성능으로 단정하지 않는다.
 

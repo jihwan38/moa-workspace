@@ -7,7 +7,7 @@
   "generic_normalize_byte_identical": true,
   "unsafe_reshape_count_delta": -1,
   "compile_exit_code": 0,
-  "npu": "not tested",
+  "npu": "Integrated E31 job70441 all15 official comparisons PASS; extra inputs pending",
   "candidate_O_cycles": 27399,
   "candidate_instruction_count": 51,
   "baseline_instruction_count": 50,
@@ -46,5 +46,43 @@
   "scope": "Exact O only on E26 source; root E29 Q-sharded also calls helper but combined Q/O not compiled/tested here",
   "compile_command": "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/output.json",
   "scratch": "/tmp/moa-rmsnorm-switch-gather",
-  "rounding": "Eight F32 partial sum operation order changes; no new or removed BF16 cast; CPU sensitivity probe does not replace NPU"
+  "rounding": "Eight F32 partial sum operation order changes; no new or removed BF16 cast; CPU sensitivity probe does not replace NPU",
+  "hardware": {
+    "job": 70441,
+    "log": "moa-dev/logs/e31-switch-gather-rms-job-70441.log",
+    "kernels": {
+      "sliding_project_qkv": {
+        "correctness": "passed",
+        "median_cycles": 98797,
+        "cycles_by_run": [
+          103936,
+          96529,
+          98797
+        ],
+        "output_comparisons_passed": 9
+      },
+      "sliding_attention_output": {
+        "correctness": "passed",
+        "median_cycles": 45355,
+        "cycles_by_run": [
+          49553,
+          45141,
+          45355
+        ],
+        "output_comparisons_passed": 3
+      },
+      "decoder_feedforward": {
+        "correctness": "passed",
+        "median_cycles": 389335,
+        "cycles_by_run": [
+          395051,
+          386449,
+          389335
+        ],
+        "output_comparisons_passed": 3
+      }
+    },
+    "integration_scope": "E29 sharded Q + direct-packed O; both call revised helper",
+    "performance_limitation": "Single job screen; Q slower and O faster than E29, repeats required"
+  }
 }

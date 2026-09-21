@@ -1,0 +1,20 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -37,7 +37,7 @@
+         .vector_init()
+         .vector_intra_slice_unzip::<Dummy2, m![Qs / 8 % 8]>()
+         .vector_narrow_split::<m![Qs / 8 % 8, 1 # 2], m![1 # 4]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 1.0f32, 0.0625f32)
+         .vector_fp_zip(FpBinaryOp::AddF)
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &scale_vrf)
+         .vector_widen_concat::<m![Qs / 8 % 8], m![1 # 8]>()
+@@ -108,7 +108,7 @@
+         .vector_init()
+         .vector_intra_slice_unzip::<Dummy2, m![Ps / 8 % 4]>()
+         .vector_narrow_split::<m![Ps / 8 % 4, 1 # 2], m![1 # 4]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 1.0f32, 0.0625f32)
+         .vector_fp_zip(FpBinaryOp::AddF)
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), scale_vrf)
+         .vector_widen_concat::<m![Ps / 8 % 4], m![1 # 8]>()

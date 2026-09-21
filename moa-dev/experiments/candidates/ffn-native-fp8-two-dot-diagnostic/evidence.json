@@ -7,7 +7,7 @@
   "attempts": 1,
   "static_cycles": 181640,
   "instructions": 414,
-  "npu_correctness": "NOT TESTED",
+  "npu_correctness": "FAILED TO COMPLETE: E32 job70447 first FFN launch timeout exit101, rank0",
   "npu_jobs_by_this_agent": 0,
   "source_sha256": {
     "mlp.rs": "8f10a13fb666c5348bf6e42d7ce463991c1b07b7697afead5cfc293c1daddeb1",
@@ -776,5 +776,17 @@
   "cargo_target_dir": "/tmp/moa-ffn-native-fp8-two-dot-diagnostic/target",
   "furiosa_opt_out_dir": "/tmp/moa-ffn-native-fp8-two-dot-diagnostic/target/furiosa-opt/kernel",
   "compile_command": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/two-dot.json",
-  "caveat": "Diagnostic changes stream order, buffering and schedule too; hardware outcome cannot establish unique cause. CPU mathematical regrouping does not prove RNGD arithmetic."
+  "caveat": "Diagnostic changes stream order, buffering and schedule too; hardware outcome cannot establish unique cause. CPU mathematical regrouping does not prove RNGD arithmetic.",
+  "hardware_validation": {
+    "job": 70447,
+    "q_median_cycles": 99692,
+    "o_median_cycles": 52233,
+    "q_and_o": "PASS",
+    "ffn_output_count": 0,
+    "ffn_cycle_count": 0,
+    "error": "first FFN launch ran past time limit, rank0; exit101",
+    "record": "docs/experiments/e32-pair-free-ffn.json",
+    "log": "moa-dev/logs/e32-pair-free-ffn-job-70447.log",
+    "conclusion": "Removing Sequential/pair did not resolve first-launch timeout; shared native packet4/padded-slice/quantizer paths remain hypotheses, not identified causes"
+  }
 }

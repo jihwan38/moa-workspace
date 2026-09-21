@@ -1,0 +1,173 @@
+{
+  "compiler": "0.8.1",
+  "baseline": "qkv-fp8-direct-packed-quant",
+  "baseline_cycles": 51574,
+  "source_sha256": {
+    "ops.rs": "9554c2c5a845f269107cb9ef401b90e9c8c6bea99d01ca970d864297585abc31",
+    "projection.rs": "1bfa8876a4dc21cb0fd00fccee4cad0231bf588826e0b6b54210ac39e63e09f0"
+  },
+  "base_source_sha256": {
+    "ops.rs": "9554c2c5a845f269107cb9ef401b90e9c8c6bea99d01ca970d864297585abc31",
+    "projection.rs": "86c2760e1d592279a2679377d7082483c727b61f5b08dd039bdaf0b7a4a5b3e1"
+  },
+  "only_two_paired_group0_operands_changed": true,
+  "output_and_quantizer_suffix_byte_identical": true,
+  "npu": "QKV all9 comparisons PASS in E28 job70410; whole job incomplete/failed at FFN timeout",
+  "compile_exit_code": 0,
+  "static_cycles": 51574,
+  "instruction_count": 165,
+  "kernel_sha256": "0acfd2e3511b29ac4760a5c33facef17dc06acc958f6f8dc6e8b168d405d0538",
+  "base_kernel_sha256": "29a2e06c9876d8fd12259fe3bdf9f818d40944769ba10e73202630f4e6787fd9",
+  "kernel_binary_changed": true,
+  "schedule_sha256": "96f63d1447a013ca5121228d87bcacecc1d313c59389e3a40ec4bf7f855a9eef",
+  "compile_command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule schedules/all-qkv.json",
+  "scratch": "/tmp/moa-qkv-fp8-explicit-hi-identity",
+  "pair_nodes": [
+    {
+      "index": "175",
+      "time": {
+        "begin": 27851,
+        "end": 28597
+      },
+      "duration": 746,
+      "input_tensors": [
+        41,
+        89,
+        76,
+        91
+      ],
+      "output_tensors": [
+        90
+      ]
+    },
+    {
+      "index": "193",
+      "time": {
+        "begin": 30845,
+        "end": 32071
+      },
+      "duration": 1226,
+      "input_tensors": [
+        83,
+        88,
+        79,
+        96
+      ],
+      "output_tensors": [
+        95
+      ]
+    },
+    {
+      "index": "315",
+      "time": {
+        "begin": 42093,
+        "end": 42839
+      },
+      "duration": 746,
+      "input_tensors": [
+        119,
+        89,
+        76,
+        136
+      ],
+      "output_tensors": [
+        135
+      ]
+    }
+  ],
+  "baseline_pair_nodes": [
+    {
+      "index": "175",
+      "time": {
+        "begin": 27851,
+        "end": 28597
+      },
+      "duration": 746,
+      "input_tensors": [
+        41,
+        89,
+        76,
+        91
+      ],
+      "output_tensors": [
+        90
+      ]
+    },
+    {
+      "index": "193",
+      "time": {
+        "begin": 30845,
+        "end": 32071
+      },
+      "duration": 1226,
+      "input_tensors": [
+        83,
+        88,
+        79,
+        96
+      ],
+      "output_tensors": [
+        95
+      ]
+    },
+    {
+      "index": "315",
+      "time": {
+        "begin": 42093,
+        "end": 42839
+      },
+      "duration": 746,
+      "input_tensors": [
+        119,
+        89,
+        76,
+        136
+      ],
+      "output_tensors": [
+        135
+      ]
+    }
+  ],
+  "binary_difference": {
+    "base_bytes": 183296,
+    "candidate_bytes": 183296,
+    "differing_byte_offsets": [
+      79785,
+      79787,
+      79788,
+      79795,
+      79798,
+      79799,
+      82905,
+      82907,
+      82908,
+      82915,
+      82918,
+      82919,
+      160921,
+      160923,
+      160924,
+      160931,
+      160934,
+      160935,
+      164041,
+      164043,
+      164044,
+      164051,
+      164054,
+      164055
+    ]
+  },
+  "hardware": {
+    "job": 70410,
+    "log": "moa-dev/logs/e28-explicit-pair-identity-job-70410.log",
+    "qkv_median_cycles": 98428,
+    "qkv_pass_count": 9,
+    "qkv_input_configurations": 3,
+    "causal_control_pending": false,
+    "causal_limitation": "Matched skip() control also passes; explicit hi*1 is not necessary for observed PASS. Original failure root cause remains unresolved.",
+    "control_job": 70440,
+    "control_qkv_pass_count": 9
+  },
+  "control_audit": "control-audit.json"
+}

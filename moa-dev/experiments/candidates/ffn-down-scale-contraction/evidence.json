@@ -1,0 +1,198 @@
+{
+  "date": "2026-09-21",
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "compile_status": "PASS on fourth and final bounded attempt",
+  "source_sha256": {
+    "mlp.rs": "a52366bd7aafbe6e3ebafdc0c735523d2bf4e7a090e2713390d99e9498e1ac80",
+    "ops.rs": "afc2d11998903a5afc9750abd7f01ec6b54103964752de86efae49aa4e206560",
+    "mlp.attempt1.rs": "1acad0ffe5f724e5afd5d0e84b70880e6c59159e547183b25384d5b179a5aa11",
+    "mlp.attempt2.rs": "c398dd09f6bc03bbf3b522867be772cd371103b23697fd373c313895ee0086ca",
+    "mlp.attempt3.rs": "b2dfbad505b24e732b6d0d204c47fc583355f220dc021e022a0d5cb36159d219"
+  },
+  "baseline_mlp_sha256": "c4e062937f55e4ff746b50f5b9e5649d85c0e0742290f699be7b591e2504efef",
+  "npu_jobs": 0,
+  "static_cycles": 170270,
+  "attempts": [
+    {
+      "n": 1,
+      "error": "Collect packet mismatch: expected L/16%120#128%16, got L/16%8#16",
+      "log": "attempt-1-collect-failed.log"
+    },
+    {
+      "n": 2,
+      "error": "fetch_table_lookup is unavailable on Sub-context PositionFetch; lookup requires Main",
+      "log": "attempt-2-sub-lookup-failed.log"
+    },
+    {
+      "n": 3,
+      "error": "LowLevelReshape cannot reshape already tiled source view",
+      "log": "attempt-3-tiled-reshape-failed.log"
+    },
+    {
+      "n": 4,
+      "result": "PASS",
+      "change": "Rename untiled full scale view from L/16%120 to DownScaleBlock=120 before row tile",
+      "log": "compile.log"
+    }
+  ],
+  "design": {
+    "input_dtype": "BF16 unchanged",
+    "rows_per_tile": 20,
+    "tiles_per_group": 3,
+    "columns": 8,
+    "real_blocks_per_column": 120,
+    "staged_live_blocks": 128,
+    "extra_blocks": "8 actual initialized zero cells for both operands; not undefined logical padding",
+    "new_rounding": "BF16 cast after each16-element block dot before scale contraction",
+    "column_reduction": "FP32 across8 column slices before existing final BF16 boundary"
+  },
+  "logical_validation": {
+    "all_output_rows": 3840,
+    "all_input_columns": 15360,
+    "zero_tail_checked_per_row": 8,
+    "stage_rows_checked": 20,
+    "rounding_counterexample": {
+      "block0": 1.05859375,
+      "block1": -1.0546875,
+      "reference": 0.00390625,
+      "candidate": 0.0078125
+    }
+  },
+  "invariants": [
+    "Up/gate/feedforward/GeGLU unchanged from passed streamed baseline except new axis declaration",
+    "Original BF16 input TRF and two-pass F4\u2192F8\u2192BF16 down weight materialization retained",
+    "Final cluster compaction and BF16cross-column boundary retained"
+  ],
+  "memory_payload_per_slice": {
+    "compact_bf16_partials": 4800,
+    "live128_bf16_partials": 5120,
+    "live128_fp8_scales": 2560,
+    "live128_bf16_scales": 5120,
+    "scale_trf_payload": 5120,
+    "input_trf_payload": 3840
+  },
+  "scratch": "/tmp/moa-ffn-down-scale-contraction",
+  "cargo_target_dir": "/tmp/moa-ffn-down-scale-contraction/target",
+  "furiosa_opt_out_dir": "/tmp/moa-ffn-down-scale-contraction/target/furiosa-opt/kernel",
+  "compile_command": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/down-scale.json 2>&1 | tee logs/attempt-4.log",
+  "compile_exit_code": 0,
+  "instruction_count": 217,
+  "required_residual_sha256": "83d001788e3c1ae073ec8720435569fde062a47e52c181ab859a2d3f047accfc",
+  "kernel_bin_sha256": "34b1204bb115d336bc03120fa1d5b72d77f1a25e0496d033fb194627418e885a",
+  "schedule_sha256": "694b575e834af1f3d8684aff20ef1480d172014dfbaa46b83ab2582eaec184b9",
+  "schedule_file_untracked": "/tmp/moa-ffn-down-scale-final-schedule.json",
+  "comparison": {
+    "baseline_static_cycles": 171727,
+    "delta_cycles": -1457,
+    "delta_percent": -0.8484396745997991,
+    "baseline_instructions": 177,
+    "same_ops_and_residual_hashes": true,
+    "baseline_hardware_median": 384728,
+    "candidate_hardware": null
+  },
+  "npu_correctness": "FAIL: E33 job70455 all three FFN configurations failed; Q/O PASS",
+  "down_schedule": {
+    "weight_load": {
+      "packed": [
+        84047,
+        113474
+      ],
+      "scale": [
+        118761,
+        128535
+      ]
+    },
+    "weight_f4_to_f8": [
+      116341,
+      125604
+    ],
+    "weight_f8_to_bf16": [
+      127210,
+      145473
+    ],
+    "bf16_block_dots": [
+      [
+        146136,
+        148804
+      ],
+      [
+        148804,
+        151472
+      ],
+      [
+        152291,
+        154959
+      ]
+    ],
+    "scale128_dma": [
+      [
+        137927,
+        140922
+      ],
+      [
+        140922,
+        143917
+      ],
+      [
+        144755,
+        147750
+      ]
+    ],
+    "partial128_dma": [
+      [
+        148804,
+        151799
+      ],
+      [
+        151799,
+        154794
+      ],
+      [
+        154959,
+        157954
+      ]
+    ],
+    "second_scale_dot_and_column_reduce": [
+      [
+        151799,
+        152291
+      ],
+      [
+        157428,
+        157920
+      ],
+      [
+        158120,
+        158612
+      ]
+    ],
+    "compacted_output_ready": 159577,
+    "baseline_compacted_output_ready": 160981,
+    "memset_bf16_count": 3,
+    "memset_bf16_cycles_each": 906,
+    "memset_f8_count": 3,
+    "memset_f8_cycles_each": 586,
+    "memset_note": "All six whole live128 allocations are actually initialized; subsequent first120 copies preserve the zero tail."
+  },
+  "hardware_validation": {
+    "job": 70455,
+    "ffn_passed": 0,
+    "ffn_total": 3,
+    "ffn_max_abs_error": [
+      3.3,
+      3.88,
+      3.63
+    ],
+    "within_tolerance_percent": [
+      16.17,
+      12.94,
+      13.67
+    ],
+    "median_cycles_invalid_optimization": 408287,
+    "q_and_o": "PASS",
+    "record": "docs/experiments/e33-down-scale-contraction.json",
+    "log": "moa-dev/logs/e33-down-scale-contraction-job-70455.log",
+    "conclusion": "Large errors; do not attribute uniquely to BF16 rounding. New layout/zero-fill/copy/scale contraction path also changed. No further debugging in current bounded task."
+  }
+}
