@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-21",
+  "status": "exact_compile_pass_not_npu_tested",
+  "kernel": "ops::sliding_attention_output",
+  "candidate_sha256": "37efbbfac559b5cd2c63eb69bfa795eccb714e236bea986e7a3a1e774d214e1f",
+  "npu_submissions": 0,
+  "npu_correctness_verified": false,
+  "static_makespan": 33475,
+  "baseline_static_makespan": 32252,
+  "four_way_static_makespan": 34435,
+  "static_regression_percent": 3.7920128984249013,
+  "context_union_cycles": {
+    "Noop": 0,
+    "DmaEngine": 22995,
+    "PeCore": 19483,
+    "MainContext": 9641,
+    "VectorEngine": 7914,
+    "SubContext": 2578
+  },
+  "compiler_resource_stats": {
+    "total_cycle": 33475,
+    "skip_aware_total_cycle": 33475,
+    "computation_cycle": 11309,
+    "main_context_cycle": 9641,
+    "sub_context_cycle": 2642,
+    "io_cycle": 22995,
+    "sync_cycle": 0,
+    "spill_io_cycle": 0,
+    "mac_cycle": 0,
+    "effective_mac_cycle": -0.0,
+    "main_only_cycle": 6427,
+    "sub_only_cycle": 270,
+    "io_only_cycle": 18966,
+    "sync_only_cycle": 0,
+    "spill_io_only_cycle": 0,
+    "dram_usage_by_kind": {
+      "io": 15759872,
+      "weight": 0,
+      "stack": 0,
+      "inter_chip_stack": 0
+    }
+  },
+  "weight_dma_cycles": 13512,
+  "all_dma_operation_duration_groups_unchanged": true,
+  "added_switch_instructions": [
+    {
+      "duration": 1223,
+      "contexts": [
+        "MainContext"
+      ],
+      "source": "--> src/device/sliding/projection.rs:224:91"
+    }
+  ],
+  "source_identity_file": "source-hashes.json",
+  "logical_index_proof": "logical-index-proof.json",
+  "baseline_identity": "Same frozen E24 source and exact control compile as factor-four sibling; only projection.rs differs",
+  "caveat": "Compiler predicts only added Switch cost; actual HBM-bank effect and NPU correctness are unmeasured."
+}

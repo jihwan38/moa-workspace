@@ -55,23 +55,13 @@ pub fn sliding_project_qkv(
     v_cache: &mut HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
     q_out: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
 ) {
-    let x: DmTensor<bf16, Chip, m![2], Slice, m![H]> = x.to_dm(&mut device.tdma);
-    let x = shared::rmsnorm::normalize(device, &x, input_rms_weight);
-
-    let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 32, 1 # 32], m![H]> = x.to_dm(&mut device.tdma);
-    let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 32, 32], m![H]> = device
-        .main
-        .begin(x.view())
-        .fetch::<m![1], m![H]>()
-        .switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
-        .collect::<m![H / 16], m![H % 16]>()
-        .commit_trim::<m![H % 16]>()
-        .commit();
-    let x: DmTensor<bf16, Chip, m![2], Replicated, m![H]> = unsafe { x.reshape() };
+    let x: DmTensor<bf16, Chip, m![2], m![1 # 32, H / 480], m![H % 480]> = x.to_dm(&mut device.tdma);
+    let x = shared::rmsnorm::normalize_output_fused(device, &x, input_rms_weight);
+    let (q_packed, q_scale) = sliding::projection::prepare_fp8_split(device, &x);
 
     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
-        sliding::projection::project_query(device, &x, q_weight, q_weight_scale);
-    let (k, v) = sliding::projection::project_key_value(device, &x, k_weight, v_weight, k_weight_scale, v_weight_scale);
+        sliding::projection::project_query(device, &q_packed, &q_scale, q_weight, q_weight_scale);
+    let (k, v) = sliding::projection::project_key_value(device, &q_packed, &q_scale, k_weight, v_weight, k_weight_scale, v_weight_scale);
 
     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
         sliding::rmsnorm::normalize_query(device, &q, q_rms_weight);

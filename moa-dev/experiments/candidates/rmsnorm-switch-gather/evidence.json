@@ -1,0 +1,50 @@
+{
+  "baseline": "frozen e26-output-parallel-epilogue",
+  "baseline_O_cycles": 29088,
+  "baseline_inter_slice_sum_eps_sqrt_cycles": 2579,
+  "candidate_source_sha256": "3c3c9525f21fe9916e0f6db00863cbb05e4f0c8cc35501ed08b1bbcdb4635cb0",
+  "baseline_source_sha256": "9f7353cd8b0473a6ed0f0e3e5e9c1b1429c0345757e4935d3477dfb1cc5d7a1c",
+  "generic_normalize_byte_identical": true,
+  "unsafe_reshape_count_delta": -1,
+  "compile_exit_code": 0,
+  "npu": "not tested",
+  "candidate_O_cycles": 27399,
+  "candidate_instruction_count": 51,
+  "baseline_instruction_count": 50,
+  "kernel_sha256": "630c8fbc54c792beddcf6d42027be040828023c24c6b9949a7b5a2738ea40e7b",
+  "kernel_bytes": 87552,
+  "schedule_sha256": "bb367331a6db7d1c21164ae86017b6f4d299c8cbdbc3544ede96c8b1cb8c6b58",
+  "new_reduction_nodes": [
+    {
+      "index": "121",
+      "duration": 289,
+      "lifetime": {
+        "begin": 24252,
+        "end": 24541
+      },
+      "description": "--> src/device/shared/rmsnorm.rs:135:83\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.switch::<ScalarSlice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 480], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+    },
+    {
+      "index": "126",
+      "duration": 282,
+      "lifetime": {
+        "begin": 24541,
+        "end": 24823
+      },
+      "description": "--> src/device/shared/rmsnorm.rs:151:69\n\ndevice\n.main\n.begin(total_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, EPS)\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+    },
+    {
+      "index": "129",
+      "duration": 319,
+      "lifetime": {
+        "begin": 24823,
+        "end": 25142
+      },
+      "description": "--> src/device/shared/rmsnorm.rs:165:72\n\nrms.to_dm(&mut device.tdma)"
+    }
+  ],
+  "scope": "Exact O only on E26 source; root E29 Q-sharded also calls helper but combined Q/O not compiled/tested here",
+  "compile_command": "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/output.json",
+  "scratch": "/tmp/moa-rmsnorm-switch-gather",
+  "rounding": "Eight F32 partial sum operation order changes; no new or removed BF16 cast; CPU sensitivity probe does not replace NPU"
+}

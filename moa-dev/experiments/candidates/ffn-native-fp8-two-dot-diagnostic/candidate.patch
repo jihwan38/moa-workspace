@@ -1,0 +1,134 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -29,7 +29,8 @@
+ // products are BF16-exact, but this changes FP32 reduction order; validate on NPU.
+ fn project_four_rows_fp8_split(
+     device: &mut Device,
+-    x_trf: &TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnTerm], m![H]>,
++    hi_trf: &TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![1], m![H]>,
++    lo_trf: &TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![1], m![H]>,
+     x_inv_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
+     weights: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]>,
+     scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]>,
+@@ -44,34 +45,36 @@
+         .collect::<m![L % 32 = 4, H / 16 / 8], m![H / 16 % 8]>()
+         .to_vrf();
+ 
+-    // Native FP8 DPE: four scale blocks x two activation terms per 64B packet.
+-    let block_sums: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![L % 32 = 4, H / 16]> = device
+-        .main
+-        .begin(weights.view().tile::<m![L % 32], 4, m![L % 32 = 4 # 32, H]>(row_offset))
++    // Interleaved lane1 moves four packet blocks into Time, leaving Packet 1#8.
++    let low_dot: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![L % 32 = 4, H / 16]> = device
++        .main.begin(weights.view().tile::<m![L % 32], 4, m![L % 32 = 4 # 32, H]>(row_offset))
+         .fetch::<m![L % 32 = 4, H / 32], m![H % 32]>()
+         .collect::<m![L % 32 = 4, H / 32], m![H % 32]>()
+-        .contract_outer::<m![L % 32 = 4, H / 64], m![H % 64], _, _, _>(x_trf)
++        .contract_outer::<m![L % 32 = 4, H / 64], m![H % 64], _, _, _>(lo_trf)
+         .contract_packet::<m![H / 16 % 4]>()
+         .contract_time::<m![L % 32 = 4, H / 64]>()
+-        .contract_lane::<m![L % 32 = 4, H / 64, FfnTerm], m![H / 16 % 4 # 8]>(LaneMode::Sequential)
+-        .vector_init()
+-        .vector_intra_slice_unzip::<FfnTerm, m![L % 32 = 4, H / 64]>()
+-        .vector_narrow_split::<m![L % 32 = 4, H / 64, 1 # 2], m![H / 16 % 4]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)
+-        .vector_fp_zip(FpBinaryOp::AddF)
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &scale_vrf)
+-        .vector_widen_concat::<m![L % 32 = 4, H / 64], m![H / 16 % 4 # 8]>()
+-        .vector_final()
+-        .commit_trim::<m![H / 16 % 4]>()
+-        .commit();
+-
+-    // A fresh standalone stream permits reduce followed by the dedicated FpDiv.
+-    // Divide by an exact power-of-two reciprocal only after the complete sum.
+-    device.main.begin(block_sums.view())
+-        .fetch::<m![L % 32 = 4], m![H / 16]>()
+-        .collect::<m![L % 32 = 4, H / 128], m![H / 16 % 8]>()
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_split::<m![L % 32 = 4, H / 64], m![H / 16 % 4]>()
++        .contract_lane::<m![L % 32 = 4, H / 16], m![1 # 8]>(LaneMode::Interleaved)
++        .vector_init().vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![1 # 4]>()
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)
++        .vector_widen_pad::<m![1 # 8]>().vector_final()
++        .transpose::<m![L % 32 = 4, H / 16 / 2], m![H / 16 % 2 # 8]>()
++        .commit_trim::<m![H / 16 % 2]>().commit();
++    let low_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![L % 32 = 4, H / 16]> = device
++        .sub.begin(low_dot.view())
++        .fetch::<m![L % 32 = 4, H / 16 / 8], m![H / 16 % 8]>()
++        .collect::<m![L % 32 = 4, H / 16 / 8], m![H / 16 % 8]>().to_vrf();
++    device.main.begin(weights.view().tile::<m![L % 32], 4, m![L % 32 = 4 # 32, H]>(row_offset))
++        .fetch::<m![L % 32 = 4, H / 32], m![H % 32]>()
++        .collect::<m![L % 32 = 4, H / 32], m![H % 32]>()
++        .contract_outer::<m![L % 32 = 4, H / 64], m![H % 64], _, _, _>(hi_trf)
++        .contract_packet::<m![H / 16 % 4]>()
++        .contract_time::<m![L % 32 = 4, H / 64]>()
++        .contract_lane::<m![L % 32 = 4, H / 16], m![1 # 8]>(LaneMode::Interleaved)
++        .vector_init().vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![1 # 4]>()
++        .vector_fp_binary(FpBinaryOp::AddF, &low_vrf)
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+         .vector_intra_slice_reduce::<H, m![L % 32 = 4], m![1 # 4]>(IntraSliceReduceOpF32::Add)
+         .vector_fp_div(x_inv_scale_vrf)
+         .vector_widen_pad::<m![1 # 8]>().vector_final()
+@@ -79,11 +82,13 @@
+         .transpose::<m![L % 32 = 4 / 4], m![L % 32 = 4 % 4 # 16]>()
+         .commit_trim::<m![L % 32 = 4 % 4]>()
+         .commit_view(output.view_mut().tile::<m![L % 32], 4, m![L % 32 = 4 #{!} 32]>(row_offset));
++
+ }
+ 
+ pub(crate) fn project_up_and_gate(
+     device: &mut Device,
+-    x_trf: &TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnTerm], m![H]>,
++    hi_trf: &TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![1], m![H]>,
++    lo_trf: &TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![1], m![H]>,
+     x_inv_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
+     up_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+     gate_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+@@ -112,7 +117,7 @@
+         up_weight_scale.to_dm(&mut device.tdma);
+ 
+     static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7], {
+-        project_four_rows_fp8_split(device, x_trf, x_inv_scale_vrf, &up_weight_packed, &up_weight_scale, &mut up, 4 * i);
++        project_four_rows_fp8_split(device, hi_trf, lo_trf, x_inv_scale_vrf, &up_weight_packed, &up_weight_scale, &mut up, 4 * i);
+     });
+ 
+     let mut gate: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]> = DmTensor::new();
+@@ -134,7 +139,7 @@
+         gate_weight_scale.to_dm(&mut device.tdma);
+ 
+     static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7], {
+-        project_four_rows_fp8_split(device, x_trf, x_inv_scale_vrf, &gate_weight_packed, &gate_weight_scale, &mut gate, 4 * i);
++        project_four_rows_fp8_split(device, hi_trf, lo_trf, x_inv_scale_vrf, &gate_weight_packed, &gate_weight_scale, &mut gate, 4 * i);
+     });
+ 
+     // Remove padding with typed copies before reinterpreting the high row axis.
+@@ -163,17 +168,22 @@
+     let (x, x_inv_scale) = prepare_ffn_fp8_split_invscale(device, &x);
+     let x: DmTensorView<'_, f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnTerm, H]> = unsafe { x.view().reshape() };
+     let x_inv_scale: DmTensorView<'_, f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]> = unsafe { x_inv_scale.view().reshape() };
+-    let x_trf: TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnTerm], m![H]> = device
+-        .sub.begin(x)
+-        .fetch::<m![FfnTerm], m![H]>()
+-        .collect::<m![FfnTerm, H / 32], m![H % 32]>().to_trf();
++    let hi_trf: TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![1], m![H]> = device
++        .sub.begin(x.tile::<m![FfnTerm], 1, m![FfnTerm = 1 # 2, H]>(0))
++        .fetch::<m![FfnTerm = 1], m![H]>()
++        .collect::<m![H / 32], m![H % 32]>().to_trf();
++    let lo_trf: TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![1], m![H]> = device
++        .sub.begin(x.tile::<m![FfnTerm], 1, m![FfnTerm = 1 # 2, H]>(1))
++        .fetch::<m![FfnTerm = 1], m![H]>()
++        .collect::<m![H / 32], m![H % 32]>().to_trf();
+     let x_inv_scale_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]> = device
+         .sub.begin(x_inv_scale)
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+ 
+     let (up, gate) = project_up_and_gate(
+         device,
+-        &x_trf,
++        &hi_trf,
++        &lo_trf,
+         &x_inv_scale_vrf,
+         up_weight_packed,
+         gate_weight_packed,

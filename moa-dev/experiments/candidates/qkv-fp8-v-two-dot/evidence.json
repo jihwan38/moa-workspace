@@ -1,0 +1,168 @@
+{
+  "date": "2026-09-21",
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "compile_exit_code": 0,
+  "static_cycles": 51710,
+  "direct_packed_all_pair_cycles": 51574,
+  "row_all_pair_cycles": 52428,
+  "instruction_count": 174,
+  "source_sha256": {
+    "ops.rs": "9554c2c5a845f269107cb9ef401b90e9c8c6bea99d01ca970d864297585abc31",
+    "projection.rs": "daf36d58ca1fdbf63a91bf8afe2ace04f33f04495123e63f7c7e6ec9b54c377e",
+    "validate_layout.py": "d212ba989628c4e6aa5c7a97a676ca37185a6ddc56ed5f8d9a2234c43488775a"
+  },
+  "base_projection_sha256": "86c2760e1d592279a2679377d7082483c727b61f5b08dd039bdaf0b7a4a5b3e1",
+  "schedule_sha256": "c9746299fab3ab84063cf03a64e6027f6a887874fd67ce82171431fa091b8b13",
+  "npu_correctness": "PASS: E27 job70382 all15 outputs across official three configurations",
+  "npu_performance": {
+    "qkv_median_cycles": 97247,
+    "o_median_cycles": 52543,
+    "ffn_median_cycles": 386729
+  },
+  "invariants": [
+    "Q and K helper byte-identical to direct-packed baseline",
+    "Ops/O/quantizer byte-identical to direct-packed baseline",
+    "V two-dot arithmetic matches E19 after local row axis rename",
+    "V Switch/channel-scale/head tail byte-identical to K verified row tail",
+    "All runtime inputs/weights/scales preserved"
+  ],
+  "trf_allocations": [
+    {
+      "name": "lo_trf",
+      "index": "94",
+      "buffer_type": "Trf",
+      "lifetime": {
+        "begin": 26628,
+        "end": 28116,
+        "block_begin": 0,
+        "block_end": 0
+      },
+      "address": 16777216,
+      "size": 16777216,
+      "physical_pages": [],
+      "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: (Ps / 32 % 32, Ps % 8), Lane: 1, Element: H]",
+      "fingerprint": null
+    },
+    {
+      "name": "x_trf",
+      "index": "91",
+      "buffer_type": "Trf",
+      "lifetime": {
+        "begin": 25405,
+        "end": 32074,
+        "block_begin": 0,
+        "block_end": 0
+      },
+      "address": 0,
+      "size": 16777216,
+      "physical_pages": [],
+      "shape": "MappingShape[Chip: 1, Cluster: Qs / 2048, Slice: (Qs / 64 % 32, Qs % 8), Lane: Dummy2, Element: H]",
+      "fingerprint": null
+    },
+    {
+      "name": "hi_trf",
+      "index": "96",
+      "buffer_type": "Trf",
+      "lifetime": {
+        "begin": 28116,
+        "end": 29883,
+        "block_begin": 0,
+        "block_end": 0
+      },
+      "address": 16777216,
+      "size": 16777216,
+      "physical_pages": [],
+      "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: (Ps / 32 % 32, Ps % 8), Lane: 1, Element: H]",
+      "fingerprint": null
+    },
+    {
+      "name": "x_trf",
+      "index": "100",
+      "buffer_type": "Trf",
+      "lifetime": {
+        "begin": 29883,
+        "end": 42975,
+        "block_begin": 0,
+        "block_end": 0
+      },
+      "address": 16777216,
+      "size": 16777216,
+      "physical_pages": [],
+      "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: (Ps / 32 % 32, Ps % 8), Lane: Dummy2, Element: H]",
+      "fingerprint": null
+    }
+  ],
+  "contraction_schedule": [
+    {
+      "index": "181",
+      "lifetime": {
+        "begin": 27371,
+        "end": 28116
+      },
+      "duration": 745,
+      "inputs": [
+        53,
+        94
+      ],
+      "description": "--> src/device/sliding/projection.rs:178:82\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Ps / 8 % 4, H / 32], m![H % 32]>()\n.collect::<m![Ps / 8 % 4, H / 32], m![H % 32]>()\n.contract_outer::<m![Ps / 8 % 4, H / 64], m![H % 64], _, _, _>(&lo_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps / 8 % 4]>()\n.contract_lane::<m![Ps / 8 % 4], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()"
+    },
+    {
+      "index": "194",
+      "lifetime": {
+        "begin": 29138,
+        "end": 29883
+      },
+      "duration": 745,
+      "inputs": [
+        53,
+        96,
+        97,
+        81
+      ],
+      "description": "--> src/device/sliding/projection.rs:195:80\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Ps / 8 % 4, H / 32], m![H % 32]>()\n.collect::<m![Ps / 8 % 4, H / 32], m![H % 32]>()\n.contract_outer::<m![Ps / 8 % 4, H / 64], m![H % 64], _, _, _>(&hi_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps / 8 % 4]>()\n.contract_lane::<m![Ps / 8 % 4], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, &low_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), scale_vrf)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps / 8 % 4 # 16]>()\n.commit_trim::<m![Ps / 8 % 4]>().commit()"
+    },
+    {
+      "index": "213",
+      "lifetime": {
+        "begin": 30848,
+        "end": 32074
+      },
+      "duration": 1226,
+      "inputs": [
+        85,
+        91,
+        83,
+        104
+      ],
+      "description": "--> src/device/sliding/projection.rs:29:86\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Qs / 8 % 8, H / 32], m![H % 32]>()\n.collect::<m![Qs / 8 % 8, H / 32], m![H % 32]>()\n.contract_outer::<m![Qs / 8 % 8, H / 64], m![H % 64], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs / 8 % 8]>()\n.contract_lane::<m![Qs / 8 % 8, Dummy2], m![1 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<Dummy2, m![Qs / 8 % 8]>()\n.vector_narrow_split::<m![Qs / 8 % 8, 1 # 2], m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &scale_vrf)\n.vector_widen_concat::<m![Qs / 8 % 8], m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Qs / 32 % 2], m![Qs / 8 % 4 # 16]>()\n.commit_trim::<m![Qs / 8 % 4]>().commit()"
+    },
+    {
+      "index": "338",
+      "lifetime": {
+        "begin": 42229,
+        "end": 42975
+      },
+      "duration": 746,
+      "inputs": [
+        127,
+        100,
+        81,
+        144
+      ],
+      "description": "--> src/device/sliding/projection.rs:100:80\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Ps / 8 % 4, H / 32], m![H % 32]>()\n.collect::<m![Ps / 8 % 4, H / 32], m![H % 32]>()\n.contract_outer::<m![Ps / 8 % 4, H / 64], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps / 8 % 4]>()\n.contract_lane::<m![Ps / 8 % 4, Dummy2], m![1 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<Dummy2, m![Ps / 8 % 4]>()\n.vector_narrow_split::<m![Ps / 8 % 4, 1 # 2], m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), scale_vrf)\n.vector_widen_concat::<m![Ps / 8 % 4], m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps / 8 % 4 # 16]>()\n.commit_trim::<m![Ps / 8 % 4]>().commit()"
+    }
+  ],
+  "caveat": "Compiler schedules V before Q and K; changed execution order prevents isolating pair arithmetic as sole cause if hardware succeeds",
+  "scratch": "/tmp/moa-qkv-fp8-v-two-dot",
+  "cargo_target_dir": "/tmp/moa-qkv-fp8-v-two-dot/target",
+  "furiosa_opt_out_dir": "/tmp/moa-qkv-fp8-v-two-dot/target/furiosa-opt/kernel",
+  "compile_command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule schedules/all-qkv.json",
+  "hardware_validation": {
+    "job": 70382,
+    "experiment": "e27-qk-pair-v-two-dot",
+    "log": "moa-dev/logs/e27-qk-pair-v-two-dot-job-70382.log",
+    "scope": "Official three configurations only; does not prove all-input exactness or unique failure cause",
+    "record": "docs/experiments/e27-qk-pair-v-two-dot.json"
+  }
+}

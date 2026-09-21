@@ -1,8 +1,12 @@
 # Experiment ledger
 
-All candidate measurements below use the unchanged official three-kernel, three-input harness.
+All rows in the main performance table use the unchanged official three-kernel, three-input harness.
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
+The latest passing screen is E29: all 15 official-harness comparisons pass, with additional-input and
+independent repeat measurements still outstanding. E27 has passed 15 official-harness and 30 separate
+additional-input comparisons. Both performance records still have only one independent job. E28 failed.
+Additional-input and instrumented diagnostic jobs are recorded separately below.
 
 | Variant | Arena jobs | Accuracy | QKV cycles | O cycles | FFN cycles | Decision |
 |---|---|---|---:|---:|---:|---|
@@ -12,7 +16,7 @@ Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916
 | E2 FP8 lookup/contraction fusion | 70009 | Pass | 227840 | 334457 | 4265795 | Retain for subsequent combinations; single-job screen |
 | E3 256-slice output + QKV fusion | 70014 | Pass | 228450 | 195210 | 4263461 | Retain; output 2.071× baseline, single-job screen |
 | E3 direct HBM replication + E3 rows + E2 QKV | 70022 | Pass | 227338 | 143976 | 4267115 | Retain; single-job screen |
-| E5 four-row direct-layout + preceding projections | 70029 | Pass | 227578 | 154254 | 1139366 | Retain; independent package repeats in progress |
+| E5 four-row direct-layout + preceding projections | 70029 | Pass | 227578 | 154254 | 1139366 | Retain; completed package repeats in next row |
 | E5 same package repeated | 70029, 70038, 70046 | Pass | 227916 | 146508 | 1139366 | Medians across 3 jobs; FFN range 0.063%, O 6.600% |
 | E1 QKV HBM relay + preceding optimizations | 70039 | Pass | 188573 | 145998 | 1140479 | Improves QKV; hierarchical copy candidate next |
 | E1 hierarchical QKV/O replication | 70055 | Pass | 166416 | 116132 | 1139255 | Retain; single-job screen |
@@ -36,7 +40,17 @@ Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916
 | E23 KV register reload + streamed BF16 scale contraction FFN | 70327 | V fail; O/FFN pass | — | 59023 | 384728 | KV reload does not fix failure; FFN passes with extra BF16 block rounding |
 | E24 native FP8 O with verified E18 QKV/FFN | 70339 | Pass | 105045 | 59027 | 386021 | Retain; additional30 comparisons pass in70353 |
 | E25 native FP8 FFN + BF16 block/scale DPE | 70354 | QKV/O pass; FFN launch timeout | 105623 | 58638 | — | Reject pending common-path failure diagnosis |
-| E26 O channel scale/RMS/residual on eight slices | 70361 | Pass | 104895 | 52579 | 389949 | Retain; O10.93% below E24 screen, additional inputs pending |
+| E26 O channel scale/RMS/residual on eight slices | 70361 | Pass | 104895 | 52579 | 389949 | Retain; O10.93% below E24 screen, additional30 comparisons pass70381 |
+| E27 Q/K two-lane, V separate hi/lo dots + E26 O | 70382 | Pass | 97247 | 52543 | 386729 | Extended-check checkpoint; extra30 pass70409; V workaround does not establish root cause |
+| E28 explicit ×1 on pair group0, native FP8 FFN | 70410 | QKV/O pass; first FFN launch timeout | 98428 | 53363 | — | Reject; exit101/rank0, no FFN output or cycles; no valid combined score |
+| E29 sharded QKV input + direct-packed O + safe FFN | 70428 | Pass | 94491 | 49352 | 389199 | Latest passing screen; QKV/O2.83%/6.07% below E27 screen; extra inputs and repeats outstanding |
+
+Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
+They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.
+No same-package repeat has yet been completed for E27 or E29; their JSON `relative_range=0` reflects one job,
+not demonstrated zero variance. The older public-reference `indicative_score` of 5.748681 is an estimate,
+not an official score or current rank. See [E27 measurement](e27-qk-pair-v-two-dot.json),
+[E28 failure](e28-explicit-pair-identity.json), and [E29 measurement](e29-sharded-qkv-packed-output.json).
 
 The failed E4 and E5 experiments have identical reported FFN max/mean errors and tolerance pass rates
 for all three inputs. Their common two-row contraction/reduction/commit/copy path is the current
@@ -72,3 +86,34 @@ E18 same-package repeats70248/70271/70285 all passed; aggregate medians105462/65
 E18 also passed all30 additional run3..8 output comparisons in job70309 (`e18-row-interleaved-extra-correctness.json`). This validates the E18 row layout and E16 residual changes on six additional configurations; it does not validate subsequent FP8 prototypes.
 
 E24 additional run3..8 passed all30 comparisons in70353 (`e24-native-output-extra-correctness.json`), covering column-local FP8 input decomposition on six additional configurations. This does not establish all-input tolerance; an explicit outlier/cancellation counterexample is recorded in the independent candidate review.
+
+E26 additional run3..8 passed all30 comparisons in70381 (`e26-output-parallel-extra-correctness.json`).
+
+E27 additional run3..8 passed all30 comparisons in job70409
+([record](e27-qkv-fp8-extra-correctness.json)). Its candidate reference points to the frozen E27 source
+and official binary SHA256 `c87d0e77c181610407f2b456f35679700df2eaf88524e272ed29dcddd210e96a`.
+The extra harness has its own binary/fixture and verified uploaded package; its cycles are diagnostic
+only and are not aggregated with job70382. Nine tested configurations do not prove all-input tolerance,
+and this result does not validate E28 or E29.
+
+The instrumented QKV diagnosis ran as job70363
+([job record](qkv-fp8-two-lane-diagnostics.json),
+[coordinate analysis](../../moa-dev/experiments/candidates/qkv-fp8-two-lane-diagnostics/analysis-job-70363.md)).
+It preserved the E20 kernel binaries, input generator and comparisons while adding host output of V
+coordinates/values. Q/K passed and V failed; the largest direct errors concentrate at local row0 in
+each cluster's first eight canonical slices. Other affected coordinates are consistent with the
+changed head RMS scale. This narrows the diagnosis but does not prove an allocator, producer or pair
+arithmetic bug. Instrumented performance is excluded from the main table.
+
+Scratch-only candidates also remain separate from runtime evidence: O row interleave
+[2-way](../../moa-dev/experiments/candidates/output-fp8-row-interleave-two/README.md) and
+[4-way](../../moa-dev/experiments/candidates/output-fp8-row-interleave-four/README.md) compile at
+33,475 / 34,435 static cycles versus the same-source E24 control's 32,252. DMA estimates are unchanged;
+Switch overhead increases. [BF16 FFN row interleave](../../moa-dev/experiments/candidates/ffn-bf16-row-interleave/README.md)
+also compiles but regresses 8.31% against its own E15-core static control. None of these comparisons
+establishes NPU correctness or runtime performance.
+
+The [Arena version probe](../../moa-dev/experiments/candidates/arena-version-probe/README.md) is an
+environment observation, not a kernel benchmark. Driver/firmware query failures must remain unknown;
+they do not prove a mismatch or explain the FP8 failures. Follow-up measurement priorities are tracked
+in [the optimization plan](../OPTIMIZATION_PLAN.md#초기-실험-계보와-현재-우선순위).

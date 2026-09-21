@@ -23,12 +23,31 @@
 
 ## 실측 진행 상황
 
-현재 채택 후보 **E26**은 job70361에서 QKV104,895/O52,579/FFN389,949 cycles,
-공식15개출력 전부통과다. 원본 반복중앙값 대비 약2.33×/7.69×/10.94×이며 단일job screen이다.
-O는 runtime FP8 hi/lo 직접연산 뒤 channel-scale/RMS/residual의 H480×8 배치를 유지해
-중간 gather/scatter와 F32 DM roundtrip을 제거한다. FP8분해 자체는 일반입력에 대해 비동치며
-outlier/cancellation 반례를 문서화했다. 부모E24의 추가6입력30개출력은 모두통과했고
-E26 추가입력/반복측정은 별도로 추적한다.
+최신 공식 harness 통과 후보는 **E29**이며 [job70428](experiments/e29-sharded-qkv-packed-output.json)에서
+QKV **94,491** / O **49,352** / FFN **389,199** cycles를 기록했다.
+15개 출력 비교를 모두 통과했으나 추가 seed 검사와 독립 job 반복은 아직 완료하지 않았다.
+QKV/O는 E27 단일 측정보다 각각 2.83%/6.07% 낮다. 변경하지 않은 FFN의 차이는 개선으로 주장하지 않는다.
+
+추가 입력까지 통과한 checkpoint **E27**은 [job70382](experiments/e27-qk-pair-v-two-dot.json)에서
+QKV **97,247** / O **52,543** / FFN **386,729** cycles를 기록했고,
+공식 harness의 15개 출력 비교를 모두 통과했다. 원본 반복 중앙값 대비
+**2.510× / 7.693× / 11.027×**이며 아직 독립 job 반복 전의 단일 측정이다.
+같은 snapshot의 별도 개발 harness run3..8도 [job70409](experiments/e27-qkv-fp8-extra-correctness.json)에서
+30개 출력 비교를 통과했다. 이 추가 검사는 다른 binary/fixture를 사용하며 공식 cycles 집계에 섞지 않는다.
+
+E27은 Q/K에 native FP8 hi/lo two-lane, V에는 두 별도 dot을 사용한다.
+O는 E26의 H480×8 배치에서 channel-scale/RMS/residual을 처리해 중간 gather/scatter와
+F32 DM 왕복을 제거한다. FFN은 검증된 BF16 blockdot 경로를 유지한다.
+E24·E26도 각각 별도 추가 입력 검사를 완료했다. FP8 분해는 일반 입력에 대해 비동치이고
+outlier/cancellation 반례가 있어, 이 통과 결과를 임의 입력의 허용오차 보장으로 확장하지 않는다.
+
+후속 [E28 job70410](experiments/e28-explicit-pair-identity.json)은 QKV/O가
+98,428/53,363 cycles로 통과했지만 첫 FFN launch가 timeout으로 종료했다.
+FFN 출력·cycles와 전체 유효 점수는 없다. Pair의 group0에 명시적으로 ×1을 넣는 변경으로
+timeout이 해결되지 않았으며, rank0 표기는 실패 instruction이나 cluster를 특정하지 않는다.
+[E29 job70428](experiments/e29-sharded-qkv-packed-output.json)은 sharded QKV 입력과
+direct-packed O quantizer, 기존 safe FFN을 결합해 전체 정확성을 통과한 단일 screen이다.
+검증된 checkpoint와 실험 중인 live 소스를 구분한다.
 
 다음은 이전 검증 단계와 실패 후보의 근거다.
 
@@ -61,13 +80,15 @@ E18의 QKV 8-way row interleave는 동일 패키지3회(job70248/70271/70285) �
 job 중앙값 변동범위는1.599%/1.188%/0.792%다. 추가run3..8도 job70309에서30개출력 전부통과했다.
 새 Docker image의 빈 target에서 같은 E18 소스를 빌드한 결과도 기존 NPU 바이너리와 byte-identical이다.
 E19의 runtime power-of-two FP8 hi/lo 두 내적도 통과했지만110,479로 E18보다 느리다.
-다음 주요 검증은 hi/lo의 두 TRF lane 병렬 계산, row interleave와의 결합,
-FFN의 BF16 weight materialization 제거, O의 normalization 단계 fusion이다.
-각각 정밀도나 물리 배치가 바뀌므로 컴파일 결과에 이어 NPU oracle 검사를 요구한다.
-E20/E21의 two-lane QKV는 Q/K 통과·V 실패여서 채택하지 않았고 register 재적재를 조사한다.
+이후 hi/lo 두 TRF lane, row interleave 결합, O normalization fusion은 E20–E27에서
+분리해서 검증했다. E20/E21의 two-lane QKV는 Q/K 통과·V 실패였고 E23의 register 재적재도
+해결하지 못했다. 별도 진단 job70363은 각 cluster의 첫 8 slices / local row0에 큰 V 오류가
+집중되는 패턴을 보였다. [진단 분석](../moa-dev/experiments/candidates/qkv-fp8-two-lane-diagnostics/analysis-job-70363.md)은
+producer/allocator 결함을 확정하지 않으며, E27의 두-dot V 우회가 통과해도 원인이 증명되는 것은 아니다.
 E21의 O native FP8는3개입력 전부통과,59,016 cycles였지만 결합job은 QKV때문에 실패했다.
-따라서 완전히 통과한 새 조합과 추가입력검증 전에는 채택소스를 바꾸지 않는다.
-공개 상위3위 목표에는 아직 못 미치며 공식 제출·순위 확인은 별도 인증 대기다.
+이 O 경로를 safe QKV/FFN과 결합한 E24는 전체 및 추가 입력 검사까지 통과했다.
+FFN native FP8는 E22/E25/E28의 첫 launch timeout 때문에 채택하지 않았다.
+상위 3위 달성을 입증한 공식 결과는 아직 없다. 공식 제출·순위 확인은 별도 인증 흐름을 따른다.
 공개 상위 기록은 9월21일 입력·평가 환경 변경 이전 제출이므로 같은 환경의 성능으로 단정하지 않는다.
 
 ## 조사에서 얻은 설계 근거
@@ -77,12 +98,13 @@ E21의 O native FP8는3개입력 전부통과,59,016 cycles였지만 결합job�
 - [세 커널의 실제 호출·데이터 흐름과 정적 병목](research/kernel-analysis.md)
 - [국내외 대회·수상 구현·논문에서 이전 가능한 기법](research/competition-techniques.md)
 
+다음 수치는 **최적화 전 원본 schedule**의 병목이며 현재 후보의 잔여 비용이 아니다.
 QKV의 정적 118,815 cycles 중 activation ring broadcast가 62,215다. O는 정적
 195,823 중 broadcast 66,311, FP8 conversion 77,852다. FFN은 정적 1,918,472 중
 down weight assembly copy 486,900, layout redistribution 256,500이 명확한 제거 대상이다.
 이 값들은 compiler schedule의 구간이며 실제 절감량을 더해서 예상하지 않는다.
 
-## 실험 순서와 판정
+## 초기 실험 계보와 현재 우선순위
 
 | 실험 | 한 번에 검증할 가설 | 정확성 위험 | 다음 단계 |
 |---|---|---|---|
@@ -98,11 +120,36 @@ E1–E7은 구현·정적 비교·NPU 측정을 거쳤고 채택·기각 내역�
 각 후보는 직전 소스 대비 변경을 분리하고, 결합한 바이너리는 다시 실제 NPU에서 검사한다.
 개선분의 단순 합이나 곱을 조합 결과로 대신하지 않는다.
 
+현재 후속 작업의 순서는 다음과 같다.
+
+1. **E29 추가 정확성 검사:** 정적 QKV 51,710→50,364 / O 29,088→26,686 후보는
+   job70428에서 전체 15개 비교를 통과했고 QKV/O의 단일 측정도 개선됐다.
+   이제 그 snapshot에 추가 run3..8을 적용한다. E27 extra 결과로 E29를 검증했다고 쓰지 않는다.
+2. **최종 통과 조합의 반복 측정:** E29 또는 이를 앞선 새 조합의 동일 package를 독립 job으로 반복한다.
+   E27/E29의 측정 JSON에 있는 `relative_range=0`은 job 하나뿐이라 생긴 값이며 안정성 증거가 아니다.
+   작은 개선은 동일 환경의 A/B 측정과 비교한다. 추가 seed의 진단 cycles도 반복 측정 대용이 아니다.
+3. **FFN native 경로는 원인 분리부터:** E22/E25/E28 timeout을 반복하는 대형 sweep 대신
+   [pair-free 두-dot 진단](../moa-dev/experiments/candidates/ffn-native-fp8-two-dot-diagnostic/README.md)처럼
+   native packet4를 유지하면서 Sequential/pair 경로를 제거한 대조로 범위를 좁힌다.
+   compiler PASS만으로 성공을 예상하지 않으며 검증된 BF16 FFN checkpoint를 유지한다.
+4. **실행 환경 관찰:** [독립 버전 probe](../moa-dev/experiments/candidates/arena-version-probe/README.md)로
+   Arena의 driver/firmware를 기록한다. 조회 실패는 미확인이며, 공개 포럼의 과거 사례를 현재 오류의 원인으로 단정하지 않는다.
+   probe와 좌표 출력 진단은 공식 harness 성능표에 넣지 않는다.
+5. **공식 평가와 다음 병목:** 최종 source diff가 제출 계약을 만족하는지 확인하고 공식 평가를 별도로 확보한다.
+   이후 통과 조합의 schedule에서 FFN 후단 이동/RMS/residual과 남은 QKV/O 이동을 다시 추적한다.
+   O weight row interleave 2-way/4-way는 scratch compile만 완료했고 동일 DMA에 Switch 비용이 늘어
+   정적으로 각각 3.79%/6.77% 회귀했으므로 후순위다. 실제 HBM bank 효과는 아직 측정하지 않았다.
+
 실제 compiler/SDK 제약도 실험표에 남긴다. 예를 들어 BF16 2개를 그대로 commit하면
 4-byte packet이 되어 거절되므로 허용되는 padding/commit 경로가 필요하다. 또한 15-row
 타일은 논리 축과 물리 padding을 동시에 맞춰야 하며 unsafe reshape로 permutation을 숨기지 않는다.
 
 ## 각 실험의 실행 절차
+
+제출 계약은 `src/ops.rs` 함수 본문과 `src/device/` 구현에 한정한다. 기존 `#[device]` 함수의
+이름·인자·타입·반환형과 module 경로를 보존한다. [공식 계약 대조](research/moa-rules-and-target.md)의
+입력 생성·모든 원소 비교·허용오차를 그대로 사용하며, fixture/seed나 진단에서 발견한 특정 좌표에
+맞춘 분기·출력 보정으로 통과시키지 않는다. 개발용 harness 변경은 별도 snapshot에만 둔다.
 
 1. 원본 또는 직전 최선의 source/patch hash를 고정한다. 변경 범위와 수학적 동치를 적는다.
 2. 영향받는 커널만 `cargo furiosa-opt compile ops::<kernel> --exact`로 검사하고 별도 schedule을 저장한다.

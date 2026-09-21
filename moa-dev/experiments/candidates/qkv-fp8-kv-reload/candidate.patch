@@ -1,0 +1,65 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -81,17 +81,27 @@
+ 
+ fn project_one_kv_matrix(
+     device: &mut Device,
+-    x_trf: &TrfTensor<f8e4m3, Chip, KvCluster, KvRows, m![Dummy2], m![H]>,
+-    scale_vrf: &VrfTensor<f32, Chip, KvCluster, KvRows, m![1 # 8]>,
++    x: &DmTensor<f8e4m3, Chip, m![2], Replicated, m![Dummy2, H]>,
++    x_scale: &DmTensor<f32, Chip, m![2], Replicated, m![1 # 8]>,
+     weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
+ ) -> DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> {
++    let x: DmTensorView<'_, f8e4m3, Chip, KvCluster, KvRows, m![Dummy2, H]> = unsafe { x.view().reshape() };
++    let scale: DmTensorView<'_, f32, Chip, KvCluster, KvRows, m![1 # 8]> = unsafe { x_scale.view().reshape() };
++    let x_trf: TrfTensor<f8e4m3, Chip, KvCluster, KvRows, m![Dummy2], m![H]> = device
++        .sub.begin(x)
++        .fetch::<m![Dummy2], m![H]>()
++        .collect::<m![Dummy2, H / 32], m![H % 32]>()
++        .to_trf();
++    let scale_vrf: VrfTensor<f32, Chip, KvCluster, KvRows, m![1 # 8]> = device
++        .sub.begin(scale).fetch::<m![1], m![1 # 8]>()
++        .collect::<m![1], m![1 # 8]>().to_vrf();
+     let weight_f8: DmTensor<f8e4m3, Chip, KvCluster, KvRows, m![Ps % 4, H]> = weight.to_dm(&mut device.tdma);
+     let contraction: DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps % 4]> = device
+         .main.begin(weight_f8.view())
+         .fetch::<m![Ps % 4, H / 32], m![H % 32]>()
+         .collect::<m![Ps % 4, H / 32], m![H % 32]>()
+-        .contract_outer::<m![Ps % 4, H / 64], m![H % 64], _, _, _>(x_trf)
++        .contract_outer::<m![Ps % 4, H / 64], m![H % 64], _, _, _>(&x_trf)
+         .contract_packet::<m![1]>()
+         .contract_time::<m![Ps % 4]>()
+         .contract_lane::<m![Ps % 4, Dummy2], m![1 # 8]>(LaneMode::Sequential)
+@@ -100,7 +110,7 @@
+         .vector_narrow_split::<m![Ps % 4, 1 # 2], m![1 # 4]>()
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)
+         .vector_fp_zip(FpBinaryOp::AddF)
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), scale_vrf)
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &scale_vrf)
+         .vector_widen_concat::<m![Ps % 4], m![1 # 8]>()
+         .vector_final()
+         .cast::<bf16, m![1 # 16]>()
+@@ -149,20 +159,10 @@
+     DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]>,
+     DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]>,
+ ) {
+-    let x: DmTensorView<'_, f8e4m3, Chip, KvCluster, KvRows, m![Dummy2, H]> = unsafe { x.view().reshape() };
+-    let scale: DmTensorView<'_, f32, Chip, KvCluster, KvRows, m![1 # 8]> = unsafe { x_scale.view().reshape() };
+-    let x_trf: TrfTensor<f8e4m3, Chip, KvCluster, KvRows, m![Dummy2], m![H]> = device
+-        .sub.begin(x)
+-        .fetch::<m![Dummy2], m![H]>()
+-        .collect::<m![Dummy2, H / 32], m![H % 32]>()
+-        .to_trf();
+-    let scale_vrf: VrfTensor<f32, Chip, KvCluster, KvRows, m![1 # 8]> = device
+-        .sub.begin(scale).fetch::<m![1], m![1 # 8]>()
+-        .collect::<m![1], m![1 # 8]>().to_vrf();
+     let k: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> =
+-        project_one_kv_matrix(device, &x_trf, &scale_vrf, k_weight, k_weight_scale);
++        project_one_kv_matrix(device, x, x_scale, k_weight, k_weight_scale);
+     let v: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> =
+-        project_one_kv_matrix(device, &x_trf, &scale_vrf, v_weight, v_weight_scale);
++        project_one_kv_matrix(device, x, x_scale, v_weight, v_weight_scale);
+ 
+     (k, v)
+ }

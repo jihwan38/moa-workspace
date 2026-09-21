@@ -1,0 +1,45 @@
+--- a/src/device/shared/rmsnorm.rs
++++ b/src/device/shared/rmsnorm.rs
+@@ -129,13 +129,31 @@
+         .vector_final()
+         .commit_trim::<m![1 # 8]>()
+         .commit();
+-    let rms: DmTensor<f32, Chip, Cluster, m![1 # 32, Dummy8], m![1 # 8]> = device
++    // Gather precisely the eight logical partial means. H/480 becomes a
++    // local Time axis; physical padding is never reinterpreted as data.
++    type ScalarSlice = m![1 # 256];
++    let total_mean_square: DmTensor<f32, Chip, Cluster, ScalarSlice, m![1 # 8]> = device
+         .main
+         .begin(mean_square.view())
+         .fetch::<m![1], m![1 # 8]>()
++        .switch::<ScalarSlice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })
++        .collect::<m![H / 480], m![1 # 8]>()
++        .vector_init()
++        .vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![1 # 4]>()
++        .vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)
++        .vector_widen_pad::<m![1 # 8]>()
++        .vector_final()
++        .commit_trim::<m![1 # 8]>()
++        .commit();
++    // Local reduction is downstream of the FP math stage. Keep EPS/Sqrt
++    // in a separate pass without changing their order or F32 boundary.
++    let rms: DmTensor<f32, Chip, Cluster, ScalarSlice, m![1 # 8]> = device
++        .main
++        .begin(total_mean_square.view())
++        .fetch::<m![1], m![1 # 8]>()
+         .collect::<m![1], m![1 # 8]>()
+         .vector_init()
+-        .vector_inter_slice_reduce::<m![1 # 32, Dummy8], m![1]>(InterSliceReduceOpF32::Add)
+         .vector_intra_slice_tag(TagMode::Zero)
+         .vector_narrow_trim::<m![1 # 4]>()
+         .vector_fp_binary(FpBinaryOp::AddF, EPS)
+@@ -144,7 +162,7 @@
+         .vector_final()
+         .commit_trim::<m![1 # 8]>()
+         .commit();
+-    let rms: DmTensor<f32, Chip, Cluster, ReducingSlices, m![1 # 8]> = unsafe { rms.reshape() };
++    let rms: DmTensor<f32, Chip, Cluster, ReducingSlices, m![1 # 8]> = rms.to_dm(&mut device.tdma);
+ 
+     let weight_dm: DmTensor<bf16, Chip, Cluster, ReducingSlices, m![H % 480]> = rms_weight.to_dm(&mut device.tdma);
+     let weight_vrf: VrfTensor<f32, Chip, Cluster, ReducingSlices, m![H % 480]> = device

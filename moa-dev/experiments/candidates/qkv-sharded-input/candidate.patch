@@ -1,0 +1,65 @@
+--- a/src/ops.rs
++++ b/src/ops.rs
+@@ -55,8 +55,8 @@
+     v_cache: &mut HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
+     q_out: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
+ ) {
+-    let x: DmTensor<bf16, Chip, m![2], Slice, m![H]> = x.to_dm(&mut device.tdma);
+-    let x = shared::rmsnorm::normalize(device, &x, input_rms_weight);
++    let x: DmTensor<bf16, Chip, m![2], m![1 # 32, H / 480], m![H % 480]> = x.to_dm(&mut device.tdma);
++    let x = shared::rmsnorm::normalize_output_fused(device, &x, input_rms_weight);
+     let (q_packed, q_scale) = sliding::projection::prepare_fp8_split(device, &x);
+ 
+     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -497,25 +497,33 @@
+ 
+ pub(crate) fn prepare_fp8_split(
+     device: &mut Device,
+-    x: &DmTensor<bf16, Chip, m![2], Slice, m![H]>,
++    x: &DmTensor<bf16, Chip, m![2], QuantSlices, m![H % 480]>,
+ ) -> (
+     DmTensor<f8e4m3, Chip, m![2], Replicated, m![Dummy2, H]>,
+     DmTensor<f32, Chip, m![2], Replicated, m![1 # 8]>,
+ ) {
+-    // Amax on the canonical input avoids an expensive inter-slice reduction.
+-    // i32 reinterpret makes the absolute-value mask a non-NaN immediate.
+-    let amax: DmTensor<f32, Chip, m![2], Slice, m![1 # 8]> = device
+-        .main.begin(x.view())
+-        .fetch::<m![H / 16], m![H % 16]>().fetch_cast::<f32>()
+-        .collect::<m![H / 8], m![H % 8]>()
++    // Preserve the whole-H global amax while keeping normalized input sharded.
++    // Local floor commutes with max across the eight valid 480-value shards.
++    let local_amax: DmTensor<f32, Chip, m![2], QuantSlices, m![1 # 8]> = device
++        .main.begin(x.view())
++        .fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()
++        .collect::<m![H / 8 % 60], m![H % 8]>()
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+         .vector_reinterpret::<i32>()
+         .vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)
+         .vector_reinterpret::<f32>()
+-        .vector_narrow_split::<m![H / 4], m![H % 4]>()
++        .vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()
+         .vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)
+         .vector_widen_pad::<m![1 # 8]>()
+         .vector_clip(ClipBinaryOpF32::Max, 1.504632769052528e-36f32)
++        .vector_final().commit_trim::<m![1 # 8]>().commit();
++    // Output has exactly one logical scalar per cluster. No padded element
++    // is reinterpreted as valid input; this typed reduction must compile.
++    let amax: DmTensor<f32, Chip, m![2], Slice, m![1 # 8]> = device
++        .main.begin(local_amax.view())
++        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
++        .vector_init()
++        .vector_inter_slice_reduce::<Slice, m![1]>(InterSliceReduceOpF32::Max)
+         .vector_final().commit_trim::<m![1 # 8]>().commit();
+     // Exponent mask produces 2^floor(log2(amax)); floor 2^-119 guarantees
+     // scale >= 2^-126, and finite BF16 inputs imply scale <= 2^120.
+@@ -534,7 +542,6 @@
+     let scale_vrf: VrfTensor<f32, Chip, m![2], QuantSlices, m![1 # 8]> = device
+         .sub.begin(quant_scale.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+-    let x: DmTensor<bf16, Chip, m![2], QuantSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
+     let mut packed: DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![Dummy2, H % 480]> = DmTensor::new();
+     device
+         .main.begin(x.view())

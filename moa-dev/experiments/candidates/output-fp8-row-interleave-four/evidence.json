@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-21",
+  "status": "exact_compile_pass_not_npu_tested",
+  "kernel": "ops::sliding_attention_output",
+  "candidate_sha256": "322fd14dc8b3f3c31921bf893a542c9975120d53cd636e30c650f83245ade566",
+  "npu_submissions": 0,
+  "npu_correctness_verified": false,
+  "static_makespan": 34435,
+  "baseline_static_makespan": 32252,
+  "static_regression_percent": 6.768572491628433,
+  "context_union_cycles": {
+    "Noop": 0,
+    "DmaEngine": 22995,
+    "PeCore": 19483,
+    "MainContext": 10601,
+    "VectorEngine": 7914,
+    "SubContext": 2578
+  },
+  "compiler_resource_stats": {
+    "total_cycle": 34435,
+    "skip_aware_total_cycle": 34435,
+    "computation_cycle": 12269,
+    "main_context_cycle": 10601,
+    "sub_context_cycle": 2642,
+    "io_cycle": 22995,
+    "sync_cycle": 0,
+    "spill_io_cycle": 0,
+    "mac_cycle": 0,
+    "effective_mac_cycle": -0.0,
+    "main_only_cycle": 7387,
+    "sub_only_cycle": 270,
+    "io_only_cycle": 18966,
+    "sync_only_cycle": 0,
+    "spill_io_only_cycle": 0,
+    "dram_usage_by_kind": {
+      "io": 15759872,
+      "weight": 0,
+      "stack": 0,
+      "inter_chip_stack": 0
+    }
+  },
+  "weight_dma_cycles": {
+    "o-row-control": 13512,
+    "o-row-four": 13512
+  },
+  "all_dma_operation_duration_groups_unchanged": true,
+  "added_switch_instructions": [
+    {
+      "duration": 2183,
+      "contexts": [
+        "MainContext"
+      ],
+      "source": "--> src/device/sliding/projection.rs:224:91"
+    }
+  ],
+  "source_identity_file": "source-hashes.json",
+  "logical_index_proof": "logical-index-proof.json",
+  "baseline_identity": "Fresh exact compile of all source from e24-native-output-safe-qkv-ffn; candidate changes only projection.rs",
+  "caveat": "Compiler did not predict a weight-DMA gain. Actual HBM-bank behavior, correctness and NPU runtime are unmeasured."
+}

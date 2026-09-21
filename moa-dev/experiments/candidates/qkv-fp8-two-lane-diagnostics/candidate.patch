@@ -1,0 +1,52 @@
+--- a/src/bin/test_kernels.rs
++++ b/src/bin/test_kernels.rs
+@@ -670,6 +670,39 @@
+     ok
+ }
+ 
++
++// Host-only diagnostics: invoked after the original oracle comparison and outside
++// its result calculation. No fixture, input, kernel, or tolerance is changed.
++fn dump_value_diagnostics(run: usize, expected: &[f32], actual: &[f32], atol: f32, rtol: f32) {
++    assert_eq!(expected.len(), actual.len());
++    let mut per_head = [0usize; 8];
++    let mut per_local_row = [0usize; 4];
++    let mut non_finite = 0usize;
++    for (index, (&want, &got)) in expected.iter().zip(actual).enumerate() {
++        let diff = (want - got).abs();
++        let limit = atol + rtol * want.abs();
++        if !got.is_finite() || diff > limit {
++            if index / 256 < per_head.len() { per_head[index / 256] += 1; }
++            per_local_row[index % 4] += 1;
++            non_finite += usize::from(!got.is_finite());
++            println!("DIAG_V_FAIL run={run} index={index} head={} dim={} cluster={} slice={} local_row={} expected={want:.9e} actual={got:.9e} diff={diff:.9e} tolerance={limit:.9e} expected_bf16={:04x} actual_bf16={:04x}",
++                index / 256, index % 256, index / 1024, (index / 4) % 256, index % 4,
++                want.to_bits() >> 16, got.to_bits() >> 16);
++        }
++    }
++    println!("DIAG_V_SUMMARY run={run} count={} per_head={per_head:?} per_local_row={per_local_row:?} non_finite={non_finite}", actual.len());
++    // Lossless device BF16 output, including passing values, to permit offline
++    // analysis without another device run. The existing fixture is the oracle.
++    for (chunk, values) in actual.chunks(64).enumerate() {
++        let mut hex = String::with_capacity(values.len() * 4);
++        for value in values {
++            use std::fmt::Write;
++            write!(&mut hex, "{:04x}", value.to_bits() >> 16).unwrap();
++        }
++        println!("DIAG_V_BF16 run={run} offset={} actual_hex={hex}", chunk * 64);
++    }
++}
++
+ // --- on-device cycle collection (only armed when FURIOSA_OPT_PROFILE is set) ---
+ 
+ const TRACING_TARGET_NPU: &str = "span::npu";
+@@ -843,6 +876,9 @@
+                     test.atol,
+                     test.rtol,
+                 );
++                if test.name == "sliding_project_qkv" && *label == "expected.v" {
++                    dump_value_diagnostics(run, fixture.expect(run, test.name, label), actual, test.atol, test.rtol);
++                }
+             }
+             all_ok &= ok;
+             if let Some(c) = cycles {

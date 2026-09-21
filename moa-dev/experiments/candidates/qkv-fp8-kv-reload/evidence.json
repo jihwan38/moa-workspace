@@ -1,0 +1,227 @@
+{
+  "date": "2026-09-21",
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "compile_exit_code": 0,
+  "static_cycles": 53366,
+  "baseline_cycles": 53305,
+  "instruction_count": 166,
+  "source_sha256": {
+    "ops.rs": "9554c2c5a845f269107cb9ef401b90e9c8c6bea99d01ca970d864297585abc31",
+    "projection.rs": "50853f8c6b10c9656ae7e30e6de0ed5e415e2b1f3fceca8a6f27358a0d99c855"
+  },
+  "baseline_projection_sha256": "ca9d22c7efa63eb6783d8b2bd3c2089735a02fd65e165a25ccfd9678ec7520b4",
+  "schedule_sha256": "1176a71951bf99df349d3c504e4a973e38b5b996fb0e7d5221a0f2285a3be129",
+  "npu_correctness": "FAIL: E23 job70327 Q/K all three PASS; V all three FAIL with same error statistics as E20",
+  "purpose": "Isolate K/V reuse of TRF and runtime scale VRF after E20/E21 V-only failure",
+  "invariants": [
+    "Canonical failed two-lane source is baseline",
+    "Q/O/quantizer and all arithmetic unchanged",
+    "K/V TRF and runtime-scale VRF loads moved inside private matrix helper",
+    "Public signatures unchanged",
+    "Ops byte-identical to baseline"
+  ],
+  "register_evidence": [
+    {
+      "instruction": "179",
+      "lifetime": {
+        "begin": 24281,
+        "end": 25027
+      },
+      "inputs": [
+        {
+          "name": "x_trf",
+          "index": "91",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 23058,
+            "end": 25027,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: Ps / 4 % 256, Lane: Dummy2, Element: H]",
+          "fingerprint": null
+        },
+        {
+          "name": "scale_vrf",
+          "index": "79",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 17847,
+            "end": 25027,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1540096,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: Ps / 4 % 256, Element: 1 # 8]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "93",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 24281,
+            "end": 25027,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1572864,
+          "size": 65536,
+          "physical_pages": [],
+          "shape": "",
+          "fingerprint": null
+        }
+      ],
+      "verified_projection": "V"
+    },
+    {
+      "instruction": "199",
+      "lifetime": {
+        "begin": 32239,
+        "end": 33465
+      },
+      "inputs": [
+        {
+          "name": "scale_vrf",
+          "index": "82",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 18114,
+            "end": 33465,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1638400,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Qs / 2048, Slice: Qs / 8 % 256, Element: 1 # 8]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "99",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 32239,
+            "end": 33465,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1654784,
+          "size": 131072,
+          "physical_pages": [],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "x_trf",
+          "index": "94",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 24281,
+            "end": 33465,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 16777216,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Qs / 2048, Slice: Qs / 8 % 256, Lane: Dummy2, Element: H]",
+          "fingerprint": null
+        }
+      ],
+      "verified_projection": "Q"
+    },
+    {
+      "instruction": "317",
+      "lifetime": {
+        "begin": 43571,
+        "end": 44317
+      },
+      "inputs": [
+        {
+          "name": "",
+          "index": "138",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 43571,
+            "end": 44317,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1064960,
+          "size": 65536,
+          "physical_pages": [],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "x_trf",
+          "index": "97",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 25504,
+            "end": 44317,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: Ps / 4 % 256, Lane: Dummy2, Element: H]",
+          "fingerprint": null
+        },
+        {
+          "name": "scale_vrf",
+          "index": "83",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 18381,
+            "end": 44317,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1048576,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: Ps / 4 % 256, Element: 1 # 8]",
+          "fingerprint": null
+        }
+      ],
+      "verified_projection": "K"
+    }
+  ],
+  "limitation": "K registers, not V registers, are prefetched well before K contraction. Actual consumer trace identifies early V and late K; previous call-order-based labels were reversed.",
+  "scratch": "/tmp/moa-qkv-fp8-kv-reload",
+  "compile_command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule schedules/all-qkv.json",
+  "hardware_validation": {
+    "job": 70327,
+    "experiment": "e23-kv-reload-streamed-scale",
+    "log": "moa-dev/logs/e23-kv-reload-streamed-scale-job-70327.log",
+    "conclusion": "Separate K/V TRF+scale loads did not fix failure; simple shared-register reuse hypothesis unsupported as sufficient explanation"
+  },
+  "matrix_order_correction": {
+    "early_V": {
+      "instruction": "179",
+      "trf": "91",
+      "scale_vrf": "79",
+      "consumer_path": "O179→T92→O186/T95→O187/T96→O203/T100→O209/T103→normalize_value O255"
+    },
+    "middle_Q": {
+      "instruction": "199"
+    },
+    "late_K": {
+      "instruction": "317",
+      "trf": "97",
+      "scale_vrf": "83",
+      "consumer_path": "O317→T137→O331/T144→O336/T146→O339/T147→O347/T149→normalize_key O393"
+    },
+    "previous_hypothesis_withdrawn": "K consumed shared register before later V; actual order is V then Q then K"
+  }
+}

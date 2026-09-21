@@ -1,0 +1,43 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -359,7 +359,8 @@
+         .sub.begin(quant_scale.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+     let x: DmTensor<bf16, Chip, m![2], QuantSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
+-    let hi: DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![H % 480]> = device
++    let mut packed: DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![Dummy2, H % 480]> = DmTensor::new();
++    device
+         .main.begin(x.view())
+         .fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()
+         .collect::<m![H / 8 % 60], m![H % 8]>()
+@@ -368,12 +369,13 @@
+         .vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)
+         .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()
+         .cast::<f8e4m3, m![H % 8 # 32]>()
+-        .commit_trim::<m![H % 8]>().commit();
++        .commit_trim::<m![H % 8]>()
++        .commit_view(packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, H % 480]>(0));
+     let hi_vrf: VrfTensor<f32, Chip, m![2], QuantSlices, m![H % 480]> = device
+-        .sub.begin(hi.view())
++        .sub.begin(packed.view().tile::<m![Dummy2], 1, m![Dummy2 = 1 # 2, H % 480]>(0))
+         .fetch::<m![H / 32 % 15], m![H % 32]>().fetch_cast::<f32>()
+         .collect::<m![H / 8 % 60], m![H % 8]>().to_vrf();
+-    let lo: DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![H % 480]> = device
++    device
+         .main.begin(x.view())
+         .fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()
+         .collect::<m![H / 8 % 60], m![H % 8]>()
+@@ -384,11 +386,7 @@
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 16.0f32)
+         .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()
+         .cast::<f8e4m3, m![H % 8 # 32]>()
+-        .commit_trim::<m![H % 8]>().commit();
+-    let mut packed: DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![Dummy2, H % 480]> = DmTensor::new();
+-    hi.view().to_dm_view(&mut device.tdma,
+-        packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, H % 480]>(0));
+-    lo.view().to_dm_view(&mut device.tdma,
+-        packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, H % 480]>(1));
++        .commit_trim::<m![H % 8]>()
++        .commit_view(packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, H % 480]>(1));
+     (broadcast_quantized(device, &packed), scale.to_dm(&mut device.tdma))
+ }

@@ -45,4 +45,4 @@ residual helper(`projection.rs:263–290`)는 HBM residual을 같은 H480 layout
 
 상속된 native FP8 양자화의 일반 입력 한계는 이 복사 최적화와 별개로 남아 있다. `../output-native-fp8-two-lane/review.md`의 finite BF16 반례와 공식 입력 범위 제한은 그대로 적용된다. 이 리뷰는 native FP8을 임의 입력에서 정확하다고 보증하지 않는다.
 
-정적 makespan32,252→29,088은 후보의 기존 compile evidence 값이다. 실제 성능 개선과 허용오차 통과는 root의 E26 실행 결과를 확인해야 한다. 검토 시점에는 그 결과를 아직 읽지 않았다.
+정적 makespan32,252→29,088은 후보의 기존 compile evidence 값이다. 이후 [E26 job70361 로그](../../../logs/e26-output-parallel-epilogue-job-70361.log)를 직접 확인했다. 공식3개 입력 구성의 O는 모두 PASS이며 cycles55,358 /51,939 /52,579, median52,579다. 각 max abs error는0.03125이고 mean abs error0.000484 /0.000503 /0.000457로 앞선 native FP8 O 통계와 같다. E26 전체15개 출력 비교도 PASS다. 이는 측정한 입력의 허용오차 통과이며, 모든 입력에 대한 bitwise 동치나 native FP8의 일반 정확성을 증명하지 않는다. 코드 수준에서 추가 산술·반올림 경계 변경을 찾지 못했다는 검토 결론과 구분한다.

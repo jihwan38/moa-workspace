@@ -1,0 +1,43 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -333,7 +333,8 @@
+         .sub.begin(quant_scale.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+     let x: DmTensor<bf16, Chip, OutputCluster, OutputColumns, m![Qs % 512]> = x.to_dm(&mut device.tdma);
+-    let hi: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![Qs % 512]> = device
++    let mut packed: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![Dummy2, Qs % 512]> = DmTensor::new();
++    device
+         .main.begin(x.view())
+         .fetch::<m![Qs / 16 % 32], m![Qs % 16]>().fetch_cast::<f32>()
+         .collect::<m![Qs / 8 % 64], m![Qs % 8]>()
+@@ -342,12 +343,13 @@
+         .vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)
+         .vector_widen_concat::<m![Qs / 8 % 64], m![Qs % 8]>().vector_final()
+         .cast::<f8e4m3, m![Qs % 8 # 32]>()
+-        .commit_trim::<m![Qs % 8]>().commit();
++        .commit_trim::<m![Qs % 8]>()
++        .commit_view(packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, Qs % 512]>(0));
+     let hi_vrf: VrfTensor<f32, Chip, OutputCluster, OutputColumns, m![Qs % 512]> = device
+-        .sub.begin(hi.view())
++        .sub.begin(packed.view().tile::<m![Dummy2], 1, m![Dummy2 = 1 # 2, Qs % 512]>(0))
+         .fetch::<m![Qs / 32 % 16], m![Qs % 32]>().fetch_cast::<f32>()
+         .collect::<m![Qs / 8 % 64], m![Qs % 8]>().to_vrf();
+-    let lo: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![Qs % 512]> = device
++    device
+         .main.begin(x.view())
+         .fetch::<m![Qs / 16 % 32], m![Qs % 16]>().fetch_cast::<f32>()
+         .collect::<m![Qs / 8 % 64], m![Qs % 8]>()
+@@ -358,11 +360,7 @@
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 16.0f32)
+         .vector_widen_concat::<m![Qs / 8 % 64], m![Qs % 8]>().vector_final()
+         .cast::<f8e4m3, m![Qs % 8 # 32]>()
+-        .commit_trim::<m![Qs % 8]>().commit();
+-    let mut packed: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![Dummy2, Qs % 512]> = DmTensor::new();
+-    hi.view().to_dm_view(&mut device.tdma,
+-        packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, Qs % 512]>(0));
+-    lo.view().to_dm_view(&mut device.tdma,
+-        packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, Qs % 512]>(1));
++        .commit_trim::<m![Qs % 8]>()
++        .commit_view(packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, Qs % 512]>(1));
+     (packed, scale)
+ }

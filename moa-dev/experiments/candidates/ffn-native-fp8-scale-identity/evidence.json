@@ -1,0 +1,44 @@
+{
+  "date": "2026-09-21",
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "compile_exit_code": 0,
+  "static_cycles": 166220,
+  "baseline_cycles": 166220,
+  "instruction_count": 196,
+  "source_sha256": {
+    "mlp.rs": "99ca0ce3d3525e3f406ad3db0313474cc23669b62e94e719ff87b62b10a5f95b",
+    "ops.rs": "afc2d11998903a5afc9750abd7f01ec6b54103964752de86efae49aa4e206560"
+  },
+  "baseline_mlp_sha256": "098c4c01171dd59d209c4b07512387ee418306362eb4d3f79af53c0ddd109c20",
+  "schedule_sha256": "d82ea147c0def10b9d64ab1521cc9524bc11b4295061ede8b19831c4c0c690f8",
+  "kernel_bin_sha256": {
+    "baseline": "ae7871927f1700751f9064b3095725693d6940b1286f7cf12496066123f3ad68",
+    "explicit_identity": "974d29adad7fdd98da5ebd03feb0e247496a01b9d99f78186988bb91666d7d6f"
+  },
+  "only_source_change": "Pair Mul0 group0 operand changed from () skip to explicit1.0f32; group1 remains0.0625f32",
+  "npu_correctness": "FAILED TO COMPLETE: E28 job70410 first FFN launch timeout exit101, rank0",
+  "npu_jobs_by_this_agent": 0,
+  "baseline_failure": "E25 job70354 firstFFNlaunch timeout exit101; noFFNoutputs/cycles",
+  "hypothesis": "Explicit group0 operand may avoid stale skipped-operand state; not established by static evidence",
+  "invariants": [
+    "Identical32-row tiles and four16-element blocks/packet",
+    "Same quantizer, packed broadcast, weights and scales",
+    "Same BF16 block partial boundary and second scale contraction",
+    "Same GeGLU/down/ops"
+  ],
+  "scratch": "/tmp/moa-ffn-native-fp8-scale-identity",
+  "cargo_target_dir": "/tmp/moa-ffn-native-fp8-scale-identity/target",
+  "furiosa_opt_out_dir": "/tmp/moa-ffn-native-fp8-scale-identity/target/furiosa-opt/kernel",
+  "compile_command": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/identity.json",
+  "hardware_validation": {
+    "job": 70410,
+    "q_and_o": "PASS",
+    "ffn_output_count": 0,
+    "ffn_cycle_count": 0,
+    "error": "rank0 launch ran past time limit",
+    "conclusion": "Explicit group0 Mul0 identity did not eliminate first-launch FFN timeout; unique cause still unknown",
+    "record": "docs/experiments/e28-explicit-pair-identity.json",
+    "log": "moa-dev/logs/e28-explicit-pair-identity-job-70410.log"
+  }
+}

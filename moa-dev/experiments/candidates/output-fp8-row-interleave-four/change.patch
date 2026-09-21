@@ -1,0 +1,85 @@
+--- projection.original.rs
++++ projection.rs
+@@ -177,7 +177,7 @@
+     weight: &HbmTensor<f8e4m3, Chip, m![H, Qs]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![H]>,
+ ) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
+-    type OutputRows = m![H / 60 % 32, 1 # 8];
++    type OutputRows = m![H / 240 % 8, H % 4, 1 # 8];
+     let x: DmTensor<bf16, Chip, OutputCluster, OutputColumns, m![Qs % 512]> = x.to_dm(&mut device.tdma);
+     let (x, input_scale) = prepare_output_fp8_split(device, &x);
+     let x_trf: TrfTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![Dummy2], m![Qs % 512]> = device
+@@ -189,36 +189,46 @@
+         .sub.begin(input_scale.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H % 1920, Qs]> = unsafe { weight.view().reshape() };
+-    let weight: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 60, Qs % 512]> = weight.to_dm(&mut device.tdma);
+-    let partial: DmTensor<f32, Chip, OutputCluster, OutputColumns, m![H % 60, 1 # 8]> = device
++    let weight: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H / 4 % 60, Qs % 512]> = weight.to_dm(&mut device.tdma);
++    let partial: DmTensor<f32, Chip, OutputCluster, OutputColumns, m![H / 4 % 60, 1 # 8]> = device
+         .main.begin(weight.view())
+-        .fetch::<m![H % 60, Qs / 32 % 16], m![Qs % 32]>()
+-        .collect::<m![H % 60, Qs / 32 % 16], m![Qs % 32]>()
+-        .contract_outer::<m![H % 60, Qs / 64 % 8], m![Qs % 64], _, _, _>(&x_trf)
++        .fetch::<m![H / 4 % 60, Qs / 32 % 16], m![Qs % 32]>()
++        .collect::<m![H / 4 % 60, Qs / 32 % 16], m![Qs % 32]>()
++        .contract_outer::<m![H / 4 % 60, Qs / 64 % 8], m![Qs % 64], _, _, _>(&x_trf)
+         .contract_packet::<m![1]>()
+-        .contract_time::<m![H % 60]>()
+-        .contract_lane::<m![H % 60, Dummy2], m![1 # 8]>(LaneMode::Sequential)
+-        .vector_init()
+-        .vector_intra_slice_unzip::<Dummy2, m![H % 60]>()
+-        .vector_narrow_split::<m![H % 60, 1 # 2], m![1 # 4]>()
++        .contract_time::<m![H / 4 % 60]>()
++        .contract_lane::<m![H / 4 % 60, Dummy2], m![1 # 8]>(LaneMode::Sequential)
++        .vector_init()
++        .vector_intra_slice_unzip::<Dummy2, m![H / 4 % 60]>()
++        .vector_narrow_split::<m![H / 4 % 60, 1 # 2], m![1 # 4]>()
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)
+         .vector_fp_zip(FpBinaryOp::AddF)
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &input_scale_vrf)
+-        .vector_widen_concat::<m![H % 60], m![1 # 8]>()
++        .vector_widen_concat::<m![H / 4 % 60], m![1 # 8]>()
+         .vector_final()
+         .commit_trim::<m![1 # 8]>().commit();
+     // Pair sum and inter-slice sum share an AddF unit; retain F32 in DM.
+-    let result: DmTensor<bf16, Chip, OutputCluster, OutputRows, m![H % 60]> = device
++    let result: DmTensor<bf16, Chip, OutputCluster, OutputRows, m![H / 4 % 60]> = device
+         .main.begin(partial.view())
+-        .fetch::<m![H % 60], m![1 # 8]>()
+-        .collect::<m![H % 60], m![1 # 8]>()
+-        .vector_init()
+-        .vector_inter_slice_reduce::<OutputRows, m![H % 60]>(InterSliceReduceOpF32::Add)
++        .fetch::<m![H / 4 % 60], m![1 # 8]>()
++        .collect::<m![H / 4 % 60], m![1 # 8]>()
++        .vector_init()
++        .vector_inter_slice_reduce::<OutputRows, m![H / 4 % 60]>(InterSliceReduceOpF32::Add)
+         .vector_final()
+         .cast::<bf16, m![1 # 16]>()
++        .transpose::<m![H / 16 % 15], m![H / 4 % 4 # 16]>()
++        .commit_trim::<m![H / 4 % 4]>()
++        .commit();
++    // r=240*g+4*u+s, u=15*q+t. Swap s with q: the result has
++    // rowgroup 4*g+q and local row 4*t+s, restoring canonical 60-row groups.
++    let result: DmTensor<bf16, Chip, OutputCluster, m![H / 60 % 32, 1 # 8], m![H % 60]> = device
++        .main.begin(result.view())
++        .fetch::<m![H / 60 % 4, H / 4 % 15], m![1 # 4]>()
++        .switch::<m![H / 60 % 32, 1 # 8], m![H % 60]>(
++            SwitchConfig::InterTranspose { slice1: 4, slice0: 8, time0: 15 })
++        .collect::<m![H % 60], m![1 # 16]>()
+         .transpose::<m![H / 4 % 15], m![H % 4 # 16]>()
+-        .commit_trim::<m![H % 4]>()
+-        .commit();
++        .commit_trim::<m![H % 4]>().commit();
+     let result: DmTensor<bf16, Chip, OutputCluster, Slice, m![H % 1920]> = result.to_dm(&mut device.tdma);
+     let result: DmTensor<bf16, Chip, m![H / 1920], Slice, m![H % 1920]> = unsafe { result.reshape() };
+     let result: DmTensor<bf16, Chip, Cluster, HiddenRows, m![H % 120]> = result.to_dm(&mut device.tdma);
+@@ -300,7 +310,7 @@
+ 
+ // O shard-specific quantization: 512 inputs per column, no full-vector broadcast.
+ type OutputCluster = m![Dummy2];
+-type OutputColumns = m![H / 60 % 32, Qs / 512];
++type OutputColumns = m![H / 240 % 8, H % 4, Qs / 512];
+ fn prepare_output_fp8_split(
+     device: &mut Device,
+     x: &DmTensor<bf16, Chip, OutputCluster, OutputColumns, m![Qs % 512]>,

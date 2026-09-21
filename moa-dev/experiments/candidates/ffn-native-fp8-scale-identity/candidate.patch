@@ -1,0 +1,11 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -48,7 +48,7 @@
+         .vector_init()
+         .vector_intra_slice_unzip::<FfnTerm, m![L % 32, H / 64]>()
+         .vector_narrow_split::<m![L % 32, H / 64, 1 # 2], m![H / 16 % 4]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 1.0f32, 0.0625f32)
+         .vector_fp_zip(FpBinaryOp::AddF)
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)
+         .vector_widen_concat::<m![L % 32, H / 64], m![H / 16 % 4 # 8]>()

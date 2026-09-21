@@ -1,0 +1,250 @@
+--- a/src/ops.rs
++++ b/src/ops.rs
+@@ -57,11 +57,11 @@
+ ) {
+     let x: DmTensor<bf16, Chip, m![2], Slice, m![H]> = x.to_dm(&mut device.tdma);
+     let x = shared::rmsnorm::normalize(device, &x, input_rms_weight);
+-    let (q_hi, q_lo, q_scale) = sliding::projection::prepare_fp8_split(device, &x);
++    let (q_packed, q_scale) = sliding::projection::prepare_fp8_split(device, &x);
+ 
+     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
+-        sliding::projection::project_query(device, &q_hi, &q_lo, &q_scale, q_weight, q_weight_scale);
+-    let (k, v) = sliding::projection::project_key_value(device, &q_hi, &q_lo, &q_scale, k_weight, v_weight, k_weight_scale, v_weight_scale);
++        sliding::projection::project_query(device, &q_packed, &q_scale, q_weight, q_weight_scale);
++    let (k, v) = sliding::projection::project_key_value(device, &q_packed, &q_scale, k_weight, v_weight, k_weight_scale, v_weight_scale);
+ 
+     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
+         sliding::rmsnorm::normalize_query(device, &q, q_rms_weight);
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -6,8 +6,7 @@
+ 
+ pub(crate) fn project_query(
+     device: &mut Device,
+-    x_hi: &DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]>,
+-    x_lo: &DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]>,
++    x: &DmTensor<f8e4m3, Chip, m![2], Replicated, m![Dummy2, H]>,
+     x_scale: &DmTensor<f32, Chip, m![2], Replicated, m![1 # 8]>,
+     weight: &HbmTensor<f8e4m3, Chip, m![Qs, H]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![Qs]>,
+@@ -16,53 +15,33 @@
+     type QueryRows = m![Qs / 8 % 256];
+ 
+ 
+-    let hi: DmTensorView<'_, f8e4m3, Chip, QueryCluster, QueryRows, m![H]> = unsafe { x_hi.view().reshape() };
+-    let lo: DmTensorView<'_, f8e4m3, Chip, QueryCluster, QueryRows, m![H]> = unsafe { x_lo.view().reshape() };
++    let x: DmTensorView<'_, f8e4m3, Chip, QueryCluster, QueryRows, m![Dummy2, H]> = unsafe { x.view().reshape() };
+     let scale: DmTensorView<'_, f32, Chip, QueryCluster, QueryRows, m![1 # 8]> = unsafe { x_scale.view().reshape() };
+-    let hi_trf: TrfTensor<f8e4m3, Chip, QueryCluster, QueryRows, m![1], m![H]> = device
+-        .sub.begin(hi)
+-        .fetch::<m![1], m![H]>()
+-        .collect::<m![H / 32], m![H % 32]>()
+-        .to_trf();
+-    let lo_trf: TrfTensor<f8e4m3, Chip, QueryCluster, QueryRows, m![1], m![H]> = device
+-        .sub.begin(lo)
+-        .fetch::<m![1], m![H]>()
+-        .collect::<m![H / 32], m![H % 32]>()
++    let x_trf: TrfTensor<f8e4m3, Chip, QueryCluster, QueryRows, m![Dummy2], m![H]> = device
++        .sub.begin(x)
++        .fetch::<m![Dummy2], m![H]>()
++        .collect::<m![Dummy2, H / 32], m![H % 32]>()
+         .to_trf();
+     let scale_vrf: VrfTensor<f32, Chip, QueryCluster, QueryRows, m![1 # 8]> = device
+         .sub.begin(scale).fetch::<m![1], m![1 # 8]>()
+         .collect::<m![1], m![1 # 8]>().to_vrf();
+     let weight_f8: DmTensor<f8e4m3, Chip, QueryCluster, QueryRows, m![Qs % 8, H]> = weight.to_dm(&mut device.tdma);
+-    let low_dot: DmTensor<f32, Chip, QueryCluster, QueryRows, m![Qs % 8, 1 # 8]> = device
+-        .main.begin(weight_f8.view())
+-        .fetch::<m![Qs % 8, H / 32], m![H % 32]>()
+-        .collect::<m![Qs % 8, H / 32], m![H % 32]>()
+-        .contract_outer::<m![Qs % 8, H / 64], m![H % 64], _, _, _>(&lo_trf)
+-        .contract_packet::<m![1]>()
+-        .contract_time::<m![Qs % 8]>()
+-        .contract_lane::<m![Qs % 8], m![1 # 8]>(LaneMode::Interleaved)
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![1 # 4]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)
+-        .vector_widen_pad::<m![1 # 8]>().vector_final()
+-        .commit_trim::<m![1 # 8]>().commit();
+-    let low_vrf: VrfTensor<f32, Chip, QueryCluster, QueryRows, m![Qs % 8, 1 # 8]> = device
+-        .sub.begin(low_dot.view())
+-        .fetch::<m![Qs % 8], m![1 # 8]>()
+-        .collect::<m![Qs % 8], m![1 # 8]>().to_vrf();
+     let contraction: DmTensor<bf16, Chip, QueryCluster, QueryRows, m![Qs % 8]> = device
+         .main.begin(weight_f8.view())
+         .fetch::<m![Qs % 8, H / 32], m![H % 32]>()
+         .collect::<m![Qs % 8, H / 32], m![H % 32]>()
+-        .contract_outer::<m![Qs % 8, H / 64], m![H % 64], _, _, _>(&hi_trf)
++        .contract_outer::<m![Qs % 8, H / 64], m![H % 64], _, _, _>(&x_trf)
+         .contract_packet::<m![1]>()
+         .contract_time::<m![Qs % 8]>()
+-        .contract_lane::<m![Qs % 8], m![1 # 8]>(LaneMode::Interleaved)
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![1 # 4]>()
+-        .vector_fp_binary(FpBinaryOp::AddF, &low_vrf)
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+-        .vector_widen_pad::<m![1 # 8]>().vector_final()
++        .contract_lane::<m![Qs % 8, Dummy2], m![1 # 8]>(LaneMode::Sequential)
++        .vector_init()
++        .vector_intra_slice_unzip::<Dummy2, m![Qs % 8]>()
++        .vector_narrow_split::<m![Qs % 8, 1 # 2], m![1 # 4]>()
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)
++        .vector_fp_zip(FpBinaryOp::AddF)
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &scale_vrf)
++        .vector_widen_concat::<m![Qs % 8], m![1 # 8]>()
++        .vector_final()
+         .cast::<bf16, m![1 # 16]>()
+         .transpose::<m![Qs / 4 % 2], m![Qs % 4 # 16]>()
+         .commit_trim::<m![Qs % 4]>().commit();
+@@ -102,45 +81,30 @@
+ 
+ fn project_one_kv_matrix(
+     device: &mut Device,
+-    hi_trf: &TrfTensor<f8e4m3, Chip, KvCluster, KvRows, m![1], m![H]>,
+-    lo_trf: &TrfTensor<f8e4m3, Chip, KvCluster, KvRows, m![1], m![H]>,
++    x_trf: &TrfTensor<f8e4m3, Chip, KvCluster, KvRows, m![Dummy2], m![H]>,
+     scale_vrf: &VrfTensor<f32, Chip, KvCluster, KvRows, m![1 # 8]>,
+     weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
+ ) -> DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> {
+     let weight_f8: DmTensor<f8e4m3, Chip, KvCluster, KvRows, m![Ps % 4, H]> = weight.to_dm(&mut device.tdma);
+-    let low_dot: DmTensor<f32, Chip, KvCluster, KvRows, m![Ps % 4, 1 # 8]> = device
+-        .main.begin(weight_f8.view())
+-        .fetch::<m![Ps % 4, H / 32], m![H % 32]>()
+-        .collect::<m![Ps % 4, H / 32], m![H % 32]>()
+-        .contract_outer::<m![Ps % 4, H / 64], m![H % 64], _, _, _>(lo_trf)
+-        .contract_packet::<m![1]>()
+-        .contract_time::<m![Ps % 4]>()
+-        .contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![1 # 4]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)
+-        .vector_widen_pad::<m![1 # 8]>().vector_final()
+-        .commit_trim::<m![1 # 8]>().commit();
+-    let low_vrf: VrfTensor<f32, Chip, KvCluster, KvRows, m![Ps % 4, 1 # 8]> = device
+-        .sub.begin(low_dot.view())
+-        .fetch::<m![Ps % 4], m![1 # 8]>()
+-        .collect::<m![Ps % 4], m![1 # 8]>().to_vrf();
+     let contraction: DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps % 4]> = device
+         .main.begin(weight_f8.view())
+         .fetch::<m![Ps % 4, H / 32], m![H % 32]>()
+         .collect::<m![Ps % 4, H / 32], m![H % 32]>()
+-        .contract_outer::<m![Ps % 4, H / 64], m![H % 64], _, _, _>(hi_trf)
++        .contract_outer::<m![Ps % 4, H / 64], m![H % 64], _, _, _>(x_trf)
+         .contract_packet::<m![1]>()
+         .contract_time::<m![Ps % 4]>()
+-        .contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![1 # 4]>()
+-        .vector_fp_binary(FpBinaryOp::AddF, &low_vrf)
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), scale_vrf)
+-        .vector_widen_pad::<m![1 # 8]>().vector_final()
++        .contract_lane::<m![Ps % 4, Dummy2], m![1 # 8]>(LaneMode::Sequential)
++        .vector_init()
++        .vector_intra_slice_unzip::<Dummy2, m![Ps % 4]>()
++        .vector_narrow_split::<m![Ps % 4, 1 # 2], m![1 # 4]>()
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)
++        .vector_fp_zip(FpBinaryOp::AddF)
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), scale_vrf)
++        .vector_widen_concat::<m![Ps % 4], m![1 # 8]>()
++        .vector_final()
+         .cast::<bf16, m![1 # 16]>()
+-        .transpose::<m![1], m![Ps % 4 # 16]>()
++        .transpose::<m![Ps / 4 % 1], m![Ps % 4 # 16]>()
+         .commit_trim::<m![Ps % 4]>().commit();
+ 
+     let weight_scale: DmTensor<bf16, Chip, KvCluster, KvRows, m![Ps % 4]> = weight_scale.to_dm(&mut device.tdma);
+@@ -175,8 +139,7 @@
+ 
+ pub(crate) fn project_key_value(
+     device: &mut Device,
+-    x_hi: &DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]>,
+-    x_lo: &DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]>,
++    x: &DmTensor<f8e4m3, Chip, m![2], Replicated, m![Dummy2, H]>,
+     x_scale: &DmTensor<f32, Chip, m![2], Replicated, m![1 # 8]>,
+     k_weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+     v_weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+@@ -186,27 +149,20 @@
+     DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]>,
+     DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]>,
+ ) {
+-    let hi: DmTensorView<'_, f8e4m3, Chip, KvCluster, KvRows, m![H]> = unsafe { x_hi.view().reshape() };
+-    let lo: DmTensorView<'_, f8e4m3, Chip, KvCluster, KvRows, m![H]> = unsafe { x_lo.view().reshape() };
++    let x: DmTensorView<'_, f8e4m3, Chip, KvCluster, KvRows, m![Dummy2, H]> = unsafe { x.view().reshape() };
+     let scale: DmTensorView<'_, f32, Chip, KvCluster, KvRows, m![1 # 8]> = unsafe { x_scale.view().reshape() };
+-    let hi_trf: TrfTensor<f8e4m3, Chip, KvCluster, KvRows, m![1], m![H]> = device
+-        .sub.begin(hi)
+-        .fetch::<m![1], m![H]>()
+-        .collect::<m![H / 32], m![H % 32]>()
+-        .to_trf();
+-    let lo_trf: TrfTensor<f8e4m3, Chip, KvCluster, KvRows, m![1], m![H]> = device
+-        .sub.begin(lo)
+-        .fetch::<m![1], m![H]>()
+-        .collect::<m![H / 32], m![H % 32]>()
++    let x_trf: TrfTensor<f8e4m3, Chip, KvCluster, KvRows, m![Dummy2], m![H]> = device
++        .sub.begin(x)
++        .fetch::<m![Dummy2], m![H]>()
++        .collect::<m![Dummy2, H / 32], m![H % 32]>()
+         .to_trf();
+     let scale_vrf: VrfTensor<f32, Chip, KvCluster, KvRows, m![1 # 8]> = device
+         .sub.begin(scale).fetch::<m![1], m![1 # 8]>()
+         .collect::<m![1], m![1 # 8]>().to_vrf();
+-
+     let k: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> =
+-        project_one_kv_matrix(device, &hi_trf, &lo_trf, &scale_vrf, k_weight, k_weight_scale);
++        project_one_kv_matrix(device, &x_trf, &scale_vrf, k_weight, k_weight_scale);
+     let v: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> =
+-        project_one_kv_matrix(device, &hi_trf, &lo_trf, &scale_vrf, v_weight, v_weight_scale);
++        project_one_kv_matrix(device, &x_trf, &scale_vrf, v_weight, v_weight_scale);
+ 
+     (k, v)
+ }
+@@ -329,14 +285,14 @@
+ 
+ fn broadcast_quantized(
+     device: &mut Device,
+-    x: &DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![H % 480]>,
+-) -> DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]> {
+-    let x: DmTensor<f8e4m3, Chip, m![2], m![Dummy256 / 32, 1 # 32], m![H]> = x.to_dm(&mut device.tdma);
+-    let x: DmTensor<f8e4m3, Chip, m![2], m![Dummy256 / 32, 32], m![H]> = device
++    x: &DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![Dummy2, H % 480]>,
++) -> DmTensor<f8e4m3, Chip, m![2], Replicated, m![Dummy2, H]> {
++    let x: DmTensor<f8e4m3, Chip, m![2], m![Dummy256 / 32, 1 # 32], m![Dummy2, H]> = x.to_dm(&mut device.tdma);
++    let x: DmTensor<f8e4m3, Chip, m![2], m![Dummy256 / 32, 32], m![Dummy2, H]> = device
+         .main.begin(x.view())
+-        .fetch::<m![1], m![H]>()
+-        .switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
+-        .collect::<m![H / 32], m![H % 32]>()
++        .fetch::<m![Dummy2], m![H]>()
++        .switch::<m![Dummy256 / 32, 32], m![Dummy2]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
++        .collect::<m![Dummy2, H / 32], m![H % 32]>()
+         .commit_trim::<m![H % 32]>().commit();
+     // All 512 physical slices now contain the same original H-vector order.
+     unsafe { x.reshape() }
+@@ -346,8 +302,7 @@
+     device: &mut Device,
+     x: &DmTensor<bf16, Chip, m![2], Slice, m![H]>,
+ ) -> (
+-    DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]>,
+-    DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]>,
++    DmTensor<f8e4m3, Chip, m![2], Replicated, m![Dummy2, H]>,
+     DmTensor<f32, Chip, m![2], Replicated, m![1 # 8]>,
+ ) {
+     // Amax on the canonical input avoids an expensive inter-slice reduction.
+@@ -409,9 +364,10 @@
+         .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()
+         .cast::<f8e4m3, m![H % 8 # 32]>()
+         .commit_trim::<m![H % 8]>().commit();
+-    (
+-        broadcast_quantized(device, &hi),
+-        broadcast_quantized(device, &lo),
+-        scale.to_dm(&mut device.tdma),
+-    )
+-}
++    let mut packed: DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![Dummy2, H % 480]> = DmTensor::new();
++    hi.view().to_dm_view(&mut device.tdma,
++        packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, H % 480]>(0));
++    lo.view().to_dm_view(&mut device.tdma,
++        packed.view_mut().tile::<m![Dummy2], 1, m![Dummy2 = 1 #{!} 2, H % 480]>(1));
++    (broadcast_quantized(device, &packed), scale.to_dm(&mut device.tdma))
++}
