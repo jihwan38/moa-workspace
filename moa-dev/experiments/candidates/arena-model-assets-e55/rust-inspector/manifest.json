@@ -1,0 +1,99 @@
+{
+  "schema": "MOA_RUST_ASSET_INSPECTOR_BUILD_MANIFEST_V1",
+  "status": "compiled_and_cpu_verified_no_npu_run_by_author",
+  "date": "2026-09-22 Asia/Seoul",
+  "binary": {
+    "path": "moa-dev/experiments/artifacts/arena-model-assets-rust-inspector/moa-model-asset-inspector",
+    "bytes": 880872,
+    "sha256": "1fb587ee436c5eb27099fe6177b4b04911b9b6ea09699de4a781c41bb932cf11",
+    "architecture": "x86_64 Linux ELF PIE",
+    "dynamic_dependencies": [
+      "libc.so.6",
+      "libgcc_s.so.1",
+      "/lib64/ld-linux-x86-64.so.2"
+    ],
+    "python_sdk_npu_dependencies": false
+  },
+  "compiled_sources": [
+    {
+      "path": "Cargo.toml",
+      "bytes": 204,
+      "sha256": "8b29d74d06ef034271a70af58af4af1731c14072593fd26555aa5b5e82a371cc",
+      "matches_compiled_copy": true
+    },
+    {
+      "path": "Cargo.lock",
+      "bytes": 4862,
+      "sha256": "54a34a8721132552a6e067f084b8d1c10a9ef84ae25a9658f78f11f48ae1f0d1",
+      "matches_compiled_copy": true
+    },
+    {
+      "path": "src/main.rs",
+      "bytes": 24518,
+      "sha256": "d522f964bba50d396094bda0b9462ec5ed695c9bb50cc6412aca6def2fe87cee",
+      "matches_compiled_copy": true
+    },
+    {
+      "path": "src/tests.rs",
+      "bytes": 12856,
+      "sha256": "c9a6babef203074c3e8b1b740d02936fecf9bed8d4c01ef06349f4127935dccf",
+      "matches_compiled_copy": true
+    },
+    {
+      "path": "../loader-header-contract.json",
+      "bytes": 349004,
+      "sha256": "8e2b9346ff1f4ee3d58581326c85bb89f2dca5c97cb6c5e2b1fd9c3260754055",
+      "matches_compiled_copy": true
+    }
+  ],
+  "source_changed_after_compile": false,
+  "embedded_contract_sha256": "8e2b9346ff1f4ee3d58581326c85bb89f2dca5c97cb6c5e2b1fd9c3260754055",
+  "toolchain": {
+    "rustc": "1.97.0-nightly (f53b654a8 2026-04-30)",
+    "cargo": "1.97.0-nightly (eb9b60f1f 2026-04-24)"
+  },
+  "build": {
+    "container": "moa2026-dev",
+    "scratch": "/tmp/moa-arena-assets-rust",
+    "cargo_home": "/home/moa/.cargo",
+    "cargo_target_dir": "/tmp/moa-arena-assets-rust-target",
+    "commands": [
+      "cargo test --offline --release",
+      "cargo build --release --offline --locked"
+    ],
+    "offline": true,
+    "source_contract_staging": "build.sh verifies and copies ../loader-header-contract.json into the isolated crate; no duplicate tracked contract."
+  },
+  "cpu_unit_tests": {
+    "passed": 11,
+    "failed": 0,
+    "profile": "release",
+    "log": "cpu-tests.log",
+    "log_sha256": "98783c48fa34f36de062b44e875a40cc02fe84099d75f36879d763ff6bfe9e3b"
+  },
+  "actual_elf_cli_tests": {
+    "passed": 5,
+    "failed": 0,
+    "record": "cpu-cli-tests.json",
+    "record_sha256": "512b808949852f6efe42b0447d3ebd770f0c1d315d7df2c707aa12c2c4441760"
+  },
+  "dependency_audit": {
+    "path": "dependency-audit.json",
+    "sha256": "ec14337f2442138a1aaf5617d405487edee1039dd91e514406cbaea9a8e54ba0",
+    "resolved_packages": 21,
+    "verified_source_files": 1077,
+    "all_archive_hashes_match_cargo_lock": true,
+    "all_source_files_match_archive_members": true
+  },
+  "pre_freeze_corrections": [
+    "sha2 0.11 Output does not implement LowerHex: format hex bytes explicitly; hashing remains library Sha256.",
+    "Slow-read deadline test uses 100ms budget/200ms synthetic read because 1ms expired during buffer allocation; implementation unchanged.",
+    "semantic_dtype_pass requires loader_contract_pass, matching peer checker."
+  ],
+  "scope": [
+    "Read-only CPU metadata/header/hash inspection.",
+    "40s deadline is cooperative and does not cancel blocked OS reads.",
+    "Header contract cannot check tensor/global-scale values, successful load_model, or NPU/inference correctness.",
+    "No model data, credential or environment dumps; basename and safe fixed error codes only."
+  ]
+}

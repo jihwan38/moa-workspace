@@ -1,0 +1,161 @@
+{
+  "status": "TWO_RELEASE_HOST_BUILDS_AND_SOURCE_REGISTRY_CHECKS_PASS_NPU_NOT_RUN",
+  "purpose": "Fixed Hi chat-prefix full-vocabulary logits comparison between upstream original and E55; not an optimization candidate or Stage2 acceptance test.",
+  "original_commit": "8559916051162e5fd682c29ec0fe3e9cc6e420cf",
+  "e55_commit": "d50eb159d9a260c411f2ebdc96adc5e0dc82afcb",
+  "added_host_source": {
+    "path": "moa-dev/experiments/candidates/model-fixed-prefix-e55/probe_model_logits.rs",
+    "bytes": 9512,
+    "sha256": "dbd549d861686004d69bb4dbd7de3ebd4d17b1b27e0701587e51a927d508684c"
+  },
+  "existing_inputs_per_variant": 46,
+  "added_probe_per_variant": 1,
+  "existing_source_files_modified": 0,
+  "input_manifests": {
+    "original": {
+      "path": "moa-dev/experiments/candidates/model-fixed-prefix-e55/original-compiled-source-manifest.json",
+      "bytes": 6878,
+      "sha256": "d44f01e1de23a4171a1cbd3294945737e58d7fbeb46ec3d93be71b77bdc3fbdb"
+    },
+    "e55": {
+      "path": "moa-dev/experiments/candidates/model-fixed-prefix-e55/e55-compiled-source-manifest.json",
+      "bytes": 6869,
+      "sha256": "0e351a386e7c0600d90d0d380597449c6d49ea5d270b5711fef92458dd4db326"
+    }
+  },
+  "source_preparation_rejects_optimized_python": true,
+  "source_preparation_requires_exact_47_file_crate": true,
+  "lock_sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09",
+  "builds": {
+    "original": {
+      "first_release_build_exit_code": 0,
+      "first_release_build_log": {
+        "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/original/build.log",
+        "bytes": 10633,
+        "sha256": "a33f6ca3cf0e8777dff24e8e3e7ba3eb3c57f4607eba98705dce62e28a0eba85"
+      },
+      "progress_incremental_build_exit_code": 0,
+      "progress_incremental_build_log": {
+        "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/original/build-progress.log",
+        "bytes": 144,
+        "sha256": "acbbc899a0c68f0880cf4833fb139481e8649634da4b07e5d68a979790dec68f"
+      },
+      "host": {
+        "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/original/probe_model_logits",
+        "bytes": 11315056,
+        "sha256": "8ba9530dcbc2cf4862b0179611024d13e04cb85615f554970853f22f6ed676f7"
+      },
+      "scratch": "/tmp/moa-model-fixed-prefix-e55/original",
+      "command": "cd /tmp/moa-model-fixed-prefix-e55/original && CARGO_HOME=/home/moa/.cargo CARGO_TARGET_DIR=/tmp/moa-model-fixed-prefix-e55/original/target FURIOSA_OPT_OUT_DIR=/tmp/moa-model-fixed-prefix-e55/original/target/furiosa-opt/kernel cargo furiosa-opt build --release --locked --bin probe_model_logits"
+    },
+    "e55": {
+      "first_release_build_exit_code": 0,
+      "first_release_build_log": {
+        "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/e55/build.log",
+        "bytes": 11641,
+        "sha256": "af35bde9cf85344268e8729ade9ad9813f12a75e9179de3458f4adf98fcbdf91"
+      },
+      "progress_incremental_build_exit_code": 0,
+      "progress_incremental_build_log": {
+        "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/e55/build-progress.log",
+        "bytes": 1152,
+        "sha256": "0eda378e446c0d3080841fef5278e351547f5ce52a51424a5b25d49088cf4651"
+      },
+      "host": {
+        "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/e55/probe_model_logits",
+        "bytes": 11313776,
+        "sha256": "4f2dc3a8e306f30f17f5eca45cdc4ec643d323f8d9445c9c1e02857233d175fc"
+      },
+      "scratch": "/tmp/moa-model-fixed-prefix-e55/e55",
+      "command": "cd /tmp/moa-model-fixed-prefix-e55/e55 && CARGO_HOME=/home/moa/.cargo CARGO_TARGET_DIR=/tmp/moa-model-fixed-prefix-e55/e55/target FURIOSA_OPT_OUT_DIR=/tmp/moa-model-fixed-prefix-e55/e55/target/furiosa-opt/kernel cargo furiosa-opt build --release --locked --bin probe_model_logits"
+    }
+  },
+  "toolchain": {
+    "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/toolchain.txt",
+    "bytes": 189,
+    "sha256": "38e850cc00a9519b31f9fedc49b049bafdca8e4b073663c13ee0ed332bb4e24b"
+  },
+  "registry_check": {
+    "path": "moa-dev/experiments/candidates/model-fixed-prefix-e55/registry-summary.json",
+    "bytes": 6321,
+    "sha256": "1b80926b457c00f8e4c08090e29b8c88f313f488150cee306c34b85aa862ac10"
+  },
+  "ten_text_kernels_per_host": true,
+  "each_three_stage1_images_match_its_measured_reference_host": true,
+  "images_differing_between_original_and_e55": [
+    "furiosa_opt_gemma4::ops::decoder_feedforward",
+    "furiosa_opt_gemma4::ops::full_attention_output",
+    "furiosa_opt_gemma4::ops::sliding_attention_output",
+    "furiosa_opt_gemma4::ops::sliding_project_qkv"
+  ],
+  "fourth_changed_image_scope": "full_attention_output also changes; prior e47-shared-caller-audit traced the shared residual add loop expansion. Do not describe E55 as changing only three text images.",
+  "host_statistics_cpu_tests": {
+    "count": 4,
+    "status": "PASS",
+    "log": {
+      "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/statistics-tests.log",
+      "bytes": 297,
+      "sha256": "27ea5bf05abf4d39fd36ede040fcb7eab7e987729296c6b3b9cb9c4113a400be"
+    },
+    "extracted_test_source": {
+      "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/statistics-tests.rs",
+      "bytes": 3991,
+      "sha256": "4b615779825f9f4fe38921f8a78f3e37ff4efb5e060aa8303c826f03779c4bd6"
+    },
+    "scope": "Exact source functions, known error metrics, signed-zero/tie handling, wide finite errors, and all 65280 finite BF16 bitpatterns through JSON roundtrip. No SDK model/NPU execution."
+  },
+  "independent_review": "competition_research reviewed the probe against official generate/runtime and found no blocking comparison defect. rngd_docs independently rehashed both actual Docker47/frozen inputs, original45+lock/E55frozen46, parsed both final and pre-progress registries via a separate readelf/bincode path, checked ten entries and the three measured Stage1 reference images, and reviewed finite/length/token/metadata/error propagation. Neither review establishes NPU/model accuracy; model asset provenance remains external.",
+  "reference_format": {
+    "schema": "moa-fixed-prefix-logits-v1",
+    "prompt": "Hi",
+    "thinking": false,
+    "add_generation_prompt": true,
+    "elements": 262144,
+    "dtype": "f32 read from model BF16 logits",
+    "full_logits_stdout": false,
+    "storage": "reference.json in the job working directory only"
+  },
+  "runtime_contract": {
+    "sampling": false,
+    "compute_logits": "true only at last fixed prefix token",
+    "all_logits_compared": true,
+    "structural_nonzero_conditions": [
+      "invalid reference metadata or file",
+      "empty/out-of-range/too-long token IDs",
+      "reference/current token IDs differ",
+      "logit element count !=262144",
+      "any nonfinite reference/current logit",
+      "device/model/kernel/read/write failure"
+    ],
+    "accuracy_acceptance_threshold": null,
+    "large_error_causes_nonzero_exit": false,
+    "raw_top1_excludes_suppressed_tokens": false,
+    "reference_binds_model_asset_hashes_internally": false
+  },
+  "package_files": {
+    "probe_model_original": {
+      "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/package/probe_model_original",
+      "bytes": 11315056,
+      "sha256": "8ba9530dcbc2cf4862b0179611024d13e04cb85615f554970853f22f6ed676f7"
+    },
+    "remote_entrypoint.sh": {
+      "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/package/remote_entrypoint.sh",
+      "bytes": 1095,
+      "sha256": "e3a53965b95a643b28b34127a86acd1fa8dadb874bbdb33cc1ebb8515c8433eb"
+    },
+    "probe_model_e55": {
+      "path": "moa-dev/experiments/artifacts/model-fixed-prefix-e55/package/probe_model_e55",
+      "bytes": 11313776,
+      "sha256": "4f2dc3a8e306f30f17f5eca45cdc4ec643d323f8d9445c9c1e02857233d175fc"
+    }
+  },
+  "execution_status": "Paired execution NOT_RUN and deferred after separate unmodified E55 smoke71173 timeout. Root submitted E55-only progress job71198; result not included here. Build/registry checks do not establish runtime or logits accuracy.",
+  "no_runtime_results_claimed": true,
+  "npu_executed_by_this_task": false,
+  "live_source_target_git_changed": false,
+  "source_input_verification": {
+    "path": "moa-dev/experiments/candidates/model-fixed-prefix-e55/source-verification.json",
+    "bytes": 243,
+    "sha256": "6e0b4b22fdcb766ccd7f0acebd0510987ee0d1a442606ca730fc3353669fafa3"
+  }
+}

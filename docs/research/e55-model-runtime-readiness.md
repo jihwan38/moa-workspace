@@ -1,6 +1,6 @@
 # E55 전체 모델 실행 준비 상태
 
-2026-09-21. 현재 채택된 E55의 실제 host 호출과 설치된 의존성을 확인했다. **기록된 Stage1 커널 검사를 통과했지만, 로컬에 모델 자산과 전체 모델 oracle이 없어 E2E 정확도·처리량은 아직 검증하지 못했다.** 공식 [README의 Stage2 절](../../furiosa-opt-gemma4-12B/README.md)은 입력 수·prompt/output 길이·반복 횟수·RNGD 구성·정확도 기준·성능 지표를 TBD로 남긴다.
+2026-09-21. 현재 채택된 E55의 실제 host 호출과 설치된 의존성을 확인했다. **기록된 Stage1 커널 검사를 통과했고 Arena의 실제 모델 자산도 확인했지만, 첫 CLI 실행은 초기화 구간에서70초 timeout이었고, 후속 고정-prefix 진단은 실제 text 실행과262,144개 finite logits를 확인했다. 이어 원본/E55 logits 전체를 비교했고 최대 차이1.5·top1 동일을 관측했다. 정확도 수용 여부·공식 처리량은 아직 검증하지 못했다.** 공식 [README의 Stage2 절](../../furiosa-opt-gemma4-12B/README.md)은 입력 수·prompt/output 길이·반복 횟수·RNGD 구성·정확도 기준·성능 지표를 TBD로 남긴다.
 
 추가 [격리 빌드와 registry 검사](../experiments/e55-model-host-build.json)에서 `gemma4`와 `server` release build가 모두 성공했다. Source/Cargo/toolchain46개를 E55와 대조했으며, 두 ELF는 각각14개 device image를 포함하고 registry 전체가 byte-identical하다. Stage1 세 image도 실측 E55 `test_kernels`의 해당 image와 정확히 같다. 이는 기존 세 커널 밖의 **실제 모델 진입점에 필요한 컴파일·패키징**을 확인한 것이며, 모델 실행 성공을 뜻하지 않는다. [재현 절차](../../moa-dev/experiments/candidates/e55-model-host-build/README.md).
 
@@ -22,11 +22,11 @@
 
 | 자산/설정 | 구현에서 확인한 요구 조건 | 현재 상태와 한계 |
 |---|---|---|
-| `RNGD_MODEL_DIR` | `load::model_dir`가 환경 변수 자체, 그 아래 `Gemma4-12B-it`, `gemma-4-12b-it-NVFP4` 순으로 `model.safetensors`를 찾는다. | 조사한 host와 개발 container 모두 미설정. Arena 실행 환경의 모델 보유 여부는 이번 감사에서 조회하지 않았다. |
-| 단일 `model.safetensors` | `load_model`이 mmap으로 한 파일을 읽는다. shard index를 처리하거나 Hugging Face에서 다운로드하는 경로는 없다. | workspace와 확인한 cache/모델 경로에 적합한 Gemma 파일이 없다. 이름만 맞춘 임의 체크포인트는 대체재가 아니다. |
+| `RNGD_MODEL_DIR` | `load::model_dir`가 환경 변수 자체, 그 아래 `Gemma4-12B-it`, `gemma-4-12b-it-NVFP4` 순으로 `model.safetensors`를 찾는다. | 조사한 host와 개발 container 모두 미설정. 후속 Arena job71164에서는 설정됨을 확인했고 세 번째 후보에 모델 파일이 있었다. |
+| 단일 `model.safetensors` | `load_model`이 mmap으로 한 파일을 읽는다. shard index를 처리하거나 Hugging Face에서 다운로드하는 경로는 없다. | 로컬 조사 경로에는 없으나 Arena job71164의 세 번째 후보에는 읽을 수 있는 단일 파일이 있다. 후속71224에서 전체 SHA와 필수 header/type 계약을 확인했다. Tensor 값과 E2E 정확도는 별도 범위다. |
 | Text 가중치 전체 | `model.language_model.embed_tokens.weight`, `norm.weight`, 48개 `layers.{i}`의 norm/scalar/attention/MLP를 읽는다. Attention은 FP8 weight와 BF16 `[rows,1]` scale, MLP는 U8 packed FP4 `[rows,columns/2]`, FP8 block scale, F32 global scalar를 요구한다. Global scale은 0/비finite를 거절하고 역수를 HBM에 적재한다. | 기존 fixture에는 이 체크포인트가 없다. BF16 HF 모델의 다른 tensor 이름·dtype·shape를 자동 변환하지 않는다. 전체 shape 검사는 `HostTensor::from_safetensors` 및 `load_f4`/`load_bf16_column`에 있다. |
 | Vision/audio 가중치 | `load_model`이 **입력 modality 검사 없이** `load_vision`과 `load_audio`를 호출한다. `model.vision_embedder.*`, `model.embed_vision.embedding_projection.weight`, `model.embed_audio.embedding_projection.weight`가 필요하다. | 현재 로더에서는 **텍스트 요청만 보내도 필수**다. 이미지·WAV 입력 파일 자체는 텍스트 요청에 필요하지 않다. |
-| `tokenizer.json` | `load::tokenizer_path_in`은 모델 디렉터리의 이 파일을 반환하고 `Tokenizer::new`는 `HuggingFaceTokenizer::from_file`로 읽는다. | 해당 Gemma tokenizer가 없다. 다른 모델의 cache에 있는 tokenizer는 vocabulary·특수 token·template 계약이 달라 사용할 수 없다. |
+| `tokenizer.json` | `load::tokenizer_path_in`은 모델 디렉터리의 이 파일을 반환하고 `Tokenizer::new`는 `HuggingFaceTokenizer::from_file`로 읽는다. | 로컬에는 없으나 Arena job71164에서 tokenizer.json을 확인했다. 실제 encode 성공과 vocabulary·특수 token 계약은 별도 검증 대상이다. |
 | Chat template와 tokenizer 메타데이터 | `encode_chat`은 template을 반드시 적용한다. 실제 lock은 `llm-tokenizer 1.7.0`이다. 설치 소스의 `HuggingFaceTokenizer::from_file/from_built_tokenizer`는 sibling `chat_template.json`, `chat_template.jinja` 등 또는 `tokenizer_config.json`의 `chat_template` 문자열을 사용한다. `ChatTemplateState::apply`는 template이 없으면 실패한다. | **template 공급원 하나는 chat 경로에 필수**다. `tokenizer_config.json` 자체를 별도 template이 있어도 항상 필수라고 주장하지 않는다. 올바른 특수 token·chat formatting을 재현하려면 실제 모델의 metadata를 함께 고정해야 한다. |
 
 Rust weight loader는 모델 `config.json`을 읽어 축을 바꾸지 않는다. 모델 구조는 Rust 축·상수·layer 배치에 고정되어 있으므로 외부 자산을 확보하면 먼저 이름·shape·dtype·quantization 계약을 검사해야 한다. 단순히 공개 모델 ID가 같다는 이유만으로 현재 로더와 맞는다고 가정하지 않는다.
@@ -41,9 +41,23 @@ Rust weight loader는 모델 `config.json`을 읽어 축을 바꾸지 않는다.
 
 [scripts/reference/gemma4.py](../../furiosa-opt-gemma4-12B/scripts/reference/gemma4.py)는 전체 text forward도 정의하지만 `__main__`은 `transformers`의 외부 config/tokenizer/weight를 읽는다. 개발 container에는 `transformers`가 없으며 필요한 HF 자산도 없다. `load_hf_weights`가 다른 형식의 HF state를 `strict=False`로 넣는 예제를 현재 NVFP4 체크포인트와 동치인 oracle로 간주할 수 없다. 현재 E2E golden prompt/logits/token trace fixture도 없다.
 
-새 자산 없이 가능한 검사는 전체 host의 격리 빌드·registry 조사와 CPU helper의 별도 합성 검사다. 후자는 sampling의 금지 token/top-k 규칙, 이미지 patch 좌표, WAV frame 경계 등에는 의미가 있지만 새 테스트가 필요하며 E2E 정확도 근거는 아니다. 기존 Stage1 fixture를 다시 실행하는 것만으로 미검증 E2E 경로가 추가로 검증되지는 않는다.
+로컬 자산 없이 가능한 검사는 전체 host의 격리 빌드·registry 조사와 CPU helper의 별도 합성 검사다. 후속 Arena 자산 조회로 원격 모델 실행을 시도할 수 있게 되었다. 후자는 sampling의 금지 token/top-k 규칙, 이미지 patch 좌표, WAV frame 경계 등에는 의미가 있지만 새 테스트가 필요하며 E2E 정확도 근거는 아니다. 기존 Stage1 fixture를 다시 실행하는 것만으로 미검증 E2E 경로가 추가로 검증되지는 않는다.
 
-## 자산 확보 후 정확도·성능 비교 조건
+## Arena 자산 조회와 첫 실제 실행
+
+[Job71164](../experiments/e55-arena-model-assets.json)는 `RNGD_MODEL_DIR`의 세 번째 후보에서 model.safetensors, tokenizer.json, tokenizer_config.json, chat_template.jinja가 모두 regular/readable임을 확인했다. 파일 내용이나 인증 정보를 출력하지 않은 메타데이터 검사다. 기존 로컬 자산 부재를 Arena에도 적용할 수 없다는 점이 확인되었다. [소스와 재현](../../moa-dev/experiments/candidates/arena-model-assets-e55/README.md).
+
+[Job71173](../experiments/e55-arena-model-smoke.json)은 위에서 검증한 E55 gemma4 ELF 그대로 `Hi`, 생성 예산1로 실행했다. 70.093초 뒤 scheduler timeout으로 끝났고 `model loaded` 로그는 없었다. 실제 CLI에서는 `Device::new`와 `load_model` 모두 그 로그보다 앞이므로 이 실행만으로 장치 초기화와 모델 적재 중 어느 쪽인지 구분하지 못한다. 출력 token·E2E 정확도·처리량 결과는 없다. 업로드 archive의 ELF hash는 동결 E55와 같다. [실행 wrapper와 한계](../../moa-dev/experiments/candidates/arena-model-smoke-e55/README.md).
+
+[후속 진단71198](../experiments/e55-arena-model-progress.json)은18.422초에 정상 종료했다. Device 초기화가0.317초에 완료되고 model load가16.058초에 완료된 뒤, 실제 tokenizer로 만든14-token `Hi` prefix의 마지막 위치에서262,144개 finite logits를 얻었다. 기존46개 입력과 kernel image를 보존한 별도 host다. 생성 sampling·멀티모달·position512 page 경계·원본과의 logits 비교는 이 job에서 수행하지 않았다. 한 번의 비통제 실행이므로 최초 timeout의 원인이나 cold-load·공식 처리량을 확정하지 않는다.
+
+[적재 경로 감사](model-loader-initialization-audit.md)는 현재 loader가 논리8.650GiB를1,148개의 직렬 `to_hbm` 호출로 적재함을 코드에서 계산했다. 이는 실측 전송량·시간이 아니다. SDK `HostTensor::from_safetensors`는 shape와 byte 길이를 검사하지만 dtype 자체는 검사하지 않으므로, 이름·shape·dtype의 의미상 호환성도 별도 확인해야 한다. [별도 고정-prefix 진단](../../moa-dev/experiments/candidates/model-fixed-prefix-e55/README.md)의 원본/E55 host는 기존 입력46개를 보존하고 동일 probe를 하나 추가했다. 각각10개 text image와 기존 Stage1 image3개를 확인했다. [실제 paired job71207](../experiments/e55-model-fixed-prefix-pair.md)은 양쪽262,144개 finite logits를 모두 비교해 max abs1.5, mean abs0.194487, RMSE0.251039, bit-equal46,239개와 raw top1 동일을 관측했다. 정확도 허용기준은 미정이며 이 greeting 한 건의 top1 일치로 모델 정확성을 승인하지 않는다.
+
+[자산 식별71224](../experiments/e55-arena-model-identity.json)은 가중치9,304,966,064 bytes의 전체 SHA256 `7c2ee23298e7c3a9247e8947597dca5a38f8b791a0322487466d2bfad8ce704b`와 tokenizer/template 세 파일의 전체 해시를 기록했다. 전체1,389개 tensor 중 필수1,149개의 header 조건과 의도한 dtype이 모두 맞았다. Global scale 값·tensor 수치 자체를 header로 검증한 것은 아니다. Top-level partial은 선택 파일 chat_template.json 부재 때문이며 weight 해시는 완전하다. 앞선 모델 실행 당시의 파일을 소급하여 같은 hash로 확정하지 않는다.
+
+[4-prefix 확장71239](../experiments/e55-model-prefix-suite.md)는 인사·산수·한국어·Python의82개 고정 input token에 대해1,048,576개 logits를 비교했다. 네 raw top1이 모두 같았고 max abs는0.583984375–1.5였다. 각 case는 새 Workspace를 사용했고 같은 job의 전체 weight hash 및 전후 stat/header·metadata hash를 확인했다. 순차1회 prefix/read 비율4.837–4.866은 공식 성능이 아니며, 생성 답변·near-tie·long context·멀티모달 정확도를 평가하지 않았다. [산술 차이와 다음 단일-kernel 대조](e55-model-numerical-differences.md)에 가능한 차이 발생 위치를 정리했다.
+
+## 원본/E55 정확도·성능 비교 조건
 
 원본 `8559916`과 E55를 **같은 체크포인트·tokenizer/template·입력 bytes·토큰 ID·SDK/driver·RNGD 구성**으로 실행해야 한다. 모델/metadata 및 두 host와 registry image의 hash를 기록하고, cold load와 이미 적재된 모델의 실행을 분리한다. 원본의 이전 Stage1 수치나 다른 HF BF16 모델을 E55 NVFP4 E2E 대조군으로 대신하지 않는다.
 
@@ -65,4 +79,4 @@ Stage2 성능을 실제로 측정할 때는 아래 관측값과 공식 지표를
 
 현재 CLI의 `ttft` 타이머는 모델·tokenizer·Workspace 준비 **뒤** 시작하며 첫 `on_delta` callback을 기준으로 한다. 따라서 로그의 `prompt_tokens / ttft`는 tokenizer나 모델 적재를 포함한 서비스 처리량도, prompt-only NPU 처리량도 아니다. `decode_elapsed`는 첫 callback까지 시간을 빼지만 분자는 전체 `completion_tokens`이므로 엄밀한 token 간 TPOT와도 구분해야 한다. 이 로그를 가공 없이 공식 Stage2 score로 보고하지 않는다.
 
-이 문서 작성 과정에서는 새 파일 이외 소스 변경, 다운로드, 모델/NPU 실행, 인증 변경을 하지 않았다. Stage2 workload와 자산을 확보하기 전에는 E55의 커널 개선을 모델 전체 성능이나 공식 순위로 환산하지 않는다.
+최초 준비 감사는 읽기 전용이었다. 이후 추가한 Arena 조회와 실제 모델 실행 시도는 위의 별도 job·결과로 구분한다. 현재 채택된 kernel/runtime 소스와 인증 상태는 변경하지 않았다. Stage2 workload와 전체 모델 검증 결과를 확보하기 전에는 E55의 커널 개선을 모델 전체 성능이나 공식 순위로 환산하지 않는다.

@@ -13,6 +13,10 @@
 | E55 현재 채택 | [동일 패키지3회](e55-fused-qkv-repeats.json) 각각15개 PASS, Q/O/FFN 중앙값102,878/51,249/380,339. [추가30개](e55-fused-qkv-extra-correctness.json)와 [QKV 경계2개](e55-qkv-boundary-probe.json) PASS. QKV는 E54보다5.36% 낮다. 같은source의 isolated/live full host byte-identical, extra/probe image와 업로드 package 검증. |
 | E55 공식 CLI 패키징 | [로컬 검사](e55-official-submit-preflight.json)의 세 POST body를 독립 decode하여 동결 E55 소스23개/160,829B와 일치 확인. 세 body byte-identical, 잘못된 cwd의 음성 검사에서는 HTTP 요청0개. 합성 토큰·loopback으로 검사했고 공식 서버의 인증·계약·점수는 미검증. |
 | E55 전체 모델 host 빌드 | [격리 검사](e55-model-host-build.json)에서 `gemma4` fresh build와 `server` incremental build 성공. 두 ELF의14-entry registry를 끝까지 parse하여 compiler image 및 실측 Stage1의3개 image와 정확히 대조. 모델 자산 적재·NPU 실행·E2E 정확도/성능 검증은 아님. |
+| Arena 실제 모델 자산 | [71164](e55-arena-model-assets.json)에서 모델·tokenizer·metadata/template의 regular/readable 상태 확인. Python 해시 시도[71191](e55-arena-model-fingerprint-python.json)는 원격 인터프리터 부재로 즉시 실패했고 자산 내용을 읽지 않음. Rust [71224](e55-arena-model-identity.json)는 전체 weight/metadata SHA·1,149 required header/dtype 검사 완료. partial은 optional JSON template 부재만 의미함. |
+| 실제 모델 첫 실행 | CLI [71173](e55-arena-model-smoke.json)은70초 timeout. 별도 진단 [71198](e55-arena-model-progress.json)은 실제14-token prefix의262,144개 finite logits까지 정상 완료. 첫 timeout 원인은 미확정이며 한 번의 시간값을 cold-load/공식 성능으로 해석하지 않음. |
+| 원본/E55 모델 비교 | [71207](e55-model-fixed-prefix-pair.json)의262,144개 전원소 비교에서 max abs1.5·mean abs0.194487·RMSE0.251039·top1 동일. 양쪽 host/업로드/47개 source/10개 image 귀속을 확인했으나 정확도 수용 판정은 null. 다른 입력·long context·멀티모달은 범위 밖. |
+| 4-prefix 확장 | [71239](e55-model-prefix-suite.json)의82token·1,048,576개 logits가 모두 finite, raw top1 네 개 동일, max abs0.584–1.5. 같은 job의 전체 weight SHA·전후 stat/header·metadata SHA 일치 확인. 수집기는 실제양성1개와 변형음성20개 검사 통과. 정답률·공식성능·모든입력 정확도 PASS 아님. |
 | K/V 결합 후보 | [단일 stream 후보](../../moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/README.md)는 최초 exact compile의 declared/native 축 불일치로 동결. 소스 범위·의도한4096좌표 검사는 PASS이나 실제 lowering/정확성/성능으로 확대하지 않음. |
 | SDK 후속 감사 | [mixed DPE](../research/mixed-dtype-dpe-audit.md)와 [lookup table 공유](../research/fp8-lookup-table-sharing-audit.md)를 설치 SDK0.8.1의 실제 caller·dtype bound·typestate 및 기존 graph/schedule과 대조. 공개 API의 제약이며 새 compile/NPU 실행 또는 하드웨어 전체 불가능 증명으로 확대하지 않음. |
 | E54 후속 정적 후보 | BF16 QKV dot·scale 결합 exact compile 세 번째 성공, 전체52,282→51,293. 이후 별도 E55 NPU 검증으로 채택. 공통 TRF는51,293→52,562 회귀로 제외; broadcast→TRF는 첫 compile의 bitmap 검증 실패, 유효 성능 수치 없음. |
@@ -41,8 +45,8 @@ Git whitespace 검사는 raw patch/log를 제외했다. 변경하지 않은 froz
 파일 끝 빈 줄이 있어 `core.whitespace=-blank-at-eof`로 이 항목만 제외하고 검사했다.
 실험 source의 hash를 보존하기 위해 해당 파일을 서식 목적으로 변경하지 않았다.
 
-최종 검사 `2026-09-21T14:59:39.904712+00:00`: Markdown 163개, 로컬 링크 774개,
-JSON 515개에서 누락 파일·JSON 문법 오류0건. 외부 링크164개는 검사 범위에서 제외했다.
+최종 검사 `2026-09-21T15:47:00.645448+00:00`: Markdown 172개, 로컬 링크 901개,
+JSON 543개에서 누락 파일·JSON 문법 오류0건. 외부 링크164개는 검사 범위에서 제외했다.
 검사 스크립트와 출력은 `/tmp/moa-local-doc-qa.py`, `/tmp/moa-local-doc-qa-result.json`에 있다.
 
 공식 score/rank는 아직 없다. [공식 상태](official-submission-status-20260921.json)의

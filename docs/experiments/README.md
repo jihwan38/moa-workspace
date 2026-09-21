@@ -20,6 +20,28 @@ exact three measured E55 images. No model assets were loaded and no end-to-end
 accuracy or throughput test was run. The [interleaved K/V candidate](../../moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/README.md)
 failed its first exact compile at an axis-identity check; it has no valid image,
 schedule, or NPU result and does not replace E55.
+The later [Arena asset probe](e55-arena-model-assets.json) found the actual model,
+tokenizer, and chat template in the configured third loader candidate. The
+[standalone Rust identity job71224](e55-arena-model-identity.json) completed full
+weight/metadata hashes and all1149 required header contracts; its partial status
+reflects only the missing optional JSON template. The
+[unmodified E55 model smoke](e55-arena-model-smoke.json) then timed out after70
+seconds before its model-loaded log; no generated token or E2E metric was obtained.
+Device initialization and loading are not distinguished by that silent interval.
+A separate [fixed-prefix diagnostic](../../moa-dev/experiments/candidates/model-fixed-prefix-e55/README.md)
+has two built hosts,47 verified inputs each,10 verified text images, and explicit
+initialization progress markers. The [E55-only job71198](e55-arena-model-progress.json)
+completed the real14-token prefix and produced262144 finite logits in one run.
+That run is neither an original/E55 comparison nor an official model benchmark.
+The subsequent [paired job71207](e55-model-fixed-prefix-pair.md) compares all262144
+finite logits: max abs1.5, mean abs0.194487, RMSE0.251039, and identical raw top1.
+Its accuracy verdict remains null; one greeting and one uncontrolled timing do
+not establish model accuracy or official performance.
+The [four-prefix job71239](e55-model-prefix-suite.md) extends this to82 input
+tokens and1048576 finite logits with four matching raw top1 IDs. It records
+full weight/metadata hashes before execution and unchanged weight stat/header
+and metadata hashes afterward. Accuracy acceptance remains null; the observed
+prefix/read ratios4.837–4.866 are sequential single-job diagnostics.
 Earlier adoption decisions describe the checkpoint retained at that experiment's date.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.

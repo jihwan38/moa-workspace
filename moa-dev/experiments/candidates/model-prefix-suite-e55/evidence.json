@@ -1,0 +1,146 @@
+{
+  "schema": "MOA_MODEL_PREFIX_SUITE_BUILD_V1",
+  "prepared_at_utc": "2026-09-21T15:37:03.694221+00:00",
+  "status": "PREPARED_RELEASE_BUILD_SOURCE_AND_KERNEL_IDENTITY_VERIFIED_NO_NPU_RUN",
+  "prompts": [
+    "Hi",
+    "What is 2 + 2?",
+    "대한민국의 수도는?",
+    "Complete the Python expression: len([1, 2, 3])"
+  ],
+  "thinking": false,
+  "add_generation_prompt": true,
+  "max_total_prompt_tokens": 128,
+  "token_budget_guard_before_device_new": true,
+  "fresh_workspace_each_case": true,
+  "cases": 4,
+  "logits_per_case": 262144,
+  "total_reference_logits": 1048576,
+  "only_last_token_compute_logits": true,
+  "reference_is_one_suite_json_file": true,
+  "accuracy_acceptance_threshold": null,
+  "accuracy_pass": null,
+  "unchanged_existing_inputs_per_variant": 46,
+  "added_identical_host_inputs_per_variant": 1,
+  "probe": {
+    "path": "moa-dev/experiments/candidates/model-prefix-suite-e55/probe_model_prefix_suite.rs",
+    "bytes": 13434,
+    "sha256": "07cfaf4646da18a78e03bb386632ac455ccf545d98b858385bded281c3104da4"
+  },
+  "source_verification": {
+    "status": "SOURCE_INPUT_IDENTITY_PASS",
+    "variants": [
+      "original",
+      "e55"
+    ],
+    "inputs_each": 47,
+    "identical_probe_sha256": "07cfaf4646da18a78e03bb386632ac455ccf545d98b858385bded281c3104da4",
+    "model_or_npu_executed": false
+  },
+  "builds": {
+    "original": {
+      "variant": "original",
+      "command": "cd /tmp/moa-model-prefix-suite-e55/original && CARGO_HOME=/home/moa/.cargo CARGO_TARGET_DIR=/tmp/moa-model-prefix-suite-e55/original/target FURIOSA_OPT_OUT_DIR=/tmp/moa-model-prefix-suite-e55/original/target/furiosa-opt/kernel cargo furiosa-opt build --release --locked --bin probe_model_prefix_suite",
+      "exit_code": 0,
+      "elapsed_seconds": 46.18113832292147,
+      "completed_at_utc": "2026-09-21T15:32:54.252963+00:00",
+      "log_sha256": "4dca59f331219feeb669cccd488deba93cca71e601ae7ce0f8d2480a94f2db1f",
+      "target_was_empty_before_build": true,
+      "model_or_npu_executed": false
+    },
+    "e55": {
+      "variant": "e55",
+      "command": "cd /tmp/moa-model-prefix-suite-e55/e55 && CARGO_HOME=/home/moa/.cargo CARGO_TARGET_DIR=/tmp/moa-model-prefix-suite-e55/e55/target FURIOSA_OPT_OUT_DIR=/tmp/moa-model-prefix-suite-e55/e55/target/furiosa-opt/kernel cargo furiosa-opt build --release --locked --bin probe_model_prefix_suite",
+      "exit_code": 0,
+      "elapsed_seconds": 57.60441511194222,
+      "completed_at_utc": "2026-09-21T15:33:52.018632+00:00",
+      "log_sha256": "cee41097e821248bf4b0438da3aaa861733b8395d41f47b2fae67ec2e15835fc",
+      "target_was_empty_before_build": true,
+      "model_or_npu_executed": false
+    }
+  },
+  "hosts": {
+    "original": {
+      "bytes": 11423152,
+      "sha256": "d0ae91f22f2b272fcf2fb77462c02bbc5b2a8ec5eaf79e0dc614bb62ce61c4e5"
+    },
+    "e55": {
+      "bytes": 11421872,
+      "sha256": "52bd86d125e34da224738bf3a26a0672f8cefbcfa720b376ccf3a890c51afd57"
+    }
+  },
+  "all_ten_images_equal_previous_fixed_prefix_per_variant": true,
+  "stage1_images_equal_prior_measured_test_kernels": true,
+  "original_vs_e55_changed_images": [
+    "furiosa_opt_gemma4::ops::decoder_feedforward",
+    "furiosa_opt_gemma4::ops::full_attention_output",
+    "furiosa_opt_gemma4::ops::sliding_attention_output",
+    "furiosa_opt_gemma4::ops::sliding_project_qkv"
+  ],
+  "registry_scope": "ELF identity only; separate source verification checks all actual47inputs.",
+  "statistics_functions_byte_identical_to_fixed_prefix": true,
+  "statistics_function_source_sha256": "eb71cb2052bd1a563af4407054d8e20ed633532839cc37112ab6de6de5cd8612",
+  "cpu_guard_tests": {
+    "count": 5,
+    "passed": 5,
+    "failed": 0,
+    "log": "moa-dev/experiments/artifacts/model-prefix-suite-e55/guard-tests.log",
+    "bytes": 1676,
+    "sha256": "619a95afa4a14c515a8313e371baf98add35400d5bbed066b87c114646659ce4",
+    "scope": "Exact host validation/statistics functions extracted, SDK E context size stub32768 checked againstaxes; no model/device execution."
+  },
+  "independent_read_only_review": {
+    "reviewer": "competition_research",
+    "probe_sha256": "07cfaf4646da18a78e03bb386632ac455ccf545d98b858385bded281c3104da4",
+    "result": "No blocking source/false-accuracy-PASS defect found; frozen47files pervariant independently matched parents.",
+    "completion_requirement": "Original suite_reference_written plus four candidate case_logits_compared in fixed order plus suite_comparison_complete and runner exit0."
+  },
+  "package": {
+    "schema": "MOA_MODEL_PREFIX_SUITE_PACKAGE_V1",
+    "files": {
+      "probe_model_original": {
+        "source": "moa-dev/experiments/artifacts/model-prefix-suite-e55/original/probe_model_prefix_suite",
+        "sha256": "d0ae91f22f2b272fcf2fb77462c02bbc5b2a8ec5eaf79e0dc614bb62ce61c4e5",
+        "bytes": 11423152
+      },
+      "probe_model_e55": {
+        "source": "moa-dev/experiments/artifacts/model-prefix-suite-e55/e55/probe_model_prefix_suite",
+        "sha256": "52bd86d125e34da224738bf3a26a0672f8cefbcfa720b376ccf3a890c51afd57",
+        "bytes": 11421872
+      },
+      "moa-model-asset-inspector": {
+        "source": "moa-dev/experiments/artifacts/arena-model-assets-rust-inspector/moa-model-asset-inspector",
+        "sha256": "1fb587ee436c5eb27099fe6177b4b04911b9b6ea09699de4a781c41bb932cf11",
+        "bytes": 880872
+      },
+      "remote_entrypoint.sh": {
+        "source": "moa-dev/experiments/candidates/model-prefix-suite-e55/remote_entrypoint.sh",
+        "sha256": "70c39d243c07a0a72b992acdfd29e8338f474cc89915c0bea1f22ef7b91dfad2",
+        "bytes": 1398
+      }
+    },
+    "package_path": "moa-dev/experiments/artifacts/model-prefix-suite-e55/package",
+    "file_count": 4,
+    "order": [
+      "asset_inspector_full_hash",
+      "original_emit",
+      "reference_sha256",
+      "e55_compare",
+      "asset_inspector_header_only"
+    ],
+    "npu_executed_during_preparation": false,
+    "accuracy_acceptance_threshold": null,
+    "accuracy_pass": null
+  },
+  "inspector_rebuilt_here": false,
+  "asset_identity_scope": "Before: full file hash attempted with40s cooperative budget; after: header/stat + small metadata hashes; inspect status/digest, not exit0 alone. This is not a cryptographic proof of payload immutability during execution.",
+  "model_or_npu_executed_during_preparation": false,
+  "live_source_modified": false,
+  "git_mutated": false,
+  "limits": [
+    "No Stage2 numerical acceptance threshold",
+    "No sampling or answer grading",
+    "128tokens does not guarantee70s completion",
+    "Actual token counts and numerical results require later root-managed NPU execution"
+  ]
+}
