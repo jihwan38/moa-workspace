@@ -1,0 +1,76 @@
+{
+  "schema": "MOA_MODEL_CONTROL_QKV_ORIGINAL_E55_BUILD_V1",
+  "prepared_at_utc": "2026-09-21T15:57:32.551786+00:00",
+  "status": "ISOLATED_CONTROL_PREPARED_TARGET_ORIGINAL_OTHER_NINE_E55_EXACT",
+  "target": "furiosa_opt_gemma4::ops::sliding_project_qkv",
+  "base": "frozen E55 source46 plus unchanged model-prefix-suite-e55 host1",
+  "source_scope": {
+    "status": "SOURCE_SCOPE_PASS",
+    "actual_input_count": 47,
+    "changed_source_count": 4,
+    "changed_sources": [
+      "src/device/sliding/projection.rs",
+      "src/device/sliding/rmsnorm.rs",
+      "src/device/sliding/rope.rs",
+      "src/ops.rs"
+    ],
+    "all_ten_public_signatures_unchanged": true,
+    "other_nine_ops_functions_byte_identical_e55": true,
+    "ops_outside_qkv_body_byte_identical_e55": true,
+    "qkv_public_body_byte_identical_original": true,
+    "three_projection_qkv_helper_functions_byte_identical_original": true,
+    "head_rmsnorm_and_rope_complete_files_byte_identical_original": true,
+    "projection_output_suffix_byte_identical_e55": true,
+    "all_shared_helpers_byte_identical_e55": true,
+    "suite_probe_sha256": "07cfaf4646da18a78e03bb386632ac455ccf545d98b858385bded281c3104da4",
+    "npu_executed": false
+  },
+  "actual_input_verification": {
+    "status": "FROZEN_AND_ACTUAL_47_INPUTS_PASS",
+    "inputs": 47,
+    "scratch": "/tmp/moa-model-control-qkv-original-e55",
+    "npu_executed": false
+  },
+  "build": {
+    "command": "cd /tmp/moa-model-control-qkv-original-e55 && CARGO_HOME=/home/moa/.cargo CARGO_NET_OFFLINE=true CARGO_TARGET_DIR=/tmp/moa-model-control-qkv-original-e55/target FURIOSA_OPT_OUT_DIR=/tmp/moa-model-control-qkv-original-e55/target/furiosa-opt/kernel cargo furiosa-opt build --release --locked --bin probe_model_prefix_suite",
+    "exit_code": 0,
+    "elapsed_seconds": 107.08800021279603,
+    "completed_at_utc": "2026-09-21T15:56:02.257013+00:00",
+    "target_was_empty_before_build": true,
+    "build_log_sha256": "3e148b01bd0e224da8cad5d3d2f3bc49b74f5efebf36aa4e8ea75ce956d57cdb",
+    "npu_executed": false
+  },
+  "control_host": {
+    "bytes": 11435952,
+    "sha256": "1f676b0be83dcda19202363bb143d2b770bc67521e717a3203b9a4c8b2d34a80"
+  },
+  "kernel_registry_entry_count": 10,
+  "target_image": {
+    "bytes": 183040,
+    "sha256": "75eacabd18926cbefdebdded06d8bb3313b810d25d83faf8006e807d7384fe5b"
+  },
+  "target_byte_identical_original": true,
+  "other_nine_byte_identical_e55": true,
+  "changed_images_from_e55": [
+    "furiosa_opt_gemma4::ops::sliding_project_qkv"
+  ],
+  "source_peer_review": {
+    "reviewer": "competition_research",
+    "scope": "Read-only frozen47 inputs, four modified paths, QKV-only callers, unchanged E55 O suffix; image gate kept separate",
+    "result": "No blocking scope issue found"
+  },
+  "unchanged_suite_probe_sha256": "07cfaf4646da18a78e03bb386632ac455ccf545d98b858385bded281c3104da4",
+  "new_cpu_guard_tests": false,
+  "new_cpu_guard_tests_reason": "Existing suite probe and statistical functions are unchanged; build/source/image gates are the new checks.",
+  "npu_executed_during_preparation": false,
+  "model_logits_compared_during_preparation": false,
+  "accuracy_acceptance_threshold": null,
+  "accuracy_pass": null,
+  "live_crate_modified": false,
+  "git_mutated": false,
+  "scope_limits": [
+    "Whole QKV kernel ablation, not one rounding change",
+    "Original output is a comparison reference, not declared ground truth",
+    "Runtime accuracy/performance pending root-managed execution"
+  ]
+}

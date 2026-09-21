@@ -1,0 +1,114 @@
+{
+  "schema": "MOA_SINGLE_KERNEL_MODEL_CONTROL_V1",
+  "variant": "e55_with_original_full_o",
+  "status": "COMPILED_IMAGE_IDENTITY_PASS_NOT_NPU_TESTED_BY_AUTHOR",
+  "date": "2026-09-22 Asia/Seoul",
+  "host": {
+    "path": "moa-dev/experiments/artifacts/model-control-full-o-original-e55/probe_model_prefix_suite",
+    "bytes": 11406512,
+    "sha256": "690695e1d097c6a7ba86f7e3c1a3f3c29c437e9fa1f1a75df0afde538d00a76d"
+  },
+  "intended_reference_for_next_pair": "e55",
+  "target_kernel": "furiosa_opt_gemma4::ops::full_attention_output",
+  "target_image": {
+    "bytes": 126976,
+    "sha256": "00f4ef931a38f9223ef27563468e663fb7e58c080fa53112dc96911ab1773daf",
+    "required_reference": "original",
+    "required_reference_byte_identical": true,
+    "standalone_bin_byte_identical": true
+  },
+  "other_nine_images_exact_e55": true,
+  "changed_from_e55": [
+    "furiosa_opt_gemma4::ops::full_attention_output"
+  ],
+  "source_inputs": {
+    "count": 47,
+    "unchanged_e55": 46,
+    "only_changed_file": "src/device/shared/residual.rs",
+    "only_changed_function": "shared::residual::add",
+    "residual_file": {
+      "bytes": 8850,
+      "sha256": "8be965295957defb41fb6c5c65d68b655726ba6053da72d51b93ce8e9d7b7860"
+    },
+    "original_add_function_sha256": "7ca8c4fafc464e046488ffd8256b683f617c2c0c2d68da9bf3874998249671ef",
+    "host_source_sha256": "07cfaf4646da18a78e03bb386632ac455ccf545d98b858385bded281c3104da4",
+    "public_ops_and_host_unchanged": true,
+    "actual_compiled_inputs_equal_prepared": true
+  },
+  "build": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/tmp/moa-model-control-full-o-original-e55",
+      "-e",
+      "CARGO_HOME=/home/moa/.cargo",
+      "-e",
+      "CARGO_TARGET_DIR=/tmp/moa-model-control-full-o-original-e55/target",
+      "-e",
+      "FURIOSA_OPT_OUT_DIR=/tmp/moa-model-control-full-o-original-e55/target/furiosa-opt/kernel",
+      "moa2026-dev",
+      "cargo",
+      "furiosa-opt",
+      "build",
+      "--release",
+      "--locked",
+      "--bin",
+      "probe_model_prefix_suite"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 127.2222979189828,
+    "completed_at_utc": "2026-09-21T15:55:53.440869+00:00",
+    "model_or_npu_executed": false,
+    "log_sha256": "b8d9f99e71d3b439ff09b3f7f84154ac0f2a275fe4316f62e478c5b5a02ae57a",
+    "target_was_empty_before_build": true
+  },
+  "records": {
+    "source-manifest.json": {
+      "bytes": 7358,
+      "sha256": "59647d5637892bca70b3f49dca11664b60967104b95b8bd0a494357cb51f5125"
+    },
+    "compiled-source-manifest.json": {
+      "bytes": 6804,
+      "sha256": "c0d278704b59e2424ebb3efe12756082d1cc403c3d158fd311daffe81b849db6"
+    },
+    "registry-check.json": {
+      "bytes": 4999,
+      "sha256": "6c28ec9f45cded85cb666e3299f29443b9c6c6c4ee28ca8011c2f3f866550c24"
+    },
+    "source.patch": {
+      "bytes": 1169,
+      "sha256": "1d6c86da7838ee495c2e33cc5c4704a73bfd934d82d9ffc5f22a74d9ab051444"
+    },
+    "build-result.json": {
+      "bytes": 760,
+      "sha256": "f36c28ea553ca3429950c7257bff95ae3bf47037a303312740070f6290d7f554"
+    }
+  },
+  "reproduction_scripts": {
+    "prepare_sources.py": {
+      "bytes": 4825,
+      "sha256": "78a36ebcdc6c69b0c2e60deb3d97ca576d8c2edbd481ed5d253ad3b4e31acbc8"
+    },
+    "build.py": {
+      "bytes": 3156,
+      "sha256": "e131916d7e1f2a50019ddd245f6f103817f5afa088289676d015da48a9008180"
+    },
+    "build.sh": {
+      "bytes": 118,
+      "sha256": "aa1b170c338f690be7373ffec84d1fd964611cf6c9b2085efca8ee0b016916e7"
+    },
+    "verify_registry.py": {
+      "bytes": 4895,
+      "sha256": "ce8ef93daf9475a584a21f9d5d1f42523f0b530092eaaa201f9f11ddfe4df4b3"
+    }
+  },
+  "npu_run": false,
+  "accuracy_acceptance_threshold": null,
+  "accuracy_pass": null,
+  "limitations": [
+    "Image identity isolates one compiled kernel, not its numerical effect on propagated model inputs.",
+    "No model/NPU/Stage1 performance execution during preparation.",
+    "Original full-O is a comparison control, not an independent exact numerical oracle."
+  ]
+}

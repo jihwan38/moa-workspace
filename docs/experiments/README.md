@@ -42,6 +42,12 @@ tokens and1048576 finite logits with four matching raw top1 IDs. It records
 full weight/metadata hashes before execution and unchanged weight stat/header
 and metadata hashes afterward. Accuracy acceptance remains null; the observed
 prefix/read ratios4.837–4.866 are sequential single-job diagnostics.
+The [single-kernel controls](e55-model-single-kernel-controls.md) restore original
+QKV, O, FFN, or full O independently while preserving the other nine E55 images.
+All four jobs71275/71281/71282/71290 completed. The full-O pair is bit-identical
+to E55 across the four full vectors; QKV/O/FFN original-reference differences
+are not additive kernel error contributions.
+The unchanged live E55 remains the accepted checkpoint.
 Earlier adoption decisions describe the checkpoint retained at that experiment's date.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.

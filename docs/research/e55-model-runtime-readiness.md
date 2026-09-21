@@ -57,6 +57,8 @@ Rust weight loader는 모델 `config.json`을 읽어 축을 바꾸지 않는다.
 
 [4-prefix 확장71239](../experiments/e55-model-prefix-suite.md)는 인사·산수·한국어·Python의82개 고정 input token에 대해1,048,576개 logits를 비교했다. 네 raw top1이 모두 같았고 max abs는0.583984375–1.5였다. 각 case는 새 Workspace를 사용했고 같은 job의 전체 weight hash 및 전후 stat/header·metadata hash를 확인했다. 순차1회 prefix/read 비율4.837–4.866은 공식 성능이 아니며, 생성 답변·near-tie·long context·멀티모달 정확도를 평가하지 않았다. [산술 차이와 다음 단일-kernel 대조](e55-model-numerical-differences.md)에 가능한 차이 발생 위치를 정리했다.
 
+[실제 단일-kernel 복원 대조](../experiments/e55-model-single-kernel-controls.md)는 대상 image 하나만 원본으로 바꾸고 나머지9개를 E55와 동일하게 유지한다. Full-O 복원은 네 prefix의1,048,576개 logits 모두 E55와 bit-identical이었다. O/FFN 복원은 입력마다 원본과의 차이가 커지거나 줄었으며 오차의 가산 기여율로 해석하지 않는다. 다음 [생성 토큰 고정 진단 설계](model-continuation-diagnostic-design.md)는 동일 문맥에서 최대32개 checkpoint와 실제 sampler 선택을 비교한다. 아직 구현·실행하지 않았고, 추가 logits head와 JSON I/O 비용 때문에70초 완료도 미검증이다.
+
 ## 원본/E55 정확도·성능 비교 조건
 
 원본 `8559916`과 E55를 **같은 체크포인트·tokenizer/template·입력 bytes·토큰 ID·SDK/driver·RNGD 구성**으로 실행해야 한다. 모델/metadata 및 두 host와 registry image의 hash를 기록하고, cold load와 이미 적재된 모델의 실행을 분리한다. 원본의 이전 Stage1 수치나 다른 HF BF16 모델을 E55 NVFP4 E2E 대조군으로 대신하지 않는다.

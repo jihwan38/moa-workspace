@@ -115,7 +115,11 @@ def checked_assets(before, after):
     return identity
 
 
-def collect(status_path, log_path, archive_path):
+def collect(status_path, log_path, archive_path, package_path=None):
+    # Optional package override is used by the single-kernel control adapter.
+    # This legacy report keeps original/E55 field names; the adapter relabels
+    # those fields before returning a report about another pair of hosts.
+    package_path = PACKAGE if package_path is None else str(package_path)
     status = read_json(status_path)
     require(status['status'] == 'SUCCEEDED' and status['exit_code'] == 0,
             'job has not succeeded with exit0')
@@ -208,7 +212,7 @@ def collect(status_path, log_path, archive_path):
     require(lines.count(marker) == 1, 'missing reference hash')
     match = re.fullmatch(r'([0-9a-f]{64})  reference.json', lines[lines.index(marker) + 1])
     require(match is not None, 'invalid reference hash line')
-    package = read_json(ROOT / PACKAGE)
+    package = read_json(ROOT / package_path)
     archive = fingerprint(archive_path)
     archive['members'] = []
     with tarfile.open(archive_path) as tar:
@@ -239,7 +243,7 @@ def collect(status_path, log_path, archive_path):
                         and identity[name]['size_bytes'] == item['bytes'] for name, item in known.items())
     return {'recorded_at_utc': datetime.now(timezone.utc).isoformat(),
             'status': 'FOUR_REAL_MODEL_PREFIXES_COMPARED_NO_ACCURACY_VERDICT', 'job': status,
-            'package_manifest': PACKAGE, 'collector': fingerprint(Path(__file__).resolve()),
+            'package_manifest': package_path, 'collector': fingerprint(Path(__file__).resolve()),
             'submitted_archive': archive, 'uploaded_package_matches_manifest': True,
             'log': fingerprint(log_path), 'asset_snapshots': assets, 'asset_identities_before': identity,
             'assets_match_separate_job_71224': matches_known,

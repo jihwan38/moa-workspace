@@ -53,5 +53,8 @@ original full-O image with that change.
 
 Before interpreting any control as a single-kernel comparison, require its target
 image to match the original and its other nine text images to match E55. Reuse
-the same fixed-prefix suite and asset identity checks. No such control has been
-built or run in this audit, and no new optimization has been adopted from it.
+the same fixed-prefix suite and asset identity checks. The subsequent [source-derived controls and model runs](../experiments/e55-model-single-kernel-controls.md)
+apply this gate to all four kernels. Full-O restoration gives bit-identical E55
+outputs on the four tested prefixes; the other controls compare against the
+original reference. Consult that execution record for completed jobs and their
+limits. No new optimization has been adopted from these controls.
