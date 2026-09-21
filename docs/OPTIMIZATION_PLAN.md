@@ -25,8 +25,11 @@
 
 2026-09-21 job `70029`에서 QKV 227,578 / O 154,254 / FFN 1,139,366 cycles와
 전체 정확성 통과를 확인했다. 원본 대비 각각 약 1.07× / 2.62× / 3.74×이며 단일 job 결과다.
-같은 패키지의 독립 반복과 추가 run3..8 정확성 검사를 진행 중이다.
+같은 패키지의 독립 세 job 반복과 추가 run3..8의30개 출력 비교도 통과했다.
 QKV HBM relay를 더한 job `70039`도 통과했고 QKV는188,573 cycles였다.
+후속 hier16 broadcast와 MLP/residual 반복 전개 조합인 job `70070`은
+QKV165,134 / O113,136 / FFN820,226 cycles로 모두 통과했다. 이 후속 조합은
+단일 job 결과이며, 두 cluster 분산을 추가 검증 중이다.
 [실험 원장](experiments/README.md)과 개별 JSON이 최신 채택·실패·변동 근거다.
 
 초기 FFN two-row commit 변형 두 개는 정확성에 실패해 폐기했다. 원본 four-row 출력

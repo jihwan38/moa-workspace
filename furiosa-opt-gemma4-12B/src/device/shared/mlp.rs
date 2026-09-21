@@ -4,6 +4,17 @@ use crate::Chip;
 use crate::axes::{H, L};
 use crate::device::layout::{Cluster, Replicated, Slice};
 
+macro_rules! static_passes {
+    ($index:ident, [$($value:expr),+], $body:block) => {
+        $(
+            {
+                let $index: usize = $value;
+                $body
+            }
+        )+
+    };
+}
+
 const INVSQRT2: f32 = 0.70710678118f32;
 
 pub(crate) type UpGateRows = m![L / 60];
@@ -20,10 +31,6 @@ pub(crate) fn project_up_and_gate(
     DmTensor<bf16, Chip, Cluster, UpGateRows, m![L % 60]>,
     DmTensor<bf16, Chip, Cluster, UpGateRows, m![L % 60]>,
 ) {
-    const ROWS_PER_SLICE: usize = 60;
-    const ROWS_PER_PASS: usize = 4;
-    const PASSES: usize = ROWS_PER_SLICE / ROWS_PER_PASS;
-
     let mut up: DmTensor<bf16, Chip, Cluster, UpGateRows, m![L % 60]> = DmTensor::new();
 
     let up_weight_packed: DmTensor<f4e2m1, Chip, Cluster, UpGateRows, m![L % 60, H]> =
@@ -40,7 +47,7 @@ pub(crate) fn project_up_and_gate(
     let up_weight_scale: DmTensor<f8e4m3, Chip, Cluster, UpGateRows, m![L % 60, H / 16]> =
         up_weight_scale.to_dm(&mut device.tdma);
 
-    for i in 0..PASSES {
+    static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], {
         let up_weight_scale_vrf: VrfTensor<f32, Chip, Cluster, UpGateRows, m![L % 60 = 4, H / 16]> = device
             .sub
             .begin(
@@ -86,7 +93,7 @@ pub(crate) fn project_up_and_gate(
             .transpose::<m![1], m![L % 60 = 4 # 16]>()
             .commit_trim::<m![L % 60 = 4]>()
             .commit_view(up.view_mut().tile::<m![L % 60], 4, m![L % 60 = 4 #{!} 60]>(4 * i));
-    }
+    });
 
     let mut gate: DmTensor<bf16, Chip, Cluster, UpGateRows, m![L % 60]> = DmTensor::new();
 
@@ -104,7 +111,7 @@ pub(crate) fn project_up_and_gate(
     let gate_weight_scale: DmTensor<f8e4m3, Chip, Cluster, UpGateRows, m![L % 60, H / 16]> =
         gate_weight_scale.to_dm(&mut device.tdma);
 
-    for i in 0..PASSES {
+    static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], {
         let gate_weight_scale_vrf: VrfTensor<f32, Chip, Cluster, UpGateRows, m![L % 60 = 4, H / 16]> = device
             .sub
             .begin(
@@ -150,7 +157,7 @@ pub(crate) fn project_up_and_gate(
             .transpose::<m![1], m![L % 60 = 4 # 16]>()
             .commit_trim::<m![L % 60 = 4]>()
             .commit_view(gate.view_mut().tile::<m![L % 60], 4, m![L % 60 = 4 #{!} 60]>(4 * i));
-    }
+    });
 
     (up, gate)
 }
@@ -351,75 +358,61 @@ pub(crate) fn project_down(
         .collect::<m![L / 16 % 120], m![L % 16]>()
         .to_trf();
 
-    const ROWS_PER_SLICE: usize = 120;
-    const ROWS_PER_PASS: usize = 4;
-    const PASSES: usize = ROWS_PER_SLICE / ROWS_PER_PASS;
-    const HALVES_PER_PASS: usize = 2;
-
     let mut down: DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120]> = DmTensor::new();
 
-    let down_weight_scale: DmTensor<f8e4m3, Chip, Cluster, DownRows, m![H % 120, L / 16]> =
+    let down_weight_scale: DmTensor<f8e4m3, Chip, Cluster, DownRowsByColumns, m![H % 120, L / 16 % 120]> =
         down_weight_scale.to_dm(&mut device.tdma);
 
-    for i in 0..PASSES {
-        let mut down_weight: DmTensor<bf16, Chip, Cluster, DownRowsByColumns, m![H % 120 = 4, L % 1920]> =
-            DmTensor::new();
+    // The same full-matrix unpack pattern is used by the up/gate path.
+    // Keep the column partition during both HBM loading and FP4 expansion.
+    let down_weight_packed: DmTensor<f4e2m1, Chip, Cluster, DownRowsByColumns, m![H % 120, L % 1920]> =
+        down_weight_packed.to_dm(&mut device.tdma);
+    let down_weight_packed: DmTensor<f8e4m3, Chip, Cluster, DownRowsByColumns, m![H % 120, L % 1920]> = device
+        .main
+        .begin(down_weight_packed.view())
+        .fetch::<m![H % 120], m![L % 1920]>()
+        .fetch_table_lookup::<f8e4m3>()
+        .collect::<m![H % 120, L / 32 % 60], m![L % 32]>()
+        .commit_trim::<m![L % 32]>()
+        .commit();
 
-        for j in 0..HALVES_PER_PASS {
-            let down_weight_packed: DmTensor<f4e2m1, Chip, Cluster, DownRows, m![H % 120 = 2, L]> = down_weight_packed
-                .view()
-                .tile::<m![H % 120], 2, m![H / 120, H % 120 = 2 # 120, L]>(4 * i + 2 * j)
-                .to_dm(&mut device.tdma);
-            let down_weight_packed: DmTensor<f8e4m3, Chip, Cluster, DownRows, m![H % 120 = 2, L]> = device
-                .main
-                .begin(down_weight_packed.view())
-                .fetch::<m![H % 120 = 2], m![L]>()
-                .fetch_table_lookup::<f8e4m3>()
-                .collect::<m![H % 120 = 2, L / 32], m![L % 32]>()
-                .commit_trim::<m![L % 32]>()
-                .commit();
+    static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], {
+        let down_weight_scale_vrf: VrfTensor<f32, Chip, Cluster, DownRowsByColumns, m![H % 120 = 4, L / 16 % 120]> = device
+            .sub
+            .begin(
+                down_weight_scale
+                    .view()
+                    .tile::<m![H % 120], 4, m![H % 120 = 4 # 120, L / 16 % 120]>(4 * i),
+            )
+            .fetch::<m![H % 120 = 4], m![L / 16 % 120]>()
+            .fetch_cast::<f32>()
+            .collect::<m![H % 120 = 4, L / 16 / 8 % 15], m![L / 16 % 8]>()
+            .to_vrf();
 
-            let down_weight_scale_vrf: VrfTensor<f32, Chip, Cluster, DownRows, m![H % 120 = 2, L / 16]> = device
-                .sub
-                .begin(
-                    down_weight_scale
-                        .view()
-                        .tile::<m![H % 120], 2, m![H % 120 = 2 # 120, L / 16]>(4 * i + 2 * j),
-                )
-                .fetch::<m![H % 120 = 2], m![L / 16]>()
-                .fetch_cast::<f32>()
-                .collect::<m![H % 120 = 2, L / 16 / 8], m![L / 16 % 8]>()
-                .to_vrf();
+        let down_weight_tile: DmTensor<bf16, Chip, Cluster, DownRowsByColumns, m![H % 120 = 4, L % 1920]> = device
+            .main
+            .begin(
+                down_weight_packed
+                    .view()
+                    .tile::<m![H % 120], 4, m![H % 120 = 4 # 120, L % 1920]>(4 * i),
+            )
+            .fetch::<m![H % 120 = 4, L / 32 % 60], m![L % 32]>()
+            .fetch_cast::<f32>()
+            .collect::<m![H % 120 = 4, L / 8 % 240], m![L % 8]>()
+            .vector_init()
+            .vector_intra_slice_tag(TagMode::Zero)
+            .vector_narrow_split::<m![H % 120 = 4, L / 4 % 480], m![L % 4]>()
+            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &down_weight_scale_vrf)
+            .vector_widen_concat::<m![H % 120 = 4, L / 8 % 240], m![L % 8]>()
+            .vector_final()
+            .cast::<bf16, m![L % 8 # 16]>()
+            .commit_trim::<m![L % 8]>()
+            .commit();
 
-            let down_weight_tile: DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120 = 2, L]> = device
-                .main
-                .begin(down_weight_packed.view())
-                .fetch::<m![H % 120 = 2, L / 32], m![L % 32]>()
-                .fetch_cast::<f32>()
-                .collect::<m![H % 120 = 2, L / 8], m![L % 8]>()
-                .vector_init()
-                .vector_intra_slice_tag(TagMode::Zero)
-                .vector_narrow_split::<m![H % 120 = 2, L / 4], m![L % 4]>()
-                .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &down_weight_scale_vrf)
-                .vector_widen_concat::<m![H % 120 = 2, L / 8], m![L % 8]>()
-                .vector_final()
-                .cast::<bf16, m![L % 8 # 16]>()
-                .commit_trim::<m![L % 8]>()
-                .commit();
-            let down_weight_tile: DmTensor<bf16, Chip, Cluster, DownRowsByColumns, m![H % 120 = 2, L % 1920]> =
-                down_weight_tile.to_dm(&mut device.tdma);
-
-            down_weight_tile.view().to_dm_view(
-                &mut device.tdma,
-                down_weight
-                    .view_mut()
-                    .tile::<m![H % 120 = 4], 2, m![H % 120 = 4 = 2 #{!} 4, L % 1920]>(2 * j),
-            );
-        }
-
+        // Keep the original four-row contraction and direct output commit.
         device
             .main
-            .begin(down_weight.view())
+            .begin(down_weight_tile.view())
             .fetch::<m![H % 120 = 4, L / 16 % 120], m![L % 16]>()
             .collect::<m![H % 120 = 4, L / 16 % 120], m![L % 16]>()
             .contract_outer::<m![H % 120 = 4, L / 32 % 60], m![L % 32], _, _, _>(&x_trf)
@@ -433,7 +426,7 @@ pub(crate) fn project_down(
             .transpose::<m![1], m![H % 120 = 4 # 16]>()
             .commit_trim::<m![H % 120 = 4]>()
             .commit_view(down.view_mut().tile::<m![H % 120], 4, m![H % 120 = 4 #{!} 120]>(4 * i));
-    }
+    });
 
     down.to_dm(&mut device.tdma)
 }

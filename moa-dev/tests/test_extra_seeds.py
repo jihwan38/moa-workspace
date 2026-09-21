@@ -33,6 +33,16 @@ def synthetic_six_run_log():
 
 
 class ExtraSeedParserTests(unittest.TestCase):
+    def test_authentic_six_run_arena_log(self):
+        log = (Path(__file__).parent / "fixtures/extra-seeds-70057.txt").read_text()
+        result = extra.parse_log(log)
+        self.assertEqual(result["output_comparisons_passed"], 30)
+        self.assertFalse(result["official_score"])
+        self.assertEqual(result["cycles_diagnostic_only"]["sliding_project_qkv"]["upper_median_cycles_diagnostic"], 228077)
+        self.assertEqual(result["cycles_diagnostic_only"]["sliding_attention_output"]["upper_median_cycles_diagnostic"], 152965)
+        self.assertEqual(result["cycles_diagnostic_only"]["decoder_feedforward"]["cycles_by_run"],
+                         [1142753, 1139801, 1139645, 1139199, 1139114, 1139170])
+
     def test_complete_six_run_output_is_development_only(self):
         result = extra.parse_log(synthetic_six_run_log())
         self.assertEqual(result["output_comparisons_passed"], 30)

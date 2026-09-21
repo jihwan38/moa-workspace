@@ -1,0 +1,34 @@
+--- a/furiosa-opt-gemma4-12B/src/device/shared/residual.rs
++++ b/furiosa-opt-gemma4-12B/src/device/shared/residual.rs
+@@ -9,11 +9,20 @@
+     x: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+     residual: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+ ) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
+-    const TILES: usize = H::SIZE / 480;
++    macro_rules! static_residual_tiles {
++        ($index:ident, [$($value:expr),+], $body:block) => {
++            $(
++                {
++                    let $index: usize = $value;
++                    $body
++                }
++            )+
++        };
++    }
+ 
+     let mut output: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = DmTensor::new();
+ 
+-    for i in 0..TILES {
++    static_residual_tiles!(i, [0, 1, 2, 3, 4, 5, 6, 7], {
+         let x_tile = x.view().tile::<m![H], 480, m![H = 480 # 3840]>(480 * i);
+         let residual_tile = residual.view().tile::<m![H], 480, m![H = 480 # 3840]>(480 * i);
+ 
+@@ -38,7 +47,7 @@
+             .cast::<bf16, m![H = 480 % 8 # 16]>()
+             .commit_trim::<m![H = 480 % 8]>()
+             .commit_view(output.view_mut().tile::<m![H], 480, m![H = 480 #{!} 3840]>(480 * i));
+-    }
++    });
+ 
+     output
+ }

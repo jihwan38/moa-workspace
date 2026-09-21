@@ -29,7 +29,7 @@ python3 moa-dev/extra_seeds.py build \
   --directory moa-dev/experiments/artifacts/EXTRA_LABEL
 ```
 
-`build`는 독립 `CARGO_HOME`, `CARGO_TARGET_DIR`, `XDG_CACHE_HOME`과 고정 `Cargo.lock`을 사용한다. 공유 target/cache를 사용하지 않으므로 첫 빌드에는 dependency 다운로드 및 전체 컴파일 비용이 든다. source·fixture의 호스트/컨테이너 hash를 빌드 전후에 확인하고, 성공한 binary와 fixture·entrypoint의 hash를 `build.json`에 고정한다. `stage/build/submit/report`의 실제 NPU 경로는 첫 후보 선택 후 검증해야 한다.
+`build`는 독립 `CARGO_HOME`, `CARGO_TARGET_DIR`, `XDG_CACHE_HOME`과 고정 `Cargo.lock`을 사용한다. 공유 target/cache를 사용하지 않으므로 첫 빌드에는 dependency 다운로드 및 전체 컴파일 비용이 든다. source·fixture의 호스트/컨테이너 hash를 빌드 전후에 확인하고, 성공한 binary와 fixture·entrypoint의 hash를 `build.json`에 고정한다. 2026-09-21 `e5-ffn-four-row` snapshot으로 stage/build/submit/report 경로를 실제 검증했다.
 
 ```bash
 python3 moa-dev/extra_seeds.py submit \
@@ -44,6 +44,8 @@ python3 moa-dev/extra_seeds.py report \
 제출 제한은 70초다. 하나의 label에서 제출은 한 번만 시도한다. 네트워크 오류로 제출 결과가 불명확하면 `submit-attempt.json`과 CLI 출력을 먼저 확인한다. `report`는 아직 queued/running이면 제출을 반복하지 않고 종료하므로 나중에 다시 실행한다. Arena status의 성공·exit 0, 실제 업로드 package와 보존한 payload의 hash 일치, 30개 출력의 중복 없는 PASS, 각 출력의 100% tolerance 통과를 모두 요구한다. 실패 job은 `failed_or_incomplete`와 원본 log를 남긴다.
 
 짝수 6개의 cycle에서 공식 harness의 기존 `sorted[len/2]`는 **upper median**이다. report는 이를 `upper_median_cycles_diagnostic`으로 명시하고 공식 3-run `measure.py` 결과와 합산하지 않는다. 추가 seed 통과는 같은 입력 분포 안에서 검증 범위가 넓어졌다는 뜻이며 모든 입력의 정확성이나 실제 checkpoint 전체 모델 검증을 의미하지 않는다.
+
+`e5-four-row-extra`의 실제 검증 결과는 [보고서](../docs/experiments/e5-four-row-extra-correctness.json)에 있다. Arena job **70057**, 12.688초, run3..8의 30개 출력이 모두 100% tolerance PASS였다. 업로드한 binary/fixture/entrypoint hash도 빌드 결과와 일치했다. 첫 제출은 active job quota 초과로 job 생성 전에 거절됐으며, 거절 기록을 보존하고 slot이 열린 뒤 승인된 재시도 한 번으로 70057을 생성했다. 성공 log는 `tests/fixtures/extra-seeds-70057.txt`에 원문 그대로 보존했다.
 
 회귀검증:
 

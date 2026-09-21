@@ -1,0 +1,41 @@
+--- a/src/ops.rs
++++ b/src/ops.rs
+@@ -58,7 +58,16 @@
+     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = x.to_dm(&mut device.tdma);
+     let x = shared::rmsnorm::normalize(device, &x, input_rms_weight);
+ 
+-    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![H]> = layout::broadcast_hidden(device, &x);
++    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 1 # 16], m![H]> = x.to_dm(&mut device.tdma);
++    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 16], m![H]> = device
++        .main
++        .begin(x.view())
++        .fetch::<m![1], m![H]>()
++        .switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })
++        .collect::<m![H / 16], m![H % 16]>()
++        .commit_trim::<m![H % 16]>()
++        .commit();
++    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![H]> = unsafe { x.reshape() };
+ 
+     let q: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> =
+         sliding::projection::project_query(device, &x, q_weight, q_weight_scale);
+@@ -137,9 +146,17 @@
+     o_weight_scale: &HbmTensor<bf16, Chip, m![H]>,
+     residual_hbm: &mut HbmTensor<bf16, Chip, m![H]>,
+ ) {
+-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> = x.to_dm(&mut device.tdma);
+-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![Qs]> = unsafe { x.reshape() };
+-    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![Qs]> = layout::broadcast_sliding_heads(device, &x);
++    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 1 # 16], m![Ns, Gs, Ds]> = x.to_dm(&mut device.tdma);
++    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 1 # 16], m![Qs]> = unsafe { x.reshape() };
++    let x: DmTensor<bf16, Chip, Cluster, m![Dummy256 / 16, 16], m![Qs]> = device
++        .main
++        .begin(x.view())
++        .fetch::<m![1], m![Qs]>()
++        .switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })
++        .collect::<m![Qs / 16], m![Qs % 16]>()
++        .commit_trim::<m![Qs % 16]>()
++        .commit();
++    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![Qs]> = unsafe { x.reshape() };
+ 
+     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> =
+         sliding::projection::project_output(device, &x, o_weight, o_weight_scale);

@@ -15,6 +15,8 @@ Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916
 | E5 four-row direct-layout + preceding projections | 70029 | Pass | 227578 | 154254 | 1139366 | Retain; independent package repeats in progress |
 | E5 same package repeated | 70029, 70038, 70046 | Pass | 227916 | 146508 | 1139366 | Medians across 3 jobs; FFN range 0.063%, O 6.600% |
 | E1 QKV HBM relay + preceding optimizations | 70039 | Pass | 188573 | 145998 | 1140479 | Improves QKV; hierarchical copy candidate next |
+| E1 hierarchical QKV/O replication | 70055 | Pass | 166416 | 116132 | 1139255 | Retain; single-job screen |
+| E6 MLP and residual loop expansion | 70070 | Pass | 165134 | 113136 | 820226 | Retain; FFN 5.199× original, single-job screen |
 
 The failed E4 and E5 experiments have identical reported FFN max/mean errors and tolerance pass rates
 for all three inputs. Their common two-row contraction/reduction/commit/copy path is the current
@@ -34,3 +36,7 @@ Raw logs, binary snapshots and large schedules are under Git-ignored `moa-dev/lo
 The `capture.py` helper snapshots current source and an existing binary independently. The root
 experiment sequence builds successfully, captures immediately, and submits before the next edit.
 The helper itself does not claim to prove that a binary was built from the current source.
+
+Additional development seeds run3..8 passed all 30 output comparisons for the E5 four-row
+snapshot (job70057). Binary, fixture and entrypoint matched the submitted package. This result
+is in `e5-four-row-extra-correctness.json` and is separate from the official three-input score.

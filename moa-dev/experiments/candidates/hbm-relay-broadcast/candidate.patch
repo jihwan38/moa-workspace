@@ -1,0 +1,12 @@
+--- a/furiosa-opt-gemma4-12B/src/ops.rs
++++ b/furiosa-opt-gemma4-12B/src/ops.rs
+@@ -58,7 +58,8 @@
+     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = x.to_dm(&mut device.tdma);
+     let x = shared::rmsnorm::normalize(device, &x, input_rms_weight);
+ 
+-    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![H]> = layout::broadcast_hidden(device, &x);
++    let x: HbmTensor<bf16, Chip, m![H]> = x.to_hbm(&mut device.tdma);
++    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![H]> = x.to_dm(&mut device.tdma);
+ 
+     let q: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> =
+         sliding::projection::project_query(device, &x, q_weight, q_weight_scale);
