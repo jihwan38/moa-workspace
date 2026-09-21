@@ -1,0 +1,91 @@
+{
+  "created_utc": "2026-09-21T08:52:19.755596+00:00",
+  "baseline_commit": "90f3c3fe16f4fe445f81e82d30b17b1b951e0082",
+  "candidate": "direct-hbm-broadcast",
+  "scratch_directory": "/tmp/moa-direct-broadcast",
+  "compiler": "cargo-furiosa-opt 0.8.1",
+  "std": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "ops_sha256": "d0022f44e062f593628f88c635606de30790d8805424fc33563e6071784b5f6f",
+  "projection_sha256": "7d55898842b45f42ede939730c15a2bc3d860471481d9b2645b5d9ff06dd8969",
+  "rmsnorm_sha256": "8a4f3d4410a656b725f573050ae93d9964c0c928aa264dbffa9328203fc44f3e",
+  "command": "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/sliding_attention_output.json",
+  "cargo_target_dir": "/tmp/moa-direct-broadcast/target",
+  "furiosa_opt_out_dir": "/tmp/moa-direct-broadcast/target/furiosa-opt/kernel",
+  "compile_exit_code": 0,
+  "numerical_correctness": "NOT TESTED",
+  "hardware_performance": "NOT MEASURED",
+  "baseline": {
+    "schedule_sha256": "8feab753a46594a680ed6ab99b88e80dceba0d70253c1a8d3e64885256eed1ae",
+    "makespan_cycles": 195823,
+    "instruction_count": 163,
+    "longest_instructions": [
+      {
+        "contexts": [
+          "MainContext"
+        ],
+        "cycles": 66311,
+        "description": "--> src/device/layout.rs:31:66\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![Qs]>()\n.switch::<m![Dummy256], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 256 })\n.collect::<m![Qs / 16], m![Qs % 16]>()\n.commit_trim::<m![Qs % 16]>()\n.commit()"
+      },
+      {
+        "contexts": [
+          "MainContext"
+        ],
+        "cycles": 19463,
+        "description": "--> src/device/sliding/projection.rs:218:85\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![H % 120, Qs = 1024 / 32], m![Qs = 1024 % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs = 1024 / 16], m![Qs = 1024 % 16]>()\n.commit_trim::<m![Qs = 1024 % 16]>()\n.commit()"
+      },
+      {
+        "contexts": [
+          "MainContext"
+        ],
+        "cycles": 19463,
+        "description": "--> src/device/sliding/projection.rs:218:85\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![H % 120, Qs = 1024 / 32], m![Qs = 1024 % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs = 1024 / 16], m![Qs = 1024 % 16]>()\n.commit_trim::<m![Qs = 1024 % 16]>()\n.commit()"
+      },
+      {
+        "contexts": [
+          "MainContext"
+        ],
+        "cycles": 19463,
+        "description": "--> src/device/sliding/projection.rs:218:85\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![H % 120, Qs = 1024 / 32], m![Qs = 1024 % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs = 1024 / 16], m![Qs = 1024 % 16]>()\n.commit_trim::<m![Qs = 1024 % 16]>()\n.commit()"
+      }
+    ]
+  },
+  "candidate_schedule": {
+    "schedule_sha256": "2808f31e07ae290b4d15fac7e334b9437d6414818ffe8b75f2b171f0531ff600",
+    "makespan_cycles": 134996,
+    "instruction_count": 160,
+    "longest_instructions": [
+      {
+        "contexts": [
+          "DmaEngine"
+        ],
+        "cycles": 19589,
+        "description": "--> src/ops.rs:140:72\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "contexts": [
+          "MainContext"
+        ],
+        "cycles": 19463,
+        "description": "--> src/device/sliding/projection.rs:218:85\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![H % 120, Qs = 1024 / 32], m![Qs = 1024 % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs = 1024 / 16], m![Qs = 1024 % 16]>()\n.commit_trim::<m![Qs = 1024 % 16]>()\n.commit()"
+      },
+      {
+        "contexts": [
+          "MainContext"
+        ],
+        "cycles": 19463,
+        "description": "--> src/device/sliding/projection.rs:218:85\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![H % 120, Qs = 1024 / 32], m![Qs = 1024 % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs = 1024 / 16], m![Qs = 1024 % 16]>()\n.commit_trim::<m![Qs = 1024 % 16]>()\n.commit()"
+      },
+      {
+        "contexts": [
+          "MainContext"
+        ],
+        "cycles": 19463,
+        "description": "--> src/device/sliding/projection.rs:218:85\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![H % 120, Qs = 1024 / 32], m![Qs = 1024 % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs = 1024 / 16], m![Qs = 1024 % 16]>()\n.commit_trim::<m![Qs = 1024 % 16]>()\n.commit()"
+      }
+    ]
+  },
+  "static_speedup": 1.4505837209991408,
+  "static_cycle_change_percent": -31.062234773239094,
+  "combination": "Only this candidate against original kernels"
+}

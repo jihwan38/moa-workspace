@@ -11,12 +11,19 @@ Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916
 | E4 two-row only | 70000 | FFN fail | 244172 | 404030 | 3241077 | Rejected; isolate common two-row path |
 | E2 FP8 lookup/contraction fusion | 70009 | Pass | 227840 | 334457 | 4265795 | Retain for subsequent combinations; single-job screen |
 | E3 256-slice output + QKV fusion | 70014 | Pass | 228450 | 195210 | 4263461 | Retain; output 2.071× baseline, single-job screen |
+| E3 direct HBM replication + E3 rows + E2 QKV | 70022 | Pass | 227338 | 143976 | 4267115 | Retain; single-job screen |
+| E5 four-row direct-layout + preceding projections | 70029 | Pass | 227578 | 154254 | 1139366 | Retain; independent package repeats in progress |
+| E5 same package repeated | 70029, 70038, 70046 | Pass | 227916 | 146508 | 1139366 | Medians across 3 jobs; FFN range 0.063%, O 6.600% |
+| E1 QKV HBM relay + preceding optimizations | 70039 | Pass | 188573 | 145998 | 1140479 | Improves QKV; hierarchical copy candidate next |
 
 The failed E4 and E5 experiments have identical reported FFN max/mean errors and tolerance pass rates
 for all three inputs. Their common two-row contraction/reduction/commit/copy path is the current
 suspect; the additional column distribution is not isolated as the failure cause. This is a
-working diagnosis, not a proof. Next candidate restores the original four-row output path while
-retaining direct column placement.
+working diagnosis, not a proof. The four-row candidate restored the original output path while
+retaining direct column placement and passed all official input comparisons. The precise mechanism
+of the two-row failure has not been established. O cycles differed by about 7% between the two
+last jobs even though its source was unchanged; the identical package repetitions also show a 6.600% range for O, versus 0.225%
+for QKV and 0.063% for FFN. Small O improvements require repeated comparison.
 
 `*-provenance.json` files record sources and artifact hashes. `*.json` measurement records retain
 job metadata, the actual submitted package hashes, validity and, for passing runs, cycle aggregates.

@@ -1,0 +1,124 @@
+--- a/furiosa-opt-gemma4-12B/src/device/shared/mlp.rs
++++ b/furiosa-opt-gemma4-12B/src/device/shared/mlp.rs
+@@ -354,7 +354,6 @@
+     const ROWS_PER_SLICE: usize = 120;
+     const ROWS_PER_PASS: usize = 4;
+     const PASSES: usize = ROWS_PER_SLICE / ROWS_PER_PASS;
+-    const HALVES_PER_PASS: usize = 2;
+ 
+     let mut down: DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120]> = DmTensor::new();
+ 
+@@ -375,64 +374,55 @@
+         .commit();
+ 
+     for i in 0..PASSES {
+-        for j in 0..HALVES_PER_PASS {
+-            let down_weight_scale_vrf: VrfTensor<f32, Chip, Cluster, DownRowsByColumns, m![H % 120 = 2, L / 16 % 120]> = device
+-                .sub
+-                .begin(
+-                    down_weight_scale
+-                        .view()
+-                        .tile::<m![H % 120], 2, m![H % 120 = 2 # 120, L / 16 % 120]>(4 * i + 2 * j),
+-                )
+-                .fetch::<m![H % 120 = 2], m![L / 16 % 120]>()
+-                .fetch_cast::<f32>()
+-                .collect::<m![H % 120 = 2, L / 16 / 8 % 15], m![L / 16 % 8]>()
+-                .to_vrf();
+-
+-            let down_weight_tile: DmTensor<bf16, Chip, Cluster, DownRowsByColumns, m![H % 120 = 2, L % 1920]> = device
+-                .main
+-                .begin(
+-                    down_weight_packed
+-                        .view()
+-                        .tile::<m![H % 120], 2, m![H % 120 = 2 # 120, L % 1920]>(4 * i + 2 * j),
+-                )
+-                .fetch::<m![H % 120 = 2, L / 32 % 60], m![L % 32]>()
+-                .fetch_cast::<f32>()
+-                .collect::<m![H % 120 = 2, L / 8 % 240], m![L % 8]>()
+-                .vector_init()
+-                .vector_intra_slice_tag(TagMode::Zero)
+-                .vector_narrow_split::<m![H % 120 = 2, L / 4 % 480], m![L % 4]>()
+-                .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &down_weight_scale_vrf)
+-                .vector_widen_concat::<m![H % 120 = 2, L / 8 % 240], m![L % 8]>()
+-                .vector_final()
+-                .cast::<bf16, m![L % 8 # 16]>()
+-                .commit_trim::<m![L % 8]>()
+-                .commit();
+-
+-            // Contract each two-row half directly instead of copying it into
+-            // a four-row assembly tensor before contraction.
+-            let partial: DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120 = 2 # 4]> = device
+-                .main
+-                .begin(down_weight_tile.view())
+-                .fetch::<m![H % 120 = 2, L / 16 % 120], m![L % 16]>()
+-                .collect::<m![H % 120 = 2, L / 16 % 120], m![L % 16]>()
+-                .contract_outer::<m![H % 120 = 2, L / 32 % 60], m![L % 32], _, _, _>(&x_trf)
+-                .contract_packet::<m![1]>()
+-                .contract_time::<m![H % 120 = 2]>()
+-                .contract_lane::<m![H % 120 = 2], m![1 # 8]>(LaneMode::Interleaved)
+-                .vector_init()
+-                .vector_inter_slice_reduce::<DownRows, m![H % 120 = 2]>(InterSliceReduceOpF32::Add)
+-                .vector_final()
+-                .cast::<bf16, m![1 # 16]>()
+-                .transpose::<m![1], m![H % 120 = 2 # 16]>()
+-                .commit_trim::<m![H % 120 = 2 # 4]>()
+-                .commit();
+-            // DM commits require at least eight bytes. Pad the two BF16
+-            // results, then copy only their logical values into the output.
+-            partial.view().to_dm_view(
+-                &mut device.tdma,
+-                down.view_mut().tile::<m![H % 120], 2, m![H % 120 = 2 #{!} 120]>(4 * i + 2 * j),
+-            );
+-        }
++        let down_weight_scale_vrf: VrfTensor<f32, Chip, Cluster, DownRowsByColumns, m![H % 120 = 4, L / 16 % 120]> = device
++            .sub
++            .begin(
++                down_weight_scale
++                    .view()
++                    .tile::<m![H % 120], 4, m![H % 120 = 4 # 120, L / 16 % 120]>(4 * i),
++            )
++            .fetch::<m![H % 120 = 4], m![L / 16 % 120]>()
++            .fetch_cast::<f32>()
++            .collect::<m![H % 120 = 4, L / 16 / 8 % 15], m![L / 16 % 8]>()
++            .to_vrf();
++
++        let down_weight_tile: DmTensor<bf16, Chip, Cluster, DownRowsByColumns, m![H % 120 = 4, L % 1920]> = device
++            .main
++            .begin(
++                down_weight_packed
++                    .view()
++                    .tile::<m![H % 120], 4, m![H % 120 = 4 # 120, L % 1920]>(4 * i),
++            )
++            .fetch::<m![H % 120 = 4, L / 32 % 60], m![L % 32]>()
++            .fetch_cast::<f32>()
++            .collect::<m![H % 120 = 4, L / 8 % 240], m![L % 8]>()
++            .vector_init()
++            .vector_intra_slice_tag(TagMode::Zero)
++            .vector_narrow_split::<m![H % 120 = 4, L / 4 % 480], m![L % 4]>()
++            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &down_weight_scale_vrf)
++            .vector_widen_concat::<m![H % 120 = 4, L / 8 % 240], m![L % 8]>()
++            .vector_final()
++            .cast::<bf16, m![L % 8 # 16]>()
++            .commit_trim::<m![L % 8]>()
++            .commit();
++
++        // Keep the original four-row contraction and direct output commit.
++        device
++            .main
++            .begin(down_weight_tile.view())
++            .fetch::<m![H % 120 = 4, L / 16 % 120], m![L % 16]>()
++            .collect::<m![H % 120 = 4, L / 16 % 120], m![L % 16]>()
++            .contract_outer::<m![H % 120 = 4, L / 32 % 60], m![L % 32], _, _, _>(&x_trf)
++            .contract_packet::<m![1]>()
++            .contract_time::<m![H % 120 = 4]>()
++            .contract_lane::<m![H % 120 = 4], m![1 # 8]>(LaneMode::Interleaved)
++            .vector_init()
++            .vector_inter_slice_reduce::<DownRows, m![H % 120 = 4]>(InterSliceReduceOpF32::Add)
++            .vector_final()
++            .cast::<bf16, m![1 # 16]>()
++            .transpose::<m![1], m![H % 120 = 4 # 16]>()
++            .commit_trim::<m![H % 120 = 4]>()
++            .commit_view(down.view_mut().tile::<m![H % 120], 4, m![H % 120 = 4 #{!} 120]>(4 * i));
+     }
+ 
+     down.to_dm(&mut device.tdma)
