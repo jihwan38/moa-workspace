@@ -42,8 +42,11 @@ RNGD_SUBMIT_TIMEOUT=70 ./scripts/rngd_test.sh
 ## Git 관리
 
 Git 루트는 이 작업 공간이며, 두 하위 폴더에 별도 저장소나 서브모듈은 없다.
+작업 원격 `origin`은 비공개 저장소
+[jihwan38/moa-workspace](https://github.com/jihwan38/moa-workspace)다.
 공식 저장소의 기존 커밋 이력을 유지했고, 공식 원격은 `upstream`으로 등록했다.
-Git 명령은 이 폴더에서 실행하면 된다.
+Git 명령은 이 폴더에서 실행하면 된다. 이 작업 공간의 `git push`와 `gh` 기본 대상은
+작업 저장소 `jihwan38/moa-workspace`로 설정했다.
 
 `moa-dev/state/`의 로그인 정보와 실행 로그는 Git에서 제외한다.
 대회 폴더의 `target/`, `ref/`, `Cargo.lock`은 기존 대회 `.gitignore` 규칙을 따른다.
