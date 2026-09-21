@@ -25,6 +25,57 @@ The wrapper starts the existing container, or creates it from the
 docker build -t moa2026-dev:0.8.1 ~/moa-workspace/moa-dev
 ```
 
+## Recorded baseline environment
+
+The installed image used for successful RNGD baseline jobs is
+`sha256:518d7b7ddaca5a97344d8bbd60e04f5e87ca7c50d883bfb5930a64a0c6ff382f`.
+The running container uses that same image ID. Its observed versions are:
+
+| Component | Installed version |
+|---|---|
+| Ubuntu / glibc | 22.04 / 2.35 |
+| Rust toolchain | `nightly-2026-05-01` (`rustc 1.97.0-nightly`, commit `f53b654a8`) |
+| cargo-binstall | `1.23.0` |
+| cargo-furiosa-opt | `0.8.1` |
+| furiosa-arena-cli | `0.8.0` |
+| moa-submitter-cli | `1.2.0` |
+| furiosa-schedule-viewer | `0.3.0` |
+| Python | `3.10.12` |
+| torch / numpy / safetensors | `2.14.0+cpu` / `2.2.6` / `0.8.0` |
+
+[requirements-cpu.txt](requirements-cpu.txt) pins all 13 installed Python
+distributions, including transitive dependencies and packaging tools. The
+Dockerfile now pins the installed Rust CLI versions too. These changes do not
+update the existing image or running container. **The current image has been
+tested; the newly pinned Dockerfile has not yet been rebuilt and validated.**
+
+[environment-baseline.json](../docs/experiments/environment-baseline.json)
+records the image identity, complete observed apt/Python package versions,
+installed Rust executable hashes, Python package metadata/RECORD hashes, and
+the recipe and Cargo lockfile hashes. Python metadata/RECORD hashes describe
+the installed distributions; they are not wheel download hashes or a
+`pip --require-hashes` lock.
+
+The competition crate ignores `Cargo.lock`. Its tested dependency resolution is
+preserved separately in [locks/gemma4-Cargo.lock](locks/gemma4-Cargo.lock). On a
+fresh checkout, restore it on the host before building, without replacing an
+existing lockfile:
+
+```bash
+test -e ~/moa-workspace/furiosa-opt-gemma4-12B/Cargo.lock || \
+    cp ~/moa-workspace/moa-dev/locks/gemma4-Cargo.lock \
+       ~/moa-workspace/furiosa-opt-gemma4-12B/Cargo.lock
+```
+
+Record any intentional dependency update with a new lockfile snapshot and a
+fresh hardware baseline. Do not silently compare it against measurements made
+with a different compiler or dependency resolution. The pinned recipe still
+uses the floating `ubuntu:22.04` tag, Ubuntu apt repositories, the rustup
+installer, and external package servers. It does not promise a byte-identical
+image rebuild; the recorded image ID identifies the environment already tested.
+
+## Build and measurement
+
 The following commands run **inside the development shell**, at `/workspace`.
 Generate the expected outputs and build the original kernel tests:
 

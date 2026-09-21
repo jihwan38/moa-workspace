@@ -3,6 +3,9 @@
 대회 코드와 Docker 개발 도구를 하나의 Git 저장소에서 관리한다.
 에디터에서는 이 폴더를 열고, 커널 코드는 `furiosa-opt-gemma4-12B/`에서 수정한다.
 
+상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
+[최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
+
 ```text
 moa-workspace/
 ├── furiosa-opt-gemma4-12B/   # 공식 대회 코드와 빌드 결과

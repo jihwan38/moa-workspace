@@ -1,0 +1,33 @@
+==> submitting beef_initial_baseline (3.7M total)
+submitted job 69783 (beef_initial_baseline)
+==> waiting on job 69783 (polling every 5s)
+==> job 69783 succeeded (exit 0); log follows
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.03125 (   0.85% of expected)  mean|Δ|= 0.001107  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.03125 (   1.06% of expected)  mean|Δ|= 0.001087  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.03125 (   0.78% of expected)  mean|Δ|= 0.001181  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.02344 (   1.25% of expected)  mean|Δ|= 0.000992  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.03125 (   0.99% of expected)  mean|Δ|= 0.000968  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.03125 (   0.96% of expected)  mean|Δ|= 0.001191  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.03125 (   1.09% of expected)  mean|Δ|= 0.001098  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000976  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.03125 (   0.92% of expected)  mean|Δ|= 0.001155  within tol=100.00%  -> PASS
+    median cycles=244051 (of 3 runs: [251764, 244051, 243259])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.03125 (   0.89% of expected)  mean|Δ|= 0.000907  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.03125 (   1.43% of expected)  mean|Δ|= 0.001023  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.03125 (   1.22% of expected)  mean|Δ|= 0.000943  within tol=100.00%  -> PASS
+    median cycles=404373 (of 3 runs: [404373, 402874, 404457])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000270  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=4264297 (of 3 runs: [4263585, 4267547, 4264297])
+
+
+all 3 tests passed
+remote_entrypoint.sh: all kernel tests passed
