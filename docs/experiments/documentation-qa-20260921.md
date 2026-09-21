@@ -6,7 +6,9 @@
 | 대상 | 확인한 상태와 범위 |
 |---|---|
 | E37 이전 조합 | [동일 패키지3회](e37-combined-repeats.json) 전부 PASS, 중앙값94,195/45,748/379,741. [별도 추가 입력6개](e37-combined-extra-correctness.json)도30개 비교 PASS. |
-| E47 채택 조합 | [반복3회](e47-output-sixteen-columns-repeats.json) 모두15개 PASS, 중앙값94,662/44,588/377,564. [추가 입력6개](e47-output-sixteen-columns-extra-correctness.json)30개 PASS. 동일 source 복구 빌드와 extra host 내 device images도 검증. |
+| E47 이전 조합 | [반복3회](e47-output-sixteen-columns-repeats.json) 모두15개 PASS, 중앙값94,662/44,588/377,564. [추가 입력6개](e47-output-sixteen-columns-extra-correctness.json)30개 PASS. 동일 source 복구 빌드와 extra host 내 device images도 검증. |
+| E53 현재 채택 | [동일 패키지3회](e53-bf16-output-repeats.json) 각각15개 PASS, 중앙값95,621/50,882/377,880. 추가30개 및 O 경계8개 PASS. 원본/E47/E53 같은 경계 입력을 비교하고 E47 실패를 확인한 뒤 수정. Clean source 전체 host byte-identical. |
+| E52 및 QKV BF16 대안 | E52 공식15개 PASS이나 속도 이득 없어 미채택. BF16 QKV 대안은 exact compile만 확인했고 장치 미검증이며 E53 O를 덮어쓰지 않도록 통합 주의 기록. |
 | E44–E50 후속 | E44/E45/E46/E48 성능 이득 없음, E49 정적 회귀·NPU 미검사. E50은15개 PASS/376,184 단일 screen. E51 반복·추가 입력 모두 PASS지만 FFN381,286으로 미채택. |
 | FP4 진단 | Small/fullshape-tagged 검사는 각각25,165,824/117,964,800 BF16 값 bit-exact PASS. 전체 FFN·모든 입력의 보장으로 확장하지 않음. |
 | E37 cache 보존 | [70589](e37-cache-preservation-correctness.json)는 E37과 동일한 device image를 쓴 별도 host harness. 기존15개 비교와 cache12개 검사 PASS, 비대상12,570,624개 bit-exact 보존. 진단 cycles는 성능 집계에서 제외. |
@@ -31,8 +33,8 @@ Git whitespace 검사는 raw patch/log를 제외했다. 변경하지 않은 froz
 파일 끝 빈 줄이 있어 `core.whitespace=-blank-at-eof`로 이 항목만 제외하고 검사했다.
 실험 source의 hash를 보존하기 위해 해당 파일을 서식 목적으로 변경하지 않았다.
 
-최종 검사 `2026-09-21T12:36:24.787647+00:00`: Markdown 130개, 로컬 링크 446개,
-JSON 399개에서 누락 파일·JSON 문법 오류0건. 외부 링크154개는 검사 범위에서 제외했다.
+최종 검사 `2026-09-21T13:09:08.534013+00:00`: Markdown 145개, 로컬 링크 549개,
+JSON 437개에서 누락 파일·JSON 문법 오류0건. 외부 링크154개는 검사 범위에서 제외했다.
 검사 스크립트와 출력은 `/tmp/moa-local-doc-qa.py`, `/tmp/moa-local-doc-qa-result.json`에 있다.
 
 공식 score/rank는 아직 없다. [공식 상태](official-submission-status-20260921.json)의

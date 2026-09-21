@@ -13,7 +13,7 @@ but its native FFN remains slower than the adopted checkpoint. E42 also passes a
 E28/E32 time out, E33 has substantial FFN correctness failures, and E40 produces non-finite FFN output.
 Diagnostic jobs are separated below.
 E44/E45/E46 pass the official screen but are slower in their changed kernel and are not adopted.
-E47 is the adopted checkpoint: jobs70664/70681/70688 all pass, median94662/44588/377564;
+E47 is a previous performance checkpoint with a subsequently confirmed boundary-input limitation: jobs70664/70681/70688 all pass, median94662/44588/377564;
 additional30 comparisons pass70694. Only O changes from E37; QKV/FFN device images are identical.
 E48 up-only fused decode passes its first screen, without a demonstrated performance gain.
 
@@ -73,10 +73,13 @@ E48 up-only fused decode passes its first screen, without a demonstrated perform
 | E45 coalesced down-scale HBM staging | 70641 | Pass | 94492 | 45842 | 394044 | Do not adopt; FFN3.77% above E37 repeat median despite static -0.43% |
 | E46 native FP8 with F32 block partials/VE reduce | 70652 | Pass | 97797 | 45852 | 434284 | Do not adopt; FFN14.36% above E37,1.84% above direct parent E41 |
 | E47 sixteen-column O projection | 70664 | Pass | 94662 | 44309 | 377274 | Initial screen; completed repeats and extra inputs below |
-| E47 same package repeated | 70664, 70681, 70688 | Pass | 94662 | 44588 | 377564 | Adopted; O2.54% below E37 repeat median, extra30 pass70694 |
+| E47 same package repeated | 70664, 70681, 70688 | Pass | 94662 | 44588 | 377564 | Previous performance checkpoint; later O boundary failure70785, superseded by E53 |
 | E48 up-only fused FP4 decode + E37 QKV/O | 70683 | Pass | 94545 | 47079 | 381532 | First screen; FFN0.47% above E37 repeat median; no adoption or general fused-FFN claim |
 | E50 down-only fused FP4 decode + E37 QKV/O | 70700 | Pass | 94030 | 46072 | 376184 | Initial screen; apparent gain was not reproduced by E51 repeats |
 | E51 E47 O16 + E50 down fused, repeated | 70712, 70722, 70736 | Pass | 94451 | 44876 | 381286 | Reject; FFN0.99% above E47 median; extra30 pass70719 |
+| E52 QKV sixteen-way row interleave | 70767 | Pass | 94674 | 45029 | 379774 | Do not adopt; QKV same as E47 within observed variation, static improvement did not translate |
+| E53 BF16 O activation and F32 scale-before-cast | 70806 | Pass | 93987 | 50882 | 376814 | Adopt correctness fix; extra30 pass70814 and O boundary8 pass70810; performance repeats separately |
+| E53 same package repeated | 70806, 70818, 70827 | Pass | 95621 | 50882 | 377880 | Adopted correctness checkpoint; O14.12% above E47, original speedups2.552×/7.944×/11.285× |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.
@@ -227,3 +230,15 @@ compiled but regressed162209→162644. Main work decreases10994 while DMA grows3
 overlap shrinks7340. The schedule memory-occupancy proxy falls8.97%, not a measured runtime peak.
 The final schedule has four simultaneously live FP4 tiles, so it is not a forced physical two-slot buffer.
 No NPU run or adoption was made.
+
+E52 only changes QKV row interleave8→16. [Official-input screen](e52-qkv-sixteen-row.json) passes15 comparisons, but Q94674 does not improve E47 repeat median94662. The static50364→49811 reduction is not a hardware speedup. The full E47 binary was rebuilt byte-identically after isolating this candidate.
+
+[Shared caller audit](e47-shared-caller-audit.md) traces the unchanged full-attention normalize and changed shared residual loop expansion. Two isolated exact compiles establish buildability and static schedule differences only; neither full-attention hardware correctness nor end-to-end Gemma throughput was measured.
+
+[Separate E47 O boundary probe](e47-output-boundary-probe.json), job70785, completes8 cases with all40 input checks and uploaded hashes verified. Cases0..6 pass; case7 fails all3840 outputs: expected0.609375, actual0.5, absolute error0.109375. No non-finite values or timeout occur. This diagnostic does not replace the official fixtures or reinterpret existing9-configuration passes, but it establishes a numerical limitation and motivates the BF16-input correction.
+
+E53 is now the adopted source. Its O projection preserves BF16 inputs and applies channel scale in F32 before the first BF16 cast. [Original/E47/E53 boundary comparison](output-boundary-comparison.md) isolates the same host/payload and verifies all uploaded hashes/images: original and E53 pass all8 cases, while E47 fails3840 outputs in case7. E53 also passes [official15 comparisons](e53-bf16-output.json) and [extra30](e53-bf16-output-extra-correctness.json). This is a correctness correction with a measured performance cost, not an O speed improvement over E47. The cleaned adopted source reproduces the entire measured host byte-identically; [source/build audit](e53-source-build-audit.json). QKV/FFN images are unchanged.
+
+A [BF16 QKV alternative](../../moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/README.md) combines the previously tested E18 BF16 helpers with E47 sharded pre-RMS and compiles at52282 vs50364. It has no NPU validation or adoption. Its full source contains the old E47 O and must not overwrite E53 wholesale. The motivating [QKV CPU counterexample](../research/qkv-boundary-design-audit.md) is outside the current official QKV input generator support.
+
+[E53 same-package repeats](e53-bf16-output-repeats.json) all pass, median95621/50882/377880, relative ranges2.207%/1.254%/0.374%. All submitted file hashes match the frozen host. O is14.12% slower than E47 but passes the newly demonstrated boundary failure; QKV/FFN are unchanged images, so their cycle shifts are not source changes. The public-reference indicative score5.8886 is diagnostic only, not an official score or rank.

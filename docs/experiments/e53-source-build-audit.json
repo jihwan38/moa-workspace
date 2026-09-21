@@ -1,0 +1,68 @@
+{
+  "recorded_at_utc": "2026-09-21T12:59:03.986371+00:00",
+  "source_files_match_frozen_e53": 43,
+  "changed_from_e47": [
+    "src/device/sliding/projection.rs"
+  ],
+  "official_host_sha256": "d697c8aa09bdd4592b11cb5df142f7520500a1b3d5747f7dbb6dcdc6e29045db",
+  "extra_host_sha256": "9a715ae8f2142e4d546dc28dc2ec0fc29fe84087a0281ec3c535bff3ba088d32",
+  "device_images": {
+    "sliding_project_qkv": {
+      "sha256": "91b232f0179b37b126f2ba8755b6125e532364418516948fd98dadcc9d7e77ea",
+      "bytes": 187648,
+      "official_host_occurrences": 1,
+      "extra_host_occurrences": 1
+    },
+    "sliding_attention_output": {
+      "sha256": "359473814839effc16ade242bad3c598a93610601bc650f550ff44228898d88b",
+      "bytes": 71168,
+      "official_host_occurrences": 1,
+      "extra_host_occurrences": 1
+    },
+    "decoder_feedforward": {
+      "sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+      "bytes": 204032,
+      "official_host_occurrences": 1,
+      "extra_host_occurrences": 1
+    }
+  },
+  "adoption": {
+    "decision": "Adopt BF16 output path to resolve observed E47 O cancellation failure",
+    "official_screen": 70806,
+    "official_output_comparisons_passed": 15,
+    "extra_input_job": 70814,
+    "extra_output_comparisons_passed": 30,
+    "boundary_job": 70810,
+    "boundary_cases_passed": 8,
+    "same_package_repeats": {
+      "jobs": [
+        70806,
+        70818,
+        70827
+      ],
+      "all_three_pass": true,
+      "median_cycles": {
+        "qkv": 95621,
+        "output": 50882,
+        "ffn": 377880
+      },
+      "result": "docs/experiments/e53-bf16-output-repeats.json"
+    },
+    "unchanged_qkv_and_ffn_images": true,
+    "qkv_general_precision_limit": "QKV retains E47 FP8 activation approximation; current official and extra input coverage does not prove all-input equivalence."
+  },
+  "scope": "Image identity, source scope and successful full/independent build audit; no NPU correctness inferred from build.",
+  "clean_source_rebuild": {
+    "checked_at_utc": "2026-09-21T13:01:11.092310+00:00",
+    "removed_unreachable_private_helpers": [
+      "apply_output_channel_scale",
+      "prepare_output_fp8_split"
+    ],
+    "other_changes": "Replace stale O quantization comment; O types retained; QKV quantizer still used and unchanged",
+    "projection_sha256": "34d1e03e3a6fcfce7997c1593774ab5d4382ec3a32ce839b0df450eb70e98581",
+    "full_host_byte_identical_to_measured_e53": true,
+    "full_host_sha256": "d697c8aa09bdd4592b11cb5df142f7520500a1b3d5747f7dbb6dcdc6e29045db",
+    "log": "moa-dev/logs/e53-clean-source-build.log",
+    "snapshot": "moa-dev/experiments/artifacts/e53-bf16-output-clean-source"
+  }
+}

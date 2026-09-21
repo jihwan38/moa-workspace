@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-21T12:58:07.386694+00:00",
+  "candidate": "output-bf16-activation-e47",
+  "status": "adopted_official_repeats3_extra30_boundary8_pass",
+  "purpose": "Correct native hi/lo FP8 activation loss reproduced by E47 boundary job70785; also move first projection BF16 cast after channel scale to match official oracle.",
+  "source_scope": {
+    "frozen_parent": "moa-dev/experiments/artifacts/e47-output-sixteen-columns",
+    "src_files_compared": 43,
+    "changed_paths": [
+      "device/sliding/projection.rs"
+    ],
+    "other_src_files_byte_identical": 42,
+    "QKV_prefix_and_existing_post_projection_helpers_unchanged": true,
+    "public_ops_harness_rms_rope_ffn_unchanged": true,
+    "compiled_input_hashes": 46
+  },
+  "compile_attempts": [
+    {
+      "number": 1,
+      "result": "FAIL",
+      "source": {
+        "path": "moa-dev/experiments/candidates/output-bf16-activation-e47/projection.f32-four-row-failed.rs",
+        "bytes": 29453,
+        "sha256": "4617543720ea1c2574340a56b3fbafe9bb722f70d26cddb4dad54f641f2fce57"
+      },
+      "log": {
+        "path": "moa-dev/experiments/artifacts/output-bf16-activation-e47/attempt-1.log",
+        "bytes": 1892,
+        "sha256": "5d0a4168dccd74e7407b6a5d15849458094b1579b78318c94f72c86e64c611e4"
+      },
+      "reason": "F32 four-row transpose exceeds max_in_rows=2"
+    },
+    {
+      "number": 2,
+      "result": "PASS",
+      "source": {
+        "path": "moa-dev/experiments/candidates/output-bf16-activation-e47/projection.rs",
+        "bytes": 29453,
+        "sha256": "eb77ad0076e601606bf614ac990be3cba211378f66fda4e0fad83c2834724e3f"
+      },
+      "log": {
+        "path": "moa-dev/experiments/artifacts/output-bf16-activation-e47/attempt-2.log",
+        "bytes": 1444,
+        "sha256": "b6e55b8dcce3e21fa00ef9e4aa8d41919c115111ba3d62187211fc0cb24e8863"
+      },
+      "correction": "F32 two-row/8B direct commit, then typed F32 epilogue gather; no later transpose combines two BF16 values."
+    }
+  ],
+  "baseline_E47_native": {
+    "makespan": 24621,
+    "instruction_count": 51,
+    "context_union_cycles": {
+      "DmaEngine": 18621,
+      "PeCore": 5113,
+      "MainContext": 5196,
+      "VectorEngine": 5196,
+      "SubContext": 2572
+    }
+  },
+  "candidate_static": {
+    "makespan": 27239,
+    "instruction_count": 32,
+    "context_union_cycles": {
+      "DmaEngine": 18229,
+      "PeCore": 1800,
+      "SubContext": 3036,
+      "MainContext": 7178,
+      "VectorEngine": 7178
+    }
+  },
+  "delta": {
+    "makespan": 2618,
+    "percent": 10.633199301409357,
+    "context_union_cycles": {
+      "DmaEngine": -392,
+      "PeCore": -3313,
+      "MainContext": 1982,
+      "VectorEngine": 1982,
+      "SubContext": 464
+    }
+  },
+  "costs_cycles": {
+    "weight_dma_both": 13383,
+    "fused_BF16_lookup_dot_and_16_column_F32_sum": 5063,
+    "E47_native_pair_dot": 1242,
+    "E47_separate_F32_column_sum": 522,
+    "F32_head_gather": 470,
+    "E47_BF16_head_gather": 446,
+    "added_lookup_constant_dma": 838,
+    "removed_quantizer_input_copy": 691,
+    "removed_input_scale_copy": 563,
+    "new_channel_scale_main": 401,
+    "baseline_channel_scale_main": 401
+  },
+  "rounding": {
+    "input": "Original BF16 x directly into BF16 TRF, no runtime input rescaling or FP8 approximation.",
+    "weights": "Stored FP8 values decode to BF16 through supported Main lookup; finite FP8 values exactly BF16-representable.",
+    "accumulation": "256-column local BF16 dot in FP32, 16-column inter-slice FP32 sum.",
+    "channel_scale": "F32 dot result moves through F32 DM and typed DMA, then multiplies BF16 scale promoted to F32 before first BF16 output cast.",
+    "unchanged_tail": "Existing BF16 RMS/gamma then BF16 residual output.",
+    "limits": "BF16 DPE and grouped F32 sums may differ from CPU matmul; preserving values and oracle cast boundary is not universal bit-equivalence or overflow/FTZ proof."
+  },
+  "hardware": {
+    "root_experiment": "docs/experiments/e53-bf16-output.json",
+    "state_at_audit": {
+      "job": 70806,
+      "valid": true,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 93987,
+          "cycles_by_run": [
+            103912,
+            93987,
+            93693
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 50882,
+          "cycles_by_run": [
+            53284,
+            50882,
+            50855
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 376814,
+          "cycles_by_run": [
+            381117,
+            375496,
+            376814
+          ],
+          "output_comparisons_passed": 3
+        }
+      },
+      "log": "moa-dev/logs/e53-bf16-output-job-70806.log",
+      "log_sha256": "04a2e2c3c8c107188c3df3bb9df6a789f6c70874cf4ca51523a87f45230b2640",
+      "extra": {
+        "job": 70814,
+        "result": "PASS",
+        "run_ids": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "output_comparisons_passed": 30,
+        "evidence": "docs/experiments/e53-bf16-output-extra-correctness.json",
+        "log_sha256": "c05cc7b5361c574b8af77ab1715478162ce2dafb485d08e59f8bfa50c5feeb44"
+      },
+      "boundary": {
+        "job": 70810,
+        "result": "PASS",
+        "cases": 8,
+        "input_checks_passed": 40,
+        "total_values_compared": 30720,
+        "failed_values": 0,
+        "nonfinite": 0,
+        "evidence": "docs/experiments/e53-output-boundary-probe.json",
+        "log_sha256": "8862b4ff041eb5e569e5833e68d2fb9149e74526766297a2404b0b1d0d0c549a",
+        "exact_candidate_O_image_embedded_once": true
+      },
+      "performance_repeats": "docs/experiments/e53-bf16-output-repeats.json"
+    },
+    "root_host": {
+      "path": "moa-dev/experiments/artifacts/e53-bf16-output/target/release/test_kernels",
+      "bytes": 3652416,
+      "sha256": "d697c8aa09bdd4592b11cb5df142f7520500a1b3d5747f7dbb6dcdc6e29045db"
+    },
+    "candidate_O_image_embedded_occurrences": 1,
+    "unchanged_E47_Q_and_FFN_images_embedded_once": true,
+    "source_equals_root_frozen_snapshot": true,
+    "baseline_failure": "docs/experiments/e47-output-boundary-probe.json",
+    "baseline_failure_scope": "Native E47 case7 all3840 outputs .5 versus .609375 expected; other7 cases passed; no performance result.",
+    "root_clean_source_rebuild": {
+      "evidence": "docs/experiments/e53-source-build-audit.json",
+      "removed_only_unreachable_helpers_and_stale_comment": true,
+      "clean_projection_sha256": "34d1e03e3a6fcfce7997c1593774ab5d4382ec3a32ce839b0df450eb70e98581",
+      "full_host_byte_identical_to_measured_candidate": true,
+      "frozen_candidate_source_unchanged": true
+    },
+    "completed_same_package_repeats": {
+      "jobs": [
+        70806,
+        70818,
+        70827
+      ],
+      "result": "docs/experiments/e53-bf16-output-repeats.json",
+      "all_pass": true,
+      "median_cycles": [
+        95621,
+        50882,
+        377880
+      ]
+    }
+  },
+  "kernel": {
+    "path": "moa-dev/experiments/artifacts/output-bf16-activation-e47/candidate.bin",
+    "bytes": 71168,
+    "sha256": "359473814839effc16ade242bad3c598a93610601bc650f550ff44228898d88b"
+  },
+  "files": [
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-activation-e47/projection.rs",
+      "bytes": 29453,
+      "sha256": "eb77ad0076e601606bf614ac990be3cba211378f66fda4e0fad83c2834724e3f"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-activation-e47/projection.original.rs",
+      "bytes": 29239,
+      "sha256": "db048b93d9b768bb4cb9cb6f8fd603783789d4a5eb609e42a00a23c69a330718"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-activation-e47/candidate.patch",
+      "bytes": 5765,
+      "sha256": "71793986016ed6bc41ff60b07369aa8df66b76125d0cef2558dcea7efc150f48"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-activation-e47/verify_candidate.py",
+      "bytes": 4192,
+      "sha256": "9da403df06ae3de9f1a9dbdf80aa86b7a2fa0f9cdc3ba7f91fde8d38117e4d7b"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-activation-e47/verification.json",
+      "bytes": 866,
+      "sha256": "135ea18e5e5b7c63a06da11245ffe7840824357db3d2f46b282b4d5c75c9b9b1"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-activation-e47/compiled-source-manifest.json",
+      "bytes": 4539,
+      "sha256": "77f938141ed9e6e70d10e891c6f597c684254abe1b28a13c77a6eb04eac6e511"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-activation-e47/candidate.json",
+      "bytes": 20636,
+      "sha256": "c33d3a353603781fb9a4f79dde83281a5015abdab72c3f051e4074f571e5c173"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-activation-e47/candidate-graph.json",
+      "bytes": 45736,
+      "sha256": "24d45fc706964d6dbfb7eb3a52a29381dd59347cd714d681ed2ab603f506cee0"
+    }
+  ],
+  "compile": {
+    "container": "moa2026-dev",
+    "scratch": "/tmp/moa-output-bf16-activation-e47",
+    "CARGO_HOME": "/home/moa/.cargo",
+    "CARGO_TARGET_DIR": "/tmp/moa-output-bf16-activation-e47/target",
+    "FURIOSA_OPT_OUT_DIR": "/tmp/moa-output-bf16-activation-e47/target/furiosa-opt/kernel",
+    "CARGO_NET_OFFLINE": true,
+    "command": "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/candidate.json --dump-graph schedules/candidate-graph.json",
+    "main_workspace_source_target_touched": false,
+    "NPU_jobs_submitted_by_agent": 0
+  },
+  "research_note": "docs/research/output-bf16-fallback-e47.md"
+}

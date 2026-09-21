@@ -1,0 +1,1015 @@
+{
+  "schema_version": 1,
+  "label": "e53-bf16-output",
+  "started_at_utc": "2026-09-21T12:56:35.245700+00:00",
+  "runs": [
+    {
+      "job": {
+        "id": 70806,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-e53-bf16-output",
+        "status": "SUCCEEDED",
+        "created_at": "2026-09-21T12:56:11Z",
+        "started_at": "2026-09-21T12:59:18Z",
+        "finished_at": "2026-09-21T12:59:25Z",
+        "duration_sec": 6.66416948,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log": "moa-dev/logs/e53-bf16-output-job-70806.log",
+      "log_sha256": "04a2e2c3c8c107188c3df3bb9df6a789f6c70874cf4ca51523a87f45230b2640",
+      "package_files": {
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "job.yaml": {
+          "bytes": 95,
+          "sha256": "acafa65314fbcf330f98a5a3ffe5177c8547c8e06ebe1912ef003704302751de"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "test_runtime": {
+          "bytes": 3652416,
+          "sha256": "d697c8aa09bdd4592b11cb5df142f7520500a1b3d5747f7dbb6dcdc6e29045db"
+        }
+      },
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 93987,
+          "cycles_by_run": [
+            103912,
+            93987,
+            93693
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 50882,
+          "cycles_by_run": [
+            53284,
+            50882,
+            50855
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 376814,
+          "cycles_by_run": [
+            381117,
+            375496,
+            376814
+          ],
+          "output_comparisons_passed": 3
+        }
+      },
+      "valid": true
+    }
+  ],
+  "method": "Each job uses 3 official input configurations; aggregate medians across separate jobs.",
+  "provenance": {
+    "schema_version": 1,
+    "label": "e53-bf16-output",
+    "recorded_at_utc": "2026-09-21T12:56:10.445821+00:00",
+    "source_commit": "38509c4e2ed03ce75b4e0659e52345d16b7ec3eb",
+    "source_binary_relationship": {
+      "verified": false,
+      "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+    },
+    "git": {
+      "root": "/home/jihwan38/moa-workspace",
+      "head": "38509c4e2ed03ce75b4e0659e52345d16b7ec3eb",
+      "dirty_at_start": true,
+      "status_porcelain_at_start": " M README.md\n M docs/OPTIMIZATION_PLAN.md\n M docs/experiments/README.md\n M docs/experiments/e47-source-build-audit.json\n M furiosa-opt-gemma4-12B/src/device/sliding/projection.rs\n?? docs/experiments/e47-output-boundary-probe.json\n?? docs/experiments/e47-output-boundary-probe.md\n?? docs/experiments/e47-shared-caller-audit.json\n?? docs/experiments/e47-shared-caller-audit.md\n?? docs/experiments/e52-qkv-sixteen-row-provenance.json\n?? docs/experiments/e52-qkv-sixteen-row.json\n?? docs/research/output-boundary-design-audit.md\n?? moa-dev/experiments/candidates/original-output-boundary-probe-control/README.md\n?? moa-dev/experiments/candidates/original-output-boundary-probe-control/collector-config.json\n?? moa-dev/experiments/candidates/original-output-boundary-probe-control/inspect_registry.py\n?? moa-dev/experiments/candidates/original-output-boundary-probe-control/manifest.json\n?? moa-dev/experiments/candidates/original-output-boundary-probe-control/probe_output.rs\n?? moa-dev/experiments/candidates/original-output-boundary-probe-control/registry-summary.json\n?? moa-dev/experiments/candidates/original-output-boundary-probe-control/remote_entrypoint.sh\n?? moa-dev/experiments/candidates/original-output-boundary-probe-control/source-origin.json\n?? moa-dev/experiments/candidates/output-bf16-activation-e47/candidate.patch\n?? moa-dev/experiments/candidates/output-bf16-activation-e47/projection.f32-four-row-failed.rs\n?? moa-dev/experiments/candidates/output-bf16-activation-e47/projection.original.rs\n?? moa-dev/experiments/candidates/output-bf16-activation-e47/projection.rs\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/README.md\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/collect_boundary.py\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/collect_job.py\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/cpu-references.json\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/evidence.json\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/generate_suite.py\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/host-check-summary.json\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/inspect_registry.py\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/manifest.json\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/probe_output.rs\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/registry-summary.json\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/remote_entrypoint.sh\n?? moa-dev/experiments/candidates/output-boundary-probe-e47/source-audit.json\n?? moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/failed-attempts/missing-dummy256-import.rs\n?? moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/ops.rs\n?? moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/ops.rs.original\n?? moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/ops.rs.patch\n?? moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/projection.rs\n?? moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/projection.rs.original\n?? moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/projection.rs.patch\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/README.md\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/candidate.patch\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/compiled-source-manifest.json\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/evidence.json\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/hardware-result.json\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/projection.original.rs\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/projection.rs\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/static-comparison.json\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/verification.json\n?? moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/verify_layout.py\n",
+      "patches": {
+        "git/working-tree.patch": {
+          "bytes": 13795,
+          "sha256": "1e32773266da735046204601923ff1867be6d1e67742963bb87b1d471e99cfdd",
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/git/working-tree.patch"
+        },
+        "git/index.patch": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/git/index.patch"
+        },
+        "git/status.txt": {
+          "bytes": 3981,
+          "sha256": "ee1476554a375b05ef9b361cf5a2af332fcf14d203345f07a84f89ba704d3d9d",
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/git/status.txt"
+        }
+      },
+      "note": "Patches/status describe tracked Git state at capture start. Untracked src files are included in the source snapshot; other untracked file contents are not copied."
+    },
+    "environment": {
+      "container": "moa2026-dev",
+      "container_id": "b51cd7ad282bb776bd74f39dcbcfadfb857b9c6852b15cf4b45480861b92626f",
+      "image_id": "sha256:518d7b7ddaca5a97344d8bbd60e04f5e87ca7c50d883bfb5930a64a0c6ff382f",
+      "source_mount": {
+        "host": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B",
+        "container": "/workspace"
+      },
+      "rustc": "rustc 1.97.0-nightly (f53b654a8 2026-04-30)\nbinary: rustc\ncommit-hash: f53b654a8882fd5fc036c4ca7a4ff41ce32497a6\ncommit-date: 2026-04-30\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.0-nightly\nLLVM version: 22.1.4",
+      "cargo": "cargo 1.97.0-nightly (eb9b60f1f 2026-04-24)",
+      "compiler": {
+        "package": "cargo-furiosa-opt",
+        "version": "0.8.1",
+        "binary_sha256": {
+          "/home/moa/.cargo/bin/cargo-furiosa-opt": "79073be60fd2d7ec439de3e288df0a6571e7469bd76ec1e8c99eb673d4795316",
+          "/home/moa/.cargo/bin/furiosa-opt-driver": "32e7654f5f906ffd9c8542492f241b00e1ba3783105641cc6946d41f258ab049"
+        }
+      }
+    },
+    "cargo_lock": {
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09",
+      "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/Cargo.lock",
+      "observed_mtime_ns": 1789972103890295017,
+      "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/Cargo.lock"
+    },
+    "allowed_source_files": {
+      "src/device/audio/mod.rs": {
+        "bytes": 27,
+        "sha256": "e8372ab68755945d922cf5ed9bfafcb38b716d2ae9e920a79ec1d2e269ad0b38",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/audio/mod.rs",
+        "observed_mtime_ns": 1789971617400632724,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/audio/mod.rs"
+      },
+      "src/device/audio/projection.rs": {
+        "bytes": 5026,
+        "sha256": "c522aa1747df9c9668bb240d972aa4dc692155b15bded95507c5e00594769799",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/audio/projection.rs",
+        "observed_mtime_ns": 1789971617400678046,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/audio/projection.rs"
+      },
+      "src/device/full/attention.rs": {
+        "bytes": 13778,
+        "sha256": "2a4ff8586cb87edfe3f5570bf591dad7996d95e9c9e4c940f0238d0e83b094ab",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/attention.rs",
+        "observed_mtime_ns": 1789971617400678046,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/attention.rs"
+      },
+      "src/device/full/mod.rs": {
+        "bytes": 98,
+        "sha256": "527483c00372f446c6b87c9faede58b938035bb80ba957136f3ad8fee0cd5466",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/mod.rs",
+        "observed_mtime_ns": 1789971617401086982,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/mod.rs"
+      },
+      "src/device/full/projection.rs": {
+        "bytes": 11707,
+        "sha256": "b000838c0e3e910a513005aa9cdd70ec1372df63150aa069afe17c599182f1e9",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/projection.rs",
+        "observed_mtime_ns": 1789971617401086982,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/projection.rs"
+      },
+      "src/device/full/rmsnorm.rs": {
+        "bytes": 6936,
+        "sha256": "f03d05ecab27f749d26e94cace17a232c8ce1d387bb9a348ca9ba74eaf79b89a",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/rmsnorm.rs",
+        "observed_mtime_ns": 1789971617401086982,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/rmsnorm.rs"
+      },
+      "src/device/full/rope.rs": {
+        "bytes": 7267,
+        "sha256": "703139f12976b40ef4a75114df09b751f3a6c8610e19b490f26f9b538f615ba4",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/rope.rs",
+        "observed_mtime_ns": 1789971617401086982,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/rope.rs"
+      },
+      "src/device/layout.rs": {
+        "bytes": 1805,
+        "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/layout.rs",
+        "observed_mtime_ns": 1789971617401386011,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/layout.rs"
+      },
+      "src/device/mod.rs": {
+        "bytes": 136,
+        "sha256": "ada8ff5eece77fb7f8afaf9dee1634f518be4909c763f01ad6867ae504edbefe",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/mod.rs",
+        "observed_mtime_ns": 1789971617401386011,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/mod.rs"
+      },
+      "src/device/shared/lm_head.rs": {
+        "bytes": 2500,
+        "sha256": "98fe14525460ea811452a97f38e543cdd37231b6269750b69a39b59a8aaa135e",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/lm_head.rs",
+        "observed_mtime_ns": 1789971617401386011,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/lm_head.rs"
+      },
+      "src/device/shared/mlp.rs": {
+        "bytes": 21056,
+        "sha256": "331088a000ca972d8fdad97c76d9d6ff093a3712bc2cda95e9a3b15fa05856e1",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+        "observed_mtime_ns": 1789993926389178268,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/mlp.rs"
+      },
+      "src/device/shared/mod.rs": {
+        "bytes": 93,
+        "sha256": "ffa89a9ddf0084a4e3143cf9a5b8316f9f6c06354fccdbf69df1062288b11cfb",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/mod.rs",
+        "observed_mtime_ns": 1789971617401709347,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/mod.rs"
+      },
+      "src/device/shared/residual.rs": {
+        "bytes": 9105,
+        "sha256": "deb29e529440170c97bdd65788ab2d11907e240dba8e7a5c7a2eb68e641eac3e",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/residual.rs",
+        "observed_mtime_ns": 1789991985439533245,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/residual.rs"
+      },
+      "src/device/shared/rmsnorm.rs": {
+        "bytes": 10957,
+        "sha256": "d962d6042c90ff51a080720e1f3c851e2375f70776b381a7048e62ccf4115ba5",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/rmsnorm.rs",
+        "observed_mtime_ns": 1789991985442836840,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/rmsnorm.rs"
+      },
+      "src/device/sliding/attention.rs": {
+        "bytes": 8176,
+        "sha256": "3e02a8a2118d27bc10c674285d200fa22ea93c46f4e9e7245d5fcea2a624c33e",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/attention.rs",
+        "observed_mtime_ns": 1789971617401709347,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/attention.rs"
+      },
+      "src/device/sliding/mod.rs": {
+        "bytes": 98,
+        "sha256": "527483c00372f446c6b87c9faede58b938035bb80ba957136f3ad8fee0cd5466",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/mod.rs",
+        "observed_mtime_ns": 1789971617401984727,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/mod.rs"
+      },
+      "src/device/sliding/projection.rs": {
+        "bytes": 29453,
+        "sha256": "eb77ad0076e601606bf614ac990be3cba211378f66fda4e0fad83c2834724e3f",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+        "observed_mtime_ns": 1789995339838762125,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/projection.rs"
+      },
+      "src/device/sliding/rmsnorm.rs": {
+        "bytes": 6019,
+        "sha256": "48bce532c0e9c0e39d6f17a6c38b78e34bfb5a00691291849e460b7a9044281f",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/rmsnorm.rs",
+        "observed_mtime_ns": 1789983130578552697,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/rmsnorm.rs"
+      },
+      "src/device/sliding/rope.rs": {
+        "bytes": 7921,
+        "sha256": "cc23ad726baf191184b8b0ff000516cf38148e04c05b74925ec8a966e80b3c93",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/rope.rs",
+        "observed_mtime_ns": 1789983130550764198,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/rope.rs"
+      },
+      "src/device/vision/layernorm.rs": {
+        "bytes": 10141,
+        "sha256": "da4b2cf071c986f80fe4577c2ceaa7d5a4157190e0cf3118ad004ee912549e39",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/vision/layernorm.rs",
+        "observed_mtime_ns": 1789971617401984727,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/vision/layernorm.rs"
+      },
+      "src/device/vision/mod.rs": {
+        "bytes": 53,
+        "sha256": "da48c2c09fc08b2950b7495a88bc7b36e61d6610d2635d9e4dde173bae0ecca8",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/vision/mod.rs",
+        "observed_mtime_ns": 1789971617402456512,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/vision/mod.rs"
+      },
+      "src/device/vision/projection.rs": {
+        "bytes": 12167,
+        "sha256": "b0a4e8821f1822b86dc4a45ea80050f61f433937e4fccfc3b818d0f71868ca85",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/vision/projection.rs",
+        "observed_mtime_ns": 1789971617402456512,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/vision/projection.rs"
+      },
+      "src/ops.rs": {
+        "bytes": 13021,
+        "sha256": "f2ad258f736dd8f3ebb64b4dc8c7b0e15579bded22e41a40ee355f4674f42c6a",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/ops.rs",
+        "observed_mtime_ns": 1789991985445979716,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/ops.rs"
+      }
+    },
+    "source_files": {
+      "src/api/handlers.rs": {
+        "bytes": 26974,
+        "sha256": "38eaf021fd7be333e584dc5e7c13b73e9b626b0c025b4c4a4f2858ecba0afc0a",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/handlers.rs",
+        "observed_mtime_ns": 1789971617399532184,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/handlers.rs"
+      },
+      "src/api/mod.rs": {
+        "bytes": 63,
+        "sha256": "882420d3454ec2afa0c7f4a6b8fa17c27ccad73e87db4d93d4384e02ca2a1a76",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/mod.rs",
+        "observed_mtime_ns": 1789971617399784212,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/mod.rs"
+      },
+      "src/api/schema.rs": {
+        "bytes": 9180,
+        "sha256": "a19533ad49747ccfc0c08dd77d5ba172549d0963459786478b014e7fd099947e",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/schema.rs",
+        "observed_mtime_ns": 1789971617399784212,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/schema.rs"
+      },
+      "src/api/server.rs": {
+        "bytes": 9726,
+        "sha256": "028b437abff203f719ffc8c3dc3c95fc89fe9baf7ddbe54938b9ccaa0b3dba0d",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/server.rs",
+        "observed_mtime_ns": 1789971617399784212,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/server.rs"
+      },
+      "src/api/worker.rs": {
+        "bytes": 4887,
+        "sha256": "b318ce97f225b68e57eb625474be17e466d3673013163e75ca40cd48320ee1e2",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/worker.rs",
+        "observed_mtime_ns": 1789971617399784212,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/worker.rs"
+      },
+      "src/axes.rs": {
+        "bytes": 395,
+        "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/axes.rs",
+        "observed_mtime_ns": 1789971617399784212,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/axes.rs"
+      },
+      "src/bin/gemma4.rs": {
+        "bytes": 4260,
+        "sha256": "f116b1b7beb3582361ec5d9eb089856d0a2f2e74fedaa049bcc77467a955c77a",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/bin/gemma4.rs",
+        "observed_mtime_ns": 1789971617399784212,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/bin/gemma4.rs"
+      },
+      "src/bin/server.rs": {
+        "bytes": 888,
+        "sha256": "068fe080ed9b9ffef5679c405ae5607f898e9cbf117fb6b3394afdb5073d82fe",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/bin/server.rs",
+        "observed_mtime_ns": 1789971617400229392,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/bin/server.rs"
+      },
+      "src/bin/test_kernels.rs": {
+        "bytes": 33104,
+        "sha256": "42db4e99ae788020726d530d1cd799e647779b7b9912e593401d6981cffc7516",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/bin/test_kernels.rs",
+        "observed_mtime_ns": 1789971617400385976,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/bin/test_kernels.rs"
+      },
+      "src/device/audio/mod.rs": {
+        "bytes": 27,
+        "sha256": "e8372ab68755945d922cf5ed9bfafcb38b716d2ae9e920a79ec1d2e269ad0b38",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/audio/mod.rs",
+        "observed_mtime_ns": 1789971617400632724,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/audio/mod.rs"
+      },
+      "src/device/audio/projection.rs": {
+        "bytes": 5026,
+        "sha256": "c522aa1747df9c9668bb240d972aa4dc692155b15bded95507c5e00594769799",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/audio/projection.rs",
+        "observed_mtime_ns": 1789971617400678046,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/audio/projection.rs"
+      },
+      "src/device/full/attention.rs": {
+        "bytes": 13778,
+        "sha256": "2a4ff8586cb87edfe3f5570bf591dad7996d95e9c9e4c940f0238d0e83b094ab",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/attention.rs",
+        "observed_mtime_ns": 1789971617400678046,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/attention.rs"
+      },
+      "src/device/full/mod.rs": {
+        "bytes": 98,
+        "sha256": "527483c00372f446c6b87c9faede58b938035bb80ba957136f3ad8fee0cd5466",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/mod.rs",
+        "observed_mtime_ns": 1789971617401086982,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/mod.rs"
+      },
+      "src/device/full/projection.rs": {
+        "bytes": 11707,
+        "sha256": "b000838c0e3e910a513005aa9cdd70ec1372df63150aa069afe17c599182f1e9",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/projection.rs",
+        "observed_mtime_ns": 1789971617401086982,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/projection.rs"
+      },
+      "src/device/full/rmsnorm.rs": {
+        "bytes": 6936,
+        "sha256": "f03d05ecab27f749d26e94cace17a232c8ce1d387bb9a348ca9ba74eaf79b89a",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/rmsnorm.rs",
+        "observed_mtime_ns": 1789971617401086982,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/rmsnorm.rs"
+      },
+      "src/device/full/rope.rs": {
+        "bytes": 7267,
+        "sha256": "703139f12976b40ef4a75114df09b751f3a6c8610e19b490f26f9b538f615ba4",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/rope.rs",
+        "observed_mtime_ns": 1789971617401086982,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/rope.rs"
+      },
+      "src/device/layout.rs": {
+        "bytes": 1805,
+        "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/layout.rs",
+        "observed_mtime_ns": 1789971617401386011,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/layout.rs"
+      },
+      "src/device/mod.rs": {
+        "bytes": 136,
+        "sha256": "ada8ff5eece77fb7f8afaf9dee1634f518be4909c763f01ad6867ae504edbefe",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/mod.rs",
+        "observed_mtime_ns": 1789971617401386011,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/mod.rs"
+      },
+      "src/device/shared/lm_head.rs": {
+        "bytes": 2500,
+        "sha256": "98fe14525460ea811452a97f38e543cdd37231b6269750b69a39b59a8aaa135e",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/lm_head.rs",
+        "observed_mtime_ns": 1789971617401386011,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/lm_head.rs"
+      },
+      "src/device/shared/mlp.rs": {
+        "bytes": 21056,
+        "sha256": "331088a000ca972d8fdad97c76d9d6ff093a3712bc2cda95e9a3b15fa05856e1",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+        "observed_mtime_ns": 1789993926389178268,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/mlp.rs"
+      },
+      "src/device/shared/mod.rs": {
+        "bytes": 93,
+        "sha256": "ffa89a9ddf0084a4e3143cf9a5b8316f9f6c06354fccdbf69df1062288b11cfb",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/mod.rs",
+        "observed_mtime_ns": 1789971617401709347,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/mod.rs"
+      },
+      "src/device/shared/residual.rs": {
+        "bytes": 9105,
+        "sha256": "deb29e529440170c97bdd65788ab2d11907e240dba8e7a5c7a2eb68e641eac3e",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/residual.rs",
+        "observed_mtime_ns": 1789991985439533245,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/residual.rs"
+      },
+      "src/device/shared/rmsnorm.rs": {
+        "bytes": 10957,
+        "sha256": "d962d6042c90ff51a080720e1f3c851e2375f70776b381a7048e62ccf4115ba5",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/rmsnorm.rs",
+        "observed_mtime_ns": 1789991985442836840,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/rmsnorm.rs"
+      },
+      "src/device/sliding/attention.rs": {
+        "bytes": 8176,
+        "sha256": "3e02a8a2118d27bc10c674285d200fa22ea93c46f4e9e7245d5fcea2a624c33e",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/attention.rs",
+        "observed_mtime_ns": 1789971617401709347,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/attention.rs"
+      },
+      "src/device/sliding/mod.rs": {
+        "bytes": 98,
+        "sha256": "527483c00372f446c6b87c9faede58b938035bb80ba957136f3ad8fee0cd5466",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/mod.rs",
+        "observed_mtime_ns": 1789971617401984727,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/mod.rs"
+      },
+      "src/device/sliding/projection.rs": {
+        "bytes": 29453,
+        "sha256": "eb77ad0076e601606bf614ac990be3cba211378f66fda4e0fad83c2834724e3f",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+        "observed_mtime_ns": 1789995339838762125,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/projection.rs"
+      },
+      "src/device/sliding/rmsnorm.rs": {
+        "bytes": 6019,
+        "sha256": "48bce532c0e9c0e39d6f17a6c38b78e34bfb5a00691291849e460b7a9044281f",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/rmsnorm.rs",
+        "observed_mtime_ns": 1789983130578552697,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/rmsnorm.rs"
+      },
+      "src/device/sliding/rope.rs": {
+        "bytes": 7921,
+        "sha256": "cc23ad726baf191184b8b0ff000516cf38148e04c05b74925ec8a966e80b3c93",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/rope.rs",
+        "observed_mtime_ns": 1789983130550764198,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/rope.rs"
+      },
+      "src/device/vision/layernorm.rs": {
+        "bytes": 10141,
+        "sha256": "da4b2cf071c986f80fe4577c2ceaa7d5a4157190e0cf3118ad004ee912549e39",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/vision/layernorm.rs",
+        "observed_mtime_ns": 1789971617401984727,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/vision/layernorm.rs"
+      },
+      "src/device/vision/mod.rs": {
+        "bytes": 53,
+        "sha256": "da48c2c09fc08b2950b7495a88bc7b36e61d6610d2635d9e4dde173bae0ecca8",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/vision/mod.rs",
+        "observed_mtime_ns": 1789971617402456512,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/vision/mod.rs"
+      },
+      "src/device/vision/projection.rs": {
+        "bytes": 12167,
+        "sha256": "b0a4e8821f1822b86dc4a45ea80050f61f433937e4fccfc3b818d0f71868ca85",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/vision/projection.rs",
+        "observed_mtime_ns": 1789971617402456512,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/vision/projection.rs"
+      },
+      "src/host/audio.rs": {
+        "bytes": 5747,
+        "sha256": "e7fff79e65ec67cce8fbb7415a28b52f7d350948e7ccb9287e9aaa6a8f051ce0",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/audio.rs",
+        "observed_mtime_ns": 1789971617402456512,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/audio.rs"
+      },
+      "src/host/generate.rs": {
+        "bytes": 11312,
+        "sha256": "03939905181ef43716feb9dd93e52a8e6e19ec51be0df9f680ad8b81949ae1cb",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/generate.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/generate.rs"
+      },
+      "src/host/image.rs": {
+        "bytes": 3842,
+        "sha256": "b4903f903073cf4c5b6bc0d8f77667b2f047a112571865cad0109f690b946f2c",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/image.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/image.rs"
+      },
+      "src/host/load.rs": {
+        "bytes": 16324,
+        "sha256": "fb05a5d79a63c92909f64e1d4cdd699556a42b4f369e88e2c0c11d46160ad892",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/load.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/load.rs"
+      },
+      "src/host/mod.rs": {
+        "bytes": 116,
+        "sha256": "4b272852f112093ff750b3823ce1e72dbf1fd635e78e73629c53851d0b53d28c",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/mod.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/mod.rs"
+      },
+      "src/host/runtime.rs": {
+        "bytes": 18870,
+        "sha256": "207e7928f91bbb47dfd3742efc8f141f0529349e4b7bb243c5a735ff03ed75bc",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/runtime.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/runtime.rs"
+      },
+      "src/host/sampling.rs": {
+        "bytes": 2039,
+        "sha256": "71ee4a3dda3662f1242b421636c10c46b0255d6557d85f694b940882db1a6a11",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/sampling.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/sampling.rs"
+      },
+      "src/host/tokenizer.rs": {
+        "bytes": 1663,
+        "sha256": "7622d6e546c79befc68a93dbaab8e45f07fec1ed3ddb381f83a0c868a9ca64ce",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/tokenizer.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/tokenizer.rs"
+      },
+      "src/lib.rs": {
+        "bytes": 643,
+        "sha256": "60b0a34c636ef6fe7857d74f560f13334a7cfc5e18a0c9e3a77549516f16141e",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/lib.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/lib.rs"
+      },
+      "src/ops.rs": {
+        "bytes": 13021,
+        "sha256": "f2ad258f736dd8f3ebb64b4dc8c7b0e15579bded22e41a40ee355f4674f42c6a",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/ops.rs",
+        "observed_mtime_ns": 1789991985445979716,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/ops.rs"
+      },
+      "src/ops_audio.rs": {
+        "bytes": 595,
+        "sha256": "c9da265a64e3c1c88aab1e91e9440b1d840b4f75c6b5e2ddc28e35d88776ecd5",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/ops_audio.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/ops_audio.rs"
+      },
+      "src/ops_vision.rs": {
+        "bytes": 2950,
+        "sha256": "fea14178f0b586aaa04fc4f7bfa6bc1f240f70446e91d75a42bf9e29c0ad762a",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/ops_vision.rs",
+        "observed_mtime_ns": 1789971617402637304,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/ops_vision.rs"
+      }
+    },
+    "artifacts": {
+      "target/release/test_kernels": {
+        "bytes": 3652416,
+        "sha256": "d697c8aa09bdd4592b11cb5df142f7520500a1b3d5747f7dbb6dcdc6e29045db",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/target/release/test_kernels",
+        "observed_mtime_ns": 1789995349113107668,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/target/release/test_kernels"
+      },
+      "ref/fixtures.safetensors": {
+        "bytes": 202632,
+        "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359",
+        "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/ref/fixtures.safetensors",
+        "observed_mtime_ns": 1789972124448009477,
+        "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/ref/fixtures.safetensors"
+      }
+    },
+    "snapshot": {
+      "directory": "moa-dev/experiments/artifacts/e53-bf16-output",
+      "files": {
+        "src/api/handlers.rs": {
+          "bytes": 26974,
+          "sha256": "38eaf021fd7be333e584dc5e7c13b73e9b626b0c025b4c4a4f2858ecba0afc0a",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/handlers.rs",
+          "observed_mtime_ns": 1789971617399532184,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/handlers.rs"
+        },
+        "src/api/mod.rs": {
+          "bytes": 63,
+          "sha256": "882420d3454ec2afa0c7f4a6b8fa17c27ccad73e87db4d93d4384e02ca2a1a76",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/mod.rs",
+          "observed_mtime_ns": 1789971617399784212,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/mod.rs"
+        },
+        "src/api/schema.rs": {
+          "bytes": 9180,
+          "sha256": "a19533ad49747ccfc0c08dd77d5ba172549d0963459786478b014e7fd099947e",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/schema.rs",
+          "observed_mtime_ns": 1789971617399784212,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/schema.rs"
+        },
+        "src/api/server.rs": {
+          "bytes": 9726,
+          "sha256": "028b437abff203f719ffc8c3dc3c95fc89fe9baf7ddbe54938b9ccaa0b3dba0d",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/server.rs",
+          "observed_mtime_ns": 1789971617399784212,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/server.rs"
+        },
+        "src/api/worker.rs": {
+          "bytes": 4887,
+          "sha256": "b318ce97f225b68e57eb625474be17e466d3673013163e75ca40cd48320ee1e2",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/api/worker.rs",
+          "observed_mtime_ns": 1789971617399784212,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/api/worker.rs"
+        },
+        "src/axes.rs": {
+          "bytes": 395,
+          "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/axes.rs",
+          "observed_mtime_ns": 1789971617399784212,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/axes.rs"
+        },
+        "src/bin/gemma4.rs": {
+          "bytes": 4260,
+          "sha256": "f116b1b7beb3582361ec5d9eb089856d0a2f2e74fedaa049bcc77467a955c77a",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/bin/gemma4.rs",
+          "observed_mtime_ns": 1789971617399784212,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/bin/gemma4.rs"
+        },
+        "src/bin/server.rs": {
+          "bytes": 888,
+          "sha256": "068fe080ed9b9ffef5679c405ae5607f898e9cbf117fb6b3394afdb5073d82fe",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/bin/server.rs",
+          "observed_mtime_ns": 1789971617400229392,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/bin/server.rs"
+        },
+        "src/bin/test_kernels.rs": {
+          "bytes": 33104,
+          "sha256": "42db4e99ae788020726d530d1cd799e647779b7b9912e593401d6981cffc7516",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/bin/test_kernels.rs",
+          "observed_mtime_ns": 1789971617400385976,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/bin/test_kernels.rs"
+        },
+        "src/device/audio/mod.rs": {
+          "bytes": 27,
+          "sha256": "e8372ab68755945d922cf5ed9bfafcb38b716d2ae9e920a79ec1d2e269ad0b38",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/audio/mod.rs",
+          "observed_mtime_ns": 1789971617400632724,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/audio/mod.rs"
+        },
+        "src/device/audio/projection.rs": {
+          "bytes": 5026,
+          "sha256": "c522aa1747df9c9668bb240d972aa4dc692155b15bded95507c5e00594769799",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/audio/projection.rs",
+          "observed_mtime_ns": 1789971617400678046,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/audio/projection.rs"
+        },
+        "src/device/full/attention.rs": {
+          "bytes": 13778,
+          "sha256": "2a4ff8586cb87edfe3f5570bf591dad7996d95e9c9e4c940f0238d0e83b094ab",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/attention.rs",
+          "observed_mtime_ns": 1789971617400678046,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/attention.rs"
+        },
+        "src/device/full/mod.rs": {
+          "bytes": 98,
+          "sha256": "527483c00372f446c6b87c9faede58b938035bb80ba957136f3ad8fee0cd5466",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/mod.rs",
+          "observed_mtime_ns": 1789971617401086982,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/mod.rs"
+        },
+        "src/device/full/projection.rs": {
+          "bytes": 11707,
+          "sha256": "b000838c0e3e910a513005aa9cdd70ec1372df63150aa069afe17c599182f1e9",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/projection.rs",
+          "observed_mtime_ns": 1789971617401086982,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/projection.rs"
+        },
+        "src/device/full/rmsnorm.rs": {
+          "bytes": 6936,
+          "sha256": "f03d05ecab27f749d26e94cace17a232c8ce1d387bb9a348ca9ba74eaf79b89a",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/rmsnorm.rs",
+          "observed_mtime_ns": 1789971617401086982,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/rmsnorm.rs"
+        },
+        "src/device/full/rope.rs": {
+          "bytes": 7267,
+          "sha256": "703139f12976b40ef4a75114df09b751f3a6c8610e19b490f26f9b538f615ba4",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/full/rope.rs",
+          "observed_mtime_ns": 1789971617401086982,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/full/rope.rs"
+        },
+        "src/device/layout.rs": {
+          "bytes": 1805,
+          "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/layout.rs",
+          "observed_mtime_ns": 1789971617401386011,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/layout.rs"
+        },
+        "src/device/mod.rs": {
+          "bytes": 136,
+          "sha256": "ada8ff5eece77fb7f8afaf9dee1634f518be4909c763f01ad6867ae504edbefe",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/mod.rs",
+          "observed_mtime_ns": 1789971617401386011,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/mod.rs"
+        },
+        "src/device/shared/lm_head.rs": {
+          "bytes": 2500,
+          "sha256": "98fe14525460ea811452a97f38e543cdd37231b6269750b69a39b59a8aaa135e",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/lm_head.rs",
+          "observed_mtime_ns": 1789971617401386011,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/lm_head.rs"
+        },
+        "src/device/shared/mlp.rs": {
+          "bytes": 21056,
+          "sha256": "331088a000ca972d8fdad97c76d9d6ff093a3712bc2cda95e9a3b15fa05856e1",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "observed_mtime_ns": 1789993926389178268,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/mlp.rs"
+        },
+        "src/device/shared/mod.rs": {
+          "bytes": 93,
+          "sha256": "ffa89a9ddf0084a4e3143cf9a5b8316f9f6c06354fccdbf69df1062288b11cfb",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/mod.rs",
+          "observed_mtime_ns": 1789971617401709347,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/mod.rs"
+        },
+        "src/device/shared/residual.rs": {
+          "bytes": 9105,
+          "sha256": "deb29e529440170c97bdd65788ab2d11907e240dba8e7a5c7a2eb68e641eac3e",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/residual.rs",
+          "observed_mtime_ns": 1789991985439533245,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/residual.rs"
+        },
+        "src/device/shared/rmsnorm.rs": {
+          "bytes": 10957,
+          "sha256": "d962d6042c90ff51a080720e1f3c851e2375f70776b381a7048e62ccf4115ba5",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/shared/rmsnorm.rs",
+          "observed_mtime_ns": 1789991985442836840,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/shared/rmsnorm.rs"
+        },
+        "src/device/sliding/attention.rs": {
+          "bytes": 8176,
+          "sha256": "3e02a8a2118d27bc10c674285d200fa22ea93c46f4e9e7245d5fcea2a624c33e",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/attention.rs",
+          "observed_mtime_ns": 1789971617401709347,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/attention.rs"
+        },
+        "src/device/sliding/mod.rs": {
+          "bytes": 98,
+          "sha256": "527483c00372f446c6b87c9faede58b938035bb80ba957136f3ad8fee0cd5466",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/mod.rs",
+          "observed_mtime_ns": 1789971617401984727,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/mod.rs"
+        },
+        "src/device/sliding/projection.rs": {
+          "bytes": 29453,
+          "sha256": "eb77ad0076e601606bf614ac990be3cba211378f66fda4e0fad83c2834724e3f",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "observed_mtime_ns": 1789995339838762125,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/projection.rs"
+        },
+        "src/device/sliding/rmsnorm.rs": {
+          "bytes": 6019,
+          "sha256": "48bce532c0e9c0e39d6f17a6c38b78e34bfb5a00691291849e460b7a9044281f",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/rmsnorm.rs",
+          "observed_mtime_ns": 1789983130578552697,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/rmsnorm.rs"
+        },
+        "src/device/sliding/rope.rs": {
+          "bytes": 7921,
+          "sha256": "cc23ad726baf191184b8b0ff000516cf38148e04c05b74925ec8a966e80b3c93",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/sliding/rope.rs",
+          "observed_mtime_ns": 1789983130550764198,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/sliding/rope.rs"
+        },
+        "src/device/vision/layernorm.rs": {
+          "bytes": 10141,
+          "sha256": "da4b2cf071c986f80fe4577c2ceaa7d5a4157190e0cf3118ad004ee912549e39",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/vision/layernorm.rs",
+          "observed_mtime_ns": 1789971617401984727,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/vision/layernorm.rs"
+        },
+        "src/device/vision/mod.rs": {
+          "bytes": 53,
+          "sha256": "da48c2c09fc08b2950b7495a88bc7b36e61d6610d2635d9e4dde173bae0ecca8",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/vision/mod.rs",
+          "observed_mtime_ns": 1789971617402456512,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/vision/mod.rs"
+        },
+        "src/device/vision/projection.rs": {
+          "bytes": 12167,
+          "sha256": "b0a4e8821f1822b86dc4a45ea80050f61f433937e4fccfc3b818d0f71868ca85",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/device/vision/projection.rs",
+          "observed_mtime_ns": 1789971617402456512,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/device/vision/projection.rs"
+        },
+        "src/host/audio.rs": {
+          "bytes": 5747,
+          "sha256": "e7fff79e65ec67cce8fbb7415a28b52f7d350948e7ccb9287e9aaa6a8f051ce0",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/audio.rs",
+          "observed_mtime_ns": 1789971617402456512,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/audio.rs"
+        },
+        "src/host/generate.rs": {
+          "bytes": 11312,
+          "sha256": "03939905181ef43716feb9dd93e52a8e6e19ec51be0df9f680ad8b81949ae1cb",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/generate.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/generate.rs"
+        },
+        "src/host/image.rs": {
+          "bytes": 3842,
+          "sha256": "b4903f903073cf4c5b6bc0d8f77667b2f047a112571865cad0109f690b946f2c",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/image.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/image.rs"
+        },
+        "src/host/load.rs": {
+          "bytes": 16324,
+          "sha256": "fb05a5d79a63c92909f64e1d4cdd699556a42b4f369e88e2c0c11d46160ad892",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/load.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/load.rs"
+        },
+        "src/host/mod.rs": {
+          "bytes": 116,
+          "sha256": "4b272852f112093ff750b3823ce1e72dbf1fd635e78e73629c53851d0b53d28c",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/mod.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/mod.rs"
+        },
+        "src/host/runtime.rs": {
+          "bytes": 18870,
+          "sha256": "207e7928f91bbb47dfd3742efc8f141f0529349e4b7bb243c5a735ff03ed75bc",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/runtime.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/runtime.rs"
+        },
+        "src/host/sampling.rs": {
+          "bytes": 2039,
+          "sha256": "71ee4a3dda3662f1242b421636c10c46b0255d6557d85f694b940882db1a6a11",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/sampling.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/sampling.rs"
+        },
+        "src/host/tokenizer.rs": {
+          "bytes": 1663,
+          "sha256": "7622d6e546c79befc68a93dbaab8e45f07fec1ed3ddb381f83a0c868a9ca64ce",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/host/tokenizer.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/host/tokenizer.rs"
+        },
+        "src/lib.rs": {
+          "bytes": 643,
+          "sha256": "60b0a34c636ef6fe7857d74f560f13334a7cfc5e18a0c9e3a77549516f16141e",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/lib.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/lib.rs"
+        },
+        "src/ops.rs": {
+          "bytes": 13021,
+          "sha256": "f2ad258f736dd8f3ebb64b4dc8c7b0e15579bded22e41a40ee355f4674f42c6a",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/ops.rs",
+          "observed_mtime_ns": 1789991985445979716,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/ops.rs"
+        },
+        "src/ops_audio.rs": {
+          "bytes": 595,
+          "sha256": "c9da265a64e3c1c88aab1e91e9440b1d840b4f75c6b5e2ddc28e35d88776ecd5",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/ops_audio.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/ops_audio.rs"
+        },
+        "src/ops_vision.rs": {
+          "bytes": 2950,
+          "sha256": "fea14178f0b586aaa04fc4f7bfa6bc1f240f70446e91d75a42bf9e29c0ad762a",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/src/ops_vision.rs",
+          "observed_mtime_ns": 1789971617402637304,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/src/ops_vision.rs"
+        },
+        "Cargo.toml": {
+          "bytes": 718,
+          "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/Cargo.toml",
+          "observed_mtime_ns": 1789971617397390680,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/Cargo.toml"
+        },
+        "Cargo.lock": {
+          "bytes": 91819,
+          "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/Cargo.lock",
+          "observed_mtime_ns": 1789972103890295017,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/Cargo.lock"
+        },
+        "rust-toolchain.toml": {
+          "bytes": 78,
+          "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/rust-toolchain.toml",
+          "observed_mtime_ns": 1789971617398385907,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/rust-toolchain.toml"
+        },
+        "ref/fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/ref/fixtures.safetensors",
+          "observed_mtime_ns": 1789972124448009477,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/ref/fixtures.safetensors"
+        },
+        "scripts/rngd/remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/scripts/rngd/remote_entrypoint.sh",
+          "observed_mtime_ns": 1789971617398782998,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/scripts/rngd/remote_entrypoint.sh"
+        },
+        "scripts/rngd_test.sh": {
+          "bytes": 3571,
+          "sha256": "ae7ee28d9ec7eea3408a1442948c7253aeb4ce0da2d3a67ee8a9ab23e5efe613",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/scripts/rngd_test.sh",
+          "observed_mtime_ns": 1789971617398782998,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/scripts/rngd_test.sh"
+        },
+        "target/release/test_kernels": {
+          "bytes": 3652416,
+          "sha256": "d697c8aa09bdd4592b11cb5df142f7520500a1b3d5747f7dbb6dcdc6e29045db",
+          "captured_from": "/home/jihwan38/moa-workspace/furiosa-opt-gemma4-12B/target/release/test_kernels",
+          "observed_mtime_ns": 1789995349113107668,
+          "snapshot_path": "moa-dev/experiments/artifacts/e53-bf16-output/target/release/test_kernels"
+        }
+      },
+      "protection": "No overwrite through this helper; copied files/directories are made read-only. This is filesystem permission protection, not an immutable storage service."
+    },
+    "capture_tool": {
+      "bytes": 10685,
+      "sha256": "aa730acc1661a190da8ec9acc7ff63b92cb8714e462c019c0c4ff7d4687f3ce2"
+    },
+    "finished_at_utc": "2026-09-21T12:56:11.084018+00:00"
+  },
+  "aggregate": {
+    "sliding_project_qkv": {
+      "median_cycles": 93987,
+      "job_medians": [
+        93987
+      ],
+      "min_cycles": 93987,
+      "max_cycles": 93987,
+      "relative_range": 0.0
+    },
+    "sliding_attention_output": {
+      "median_cycles": 50882,
+      "job_medians": [
+        50882
+      ],
+      "min_cycles": 50882,
+      "max_cycles": 50882,
+      "relative_range": 0.0
+    },
+    "decoder_feedforward": {
+      "median_cycles": 376814,
+      "job_medians": [
+        376814
+      ],
+      "min_cycles": 376814,
+      "max_cycles": 376814,
+      "relative_range": 0.0
+    }
+  },
+  "indicative_score": {
+    "value": 5.928086026584539,
+    "reference": "docs/experiments/leaderboard-20260921-initial.json",
+    "note": "Diagnostic estimate only; not an official score or rank."
+  },
+  "valid": true,
+  "finished_at_utc": "2026-09-21T12:59:27.377030+00:00"
+}

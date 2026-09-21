@@ -6,25 +6,31 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
-현재 `baseline`의 검증된 E47은 세 커널을 같은 패키지로 3회 실행하고 추가 입력 6세트 검사를 통과했다.
-아래는 각 job 중앙값의 중앙값이며, 전체 Gemma 추론 속도나 공식 순위를 뜻하지 않는다.
+현재 `baseline`은 O projection의 입력을 BF16으로 보존하는 **E53**이다.
+공식 입력3세트와 별도 추가6세트의 모든 비교, O 경계8개 검사를 통과했다.
+이전 E47에서 작은 값이 FP8 근사로 사라지던 상쇄 입력도 원본과 같은 결과를 낸다.
+[원본·E47·E53 경계 비교](docs/experiments/output-boundary-comparison.md).
 
-| 커널 | 원본 cycles | E47 cycles | 원본 대비 |
+아래는 같은 패키지3회 실행에서 얻은 job 중앙값들의 중앙값이다.
+전체 Gemma 추론 속도나 공식 순위를 뜻하지 않는다.
+
+| 커널 | 원본 반복 중앙값 cycles | E53 반복 중앙값 cycles | 원본 대비 |
 |---|---:|---:|---:|
-| QKV | 244,051 | 94,662 | 2.58× |
-| Attention output | 404,222 | 44,588 | 9.07× |
-| FFN | 4,264,297 | 377,564 | 11.29× |
+| QKV | 244,051 | 95,621 | 2.55× |
+| Attention output | 404,222 | 50,882 | 7.94× |
+| FFN | 4,264,297 | 377,880 | 11.28× |
 
-[반복 측정](docs/experiments/e47-output-sixteen-columns-repeats.json), [추가 입력 검사](docs/experiments/e47-output-sixteen-columns-extra-correctness.json),
-[채택·실패 실험 원장](docs/experiments/README.md)에 소스/바이너리/업로드 패키지의 SHA256과 근거를 기록한다.
-E37에서 O projection만 16분할로 변경해 O의 반복 중앙값을 2.54% 줄였다. QKV/FFN device image는
-E37과 같다. 동일 QKV image의 [KV cache 보존 검사](docs/experiments/e37-cache-preservation-correctness.json)에서는
-세 구성의 비대상 원소 12,570,624개가 모두 유지됐다.
-[복구·빌드 검사](docs/experiments/e47-source-build-audit.json)에서 새 실행 파일을 byte-identical하게 재현했고,
-추가 입력용 별도 빌드도 세 device image가 모두 일치했다. E37의 빈 target 재현성은
-[이전 clean build 기록](docs/experiments/e37-clean-build-audit.md)에 보존했다.
-공식 제출 서버는 평가 기준 수정으로 중단 중이며, 별도 제출기 인증도 아직 완료하지 않았다.
-[공식 상태 확인](docs/experiments/official-submission-status-20260921.json).
+[동일 패키지 반복 측정](docs/experiments/e53-bf16-output-repeats.json), [추가 입력 검사](docs/experiments/e53-bf16-output-extra-correctness.json),
+[실험 원장](docs/experiments/README.md)에 소스·바이너리·업로드 해시를 기록한다.
+E53은 O의 입력 근사와 scale 전 BF16 반올림을 제거했다. QKV/FFN device image는 E47과 같다.
+같은 QKV image의 [KV cache 보존 검사](docs/experiments/e37-cache-preservation-correctness.json)에서
+비대상 BF16 원소12,570,624개가 유지됐다.
+[빌드 검사](docs/experiments/e53-source-build-audit.json)에서 정리한 소스로 측정 실행 파일을
+byte-identical하게 재현했고, 별도 추가 입력 빌드도 세 device image가 모두 일치했다.
+현재 검증 범위를 넘어 임의 입력이나 모델 전체의 정확성을 보장하지 않는다.
+
+공식 제출 서버는 평가 기준 수정으로 중단 중이며 별도 제출기 인증도 아직 완료하지 않았다.
+공식 점수·순위는 미확인이다. [공식 상태 확인](docs/experiments/official-submission-status-20260921.json).
 
 ```text
 moa-workspace/

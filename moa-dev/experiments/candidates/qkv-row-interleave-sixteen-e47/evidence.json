@@ -1,0 +1,547 @@
+{
+  "schema_version": 1,
+  "candidate": "qkv-row-interleave-sixteen-e47",
+  "recorded_at_utc": "2026-09-21T12:43:13.040778+00:00",
+  "status": "exact compile PASS, hardware untested, not adopted",
+  "compile_attempt_count": 1,
+  "prior_candidate_search": {
+    "scope": "Existing local candidate projection sources, README/evidence and 8-way predecessor history",
+    "found_prior_16way_qkv_candidate": false,
+    "excluded_distinct_matches": [
+      "O32-column Qs/128 partition",
+      "8-way FFN row interleave",
+      "8-way QKV and unexecuted full256 proposal"
+    ]
+  },
+  "source": {
+    "parent_snapshot": "moa-dev/experiments/artifacts/e47-output-sixteen-columns",
+    "src_files_compared": 43,
+    "changed_paths": [
+      "device/sliding/projection.rs"
+    ],
+    "remaining_src_files_byte_identical": 42,
+    "ops_harness_axes_rms_rope_and_ffn_unchanged": true,
+    "O_and_quantizer_suffix_byte_identical": true,
+    "Q_K_pair_and_V_two_dot_preserved": true,
+    "compiled_input_46_hashes_match_host_scratch": true,
+    "candidate": {
+      "path": "moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/projection.rs",
+      "bytes": 29646,
+      "sha256": "99b5b4b37d268b48e2725c643ba0e68531517d6832cc134ef1de68505de97324"
+    },
+    "baseline": {
+      "path": "moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/projection.original.rs",
+      "bytes": 29239,
+      "sha256": "db048b93d9b768bb4cb9cb6f8fd603783789d4a5eb609e42a00a23c69a330718"
+    }
+  },
+  "baseline": {
+    "makespan": 50364,
+    "instruction_count": 171,
+    "context_union_cycles": {
+      "DmaEngine": 45195,
+      "PeCore": 27329,
+      "MainContext": 27938,
+      "VectorEngine": 16950,
+      "SubContext": 9803
+    },
+    "main_dma_overlap_cycles": 24911,
+    "selected_nodes": [
+      {
+        "index": "52",
+        "function": "project_value_two_dot",
+        "kind": "weight_dma",
+        "cycles": 6966,
+        "begin": 3162,
+        "end": 10128,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "92",
+        "function": "project_value_two_dot",
+        "kind": "channel_scale_dma",
+        "cycles": 665,
+        "begin": 10128,
+        "end": 10793,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "151",
+        "function": "project_query",
+        "kind": "weight_dma",
+        "cycles": 13383,
+        "begin": 16588,
+        "end": 29971,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "189",
+        "function": "project_value_two_dot",
+        "kind": "restore_switch",
+        "cycles": 343,
+        "begin": 29009,
+        "end": 29352,
+        "contexts": [
+          "MainContext"
+        ]
+      },
+      {
+        "index": "204",
+        "function": "project_query",
+        "kind": "channel_scale_dma",
+        "cycles": 792,
+        "begin": 29971,
+        "end": 30763,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "214",
+        "function": "project_value_two_dot",
+        "kind": "head_gather",
+        "cycles": 575,
+        "begin": 30763,
+        "end": 31338,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "221",
+        "function": "project_query",
+        "kind": "restore_switch",
+        "cycles": 343,
+        "begin": 31197,
+        "end": 31540,
+        "contexts": [
+          "MainContext"
+        ]
+      },
+      {
+        "index": "241",
+        "function": "project_query",
+        "kind": "head_gather",
+        "cycles": 716,
+        "begin": 32041,
+        "end": 32757,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "276",
+        "function": "project_one_kv_matrix",
+        "kind": "weight_dma",
+        "cycles": 6966,
+        "begin": 34386,
+        "end": 41352,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "326",
+        "function": "project_one_kv_matrix",
+        "kind": "channel_scale_dma",
+        "cycles": 665,
+        "begin": 41352,
+        "end": 42017,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "335",
+        "function": "project_one_kv_matrix",
+        "kind": "restore_switch",
+        "cycles": 343,
+        "begin": 42098,
+        "end": 42441,
+        "contexts": [
+          "MainContext"
+        ]
+      },
+      {
+        "index": "355",
+        "function": "project_one_kv_matrix",
+        "kind": "head_gather",
+        "cycles": 575,
+        "begin": 43313,
+        "end": 43888,
+        "contexts": [
+          "DmaEngine"
+        ]
+      }
+    ]
+  },
+  "candidate_static": {
+    "makespan": 49811,
+    "instruction_count": 171,
+    "context_union_cycles": {
+      "DmaEngine": 44641,
+      "PeCore": 27264,
+      "MainContext": 28568,
+      "VectorEngine": 16956,
+      "SubContext": 9809
+    },
+    "main_dma_overlap_cycles": 25210,
+    "selected_nodes": [
+      {
+        "index": "60",
+        "function": "project_value_two_dot",
+        "kind": "weight_dma",
+        "cycles": 6966,
+        "begin": 3162,
+        "end": 10128,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "98",
+        "function": "project_value_two_dot",
+        "kind": "channel_scale_dma",
+        "cycles": 600,
+        "begin": 10536,
+        "end": 11136,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "151",
+        "function": "project_query",
+        "kind": "weight_dma",
+        "cycles": 13383,
+        "begin": 16523,
+        "end": 29906,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "189",
+        "function": "project_value_two_dot",
+        "kind": "restore_switch",
+        "cycles": 551,
+        "begin": 28944,
+        "end": 29495,
+        "contexts": [
+          "MainContext"
+        ]
+      },
+      {
+        "index": "204",
+        "function": "project_query",
+        "kind": "channel_scale_dma",
+        "cycles": 651,
+        "begin": 29906,
+        "end": 30557,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "214",
+        "function": "project_value_two_dot",
+        "kind": "head_gather",
+        "cycles": 504,
+        "begin": 30557,
+        "end": 31061,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "226",
+        "function": "project_query",
+        "kind": "restore_switch",
+        "cycles": 551,
+        "begin": 31132,
+        "end": 31683,
+        "contexts": [
+          "MainContext"
+        ]
+      },
+      {
+        "index": "242",
+        "function": "project_query",
+        "kind": "head_gather",
+        "cycles": 575,
+        "begin": 32049,
+        "end": 32624,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "278",
+        "function": "project_one_kv_matrix",
+        "kind": "weight_dma",
+        "cycles": 6966,
+        "begin": 33996,
+        "end": 40962,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "330",
+        "function": "project_one_kv_matrix",
+        "kind": "channel_scale_dma",
+        "cycles": 600,
+        "begin": 41041,
+        "end": 41641,
+        "contexts": [
+          "DmaEngine"
+        ]
+      },
+      {
+        "index": "339",
+        "function": "project_one_kv_matrix",
+        "kind": "restore_switch",
+        "cycles": 551,
+        "begin": 41708,
+        "end": 42259,
+        "contexts": [
+          "MainContext"
+        ]
+      },
+      {
+        "index": "352",
+        "function": "project_one_kv_matrix",
+        "kind": "head_gather",
+        "cycles": 504,
+        "begin": 42575,
+        "end": 43079,
+        "contexts": [
+          "DmaEngine"
+        ]
+      }
+    ]
+  },
+  "delta": {
+    "makespan": -553,
+    "makespan_percent": -1.0980065125883565,
+    "context_union_cycles": {
+      "DmaEngine": -554,
+      "PeCore": -65,
+      "MainContext": 630,
+      "VectorEngine": 6,
+      "SubContext": 6
+    },
+    "main_dma_overlap_cycles": 299,
+    "weight_dma_sum": 0,
+    "channel_scale_dma_sum": -271,
+    "head_gather_dma_sum": -283,
+    "restore_switch_sum": 624,
+    "channel_scale_main_sum": 6,
+    "scale_vrf_sub_sum": 6,
+    "elapsed_not_sum_of_engine_durations": true
+  },
+  "mapping": {
+    "Q_input": {
+      "cluster": "Qs/2048",
+      "slice": "[Qs/128%16,Qs%16]",
+      "element": "[Qs/16%8,H]"
+    },
+    "KV_input": {
+      "cluster": "Ps/1024",
+      "slice": "[Ps/64%16,Ps%16]",
+      "element": "[Ps/16%4,H]"
+    },
+    "Q_restore": {
+      "slice": "[Qs/128%16,Qs/16%8#16]",
+      "element": "Qs%16",
+      "valid_slices_per_cluster": 128
+    },
+    "KV_restore": {
+      "slice": "[Ps/64%16,Ps/16%4#16]",
+      "element": "Ps%16",
+      "valid_slices_per_cluster": 64
+    },
+    "switch": "InterTranspose{slice1:16,slice0:1,time0:1}",
+    "invalid_slices_remain_padding_until_typed_head_gather": true,
+    "canonical_head_shapes": {
+      "Q": "Ns8,Gs2,Ds256",
+      "KV": "Ns8,Ds256"
+    },
+    "per_row_arithmetic": "Existing global-scale FP8 split, full H3840 dot order, BF16 contraction then channel-scale FP32 multiply then BF16. Query/key pair and value two-dot unchanged."
+  },
+  "descriptors": {
+    "baseline": [
+      {
+        "graph_key": "33",
+        "name": "DmaCommand#O69",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0xF0000)\ndst1: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst2: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x2D0000)\ndst3: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst4: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x4B0000)\ndst5: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst6: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x690000)\ndst7: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O69\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "88",
+        "name": "DmaCommand#O39",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Qs_8=32:16, Qs_256=2:512, None=1:16], Dram(chip=0, in_chip=0x0)\ndst0: [Qs_8=32:4194304, Qs_256=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Qs_8=32:16, Qs_256=2:512, None=1:16], Dram(chip=0, in_chip=0x400)\ndst1: [Qs_8=32:4194304, Qs_256=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Qs_8=32:16, Qs_256=2:512, None=1:16], Dram(chip=0, in_chip=0x800)\ndst2: [Qs_8=32:4194304, Qs_256=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Qs_8=32:16, Qs_256=2:512, None=1:16], Dram(chip=0, in_chip=0xC00)\ndst3: [Qs_8=32:4194304, Qs_256=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Qs_8=32:16, Qs_256=2:512, None=1:16], Dram(chip=0, in_chip=0x1000)\ndst4: [Qs_8=32:4194304, Qs_256=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Qs_8=32:16, Qs_256=2:512, None=1:16], Dram(chip=0, in_chip=0x1400)\ndst5: [Qs_8=32:4194304, Qs_256=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Qs_8=32:16, Qs_256=2:512, None=1:16], Dram(chip=0, in_chip=0x1800)\ndst6: [Qs_8=32:4194304, Qs_256=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Qs_8=32:16, Qs_256=2:512, None=1:16], Dram(chip=0, in_chip=0x1C00)\ndst7: [Qs_8=32:4194304, Qs_256=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O39\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "52",
+        "name": "DmaCommand#O74",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x200)\ndst1: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x400)\ndst2: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x600)\ndst3: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x800)\ndst4: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0xA00)\ndst5: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0xC00)\ndst6: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0xE00)\ndst7: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O74\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "107",
+        "name": "DmaCommand#O51",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0xF0000)\ndst1: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst2: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x2D0000)\ndst3: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst4: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x4B0000)\ndst5: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst6: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x690000)\ndst7: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O51\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "121",
+        "name": "DmaCommand#O54",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x200)\ndst1: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x400)\ndst2: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x600)\ndst3: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0x800)\ndst4: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0xA00)\ndst5: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0xC00)\ndst6: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_32=4:64, Ps_8=4:16, Ps_128=2:256, None=1:16], Dram(chip=0, in_chip=0xE00)\ndst7: [Ps_32=4:33554432, Ps_8=4:4194304, Ps_128=2:134217728, None=1:16], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O54\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "70",
+        "name": "DmaCommand#O36",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst1: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst2: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst3: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x780000)\ndst4: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x960000)\ndst5: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0xD20000)\ndst7: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O36\nhistory: ",
+        "source_descriptor_count": 8
+      }
+    ],
+    "candidate": [
+      {
+        "graph_key": "122",
+        "name": "DmaCommand#O54",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x200)\ndst1: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x400)\ndst2: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x600)\ndst3: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x800)\ndst4: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0xA00)\ndst5: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0xC00)\ndst6: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0xE00)\ndst7: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O54\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "88",
+        "name": "DmaCommand#O39",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Qs_128=2:256, Qs_16=8:32, Qs_256=2:512, None=1:32], Dram(chip=0, in_chip=0x0)\ndst0: [Qs_128=2:67108864, Qs_16=8:4194304, Qs_256=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Qs_128=2:256, Qs_16=8:32, Qs_256=2:512, None=1:32], Dram(chip=0, in_chip=0x400)\ndst1: [Qs_128=2:67108864, Qs_16=8:4194304, Qs_256=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Qs_128=2:256, Qs_16=8:32, Qs_256=2:512, None=1:32], Dram(chip=0, in_chip=0x800)\ndst2: [Qs_128=2:67108864, Qs_16=8:4194304, Qs_256=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Qs_128=2:256, Qs_16=8:32, Qs_256=2:512, None=1:32], Dram(chip=0, in_chip=0xC00)\ndst3: [Qs_128=2:67108864, Qs_16=8:4194304, Qs_256=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Qs_128=2:256, Qs_16=8:32, Qs_256=2:512, None=1:32], Dram(chip=0, in_chip=0x1000)\ndst4: [Qs_128=2:67108864, Qs_16=8:4194304, Qs_256=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Qs_128=2:256, Qs_16=8:32, Qs_256=2:512, None=1:32], Dram(chip=0, in_chip=0x1400)\ndst5: [Qs_128=2:67108864, Qs_16=8:4194304, Qs_256=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Qs_128=2:256, Qs_16=8:32, Qs_256=2:512, None=1:32], Dram(chip=0, in_chip=0x1800)\ndst6: [Qs_128=2:67108864, Qs_16=8:4194304, Qs_256=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Qs_128=2:256, Qs_16=8:32, Qs_256=2:512, None=1:32], Dram(chip=0, in_chip=0x1C00)\ndst7: [Qs_128=2:67108864, Qs_16=8:4194304, Qs_256=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O39\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "107",
+        "name": "DmaCommand#O51",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0xF0000)\ndst1: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst2: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x2D0000)\ndst3: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst4: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x4B0000)\ndst5: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst6: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x690000)\ndst7: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O51\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "54",
+        "name": "DmaCommand#O74",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x200)\ndst1: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x400)\ndst2: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x600)\ndst3: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0x800)\ndst4: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0xA00)\ndst5: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0xC00)\ndst6: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_64=2:128, Ps_16=4:32, Ps_128=2:256, None=1:32], Dram(chip=0, in_chip=0xE00)\ndst7: [Ps_64=2:67108864, Ps_16=4:4194304, Ps_128=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O74\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "42",
+        "name": "DmaCommand#O69",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0xF0000)\ndst1: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst2: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x2D0000)\ndst3: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst4: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x4B0000)\ndst5: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst6: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x690000)\ndst7: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O69\nhistory: ",
+        "source_descriptor_count": 8
+      },
+      {
+        "graph_key": "70",
+        "name": "DmaCommand#O36",
+        "kind": "Dma.DtoS",
+        "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst1: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst2: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst3: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x780000)\ndst4: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x960000)\ndst5: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0xD20000)\ndst7: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O36\nhistory: ",
+        "source_descriptor_count": 8
+      }
+    ],
+    "summary": "Weight descriptor count remains8 each, innermostH256B remains. local-row stride30720->61440 and low-slice8->16. Channel-scale packet16B->32B."
+  },
+  "kernel": {
+    "path": "moa-dev/experiments/artifacts/qkv-row-interleave-sixteen-e47/candidate.bin",
+    "bytes": 187648,
+    "sha256": "7331e194feaa01bece7d3f552e06c7c722d3e2f66a965afdcd832ecc2b612fb1"
+  },
+  "baseline_kernel": {
+    "path": "moa-dev/experiments/artifacts/qkv-amax-switch-gather/baseline-qkv.bin",
+    "bytes": 187648,
+    "sha256": "91b232f0179b37b126f2ba8755b6125e532364418516948fd98dadcc9d7e77ea"
+  },
+  "baseline_image_equals_e37_clean_build": true,
+  "baseline_image_embedded_once_in_e47": true,
+  "files": [
+    {
+      "path": "moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/candidate.patch",
+      "bytes": 18544,
+      "sha256": "7b5fbed8bb62919294064c29986a7594ae22f844a950524ad37fdbc135b7b39d"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/verify_layout.py",
+      "bytes": 5992,
+      "sha256": "7ac77a38c62e53ac9688bbe76a65b956d27cd95abcd359eee77e563e670164e9"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/verification.json",
+      "bytes": 1120,
+      "sha256": "972fe39058c8464db56911e45de699295b85cfde3763fed8f2b08c6f609eb575"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/qkv-row-interleave-sixteen-e47/compiled-source-manifest.json",
+      "bytes": 4539,
+      "sha256": "8115629ad126b28f679c6afb08809c73191248fc631efc88b20f35f25fe521e6"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/qkv-row-interleave-sixteen-e47/candidate.json",
+      "bytes": 111710,
+      "sha256": "6f9627eb91cc4e56025097254d57b2aca96aed9fbe69664cf0d74c9f0d816a02"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/qkv-row-interleave-sixteen-e47/candidate-graph.json",
+      "bytes": 230517,
+      "sha256": "2712b3f055aa7b1baed19235498f926a1f5524c8e85caa4781cd7d920b4e3ce2"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/qkv-row-interleave-sixteen-e47/attempt-1.log",
+      "bytes": 1066,
+      "sha256": "88197427b21682ab1cec8892c23fef0e35454d4bc5c3cebbeda31e335f70ce5a"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/qkv-e37-paired-value/baseline.json",
+      "bytes": 111288,
+      "sha256": "fa48e2be4e744498a93a482c5e6fa5d68efaa242d2504345caad811dcecadf49"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/qkv-e37-paired-value/baseline-graph.json",
+      "bytes": 227709,
+      "sha256": "7b732f3e099fd45ab3f7b711dc280d492be0e844bb586150edf666cdb3743a1a"
+    }
+  ],
+  "compile": {
+    "container": "moa2026-dev",
+    "scratch": "/tmp/moa-qkv-row-interleave-sixteen-e47",
+    "environment": {
+      "CARGO_HOME": "/home/moa/.cargo",
+      "CARGO_TARGET_DIR": "/tmp/moa-qkv-row-interleave-sixteen-e47/target",
+      "FURIOSA_OPT_OUT_DIR": "/tmp/moa-qkv-row-interleave-sixteen-e47/target/furiosa-opt/kernel",
+      "CARGO_NET_OFFLINE": "true"
+    },
+    "command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule schedules/candidate.json --dump-graph schedules/candidate-graph.json",
+    "exit_code": 0,
+    "used_main_workspace_target": false
+  },
+  "limits": [
+    "No host executable build or NPU execution by this agent.",
+    "Typed mapping and exhaustive integer-coordinate checks do not prove NPU Switch padding semantics.",
+    "A static makespan improvement does not establish actual memory-bank or hardware performance gain.",
+    "No second compile or correction was necessary."
+  ]
+}
