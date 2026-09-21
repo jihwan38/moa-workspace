@@ -1,0 +1,96 @@
+{
+  "recorded_at_utc": "2026-09-21T13:14:18.953978+00:00",
+  "candidate": "output-bf16-eight-columns-e53",
+  "parent_commit": "989461e3bf886141c158edef0420537fd03f16ac",
+  "status": "exact_compile_pass_static_regression_frozen_not_run",
+  "compile_attempts": 1,
+  "NPU_jobs": 0,
+  "full_host_build": false,
+  "live_source_or_target_modified": false,
+  "git_mutations": false,
+  "source_scope": {
+    "source_files": 43,
+    "changed": [
+      "src/device/sliding/projection.rs"
+    ],
+    "other_source_files_byte_identical": 42,
+    "public_ops_harness_RMS_residual_QKV_FFN_unchanged": true,
+    "compiled_inputs_verified": 46,
+    "Cargo_lock_note": "Ignored by Git; obtained from frozen E53 clean snapshot, SHA aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09."
+  },
+  "compile": {
+    "container": "moa2026-dev",
+    "scratch": "/tmp/moa-output-bf16-eight-columns-e53",
+    "CARGO_HOME": "/home/moa/.cargo",
+    "CARGO_NET_OFFLINE": true,
+    "CARGO_TARGET_DIR": "/tmp/moa-output-bf16-eight-columns-e53/target",
+    "FURIOSA_OPT_OUT_DIR": "/tmp/moa-output-bf16-eight-columns-e53/target/furiosa-opt/kernel",
+    "command": "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/candidate.json --dump-graph schedules/candidate-graph.json",
+    "result": "PASS"
+  },
+  "static": {
+    "baseline": 27239,
+    "candidate": 27752,
+    "delta": 513,
+    "percent": 1.8833290502588307
+  },
+  "reason_not_measured": "Parent requested freeze without NPU on static regression. One legal variant compiled; no correction or further variants attempted.",
+  "limitations": "F32 local accumulation and inter-column sum grouping changes. Source/layout validation and compile success do not prove hardware correctness or performance.",
+  "files": [
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-eight-columns-e53/projection.rs",
+      "bytes": 24091,
+      "sha256": "17d4e1fa8af2c22fe1651a2f1a860cba0788afc7e63aec5b80d73c5cdc46cae0"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-eight-columns-e53/projection.original.rs",
+      "bytes": 24104,
+      "sha256": "34d1e03e3a6fcfce7997c1593774ab5d4382ec3a32ce839b0df450eb70e98581"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-eight-columns-e53/candidate.patch",
+      "bytes": 3919,
+      "sha256": "e75d6320760a9aa20adbe68de88910ed011e06ffa960ec1c1b8d485cf0923f81"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-eight-columns-e53/verify_candidate.py",
+      "bytes": 4380,
+      "sha256": "cf2a852cbe11b8235f70ebd7f66ec122d1e1a39229b7c9b68dde19476b9abe42"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-eight-columns-e53/verification.json",
+      "bytes": 904,
+      "sha256": "86ce01dcfbdcdd0068b6e3dbfde347d429679e3324fa1611c4949b7dfb0e7824"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-eight-columns-e53/compiled-source-manifest.json",
+      "bytes": 4738,
+      "sha256": "6b93f5479064c08f2008f6ca1c885810c9030cf356082d4e7d4fbdf724cf11dc"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-eight-columns-e53/static-comparison.json",
+      "bytes": 15936,
+      "sha256": "1b5f1c0c9cdd755a0ef493ce81d37337170d7e684bb5b56ba5ac476cf0afe9ee"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-eight-columns-e53/attempt-1.log",
+      "bytes": 1076,
+      "sha256": "107b6832dd6e3bc185dbf061b91f43d4598e2f73d82a7d4d9e7a66f8ff14f422"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-eight-columns-e53/candidate.json",
+      "bytes": 20606,
+      "sha256": "47f263950a97cca17ee4a01cb24baa29a91bbd48576a0cad315f2787068d5746"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-eight-columns-e53/candidate-graph.json",
+      "bytes": 45825,
+      "sha256": "5aa1743d6e7d927305f5d44290c20b7601eca10ce8fd266e72b4fe22987385aa"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-eight-columns-e53/candidate.bin",
+      "bytes": 71680,
+      "sha256": "8c649c87e70bf37e92aa778f93565151226d8755a20287e20763541311b85916"
+    }
+  ]
+}

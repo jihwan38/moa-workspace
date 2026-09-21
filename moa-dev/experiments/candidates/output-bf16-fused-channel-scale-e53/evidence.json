@@ -1,0 +1,123 @@
+{
+  "recorded_at_utc": "2026-09-21T13:22:33.099998+00:00",
+  "candidate": "output-bf16-fused-channel-scale-e53",
+  "parent_commit": "989461e3bf886141c158edef0420537fd03f16ac",
+  "status": "exact_compile_pass_static_regression_frozen_not_run",
+  "compile_attempts": [
+    {
+      "attempt": 1,
+      "result": "FAIL",
+      "reason": "Unnecessary BF16 H%8#16 fetch packet padding adds a 1#2 time factor after F32 cast; collect time mismatch.",
+      "source": "projection.padded-fetch-failed.rs",
+      "log": "moa-dev/experiments/artifacts/output-bf16-fused-channel-scale-e53/attempt-1.log"
+    },
+    {
+      "attempt": 2,
+      "result": "PASS",
+      "correction": "Fetch actual eight BF16 elements without packet padding; no arithmetic or other source change.",
+      "source": "projection.rs",
+      "log": "moa-dev/experiments/artifacts/output-bf16-fused-channel-scale-e53/attempt-2.log"
+    }
+  ],
+  "source_scope": {
+    "changed_paths": [
+      "src/device/sliding/projection.rs"
+    ],
+    "other_source_files_byte_identical": 42,
+    "all_46_actual_compile_input_hashes_match": true,
+    "public_ops_QKV_FFN_RMS_residual_harness_unchanged": true
+  },
+  "static": {
+    "baseline": 27239,
+    "candidate": 27393,
+    "delta": 154,
+    "percent": 0.56536583575022
+  },
+  "hardware_status": "Not run; frozen after whole-makespan regression per bounded task.",
+  "NPU_jobs": 0,
+  "full_host_build": false,
+  "live_source_target_changes": false,
+  "git_mutations": false,
+  "SDK_support": {
+    "vector_tensor.rs:614": "InterFirst f32 inter-slice reduce",
+    "vector_tensor.rs:649": "Enter intra-slice tag after inter-slice stage",
+    "operand.rs:813": "VRF same Chip/Cluster/Slice and Time-addressed scalar or consecutive packet operand",
+    "tensor/memory.rs:1455": "VRF capacity checked on Element mapping"
+  },
+  "compile": {
+    "container": "moa2026-dev",
+    "scratch": "/tmp/moa-output-bf16-fused-channel-scale-e53",
+    "CARGO_HOME": "/home/moa/.cargo",
+    "CARGO_NET_OFFLINE": true,
+    "CARGO_TARGET_DIR": "/tmp/moa-output-bf16-fused-channel-scale-e53/target",
+    "FURIOSA_OPT_OUT_DIR": "/tmp/moa-output-bf16-fused-channel-scale-e53/target/furiosa-opt/kernel",
+    "command": "cargo furiosa-opt compile ops::sliding_attention_output --exact --dump-schedule schedules/candidate.json --dump-graph schedules/candidate-graph.json"
+  },
+  "files": [
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/projection.rs",
+      "bytes": 24895,
+      "sha256": "f7e0c0a63169e8f30e78327a9686d6d9c910a70759cd0bf5ef5d31791239b08a"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/projection.original.rs",
+      "bytes": 24104,
+      "sha256": "34d1e03e3a6fcfce7997c1593774ab5d4382ec3a32ce839b0df450eb70e98581"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/projection.padded-fetch-failed.rs",
+      "bytes": 24900,
+      "sha256": "8f07f2da14cdf00b60482e9d9cce22203cd615ba97fad5299ffa98062a58bdab"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/candidate.patch",
+      "bytes": 2751,
+      "sha256": "bd91fb1b186fa5780249c4ac5dafe353904b1eacbce7da3178db6bccd93579db"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/verify_candidate.py",
+      "bytes": 3905,
+      "sha256": "001192fb1df9a78d66a58e4fdeb356a2229154d5fd44fdfabc18587e023928a2"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/verification.json",
+      "bytes": 977,
+      "sha256": "3638af1d65958500efb74725dfe60eba451aa837fc4a514197622fdd8a4e5966"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/compiled-source-manifest.json",
+      "bytes": 4738,
+      "sha256": "052ba18d3eef2e552fa9609ec8e8cf60f67c9bba8efa7c24ff2aec0e14a07ec1"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/static-comparison.json",
+      "bytes": 12702,
+      "sha256": "af142634d11835650565ceaa1a93bd7b52afe7ff86aa9268636024b543156c18"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-fused-channel-scale-e53/attempt-1.log",
+      "bytes": 1600,
+      "sha256": "4cd9301198e342548433f6705ae0cf77b5090d66ec6d1fe595a2d56dabe96962"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-fused-channel-scale-e53/attempt-2.log",
+      "bytes": 1275,
+      "sha256": "ec3003d88091cbc4f80d7b5ae6a7201a3348fcd51004f594424b1f6d5243622f"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-fused-channel-scale-e53/candidate.json",
+      "bytes": 20046,
+      "sha256": "dad5d9919a20ef6070d3ba682ccca3c404ecee28575917c0335a01d0c21e793f"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-fused-channel-scale-e53/candidate-graph.json",
+      "bytes": 46141,
+      "sha256": "d76085fbf2ba70b7da5b915e6e7db9ec2621b2719fb6d6e69284f8e6bd1cc88c"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/output-bf16-fused-channel-scale-e53/candidate.bin",
+      "bytes": 69376,
+      "sha256": "4247aef7bb8e84b822533cc650a8327809d8a7502ad844919ebc3dafb66939de"
+    }
+  ]
+}

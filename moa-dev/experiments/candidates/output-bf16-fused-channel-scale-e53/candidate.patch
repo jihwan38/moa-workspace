@@ -1,0 +1,48 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -296,9 +296,18 @@
+         .to_trf();
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H % 1920, Qs]> = unsafe { weight.view().reshape() };
+     let weight: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120, Qs % 256]> = weight.to_dm(&mut device.tdma);
++    // One compact BF16 scale per output row; the VRF indexes H at dot Time.
++    let weight_scale: HbmTensorView<'_, bf16, Chip, m![Dummy2, H % 1920]> = unsafe { weight_scale.view().reshape() };
++    let weight_scale: DmTensor<bf16, Chip, OutputCluster, OutputRows, m![H % 120]> = weight_scale.to_dm(&mut device.tdma);
++    let weight_scale_vrf: VrfTensor<f32, Chip, OutputCluster, OutputRows, m![H % 120]> = device
++        .sub.begin(weight_scale.view())
++        .fetch::<m![H / 8 % 15], m![H % 8]>()
++        .fetch_cast::<f32>()
++        .collect::<m![H / 8 % 15], m![H % 8]>()
++        .to_vrf();
+     // Native FP8 weight values are exactly representable in BF16. Fuse the
+     // supported lookup with one BF16 dot, retaining the FP32 column sum.
+-    let result: DmTensor<f32, Chip, OutputCluster, OutputRows, m![H % 120]> = device
++    let result: DmTensor<bf16, Chip, OutputCluster, OutputRows, m![H % 120]> = device
+         .main.begin(weight.view())
+         .fetch::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()
+         .fetch_table_lookup::<bf16>()
+@@ -309,13 +318,18 @@
+         .contract_lane::<m![H % 120], m![1 # 8]>(LaneMode::Interleaved)
+         .vector_init()
+         .vector_inter_slice_reduce::<OutputRows, m![H % 120]>(InterSliceReduceOpF32::Add)
+-        .vector_final()
+-        .transpose::<m![H / 2 % 60], m![H % 2 # 8]>()
+-        .commit_trim::<m![H % 2]>()
+-        .commit();
+-    let result: DmTensor<f32, Chip, m![H / 1920], OutputRows, m![H % 120]> = unsafe { result.reshape() };
+-    let result: DmTensor<f32, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> = result.to_dm(&mut device.tdma);
+-    apply_output_channel_scale_f32(device, &result, weight_scale)
++        .vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![1 # 4]>()
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)
++        .vector_widen_pad::<m![1 # 8]>()
++        .vector_final()
++        .cast::<bf16, m![1 # 16]>()
++        .transpose::<m![H / 4 % 30], m![H % 4 # 16]>()
++        .commit_trim::<m![H % 4]>()
++        .commit();
++    let result: DmTensor<bf16, Chip, m![H / 1920], OutputRows, m![H % 120]> = unsafe { result.reshape() };
++    let result: DmTensor<bf16, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> = result.to_dm(&mut device.tdma);
++    result
+ }
+ 
+ pub(crate) type OutputEpilogueSlices = m![1 # 32, H / 480];

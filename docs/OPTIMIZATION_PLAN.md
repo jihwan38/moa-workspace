@@ -43,6 +43,10 @@ E47보다 O 반복 중앙값은14.12% 높지만 확인된 정확성 실패를 �
 3. **FFN은 DMA·복호화·중첩을 같이 줄이는 새 근거가 필요하다.** 현재 static162,209에서 FP4→FP8→BF16 Main 작업량86,178, DMA 합집합135,607이다. 현재 DMA 순서·시간을 고정하면 decode만 공짜가 되어도 정적 개선 상한은 약1.196배다. 일반적인 성능 roofline으로 확대하지 않는다. [병목 분석](../moa-dev/experiments/candidates/ffn-parallel-epilogue/remaining-bottlenecks.md).
 4. **Stage2는 실제 host 실행을 기준으로 다시 측정한다.** workload가 공개되면 [host/runtime.rs](../furiosa-opt-gemma4-12B/src/host/runtime.rs)의 초기화·prefill TTFT·decode TPOT·KV 상태·host-device 동기화·NPU 시간·메모리를 나누어 측정한다. Shared full-attention 및 vision/audio 이후 decoder도 포함한다. Stage1 세 커널 PASS를 전체 모델의 정확성·처리량으로 대신하지 않는다.
 
+E53에서 추가 검사한 [BF16 O8](../moa-dev/experiments/candidates/output-bf16-eight-columns-e53/README.md)은 정적+1.88%, [FFN sharded pre-RMS](../moa-dev/experiments/candidates/ffn-sharded-input-rms-e53/README.md)의 두 경로도 각각+0.32%/+1.24%로 회귀해 NPU 없이 제외했다. FFN Main/DMA 작업량 감소가 두 엔진의 중첩 감소를 보상하지 못했다.
+
+[O channel-scale fusion](../moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/README.md)도 수치 경계를 유지하며 컴파일됐지만 scale DMA가 dot 이전 의존성이 되어 정적+154 cycles로 회귀했다. 별도 Main401과 결과 DMA24를 줄이는 것보다 새 선행 전송579가 컸다. 이 후보도 NPU 없이 제외했다.
+
 기존 실패 후보를 새 근거 없이 반복하지 않는다. Native FP8 FFN은 E35/E38/E39/E41/E42/E46에서 정확성 통과 경로를 확보했지만 채택 BF16 FFN보다 느렸다. E40은 non-finite, E33은 큰 수치 오차로 실패했다. Down-only fused decode의 첫 개선은 E51의3회 반복에서 재현되지 않았다. Up staging·O32·QKV16-row도 전체 정적 또는 장치 비용에서 이득을 입증하지 못했다. [실험 원장](experiments/README.md)에 패키지별 결과와 실패 원인을 확인한 범위까지만 기록한다.
 
 RNGD SDK0.8.1에는 확인되지 않은 prefetch priority/barrier/lifetime 강제 설정을 가정하지 않는다. [공개 API 검토](../moa-dev/experiments/candidates/ffn-up-gate-fused-decode-e37/scheduling-options.md). 새 배치 후보는 실제 weight/scale 전송·materialization·activation 복제를 줄이는 경로, 정확한 좌표 대응, compiler schedule의 전체 비용을 먼저 제시해야 한다.

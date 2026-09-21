@@ -1,0 +1,27 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -160,13 +160,14 @@
+     gate_global_scale: &HbmTensor<f32, Chip, m![1]>,
+     down_global_scale: &HbmTensor<f32, Chip, m![1]>,
+ ) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
++    let x: DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
+     let down = feedforward_sharded(device, x, up_weight_packed, gate_weight_packed, down_weight_packed, up_weight_scale, gate_weight_scale, down_weight_scale, up_global_scale, gate_global_scale, down_global_scale);
+     down.to_dm(&mut device.tdma)
+ }
+ 
+ pub(crate) fn feedforward_sharded(
+     device: &mut Device,
+-    x: DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
++    x: DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]>,
+     up_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+     gate_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+     down_weight_packed: &HbmTensor<f4e2m1, Chip, m![H, L]>,
+@@ -177,7 +178,7 @@
+     gate_global_scale: &HbmTensor<f32, Chip, m![1]>,
+     down_global_scale: &HbmTensor<f32, Chip, m![1]>,
+ ) -> DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]> {
+-    // Broadcast the normalized single-slice activation directly into
++    // Assemble and replicate normalized BF16 shards directly into
+     // both row clusters before the up/gate projections.
+     let x: DmTensor<bf16, Chip, UpGateCluster, m![Dummy256 / 16, 1 # 16], m![H]> = x.to_dm(&mut device.tdma);
+     let x: DmTensor<bf16, Chip, UpGateCluster, m![Dummy256 / 16, 16], m![H]> = device

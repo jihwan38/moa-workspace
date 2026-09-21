@@ -3,6 +3,8 @@
 All rows in the main performance table use the unchanged official three-kernel, three-input harness.
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
+Current adopted source: E53, whose repeated results and O boundary correction are recorded below.
+Earlier adoption decisions describe the checkpoint retained at that experiment's date.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.
 E36 has passed30 additional comparisons. E37 is a previous repeated checkpoint: jobs70519/70528/70541
@@ -203,10 +205,10 @@ Follow-up diagnostics after the E37 checkpoint:
 - [Tagged fullshape decode job70658](fp4-decode-probe-fullshape-tagged.json): both paths pass all117,964,800 BF16 value comparisons with zero mismatches. Scope is two clusters,240 valid/256 physical slices each,32×3840 local values, and input sequences distinguishing all15,360 rows/480 cluster-slice locations. This covers E37 up/gate decoder shape, but excludes DPE, scales, activation quantization and full-FFN buffer lifetimes. It neither proves E13's root cause nor validates a whole fused FFN.
 - [E45 job70641](e45-down-scale-coalesced.json) passes all15 official comparisons, but FFN394,044 is3.77% slower than E37's repeated379,741. Static scale HBM transfer decreases while the new SRAM scatter raises total DMA by1,898. That agrees with the direction of hardware regression without proving its complete cause; the candidate is not adopted.
 - [E46 job70652](e46-native-f32-block-reduce.json) passes all15 comparisons, but FFN434,284 is14.36% above E37 and1.84% above E41. Removing the intermediate BF16 block rounding does not establish better overall accuracy or speed. No extra-input or repeated-job evidence is claimed for this candidate.
-- [E47 repeats](e47-output-sixteen-columns-repeats.json): jobs70664/70681/70688 all15 PASS, medians94662/44588/377564. O job-median range0.794%, repeated improvement2.54% over E37. [Extra job70694](e47-output-sixteen-columns-extra-correctness.json) passes all30 comparisons across six additional configurations. Adopted after both checks; the first screen44309 is not substituted for the repeat aggregate.
+- [E47 repeats](e47-output-sixteen-columns-repeats.json): jobs70664/70681/70688 all15 PASS, medians94662/44588/377564. O job-median range0.794%, repeated improvement2.54% over E37. [Extra job70694](e47-output-sixteen-columns-extra-correctness.json) passes all30 comparisons across six additional configurations. Initially adopted after both checks, then superseded by E53 after the boundary failure below; the first screen44309 is not substituted for the repeat aggregate.
 - [E48 up-only fused decode job70683](e48-up-only-fused-decode.json) passes all15 comparisons, Q94,545/O47,079/FFN381,532. FFN is0.47% above E37's repeated median, so this first screen does not demonstrate a gain. It changes only up decode relative to safe E37 FFN, retaining legacy gate/down; QKV/O sources match E37 rather than E47. Correctness scope is these three official inputs for this exact combined kernel, not all-input or all-fused FFN equivalence.
 
-The adopted checkpoint is E47. Its [source/build audit](e47-source-build-audit.json) reproduces the
+E47 was adopted at this stage. Its [source/build audit](e47-source-build-audit.json) reproduces the
 measured host binary exactly; all three device images also match the independent extra-input build.
 Earlier E37 restore/clean-build audits remain evidence about their captured artifacts. E48/E49/E50
 are separate FFN experiments and are not part of the adopted E47 package.
@@ -218,7 +220,7 @@ projection. Static makespan rises157866→189967 versus E48; no full build or NP
 The separate E51 package combines E47 O16 and E50 FFN. [All3 repeated jobs](e51-o16-down-fused-repeats.json)
 and [extra30 comparisons](e51-o16-down-fused-extra-correctness.json) pass, but FFN median381286 is0.99%
 above E47 377564. Its observed job-median range377392..384033 overlaps E47 377274..377606.
-The initial E50 apparent speedup was not reproduced; E47 remains adopted. [Combination audit](e51-combination-audit.json).
+The initial E50 apparent speedup was not reproduced; E47 was retained at this stage, before the E53 correction below. [Combination audit](e51-combination-audit.json).
 
 [O32×128 compile-only candidate](../../moa-dev/experiments/candidates/output-fp8-thirtytwo-columns/README.md)
 regresses24621→37344 compared with E47 O16. Weight DMA rises13383→26218 while Main grows only171.
@@ -242,3 +244,7 @@ E53 is now the adopted source. Its O projection preserves BF16 inputs and applie
 A [BF16 QKV alternative](../../moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/README.md) combines the previously tested E18 BF16 helpers with E47 sharded pre-RMS and compiles at52282 vs50364. It has no NPU validation or adoption. Its full source contains the old E47 O and must not overwrite E53 wholesale. The motivating [QKV CPU counterexample](../research/qkv-boundary-design-audit.md) is outside the current official QKV input generator support.
 
 [E53 same-package repeats](e53-bf16-output-repeats.json) all pass, median95621/50882/377880, relative ranges2.207%/1.254%/0.374%. All submitted file hashes match the frozen host. O is14.12% slower than E47 but passes the newly demonstrated boundary failure; QKV/FFN are unchanged images, so their cycle shifts are not source changes. The public-reference indicative score5.8886 is diagnostic only, not an official score or rank.
+
+E53 follow-up static-only checks retain the adopted source. [BF16 O8×512](../../moa-dev/experiments/candidates/output-bf16-eight-columns-e53/README.md) compiles once but regresses27239→27752(+1.88%): Main is unchanged and DMA rises513. [FFN sharded pre-RMS](../../moa-dev/experiments/candidates/ffn-sharded-input-rms-e53/README.md) compiles two variants at162735/164216 vs162209. Both reduce Main work but lose overlap with DMA; neither was sent to the NPU. No official-input accuracy or hardware speedup is inferred from these compiles.
+
+The E53 [fused F32 channel-scale O](../../moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/README.md) compiles on its second attempt but predicts27393 vs27239(+154/+0.57%). A per-row scalar VRF is supported and the graph preserves F32 column sum→channel multiply→BF16 cast. Moving the scale into the dot pipeline adds a579-cycle precondition before dot; removing the separate401-cycle Main and saving24 in result DMA gives net+154. The candidate was not run on NPU and does not replace E53.

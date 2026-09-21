@@ -1,0 +1,12 @@
+--- a/src/ops.rs
++++ b/src/ops.rs
+@@ -217,7 +217,8 @@
+     layer_scalar: &HbmTensor<bf16, Chip, m![1 # 8]>,
+ ) {
+     let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = residual_hbm.to_dm(&mut device.tdma);
+-    let x = shared::rmsnorm::normalize(device, &residual, pre_ff_rms_weight);
++    let rms_input: DmTensor<bf16, Chip, Cluster, shared::mlp::DownEpilogueSlices, m![H % 480]> = residual.to_dm(&mut device.tdma);
++    let x = shared::rmsnorm::normalize_sharded_inter_slice(device, &rms_input, pre_ff_rms_weight);
+ 
+     let x: DmTensor<bf16, Chip, Cluster, shared::mlp::DownEpilogueSlices, m![H % 480]> = shared::mlp::feedforward_sharded(
+         device,
