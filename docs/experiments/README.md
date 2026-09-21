@@ -58,7 +58,12 @@ at reference EOS on checkpoint14: all14 selections match and3670016 logits are f
 The first eight reported comparisons reproduce71329. Among the six new checkpoints,
 step9 changes the original margin0.125 to an E55 two-token tie; the actual selection
 remains the same. This is observed tie coverage on one history, not general selection
-preservation or task accuracy. The unchanged live E55 remains the accepted checkpoint.
+preservation or task accuracy. The [unchanged CLI job71395](e55-model-cli-python40.md)
+then printed the Python result3 and ended with11 completion tokens, Stop and exit0.
+It uses the exact ELF from the earlier71173 timeout, with the default stochastic
+sampler. This verifies one real string-generation path without resolving that
+earlier timeout or establishing general accuracy/performance. The unchanged live
+E55 remains the accepted checkpoint.
 Earlier adoption decisions describe the checkpoint retained at that experiment's date.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.

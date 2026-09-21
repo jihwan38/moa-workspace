@@ -20,6 +20,7 @@
 | 실제 모델 단일-kernel 대조 | [71275/71281/71282/71290](e55-model-single-kernel-controls.md)4건 모두 정상 완료. 대상1image=원본/다른9image=E55를실제업로드에서도확인. Full-O의1,048,576개logits는E55와bit-identical. 나머지3건은71239와동일referenceSHA, 원본과의오차가일관되게줄지않음. 수집기실제4양성+8변형음성검사통과;이전수집기도1양성+20음성유지. |
 | 생성 토큰 고정 진단 | [71329](e55-model-continuation.md)는42.448초에32checkpoint/110forward·8,388,608finite logits를비교, 실제greedy선택32개동일. 최소margin0.875, 최대절대차이1.6875, accuracy null. 각47source/10image·실제업로드/실행SHA·전후reference33파일hash검증. CPU11개·collector합성56/실제1/실제변형6총63개통과. 긴context·정답평가·공식성능아님. |
 | Python 최대40 후속 | [71362](e55-model-continuation-python40.md)는14번째EOS에서정상종료, 14선택일치·3,670,016finite logits·41forward. 기존첫8보고값재현, 새step9는E55의실제동점2개. 각47source/10image, CPU11, 기존collector63회귀·새40검사PASS. accuracy null, 문자열생성/정답평가아님. |
+| 무수정 CLI 문자열 생성 | [71395](e55-model-cli-python40.md)는 기존71173과 동일 ELF로 답3을 출력,28prompt/11completion/Stop/exit0. 실제46개 보존입력·14image·업로드·실행SHA와 전후자산 확인. 확률적 sampler의 한 text 실행이며 기존 timeout 원인·정답률·공식성능을 확정하지 않음. |
 | K/V 결합 후보 | [단일 stream 후보](../../moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/README.md)는 최초 exact compile의 declared/native 축 불일치로 동결. 소스 범위·의도한4096좌표 검사는 PASS이나 실제 lowering/정확성/성능으로 확대하지 않음. |
 | SDK 후속 감사 | [mixed DPE](../research/mixed-dtype-dpe-audit.md)와 [lookup table 공유](../research/fp8-lookup-table-sharing-audit.md)를 설치 SDK0.8.1의 실제 caller·dtype bound·typestate 및 기존 graph/schedule과 대조. 공개 API의 제약이며 새 compile/NPU 실행 또는 하드웨어 전체 불가능 증명으로 확대하지 않음. |
 | E54 후속 정적 후보 | BF16 QKV dot·scale 결합 exact compile 세 번째 성공, 전체52,282→51,293. 이후 별도 E55 NPU 검증으로 채택. 공통 TRF는51,293→52,562 회귀로 제외; broadcast→TRF는 첫 compile의 bitmap 검증 실패, 유효 성능 수치 없음. |
@@ -48,8 +49,8 @@ Git whitespace 검사는 raw patch/log를 제외했다. 변경하지 않은 froz
 파일 끝 빈 줄이 있어 `core.whitespace=-blank-at-eof`로 이 항목만 제외하고 검사했다.
 실험 source의 hash를 보존하기 위해 해당 파일을 서식 목적으로 변경하지 않았다.
 
-최종 검사 `2026-09-21T16:33:27.629272+00:00`: Markdown 185개, 로컬 링크 1074개,
-JSON 606개에서 누락 파일·JSON 문법 오류0건. 외부 링크165개는 검사 범위에서 제외했다.
+최종 검사 `2026-09-21T19:31:26.347338+00:00`: Markdown 187개, 로컬 링크 1095개,
+JSON 610개에서 누락 파일·JSON 문법 오류0건. 외부 링크165개는 검사 범위에서 제외했다.
 검사 스크립트와 출력은 `/tmp/moa-local-doc-qa.py`, `/tmp/moa-local-doc-qa-result.json`에 있다.
 
 공식 score/rank는 아직 없다. [공식 상태](official-submission-status-20260921.json)의

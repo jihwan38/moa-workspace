@@ -1,6 +1,6 @@
 # E55 전체 모델 실행 준비 상태
 
-2026-09-21. 현재 채택된 E55의 실제 host 호출과 설치된 의존성을 확인했다. **기록된 Stage1 커널 검사를 통과했고 Arena의 실제 모델 자산도 확인했지만, 첫 CLI 실행은 초기화 구간에서70초 timeout이었고, 후속 고정-prefix 진단은 실제 text 실행과262,144개 finite logits를 확인했다. 이어 원본/E55 logits 전체를 비교했고 최대 차이1.5·top1 동일을 관측했다. 정확도 수용 여부·공식 처리량은 아직 검증하지 못했다.** 공식 [README의 Stage2 절](../../furiosa-opt-gemma4-12B/README.md)은 입력 수·prompt/output 길이·반복 횟수·RNGD 구성·정확도 기준·성능 지표를 TBD로 남긴다.
+2026-09-21. 현재 채택된 E55의 실제 host 호출과 설치된 의존성을 확인했다. **기록된 Stage1 커널 검사를 통과했고 Arena의 실제 모델 자산도 확인했지만, 첫 CLI 실행은 초기화 구간에서70초 timeout이었고, 후속 고정-prefix 진단은 실제 text 실행과262,144개 finite logits를 확인했다. 이어 원본/E55 logits 전체를 비교했고 최대 차이1.5·top1 동일을 관측했다. 후속 무수정 CLI71395도 Python 입력의 실제 문자열 생성과 Stop/exit0을 완료했다. 정확도 수용 여부·공식 처리량은 아직 검증하지 못했다.** 공식 [README의 Stage2 절](../../furiosa-opt-gemma4-12B/README.md)은 입력 수·prompt/output 길이·반복 횟수·RNGD 구성·정확도 기준·성능 지표를 TBD로 남긴다.
 
 추가 [격리 빌드와 registry 검사](../experiments/e55-model-host-build.json)에서 `gemma4`와 `server` release build가 모두 성공했다. Source/Cargo/toolchain46개를 E55와 대조했으며, 두 ELF는 각각14개 device image를 포함하고 registry 전체가 byte-identical하다. Stage1 세 image도 실측 E55 `test_kernels`의 해당 image와 정확히 같다. 이는 기존 세 커널 밖의 **실제 모델 진입점에 필요한 컴파일·패키징**을 확인한 것이며, 모델 실행 성공을 뜻하지 않는다. [재현 절차](../../moa-dev/experiments/candidates/e55-model-host-build/README.md).
 
@@ -60,6 +60,8 @@ Rust weight loader는 모델 `config.json`을 읽어 축을 바꾸지 않는다.
 [실제 단일-kernel 복원 대조](../experiments/e55-model-single-kernel-controls.md)는 대상 image 하나만 원본으로 바꾸고 나머지9개를 E55와 동일하게 유지한다. Full-O 복원은 네 prefix의1,048,576개 logits 모두 E55와 bit-identical이었다. O/FFN 복원은 입력마다 원본과의 차이가 커지거나 줄었으며 오차의 가산 기여율로 해석하지 않는다. 이후 [생성 토큰 고정 진단71329](../experiments/e55-model-continuation.md)는32개 checkpoint·8,388,608개 finite logits와 모델당110forward를42.448초에 완료했다. 실제 공개 sampler의 greedy 선택32개가 모두 같았고 산수 case는8번째 선택 EOS106으로 끝났다. 최소 허용-token margin0.875, 최대 절대 차이1.6875이며 정확도 판정은 null이다. 원본 토큰만 다음 입력으로 공급하는 짧은 문맥 진단이라 자유 생성·정답률·cache 경계·멀티모달이나 다른 workload의70초 완료를 보장하지 않는다.
 
 [Python 최대40 진단71362](../experiments/e55-model-continuation-python40.md)는 실제로14번째 EOS에서 종료했고14개 선택이 모두 일치했다. 전체3,670,016개 finite logits와41forward를 비교했으며 이전 첫8개의 보고값/자산이 재현됐다. 새 step9에서는 원본 margin0.125가 E55 margin0·tie2로 바뀌어 실제 동점을 관측했다. 원본/E55 모델 커널은 변경하지 않았고 정확도 판정은 null이다. 기존의 짧은 문맥 범위를 넓혔으나 문자열 decode/callback·정답률·cache 경계 검증을 대신하지 않는다.
+
+[무수정 CLI71395](../experiments/e55-model-cli-python40.md)는 기존71173과 같은 ELF로 실제 문자열 `The result of the expression is: **3**`을 출력했다. Prompt28/completion11/Stop이며 asset 검사까지 전체12.284초에 완료했다. 기본 확률적 sampler를 유지하므로 greedy71362와 token sequence 일치를 요구하지 않는다. 같은46개 소스/14개 image의 기존 빌드와 실제 업로드를 연결했다. 실행 전 weight hash가 cache 상태에 영향을 줄 수 있어 이전 timeout의 원인 해결이나 cold-load 성능 개선을 주장하지 않는다.
 
 ## 원본/E55 정확도·성능 비교 조건
 
