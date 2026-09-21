@@ -130,6 +130,13 @@ moa-submitter submit
 moa-submitter status
 ```
 
+The [E55 local CLI preflight](experiments/candidates/official-submit-preflight-e55/README.md)
+ran the installed submitter against a loopback receiver and verified that all
+23 uploaded source files match the measured E55 sources. It also checked source
+discovery from the crate, a nested directory, and an explicit `--source` path.
+This verifies packaging only; official authentication, server contract checks,
+and grading still require the competition service.
+
 Follow [the competition README](../furiosa-opt-gemma4-12B/README.md) for the
 allowed changes and [OPTIMIZATION.md](../furiosa-opt-gemma4-12B/OPTIMIZATION.md)
 for the optimization workflow.

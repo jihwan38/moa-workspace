@@ -38,7 +38,7 @@ E55 QKV 반복 중앙값102,878 cycles는 이전 BF16 기준 E54의108,700보다
 
 ## 다음 작업과 실험을 시작할 조건
 
-1. **공식 평가가 열리면 계약부터 재확인한다.** 변경 입력·허용오차·채점식을 확인하고 별도 제출기 인증 후 검증된 E55를 공식 평가한다. 공식 결과를 얻기 전까지3위 달성을 선언하지 않는다. 입력에 fixture/seed/좌표 전용 분기를 넣지 않는다.
+1. **공식 평가가 열리면 계약부터 재확인한다.** 변경 입력·허용오차·채점식을 확인하고 별도 제출기 인증 후 검증된 E55를 공식 평가한다. 설치된 공식 CLI1.2.0의 [로컬 전송 검사](experiments/e55-official-submit-preflight.json)에서는 크레이트·하위 폴더·명시적 `--source` 세 경로 모두 실측 E55의 허용 소스23개/160,829B를 정확히 전송했다. 이 검사는 loopback 수신기로 수행했고 공식 서버 인증·계약·점수는 미검증이다. 공식 결과를 얻기 전까지3위 달성을 선언하지 않는다. 입력에 fixture/seed/좌표 전용 분기를 넣지 않는다.
 2. **새 QKV 실험에는 E55를 넘을 구체적인 전송·일정 근거가 필요하다.** [BF16 QKV dot·channel-scale 결합](../moa-dev/experiments/candidates/qkv-bf16-fused-channel-scale-e54/README.md)은 이미 E55로 채택했고 공식 입력·추가 입력·동일 경계·3회 반복 검증을 마쳤다. 정적52,282→51,293(−1.89%)와 실제 QKV 반복−5.36%는 서로 다른 측정이다. 후속 공통 TRF는 정적 회귀, broadcast→TRF 결합은 compile 실패로 제외했으며 현재 조사한 후보 중 바로 실측할 미검증 개선 후보는 남아 있지 않다. 아래 실패 근거를 새 사실 없이 반복하지 않는다. BF16 입력 보존·완전한 F32 dot 뒤 scale·첫 BF16 경계와 cache 부수효과를 유지하고, 새 공식 입력이나 실제 모델 workload가 공개되면 별도 검증한다. [QKV 반례와 실제 대조](experiments/qkv-boundary-comparison.md)는 현재 공식 x 생성 범위 밖의2개 진단에 한정된다. 이전 [BF16 QKV 초안](../moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/README.md)의 E47 O와 scale 전 BF16 경계로 되돌리지 않는다.
 3. **FFN은 DMA·복호화·중첩을 같이 줄이는 새 근거가 필요하다.** 현재 static162,209에서 FP4→FP8→BF16 Main 작업량86,178, DMA 합집합135,607이다. 현재 DMA 순서·시간을 고정하면 decode만 공짜가 되어도 정적 개선 상한은 약1.196배다. 일반적인 성능 roofline으로 확대하지 않는다. [병목 분석](../moa-dev/experiments/candidates/ffn-parallel-epilogue/remaining-bottlenecks.md).
 4. **Stage2는 실제 host 실행을 기준으로 다시 측정한다.** workload가 공개되면 [host/runtime.rs](../furiosa-opt-gemma4-12B/src/host/runtime.rs)의 초기화·prefill TTFT·decode TPOT·KV 상태·host-device 동기화·NPU 시간·메모리를 나누어 측정한다. Shared full-attention 및 vision/audio 이후 decoder도 포함한다. Stage1 세 커널 PASS를 전체 모델의 정확성·처리량으로 대신하지 않는다.
@@ -52,6 +52,10 @@ E53에서 추가 검사한 [BF16 O8](../moa-dev/experiments/candidates/output-bf
 [QKV 입력 staging 감사](research/qkv-bf16-input-staging-audit.md)는 gather·ring broadcast가 이미 공유되고 Q/KV TRF 적재만 중복임을 확인했다. [공통 TRF 후보](../moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/README.md)는 첫 exact compile에서 Sub1,223과 TRF 예약 절반을 줄였지만 전체51,293→52,562로 회귀했다. K lookup 준비가 뒤로 밀린 일정이 원인이며 NPU 없이 제외했다.
 
 [Broadcast→공통 TRF 결합](../moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/README.md)은 named output의 Switch bitmap 검증에서 첫 compile이 실패했다. 의도한 leader 주소와 실제 lowering을 구분하며, 유효 image·schedule이 없어 성능 수치는 없다. 검증되지 않은 TRF 변환이나 weight의 anonymous-copy 재해석으로 우회하지 않았다.
+
+[Mixed-dtype DPE 감사](research/mixed-dtype-dpe-audit.md)는 공개 SDK0.8.1의 float contraction이 같은 dtype의 두 operand를 요구함을 확인했다. FP8 weight와 BF16 activation을 직접 곱해 lookup만 제거하는 공개 경로는 없다. 현재 lookup은 DPE와 같은 Main pipeline에 있고 전체 BF16 weight를 DM에 저장하지 않는다. 별도 FP8→F32→BF16 materialization으로 우회하면 Q/K/V 합계 BF16 DM write60MiB와 read60MiB가 추가되며, 이는 검증된 성능 후보가 아니다.
+
+[Lookup table 공유 감사](research/fp8-lookup-table-sharing-audit.md)에서도 공개 prepared-table handle·수명·재사용 API를 찾지 못했다. E55의 세 table 준비는 각 DMA838+Sub1,293 cycles지만 합계6,393을 전체 시간에서 뺄 수 없다. K table은 dot보다 일찍 준비되며 late-K 현상은 회귀한 공통 TRF 후보에서만 관측했다. Compiler 내부 공유 정책이나 미래 SDK의 지원 가능성까지 부정하는 결론은 아니다.
 
 기존 실패 후보를 새 근거 없이 반복하지 않는다. Native FP8 FFN은 E35/E38/E39/E41/E42/E46에서 정확성 통과 경로를 확보했지만 채택 BF16 FFN보다 느렸다. E40은 non-finite, E33은 큰 수치 오차로 실패했다. Down-only fused decode의 첫 개선은 E51의3회 반복에서 재현되지 않았다. Up staging·O32·QKV16-row도 전체 정적 또는 장치 비용에서 이득을 입증하지 못했다. [실험 원장](experiments/README.md)에 패키지별 결과와 실패 원인을 확인한 범위까지만 기록한다.
 

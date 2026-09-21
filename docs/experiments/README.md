@@ -10,6 +10,10 @@ The first screen remains a separate historical row. E54 is the previous correctn
 E55's 30 extra-input comparisons and two QKV boundary cases also pass.
 O/FFN device images are unchanged from E54. The earlier E53 O-boundary job tests that identical O
 image; it is inherited evidence, not a newly executed E55 O-boundary suite.
+The [official CLI local preflight](e55-official-submit-preflight.json) captured three
+byte-identical uploads containing the exact23 allowed E55 source files. It tested
+packaging against a loopback receiver; no official submission, authentication,
+server-contract check, or new NPU measurement was performed.
 Earlier adoption decisions describe the checkpoint retained at that experiment's date.
 E31 is a repeated checkpoint: all 15 official-harness comparisons and 30 separate
 additional-input comparisons pass. Three independent same-package E31 jobs also pass; their median-of-medians is97085/45355/389335.
