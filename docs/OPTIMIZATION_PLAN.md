@@ -23,6 +23,15 @@
 
 ## 실측 진행 상황
 
+현재 채택 후보 **E26**은 job70361에서 QKV104,895/O52,579/FFN389,949 cycles,
+공식15개출력 전부통과다. 원본 반복중앙값 대비 약2.33×/7.69×/10.94×이며 단일job screen이다.
+O는 runtime FP8 hi/lo 직접연산 뒤 channel-scale/RMS/residual의 H480×8 배치를 유지해
+중간 gather/scatter와 F32 DM roundtrip을 제거한다. FP8분해 자체는 일반입력에 대해 비동치며
+outlier/cancellation 반례를 문서화했다. 부모E24의 추가6입력30개출력은 모두통과했고
+E26 추가입력/반복측정은 별도로 추적한다.
+
+다음은 이전 검증 단계와 실패 후보의 근거다.
+
 2026-09-21 job `70181`에서 QKV **115,780** / O **65,476** / FFN **397,675** cycles와
 전체 정확성 통과를 확인했다. 원본 대비 각각 약 **2.11× / 6.17× / 10.72×**다.
 QKV는 두 cluster와 head별 정규화를 사용하고, O는 두 cluster·8개 column 분할과
@@ -49,11 +58,15 @@ FP4 lookup→F32→BF16 단일-pass decode는 컴파일되지만 NPU FFN 정확�
 
 E18의 QKV 8-way row interleave는 동일 패키지3회(job70248/70271/70285) 모두 통과했고,
 중앙값은 QKV105,462/O65,662/FFN392,608 cycles다. 원본 대비2.314×/6.156×/10.861×이며,
-job 중앙값 변동범위는1.599%/1.188%/0.792%다.
+job 중앙값 변동범위는1.599%/1.188%/0.792%다. 추가run3..8도 job70309에서30개출력 전부통과했다.
+새 Docker image의 빈 target에서 같은 E18 소스를 빌드한 결과도 기존 NPU 바이너리와 byte-identical이다.
 E19의 runtime power-of-two FP8 hi/lo 두 내적도 통과했지만110,479로 E18보다 느리다.
 다음 주요 검증은 hi/lo의 두 TRF lane 병렬 계산, row interleave와의 결합,
 FFN의 BF16 weight materialization 제거, O의 normalization 단계 fusion이다.
 각각 정밀도나 물리 배치가 바뀌므로 컴파일 결과에 이어 NPU oracle 검사를 요구한다.
+E20/E21의 two-lane QKV는 Q/K 통과·V 실패여서 채택하지 않았고 register 재적재를 조사한다.
+E21의 O native FP8는3개입력 전부통과,59,016 cycles였지만 결합job은 QKV때문에 실패했다.
+따라서 완전히 통과한 새 조합과 추가입력검증 전에는 채택소스를 바꾸지 않는다.
 공개 상위3위 목표에는 아직 못 미치며 공식 제출·순위 확인은 별도 인증 대기다.
 공개 상위 기록은 9월21일 입력·평가 환경 변경 이전 제출이므로 같은 환경의 성능으로 단정하지 않는다.
 

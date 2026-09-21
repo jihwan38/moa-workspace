@@ -148,11 +148,11 @@ pub fn sliding_attention_output(
     residual_hbm: &mut HbmTensor<bf16, Chip, m![H]>,
 ) {
     let x: HbmTensorView<'_, bf16, Chip, m![Qs]> = unsafe { x.view().reshape() };
-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> =
+    let x: DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> =
         sliding::projection::project_output(device, x, o_weight, o_weight_scale);
-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::rmsnorm::normalize(device, &x, post_attn_rms_weight);
+    let x: DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> = shared::rmsnorm::normalize_output_fused(device, &x, post_attn_rms_weight);
 
-    let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = sliding::projection::add_output_residual(device, &x, residual_hbm);
+    let residual: DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> = sliding::projection::add_output_residual(device, &x, residual_hbm);
     residual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut());
 }
 

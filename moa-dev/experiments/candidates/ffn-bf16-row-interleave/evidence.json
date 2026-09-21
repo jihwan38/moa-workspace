@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-21",
+  "status": "exact_compile_pass_not_npu_tested",
+  "candidate_sha256": "4074d55dc72c4371f81406b60b4feca32247fb7c8797a8f391e0e72de7ef63d9",
+  "kernel": "ops::decoder_feedforward",
+  "npu_submissions": 0,
+  "npu_correctness_verified": false,
+  "static_makespan": 185673,
+  "baseline_static_makespan": 171429,
+  "static_regression_percent": 8.308979227551937,
+  "context_union_cycles": {
+    "Noop": 0,
+    "DmaEngine": 153547,
+    "PeCore": 38341,
+    "SubContext": 22059,
+    "MainContext": 133413,
+    "VectorEngine": 41849
+  },
+  "compiler_resource_stats": {
+    "total_cycle": 185673,
+    "skip_aware_total_cycle": 185673,
+    "computation_cycle": 145167,
+    "main_context_cycle": 133413,
+    "sub_context_cycle": 23403,
+    "io_cycle": 153547,
+    "sync_cycle": 0,
+    "spill_io_cycle": 0,
+    "mac_cycle": 0,
+    "effective_mac_cycle": -0.0,
+    "main_only_cycle": 21629,
+    "sub_only_cycle": 4033,
+    "io_only_cycle": 36159,
+    "sync_only_cycle": 0,
+    "spill_io_only_cycle": 0,
+    "dram_usage_by_kind": {
+      "io": 99555868,
+      "weight": 40960,
+      "stack": 0,
+      "inter_chip_stack": 0
+    }
+  },
+  "changed_dma_operation_cycles": {
+    "gate.to_dm(&mut device.tdma)": {
+      "baseline": 2392,
+      "candidate": 3074
+    },
+    "gate_weight_packed.to_dm(&mut device.tdma)": {
+      "baseline": 26475,
+      "candidate": 31659
+    },
+    "gate_weight_scale.to_dm(&mut device.tdma)": {
+      "baseline": 3789,
+      "candidate": 6966
+    },
+    "up.to_dm(&mut device.tdma)": {
+      "baseline": 2392,
+      "candidate": 3074
+    },
+    "up_weight_packed.to_dm(&mut device.tdma)": {
+      "baseline": 26475,
+      "candidate": 31659
+    },
+    "up_weight_scale.to_dm(&mut device.tdma)": {
+      "baseline": 3789,
+      "candidate": 6966
+    }
+  },
+  "dma_delta_cycles": 18086,
+  "dma_delta_fully_explained_by_six_listed_operations": true,
+  "baseline_identity": "E15 BF16 core without E16 tail; only mlp.rs up/gate mapping and output Switch changed from capture",
+  "logical_index_proof": "logical-index-proof.json",
+  "source_identity_file": "source-hashes.json",
+  "caveat": "Static estimates do not establish actual RNGD HBM-bank behavior or correctness."
+}

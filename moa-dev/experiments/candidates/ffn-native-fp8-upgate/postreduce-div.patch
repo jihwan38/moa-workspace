@@ -1,0 +1,128 @@
+--- mlp.rs
++++ mlp.postreduce-div.rs
+@@ -30,7 +30,7 @@
+ fn project_four_rows_fp8_split(
+     device: &mut Device,
+     x_trf: &TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnTerm], m![H]>,
+-    x_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
++    x_inv_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
+     weights: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]>,
+     scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]>,
+     output: &mut DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]>,
+@@ -65,37 +65,26 @@
+         .commit_trim::<m![H / 16 % 4]>()
+         .commit();
+ 
+-    // A zipped pair cannot enter the intra-slice reducer in SDK 0.8.1.
+-    // Start a fresh standalone stream and retain FP32 through this row sum.
+-    let row_sums: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![L % 32 = 4]> = device
+-        .main.begin(block_sums.view())
++    // A fresh standalone stream permits reduce followed by the dedicated FpDiv.
++    // Divide by an exact power-of-two reciprocal only after the complete sum.
++    device.main.begin(block_sums.view())
+         .fetch::<m![L % 32 = 4], m![H / 16]>()
+         .collect::<m![L % 32 = 4, H / 128], m![H / 16 % 8]>()
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+         .vector_narrow_split::<m![L % 32 = 4, H / 64], m![H / 16 % 4]>()
+         .vector_intra_slice_reduce::<H, m![L % 32 = 4], m![1 # 4]>(IntraSliceReduceOpF32::Add)
++        .vector_fp_div(x_inv_scale_vrf)
+         .vector_widen_pad::<m![1 # 8]>().vector_final()
+-        .transpose::<m![L % 32 = 4 / 2], m![L % 32 = 4 % 2 # 8]>()
+-        .commit_trim::<m![L % 32 = 4 % 2]>().commit();
+-
+-    // Apply the dynamic power-of-two scale after cancellation and before the
+-    // original BF16 projection boundary. GeGLU/global weight scales are unchanged.
+-    device.main.begin(row_sums.view())
+-        .fetch::<m![1], m![L % 32 = 4 # 8]>()
+-        .collect::<m![1], m![L % 32 = 4 # 8]>()
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![L % 32 = 4]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)
+-        .vector_widen_pad::<m![L % 32 = 4 # 8]>()
+-        .vector_final().cast::<bf16, m![L % 32 = 4 # 16]>()
+-        .commit_trim::<m![L % 32 = 4]>()
++        .cast::<bf16, m![1 # 16]>()
++        .transpose::<m![L % 32 = 4 / 4], m![L % 32 = 4 % 4 # 16]>()
++        .commit_trim::<m![L % 32 = 4 % 4]>()
+         .commit_view(output.view_mut().tile::<m![L % 32], 4, m![L % 32 = 4 #{!} 32]>(row_offset));
+ }
+ 
+ pub(crate) fn project_up_and_gate(
+     device: &mut Device,
+     x_trf: &TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnTerm], m![H]>,
+-    x_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
++    x_inv_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
+     up_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+     gate_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+     up_weight_scale: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
+@@ -123,7 +112,7 @@
+         up_weight_scale.to_dm(&mut device.tdma);
+ 
+     static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7], {
+-        project_four_rows_fp8_split(device, x_trf, x_scale_vrf, &up_weight_packed, &up_weight_scale, &mut up, 4 * i);
++        project_four_rows_fp8_split(device, x_trf, x_inv_scale_vrf, &up_weight_packed, &up_weight_scale, &mut up, 4 * i);
+     });
+ 
+     let mut gate: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]> = DmTensor::new();
+@@ -145,7 +134,7 @@
+         gate_weight_scale.to_dm(&mut device.tdma);
+ 
+     static_passes!(i, [0, 1, 2, 3, 4, 5, 6, 7], {
+-        project_four_rows_fp8_split(device, x_trf, x_scale_vrf, &gate_weight_packed, &gate_weight_scale, &mut gate, 4 * i);
++        project_four_rows_fp8_split(device, x_trf, x_inv_scale_vrf, &gate_weight_packed, &gate_weight_scale, &mut gate, 4 * i);
+     });
+ 
+     // Remove padding with typed copies before reinterpreting the high row axis.
+@@ -171,21 +160,21 @@
+ ) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
+     // Quantize the actual runtime BF16 activation; both projections reuse it.
+     let x: DmTensor<bf16, Chip, m![2], Slice, m![H]> = x.to_dm(&mut device.tdma);
+-    let (x, x_scale) = prepare_ffn_fp8_split(device, &x);
++    let (x, x_inv_scale) = prepare_ffn_fp8_split_invscale(device, &x);
+     let x: DmTensorView<'_, f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnTerm, H]> = unsafe { x.view().reshape() };
+-    let x_scale: DmTensorView<'_, f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]> = unsafe { x_scale.view().reshape() };
++    let x_inv_scale: DmTensorView<'_, f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]> = unsafe { x_inv_scale.view().reshape() };
+     let x_trf: TrfTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnTerm], m![H]> = device
+         .sub.begin(x)
+         .fetch::<m![FfnTerm], m![H]>()
+         .collect::<m![FfnTerm, H / 32], m![H % 32]>().to_trf();
+-    let x_scale_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]> = device
+-        .sub.begin(x_scale)
++    let x_inv_scale_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]> = device
++        .sub.begin(x_inv_scale)
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+ 
+     let (up, gate) = project_up_and_gate(
+         device,
+         &x_trf,
+-        &x_scale_vrf,
++        &x_inv_scale_vrf,
+         up_weight_packed,
+         gate_weight_packed,
+         up_weight_scale,
+@@ -446,7 +435,7 @@
+     unsafe { x.reshape() }
+ }
+ 
+-pub(crate) fn prepare_ffn_fp8_split(
++pub(crate) fn prepare_ffn_fp8_split_invscale(
+     device: &mut Device,
+     x: &DmTensor<bf16, Chip, m![2], Slice, m![H]>,
+ ) -> (
+@@ -517,5 +506,14 @@
+         packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 2, H % 480]>(0));
+     lo.view().to_dm_view(&mut device.tdma,
+         packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 2, H % 480]>(1));
+-    (broadcast_ffn_quantized(device, &packed), scale.to_dm(&mut device.tdma))
+-}
++    // s in [2^-126,2^120], so reciprocal in [2^-120,2^126] stays normal.
++    let inverse_scale: DmTensor<f32, Chip, m![2], Slice, m![1 # 8]> = device
++        .main.begin(scale.view())
++        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
++        .vector_init().vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![1 # 4]>()
++        .vector_fp_div_with_mode(BinaryArgMode::Mode10, 1.0f32)
++        .vector_widen_pad::<m![1 # 8]>().vector_final()
++        .commit_trim::<m![1 # 8]>().commit();
++    (broadcast_ffn_quantized(device, &packed), inverse_scale.to_dm(&mut device.tdma))
++}

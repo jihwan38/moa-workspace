@@ -1,0 +1,240 @@
+{
+  "selected": "mlp.rs (32 rows)",
+  "compile_exit_code": 0,
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "date": "2026-09-21",
+  "npu_correctness": "FAILED TO COMPLETE: E25 job70354 timeout at first FFN launch, exit101",
+  "npu_jobs_by_this_agent": 0,
+  "baseline_hardware": "E23 job70327 streamed BF16 scale-contraction passed all three FFN configs, median384728; does not validate this new native FP8 variant",
+  "related_failure": "E22 native FP8 with F32 block+VE reduction timed out on first FFN launch; not this BF16 block+second-DPE path",
+  "source_sha256": {
+    "mlp.rs": "098c4c01171dd59d209c4b07512387ee418306362eb4d3f79af53c0ddd109c20",
+    "mlp.rows16.rs": "b4f9a200047a2a72bb19da968084c6c184015d773c9ef74bed96c8fb162425ee",
+    "mlp.baseline.rs": "c4e062937f55e4ff746b50f5b9e5649d85c0e0742290f699be7b591e2504efef",
+    "ops.rs": "afc2d11998903a5afc9750abd7f01ec6b54103964752de86efae49aa4e206560",
+    "check_math.py": "90274316096a3ce303fd1a30c275c56b8327d577f7beffeeaaba65549ba77f62"
+  },
+  "source_provenance": {
+    "streamed_bf16": "c4e062937f55e4ff746b50f5b9e5649d85c0e0742290f699be7b591e2504efef",
+    "native_f32_block_postreduce_div": "99f92ff89d821cb2f013233113249674e47bbdbb3053afc26da90274678ecf79"
+  },
+  "schedule_comparison": {
+    "streamed_bf16": {
+      "static_cycles": 171727,
+      "instructions": 177,
+      "schedule_sha256": "a9f278272421efb83f409e25b575d117c54a2c71d5b4e8af338743a7bdf0e5be",
+      "projection_stages": [
+        {
+          "index": "220",
+          "lifetime": {
+            "begin": 61280,
+            "end": 80743
+          },
+          "cycles": 19463,
+          "description": "--> src/device/shared/mlp.rs:37:91\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32, H / 16], m![H % 16]>()\n.contract_outer::<m![L % 32, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32, H / 16]>()\n.contract_lane::<m![L % 32, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32, H / 16 / 4], m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "225",
+          "lifetime": {
+            "begin": 80743,
+            "end": 81488
+          },
+          "cycles": 745,
+          "description": "--> src/device/shared/mlp.rs:62:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32]>()\n.contract_lane::<m![L % 32], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L / 4 % 8], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit_view(output.view_mut())"
+        },
+        {
+          "index": "277",
+          "lifetime": {
+            "begin": 95960,
+            "end": 115423
+          },
+          "cycles": 19463,
+          "description": "--> src/device/shared/mlp.rs:37:91\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32, H / 16], m![H % 16]>()\n.contract_outer::<m![L % 32, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32, H / 16]>()\n.contract_lane::<m![L % 32, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32, H / 16 / 4], m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "290",
+          "lifetime": {
+            "begin": 115423,
+            "end": 116168
+          },
+          "cycles": 745,
+          "description": "--> src/device/shared/mlp.rs:62:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32]>()\n.contract_lane::<m![L % 32], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L / 4 % 8], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit_view(output.view_mut())"
+        }
+      ]
+    },
+    "native_rows32": {
+      "static_cycles": 166220,
+      "instructions": 196,
+      "schedule_sha256": "cc6b9061c430432a70649dec33d03454175665ec67eea54f774ac5b9b396cee4",
+      "projection_stages": [
+        {
+          "index": "260",
+          "lifetime": {
+            "begin": 88820,
+            "end": 96784
+          },
+          "cycles": 7964,
+          "description": "--> src/device/shared/mlp.rs:40:91\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![L % 32, H / 32], m![H % 32]>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.contract_outer::<m![L % 32, H / 64], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![L % 32, H / 64]>()\n.contract_lane::<m![L % 32, H / 64, FfnTerm], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<FfnTerm, m![L % 32, H / 64]>()\n.vector_narrow_split::<m![L % 32, H / 64, 1 # 2], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)\n.vector_widen_concat::<m![L % 32, H / 64], m![H / 16 % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "274",
+          "lifetime": {
+            "begin": 96784,
+            "end": 97529
+          },
+          "cycles": 745,
+          "description": "--> src/device/shared/mlp.rs:71:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32]>()\n.contract_lane::<m![L % 32], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L / 4 % 8], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit_view(output.view_mut())"
+        },
+        {
+          "index": "334",
+          "lifetime": {
+            "begin": 117826,
+            "end": 125790
+          },
+          "cycles": 7964,
+          "description": "--> src/device/shared/mlp.rs:40:91\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![L % 32, H / 32], m![H % 32]>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.contract_outer::<m![L % 32, H / 64], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![L % 32, H / 64]>()\n.contract_lane::<m![L % 32, H / 64, FfnTerm], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<FfnTerm, m![L % 32, H / 64]>()\n.vector_narrow_split::<m![L % 32, H / 64, 1 # 2], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)\n.vector_widen_concat::<m![L % 32, H / 64], m![H / 16 % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "359",
+          "lifetime": {
+            "begin": 125790,
+            "end": 126535
+          },
+          "cycles": 745,
+          "description": "--> src/device/shared/mlp.rs:71:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32]>()\n.contract_lane::<m![L % 32], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L / 4 % 8], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit_view(output.view_mut())"
+        }
+      ]
+    },
+    "native_rows16": {
+      "static_cycles": 167035,
+      "instructions": 240,
+      "schedule_sha256": "e69685b5299812df859c48d2bd88a7a09271c85af6a4c35e66f78db20356726d",
+      "projection_stages": [
+        {
+          "index": "297",
+          "lifetime": {
+            "begin": 89443,
+            "end": 93567
+          },
+          "cycles": 4124,
+          "description": "--> src/device/shared/mlp.rs:41:96\n\ndevice\n.main.begin(weights.view().tile::<m![L % 32], 16, m![L % 32 = 16 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 16, H / 32], m![H % 32]>()\n.collect::<m![L % 32 = 16, H / 32], m![H % 32]>()\n.contract_outer::<m![L % 32 = 16, H / 64], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![L % 32 = 16, H / 64]>()\n.contract_lane::<m![L % 32 = 16, H / 64, FfnTerm], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<FfnTerm, m![L % 32 = 16, H / 64]>()\n.vector_narrow_split::<m![L % 32 = 16, H / 64, 1 # 2], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)\n.vector_widen_concat::<m![L % 32 = 16, H / 64], m![H / 16 % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "302",
+          "lifetime": {
+            "begin": 93567,
+            "end": 94072
+          },
+          "cycles": 505,
+          "description": "--> src/device/shared/mlp.rs:72:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 16]>()\n.contract_lane::<m![L % 32 = 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 16 / 4], m![L % 32 = 16 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 16 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 16, m![L % 32 = 16 #{!} 32]>(row_offset))"
+        },
+        {
+          "index": "307",
+          "lifetime": {
+            "begin": 94072,
+            "end": 98196
+          },
+          "cycles": 4124,
+          "description": "--> src/device/shared/mlp.rs:41:96\n\ndevice\n.main.begin(weights.view().tile::<m![L % 32], 16, m![L % 32 = 16 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 16, H / 32], m![H % 32]>()\n.collect::<m![L % 32 = 16, H / 32], m![H % 32]>()\n.contract_outer::<m![L % 32 = 16, H / 64], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![L % 32 = 16, H / 64]>()\n.contract_lane::<m![L % 32 = 16, H / 64, FfnTerm], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<FfnTerm, m![L % 32 = 16, H / 64]>()\n.vector_narrow_split::<m![L % 32 = 16, H / 64, 1 # 2], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)\n.vector_widen_concat::<m![L % 32 = 16, H / 64], m![H / 16 % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "310",
+          "lifetime": {
+            "begin": 94072,
+            "end": 94078
+          },
+          "cycles": 6,
+          "description": "--> src/device/shared/mlp.rs:72:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 16]>()\n.contract_lane::<m![L % 32 = 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 16 / 4], m![L % 32 = 16 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 16 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 16, m![L % 32 = 16 #{!} 32]>(row_offset))"
+        },
+        {
+          "index": "318",
+          "lifetime": {
+            "begin": 98196,
+            "end": 98701
+          },
+          "cycles": 505,
+          "description": "--> src/device/shared/mlp.rs:72:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 16]>()\n.contract_lane::<m![L % 32 = 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 16 / 4], m![L % 32 = 16 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 16 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 16, m![L % 32 = 16 #{!} 32]>(row_offset))"
+        },
+        {
+          "index": "319",
+          "lifetime": {
+            "begin": 98701,
+            "end": 98707
+          },
+          "cycles": 6,
+          "description": "--> src/device/shared/mlp.rs:72:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 16]>()\n.contract_lane::<m![L % 32 = 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 16 / 4], m![L % 32 = 16 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 16 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 16, m![L % 32 = 16 #{!} 32]>(row_offset))"
+        },
+        {
+          "index": "393",
+          "lifetime": {
+            "begin": 117229,
+            "end": 121353
+          },
+          "cycles": 4124,
+          "description": "--> src/device/shared/mlp.rs:41:96\n\ndevice\n.main.begin(weights.view().tile::<m![L % 32], 16, m![L % 32 = 16 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 16, H / 32], m![H % 32]>()\n.collect::<m![L % 32 = 16, H / 32], m![H % 32]>()\n.contract_outer::<m![L % 32 = 16, H / 64], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![L % 32 = 16, H / 64]>()\n.contract_lane::<m![L % 32 = 16, H / 64, FfnTerm], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<FfnTerm, m![L % 32 = 16, H / 64]>()\n.vector_narrow_split::<m![L % 32 = 16, H / 64, 1 # 2], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)\n.vector_widen_concat::<m![L % 32 = 16, H / 64], m![H / 16 % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "402",
+          "lifetime": {
+            "begin": 121353,
+            "end": 121858
+          },
+          "cycles": 505,
+          "description": "--> src/device/shared/mlp.rs:72:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 16]>()\n.contract_lane::<m![L % 32 = 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 16 / 4], m![L % 32 = 16 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 16 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 16, m![L % 32 = 16 #{!} 32]>(row_offset))"
+        },
+        {
+          "index": "408",
+          "lifetime": {
+            "begin": 121858,
+            "end": 121864
+          },
+          "cycles": 6,
+          "description": "--> src/device/shared/mlp.rs:72:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 16]>()\n.contract_lane::<m![L % 32 = 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 16 / 4], m![L % 32 = 16 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 16 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 16, m![L % 32 = 16 #{!} 32]>(row_offset))"
+        },
+        {
+          "index": "414",
+          "lifetime": {
+            "begin": 122721,
+            "end": 126845
+          },
+          "cycles": 4124,
+          "description": "--> src/device/shared/mlp.rs:41:96\n\ndevice\n.main.begin(weights.view().tile::<m![L % 32], 16, m![L % 32 = 16 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 16, H / 32], m![H % 32]>()\n.collect::<m![L % 32 = 16, H / 32], m![H % 32]>()\n.contract_outer::<m![L % 32 = 16, H / 64], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![L % 32 = 16, H / 64]>()\n.contract_lane::<m![L % 32 = 16, H / 64, FfnTerm], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_unzip::<FfnTerm, m![L % 32 = 16, H / 64]>()\n.vector_narrow_split::<m![L % 32 = 16, H / 64, 1 # 2], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), (), 0.0625f32)\n.vector_fp_zip(FpBinaryOp::AddF)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), x_scale_vrf)\n.vector_widen_concat::<m![L % 32 = 16, H / 64], m![H / 16 % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![H / 16 % 4 # 16]>()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "433",
+          "lifetime": {
+            "begin": 126845,
+            "end": 127350
+          },
+          "cycles": 505,
+          "description": "--> src/device/shared/mlp.rs:72:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 16]>()\n.contract_lane::<m![L % 32 = 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 16 / 4], m![L % 32 = 16 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 16 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 16, m![L % 32 = 16 #{!} 32]>(row_offset))"
+        },
+        {
+          "index": "444",
+          "lifetime": {
+            "begin": 127350,
+            "end": 127356
+          },
+          "cycles": 6,
+          "description": "--> src/device/shared/mlp.rs:72:5\n\ndevice.main.begin(partials.view())\n.fetch::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.collect::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16]>()\n.contract_outer::<m![L % 32 = 16, H / 16 / 16], m![H / 16 % 16], _, _, _>(&scales_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 16]>()\n.contract_lane::<m![L % 32 = 16], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 16 / 4], m![L % 32 = 16 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 16 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 16, m![L % 32 = 16 #{!} 32]>(row_offset))"
+        }
+      ]
+    }
+  },
+  "additional_rounding": "Each dynamic-rescaled 16-element FP32 block is rounded to BF16 before local-scale multiplication and final block reduction; not mathematically equivalent for arbitrary inputs",
+  "scratch": "/tmp/moa-ffn-native-fp8-scale-contraction",
+  "cargo_target_dir": "/tmp/moa-ffn-native-fp8-scale-contraction/target",
+  "furiosa_opt_out_dir": "/tmp/moa-ffn-native-fp8-scale-contraction/target/furiosa-opt/kernel",
+  "compile_command": "cargo furiosa-opt compile ops::decoder_feedforward --exact --dump-schedule schedules/rows32-frozen.json",
+  "geglu_and_down_suffix_identical_to_streamed_bf16": true,
+  "hardware_validation": {
+    "job": 70354,
+    "log": "moa-dev/logs/e25-native-fp8-scale-dpe-job-70354.log",
+    "output_count": 0,
+    "cycle_count": 0,
+    "q_and_o": "all configs PASS",
+    "limitation": "Host reported kernel launch timeout; no instruction-level hang location available",
+    "status": "Do not adopt; no more native FFN variants pending evidence"
+  }
+}

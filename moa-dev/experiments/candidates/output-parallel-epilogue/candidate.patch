@@ -1,0 +1,165 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -176,7 +176,7 @@
+     x: HbmTensorView<'_, bf16, Chip, m![Qs]>,
+     weight: &HbmTensor<f8e4m3, Chip, m![H, Qs]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![H]>,
+-) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
++) -> DmTensor<bf16, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> {
+     type OutputRows = m![H / 60 % 32, 1 # 8];
+     let x: DmTensor<bf16, Chip, OutputCluster, OutputColumns, m![Qs % 512]> = x.to_dm(&mut device.tdma);
+     let (x, input_scale) = prepare_output_fp8_split(device, &x);
+@@ -219,40 +219,40 @@
+         .transpose::<m![H / 4 % 15], m![H % 4 # 16]>()
+         .commit_trim::<m![H % 4]>()
+         .commit();
+-    let result: DmTensor<bf16, Chip, OutputCluster, Slice, m![H % 1920]> = result.to_dm(&mut device.tdma);
+-    let result: DmTensor<bf16, Chip, m![H / 1920], Slice, m![H % 1920]> = unsafe { result.reshape() };
+-    let result: DmTensor<bf16, Chip, Cluster, HiddenRows, m![H % 120]> = result.to_dm(&mut device.tdma);
+-    let result = apply_output_channel_scale(device, &result, weight_scale);
+-    result.to_dm(&mut device.tdma)
+-}
+-
+-type HiddenRows = m![H / 120, 1 # 8];
++    // Rename only the existing high-row cluster axis; physical slice/padding
++    // and all 60 local values stay in place. H=1920*cluster+60*group+local.
++    let result: DmTensor<bf16, Chip, m![H / 1920], OutputRows, m![H % 60]> = unsafe { result.reshape() };
++    let result: DmTensor<bf16, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> = result.to_dm(&mut device.tdma);
++    apply_output_channel_scale(device, &result, weight_scale)
++}
++
++pub(crate) type OutputEpilogueSlices = m![1 # 32, H / 480];
+ 
+ fn apply_output_channel_scale(
+     device: &mut Device,
+-    x: &DmTensor<bf16, Chip, Cluster, HiddenRows, m![H % 120]>,
++    x: &DmTensor<bf16, Chip, Cluster, OutputEpilogueSlices, m![H % 480]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![H]>,
+-) -> DmTensor<bf16, Chip, Cluster, HiddenRows, m![H % 120]> {
+-    let weight_scale: DmTensor<bf16, Chip, Cluster, HiddenRows, m![H % 120]> = weight_scale.to_dm(&mut device.tdma);
+-    let weight_scale_vrf: VrfTensor<f32, Chip, Cluster, HiddenRows, m![H % 120]> = device
++) -> DmTensor<bf16, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> {
++    let weight_scale: DmTensor<bf16, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> = weight_scale.to_dm(&mut device.tdma);
++    let weight_scale_vrf: VrfTensor<f32, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> = device
+         .sub
+         .begin(weight_scale.view())
+-        .fetch::<m![1], m![H % 120]>()
+-        .fetch_cast::<f32>()
+-        .collect::<m![H / 8 % 15], m![H % 8]>()
++        .fetch::<m![1], m![H % 480]>()
++        .fetch_cast::<f32>()
++        .collect::<m![H / 8 % 60], m![H % 8]>()
+         .to_vrf();
+ 
+     device
+         .main
+         .begin(x.view())
+-        .fetch::<m![1], m![H % 120]>()
+-        .fetch_cast::<f32>()
+-        .collect::<m![H / 8 % 15], m![H % 8]>()
++        .fetch::<m![1], m![H % 480]>()
++        .fetch_cast::<f32>()
++        .collect::<m![H / 8 % 60], m![H % 8]>()
+         .vector_init()
+         .vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_split::<m![H / 4 % 30], m![H % 4]>()
++        .vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)
+-        .vector_widen_concat::<m![H / 8 % 15], m![H % 8]>()
++        .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()
+         .vector_final()
+         .cast::<bf16, m![H % 8 # 16]>()
+         .commit_trim::<m![H % 8]>()
+@@ -262,11 +262,10 @@
+ 
+ pub(crate) fn add_output_residual(
+     device: &mut Device,
+-    x: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
++    x: &DmTensor<bf16, Chip, Cluster, OutputEpilogueSlices, m![H % 480]>,
+     residual: &HbmTensor<bf16, Chip, m![H]>,
+-) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
++) -> DmTensor<bf16, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> {
+     type ResidualSlices = m![1 # 32, H / 480];
+-    let x: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
+     let residual: DmTensor<bf16, Chip, Cluster, ResidualSlices, m![H % 480]> = residual.to_dm(&mut device.tdma);
+     let residual_vrf: VrfTensor<f32, Chip, Cluster, ResidualSlices, m![H % 480]> = device
+         .sub
+@@ -288,14 +287,7 @@
+         .cast::<bf16, m![H % 8 # 16]>()
+         .commit_trim::<m![H % 8]>()
+         .commit();
+-    device
+-        .main
+-        .begin(result.view())
+-        .fetch::<m![1], m![H % 480]>()
+-        .switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })
+-        .collect::<m![H / 16], m![H % 16]>()
+-        .commit_trim::<m![H % 16]>()
+-        .commit()
++    result
+ }
+ 
+ // O shard-specific quantization: 512 inputs per column, no full-vector broadcast.
+--- a/src/device/shared/rmsnorm.rs
++++ b/src/device/shared/rmsnorm.rs
+@@ -104,14 +104,13 @@
+ }
+ 
+ // O-only experiment: preserve the generic normalize implementation above.
+-pub(crate) fn normalize_output_fused<Cluster: M, Slice: M>(
++pub(crate) fn normalize_output_fused<Cluster: M>(
+     device: &mut Device,
+-    x: &DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
++    x: &DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]>,
+     rms_weight: &HbmTensor<bf16, Chip, m![H]>,
+-) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
++) -> DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> {
+     type ReducingSlices = m![1 # 32, H / 480];
+ 
+-    let x: DmTensor<bf16, Chip, Cluster, ReducingSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
+ 
+     let mean_square: DmTensor<f32, Chip, Cluster, ReducingSlices, m![1 # 8]> = device
+         .main
+@@ -163,7 +162,7 @@
+         .collect::<m![1], m![1 # 8]>()
+         .to_vrf();
+ 
+-    let normalized: DmTensor<f32, Chip, Cluster, ReducingSlices, m![H % 480]> = device
++    device
+         .main
+         .begin(x.view())
+         .fetch::<m![H / 16 % 30], m![H % 16]>()
+@@ -176,15 +175,6 @@
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)
+         .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()
+         .vector_final()
+-        .commit_trim::<m![H % 8]>()
+-        .commit();
+-
+-    device
+-        .main
+-        .begin(normalized.view())
+-        .fetch::<m![1], m![H % 480]>()
+-        .switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })
+-        .collect::<m![H / 8], m![H % 8]>()
+         .cast::<bf16, m![H % 8 # 16]>()
+         .commit_trim::<m![H % 8]>()
+         .commit()
+--- a/src/ops.rs
++++ b/src/ops.rs
+@@ -148,11 +148,11 @@
+     residual_hbm: &mut HbmTensor<bf16, Chip, m![H]>,
+ ) {
+     let x: HbmTensorView<'_, bf16, Chip, m![Qs]> = unsafe { x.view().reshape() };
+-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> =
++    let x: DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> =
+         sliding::projection::project_output(device, x, o_weight, o_weight_scale);
+-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = shared::rmsnorm::normalize_output_fused(device, &x, post_attn_rms_weight);
+-
+-    let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = sliding::projection::add_output_residual(device, &x, residual_hbm);
++    let x: DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> = shared::rmsnorm::normalize_output_fused(device, &x, post_attn_rms_weight);
++
++    let residual: DmTensor<bf16, Chip, Cluster, m![1 # 32, H / 480], m![H % 480]> = sliding::projection::add_output_residual(device, &x, residual_hbm);
+     residual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut());
+ }
+ 

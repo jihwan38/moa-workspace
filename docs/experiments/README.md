@@ -31,6 +31,12 @@ Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916
 | E18 QKV eight-way row interleave + E16 | 70248 | Pass | 105502 | 65139 | 389781 | Retain; QKV 8.88% below E15 repeat median, repeats below |
 | E19 QKV runtime FP8 hi/lo, two independent dots | 70261 | Pass | 110479 | 66086 | 388705 | QKV slower than E18; prototype for two-lane native FP8 |
 | E20 QKV native FP8 two-lane + fused O norm | 70290 | Q/K pass, V fail | — | 65919 | 391667 | Reject QKV; V sparse large errors, root cause under investigation. O/FFN individually pass |
+| E21 row-interleaved FP8 QKV + native FP8 O | 70300 | Q/K pass, V fail; O/FFN pass | — | 59016 | 389251 | QKV rejected; O retained for standalone-valid package and extra inputs |
+| E22 safe QKV + native FP8 up/gate + native O | 70321 | QKV/O pass; FFN launch timeout | 103681 | 58903 | — | Reject native FP8/F32-block FFN path |
+| E23 KV register reload + streamed BF16 scale contraction FFN | 70327 | V fail; O/FFN pass | — | 59023 | 384728 | KV reload does not fix failure; FFN passes with extra BF16 block rounding |
+| E24 native FP8 O with verified E18 QKV/FFN | 70339 | Pass | 105045 | 59027 | 386021 | Retain; additional30 comparisons pass in70353 |
+| E25 native FP8 FFN + BF16 block/scale DPE | 70354 | QKV/O pass; FFN launch timeout | 105623 | 58638 | — | Reject pending common-path failure diagnosis |
+| E26 O channel scale/RMS/residual on eight slices | 70361 | Pass | 104895 | 52579 | 389949 | Retain; O10.93% below E24 screen, additional inputs pending |
 
 The failed E4 and E5 experiments have identical reported FFN max/mean errors and tolerance pass rates
 for all three inputs. Their common two-row contraction/reduction/commit/copy path is the current
@@ -62,3 +68,7 @@ E15 all-blockscale passed all30 additional run3..8 comparisons in job70186 (`e15
 E15 same-package repeats70181/70194/70200 allpassed; aggregate medians115780/65476/397675. Relative job-median ranges: QKV4.249%, O2.500%, FFN0.266%. All four uploaded package file hashes matched. See `e15-best-repeats.json`.
 
 E18 same-package repeats70248/70271/70285 all passed; aggregate medians105462/65662/392608. Relative job-median ranges: QKV1.599%, O1.188%, FFN0.792%. All four uploaded file hashes matched. See `e18-best-repeats.json`. Compared with original repeat medians, speedups are2.314×/6.156×/10.861×.
+
+E18 also passed all30 additional run3..8 output comparisons in job70309 (`e18-row-interleaved-extra-correctness.json`). This validates the E18 row layout and E16 residual changes on six additional configurations; it does not validate subsequent FP8 prototypes.
+
+E24 additional run3..8 passed all30 comparisons in70353 (`e24-native-output-extra-correctness.json`), covering column-local FP8 input decomposition on six additional configurations. This does not establish all-input tolerance; an explicit outlier/cancellation counterexample is recorded in the independent candidate review.

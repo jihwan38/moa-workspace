@@ -1,0 +1,67 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -28,7 +28,7 @@
+ fn project_rows_with_scale_contraction(
+     device: &mut Device,
+     x_trf: &TrfTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![1], m![H]>,
+-    weights: &DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]>,
++    weights: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]>,
+     scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]>,
+     output: &mut DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]>,
+ ) {
+@@ -36,7 +36,8 @@
+     // The second contraction multiplies block scales and reduces the block axis.
+     let partials: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]> = device
+         .main.begin(weights.view())
+-        .fetch::<m![L % 32, H / 16], m![H % 16]>()
++        .fetch::<m![L % 32], m![H]>()
++        .fetch_table_lookup::<bf16>()
+         .collect::<m![L % 32, H / 16], m![H % 16]>()
+         .contract_outer::<m![L % 32, H / 16], m![H % 16], _, _, _>(x_trf)
+         .contract_packet::<m![1]>()
+@@ -96,21 +97,12 @@
+         .commit_trim::<m![H % 32]>()
+         .commit();
+ 
+-    // Materialize each unscaled BF16 matrix once; later row tiles reuse it.
+-    let up_weight_bf16: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> = device
+-        .main
+-        .begin(up_weight_packed.view())
+-        .fetch::<m![L % 32], m![H]>()
+-        .fetch_table_lookup::<bf16>()
+-        .collect::<m![L % 32, H / 16], m![H % 16]>()
+-        .commit_trim::<m![H % 16]>()
+-        .commit();
+ 
+     let up_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, L % 7680, H / 16]> = unsafe { up_weight_scale.view().reshape() };
+     let up_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]> =
+         up_weight_scale.to_dm(&mut device.tdma);
+ 
+-    project_rows_with_scale_contraction(device, x_trf, &up_weight_bf16, &up_weight_scale, &mut up);
++    project_rows_with_scale_contraction(device, x_trf, &up_weight_packed, &up_weight_scale, &mut up);
+ 
+     let mut gate: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]> = DmTensor::new();
+ 
+@@ -126,21 +118,12 @@
+         .commit_trim::<m![H % 32]>()
+         .commit();
+ 
+-    // Materialize each unscaled BF16 matrix once; later row tiles reuse it.
+-    let gate_weight_bf16: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> = device
+-        .main
+-        .begin(gate_weight_packed.view())
+-        .fetch::<m![L % 32], m![H]>()
+-        .fetch_table_lookup::<bf16>()
+-        .collect::<m![L % 32, H / 16], m![H % 16]>()
+-        .commit_trim::<m![H % 16]>()
+-        .commit();
+ 
+     let gate_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, L % 7680, H / 16]> = unsafe { gate_weight_scale.view().reshape() };
+     let gate_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]> =
+         gate_weight_scale.to_dm(&mut device.tdma);
+ 
+-    project_rows_with_scale_contraction(device, x_trf, &gate_weight_bf16, &gate_weight_scale, &mut gate);
++    project_rows_with_scale_contraction(device, x_trf, &gate_weight_packed, &gate_weight_scale, &mut gate);
+ 
+     // Remove padding with typed copies before reinterpreting the high row axis.
+     let up: DmTensor<bf16, Chip, UpGateCluster, Slice, m![L % 7680]> = up.to_dm(&mut device.tdma);

@@ -1,0 +1,70 @@
+error[E0425]: cannot find type `FfnTerm56` in this scope
+   --> src/device/shared/mlp.rs:438:42
+    |
+ 18 | axes![FfnTerm = 2];
+    | ------------------ similarly named struct `FfnTerm` defined here
+...
+438 |     let x: DmTensor<f8e4m3, Chip, m![2], m![FfnTerm56 / 32, 1 # 32], m![FfnTerm, H]> = x.to_dm(&mut device.tdma);
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in the macro `m` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: a struct with a similar name exists
+    |
+438 -     let x: DmTensor<f8e4m3, Chip, m![2], m![FfnTerm56 / 32, 1 # 32], m![FfnTerm, H]> = x.to_dm(&mut device.tdma);
+438 +     let x: DmTensor<f8e4m3, Chip, m![2], FfnTerm, m![FfnTerm, H]> = x.to_dm(&mut device.tdma);
+    |
+help: you might be missing a type parameter
+    |
+434 | fn broadcast_ffn_quantized<FfnTerm56>(
+    |                           +++++++++++
+
+error[E0425]: cannot find type `FfnTerm56` in this scope
+   --> src/device/shared/mlp.rs:439:42
+    |
+ 18 | axes![FfnTerm = 2];
+    | ------------------ similarly named struct `FfnTerm` defined here
+...
+439 |     let x: DmTensor<f8e4m3, Chip, m![2], m![FfnTerm56 / 32, 32], m![FfnTerm, H]> = device
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in the macro `m` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: a struct with a similar name exists
+    |
+439 -     let x: DmTensor<f8e4m3, Chip, m![2], m![FfnTerm56 / 32, 32], m![FfnTerm, H]> = device
+439 +     let x: DmTensor<f8e4m3, Chip, m![2], FfnTerm, m![FfnTerm, H]> = device
+    |
+help: you might be missing a type parameter
+    |
+434 | fn broadcast_ffn_quantized<FfnTerm56>(
+    |                           +++++++++++
+
+error[E0425]: cannot find type `FfnTerm56` in this scope
+   --> src/device/shared/mlp.rs:442:19
+    |
+ 18 | axes![FfnTerm = 2];
+    | ------------------ similarly named struct `FfnTerm` defined here
+...
+442 |         .switch::<m![FfnTerm56 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
+    |                   ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in the macro `m` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: a struct with a similar name exists
+    |
+442 -         .switch::<m![FfnTerm56 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
+442 +         .switch::<FfnTerm, m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
+    |
+help: you might be missing a type parameter
+    |
+434 | fn broadcast_ffn_quantized<FfnTerm56>(
+    |                           +++++++++++
+
+warning: unused import: `Dummy256`
+ --> src/device/shared/mlp.rs:4:27
+  |
+4 | use crate::axes::{Dummy2, Dummy256, H, L};
+  |                           ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 3 previous errors; 1 warning emitted

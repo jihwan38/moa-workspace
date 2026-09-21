@@ -1,0 +1,152 @@
+{
+  "seed": 20260921,
+  "columns": 8,
+  "column_width": 512,
+  "limitation": "NumPy F32 sums do not reproduce RNGD native FP8 or inter-slice reduction order; projection probes are not the official post-norm/residual oracle.",
+  "cases": [
+    {
+      "case": "normal",
+      "per_column_scales": [
+        0.015625,
+        0.015625,
+        0.015625,
+        0.015625,
+        0.015625,
+        0.015625,
+        0.015625,
+        0.015625
+      ],
+      "per_column_input_max_abs_error": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "per_column_input_abs_error_bound": [
+        9.5367431640625e-07,
+        9.5367431640625e-07,
+        9.5367431640625e-07,
+        9.5367431640625e-07,
+        9.5367431640625e-07,
+        9.5367431640625e-07,
+        9.5367431640625e-07,
+        9.5367431640625e-07
+      ],
+      "f32_projection_max_abs_error": 1.52587890625e-05,
+      "bf16_projection_mismatches": 0,
+      "outputs": 64
+    },
+    {
+      "case": "zeros",
+      "per_column_scales": [
+        1.1754943508222875e-38,
+        1.1754943508222875e-38,
+        1.1754943508222875e-38,
+        1.1754943508222875e-38,
+        1.1754943508222875e-38,
+        1.1754943508222875e-38,
+        1.1754943508222875e-38,
+        1.1754943508222875e-38
+      ],
+      "per_column_input_max_abs_error": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "per_column_input_abs_error_bound": [
+        7.174648137343064e-43,
+        7.174648137343064e-43,
+        7.174648137343064e-43,
+        7.174648137343064e-43,
+        7.174648137343064e-43,
+        7.174648137343064e-43,
+        7.174648137343064e-43,
+        7.174648137343064e-43
+      ],
+      "f32_projection_max_abs_error": 0.0,
+      "bf16_projection_mismatches": 0,
+      "outputs": 64
+    },
+    {
+      "case": "column_local_outliers",
+      "per_column_scales": [
+        8192.0,
+        0.015625,
+        2048.0,
+        0.015625,
+        0.015625,
+        0.015625,
+        0.015625,
+        0.015625
+      ],
+      "per_column_input_max_abs_error": [
+        0.5,
+        0.0,
+        0.125,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "per_column_input_abs_error_bound": [
+        0.5,
+        9.5367431640625e-07,
+        0.125,
+        9.5367431640625e-07,
+        9.5367431640625e-07,
+        9.5367431640625e-07,
+        9.5367431640625e-07,
+        9.5367431640625e-07
+      ],
+      "f32_projection_max_abs_error": 16.15625,
+      "bf16_projection_mismatches": 1,
+      "outputs": 64
+    },
+    {
+      "case": "column_dynamic_ranges",
+      "per_column_scales": [
+        1.4551915228366852e-11,
+        1.4901161193847656e-08,
+        1.52587890625e-05,
+        0.015625,
+        32.0,
+        16384.0,
+        16777216.0,
+        17179869184.0
+      ],
+      "per_column_input_max_abs_error": [
+        0.0,
+        0.0,
+        9.313225746154785e-10,
+        0.0,
+        0.001953125,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "per_column_input_abs_error_bound": [
+        8.881784197001252e-16,
+        9.094947017729282e-13,
+        9.313225746154785e-10,
+        9.5367431640625e-07,
+        0.001953125,
+        1.0,
+        1024.0,
+        1048576.0
+      ],
+      "f32_projection_max_abs_error": 4194304.0,
+      "bf16_projection_mismatches": 0,
+      "outputs": 64
+    }
+  ]
+}
