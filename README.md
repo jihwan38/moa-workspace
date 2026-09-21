@@ -6,31 +6,42 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
-현재 `baseline`은 O projection의 입력을 BF16으로 보존하는 **E53**이다.
-공식 입력3세트와 별도 추가6세트의 모든 비교, O 경계8개 검사를 통과했다.
-이전 E47에서 작은 값이 FP8 근사로 사라지던 상쇄 입력도 원본과 같은 결과를 낸다.
-[원본·E47·E53 경계 비교](docs/experiments/output-boundary-comparison.md).
+현재 `baseline`은 QKV와 O projection의 입력을 BF16으로 보존하는 **E54**다.
+공식 입력3세트의15개 비교와 별도 추가6세트의30개 비교를 통과했다.
+QKV 상쇄 진단2개도 통과했고 비대상 KV cache8,380,416개 BF16 원소가 유지됐다.
+같은 진단에서 E53은8,072개 출력이 허용오차를 벗어났다.
+이 진단 입력은 현재 공식 QKV generator 지원 범위 밖이며, 공식 평가 실패와 구분한다.
+[원본·E53·E54 QKV 비교](docs/experiments/qkv-boundary-comparison.md).
 
-아래는 같은 패키지3회 실행에서 얻은 job 중앙값들의 중앙값이다.
+아래는 동일 패키지3회 실행의 job 중앙값들에서 구한 중앙값이다.
+E54는 job70933/70974/70987 모두15개 비교를 통과했다. 원본/E53 열은 이전 반복 기록이다.
 전체 Gemma 추론 속도나 공식 순위를 뜻하지 않는다.
 
-| 커널 | 원본 반복 중앙값 cycles | E53 반복 중앙값 cycles | 원본 대비 |
+| 커널 | 원본 반복 중앙값 cycles | 이전 E53 반복 중앙값 cycles | E54 반복 중앙값 cycles |
 |---|---:|---:|---:|
-| QKV | 244,051 | 95,621 | 2.55× |
-| Attention output | 404,222 | 50,882 | 7.94× |
-| FFN | 4,264,297 | 377,880 | 11.28× |
+| QKV | 244,051 | 95,621 | 108,700 |
+| Attention output | 404,222 | 50,882 | 50,970 |
+| FFN | 4,264,297 | 377,880 | 382,268 |
 
-[동일 패키지 반복 측정](docs/experiments/e53-bf16-output-repeats.json), [추가 입력 검사](docs/experiments/e53-bf16-output-extra-correctness.json),
-[실험 원장](docs/experiments/README.md)에 소스·바이너리·업로드 해시를 기록한다.
-E53은 O의 입력 근사와 scale 전 BF16 반올림을 제거했다. QKV/FFN device image는 E47과 같다.
-같은 QKV image의 [KV cache 보존 검사](docs/experiments/e37-cache-preservation-correctness.json)에서
-비대상 BF16 원소12,570,624개가 유지됐다.
-[빌드 검사](docs/experiments/e53-source-build-audit.json)에서 정리한 소스로 측정 실행 파일을
+E54는 원본 대비 QKV2.25×/O7.93×/FFN11.16×다. QKV는 E53보다13.68% 느리지만
+관측된 입력 소실을 고쳤다. [반복 측정](docs/experiments/e54-bf16-qkv-repeats.json)의 job 중앙값 범위는
+QKV1.262%/O1.173%/FFN0.081%다. O/FFN은 같은 image이므로 cycle 차이를 소스 변경 효과로 해석하지 않는다.
+[첫 screen](docs/experiments/e54-bf16-qkv-f32-scale.json),
+[추가 입력 검사](docs/experiments/e54-bf16-qkv-extra-correctness.json),
+[실험 원장](docs/experiments/README.md)에 결과와 업로드 해시를 기록한다.
+
+E54 QKV는 BF16 pre-RMS → ring32 복제 → BF16 dot → F32 행 재배치·channel scale →
+BF16 → head RMS·RoPE·cache write 순서다. O/FFN device image는 E53과 같다.
+O 경계8개 PASS는 같은 O image를 실행한 **기존 E53 job70810의 근거를 승계**하며,
+새 E54 O 경계 실행이라고 세지 않는다. [O 경계 비교](docs/experiments/output-boundary-comparison.md).
+[빌드 검사](docs/experiments/e54-source-build-audit.json)에서 정리한 소스로 측정 host를
 byte-identical하게 재현했고, 별도 추가 입력 빌드도 세 device image가 모두 일치했다.
+[소스 계약 검사](docs/experiments/e54-source-contract-audit.json)는 공개 signature와 공식 harness 보존을 확인한다.
 현재 검증 범위를 넘어 임의 입력이나 모델 전체의 정확성을 보장하지 않는다.
 
 공식 제출 서버는 평가 기준 수정으로 중단 중이며 별도 제출기 인증도 아직 완료하지 않았다.
-공식 점수·순위는 미확인이다. [공식 상태 확인](docs/experiments/official-submission-status-20260921.json).
+공식 점수·순위는 미확인이며 최소3위 목표도 아직 달성하지 못했다.
+[공식 상태 확인](docs/experiments/official-submission-status-20260921.json).
 
 ```text
 moa-workspace/

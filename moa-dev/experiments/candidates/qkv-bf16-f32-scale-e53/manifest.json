@@ -1,0 +1,85 @@
+{
+  "status": "EXACT_COMPILE_PASS_NOT_NPU_TESTED",
+  "compile_attempts": 1,
+  "corrections": 0,
+  "npu_run": false,
+  "source_base": "moa-dev/experiments/artifacts/e53-bf16-output-clean-source",
+  "requested_base_checkpoint": "7ad11cd (parent-provided E53 checkpoint)",
+  "private_qkv_ancestor": "moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47",
+  "scratch": "/tmp/moa-qkv-bf16-f32-scale-e53",
+  "CARGO_HOME": "/home/moa/.cargo",
+  "command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule candidate.json --dump-graph candidate-graph.json",
+  "static": {
+    "candidate": {
+      "makespan": 52282,
+      "instruction_count": 143,
+      "duration_sum_by_type": {
+        "Main": 30818,
+        "DmaLoad": 34916,
+        "DmaGather": 1868,
+        "DmaStore": 441,
+        "DmaScatter": 1740,
+        "Core": 3192,
+        "DmaStos": 5604,
+        "Sub": 10793
+      }
+    },
+    "old_bf16_early_cast": {
+      "makespan": 52282,
+      "instruction_count": 143,
+      "duration_sum_by_type": {
+        "Main": 30818,
+        "DmaLoad": 34916,
+        "DmaGather": 1868,
+        "DmaStore": 441,
+        "DmaScatter": 1740,
+        "Core": 3192,
+        "DmaStos": 5604,
+        "Sub": 10793
+      }
+    },
+    "e53_native_fp8_reference_makespan": 50364,
+    "makespan_definition": "max instruction lifetime.end; resource duration sums are not whole-program makespan"
+  },
+  "files": {
+    "moa-dev/experiments/candidates/qkv-bf16-f32-scale-e53/ops.rs": {
+      "sha256": "ffdab428fd4c8126b77e145b75073c907732bf0fa9ca830a123fe828e7b08888",
+      "bytes": 13439
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-f32-scale-e53/projection.rs": {
+      "sha256": "ab01f626d4ddfc8920312df19bb153e501ebd24495f166d322c3883a92c675ba",
+      "bytes": 17663
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-f32-scale-e53/compiled-source-manifest.json": {
+      "sha256": "52159a19b1dbbf8daa11acb3f0cf8db9bd461ffcd1bd49843e0e7b1a117dc88e",
+      "bytes": 4375
+    },
+    "moa-dev/experiments/candidates/qkv-bf16-f32-scale-e53/verification.json": {
+      "sha256": "7682348db11514caed0fc75a41e5b9842c322eb324b77a7744ea916ebb487f89",
+      "bytes": 858
+    },
+    "moa-dev/experiments/artifacts/qkv-bf16-f32-scale-e53/candidate.bin": {
+      "sha256": "57a52d1aa37f16116d14638b30f34947d2c7e7ed653986436cdfa51ee54089dc",
+      "bytes": 171776
+    },
+    "moa-dev/experiments/artifacts/qkv-bf16-f32-scale-e53/candidate.json": {
+      "sha256": "476a33e52d7768ba08ef914bf7adbf157517424c7482e1d2275a52c4b49f2d95",
+      "bytes": 89702
+    },
+    "moa-dev/experiments/artifacts/qkv-bf16-f32-scale-e53/candidate-graph.json": {
+      "sha256": "9ab946d73138e45d2347dfd1741ea0d3f25c5718964ddf0568c35aeaaf4ae1c8",
+      "bytes": 197759
+    },
+    "moa-dev/experiments/artifacts/qkv-bf16-f32-scale-e53/compile-attempt1.log": {
+      "sha256": "fd1e884f64520f9c02d3402610b57883c9907a045c6090dc3504ee4c8cd16adc",
+      "bytes": 1585
+    }
+  },
+  "public_signatures_preserved": true,
+  "headnorm_rope_cache_tail_preserved": true,
+  "o_suffix_preserved_byte_identical": true,
+  "other_41_src_files_preserved": true,
+  "precision": "Normalized BF16 activation is retained in TRF; FP8 weights decode to BF16; raw dots/row InterTranspose stay F32; channel scale precedes first projection BF16 cast. No all-input equivalence or hardware correctness claim.",
+  "graph_audit": "graph-audit.json",
+  "compiled_inputs_observed_in_scratch_match_manifest": true
+}

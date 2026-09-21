@@ -9,3 +9,5 @@ E18 helper는 raw dot을 BF16으로 반올림한 뒤 channel scale을 적용한�
 Isolated exact compile은 Dummy256 import 누락1회를 수정한 뒤 통과했다. Static makespan52,282는 E47의50,364보다3.81% 크다. Image/소스/schedule hash는 [manifest](manifest.json)에 있다. **NPU 정확성·성능은 미검증이며 채택하지 않았다.** Live source를 바꾸지 않고 scratch에서만 compile했다.
 
 통합 주의: 이 frozen 후보의 O suffix는 E47이다. 파일 전체를 E53 위에 복사하면 O 정확성 수정을 되돌린다. 향후 실험은 QKV prefix와 ops의 QKV 본문만 E53에 결합하고 다시 소스·image·정확성을 검증해야 한다.
+
+후속 [E54](../qkv-bf16-f32-scale-e53/README.md)는 QKV 부분만 E53에 통합하고 raw dot·행 재배치를 F32로 유지해 channel scale 뒤 첫 BF16 cast를 둔다. 이 후속 구현의 NPU 결과를 위 early-cast 초안의 검증 결과로 대신하지 않는다.

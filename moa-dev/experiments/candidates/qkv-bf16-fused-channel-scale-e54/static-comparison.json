@@ -1,0 +1,543 @@
+{
+  "baseline": {
+    "makespan": 52282,
+    "instruction_count": 143,
+    "duration_sum_by_resource": {
+      "Sub": 10793,
+      "DmaLoad": 34916,
+      "Core": 3192,
+      "Main": 30818,
+      "DmaStos": 5604,
+      "DmaGather": 1868,
+      "DmaStore": 441,
+      "DmaScatter": 1740
+    },
+    "projection_paths": {
+      "Q": {
+        "weight_hbm": "IO(1)+0",
+        "graph_dot": "RenegadeCommand#O17",
+        "graph_switch": "RenegadeCommand#O18",
+        "weight_dma": {
+          "operator": "O97",
+          "resource": "DmaLoad",
+          "begin": 8109,
+          "end": 21492,
+          "duration": 13383
+        },
+        "dot": {
+          "operator": "O122",
+          "resource": "Main",
+          "begin": 23702,
+          "end": 28765,
+          "duration": 5063
+        },
+        "row_switch": {
+          "operator": "O127",
+          "resource": "Main",
+          "begin": 28765,
+          "end": 29108,
+          "duration": 343
+        },
+        "dot_output_dtype": "Float32",
+        "switch_output_dtype": "Float32"
+      },
+      "K": {
+        "weight_hbm": "IO(2)+0",
+        "graph_dot": "RenegadeCommand#O32",
+        "graph_switch": "RenegadeCommand#O33",
+        "weight_dma": {
+          "operator": "O231",
+          "resource": "DmaLoad",
+          "begin": 35000,
+          "end": 41966,
+          "duration": 6966
+        },
+        "dot": {
+          "operator": "O285",
+          "resource": "Main",
+          "begin": 41966,
+          "end": 44629,
+          "duration": 2663
+        },
+        "row_switch": {
+          "operator": "O310",
+          "resource": "Main",
+          "begin": 44629,
+          "end": 44972,
+          "duration": 343
+        },
+        "dot_output_dtype": "Float32",
+        "switch_output_dtype": "Float32"
+      },
+      "V": {
+        "weight_hbm": "IO(3)+0",
+        "graph_dot": "RenegadeCommand#O45",
+        "graph_switch": "RenegadeCommand#O46",
+        "weight_dma": {
+          "operator": "O116",
+          "resource": "DmaLoad",
+          "begin": 22330,
+          "end": 29296,
+          "duration": 6966
+        },
+        "dot": {
+          "operator": "O139",
+          "resource": "Main",
+          "begin": 29391,
+          "end": 32054,
+          "duration": 2663
+        },
+        "row_switch": {
+          "operator": "O181",
+          "resource": "Main",
+          "begin": 32746,
+          "end": 33089,
+          "duration": 343
+        },
+        "dot_output_dtype": "Float32",
+        "switch_output_dtype": "Float32"
+      }
+    }
+  },
+  "candidate": {
+    "makespan": 51293,
+    "instruction_count": 140,
+    "duration_sum_by_resource": {
+      "Sub": 10979,
+      "DmaLoad": 34916,
+      "Core": 3192,
+      "Main": 29969,
+      "DmaStos": 5604,
+      "DmaGather": 1868,
+      "DmaStore": 441,
+      "DmaScatter": 1740
+    },
+    "projection_paths": {
+      "K": {
+        "weight_hbm": "IO(2)+0",
+        "graph_dot": "RenegadeCommand#O33",
+        "graph_switch": "RenegadeCommand#O34",
+        "weight_dma": {
+          "operator": "O145",
+          "resource": "DmaLoad",
+          "begin": 25528,
+          "end": 32494,
+          "duration": 6966
+        },
+        "dot": {
+          "operator": "O163",
+          "resource": "Main",
+          "begin": 32494,
+          "end": 35157,
+          "duration": 2663
+        },
+        "row_switch": {
+          "operator": "O189",
+          "resource": "Main",
+          "begin": 35157,
+          "end": 35500,
+          "duration": 343
+        },
+        "dot_output_dtype": "Bfloat16",
+        "switch_output_dtype": "Bfloat16",
+        "scale_hbm": "IO(5)+0",
+        "graph_scale_sub": "RenegadeCommand#O30",
+        "scale_sub": {
+          "operator": "O51",
+          "resource": "Sub",
+          "begin": 3827,
+          "end": 4154,
+          "duration": 327
+        },
+        "scale_dma": {
+          "operator": "O48",
+          "resource": "DmaLoad",
+          "begin": 3162,
+          "end": 3827,
+          "duration": 665
+        },
+        "vrf_tensor": 50,
+        "vrf_physical_bytes_per_slice": 256,
+        "vrf_shape": {
+          "MappingShape": {
+            "inner": {
+              "region": "Vrf",
+              "mappings": {
+                "Chip": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "Cluster": {
+                  "Stride": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "Ps",
+                        "size": 2048
+                      }
+                    },
+                    "stride": 1024
+                  }
+                },
+                "Partitioning": {
+                  "Pair": {
+                    "left": {
+                      "Modulo": {
+                        "inner": {
+                          "Stride": {
+                            "inner": {
+                              "Symbol": {
+                                "symbol": "Ps",
+                                "size": 2048
+                              }
+                            },
+                            "stride": 32
+                          }
+                        },
+                        "modulo": 32
+                      }
+                    },
+                    "right": {
+                      "Modulo": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "Ps",
+                            "size": 2048
+                          }
+                        },
+                        "modulo": 8
+                      }
+                    }
+                  }
+                },
+                "InSlice": {
+                  "Pair": {
+                    "left": {
+                      "Padding": {
+                        "inner": {
+                          "Modulo": {
+                            "inner": {
+                              "Stride": {
+                                "inner": {
+                                  "Symbol": {
+                                    "symbol": "Ps",
+                                    "size": 2048
+                                  }
+                                },
+                                "stride": 8
+                              }
+                            },
+                            "modulo": 4
+                          }
+                        },
+                        "padding": 8,
+                        "kind": "Top"
+                      }
+                    },
+                    "right": {
+                      "Padding": {
+                        "inner": {
+                          "Broadcast": {
+                            "size": 1
+                          }
+                        },
+                        "padding": 8,
+                        "kind": "Top"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "first_bf16_cast_after_complete_dot_and_scale": true,
+        "commit_bytes": 8,
+        "commit_rows": 4
+      },
+      "Q": {
+        "weight_hbm": "IO(1)+0",
+        "graph_dot": "RenegadeCommand#O19",
+        "graph_switch": "RenegadeCommand#O20",
+        "weight_dma": {
+          "operator": "O125",
+          "resource": "DmaLoad",
+          "begin": 11307,
+          "end": 24690,
+          "duration": 13383
+        },
+        "dot": {
+          "operator": "O151",
+          "resource": "Main",
+          "begin": 26900,
+          "end": 31963,
+          "duration": 5063
+        },
+        "row_switch": {
+          "operator": "O156",
+          "resource": "Main",
+          "begin": 31963,
+          "end": 32306,
+          "duration": 343
+        },
+        "dot_output_dtype": "Bfloat16",
+        "switch_output_dtype": "Bfloat16",
+        "scale_hbm": "IO(4)+0",
+        "graph_scale_sub": "RenegadeCommand#O16",
+        "scale_sub": {
+          "operator": "O124",
+          "resource": "Sub",
+          "begin": 11307,
+          "end": 11634,
+          "duration": 327
+        },
+        "scale_dma": {
+          "operator": "O118",
+          "resource": "DmaLoad",
+          "begin": 10515,
+          "end": 11307,
+          "duration": 792
+        },
+        "vrf_tensor": 35,
+        "vrf_physical_bytes_per_slice": 256,
+        "vrf_shape": {
+          "MappingShape": {
+            "inner": {
+              "region": "Vrf",
+              "mappings": {
+                "Chip": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "Cluster": {
+                  "Stride": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "Qs",
+                        "size": 4096
+                      }
+                    },
+                    "stride": 2048
+                  }
+                },
+                "Partitioning": {
+                  "Pair": {
+                    "left": {
+                      "Modulo": {
+                        "inner": {
+                          "Stride": {
+                            "inner": {
+                              "Symbol": {
+                                "symbol": "Qs",
+                                "size": 4096
+                              }
+                            },
+                            "stride": 64
+                          }
+                        },
+                        "modulo": 32
+                      }
+                    },
+                    "right": {
+                      "Modulo": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "Qs",
+                            "size": 4096
+                          }
+                        },
+                        "modulo": 8
+                      }
+                    }
+                  }
+                },
+                "InSlice": {
+                  "Pair": {
+                    "left": {
+                      "Modulo": {
+                        "inner": {
+                          "Stride": {
+                            "inner": {
+                              "Symbol": {
+                                "symbol": "Qs",
+                                "size": 4096
+                              }
+                            },
+                            "stride": 8
+                          }
+                        },
+                        "modulo": 8
+                      }
+                    },
+                    "right": {
+                      "Padding": {
+                        "inner": {
+                          "Broadcast": {
+                            "size": 1
+                          }
+                        },
+                        "padding": 8,
+                        "kind": "Top"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "first_bf16_cast_after_complete_dot_and_scale": true,
+        "commit_bytes": 8,
+        "commit_rows": 4
+      },
+      "V": {
+        "weight_hbm": "IO(3)+0",
+        "graph_dot": "RenegadeCommand#O45",
+        "graph_switch": "RenegadeCommand#O46",
+        "weight_dma": {
+          "operator": "O204",
+          "resource": "DmaLoad",
+          "begin": 36075,
+          "end": 43041,
+          "duration": 6966
+        },
+        "dot": {
+          "operator": "O328",
+          "resource": "Main",
+          "begin": 43041,
+          "end": 45704,
+          "duration": 2663
+        },
+        "row_switch": {
+          "operator": "O340",
+          "resource": "Main",
+          "begin": 45704,
+          "end": 46047,
+          "duration": 343
+        },
+        "dot_output_dtype": "Bfloat16",
+        "switch_output_dtype": "Bfloat16",
+        "scale_hbm": "IO(6)+0",
+        "graph_scale_sub": "RenegadeCommand#O42",
+        "scale_sub": {
+          "operator": "O182",
+          "resource": "Sub",
+          "begin": 34378,
+          "end": 34705,
+          "duration": 327
+        },
+        "scale_dma": {
+          "operator": "O176",
+          "resource": "DmaLoad",
+          "begin": 33713,
+          "end": 34378,
+          "duration": 665
+        },
+        "vrf_tensor": 63,
+        "vrf_physical_bytes_per_slice": 256,
+        "vrf_shape": {
+          "MappingShape": {
+            "inner": {
+              "region": "Vrf",
+              "mappings": {
+                "Chip": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "Cluster": {
+                  "Stride": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "Ps",
+                        "size": 2048
+                      }
+                    },
+                    "stride": 1024
+                  }
+                },
+                "Partitioning": {
+                  "Pair": {
+                    "left": {
+                      "Modulo": {
+                        "inner": {
+                          "Stride": {
+                            "inner": {
+                              "Symbol": {
+                                "symbol": "Ps",
+                                "size": 2048
+                              }
+                            },
+                            "stride": 32
+                          }
+                        },
+                        "modulo": 32
+                      }
+                    },
+                    "right": {
+                      "Modulo": {
+                        "inner": {
+                          "Symbol": {
+                            "symbol": "Ps",
+                            "size": 2048
+                          }
+                        },
+                        "modulo": 8
+                      }
+                    }
+                  }
+                },
+                "InSlice": {
+                  "Pair": {
+                    "left": {
+                      "Padding": {
+                        "inner": {
+                          "Modulo": {
+                            "inner": {
+                              "Stride": {
+                                "inner": {
+                                  "Symbol": {
+                                    "symbol": "Ps",
+                                    "size": 2048
+                                  }
+                                },
+                                "stride": 8
+                              }
+                            },
+                            "modulo": 4
+                          }
+                        },
+                        "padding": 8,
+                        "kind": "Top"
+                      }
+                    },
+                    "right": {
+                      "Padding": {
+                        "inner": {
+                          "Broadcast": {
+                            "size": 1
+                          }
+                        },
+                        "padding": 8,
+                        "kind": "Top"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "first_bf16_cast_after_complete_dot_and_scale": true,
+        "commit_bytes": 8,
+        "commit_rows": 4
+      }
+    }
+  },
+  "delta_cycles": -989,
+  "delta_percent": -1.8916644351784528,
+  "definition": "Whole makespan=max lifetime.end; resource duration sums are not elapsed runtime.",
+  "identity_method": "Q/K/V labels follow graph HBM IO(1/2/3), not source call/schedule order; graph memory address*512 matched unique same-size schedule tensor.",
+  "scope": "Public lowered graph and static schedule only; no NPU execution, bitexact proof, or measured speedup."
+}

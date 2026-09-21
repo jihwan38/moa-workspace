@@ -4,7 +4,7 @@
 
 ## 실제 caller와 입력 범위
 
-[ops::sliding_project_qkv](../../furiosa-opt-gemma4-12B/src/ops.rs)는 x를 H480×8 배치로 옮긴 뒤 `normalize_sharded_inter_slice`로 BF16 pre-RMS를 만든다. [projection::prepare_fp8_split](../../furiosa-opt-gemma4-12B/src/device/sliding/projection.rs)은 local H480 amax를 다시 8-way reduce하므로 **input scale은 H3840 전체에 대한 공통 값**이다. hi/lo를 각 shard에서 만든 후 `broadcast_quantized`가 전체 H 순서로 복제한다. H480마다 독립 scale을 쓰는 구현이 아니다.
+이 절은 동결 E47/E53 QKV를 분석하며, 이후 E54에서 제거한 FP8 경로를 현재 구현으로 설명하지 않는다. 동결 [ops::sliding_project_qkv](../../moa-dev/experiments/candidates/qkv-bf16-f32-scale-e53/ops.rs.original)는 x를 H480×8 배치로 옮긴 뒤 `normalize_sharded_inter_slice`로 BF16 pre-RMS를 만든다. 동결 [projection::prepare_fp8_split](../../moa-dev/experiments/candidates/qkv-bf16-f32-scale-e53/projection.rs.original)은 local H480 amax를 다시 8-way reduce하므로 **input scale은 H3840 전체에 대한 공통 값**이다. hi/lo를 각 shard에서 만든 후 `broadcast_quantized`가 전체 H 순서로 복제한다. H480마다 독립 scale을 쓰는 구현이 아니다.
 
 Q/K는 두-lane paired native FP8 dot을 사용하고, V는 두 개의 native dot을 계산한다. 세 경로 모두 `(dot_hi + dot_lo/16) * input_scale`이라는 같은 복원식을 쓴다. 이후 channel scale → head RMS를 적용하며 Q/K만 RoPE를 거친다. K/V는 지정 offset의 cache에 write하고 Q는 q_out에 쓴다. 이 CPU 감사는 계산값만 다루며 cache 주소/layout의 하드웨어 동작을 검증하지 않는다.
 
@@ -67,3 +67,17 @@ raw_candidate = ((hi @ weights.T) + (lo @ weights.T)/16) * s
 ```
 
 자료형상 가능한 모든 입력에서 tolerance를 만족해야 한다는 새 공식 규칙을 이 반례에서 추론하지 않는다. 공식 generator 범위가 좁은 것과 모델 전체의 numerical behavior를 보존하려는 목표를 구분한다. BF16 projection 대안을 검토할 수 있는 근거지만, 해당 대안의 성능·전체 정확도·NPU 결과는 별도로 검증해야 한다.
+
+## 후속 NPU 대조 — 2026-09-21
+
+위 본문은 NPU 실행 전의 CPU 검토 기록이다. 이후 별도 host harness를 만들어 **E53 job70943, upstream 원본 job70944, BF16 QKV 대안 E54 job70958에서 두 진단 입력을 실제 실행**했다. 각 frozen device source와 공식 harness는 probe를 위해 수정하지 않았고, E53에 남아 있던 QKV image는 위 CPU 감사의 E47 QKV image와 동일하다. 상세한 package/image/입력 검증과 세 구현 비교표는 [NPU 비교 기록](../experiments/qkv-boundary-comparison.md), 원시 판정은 [E53 JSON](../experiments/e53-qkv-boundary-probe.json), [원본 JSON](../experiments/original-qkv-boundary-probe.json), [E54 JSON](../experiments/e54-qkv-boundary-probe.json)에 있다. E54의 생성 시점 package 증거는 [build manifest](../../moa-dev/experiments/candidates/qkv-boundary-probe-e53/e54-manifest.json)다.
+
+case0은 위 `2^-23` 입력, case1은 같은 배열에서 작은 항만 `2^-12`로 올린 control이다. E53는 case0에서 Q4016/4096, K2008/2048, V2048/2048개가 실패해 총8,072개가 tolerance를 벗어났다. 각 출력 첫 불일치의 actual은0이고, 최대 절대 오차는 Q/K1.2109375와 V0.85546875였다. 실패 개수는 위 CPU 모델 예측과 일치한다. E53 case1은 Q/K/V 모두 expected와 정확히 일치했다.
+
+원본과 E54는 각각 두 case의 Q/K/V가 모두 tolerance PASS였다. 두 구현 모두 case0의 Q/K 최대 절대 오차는0.0078125, expected와 정확히 일치한 개수는 Q2928/K1464/V2048이었다. 이 집계의 일치가 원본과 E54 전체 출력 배열의 동일성을 입증하지는 않는다. case1은 세 구현 모두 Q/K/V8,192개가 expected와 정확히 일치했다. 세 job 모두2/2 case가 끝났고 nonfinite=0이었다. E53의 exit1은 수치 비교 실패로, timeout이나 미완료 실행을 뜻하지 않는다.
+
+세 host는 같은 probe source·CPU payload·runner를 사용했고, 실제 업로드 package hash와 서로 다른 원본/E53/E54 device image의1회 포함을 각각 검증했다. E53·원본의 준비 단계에서는 생성한38개 입력 전체 SHA256이 Python과 같았으며 E54의 host-only checksum38개도 통과했다. 실제 NPU에서는 세 job 각각 checksum38/38과 cache 검사8/8이 통과했고, 비대상 K/V cache **8,380,416개 BF16 bits 보존**, mismatch0이었다. 일정 sentinel 검사와 한 위치의 결과이므로 모든 cache 손상을 배제하는 증명은 아니다.
+
+CPU oracle을 실제 fullshape 행렬로 생성하면서 F32 raw dot은 **1.69500732421875**로 계산됐다. 앞선 단일 행/해석적 값1.6956024169921875와의 합산 순서 차이를 장치에 맞춰 보정하지 않았다. 두 raw의 channel scale 뒤 BF16과 최종 Q/K/V BF16은 같으므로 위 최종 expected 값은 바뀌지 않았다. 원본 NPU의 Q/K가 bit-exact하지 않은 이유를 이 raw 차이만으로 설명하지 않는다.
+
+두 진단 입력 모두 현재 공식 QKV generator의 x 지원 범위 밖이라는 한계는 그대로다. 이 관측을 공식 seeded 평가 실패나 모든 유한 입력에 대한 새 규칙으로 해석하지 않는다. 같은 입력의 CPU 예측·E53 실패·원본/E54 PASS는 일반 입력 정확도 대안을 검토할 근거다. 별도의 [E54 공식 harness 동일 패키지 반복](../experiments/e54-bf16-qkv-repeats.json)도 job70933/70974/70987 모두15개 비교를 통과하며 완료됐다. 반복 중앙값은 Q108700/O50970/FFN382268 cycles이고 QKV는 이전 E53 반복 중앙값보다13.68% 높다. 이 성능 수치는 본 정확도 진단에서 나온 값이 아니며 공식 순위나 모델 전체 처리량을 뜻하지 않는다.

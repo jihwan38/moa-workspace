@@ -1,0 +1,96 @@
+{
+  "full_host_sha256": "20b9f6f69e431491b9f7552e5fa68eb67db06d988e24429e22dd0a67eb6c273c",
+  "full_build_log": "moa-dev/logs/e54-bf16-qkv-build.log",
+  "build_exit_code": 0,
+  "registered_kernels": [
+    {
+      "path": "furiosa_opt_gemma4::ops::decoder_feedforward",
+      "bytes": 204032,
+      "sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+      "occurrences": 1
+    },
+    {
+      "path": "furiosa_opt_gemma4::ops::sliding_attention_output",
+      "bytes": 71168,
+      "sha256": "359473814839effc16ade242bad3c598a93610601bc650f550ff44228898d88b",
+      "occurrences": 1
+    },
+    {
+      "path": "furiosa_opt_gemma4::ops::sliding_project_qkv",
+      "bytes": 171776,
+      "sha256": "57a52d1aa37f16116d14638b30f34947d2c7e7ed653986436cdfa51ee54089dc",
+      "occurrences": 1
+    }
+  ],
+  "O_FFN_images_identical_to_E53": true,
+  "source_snapshot": "moa-dev/experiments/artifacts/e54-bf16-qkv-f32-scale",
+  "NPU_status": "All3 same-package jobs, extra30 comparisons and both QKV boundary cases pass.",
+  "official_input_job": 70933,
+  "exact_compile_image_matches_full_host": true,
+  "boundary_host_same_qkv_image": true,
+  "extra_host_sha256": "7e0eefd54648cddd9b8dd7c0d840708d4456eb099987a358af97808f181bc660",
+  "extra_host_same_images": [
+    {
+      "path": "furiosa_opt_gemma4::ops::decoder_feedforward",
+      "sha256": "61ad0c50a03902de9208447951086df930669ded080c94e4c637bffac3c414b6",
+      "extra_host_occurrences": 1
+    },
+    {
+      "path": "furiosa_opt_gemma4::ops::sliding_attention_output",
+      "sha256": "359473814839effc16ade242bad3c598a93610601bc650f550ff44228898d88b",
+      "extra_host_occurrences": 1
+    },
+    {
+      "path": "furiosa_opt_gemma4::ops::sliding_project_qkv",
+      "sha256": "57a52d1aa37f16116d14638b30f34947d2c7e7ed653986436cdfa51ee54089dc",
+      "extra_host_occurrences": 1
+    }
+  ],
+  "clean_source": {
+    "projection_sha256": "258499a083340bdea51886f64d56917cbb4252917c6b021103c853b468909e9a",
+    "removed_unreachable_definitions": [
+      "QuantSlices",
+      "broadcast_quantized",
+      "prepare_fp8_split"
+    ],
+    "removed_unused_imports": [
+      "Dummy256",
+      "Slice"
+    ],
+    "active_BF16_QKV_and_O_bodies_preserved": true,
+    "full_rebuild_exit_code": 0,
+    "full_rebuild_log": "moa-dev/logs/e54-clean-source-build.log",
+    "full_host_byte_identical_to_measured_prototype": true,
+    "snapshot": "moa-dev/experiments/artifacts/e54-bf16-qkv-clean-source",
+    "provenance": "docs/experiments/e54-clean-source-provenance.json"
+  },
+  "adoption": {
+    "decision": "Retain E54 BF16 QKV to correct the observed E53 cancellation failure outside current official input-generator support.",
+    "official_input_job": 70933,
+    "official_output_comparisons_passed": 15,
+    "extra_input_job": 70959,
+    "extra_output_comparisons_passed": 30,
+    "qkv_boundary_job": 70958,
+    "qkv_boundary_cases_passed": 2,
+    "non_target_cache_BF16_elements_preserved": 8380416,
+    "old_e53_failed_boundary_job": 70943,
+    "original_boundary_control_job": 70944,
+    "O_FFN_images_unchanged": true,
+    "O_boundary_evidence": "E53 job70810 tested the identical O image; not a new E54 O-boundary job.",
+    "performance_repeats": {
+      "jobs": [
+        70933,
+        70974,
+        70987
+      ],
+      "all_three_pass": true,
+      "median_cycles": {
+        "qkv": 108700,
+        "output": 50970,
+        "ffn": 382268
+      },
+      "result": "docs/experiments/e54-bf16-qkv-repeats.json",
+      "qkv_percent_vs_E53": 13.677957770782578
+    }
+  }
+}
