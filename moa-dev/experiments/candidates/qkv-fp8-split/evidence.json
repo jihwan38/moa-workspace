@@ -1,0 +1,818 @@
+{
+  "created_utc": "2026-09-21T09:57:40.503778+00:00",
+  "candidate": "qkv-fp8-split-two-separate-dots",
+  "compiler": "0.8.1",
+  "toolchain": "nightly-2026-05-01",
+  "npu_correctness": "PASS in root-integrated E19 job70261, official three configurations",
+  "npu_performance": {
+    "job": 70261,
+    "source": "docs/experiments/e19-qkv-fp8-split-two-dot.json",
+    "qkv": {
+      "correctness": "passed",
+      "median_cycles": 110479,
+      "cycles_by_run": [
+        120720,
+        109781,
+        110479
+      ],
+      "output_comparisons_passed": 9
+    },
+    "scope": "Root integration; frozen candidate source unchanged"
+  },
+  "source_origin": "Independently derived from official SDK and mathematical formula; no public fork implementation read or copied",
+  "scratch": "/tmp/moa-qkv-fp8-split",
+  "cargo_target_dir": "/tmp/moa-qkv-fp8-split/target",
+  "furiosa_opt_out_dir": "/tmp/moa-qkv-fp8-split/target/furiosa-opt/kernel",
+  "compile_command": "cargo furiosa-opt compile ops::sliding_project_qkv --exact --dump-schedule schedules/all-qkv.json",
+  "compile_exit_code": 0,
+  "source_sha256": {
+    "ops.rs": "4956c694dcabe4ee431691932c9d031bb7c11c37b9f3e54769d5261a0b45473e",
+    "projection.rs": "8a9e6f4ab83f7d2cdcf87d03e96a336c0f0102422b388ee7274faf2924b6cacd",
+    "ops.baseline.rs": "3de40d88e5d3cbc1a1a3b42a1e44c2b3ad1fe9dcc8e4f6151bc6fdbadd96d3e7",
+    "projection.baseline.rs": "11a20e8b225feb98019571677779764c88989c01935268ecca370da44a4874d5",
+    "ops.q-only.rs": "9d27566d41819d954b2d042ecd6c30804f67d2bbbf697c0b05875703b047fad4",
+    "projection.q-only.rs": "e799ec5c59d7dfbd2814ee231f65000bc9d5106f1a612c7837d3884f3b6bb040",
+    "analyze.py": "6d9e3f9d839a879b0ccc0b7d2f96262da7e457df39fc974f972a750d28a73369",
+    "analysis.json": "0e9e2d775b2f8771ecad5dd844d6f26a5c39fd0f28f36386241d3ec93931b278"
+  },
+  "schedules": {
+    "baseline": {
+      "makespan_cycles": 52971,
+      "instruction_count": 143,
+      "schedule_sha256": "ddd165c7b12668dc360875d7a65af0d498bfb063ae496583b28687583b81d5c1",
+      "projection_stages": [
+        {
+          "instruction": "55",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 4339,
+          "end": 5177,
+          "cycles": 838,
+          "description": "--> src/device/sliding/projection.rs:96:77\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "131",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 11523,
+          "end": 18553,
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:80:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "146",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 19031,
+          "end": 21694,
+          "cycles": 2663,
+          "description": "--> src/device/sliding/projection.rs:81:76\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 4, H / 16], m![H % 16]>()\n.contract_outer::<m![Ps % 4, H / 32], m![H % 32], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "152",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 19597,
+          "end": 20435,
+          "cycles": 838,
+          "description": "--> src/device/sliding/projection.rs:96:77\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "164",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 21273,
+          "end": 22065,
+          "cycles": 792,
+          "description": "--> src/device/sliding/projection.rs:41:83\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "168",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 21694,
+          "end": 21976,
+          "cycles": 282,
+          "description": "--> src/device/sliding/projection.rs:105:71\n\ndevice\n.main\n.begin(contraction.view())\n.fetch::<m![1], m![Ps % 4 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![Ps % 4 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![Ps % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_pad::<m![Ps % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "174",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 22065,
+          "end": 22781,
+          "cycles": 716,
+          "description": "--> src/device/sliding/projection.rs:123:5\n\noutput.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "181",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 22781,
+          "end": 36293,
+          "cycles": 13512,
+          "description": "--> src/device/sliding/projection.rs:25:85\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "258",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 36293,
+          "end": 41356,
+          "cycles": 5063,
+          "description": "--> src/device/sliding/projection.rs:26:82\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Qs % 8, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Qs % 8, H / 16], m![H % 16]>()\n.contract_outer::<m![Qs % 8, H / 32], m![H % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs % 8]>()\n.contract_lane::<m![Qs % 8], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Qs / 4 % 2], m![Qs % 4 # 16]>()\n.commit_trim::<m![Qs % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "260",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 36296,
+          "end": 43326,
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:80:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "265",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 41356,
+          "end": 41639,
+          "cycles": 283,
+          "description": "--> src/device/sliding/projection.rs:50:77\n\ndevice\n.main\n.begin(contraction.view())\n.fetch::<m![1], m![Qs % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![Qs % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![Qs / 4 % 2], m![Qs % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_concat::<m![1], m![Qs % 8]>()\n.vector_final()\n.cast::<bf16, m![Qs % 8 # 16]>()\n.commit_trim::<m![Qs % 8]>()\n.commit()"
+        },
+        {
+          "instruction": "272",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 43326,
+          "end": 45989,
+          "cycles": 2663,
+          "description": "--> src/device/sliding/projection.rs:81:76\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 4, H / 16], m![H % 16]>()\n.contract_outer::<m![Ps % 4, H / 32], m![H % 32], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "273",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 43326,
+          "end": 44042,
+          "cycles": 716,
+          "description": "--> src/device/sliding/projection.rs:68:5\n\noutput.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "304",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 46681,
+          "end": 46963,
+          "cycles": 282,
+          "description": "--> src/device/sliding/projection.rs:105:71\n\ndevice\n.main\n.begin(contraction.view())\n.fetch::<m![1], m![Ps % 4 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![Ps % 4 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![Ps % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_pad::<m![Ps % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "315",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 46963,
+          "end": 47679,
+          "cycles": 716,
+          "description": "--> src/device/sliding/projection.rs:123:5\n\noutput.to_dm(&mut device.tdma)"
+        }
+      ]
+    },
+    "q-only": {
+      "makespan_cycles": 60543,
+      "instruction_count": 162,
+      "schedule_sha256": "052ebfbfdcf95177163e435059cf71f4d6363cd935f2ac6c492697fa2232f5ad",
+      "projection_stages": [
+        {
+          "instruction": "55",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 4339,
+          "end": 5177,
+          "cycles": 838,
+          "description": "--> src/device/sliding/projection.rs:125:77\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "103",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 6965,
+          "end": 8206,
+          "cycles": 1241,
+          "description": "--> src/device/sliding/projection.rs:323:62\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H / 4], m![H % 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_clip(ClipBinaryOpF32::Max, 1.504632769052528e-36f32)\n.vector_final().commit_trim::<m![1 # 8]>().commit()"
+        },
+        {
+          "instruction": "109",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 8206,
+          "end": 8488,
+          "cycles": 282,
+          "description": "--> src/device/sliding/projection.rs:338:63\n\ndevice\n.main.begin(amax.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)\n.vector_reinterpret::<f32>()\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0078125f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()"
+        },
+        {
+          "instruction": "140",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 11523,
+          "end": 18553,
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:109:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "154",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 19031,
+          "end": 21694,
+          "cycles": 2663,
+          "description": "--> src/device/sliding/projection.rs:110:76\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 4, H / 16], m![H % 16]>()\n.contract_outer::<m![Ps % 4, H / 32], m![H % 32], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "160",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 19594,
+          "end": 20432,
+          "cycles": 838,
+          "description": "--> src/device/sliding/projection.rs:125:77\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "161",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 20432,
+          "end": 20840,
+          "cycles": 408,
+          "description": "--> src/device/sliding/projection.rs:349:75\n\nscale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "162",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 20840,
+          "end": 21378,
+          "cycles": 538,
+          "description": "--> src/device/sliding/projection.rs:353:68\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "174",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 21378,
+          "end": 22170,
+          "cycles": 792,
+          "description": "--> src/device/sliding/projection.rs:70:83\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "181",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 21694,
+          "end": 21976,
+          "cycles": 282,
+          "description": "--> src/device/sliding/projection.rs:134:71\n\ndevice\n.main\n.begin(contraction.view())\n.fetch::<m![1], m![Ps % 4 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![Ps % 4 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![Ps % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_pad::<m![Ps % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "191",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 22370,
+          "end": 22771,
+          "cycles": 401,
+          "description": "--> src/device/sliding/projection.rs:354:71\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e4m3, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>().commit()"
+        },
+        {
+          "instruction": "194",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 22370,
+          "end": 23086,
+          "cycles": 716,
+          "description": "--> src/device/sliding/projection.rs:152:5\n\noutput.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "210",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 23094,
+          "end": 23495,
+          "cycles": 401,
+          "description": "--> src/device/sliding/projection.rs:368:71\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &hi_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 16.0f32)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e4m3, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>().commit()"
+        },
+        {
+          "instruction": "213",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 23495,
+          "end": 25539,
+          "cycles": 2044,
+          "description": "--> src/device/sliding/projection.rs:302:78\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "234",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 25583,
+          "end": 39095,
+          "cycles": 13512,
+          "description": "--> src/device/sliding/projection.rs:35:85\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "284",
+          "contexts": [
+            "MainContext"
+          ],
+          "begin": 28068,
+          "end": 32171,
+          "cycles": 4103,
+          "description": "--> src/device/sliding/projection.rs:303:74\n\ndevice\n.main.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "instruction": "296",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 39095,
+          "end": 40320,
+          "cycles": 1225,
+          "description": "--> src/device/sliding/projection.rs:36:84\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Qs % 8, H / 32], m![H % 32]>()\n.collect::<m![Qs % 8, H / 32], m![H % 32]>()\n.contract_outer::<m![Qs % 8, H / 64], m![H % 64], _, _, _>(&lo_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs % 8]>()\n.contract_lane::<m![Qs % 8], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()"
+        },
+        {
+          "instruction": "297",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 39095,
+          "end": 41139,
+          "cycles": 2044,
+          "description": "--> src/device/sliding/projection.rs:302:78\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "311",
+          "contexts": [
+            "MainContext"
+          ],
+          "begin": 41139,
+          "end": 45242,
+          "cycles": 4103,
+          "description": "--> src/device/sliding/projection.rs:303:74\n\ndevice\n.main.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "instruction": "312",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 41139,
+          "end": 43871,
+          "cycles": 2732,
+          "description": "--> src/device/sliding/projection.rs:383:9\n\nscale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "321",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 43871,
+          "end": 50901,
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:109:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "333",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 45985,
+          "end": 47210,
+          "cycles": 1225,
+          "description": "--> src/device/sliding/projection.rs:53:82\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Qs % 8, H / 32], m![H % 32]>()\n.collect::<m![Qs % 8, H / 32], m![H % 32]>()\n.contract_outer::<m![Qs % 8, H / 64], m![H % 64], _, _, _>(&hi_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs % 8]>()\n.contract_lane::<m![Qs % 8], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, &low_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Qs / 4 % 2], m![Qs % 4 # 16]>()\n.commit_trim::<m![Qs % 4]>().commit()"
+        },
+        {
+          "instruction": "339",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 47210,
+          "end": 47493,
+          "cycles": 283,
+          "description": "--> src/device/sliding/projection.rs:79:77\n\ndevice\n.main\n.begin(contraction.view())\n.fetch::<m![1], m![Qs % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![Qs % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![Qs / 4 % 2], m![Qs % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_concat::<m![1], m![Qs % 8]>()\n.vector_final()\n.cast::<bf16, m![Qs % 8 # 16]>()\n.commit_trim::<m![Qs % 8]>()\n.commit()"
+        },
+        {
+          "instruction": "346",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 50901,
+          "end": 53564,
+          "cycles": 2663,
+          "description": "--> src/device/sliding/projection.rs:110:76\n\ndevice\n.main\n.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 16], m![H % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![Ps % 4, H / 16], m![H % 16]>()\n.contract_outer::<m![Ps % 4, H / 32], m![H % 32], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "347",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 50901,
+          "end": 51617,
+          "cycles": 716,
+          "description": "--> src/device/sliding/projection.rs:97:5\n\noutput.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "378",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 54256,
+          "end": 54538,
+          "cycles": 282,
+          "description": "--> src/device/sliding/projection.rs:134:71\n\ndevice\n.main\n.begin(contraction.view())\n.fetch::<m![1], m![Ps % 4 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![Ps % 4 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![Ps % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_pad::<m![Ps % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "389",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 54538,
+          "end": 55254,
+          "cycles": 716,
+          "description": "--> src/device/sliding/projection.rs:152:5\n\noutput.to_dm(&mut device.tdma)"
+        }
+      ]
+    },
+    "all-qkv": {
+      "makespan_cycles": 54866,
+      "instruction_count": 163,
+      "schedule_sha256": "f6b2f21250c8c55b917086c45b73bb1694a0c7f51e7b4e9f1538015493eb69ba",
+      "projection_stages": [
+        {
+          "instruction": "40",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 3701,
+          "end": 10731,
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:111:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "83",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 6915,
+          "end": 8156,
+          "cycles": 1241,
+          "description": "--> src/device/sliding/projection.rs:355:62\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H / 4], m![H % 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_clip(ClipBinaryOpF32::Max, 1.504632769052528e-36f32)\n.vector_final().commit_trim::<m![1 # 8]>().commit()"
+        },
+        {
+          "instruction": "88",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 8156,
+          "end": 8438,
+          "cycles": 282,
+          "description": "--> src/device/sliding/projection.rs:370:63\n\ndevice\n.main.begin(amax.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)\n.vector_reinterpret::<f32>()\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0078125f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()"
+        },
+        {
+          "instruction": "89",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 10731,
+          "end": 11569,
+          "cycles": 838,
+          "description": "--> src/device/sliding/projection.rs:146:77\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "96",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 11569,
+          "end": 11977,
+          "cycles": 408,
+          "description": "--> src/device/sliding/projection.rs:381:75\n\nscale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "102",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 11977,
+          "end": 12515,
+          "cycles": 538,
+          "description": "--> src/device/sliding/projection.rs:385:68\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "108",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 12515,
+          "end": 12916,
+          "cycles": 401,
+          "description": "--> src/device/sliding/projection.rs:386:71\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e4m3, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>().commit()"
+        },
+        {
+          "instruction": "109",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 12515,
+          "end": 13307,
+          "cycles": 792,
+          "description": "--> src/device/sliding/projection.rs:70:83\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "118",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 13239,
+          "end": 13640,
+          "cycles": 401,
+          "description": "--> src/device/sliding/projection.rs:400:71\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &hi_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 16.0f32)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e4m3, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>().commit()"
+        },
+        {
+          "instruction": "127",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 13640,
+          "end": 15684,
+          "cycles": 2044,
+          "description": "--> src/device/sliding/projection.rs:334:78\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "136",
+          "contexts": [
+            "MainContext"
+          ],
+          "begin": 15684,
+          "end": 19787,
+          "cycles": 4103,
+          "description": "--> src/device/sliding/projection.rs:335:74\n\ndevice\n.main.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "instruction": "137",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 15684,
+          "end": 17728,
+          "cycles": 2044,
+          "description": "--> src/device/sliding/projection.rs:334:78\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "140",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 17728,
+          "end": 31240,
+          "cycles": 13512,
+          "description": "--> src/device/sliding/projection.rs:35:85\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "151",
+          "contexts": [
+            "MainContext"
+          ],
+          "begin": 19787,
+          "end": 23890,
+          "cycles": 4103,
+          "description": "--> src/device/sliding/projection.rs:335:74\n\ndevice\n.main.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "instruction": "168",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 23890,
+          "end": 24635,
+          "cycles": 745,
+          "description": "--> src/device/sliding/projection.rs:112:78\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 32], m![H % 32]>()\n.collect::<m![Ps % 4, H / 32], m![H % 32]>()\n.contract_outer::<m![Ps % 4, H / 64], m![H % 64], _, _, _>(lo_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()"
+        },
+        {
+          "instruction": "178",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 31240,
+          "end": 32465,
+          "cycles": 1225,
+          "description": "--> src/device/sliding/projection.rs:36:84\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Qs % 8, H / 32], m![H % 32]>()\n.collect::<m![Qs % 8, H / 32], m![H % 32]>()\n.contract_outer::<m![Qs % 8, H / 64], m![H % 64], _, _, _>(&lo_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs % 8]>()\n.contract_lane::<m![Qs % 8], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()"
+        },
+        {
+          "instruction": "179",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 31240,
+          "end": 33972,
+          "cycles": 2732,
+          "description": "--> src/device/sliding/projection.rs:415:9\n\nscale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "209",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 34585,
+          "end": 35810,
+          "cycles": 1225,
+          "description": "--> src/device/sliding/projection.rs:53:82\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Qs % 8, H / 32], m![H % 32]>()\n.collect::<m![Qs % 8, H / 32], m![H % 32]>()\n.contract_outer::<m![Qs % 8, H / 64], m![H % 64], _, _, _>(&hi_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Qs % 8]>()\n.contract_lane::<m![Qs % 8], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, &low_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![Qs / 4 % 2], m![Qs % 4 # 16]>()\n.commit_trim::<m![Qs % 4]>().commit()"
+        },
+        {
+          "instruction": "223",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 35810,
+          "end": 36093,
+          "cycles": 283,
+          "description": "--> src/device/sliding/projection.rs:79:77\n\ndevice\n.main\n.begin(contraction.view())\n.fetch::<m![1], m![Qs % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![Qs % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![Qs / 4 % 2], m![Qs % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_concat::<m![1], m![Qs % 8]>()\n.vector_final()\n.cast::<bf16, m![Qs % 8 # 16]>()\n.commit_trim::<m![Qs % 8]>()\n.commit()"
+        },
+        {
+          "instruction": "232",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 36093,
+          "end": 36809,
+          "cycles": 716,
+          "description": "--> src/device/sliding/projection.rs:97:5\n\noutput.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "237",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 36632,
+          "end": 37377,
+          "cycles": 745,
+          "description": "--> src/device/sliding/projection.rs:129:76\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 32], m![H % 32]>()\n.collect::<m![Ps % 4, H / 32], m![H % 32]>()\n.contract_outer::<m![Ps % 4, H / 64], m![H % 64], _, _, _>(hi_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, &low_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), scale_vrf)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>().commit()"
+        },
+        {
+          "instruction": "252",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 37377,
+          "end": 37659,
+          "cycles": 282,
+          "description": "--> src/device/sliding/projection.rs:155:71\n\ndevice\n.main\n.begin(contraction.view())\n.fetch::<m![1], m![Ps % 4 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![Ps % 4 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![Ps % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_pad::<m![Ps % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "256",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 37659,
+          "end": 38375,
+          "cycles": 716,
+          "description": "--> src/device/sliding/projection.rs:173:5\n\noutput.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "258",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 38375,
+          "end": 45405,
+          "cycles": 7030,
+          "description": "--> src/device/sliding/projection.rs:111:79\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "333",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 45405,
+          "end": 46150,
+          "cycles": 745,
+          "description": "--> src/device/sliding/projection.rs:112:78\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 32], m![H % 32]>()\n.collect::<m![Ps % 4, H / 32], m![H % 32]>()\n.contract_outer::<m![Ps % 4, H / 64], m![H % 64], _, _, _>(lo_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()"
+        },
+        {
+          "instruction": "334",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 45405,
+          "end": 46243,
+          "cycles": 838,
+          "description": "--> src/device/sliding/projection.rs:146:77\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "instruction": "345",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 46508,
+          "end": 47253,
+          "cycles": 745,
+          "description": "--> src/device/sliding/projection.rs:129:76\n\ndevice\n.main.begin(weight_f8.view())\n.fetch::<m![Ps % 4, H / 32], m![H % 32]>()\n.collect::<m![Ps % 4, H / 32], m![H % 32]>()\n.contract_outer::<m![Ps % 4, H / 64], m![H % 64], _, _, _>(hi_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![Ps % 4]>()\n.contract_lane::<m![Ps % 4], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, &low_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), scale_vrf)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![1], m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>().commit()"
+        },
+        {
+          "instruction": "355",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "begin": 47253,
+          "end": 47535,
+          "cycles": 282,
+          "description": "--> src/device/sliding/projection.rs:155:71\n\ndevice\n.main\n.begin(contraction.view())\n.fetch::<m![1], m![Ps % 4 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![Ps % 4 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![Ps % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_pad::<m![Ps % 4 # 8]>()\n.vector_final()\n.cast::<bf16, m![Ps % 4 # 16]>()\n.commit_trim::<m![Ps % 4]>()\n.commit()"
+        },
+        {
+          "instruction": "368",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "begin": 47694,
+          "end": 48410,
+          "cycles": 716,
+          "description": "--> src/device/sliding/projection.rs:173:5\n\noutput.to_dm(&mut device.tdma)"
+        }
+      ]
+    }
+  },
+  "invariants": [
+    "O projection and residual helper byte-identical to baseline",
+    "ops after sliding_project_qkv unchanged",
+    "input RMS/head RMS/RoPE source unchanged",
+    "BF16 projection cast precedes original BF16 channel scale",
+    "complete H3840 reduction and all matrix weights used in both terms"
+  ],
+  "numerical_caveats": [
+    "This is approximate, not all-input exact; global scale can discard small values",
+    "BF16max requires (p_hi+p_lo/16)*s instead of s*p_hi+s*p_lo/16 to reduce intermediate overflow risk",
+    "FP32 separate-dot accumulation changes reduction grouping",
+    "SDK host nearest-even FP8 model is not proof of NPU rounding/FTZ semantics"
+  ],
+  "failed_attempts": [
+    "Custom aggregate Fp8SplitInput with mapping const generics caused MIR unevaluated-const ICE; tuple arguments succeeded",
+    "f32::from_bits(u32) expression inside device function rejected unsupported u32; exact decimal power-of-two f32 immediate succeeded"
+  ]
+}

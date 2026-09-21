@@ -1,0 +1,50 @@
+{
+  "model": "NumPy FP32 operations plus BF16 round-to-nearest-even; no NPU correctness claim",
+  "exhaustive_x_sampled_rms_gamma": {
+    "bf16_input_codes": 65280,
+    "rms_values": 64,
+    "gamma_values": 6,
+    "finite_output_pairs": 24987846,
+    "fp32_different_pairs": 6010766,
+    "bf16_different_pairs": 154,
+    "nonfinite_class_mismatches": 0,
+    "max_relative_bf16_difference_for_normal_reference": 0.007692307692307693
+  },
+  "rounding_difference_examples": [
+    {
+      "x": 7.333941228226594e-31,
+      "rms": 204020720.0,
+      "gamma": 1.75,
+      "direct_bf16": 6.336649234901394e-39,
+      "reciprocal_bf16": 6.244813738743402e-39
+    },
+    {
+      "x": 3.2695471764015993e-19,
+      "rms": 1.8446742974197924e+19,
+      "gamma": 0.5,
+      "direct_bf16": 8.816207631167156e-39,
+      "reciprocal_bf16": 8.908043127325148e-39
+    },
+    {
+      "x": 1.0926725019580474e-19,
+      "rms": 1.8446742974197924e+19,
+      "gamma": 1.0,
+      "direct_bf16": 5.877471754111438e-39,
+      "reciprocal_bf16": 5.969307250269429e-39
+    },
+    {
+      "x": 1.1519648082658485e-19,
+      "rms": 1.8446742974197924e+19,
+      "gamma": 1.125,
+      "direct_bf16": 6.979497708007332e-39,
+      "reciprocal_bf16": 7.071333204165323e-39
+    }
+  ],
+  "synthetic_rms_vectors": {
+    "vectors": 64,
+    "values": 245760,
+    "bf16_different_values": 2,
+    "max_abs_difference": 0.00390625
+  },
+  "infinite_rms_bitwise_clear": "PASS; 1/Inf=0, avoids Inf*0 while forming numerator"
+}

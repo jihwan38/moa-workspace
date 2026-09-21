@@ -1,0 +1,94 @@
+// Independently derived runtime power-of-two scaling. This is approximate for
+// BF16 values below scale / 64 and changes FP32 contraction reduction order.
+pub(crate) struct Fp8SplitInput {
+    hi: DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]>,
+    lo: DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]>,
+    scale: DmTensor<f32, Chip, m![2], Replicated, m![1 # 8]>,
+}
+
+type QuantSlices = m![1 # 32, H / 480];
+
+fn broadcast_quantized(
+    device: &mut Device,
+    x: &DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![H % 480]>,
+) -> DmTensor<f8e4m3, Chip, m![2], Replicated, m![H]> {
+    let x: DmTensor<f8e4m3, Chip, m![2], m![Dummy256 / 32, 1 # 32], m![H]> = x.to_dm(&mut device.tdma);
+    let x: DmTensor<f8e4m3, Chip, m![2], m![Dummy256 / 32, 32], m![H]> = device
+        .main.begin(x.view())
+        .fetch::<m![1], m![H]>()
+        .switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
+        .collect::<m![H / 32], m![H % 32]>()
+        .commit_trim::<m![H % 32]>().commit();
+    // All 512 physical slices now contain the same original H-vector order.
+    unsafe { x.reshape() }
+}
+
+pub(crate) fn prepare_fp8_split(
+    device: &mut Device,
+    x: &DmTensor<bf16, Chip, m![2], Slice, m![H]>,
+) -> Fp8SplitInput {
+    // Amax on the canonical input avoids an expensive inter-slice reduction.
+    // i32 reinterpret makes the absolute-value mask a non-NaN immediate.
+    let amax: DmTensor<f32, Chip, m![2], Slice, m![1 # 8]> = device
+        .main.begin(x.view())
+        .fetch::<m![H / 16], m![H % 16]>().fetch_cast::<f32>()
+        .collect::<m![H / 8], m![H % 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_reinterpret::<i32>()
+        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)
+        .vector_reinterpret::<f32>()
+        .vector_narrow_split::<m![H / 4], m![H % 4]>()
+        .vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)
+        .vector_widen_pad::<m![1 # 8]>()
+        .vector_clip(ClipBinaryOpF32::Max, f32::from_bits(8u32 << 23))
+        .vector_final().commit_trim::<m![1 # 8]>().commit();
+    // Exponent mask produces 2^floor(log2(amax)); floor 2^-119 guarantees
+    // scale >= 2^-126, and finite BF16 inputs imply scale <= 2^120.
+    let scale: DmTensor<f32, Chip, m![2], Slice, m![1 # 8]> = device
+        .main.begin(amax.view())
+        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_reinterpret::<i32>()
+        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)
+        .vector_reinterpret::<f32>()
+        .vector_narrow_trim::<m![1 # 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0078125f32)
+        .vector_widen_pad::<m![1 # 8]>().vector_final()
+        .commit_trim::<m![1 # 8]>().commit();
+    let quant_scale: DmTensor<f32, Chip, m![2], QuantSlices, m![1 # 8]> = scale.to_dm(&mut device.tdma);
+    let scale_vrf: VrfTensor<f32, Chip, m![2], QuantSlices, m![1 # 8]> = device
+        .sub.begin(quant_scale.view())
+        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+    let x: DmTensor<bf16, Chip, m![2], QuantSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
+    let hi: DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![H % 480]> = device
+        .main.begin(x.view())
+        .fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()
+        .collect::<m![H / 8 % 60], m![H % 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()
+        .vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)
+        .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()
+        .cast::<f8e4m3, m![H % 8 # 32]>()
+        .commit_trim::<m![H % 8]>().commit();
+    let hi_vrf: VrfTensor<f32, Chip, m![2], QuantSlices, m![H % 480]> = device
+        .sub.begin(hi.view())
+        .fetch::<m![H / 32 % 15], m![H % 32]>().fetch_cast::<f32>()
+        .collect::<m![H / 8 % 60], m![H % 8]>().to_vrf();
+    let lo: DmTensor<f8e4m3, Chip, m![2], QuantSlices, m![H % 480]> = device
+        .main.begin(x.view())
+        .fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()
+        .collect::<m![H / 8 % 60], m![H % 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()
+        .vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)
+        .vector_fp_binary(FpBinaryOp::SubF, &hi_vrf)
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 16.0f32)
+        .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()
+        .cast::<f8e4m3, m![H % 8 # 32]>()
+        .commit_trim::<m![H % 8]>().commit();
+    Fp8SplitInput {
+        hi: broadcast_quantized(device, &hi),
+        lo: broadcast_quantized(device, &lo),
+        scale: scale.to_dm(&mut device.tdma),
+    }
+}

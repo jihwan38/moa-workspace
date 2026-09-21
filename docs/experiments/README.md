@@ -24,14 +24,13 @@ Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916
 | E11 up/gate8 and down12 row tiles | 70149 | Pass | 125967 | 68677 | 448221 | Retain; FFN 6.57% faster than E10 |
 | E12 blockscale up/gate with reused unscaled BF16 weights | 70157 | Pass | 125619 | 68945 | 436380 | Retain for further tests; FP32 sum order changes |
 | E13 fused FP4 LUT→F32→BF16 materialization | 70162 | FFN fail/timeout | — | — | — | Rejected; run0 only30.96% within tolerance, run1 launch timeout |
-
 | E14 head-parallel QKV norm and eight-column O | 70174 | Pass | 118881 | 65694 | 436791 | Retain QKV/O, all official input comparisons pass |
 | E15 blockscale down with two-stage decode | 70181 | Pass | 115780 | 65476 | 397675 | Retain; extra run3..8 also pass in job70186; repeats tracked separately |
-
 | E16 parallel FFN residual and layer scale | 70204 | Pass | 117637 | 65217 | 388813 | Retain; FFN 2.23% faster than E15 screen |
 | E17 two-column down with HBM relay + E16 tail | 70213 | Pass | 116762 | 66323 | 416500 | Reject; FFN 7.12% slower than E16 |
-
-| E18 QKV eight-way row interleave + E16 | 70248 | Pass | 105502 | 65139 | 389781 | Retain; QKV 8.88% below E15 repeat median, repeats pending |
+| E18 QKV eight-way row interleave + E16 | 70248 | Pass | 105502 | 65139 | 389781 | Retain; QKV 8.88% below E15 repeat median, repeats below |
+| E19 QKV runtime FP8 hi/lo, two independent dots | 70261 | Pass | 110479 | 66086 | 388705 | QKV slower than E18; prototype for two-lane native FP8 |
+| E20 QKV native FP8 two-lane + fused O norm | 70290 | Q/K pass, V fail | — | 65919 | 391667 | Reject QKV; V sparse large errors, root cause under investigation. O/FFN individually pass |
 
 The failed E4 and E5 experiments have identical reported FFN max/mean errors and tolerance pass rates
 for all three inputs. Their common two-row contraction/reduction/commit/copy path is the current
@@ -61,3 +60,5 @@ E10 also passed all30 additional run3..8 comparisons in job70150 (`e10-all-two-c
 E15 all-blockscale passed all30 additional run3..8 comparisons in job70186 (`e15-all-blockscale-extra-correctness.json`). Package hashes matched the independent build. This includes QKV head normalization, O eight-column FP32 reduction and all FFN blockscale operations.
 
 E15 same-package repeats70181/70194/70200 allpassed; aggregate medians115780/65476/397675. Relative job-median ranges: QKV4.249%, O2.500%, FFN0.266%. All four uploaded package file hashes matched. See `e15-best-repeats.json`.
+
+E18 same-package repeats70248/70271/70285 all passed; aggregate medians105462/65662/392608. Relative job-median ranges: QKV1.599%, O1.188%, FFN0.792%. All four uploaded file hashes matched. See `e18-best-repeats.json`. Compared with original repeat medians, speedups are2.314×/6.156×/10.861×.

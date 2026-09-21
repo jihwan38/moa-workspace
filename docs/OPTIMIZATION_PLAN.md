@@ -47,7 +47,13 @@ FP4 lookup→F32→BF16 단일-pass decode는 컴파일되지만 NPU FFN 정확�
 발생해 제외했다. 수학적 표현 가능성과 실제 compiler/실행 경로의 정확성을 구분한다.
 실패 후보와 근거도 보존하며, compiler schedule 개선만으로 실제 speedup을 주장하지 않는다.
 
-다음 주요 검증은 FFN 후처리 병렬화, down column 분할·입력 전달 방식, O column 분할 수 조정이다.
+E18의 QKV 8-way row interleave는 동일 패키지3회(job70248/70271/70285) 모두 통과했고,
+중앙값은 QKV105,462/O65,662/FFN392,608 cycles다. 원본 대비2.314×/6.156×/10.861×이며,
+job 중앙값 변동범위는1.599%/1.188%/0.792%다.
+E19의 runtime power-of-two FP8 hi/lo 두 내적도 통과했지만110,479로 E18보다 느리다.
+다음 주요 검증은 hi/lo의 두 TRF lane 병렬 계산, row interleave와의 결합,
+FFN의 BF16 weight materialization 제거, O의 normalization 단계 fusion이다.
+각각 정밀도나 물리 배치가 바뀌므로 컴파일 결과에 이어 NPU oracle 검사를 요구한다.
 공개 상위3위 목표에는 아직 못 미치며 공식 제출·순위 확인은 별도 인증 대기다.
 공개 상위 기록은 9월21일 입력·평가 환경 변경 이전 제출이므로 같은 환경의 성능으로 단정하지 않는다.
 

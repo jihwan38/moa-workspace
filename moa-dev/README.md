@@ -46,8 +46,12 @@ The running container uses that same image ID. Its observed versions are:
 [requirements-cpu.txt](requirements-cpu.txt) pins all 13 installed Python
 distributions, including transitive dependencies and packaging tools. The
 Dockerfile now pins the installed Rust CLI versions too. These changes do not
-update the existing image or running container. **The current image has been
-tested; the newly pinned Dockerfile has not yet been rebuilt and validated.**
+update the existing image or running container. On September 21, 2026, the
+pinned recipe was rebuilt without cache as `moa2026-repro-audit:0.8.1`.
+Its clean `--locked` build of the saved E18 source produced a **byte-identical
+official test binary**. See the [fresh-build audit](../docs/experiments/repro-audit-e18.md)
+for hashes, installed versions, and limits. The fresh container was not used
+for NPU execution; the existing development image and container remain unchanged.
 
 [environment-baseline.json](../docs/experiments/environment-baseline.json)
 records the image identity, complete observed apt/Python package versions,
