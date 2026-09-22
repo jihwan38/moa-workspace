@@ -11,6 +11,7 @@
 | 같은 내용을 도구에서 읽을 구성표와 기준 commit | [e55.json](e55.json) |
 | 현재 채택 구성표를 가리키는 포인터 | [current.json](current.json) |
 | 빨라짐·미확인·느려짐·정확도 실패별 과거 결과 | [최적화 결과 분류](../docs/experiments/optimization-results.md) |
+| 다음 최적화 후보·우선순위·검증 조건 | [E55 이후 C01–C07](../docs/research/optimization-candidates-20260922.md) |
 | 무엇을 추가·제거·변경했는지 남기는 양식 | [조합 실험 양식](../docs/experiments/combination-template.md) |
 | 실제 단독/조합 비교를 채운 예시 | [E58 + E59 → E60](../docs/experiments/combinations/e60-down-padding.md) |
 
