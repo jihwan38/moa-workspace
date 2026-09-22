@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "coverage": "시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.",
+  "coverage": "시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다.",
   "entries": [
     {
       "id": "E79",
@@ -1582,6 +1582,30 @@
       ],
       "reference": "docs/experiments/c07-reload-e79-control.json",
       "reference_label": "동시 E79"
+    },
+    {
+      "id": "E105",
+      "category": "invalid",
+      "kernel": "QKV",
+      "method": "Q/K/V 통합 weight 배치와 단일 dot pipeline",
+      "note": "기본 Q/K/V9개 비교 모두 실패. 앞뒤 E104 정상. 단회 screen에서 중단하며 실패 cycles는 성능 집계에서 제외.",
+      "report": "docs/experiments/e105-c08-fused.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c08-fused-qkv/README.md"
+      ]
+    },
+    {
+      "id": "E106",
+      "category": "regressed",
+      "kernel": "QKV",
+      "method": "8열 BF16 dot · F32 slice 합산 · 전체 입력 방송 제거",
+      "note": "기본15개 비교 PASS, 앞쪽 E104보다+30.33%, 뒤쪽103544보다도 느림. 단회 screen에서 종료, 미채택.",
+      "report": "docs/experiments/e106-c08-columns8.json",
+      "reference": "docs/experiments/c08-columns8-e104-control.json",
+      "reference_label": "동시 E104",
+      "evidence": [
+        "moa-dev/experiments/candidates/c08-fused-qkv/README.md"
+      ]
     }
   ]
 }

@@ -4,7 +4,9 @@
 (`873f64ed94229c88cd18d2731bdcca7eea0d6365`)다. 최초 작성은 조사·설계 단계였다.
 **C01–C03은 구현 후 미채택, C05는 E74, 후속 C04는 E79로 채택했다.
 C07은 native FP8 결합 구조를 구현·실행해 E104(FFN 반복 −4.93%)를 채택했다.
-C06은 아직 아래 제안대로 구현·검증되지 않았다.**
+C08은 QKV 통합과8열 분할을 구현한 뒤 각각 정확도 실패와30% 회귀로 조기 종료했다.
+C06/C09는 아직 아래 제안대로 구현·검증되지 않았다.**
+[C08의두 구조·단회 판정](../../moa-dev/experiments/candidates/c08-fused-qkv/README.md).
 [C07 구조별 측정·실패·소스 동결](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md).
 [C04의9개 조합·E79 반복과 정확도](../../moa-dev/experiments/candidates/c04-down-transfer/README.md).
 E55/E74는 고정 비교군이며 탐색 구조를 제한하지 않는다. Decode·dot·scale·tile·통신의
@@ -102,6 +104,19 @@ P3는 정확도 위험이 큰 연구 후보다. 구현 부담은 상대적 판�
 | C05 | P2 | FFN staged fused decode와 실제 겹침; F2/F4 변경 | 전체 중간 weight 저장 감소. LUT setup·DMA 대기까지 줄여야 유효 | 큼 / 기존 E56 오동작 |
 | C06 | P2 | O 작은 tensor 전송·후단 의존성 조정; O3/R1 주변 | 작은 DMA·Sub 준비 비용 축소. 큰 개선 근거는 아직 없음 | 중간 / 직렬화·BF16 경계 |
 | C07 | 완료/E104 | Native FP8 FFN·scale-DPE·F32 VE·down 분할 결합; F2/F3 대체 | 기본 단회 최대 −10.13%; 경계 정확도와 실행 실패는 별도 판정 | 매우 큼 / 입력 근사·상쇄·일부 행 오동작 |
+| C08 | 완료/미채택 | QKV 통합 weight/dot, 독립8열 partial/reduce 구조 | 통합은 정답 실패,8열은 기본 PASS지만 QKV +30.33%; 각단회 screen에서 종료 | 큼 / 전송·합산·head 복원 |
+| C09 | P1/미구현 | O weight 행 구간을 나눠 DMA와 BF16 lookup/dot을 겹치기 | 전체 weight 도착 뒤 계산하는 의존성 제거가 목표. 컴파일러의 실제 중첩이 필요 | 큼 / 작은 DMA 증가·buffer 의존성 |
+
+### C09 — O weight 전송과 계산의 행 구간 pipeline
+
+현재 `project_output`은 FP8 weight 전체를 DM으로 전송한 뒤 그 tensor에서 lookup/dot을
+시작한다. 새 설계는 출력 행 구간별 DM과 dot을 구성하여 다음 구간을 읽는 동안 앞 구간을
+계산하게 한다. 입력 BF16, F32 column sum, channel scale 이후 첫 BF16 cast와 후단 계약을
+유지한다. 행별 dot의 reduction 구간은 나누지 않는다. 이것은 아직 구현 전 후보다.
+
+단순히 소스에 buffer 둘을 선언하는 것으로 끝내지 않는다. Compiler schedule에서 실제
+DMA/Main 겹침과 작은 DMA 명령 증가를 확인하고, 기본 Arena 앞뒤 대조로 총비용을 판단한다.
+개선이 작거나 명백히 느리면 조기 종료하고, 유망한 결과에만 추가 검증을 한다.
 
 ### C01 — Scale-DPE는 partial 진단부터
 

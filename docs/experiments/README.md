@@ -11,6 +11,12 @@ QKV104091 / O51565 / FFN335987,15 comparisons PASS. The
 [leaderboard snapshot](leaderboard-e104-20260922.json) shows BEEF at rank41 of60, unchanged
 from E79. This modest gain is closed; the next screen changes the Q/K/V execution structure.
 
+[C08](../../moa-dev/experiments/candidates/c08-fused-qkv/README.md) now closes two distinct
+QKV structures after one allocation each. E105 joint Q/K/V storage and dot fails all9 QKV
+comparisons. E106 eight-column F32 reduction passes15 comparisons but regresses from104604
+to136334 cycles (+30.33%); its following E104 control is103544. Neither is adopted or submitted.
+Both retain unchanged E104 O/FFN images. Exact failed sources and upload-verified logs are preserved.
+
 Previous adopted source is **E79 / baseline-e79**, commit `2735b58`.
 [C04](../../moa-dev/experiments/candidates/c04-down-transfer/README.md) ran nine coupled down-layout/activation-delivery candidates.
 E79 combines E74 F32 partials with leader DMA and Main ring32 broadcast; three independent identical

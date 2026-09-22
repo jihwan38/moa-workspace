@@ -12,7 +12,7 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 136개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.
+수록: 138개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
@@ -20,10 +20,10 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 |---|---:|
 | [빨라진 기록](#improved) | 35 |
 | [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 13 |
-| [느리게 측정됨](#regressed) | 33 |
+| [느리게 측정됨](#regressed) | 34 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 9 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
-| [정확도 실패·실행 실패](#invalid) | 17 |
+| [정확도 실패·실행 실패](#invalid) | 18 |
 | [대조군·기존 커널 조합](#control) | 10 |
 | [컴파일·정적 분석만 수행](#static_only) | 17 |
 
@@ -128,6 +128,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E87 · FP8 time2 · row2 · scale DPE](e87-c07-time-row2.json) | FFN | [동시 E79](c07-time-e79-control.json): 352,902 → 377,290 | +6.91% | 1 → 1 | 동시 E79 대조보다 느린 단회 관측. 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 | [E89 · up/down native FP8 pair16](e89-c07-full-pair-row2.json) | FFN | [동시 E79](c07-full-e79-control.json): 354,440 → 387,879 | +9.43% | 1 → 1 | 동시 E79 대조보다 느린 단회 관측. 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 | [E100 · E5M2 · compensated BF16 scale DPE](e100-c07-compensated-dpe.json) | FFN | [동시 E79](c07-compensated-e79-control.json): 352,993 → 507,518 | +43.78% | 1 → 1 | 동시 E79 대조보다 느린 단회 관측. 미채택. 별도 projection 진단에서 mismatch와 timeout도 확인. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
+| [E106 · 8열 BF16 dot · F32 slice 합산 · 전체 입력 방송 제거](e106-c08-columns8.json) | QKV | [동시 E104](c08-columns8-e104-control.json): 104,604 → 136,334 | +30.33% | 1 → 1 | 기본15개 비교 PASS, 앞쪽 E104보다+30.33%, 뒤쪽103544보다도 느림. 단회 screen에서 종료, 미채택. [근거1](../../moa-dev/experiments/candidates/c08-fused-qkv/README.md) |
 
 <a id="accuracy_limited"></a>
 
@@ -177,6 +178,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E97 · E5M2 three terms · F32 partial](e97-c07-e5-f32.json) | FFN | 성능 집계 제외 | — | 1 | 기본 FFN non-finite 출력. 별도 projection 진단도 gate 일부 행 실패. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 | [E98 · native down · 2-column time](e98-c07-two-column-time.json) | FFN | 성능 집계 제외 | — | 1 | 기본 FFN launch request timeout. 유효 FFN cycles 없음. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 | [E99 · native down · 2-column pair16](e99-c07-two-column-pair.json) | FFN | 성능 집계 제외 | — | 1 | 기본 FFN launch request timeout. 유효 FFN cycles 없음. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
+| [E105 · Q/K/V 통합 weight 배치와 단일 dot pipeline](e105-c08-fused.json) | QKV | 성능 집계 제외 | — | 1 | 기본 Q/K/V9개 비교 모두 실패. 앞뒤 E104 정상. 단회 screen에서 중단하며 실패 cycles는 성능 집계에서 제외. [근거1](../../moa-dev/experiments/candidates/c08-fused-qkv/README.md) |
 
 <a id="control"></a>
 

@@ -1,0 +1,192 @@
+{
+  "scope": "Compiler schedules only. Resource durations overlap; not additive latency or measured speedup.",
+  "builds": {
+    "c08-fused-contiguous-v2": {
+      "schedule_sha256": "e352e14a8753d03268a184d603801c6d2d074a94bd5402dd16036b420afdf495",
+      "static_cycles": 100091,
+      "dma_loads": [
+        {
+          "type": "DmaLoad",
+          "begin": 1003,
+          "end": 1623,
+          "duration": 620,
+          "source": "--> src/ops.rs:58:76\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 1623,
+          "end": 2342,
+          "duration": 719,
+          "source": ""
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 2342,
+          "end": 3471,
+          "duration": 1129,
+          "source": "--> src/device/sliding/projection.rs:294:5\n\nq.to_dm_view(&mut device.tdma, scales.view_mut().tile::<m![QkvMatrix], 2, m![QkvMatrix = 2 #{!} 4, QkvRow % 4]>(0))"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 3471,
+          "end": 4343,
+          "duration": 872,
+          "source": "--> src/device/sliding/projection.rs:296:5\n\nk.to_dm_view(&mut device.tdma, scales.view_mut().tile::<m![QkvMatrix], 1, m![QkvMatrix = 1 #{!} 4, QkvRow % 4]>(2))"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 4343,
+          "end": 4963,
+          "duration": 620,
+          "source": "--> src/device/shared/rmsnorm.rs:245:81\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 4963,
+          "end": 5835,
+          "duration": 872,
+          "source": "--> src/device/sliding/projection.rs:298:5\n\nv.to_dm_view(&mut device.tdma, scales.view_mut().tile::<m![QkvMatrix], 1, m![QkvMatrix = 1 #{!} 4, QkvRow % 4]>(3))"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 5835,
+          "end": 19347,
+          "duration": 13512,
+          "source": "--> src/device/sliding/projection.rs:286:5\n\nq.to_dm_view(&mut device.tdma, weights.view_mut().tile::<m![QkvMatrix], 2, m![QkvMatrix = 2 #{!} 4, QkvRow % 4, H]>(0))"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 19347,
+          "end": 20185,
+          "duration": 838,
+          "source": ""
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 20185,
+          "end": 46660,
+          "duration": 26475,
+          "source": "--> src/device/sliding/projection.rs:288:5\n\nk.to_dm_view(&mut device.tdma, weights.view_mut().tile::<m![QkvMatrix], 1, m![QkvMatrix = 1 #{!} 4, QkvRow % 4, H]>(2))"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 49312,
+          "end": 75787,
+          "duration": 26475,
+          "source": "--> src/device/sliding/projection.rs:290:5\n\nv.to_dm_view(&mut device.tdma, weights.view_mut().tile::<m![QkvMatrix], 1, m![QkvMatrix = 1 #{!} 4, QkvRow % 4, H]>(3))"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 75787,
+          "end": 76290,
+          "duration": 503,
+          "source": "--> src/device/sliding/rmsnorm.rs:14:69\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 79082,
+          "end": 79585,
+          "duration": 503,
+          "source": "--> src/device/sliding/rmsnorm.rs:14:69\n\nrms_weight.to_dm(&mut device.tdma)"
+        }
+      ]
+    },
+    "c08-columns8-v1": {
+      "schedule_sha256": "1ef9ebaffad12371f657184e59313b42fe15e2ef88df76374737081a57013819",
+      "static_cycles": 69536,
+      "dma_loads": [
+        {
+          "type": "DmaLoad",
+          "begin": 1003,
+          "end": 1623,
+          "duration": 620,
+          "source": "--> src/ops.rs:58:76\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 1623,
+          "end": 2243,
+          "duration": 620,
+          "source": "--> src/device/shared/rmsnorm.rs:245:81\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 2443,
+          "end": 3015,
+          "duration": 572,
+          "source": "--> src/device/sliding/projection.rs:315:87\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 3015,
+          "end": 3853,
+          "duration": 838,
+          "source": ""
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 3853,
+          "end": 4356,
+          "duration": 503,
+          "source": "--> src/device/sliding/rmsnorm.rs:14:69\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 17897,
+          "end": 18469,
+          "duration": 572,
+          "source": "--> src/device/sliding/projection.rs:284:93\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 18469,
+          "end": 37841,
+          "duration": 19372,
+          "source": "--> src/device/sliding/projection.rs:283:103\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 37841,
+          "end": 38679,
+          "duration": 838,
+          "source": ""
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 38679,
+          "end": 48640,
+          "duration": 9961,
+          "source": "--> src/device/sliding/projection.rs:314:97\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 49109,
+          "end": 49612,
+          "duration": 503,
+          "source": "--> src/device/sliding/rmsnorm.rs:14:69\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 49612,
+          "end": 50184,
+          "duration": 572,
+          "source": "--> src/device/sliding/projection.rs:315:87\n\nweight_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 50184,
+          "end": 51022,
+          "duration": 838,
+          "source": ""
+        },
+        {
+          "type": "DmaLoad",
+          "begin": 51772,
+          "end": 61733,
+          "duration": 9961,
+          "source": "--> src/device/sliding/projection.rs:314:97\n\nweight.to_dm(&mut device.tdma)"
+        }
+      ]
+    }
+  }
+}
