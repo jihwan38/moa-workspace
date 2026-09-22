@@ -14,6 +14,7 @@
 | 다음 최적화 후보·우선순위·검증 조건 | [E55 이후 C01–C07](../docs/research/optimization-candidates-20260922.md) |
 | 무엇을 추가·제거·변경했는지 남기는 양식 | [조합 실험 양식](../docs/experiments/combination-template.md) |
 | 실제 단독/조합 비교를 채운 예시 | [E58 + E59 → E60](../docs/experiments/combinations/e60-down-padding.md) |
+| C01 scale-DPE의 단독·조합과 미채택 이유 | [E65 + E66 → E67](../docs/experiments/combinations/e67-scale-dpe.md) |
 
 ## 실제 호출과 적용 구성
 
@@ -37,6 +38,10 @@ FFN은 [shared/mlp.rs](../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)가 �
 DPE로 옮기는 방식과 중간 weight 저장을 없애는 staging은 현재 채택 구성에 없다.
 과거 E23/E33과 E48/E50/E56의 관련 시도도 결과 분류에 남겼다. 현재 상태를
 “모든 dataflow 최적화를 적용한 코드”로 해석하지 않는다.
+후속 [C01 실험](../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md)은 up/gate,
+down, 결합을 실제로 실행했다. Up/gate의 −2.72%는 반복 범위가 겹치고 down/결합은
+단회에서 느려 채택하지 않았다. D01 padding 수정은 해당 실험 경로의 수정이며
+기존 E55에 같은 문제가 있다는 의미가 아니다.
 
 ## 현재 검증과 성능 기준
 

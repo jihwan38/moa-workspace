@@ -1,8 +1,10 @@
 # E55 이후 최적화 후보와 실행 순서
 
 2026-09-22. 기준은 [E55 구성표](../../baseline/e55.json)의 `baseline-e55`
-(`873f64ed94229c88cd18d2731bdcca7eea0d6365`)다. **이 문서는 조사·설계 결과이며,
-아래 C01–C07은 모두 미구현 제안이다. 새 컴파일·Arena 실행·공식 제출 결과는 없다.**
+(`873f64ed94229c88cd18d2731bdcca7eea0d6365`)다. 최초 작성은 조사·설계 단계였다.
+**후속 C01은 구현·Arena 검증을 마쳤고 미채택이며, C02–C07은 미구현 제안이다.**
+[C01의 코드·D01 진단·E65–E67 결과](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md)는
+별도로 보존했다. E55는 유지하며 공식 제출은 하지 않았다.
 과거 시도는 [측정 결과 분류](../experiments/optimization-results.md)에 따로 보존한다.
 조사 대상 commit·파일 해시·점수 계산 입력은 [조사 근거 JSON](optimization-candidates-20260922-evidence.json)에 있다.
 
@@ -91,6 +93,13 @@ P3는 정확도 위험이 큰 연구 후보다. 구현 부담은 상대적 판�
 | C07 | P3 | Native FP8 FFN과 scale-DPE의 결합; F2/F3 대체 | BF16 weight 변환을 없애는 큰 구조 후보. 비용·정확도 모두 미확인 | 매우 큼 / 입력 근사·상쇄 |
 
 ### C01 — Scale-DPE는 partial 진단부터
+
+**실행 결과:** D01에서 compact120→128 전송 후 zero tail이 보존되지 않는 경로를
+재현하고, BF16 tail 8칸을 실제로 덮는 수정으로 전수 검사를 통과했다. 수정 후 down
+기본 FFN도 PASS다. Up/gate E65는 3회 중앙값 −2.72%이나 대조 범위와 겹쳐 개선
+미확인, down E66은 단회 +9.42%, 결합 E67은 단회 +3.66%다. E65의 추가 6입력도 PASS다.
+새 BF16 partial rounding의 상쇄 반례는 남는다. [단독·조합 기록](../experiments/combinations/e67-scale-dpe.md).
+이하 내용은 최초 가설이며, hi/lo 보정은 이번에 구현하지 않았다. 다음 우선순위는 C02다.
 
 현재 `p[r,b] = sum16(x*w)`를 F32로 유지한 채 VE에서 `sum_b(p[r,b]*scale[r,b])`를
 계산한다. 후보는 block 결과와 scale을 두 번째 DPE의 operand로 보내 합산까지 맡긴다.
@@ -243,7 +252,8 @@ Public hyunjun 측정 노트의 SDK는 0.6.0이고 우리 설치 SDK는 0.8.1이
    C02와 C01은 같은 F3의 대안이므로 처음부터 함께 적용하지 않는다.
 4. **C04의 전송 비용표와 D02를 먼저, 이후 C05:** decode 감소만으로 가려진 DMA 병목까지 다룬다.
    C06은 별도 O 후보로 해당 임계 전송을 확인했을 때 진행한다. C07은 마지막 연구 경로다.
-5. 정확도 screen을 통과한 후보만 같은 시점의 E55 대조와 동일 package 최소 3회 측정한다.
+5. 정확도 screen을 통과하고 성능 가능성이 있는 후보를 같은 시점의 E55 대조와 동일 package 최소 3회 측정한다.
+   첫 screen에서 큰 회귀가 보이면 반복 없이 중단하고 단회 결과임을 표시한다.
    Source·SDK/lock·fixture·image·host·package hash를 고정하고 공식 입력, 추가 입력,
    변경에 맞는 경계·cache 검사를 수행한다. 결과가 겹치면 개선 미확인으로 남긴다.
 6. 단독 개선 후 [조합 양식](../experiments/combination-template.md)으로 C / C+A / C+B / C+A+B를

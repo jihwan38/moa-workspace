@@ -11,6 +11,14 @@ eight hardware-tested candidates across QKV, O and FFN. All 225 comparisons in
 15 unique candidate/control jobs passed. E59's three-job −0.24% FFN difference
 overlaps run variation; no candidate is adopted. E55 remains the runtime source.
 
+The [C01 scale-DPE experiment](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md)
+adds E65 up/gate, E66 down and E67 combined. All 120 basic output comparisons
+and E65's 30 additional-input comparisons pass. E65's three-job FFN median is
+2.72% lower than its concurrent E55 control, but their ranges overlap; E66/E67
+regress in single screens. None is adopted. D01 separately isolates and repairs
+the compact120→128 tail problem in the old down-scale path; extra BF16 partial
+rounding remains. [A/B/combined recipe](combinations/e67-scale-dpe.md).
+
 All rows in the main performance table use the unchanged official three-kernel, three-input harness.
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
@@ -168,6 +176,10 @@ E48 up-only fused decode passes its first screen, without a demonstrated perform
 | E62 down BF16 bank skew | 72117 | Pass | 103166 | 50889 | 382908 | [Screen](e62-down-bf16-skew-screen.json), no improvement |
 | E63 BF16 QKV sixteen-row layout, 3 jobs | 72129/72136/72137 | Pass | 104525 | 51452 | 378532 | [Repeats](e63-qkv-sixteen-row-repeats.json), no QKV improvement |
 | E64 O column-major staging | 72135 | Pass | 103976 | 128411 | 378992 | [Screen](e64-output-column-major-screen.json), routing back to the required reduce layout is costly |
+| E55 C01 control, 3 jobs | 72759/72766/72767 | Pass | 103586 | 51295 | 378270 | [Concurrent E55 control](e55-c01-control-repeats.json) for E65–E67 |
+| E65 up/gate streamed scale-DPE, 3 jobs | 72754/72760/72762 | Pass | 103598 | 51054 | 367967 | [Repeats](e65-c01-upgate-scale-dpe-repeats.json); FFN −2.72%, ranges overlap; extra30 PASS72775; not adopted |
+| E66 down scale-DPE with BF16 tail clear | 72801 | Pass | 103832 | 50958 | 413913 | [Single screen](e66-c01-down-scale-dpe.json); FFN +9.42%; stopped |
+| E67 combined E65+E66 | 72805 | Pass | 103815 | 51523 | 392118 | [Single screen](e67-c01-combined-scale-dpe.json); FFN +3.66%; stopped |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.

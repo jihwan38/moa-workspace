@@ -1,0 +1,138 @@
+[
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-tail-clear.log",
+    "bytes": 689,
+    "sha256": "4a486e140468a6b61230e2c179cb361ddbf5ddd57d28dc5c4fc75e2f22b3687d",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::scale_probe::scale_probe\nerror: furiosa-opt: furiosa_opt_gemma4::scale_probe::scale_probe: visa: while lowering MemSet\n       caused by: DmTensorViewMut::memset on a sub-view (`view_mut().tile(..)`) is not supported yet; only a whole-region fill (`dm.view_mut().memset(..)`) is. TODO: ranged ParallelMemSet on the window.\n  --> src/scale_probe.rs:49:14\n   |",
+      "\nerror: could not compile `furiosa-opt-gemma4` (bin \"probe_scale\") due to 1 previous error"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-tail-write.log",
+    "bytes": 643,
+    "sha256": "d1d1db99ced32d812f5782afb9d0e0d5a3a1d755147a3c156cd0b6d40e5b20e4",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::scale_probe::scale_probe\nerror: furiosa-opt: furiosa_opt_gemma4::scale_probe::scale_probe: lir: internal compiler error: no entry found for key at crates/npu-isa/src/sfr/renegade/sfr_impl.rs:868:33\n  --> src/scale_probe.rs:17:1\n   |\n17 | #[device(chip = 1)]",
+      "\nerror: could not compile `furiosa-opt-gemma4` (bin \"probe_scale\") due to 1 previous error"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-bf16-tail.log",
+    "bytes": 643,
+    "sha256": "d1d1db99ced32d812f5782afb9d0e0d5a3a1d755147a3c156cd0b6d40e5b20e4",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::scale_probe::scale_probe\nerror: furiosa-opt: furiosa_opt_gemma4::scale_probe::scale_probe: lir: internal compiler error: no entry found for key at crates/npu-isa/src/sfr/renegade/sfr_impl.rs:868:33\n  --> src/scale_probe.rs:17:1\n   |\n17 | #[device(chip = 1)]",
+      "\nerror: could not compile `furiosa-opt-gemma4` (bin \"probe_scale\") due to 1 previous error"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-direct-commit.log",
+    "bytes": 643,
+    "sha256": "d1d1db99ced32d812f5782afb9d0e0d5a3a1d755147a3c156cd0b6d40e5b20e4",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::scale_probe::scale_probe\nerror: furiosa-opt: furiosa_opt_gemma4::scale_probe::scale_probe: lir: internal compiler error: no entry found for key at crates/npu-isa/src/sfr/renegade/sfr_impl.rs:868:33\n  --> src/scale_probe.rs:17:1\n   |\n17 | #[device(chip = 1)]",
+      "\nerror: could not compile `furiosa-opt-gemma4` (bin \"probe_scale\") due to 1 previous error"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-split-tail.log",
+    "bytes": 4957,
+    "sha256": "d6a51c12808200d53bbd837c7ff8ddc0446fabfe43656c76a2cc62dfdabe0468",
+    "excerpts": [
+      "   Compiling furiosa-opt-gemma4 v0.1.0 (/tmp/moa-c01-probe)\nerror[E0599]: the method `vector_clip` exists for struct `VectorTensor<'_, Main, ..., f32, ..., ..., ..., ..., ..., ..., InterFirst, ..., Way8>`, but its trait bounds were not satisfied\n   --> src/scale_probe.rs:95:14\n    |\n 87 | /         device.main.begin(p128.view().tile::<m![Block128], 112, m![H % 60 = 20, Block128 = 112 # 120]>(0))",
+      "\nerror[E0599]: the method `vector_clip` exists for struct `VectorTensor<'_, Main, ..., f32, ..., ..., ..., ..., ..., ..., InterFirst, ..., Way8>`, but its trait bounds were not satisfied\n   --> src/scale_probe.rs:95:14\n    |\n 87 | /         device.main.begin(p128.view().tile::<m![Block128], 112, m![H % 60 = 20, Block128 = 112 # 120]>(0))",
+      "\nerror[E0599]: the method `vector_clip` exists for struct `VectorTensor<'_, Main, ..., f32, ..., ..., ..., ..., ..., ..., InterFirst, ..., Way8>`, but its trait bounds were not satisfied\n   --> src/scale_probe.rs:95:14\n    |\n 87 | /         device.main.begin(p128.view().tile::<m![Block128], 112, m![H % 60 = 20, Block128 = 112 # 120]>(0))",
+      "For more information about this error, try `rustc --explain E0599`.\nerror: could not compile `furiosa-opt-gemma4` (lib) due to 3 previous errors"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-split-tail-2.log",
+    "bytes": 694,
+    "sha256": "814e388cca7615296a3cf7ab6e2bc6e3fede7ccdddef43976ce802f9b74b322d",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::scale_probe::scale_probe\nerror: furiosa-opt: furiosa_opt_gemma4::scale_probe::scale_probe: visa: the tile's index axis Block128 is not a sub-layout of the in-slice mapping it applies to ((H % 60 = 20, Block128 = 120)): this mapping does not step through the whole axis\n  --> src/scale_probe.rs:57:32\n   |\n57 |             .begin(s128.view().tile::<m![Block128], 8, m![H % 60 = 20, Block128 = 8 # 120]>(112))",
+      "\nerror: could not compile `furiosa-opt-gemma4` (bin \"probe_scale\") due to 1 previous error"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-split-tail-3.log",
+    "bytes": 690,
+    "sha256": "e7b7831f6b16877eccf197c69e82f09ebf6c754c817bc33a500beff243fbcc93",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::scale_probe::scale_probe\nerror: furiosa-opt: furiosa_opt_gemma4::scale_probe::scale_probe: visa: while lowering StoTrf\n       caused by: configuring the fetch sequencer\n       caused by: Fetch: a live input axis is left unread (Time 1, Packet Block128 = 112 # 120)\n  --> src/scale_probe.rs:77:89",
+      "\nerror: could not compile `furiosa-opt-gemma4` (bin \"probe_scale\") due to 1 previous error"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-split-tail-4.log",
+    "bytes": 12766,
+    "sha256": "ff54fcbc704800c2620811d43debc2c90799ade88d1616c33d66fcdb73ac3dbc",
+    "excerpts": [
+      "   Compiling furiosa-opt-gemma4 v0.1.0 (/tmp/moa-c01-probe)\nerror[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope\n    --> src/scale_probe.rs:75:99\n     |\n  75 |             p128.view().tile::<m![Block128 = 120], 112, m![H % 60 = 20, Block128 = 112 # 120]>(0).to_dm(&mut device.tdma);",
+      "\nerror[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope\n    --> src/scale_probe.rs:77:99\n     |\n  77 |             s128.view().tile::<m![Block128 = 120], 112, m![H % 60 = 20, Block128 = 112 # 120]>(0).to_dm(&mut device.tdma);",
+      "\nerror[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope\n    --> src/scale_probe.rs:75:99\n     |\n  75 |             p128.view().tile::<m![Block128 = 120], 112, m![H % 60 = 20, Block128 = 112 # 120]>(0).to_dm(&mut device.tdma);",
+      "\nerror[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope\n    --> src/scale_probe.rs:77:99\n     |\n  77 |             s128.view().tile::<m![Block128 = 120], 112, m![H % 60 = 20, Block128 = 112 # 120]>(0).to_dm(&mut device.tdma);",
+      "\nerror[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope\n    --> src/scale_probe.rs:75:99\n     |\n  75 |             p128.view().tile::<m![Block128 = 120], 112, m![H % 60 = 20, Block128 = 112 # 120]>(0).to_dm(&mut device.tdma);",
+      "\nerror[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope\n    --> src/scale_probe.rs:77:99\n     |\n  77 |             s128.view().tile::<m![Block128 = 120], 112, m![H % 60 = 20, Block128 = 112 # 120]>(0).to_dm(&mut device.tdma);",
+      "For more information about this error, try `rustc --explain E0599`.\nerror: could not compile `furiosa-opt-gemma4` (lib) due to 6 previous errors"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-split-tail-5.log",
+    "bytes": 643,
+    "sha256": "d1d1db99ced32d812f5782afb9d0e0d5a3a1d755147a3c156cd0b6d40e5b20e4",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::scale_probe::scale_probe\nerror: furiosa-opt: furiosa_opt_gemma4::scale_probe::scale_probe: lir: internal compiler error: no entry found for key at crates/npu-isa/src/sfr/renegade/sfr_impl.rs:868:33\n  --> src/scale_probe.rs:17:1\n   |\n17 | #[device(chip = 1)]",
+      "\nerror: could not compile `furiosa-opt-gemma4` (bin \"probe_scale\") due to 1 previous error"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-aligned-clear16.log",
+    "bytes": 180,
+    "sha256": "0d43ac2f260fb175b640fa60975bd1698325346729e875b096f17b9746ea23ac",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::scale_probe::scale_probe\n    Finished `release` profile [optimized] target(s) in 4.70s"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-probe-bf16-clear8.log",
+    "bytes": 180,
+    "sha256": "1bc693981be6ff93a102e20b969222ac55e4e1c5da5b3884eca5532f7239a141",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::scale_probe::scale_probe\n    Finished `release` profile [optimized] target(s) in 4.81s"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-upgate-materialized.log",
+    "bytes": 1066,
+    "sha256": "209b82b3e9cb4048f59e8a3ddac9307eeb69f6cb9a0a66a0cce08398cec325b6",
+    "excerpts": [
+      "   Compiling [1/1] ops::decoder_feedforward\n    Finished 1 compiled, 14 not matching ops::decoder_feedforward"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-upgate-streamed.log",
+    "bytes": 1066,
+    "sha256": "4c77745e9f4163f0e5017f97e6c37d3a028d660ef57fba089fb9f7e8e1509c61",
+    "excerpts": [
+      "   Compiling [1/1] ops::decoder_feedforward\n    Finished 1 compiled, 14 not matching ops::decoder_feedforward"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-upgate-streamed-host.log",
+    "bytes": 1316,
+    "sha256": "1e9b3c0a93228a9277f4902af4a42b9aff9b960b3945f34e83c0e6e8fb423643",
+    "excerpts": [
+      "   Compiling furiosa_opt_gemma4::ops::decoder_feedforward\n    Finished `release` profile [optimized] target(s) in 15.64s"
+    ]
+  },
+  {
+    "local_path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/c01-upgate-extra-host.log",
+    "bytes": 1136,
+    "sha256": "2d675273db44d06e08e9a049d436e0247334b2ffb407c78d5a4ab1ba16ddfc0c",
+    "excerpts": [
+      "   Compiling furiosa-opt-gemma4 v0.1.0 (/tmp/moa-c01-upgate)\n    Finished `release` profile [optimized] target(s) in 3.80s"
+    ]
+  }
+]

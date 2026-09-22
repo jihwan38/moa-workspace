@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "coverage": "시간순 원장의 E1–E64 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.",
+  "coverage": "시간순 원장의 E1–E67 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.",
   "entries": [
     {
       "id": "E55",
@@ -14,6 +14,69 @@
       "report": "docs/experiments/e55-fused-qkv-repeats.json",
       "reference": "docs/experiments/e54-bf16-qkv-repeats.json",
       "reference_label": "E54"
+    },
+    {
+      "id": "E65",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "up/gate BF16 partial scale-DPE + streamed decode",
+      "note": "기본 3회·추가 6입력 PASS. 중앙값 −2.72%이나 측정 범위가 93 cycles 겹쳐 미채택. BF16 partial 반올림 추가.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md"
+      ],
+      "report": "docs/experiments/e65-c01-upgate-scale-dpe-repeats.json",
+      "reference": "docs/experiments/e55-c01-control-repeats.json",
+      "reference_label": "E55 C01 대조"
+    },
+    {
+      "id": "E66",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "down scale-DPE + 실제 BF16 zero tail",
+      "note": "D01 padding 수정 후 기본15 PASS. 단회 +9.42%; 추가 입력·반복 없이 중단. Compact120→128 복사 비용 포함.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md"
+      ],
+      "report": "docs/experiments/e66-c01-down-scale-dpe.json",
+      "reference": "docs/experiments/e55-c01-control-repeats.json",
+      "reference_label": "E55 C01 대조"
+    },
+    {
+      "id": "E67",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "up/gate + down scale-DPE 결합",
+      "note": "기본15 PASS. 단회 +3.66%로 미채택. 두 단독 개선율의 합으로 조합 성능을 추정하지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md",
+        "docs/experiments/combinations/e67-scale-dpe.md"
+      ],
+      "report": "docs/experiments/e67-c01-combined-scale-dpe.json",
+      "reference": "docs/experiments/e55-c01-control-repeats.json",
+      "reference_label": "E55 C01 대조"
+    },
+    {
+      "id": "E55-control-C01",
+      "category": "control",
+      "kernel": "FFN",
+      "method": "C01 동시기 E55 재측정",
+      "note": "동일 E55 package 3회. E65–E67 비교 기준이며 채택 코드는 변경 없음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md"
+      ],
+      "report": "docs/experiments/e55-c01-control-repeats.json",
+      "reference": "docs/experiments/e55-fused-qkv-repeats.json",
+      "reference_label": "E55 채택 당시"
+    },
+    {
+      "id": "S-C01-materialized",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "전체 BF16 weight DM 유지한 up/gate scale-DPE",
+      "note": "정적 162,209→202,779 (+25.01%). Compile PASS, NPU 미실행. Streamed 후보는 별도 E65.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md"
+      ]
     },
     {
       "id": "E59",

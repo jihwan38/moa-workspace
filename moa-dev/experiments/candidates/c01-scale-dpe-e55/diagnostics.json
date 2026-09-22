@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "purpose": "Isolate block partial rounding, compact-to-padded staging and scale DPE; not complete FFN or performance.",
+  "cases": [
+    "coordinate tags / exact dyadic scales",
+    "boundary impulses",
+    "BF16 partial cancellation"
+  ],
+  "runs": [
+    {
+      "kind": "original-120-into-128",
+      "job": {
+        "id": 72741,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-c01-d01-scale-stages",
+        "status": "FAILED",
+        "created_at": "2026-09-22T03:53:12Z",
+        "started_at": "2026-09-22T03:53:42Z",
+        "finished_at": "2026-09-22T03:53:43Z",
+        "duration_sec": 0.825103258,
+        "exit_code": 1,
+        "device_id": null
+      },
+      "package_files": {
+        "job.yaml": {
+          "bytes": 100,
+          "sha256": "a0df5089d2656dc760f1fe898887e61e8bb394dd402781e4ea6971c937b8f3a1"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 287,
+          "sha256": "d5291dacc1c7f50936d2da61cb26a6df21902c12df96ad557696f7d333a11dda"
+        },
+        "test_runtime": {
+          "bytes": 2242944,
+          "sha256": "2dcb3d97c0e05b8b1d0646918d868bcf44de540dbd2c843af1ea1e844c7b790c"
+        }
+      },
+      "log": "moa-dev/logs/c01-d01-original-120-into-128-job-72741.log",
+      "log_sha256": "3955ec3b8362cd94f460e84ee9fe72ed52572d8ff3ef23ad8593bb4a6f92cdaf",
+      "stages": [
+        {
+          "stage": "partial128",
+          "case": 0,
+          "checked": 3932160,
+          "mismatches": 243923,
+          "details": "max_abs=338953140000000000000000000000000000000 status=FAIL"
+        },
+        {
+          "stage": "scale128",
+          "case": 0,
+          "checked": 3932160,
+          "mismatches": 241664,
+          "details": "max_abs=2 status=FAIL"
+        },
+        {
+          "stage": "local_dot",
+          "case": 0,
+          "checked": 30720,
+          "mismatches": 30207,
+          "details": "max_abs=inf status=FAIL"
+        },
+        {
+          "stage": "column_sum",
+          "case": 0,
+          "checked": 3840,
+          "mismatches": 3776,
+          "details": "max_abs=inf status=FAIL"
+        },
+        {
+          "stage": "partial128",
+          "case": 1,
+          "checked": 3932160,
+          "mismatches": 13696,
+          "details": "max_abs=338953140000000000000000000000000000000 status=FAIL"
+        },
+        {
+          "stage": "scale128",
+          "case": 1,
+          "checked": 3932160,
+          "mismatches": 241664,
+          "details": "max_abs=2 status=FAIL"
+        },
+        {
+          "stage": "local_dot",
+          "case": 1,
+          "checked": 30720,
+          "mismatches": 2432,
+          "details": "max_abs=inf status=FAIL"
+        },
+        {
+          "stage": "column_sum",
+          "case": 1,
+          "checked": 3840,
+          "mismatches": 1536,
+          "details": "max_abs=inf status=FAIL"
+        },
+        {
+          "stage": "partial128",
+          "case": 2,
+          "checked": 3932160,
+          "mismatches": 245760,
+          "details": "max_abs=338953140000000000000000000000000000000 status=FAIL"
+        },
+        {
+          "stage": "scale128",
+          "case": 2,
+          "checked": 3932160,
+          "mismatches": 241664,
+          "details": "max_abs=1 status=FAIL"
+        },
+        {
+          "stage": "local_dot",
+          "case": 2,
+          "checked": 30720,
+          "mismatches": 30208,
+          "details": "max_abs=334963550000000000000000000000000000000 status=FAIL"
+        },
+        {
+          "stage": "column_sum",
+          "case": 2,
+          "checked": 3840,
+          "mismatches": 3776,
+          "details": "max_abs=inf status=FAIL"
+        }
+      ],
+      "rounding_model": [
+        "ROUNDING_MODEL case=0 changed_rows=0 max_abs=0 rounded_first=-580.5 original_first=-580.5",
+        "ROUNDING_MODEL case=1 changed_rows=0 max_abs=0 rounded_first=0.25 original_first=0.25",
+        "ROUNDING_MODEL case=2 changed_rows=3840 max_abs=1.875 rounded_first=3.75 original_first=1.875"
+      ],
+      "log_text": "ROUNDING_MODEL case=0 changed_rows=0 max_abs=0 rounded_first=-580.5 original_first=-580.5\nD01 case=0 LAUNCH_BEGIN\nMISMATCH stage=partial128 case=0 index=120 actual=-46 expected=0\nMISMATCH stage=partial128 case=0 index=121 actual=-43 expected=0\nMISMATCH stage=partial128 case=0 index=122 actual=-40 expected=0\nMISMATCH stage=partial128 case=0 index=123 actual=-37 expected=0\nMISMATCH stage=partial128 case=0 index=124 actual=-34 expected=0\nMISMATCH stage=partial128 case=0 index=125 actual=-31 expected=0\nMISMATCH stage=partial128 case=0 index=126 actual=-28 expected=0\nMISMATCH stage=partial128 case=0 index=127 actual=-25 expected=0\nD01 stage=partial128 case=0 checked=3932160 mismatches=243923 max_abs=338953140000000000000000000000000000000 status=FAIL\nMISMATCH stage=scale128 case=0 index=120 actual=0.5 expected=0\nMISMATCH stage=scale128 case=0 index=121 actual=0.25 expected=0\nMISMATCH stage=scale128 case=0 index=122 actual=2 expected=0\nMISMATCH stage=scale128 case=0 index=123 actual=1 expected=0\nMISMATCH stage=scale128 case=0 index=124 actual=0.5 expected=0\nMISMATCH stage=scale128 case=0 index=125 actual=0.25 expected=0\nMISMATCH stage=scale128 case=0 index=126 actual=2 expected=0\nMISMATCH stage=scale128 case=0 index=127 actual=1 expected=0\nD01 stage=scale128 case=0 checked=3932160 mismatches=241664 max_abs=2 status=FAIL\nMISMATCH stage=local_dot case=0 index=0 actual=-640.75 expected=-384.25\nMISMATCH stage=local_dot case=0 index=1 actual=-430.25 expected=-111.5\nMISMATCH stage=local_dot case=0 index=2 actual=320 expected=-61\nMISMATCH stage=local_dot case=0 index=3 actual=244.75 expected=21.25\nMISMATCH stage=local_dot case=0 index=4 actual=233 expected=167\nMISMATCH stage=local_dot case=0 index=5 actual=348.25 expected=439.75\nMISMATCH stage=local_dot case=0 index=6 actual=-647.75 expected=-398.75\nMISMATCH stage=local_dot case=0 index=7 actual=-596 expected=-253\nD01 stage=local_dot case=0 checked=30720 mismatches=30207 max_abs=inf status=FAIL\nMISMATCH stage=column_sum case=0 index=0 actual=-1168.75 expected=-580.5\nMISMATCH stage=column_sum case=0 index=1 actual=-650.5 expected=-181.25\nMISMATCH stage=column_sum case=0 index=2 actual=13.75 expected=365.5\nMISMATCH stage=column_sum case=0 index=3 actual=642.25 expected=508.75\nMISMATCH stage=column_sum case=0 index=4 actual=484.25 expected=135.75\nMISMATCH stage=column_sum case=0 index=5 actual=589.75 expected=-68.25\nMISMATCH stage=column_sum case=0 index=6 actual=142.75 expected=-188.25\nMISMATCH stage=column_sum case=0 index=7 actual=-848 expected=-489.5\nD01 stage=column_sum case=0 checked=3840 mismatches=3776 max_abs=inf status=FAIL\nROUNDING_MODEL case=1 changed_rows=0 max_abs=0 rounded_first=0.25 original_first=0.25\nD01 case=1 LAUNCH_BEGIN\nMISMATCH stage=partial128 case=1 index=1528 actual=13 expected=0\nMISMATCH stage=partial128 case=1 index=2552 actual=-0.00000000000013233858 expected=0\nMISMATCH stage=partial128 case=1 index=2553 actual=15187131000000000000000000 expected=0\nMISMATCH stage=partial128 case=1 index=2554 actual=0.000000000000000000000000000099790905 expected=0\nMISMATCH stage=partial128 case=1 index=2555 actual=0.0000001937151 expected=0\nMISMATCH stage=partial128 case=1 index=2556 actual=1924145300000 expected=0\nMISMATCH stage=partial128 case=1 index=2557 actual=0.00000000000004440892 expected=0\nMISMATCH stage=partial128 case=1 index=2558 actual=-0.000059843063 expected=0\nD01 stage=partial128 case=1 checked=3932160 mismatches=13696 max_abs=338953140000000000000000000000000000000 status=FAIL\nMISMATCH stage=scale128 case=1 index=120 actual=0.5 expected=0\nMISMATCH stage=scale128 case=1 index=121 actual=0.25 expected=0\nMISMATCH stage=scale128 case=1 index=122 actual=2 expected=0\nMISMATCH stage=scale128 case=1 index=123 actual=1 expected=0\nMISMATCH stage=scale128 case=1 index=124 actual=0.5 expected=0\nMISMATCH stage=scale128 case=1 index=125 actual=0.25 expected=0\nMISMATCH stage=scale128 case=1 index=126 actual=2 expected=0\nMISMATCH stage=scale128 case=1 index=127 actual=1 expected=0\nD01 stage=scale128 case=1 checked=3932160 mismatches=241664 max_abs=2 status=FAIL\nMISMATCH stage=local_dot case=1 index=25 actual=1.25 expected=0\nMISMATCH stage=local_dot case=1 index=42 actual=7 expected=0\nMISMATCH stage=local_dot case=1 index=60 actual=2.25 expected=0\nMISMATCH stage=local_dot case=1 index=79 actual=11 expected=0\nMISMATCH stage=local_dot case=1 index=88 actual=3.25 expected=0\nMISMATCH stage=local_dot case=1 index=121 actual=0.25 expected=0\nMISMATCH stage=local_dot case=1 index=138 actual=3 expected=0\nMISMATCH stage=local_dot case=1 index=152 actual=30374261000000000000000000 expected=0\nD01 stage=local_dot case=1 checked=30720 mismatches=2432 max_abs=inf status=FAIL\nMISMATCH stage=column_sum case=1 index=3 actual=2.25 expected=1\nMISMATCH stage=column_sum case=1 index=5 actual=13 expected=6\nMISMATCH stage=column_sum case=1 index=7 actual=4.25 expected=2\nMISMATCH stage=column_sum case=1 index=9 actual=21 expected=10\nMISMATCH stage=column_sum case=1 index=11 actual=6.25 expected=3\nMISMATCH stage=column_sum case=1 index=15 actual=4.25 expected=4\nMISMATCH stage=column_sum case=1 index=17 actual=5 expected=2\nMISMATCH stage=column_sum case=1 index=19 actual=-57108790000000000000000000000000000000 expected=1\nD01 stage=column_sum case=1 checked=3840 mismatches=1536 max_abs=inf status=FAIL\nROUNDING_MODEL case=2 changed_rows=3840 max_abs=1.875 rounded_first=3.75 original_first=1.875\nD01 case=2 LAUNCH_BEGIN\nMISMATCH stage=partial128 case=2 index=120 actual=1.0625 expected=0\nMISMATCH stage=partial128 case=2 index=121 actual=-1.0546875 expected=0\nMISMATCH stage=partial128 case=2 index=122 actual=1.0625 expected=0\nMISMATCH stage=partial128 case=2 index=123 actual=-1.0546875 expected=0\nMISMATCH stage=partial128 case=2 index=124 actual=1.0625 expected=0\nMISMATCH stage=partial128 case=2 index=125 actual=-1.0546875 expected=0\nMISMATCH stage=partial128 case=2 index=126 actual=1.0625 expected=0\nMISMATCH stage=partial128 case=2 index=127 actual=-1.0546875 expected=0\nD01 stage=partial128 case=2 checked=3932160 mismatches=245760 max_abs=338953140000000000000000000000000000000 status=FAIL\nMISMATCH stage=scale128 case=2 index=120 actual=1 expected=0\nMISMATCH stage=scale128 case=2 index=121 actual=1 expected=0\nMISMATCH stage=scale128 case=2 index=122 actual=1 expected=0\nMISMATCH stage=scale128 case=2 index=123 actual=1 expected=0\nMISMATCH stage=scale128 case=2 index=124 actual=1 expected=0\nMISMATCH stage=scale128 case=2 index=125 actual=1 expected=0\nMISMATCH stage=scale128 case=2 index=126 actual=1 expected=0\nMISMATCH stage=scale128 case=2 index=127 actual=1 expected=0\nD01 stage=scale128 case=2 checked=3932160 mismatches=241664 max_abs=1 status=FAIL\nMISMATCH stage=local_dot case=2 index=0 actual=0.5 expected=0.46875\nMISMATCH stage=local_dot case=2 index=1 actual=0.5 expected=0.46875\nMISMATCH stage=local_dot case=2 index=2 actual=0.5 expected=0.46875\nMISMATCH stage=local_dot case=2 index=3 actual=0.5 expected=0.46875\nMISMATCH stage=local_dot case=2 index=4 actual=0.5 expected=0.46875\nMISMATCH stage=local_dot case=2 index=5 actual=0.5 expected=0.46875\nMISMATCH stage=local_dot case=2 index=6 actual=0.5 expected=0.46875\nMISMATCH stage=local_dot case=2 index=7 actual=0.5 expected=0.46875\nD01 stage=local_dot case=2 checked=30720 mismatches=30208 max_abs=334963550000000000000000000000000000000 status=FAIL\nMISMATCH stage=column_sum case=2 index=0 actual=4 expected=3.75\nMISMATCH stage=column_sum case=2 index=1 actual=4 expected=3.75\nMISMATCH stage=column_sum case=2 index=2 actual=4 expected=3.75\nMISMATCH stage=column_sum case=2 index=3 actual=4 expected=3.75\nMISMATCH stage=column_sum case=2 index=4 actual=4 expected=3.75\nMISMATCH stage=column_sum case=2 index=5 actual=4 expected=3.75\nMISMATCH stage=column_sum case=2 index=6 actual=4 expected=3.75\nMISMATCH stage=column_sum case=2 index=7 actual=4 expected=3.75\nD01 stage=column_sum case=2 checked=3840 mismatches=3776 max_abs=inf status=FAIL\nD01_COMPLETE oracle_only=false mismatches=1300306 status=FAIL\n",
+      "performance_evidence": false
+    },
+    {
+      "kind": "canceled-stale-binary",
+      "job": {
+        "id": 72748,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-c01-d01-explicit-tail",
+        "status": "CANCELED",
+        "created_at": "2026-09-22T03:57:43Z",
+        "started_at": "2026-09-22T03:57:53Z",
+        "finished_at": "2026-09-22T03:57:53Z",
+        "duration_sec": 0.002306229,
+        "exit_code": -1,
+        "device_id": null,
+        "termination_reason": "canceled"
+      },
+      "package_files": {
+        "job.yaml": {
+          "bytes": 101,
+          "sha256": "6ac7f20191fe577e72fbfc09c6e70d1d0849eca9d0433aee40bf977d95c8769b"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 287,
+          "sha256": "d5291dacc1c7f50936d2da61cb26a6df21902c12df96ad557696f7d333a11dda"
+        },
+        "test_runtime": {
+          "bytes": 2242944,
+          "sha256": "2dcb3d97c0e05b8b1d0646918d868bcf44de540dbd2c843af1ea1e844c7b790c"
+        }
+      },
+      "log": "moa-dev/logs/c01-d01-canceled-stale-binary-job-72748.log",
+      "log_sha256": "685c31f35b0c86a2d0a86cbb930c4c13d0ece774ccee4cd68169f8d0f7ff9394",
+      "stages": [],
+      "rounding_model": [],
+      "log_text": "\n[rngd-job-scheduler] canceled by user\n",
+      "performance_evidence": false
+    },
+    {
+      "kind": "aligned-clear16-prefix112",
+      "job": {
+        "id": 72780,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-c01-d01-clear16-prefix112",
+        "status": "SUCCEEDED",
+        "created_at": "2026-09-22T04:11:53Z",
+        "started_at": "2026-09-22T04:12:00Z",
+        "finished_at": "2026-09-22T04:12:01Z",
+        "duration_sec": 0.821242761,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "package_files": {
+        "job.yaml": {
+          "bytes": 105,
+          "sha256": "e70a8c44235d4bb1b81bb0d9820e1b1b2df07e81c2bd2a97799c150950b2aa10"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 287,
+          "sha256": "d5291dacc1c7f50936d2da61cb26a6df21902c12df96ad557696f7d333a11dda"
+        },
+        "test_runtime": {
+          "bytes": 2253552,
+          "sha256": "7a6466005460951a4c0f52b4f0bf788bf829a875c1638b65627a97a8e27d8438"
+        }
+      },
+      "log": "moa-dev/logs/c01-d01-aligned-clear16-prefix112-job-72780.log",
+      "log_sha256": "5ab334e20a92f0706d5a8235d985291840a6c26799c7d3b6d31415d99fc48b97",
+      "stages": [
+        {
+          "stage": "partial128",
+          "case": 0,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "scale128",
+          "case": 0,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "local_dot",
+          "case": 0,
+          "checked": 30720,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "column_sum",
+          "case": 0,
+          "checked": 3840,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "partial128",
+          "case": 1,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "scale128",
+          "case": 1,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "local_dot",
+          "case": 1,
+          "checked": 30720,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "column_sum",
+          "case": 1,
+          "checked": 3840,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "partial128",
+          "case": 2,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "scale128",
+          "case": 2,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "local_dot",
+          "case": 2,
+          "checked": 30720,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "column_sum",
+          "case": 2,
+          "checked": 3840,
+          "mismatches": 0,
+          "details": "max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS"
+        }
+      ],
+      "rounding_model": [
+        "ROUNDING_MODEL case=0 changed_rows=0 max_abs=0 rounded_first=-823.75 original_first=-823.75",
+        "ROUNDING_MODEL case=1 changed_rows=0 max_abs=0 rounded_first=0.25 original_first=0.25",
+        "ROUNDING_MODEL case=2 changed_rows=3840 max_abs=1.75 rounded_first=3.5 original_first=1.75"
+      ],
+      "log_text": "ROUNDING_MODEL case=0 changed_rows=0 max_abs=0 rounded_first=-823.75 original_first=-823.75\nD01 case=0 LAUNCH_BEGIN\nD01 stage=partial128 case=0 checked=3932160 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01 stage=scale128 case=0 checked=3932160 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01 stage=local_dot case=0 checked=30720 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01 stage=column_sum case=0 checked=3840 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nROUNDING_MODEL case=1 changed_rows=0 max_abs=0 rounded_first=0.25 original_first=0.25\nD01 case=1 LAUNCH_BEGIN\nD01 stage=partial128 case=1 checked=3932160 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01 stage=scale128 case=1 checked=3932160 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01 stage=local_dot case=1 checked=30720 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01 stage=column_sum case=1 checked=3840 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nROUNDING_MODEL case=2 changed_rows=3840 max_abs=1.75 rounded_first=3.5 original_first=1.75\nD01 case=2 LAUNCH_BEGIN\nD01 stage=partial128 case=2 checked=3932160 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01 stage=scale128 case=2 checked=3932160 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01 stage=local_dot case=2 checked=30720 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01 stage=column_sum case=2 checked=3840 mismatches=0 max_abs=0 prefix_mismatches=0 cleared_mismatches=0 status=PASS\nD01_COMPLETE oracle_only=false mismatches=0 status=PASS\n",
+      "performance_evidence": false
+    },
+    {
+      "kind": "bf16-clear8-full120",
+      "job": {
+        "id": 72783,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-c01-d01-bf16-clear8",
+        "status": "SUCCEEDED",
+        "created_at": "2026-09-22T04:13:34Z",
+        "started_at": "2026-09-22T04:13:34Z",
+        "finished_at": "2026-09-22T04:13:35Z",
+        "duration_sec": 0.82498278,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "package_files": {
+        "job.yaml": {
+          "bytes": 99,
+          "sha256": "83f1d2349281e34aa2d4a2c34f6f2db907c35babd4de32fceb7996a500c73872"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 287,
+          "sha256": "d5291dacc1c7f50936d2da61cb26a6df21902c12df96ad557696f7d333a11dda"
+        },
+        "test_runtime": {
+          "bytes": 2256352,
+          "sha256": "ce61f8a343ab79a916343564a5d777f5a7b4c315b2d87b792be33cd289f2d570"
+        }
+      },
+      "log": "moa-dev/logs/c01-d01-bf16-clear8-full120-job-72783.log",
+      "log_sha256": "eb26cdb39a085c59781d1ff1f486af10cdc3309f6a6d083f18c73376c8be5489",
+      "stages": [
+        {
+          "stage": "partial128",
+          "case": 0,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "scale128",
+          "case": 0,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "local_dot",
+          "case": 0,
+          "checked": 30720,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "column_sum",
+          "case": 0,
+          "checked": 3840,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "partial128",
+          "case": 1,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "scale128",
+          "case": 1,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "local_dot",
+          "case": 1,
+          "checked": 30720,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "column_sum",
+          "case": 1,
+          "checked": 3840,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "partial128",
+          "case": 2,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "scale128",
+          "case": 2,
+          "checked": 3932160,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "local_dot",
+          "case": 2,
+          "checked": 30720,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        },
+        {
+          "stage": "column_sum",
+          "case": 2,
+          "checked": 3840,
+          "mismatches": 0,
+          "details": "max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS"
+        }
+      ],
+      "rounding_model": [
+        "ROUNDING_MODEL case=0 changed_rows=0 max_abs=0 rounded_first=-580.5 original_first=-580.5",
+        "ROUNDING_MODEL case=1 changed_rows=0 max_abs=0 rounded_first=0.25 original_first=0.25",
+        "ROUNDING_MODEL case=2 changed_rows=3840 max_abs=1.875 rounded_first=3.75 original_first=1.875"
+      ],
+      "log_text": "ROUNDING_MODEL case=0 changed_rows=0 max_abs=0 rounded_first=-580.5 original_first=-580.5\nD01 case=0 LAUNCH_BEGIN\nD01 stage=partial128 case=0 checked=3932160 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01 stage=scale128 case=0 checked=3932160 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01 stage=local_dot case=0 checked=30720 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01 stage=column_sum case=0 checked=3840 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nROUNDING_MODEL case=1 changed_rows=0 max_abs=0 rounded_first=0.25 original_first=0.25\nD01 case=1 LAUNCH_BEGIN\nD01 stage=partial128 case=1 checked=3932160 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01 stage=scale128 case=1 checked=3932160 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01 stage=local_dot case=1 checked=30720 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01 stage=column_sum case=1 checked=3840 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nROUNDING_MODEL case=2 changed_rows=3840 max_abs=1.875 rounded_first=3.75 original_first=1.875\nD01 case=2 LAUNCH_BEGIN\nD01 stage=partial128 case=2 checked=3932160 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01 stage=scale128 case=2 checked=3932160 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01 stage=local_dot case=2 checked=30720 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01 stage=column_sum case=2 checked=3840 mismatches=0 max_abs=0 live_mismatches=0 tail_mismatches=0 status=PASS\nD01_COMPLETE oracle_only=false mismatches=0 status=PASS\n",
+      "performance_evidence": false
+    }
+  ],
+  "full120_fixed_total_comparisons": 23696640,
+  "operational_error": "72748 uploaded unchanged original binary after a failed tail-fix compile. Canceled before kernel execution; excluded from correctness/performance. Packaging now requires successful checked subprocesses and exact image-to-host checks."
+}

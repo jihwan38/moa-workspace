@@ -12,20 +12,20 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 90개 커널별 비교/진단 항목. 시간순 원장의 E1–E64 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.
+수록: 95개 커널별 비교/진단 항목. 시간순 원장의 E1–E67 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
 | 분류 | 항목 수 |
 |---|---:|
 | [빨라진 기록](#improved) | 32 |
-| [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 9 |
-| [느리게 측정됨](#regressed) | 15 |
+| [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 10 |
+| [느리게 측정됨](#regressed) | 17 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 1 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
 | [정확도 실패·실행 실패](#invalid) | 13 |
-| [대조군·기존 커널 조합](#control) | 6 |
-| [컴파일·정적 분석만 수행](#static_only) | 12 |
+| [대조군·기존 커널 조합](#control) | 7 |
+| [컴파일·정적 분석만 수행](#static_only) | 13 |
 
 <a id="improved"></a>
 
@@ -72,6 +72,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 
 | 실험·방법 | 대상 | 비교 기준 → 후보 cycles | 변화 | job 수 | 판정·후속 근거 |
 |---|---|---|---:|---:|---|
+| [E65 · up/gate BF16 partial scale-DPE + streamed decode](e65-c01-upgate-scale-dpe-repeats.json) | FFN | [E55 C01 대조](e55-c01-control-repeats.json): 378,270 → 367,967 | -2.72% | 3 → 3 | 기본 3회·추가 6입력 PASS. 중앙값 −2.72%이나 측정 범위가 93 cycles 겹쳐 미채택. BF16 partial 반올림 추가. [근거1](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md) |
 | [E59 · down scale DM pitch 120→128B](e59-down-scale-repeats.json) | FFN | [E55 재측정](e55-memory-layout-control-repeats.json): 379,073 → 378,149 | -0.24% | 3 → 3 | 작은 감소. 후보 범위 1.32%, 기준 0.94%로 job 중앙값 분포가 겹침; 미채택. [근거1](../../moa-dev/experiments/candidates/memory-layout-e55/README.md) |
 | [E63 · BF16 QKV 8→16-way row interleave](e63-qkv-sixteen-row-repeats.json) | QKV | [E55 재측정](e55-memory-layout-control-repeats.json): 103,858 → 104,525 | +0.64% | 3 → 3 | 반복 3회에서 개선 없음; E52의 FP8 입력 후보와 구분. 미채택. [근거1](../../moa-dev/experiments/candidates/memory-layout-e55/README.md) |
 | [E62 · down BF16 행 간격 +32B](e62-down-bf16-skew-screen.json) | FFN | [E55 재측정](e55-memory-layout-control-repeats.json): 379,073 → 382,908 | +1.01% | 3 → 1 | 단회 약 1% 증가; 이득이 없어서 미채택. 반복으로 확정한 회귀는 아님. |
@@ -88,6 +89,8 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 
 | 실험·방법 | 대상 | 비교 기준 → 후보 cycles | 변화 | job 수 | 판정·후속 근거 |
 |---|---|---|---:|---:|---|
+| [E66 · down scale-DPE + 실제 BF16 zero tail](e66-c01-down-scale-dpe.json) | FFN | [E55 C01 대조](e55-c01-control-repeats.json): 378,270 → 413,913 | +9.42% | 3 → 1 | D01 padding 수정 후 기본15 PASS. 단회 +9.42%; 추가 입력·반복 없이 중단. Compact120→128 복사 비용 포함. [근거1](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md) |
+| [E67 · up/gate + down scale-DPE 결합](e67-c01-combined-scale-dpe.json) | FFN | [E55 C01 대조](e55-c01-control-repeats.json): 378,270 → 392,118 | +3.66% | 3 → 1 | 기본15 PASS. 단회 +3.66%로 미채택. 두 단독 개선율의 합으로 조합 성능을 추정하지 않음. [근거1](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md), [근거2](combinations/e67-scale-dpe.md) |
 | [E64 · column-major 적재 후 DM 재배치](e64-output-column-major-screen.json) | O | [E55 재측정](e55-memory-layout-control-repeats.json): 51,445 → 128,411 | +149.61% | 3 → 1 | 단회 큰 회귀. 필요한 재배치 비용 포함; 미채택. [근거1](../../moa-dev/experiments/candidates/memory-layout-e55/README.md) |
 | [E61 · up/gate BF16 행 간격 +32B](e61-up-gate-bf16-skew-screen.json) | FFN | [E55 재측정](e55-memory-layout-control-repeats.json): 379,073 → 387,214 | +2.15% | 3 → 1 | 정적 schedule 감소와 달리 장치에서는 느림. 단회 screen; 미채택. |
 | [E60 · down packed pitch+scale pitch 조합](e60-down-both-screen.json) | FFN | [E55 재측정](e55-memory-layout-control-repeats.json): 379,073 → 394,900 | +4.18% | 3 → 1 | E58+E59의 동시 적용. 단회 회귀; 각 변화율을 더해 조합 효과로 쓰지 않음. [근거1](combinations/e60-down-padding.md) |
@@ -147,6 +150,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 
 | 실험·방법 | 대상 | 비교 기준 → 후보 cycles | 변화 | job 수 | 판정·후속 근거 |
 |---|---|---|---:|---:|---|
+| [E55-control-C01 · C01 동시기 E55 재측정](e55-c01-control-repeats.json) | FFN | [E55 채택 당시](e55-fused-qkv-repeats.json): 380,339 → 378,270 | -0.54% | 3 → 3 | 동일 E55 package 3회. E65–E67 비교 기준이며 채택 코드는 변경 없음. [근거1](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md) |
 | [E37-QKV · 커널별 RMS 조합](e37-combined-repeats.json) | QKV | [E29](e29-qkv-input-control-repeats.json): 94,491 → 94,195 | -0.31% | 3 → 3 | QKV는 E29 image 그대로 재사용. 동일 image의 측정 차이를 새 최적화 효과로 세지 않음. [근거1](../../moa-dev/experiments/candidates/kernel-specific-rms/README.md) |
 | [E37-FFN · E29 QKV+E36 O/FFN 조합](e37-combined-repeats.json) | FFN | [E36](e36-ffn-parallel-epilogue.json): 378,021 → 379,741 | +0.46% | 1 → 3 | FFN은 E36 image 그대로. 새 조합 package의 반복·추가 입력 통과 기록. [근거1](../../moa-dev/experiments/candidates/kernel-specific-rms/README.md) |
 | [E30 · explicit ×1 없는 paired control](e30-pair-skip-control.json) | QKV | [E27](e27-qk-pair-v-two-dot.json): 97,247 → 98,599 | +1.39% | 1 → 1 | 정확도 진단용 paired control. pair 명령 하나로 모든 과거 실패의 원인을 설명하지 않음. [근거1](../../moa-dev/experiments/candidates/qkv-fp8-explicit-hi-identity/control-audit.md) |
@@ -160,6 +164,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 
 | 실험·방법 | 대상 | 비교 기준 → 후보 cycles | 변화 | job 수 | 판정·후속 근거 |
 |---|---|---|---:|---:|---|
+| S-C01-materialized · 전체 BF16 weight DM 유지한 up/gate scale-DPE | FFN | Arena 미측정 | — | 0 | 정적 162,209→202,779 (+25.01%). Compile PASS, NPU 미실행. Streamed 후보는 별도 E65. [근거1](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md) |
 | S-QKV-shared-TRF · Q/K/V 공통 TRF | QKV | Arena 미측정 | — | 0 | 정적 51,293→52,562로 증가. NPU 미실행. [근거1](../../moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/README.md) |
 | S-QKV-broadcast-TRF · Switch로 TRF broadcast | QKV | Arena 미측정 | — | 0 | Switch bitmap 제약으로 compile 실패. NPU 미실행. [근거1](../../moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/README.md) |
 | S-QKV-interleaved-KV · BF16 K/V interleaved fusion | QKV | Arena 미측정 | — | 0 | axis identity 검사에서 compile 실패. NPU 미실행. [근거1](../../moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/README.md) |
