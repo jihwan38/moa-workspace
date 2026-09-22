@@ -1,5 +1,11 @@
 # Experiment ledger
 
+Browse by outcome: [최적화 방법별 결과](optimization-results.md).
+The [current baseline recipe](../../baseline/README.md) lists active methods, parameters,
+source symbols and coupling. Use the [combination template](combination-template.md) to
+record additions, removals and parameter changes; [E60](combinations/e60-down-padding.md)
+is a completed example from existing measurements. This ledger preserves chronology.
+
 The [E57–E64 memory-layout audit](../research/e55-memory-layout-audit.md) covers
 eight hardware-tested candidates across QKV, O and FFN. All 225 comparisons in
 15 unique candidate/control jobs passed. E59's three-job −0.24% FFN difference

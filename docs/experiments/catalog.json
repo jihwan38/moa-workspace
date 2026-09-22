@@ -1,0 +1,998 @@
+{
+  "schema_version": 1,
+  "coverage": "시간순 원장의 E1–E64 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.",
+  "entries": [
+    {
+      "id": "E55",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "BF16 dot와 F32 channel scale fusion",
+      "note": "현재 채택. 반복 3회·추가 입력·QKV 상쇄 진단 통과. O/FFN image는 E54와 같음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-bf16-fused-channel-scale-e54/README.md"
+      ],
+      "report": "docs/experiments/e55-fused-qkv-repeats.json",
+      "reference": "docs/experiments/e54-bf16-qkv-repeats.json",
+      "reference_label": "E54"
+    },
+    {
+      "id": "E59",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "down scale DM pitch 120→128B",
+      "note": "작은 감소. 후보 범위 1.32%, 기준 0.94%로 job 중앙값 분포가 겹침; 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/memory-layout-e55/README.md"
+      ],
+      "report": "docs/experiments/e59-down-scale-repeats.json",
+      "reference": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference_label": "E55 재측정"
+    },
+    {
+      "id": "E63",
+      "category": "inconclusive",
+      "kernel": "QKV",
+      "method": "BF16 QKV 8→16-way row interleave",
+      "note": "반복 3회에서 개선 없음; E52의 FP8 입력 후보와 구분. 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/memory-layout-e55/README.md"
+      ],
+      "report": "docs/experiments/e63-qkv-sixteen-row-repeats.json",
+      "reference": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference_label": "E55 재측정"
+    },
+    {
+      "id": "E64",
+      "category": "regressed",
+      "kernel": "O",
+      "method": "column-major 적재 후 DM 재배치",
+      "note": "단회 큰 회귀. 필요한 재배치 비용 포함; 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/memory-layout-e55/README.md"
+      ],
+      "report": "docs/experiments/e64-output-column-major-screen.json",
+      "reference": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference_label": "E55 재측정"
+    },
+    {
+      "id": "E62",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "down BF16 행 간격 +32B",
+      "note": "단회 약 1% 증가; 이득이 없어서 미채택. 반복으로 확정한 회귀는 아님.",
+      "evidence": [],
+      "report": "docs/experiments/e62-down-bf16-skew-screen.json",
+      "reference": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference_label": "E55 재측정"
+    },
+    {
+      "id": "E61",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "up/gate BF16 행 간격 +32B",
+      "note": "정적 schedule 감소와 달리 장치에서는 느림. 단회 screen; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e61-up-gate-bf16-skew-screen.json",
+      "reference": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference_label": "E55 재측정"
+    },
+    {
+      "id": "E60",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "down packed pitch+scale pitch 조합",
+      "note": "E58+E59의 동시 적용. 단회 회귀; 각 변화율을 더해 조합 효과로 쓰지 않음.",
+      "evidence": [
+        "docs/experiments/combinations/e60-down-padding.md"
+      ],
+      "report": "docs/experiments/e60-down-both-screen.json",
+      "reference": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference_label": "E55 재측정"
+    },
+    {
+      "id": "E58",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "down packed DM pitch 960→1024B",
+      "note": "단회 회귀; HBM source pitch는 그대로. 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e58-down-packed-screen.json",
+      "reference": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference_label": "E55 재측정"
+    },
+    {
+      "id": "E57",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "up/gate packed DM pitch 1920→2048B",
+      "note": "단회 회귀; 원래 연속 DMA가 row padding으로 분절됨. 미채택.",
+      "evidence": [
+        "docs/research/e55-memory-layout-audit.md"
+      ],
+      "report": "docs/experiments/e57-up-gate-packed-screen.json",
+      "reference": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference_label": "E55 재측정"
+    },
+    {
+      "id": "E56",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "up 16행 staged fused decode",
+      "note": "첫 FFN 비교의 within-tolerance 비율 30.96%, 이후 timeout. 정적 감소를 이득으로 집계하지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-up-sixteen-row-e55/README.md"
+      ],
+      "report": "docs/experiments/e56-up16-screen.json"
+    },
+    {
+      "id": "E54",
+      "category": "correctness_fix",
+      "kernel": "QKV",
+      "method": "BF16 activation과 scale 전 F32 보존",
+      "note": "E53 QKV 상쇄 진단 실패를 수정. 속도 비용이 있으며 이후 E55가 개선.",
+      "evidence": [
+        "docs/experiments/qkv-boundary-comparison.md"
+      ],
+      "report": "docs/experiments/e54-bf16-qkv-repeats.json",
+      "reference": "docs/experiments/e53-bf16-output-repeats.json",
+      "reference_label": "E53"
+    },
+    {
+      "id": "E53",
+      "category": "correctness_fix",
+      "kernel": "O",
+      "method": "BF16 activation과 scale 전 F32 보존",
+      "note": "E47 O 경계 실패를 수정. 이 O image는 E55에도 사용; 당시 QKV 제한은 E54에서 별도 수정.",
+      "evidence": [
+        "docs/experiments/output-boundary-comparison.md"
+      ],
+      "report": "docs/experiments/e53-bf16-output-repeats.json",
+      "reference": "docs/experiments/e47-output-sixteen-columns-repeats.json",
+      "reference_label": "E47"
+    },
+    {
+      "id": "E52",
+      "category": "inconclusive",
+      "kernel": "QKV",
+      "method": "FP8 QKV 16-way row interleave",
+      "note": "단회 사실상 동률. 정적 감소가 장치 이득으로 이어지지 않음; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e52-qkv-sixteen-row.json",
+      "reference": "docs/experiments/e47-output-sixteen-columns-repeats.json",
+      "reference_label": "E47"
+    },
+    {
+      "id": "E51",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "E47 O16+E50 down fused decode 반복",
+      "note": "E50의 초기 이득 재현 실패. 3회 중앙값은 기준보다 느림; 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-down-fused-decode-e37/README.md"
+      ],
+      "report": "docs/experiments/e51-o16-down-fused-repeats.json",
+      "reference": "docs/experiments/e47-output-sixteen-columns-repeats.json",
+      "reference_label": "E47"
+    },
+    {
+      "id": "E50",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "down-only fused decode 첫 screen",
+      "note": "첫 단회에는 소폭 감소했으나 조합 E51의 반복에서 이득 확인 못 함.",
+      "evidence": [
+        "docs/experiments/e51-o16-down-fused-repeats.json"
+      ],
+      "report": "docs/experiments/e50-down-fused-decode.json",
+      "reference": "docs/experiments/e37-combined-repeats.json",
+      "reference_label": "E37"
+    },
+    {
+      "id": "E48",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "up-only fused decode",
+      "note": "단회 소폭 증가. 성능 이득을 입증하지 못함; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e48-up-only-fused-decode.json",
+      "reference": "docs/experiments/e37-combined-repeats.json",
+      "reference_label": "E37"
+    },
+    {
+      "id": "E47",
+      "category": "accuracy_limited",
+      "kernel": "O",
+      "method": "16-column split",
+      "note": "당시 3회 성능 개선과 추가 입력 PASS. 이후 O 경계 검사 실패; E53 BF16 경로가 대체.",
+      "evidence": [
+        "docs/experiments/output-boundary-comparison.md"
+      ],
+      "report": "docs/experiments/e47-output-sixteen-columns-repeats.json",
+      "reference": "docs/experiments/e37-combined-repeats.json",
+      "reference_label": "E37"
+    },
+    {
+      "id": "E46",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "native FP8 F32 block partial+VE reduce",
+      "note": "채택 BF16 경로보다 느림. native 부모 E41보다도 약 1.84% 느림; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e46-native-f32-block-reduce.json",
+      "reference": "docs/experiments/e37-combined-repeats.json",
+      "reference_label": "E37"
+    },
+    {
+      "id": "E45",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "down scale HBM coalescing",
+      "note": "정적 약 0.43% 감소와 달리 장치 회귀; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e45-down-scale-coalesced.json",
+      "reference": "docs/experiments/e37-combined-repeats.json",
+      "reference_label": "E37"
+    },
+    {
+      "id": "E44",
+      "category": "regressed",
+      "kernel": "QKV",
+      "method": "V도 paired dot으로 변경",
+      "note": "단회 회귀; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e44-paired-value.json",
+      "reference": "docs/experiments/e37-combined-repeats.json",
+      "reference_label": "E37"
+    },
+    {
+      "id": "E42",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "native actual30+row256 mapping",
+      "note": "정확도 PASS지만 당시 채택 BF16 경로보다 느림; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e42-native-row30-row256.json",
+      "reference": "docs/experiments/e37-combined-repeats.json",
+      "reference_label": "E37"
+    },
+    {
+      "id": "E41",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "native actual30 rows",
+      "note": "정확도 PASS지만 당시 채택 BF16 경로보다 느림; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e41-native-row30.json",
+      "reference": "docs/experiments/e37-combined-repeats.json",
+      "reference_label": "E37"
+    },
+    {
+      "id": "E40",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "native FP8 row2 tail zero",
+      "note": "세 입력 모두 non-finite 출력. cycle 값은 유효 최적화 성능이 아님.",
+      "evidence": [],
+      "report": "docs/experiments/e40-row2-tail-zero.json"
+    },
+    {
+      "id": "E39",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "native two-row tail 초기화",
+      "note": "native 계열 내 개선만 확인. 당시 채택 E37의 379,741보다 여전히 느림; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e39-native-tail-zero.json",
+      "reference": "docs/experiments/e38-full256-directcommit.json",
+      "reference_label": "E38"
+    },
+    {
+      "id": "E38",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "full256 direct weight/scale commit",
+      "note": "native 계열 내 큰 개선. 당시 채택 E37의 379,741보다 느려 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e38-full256-directcommit.json",
+      "reference": "docs/experiments/e35-full256-native.json",
+      "reference_label": "E35"
+    },
+    {
+      "id": "E37-QKV",
+      "category": "control",
+      "kernel": "QKV",
+      "method": "커널별 RMS 조합",
+      "note": "QKV는 E29 image 그대로 재사용. 동일 image의 측정 차이를 새 최적화 효과로 세지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/kernel-specific-rms/README.md"
+      ],
+      "report": "docs/experiments/e37-combined-repeats.json",
+      "reference": "docs/experiments/e29-qkv-input-control-repeats.json",
+      "reference_label": "E29"
+    },
+    {
+      "id": "E37-FFN",
+      "category": "control",
+      "kernel": "FFN",
+      "method": "E29 QKV+E36 O/FFN 조합",
+      "note": "FFN은 E36 image 그대로. 새 조합 package의 반복·추가 입력 통과 기록.",
+      "evidence": [
+        "moa-dev/experiments/candidates/kernel-specific-rms/README.md"
+      ],
+      "report": "docs/experiments/e37-combined-repeats.json",
+      "reference": "docs/experiments/e36-ffn-parallel-epilogue.json",
+      "reference_label": "E36"
+    },
+    {
+      "id": "E36",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "down 이후 H480×8 epilogue",
+      "note": "단회 개선+추가 입력 PASS. E37 조합에서 반복 검증한 FFN image를 E55도 유지.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-parallel-epilogue/README.md"
+      ],
+      "report": "docs/experiments/e36-ffn-parallel-epilogue.json",
+      "reference": "docs/experiments/e31-rms-repeats.json",
+      "reference_label": "E31"
+    },
+    {
+      "id": "E35",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "native FP8 full256+zero tails",
+      "note": "정확도 PASS인 진단 후보지만 매우 느림; 이후 E38/E39 계열의 비교 부모.",
+      "evidence": [],
+      "report": "docs/experiments/e35-full256-native.json",
+      "reference": "docs/experiments/e31-rms-repeats.json",
+      "reference_label": "E31"
+    },
+    {
+      "id": "E34",
+      "category": "regressed",
+      "kernel": "O",
+      "method": "row2 interleave",
+      "note": "단회 회귀; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e34-output-row2-combined.json",
+      "reference": "docs/experiments/e31-rms-repeats.json",
+      "reference_label": "E31"
+    },
+    {
+      "id": "E33",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "BF16 down block-scale를 두 번째 DPE로",
+      "note": "within-tolerance 12.94–16.17%. 큰 오차의 원인은 확정되지 않음; 새 BF16 경계만의 탓으로 단정하지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-down-scale-contraction/README.md"
+      ],
+      "report": "docs/experiments/e33-down-scale-contraction.json"
+    },
+    {
+      "id": "E32",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "pair-free native FP8",
+      "note": "FFN timeout; 유효 성능 없음.",
+      "evidence": [],
+      "report": "docs/experiments/e32-pair-free-ffn.json"
+    },
+    {
+      "id": "E31",
+      "category": "improved",
+      "kernel": "O",
+      "method": "Switch-gather RMS",
+      "note": "3회 반복에서 이전 O보다 감소. 현재 R1이 계승하나 당시 O 입력 근사는 E53이 대체.",
+      "evidence": [],
+      "report": "docs/experiments/e31-rms-repeats.json",
+      "reference": "docs/experiments/e29-qkv-input-control-repeats.json",
+      "reference_label": "E29"
+    },
+    {
+      "id": "E30",
+      "category": "control",
+      "kernel": "QKV",
+      "method": "explicit ×1 없는 paired control",
+      "note": "정확도 진단용 paired control. pair 명령 하나로 모든 과거 실패의 원인을 설명하지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-fp8-explicit-hi-identity/control-audit.md"
+      ],
+      "report": "docs/experiments/e30-pair-skip-control.json",
+      "reference": "docs/experiments/e27-qk-pair-v-two-dot.json",
+      "reference_label": "E27"
+    },
+    {
+      "id": "E29-QKV",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "sharded input RMS",
+      "note": "당시 3회 반복 checkpoint. QKV의 FP8 입력 근사는 현재 Q4가 대체.",
+      "evidence": [],
+      "report": "docs/experiments/e29-qkv-input-control-repeats.json",
+      "reference": "docs/experiments/e27-qk-pair-v-two-dot.json",
+      "reference_label": "E27"
+    },
+    {
+      "id": "E29-O",
+      "category": "improved",
+      "kernel": "O",
+      "method": "direct packed FP8 input",
+      "note": "당시 3회 반복 checkpoint. 현재 O2는 BF16 입력을 유지.",
+      "evidence": [],
+      "report": "docs/experiments/e29-qkv-input-control-repeats.json",
+      "reference": "docs/experiments/e27-qk-pair-v-two-dot.json",
+      "reference_label": "E27"
+    },
+    {
+      "id": "E28",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "pair0에 explicit ×1",
+      "note": "FFN timeout. 통과한 QKV/O 수치와 묶어 전체 성공으로 기록하지 않음.",
+      "evidence": [],
+      "report": "docs/experiments/e28-explicit-pair-identity.json"
+    },
+    {
+      "id": "E27",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "Q/K paired dot+V separate two-dot",
+      "note": "단회+추가 입력 PASS. 당시 FP8 입력 근사 경로이며 현재 Q4가 대체.",
+      "evidence": [],
+      "report": "docs/experiments/e27-qk-pair-v-two-dot.json",
+      "reference": "docs/experiments/e24-native-output-safe-qkv-ffn.json",
+      "reference_label": "E24"
+    },
+    {
+      "id": "E26",
+      "category": "improved",
+      "kernel": "O",
+      "method": "8-slice scale/RMS/residual",
+      "note": "단회+추가 입력 PASS. 현재 O3의 배치 계열; 입력 근사는 E53이 대체.",
+      "evidence": [],
+      "report": "docs/experiments/e26-output-parallel-epilogue.json",
+      "reference": "docs/experiments/e24-native-output-safe-qkv-ffn.json",
+      "reference_label": "E24"
+    },
+    {
+      "id": "E25",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "native FP8+scale DPE",
+      "note": "FFN timeout; 유효 성능 없음.",
+      "evidence": [],
+      "report": "docs/experiments/e25-native-fp8-scale-dpe.json"
+    },
+    {
+      "id": "E24",
+      "category": "improved",
+      "kernel": "O",
+      "method": "native FP8 hi/lo 입력 dot",
+      "note": "단회+추가 입력 PASS였지만 입력 근사의 정확도 제한이 있음. 현재 O2가 대체.",
+      "evidence": [
+        "docs/research/output-bf16-fallback-e47.md"
+      ],
+      "report": "docs/experiments/e24-native-output-safe-qkv-ffn.json",
+      "reference": "docs/experiments/e18-best-repeats.json",
+      "reference_label": "E18"
+    },
+    {
+      "id": "E23",
+      "category": "invalid",
+      "kernel": "QKV/FFN",
+      "method": "KV reload+streamed BF16 scale DPE",
+      "note": "V 실패로 package 무효. FFN 단독 384,728은 세 입력 PASS인 진단값이며 E18 FFN보다 약 2% 낮음; 추가 입력·유효 조합 검증 없음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-scale-contraction-streamed/README.md"
+      ],
+      "report": "docs/experiments/e23-kv-reload-streamed-scale.json"
+    },
+    {
+      "id": "E22",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "native FP8 up/gate",
+      "note": "FFN timeout; 유효 성능 없음.",
+      "evidence": [],
+      "report": "docs/experiments/e22-native-ffn-upgate-safe-qkv.json"
+    },
+    {
+      "id": "E21",
+      "category": "invalid",
+      "kernel": "QKV",
+      "method": "row-interleaved native FP8",
+      "note": "Q/K PASS, V FAIL. 함께 측정한 O는 별도 유효 package E24로 다시 평가.",
+      "evidence": [],
+      "report": "docs/experiments/e21-row-fp8-qkv-native-output.json"
+    },
+    {
+      "id": "E20",
+      "category": "invalid",
+      "kernel": "QKV",
+      "method": "native FP8 paired dot",
+      "note": "Q/K PASS, V FAIL. 원인 분석은 별도 진단으로 보존.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-fp8-two-lane-diagnostics/README.md"
+      ],
+      "report": "docs/experiments/e20-qkv-fp8-two-lane-output-rms.json"
+    },
+    {
+      "id": "E19",
+      "category": "regressed",
+      "kernel": "QKV",
+      "method": "FP8 hi/lo 두 번의 dot",
+      "note": "단회 회귀. 단순 dtype 축소가 전체 속도 향상으로 이어지지 않음.",
+      "evidence": [],
+      "report": "docs/experiments/e19-qkv-fp8-split-two-dot.json",
+      "reference": "docs/experiments/e18-best-repeats.json",
+      "reference_label": "E18"
+    },
+    {
+      "id": "E18",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "8-way row interleave",
+      "note": "3회 반복+추가 입력 PASS. Q3 배치의 초기 근거.",
+      "evidence": [],
+      "report": "docs/experiments/e18-best-repeats.json",
+      "reference": "docs/experiments/e15-best-repeats.json",
+      "reference_label": "E15"
+    },
+    {
+      "id": "E17",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "down 2-column+HBM relay",
+      "note": "단회 회귀; 미채택.",
+      "evidence": [],
+      "report": "docs/experiments/e17-down-two-columns-hbm.json",
+      "reference": "docs/experiments/e16-parallel-ffn-residual.json",
+      "reference_label": "E16"
+    },
+    {
+      "id": "E16",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "residual/layer scale 병렬화",
+      "note": "단회 개선; 이후 E18 package 반복·추가 입력에 포함.",
+      "evidence": [],
+      "report": "docs/experiments/e16-parallel-ffn-residual.json",
+      "reference": "docs/experiments/e15-best-repeats.json",
+      "reference_label": "E15"
+    },
+    {
+      "id": "E15",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "down blockscale+두 단계 decode",
+      "note": "3회 반복+추가 입력 PASS. 현재 F2/F3 down 경로의 계열.",
+      "evidence": [],
+      "report": "docs/experiments/e15-best-repeats.json",
+      "reference": "docs/experiments/e14-headnorm-output-columns.json",
+      "reference_label": "E14"
+    },
+    {
+      "id": "E14-QKV",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "head-parallel RMS/RoPE 배치",
+      "note": "단회 개선; 이후 E15/E18 반복 checkpoint에 포함.",
+      "evidence": [],
+      "report": "docs/experiments/e14-headnorm-output-columns.json",
+      "reference": "docs/experiments/e12-ffn-blockscale-bf16-reuse.json",
+      "reference_label": "E12"
+    },
+    {
+      "id": "E14-O",
+      "category": "improved",
+      "kernel": "O",
+      "method": "8-column split",
+      "note": "단회 개선. 현재는 O1의 16-column 배치.",
+      "evidence": [],
+      "report": "docs/experiments/e14-headnorm-output-columns.json",
+      "reference": "docs/experiments/e12-ffn-blockscale-bf16-reuse.json",
+      "reference_label": "E12"
+    },
+    {
+      "id": "E13",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "FP4 LUT→F32→BF16 fused decode",
+      "note": "FFN 정확도 실패 후 timeout. compile/static 이득은 채택 근거가 아님.",
+      "evidence": [],
+      "report": "docs/experiments/e13-ffn-blockscale-fused-bf16.json"
+    },
+    {
+      "id": "E12",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "unscaled BF16 up/gate 재사용",
+      "note": "단회 소폭 개선. F32 합산 순서가 바뀌며 후속 E15/E18에서 반복·추가 입력 검증.",
+      "evidence": [],
+      "report": "docs/experiments/e12-ffn-blockscale-bf16-reuse.json",
+      "reference": "docs/experiments/e11-ffn-larger-tiles.json",
+      "reference_label": "E11"
+    },
+    {
+      "id": "E11",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "up/gate 8행·down 12행 tile",
+      "note": "단회 개선. 현재 F4의 tile 크기.",
+      "evidence": [],
+      "report": "docs/experiments/e11-ffn-larger-tiles.json",
+      "reference": "docs/experiments/e10-ffn-all-two-cluster.json",
+      "reference_label": "E10"
+    },
+    {
+      "id": "E10",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "up/gate/down 모두 두 cluster",
+      "note": "단회 큰 개선+추가 입력 PASS. 현재 F1 배치의 계열.",
+      "evidence": [],
+      "report": "docs/experiments/e10-ffn-all-two-cluster.json",
+      "reference": "docs/experiments/e9-upgate2-norm32-parallel-residual.json",
+      "reference_label": "E9"
+    },
+    {
+      "id": "E9-FFN",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "up/gate 두 cluster",
+      "note": "단회 큰 개선. 이후 down도 E10에서 확장.",
+      "evidence": [],
+      "report": "docs/experiments/e9-upgate2-norm32-parallel-residual.json",
+      "reference": "docs/experiments/e8-blockscale-o2-ring32.json",
+      "reference_label": "E8"
+    },
+    {
+      "id": "E9-O",
+      "category": "improved",
+      "kernel": "O",
+      "method": "parallel residual",
+      "note": "단회 개선; 이후 O3의 분할 epilogue로 확장.",
+      "evidence": [],
+      "report": "docs/experiments/e9-upgate2-norm32-parallel-residual.json",
+      "reference": "docs/experiments/e8-blockscale-o2-ring32.json",
+      "reference_label": "E8"
+    },
+    {
+      "id": "E9-QKV",
+      "category": "inconclusive",
+      "kernel": "QKV",
+      "method": "replicated norm32",
+      "note": "단회 소폭 증가; QKV 개선 근거로 세지 않음.",
+      "evidence": [],
+      "report": "docs/experiments/e9-upgate2-norm32-parallel-residual.json",
+      "reference": "docs/experiments/e8-blockscale-o2-ring32.json",
+      "reference_label": "E8"
+    },
+    {
+      "id": "E8-QKV",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "ring32 input broadcast",
+      "note": "단회 개선; 현재 Q2의 복제 방식.",
+      "evidence": [],
+      "report": "docs/experiments/e8-blockscale-o2-ring32.json",
+      "reference": "docs/experiments/e7-qkv-two-clusters.json",
+      "reference_label": "E7"
+    },
+    {
+      "id": "E8-O",
+      "category": "improved",
+      "kernel": "O",
+      "method": "두 cluster output",
+      "note": "단회 큰 개선; 현재 O1의 두 cluster 경로.",
+      "evidence": [],
+      "report": "docs/experiments/e8-blockscale-o2-ring32.json",
+      "reference": "docs/experiments/e7-qkv-two-clusters.json",
+      "reference_label": "E7"
+    },
+    {
+      "id": "E8-FFN",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "첫 blockscale FFN 조합",
+      "note": "E6보다 느림. 같은 E8의 QKV/O 이득을 FFN에도 적용하지 않음.",
+      "evidence": [],
+      "report": "docs/experiments/e8-blockscale-o2-ring32.json",
+      "reference": "docs/experiments/e6-all-unrolled.json",
+      "reference_label": "E6"
+    },
+    {
+      "id": "E7-QKV",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "두 cluster QKV",
+      "note": "단회 개선.",
+      "evidence": [],
+      "report": "docs/experiments/e7-qkv-two-clusters.json",
+      "reference": "docs/experiments/e6-all-unrolled.json",
+      "reference_label": "E6"
+    },
+    {
+      "id": "E7-FFN",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "hierarchical input broadcast",
+      "note": "단회 1.07% 증가. QKV 개선과 구분하고 FFN 이득을 주장하지 않음.",
+      "evidence": [],
+      "report": "docs/experiments/e7-qkv-two-clusters.json",
+      "reference": "docs/experiments/e6-all-unrolled.json",
+      "reference_label": "E6"
+    },
+    {
+      "id": "E6",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "MLP/residual 정적 loop expansion",
+      "note": "단회 큰 개선; 이후 조합의 기반.",
+      "evidence": [],
+      "report": "docs/experiments/e6-all-unrolled.json",
+      "reference": "docs/experiments/e5-ffn-four-row-repeat.json",
+      "reference_label": "E5"
+    },
+    {
+      "id": "E1-hier-QKV",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "hierarchical input replication",
+      "note": "단회 개선; HBM relay 이후 비교.",
+      "evidence": [],
+      "report": "docs/experiments/e1-hierarchical-16.json",
+      "reference": "docs/experiments/e1-qkv-hbm-relay.json",
+      "reference_label": "E1A"
+    },
+    {
+      "id": "E1-hier-O",
+      "category": "improved",
+      "kernel": "O",
+      "method": "hierarchical input replication",
+      "note": "단회 개선; HBM relay package의 O와 비교.",
+      "evidence": [],
+      "report": "docs/experiments/e1-hierarchical-16.json",
+      "reference": "docs/experiments/e1-qkv-hbm-relay.json",
+      "reference_label": "E1A"
+    },
+    {
+      "id": "E1-relay",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "HBM relay input broadcast",
+      "note": "단회 개선. 현재 방식 자체는 후속 ring32로 대체.",
+      "evidence": [],
+      "report": "docs/experiments/e1-qkv-hbm-relay.json",
+      "reference": "docs/experiments/e5-ffn-four-row-repeat.json",
+      "reference_label": "E5"
+    },
+    {
+      "id": "E5-four",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "direct-layout·4행 commit",
+      "note": "3회 반복+추가 입력 PASS. 앞선 두 행 commit 실패와 구분.",
+      "evidence": [],
+      "report": "docs/experiments/e5-ffn-four-row-repeat.json",
+      "reference": "docs/experiments/baseline-rngd.json",
+      "reference_label": "원본"
+    },
+    {
+      "id": "E5-two",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "direct-layout·2행 commit",
+      "note": "정확도 실패. 낮은 cycles를 유효한 개선으로 집계하지 않음.",
+      "evidence": [],
+      "report": "docs/experiments/e5-ffn-direct.json"
+    },
+    {
+      "id": "E4",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "2행 commit 단독",
+      "note": "정확도 실패; 공통 two-row 경로를 분리한 진단.",
+      "evidence": [],
+      "report": "docs/experiments/e4-ffn-two-row.json"
+    },
+    {
+      "id": "E3-direct",
+      "category": "improved",
+      "kernel": "O",
+      "method": "direct HBM replication",
+      "note": "단회 개선; 이후 배치 변경 전의 기록.",
+      "evidence": [],
+      "report": "docs/experiments/e3-direct-hbm.json",
+      "reference": "docs/experiments/e3-output-256rows.json",
+      "reference_label": "E3A"
+    },
+    {
+      "id": "E3-rows",
+      "category": "improved",
+      "kernel": "O",
+      "method": "256-row slices",
+      "note": "단회 큰 개선.",
+      "evidence": [],
+      "report": "docs/experiments/e3-output-256rows.json",
+      "reference": "docs/experiments/e2-fp8-fusion.json",
+      "reference_label": "E2"
+    },
+    {
+      "id": "E2-QKV",
+      "category": "improved",
+      "kernel": "QKV",
+      "method": "FP8 weight lookup+contraction fusion",
+      "note": "단회 개선. weight의 BF16 중간 저장을 줄이는 초기 경로.",
+      "evidence": [],
+      "report": "docs/experiments/e2-fp8-fusion.json",
+      "reference": "docs/experiments/baseline-rngd.json",
+      "reference_label": "원본"
+    },
+    {
+      "id": "E2-O",
+      "category": "improved",
+      "kernel": "O",
+      "method": "FP8 weight lookup+contraction fusion",
+      "note": "단회 개선. 현재 O2도 lookup을 dot에 연결.",
+      "evidence": [],
+      "report": "docs/experiments/e2-fp8-fusion.json",
+      "reference": "docs/experiments/baseline-rngd.json",
+      "reference_label": "원본"
+    },
+    {
+      "id": "E55-control-QKV",
+      "category": "control",
+      "kernel": "QKV",
+      "method": "메모리 실험 시 E55 재측정",
+      "note": "같은 E55 source/image의 별도 시점 측정. source 변경 효과로 해석하지 않음.",
+      "evidence": [],
+      "report": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference": "docs/experiments/e55-fused-qkv-repeats.json",
+      "reference_label": "E55"
+    },
+    {
+      "id": "E55-control-O",
+      "category": "control",
+      "kernel": "O",
+      "method": "메모리 실험 시 E55 재측정",
+      "note": "E57–E64는 이전 측정 대신 이 동시기 반복 대조와 비교.",
+      "evidence": [],
+      "report": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference": "docs/experiments/e55-fused-qkv-repeats.json",
+      "reference_label": "E55"
+    },
+    {
+      "id": "E55-control-FFN",
+      "category": "control",
+      "kernel": "FFN",
+      "method": "메모리 실험 시 E55 재측정",
+      "note": "동시기 FFN 대조의 job 중앙값 범위 0.94%.",
+      "evidence": [],
+      "report": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "reference": "docs/experiments/e55-fused-qkv-repeats.json",
+      "reference_label": "E55"
+    },
+    {
+      "id": "S-QKV-shared-TRF",
+      "category": "static_only",
+      "kernel": "QKV",
+      "method": "Q/K/V 공통 TRF",
+      "note": "정적 51,293→52,562로 증가. NPU 미실행.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/README.md"
+      ]
+    },
+    {
+      "id": "S-QKV-broadcast-TRF",
+      "category": "static_only",
+      "kernel": "QKV",
+      "method": "Switch로 TRF broadcast",
+      "note": "Switch bitmap 제약으로 compile 실패. NPU 미실행.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/README.md"
+      ]
+    },
+    {
+      "id": "S-QKV-interleaved-KV",
+      "category": "static_only",
+      "kernel": "QKV",
+      "method": "BF16 K/V interleaved fusion",
+      "note": "axis identity 검사에서 compile 실패. NPU 미실행.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/README.md"
+      ]
+    },
+    {
+      "id": "S-O-BF16-cols8",
+      "category": "static_only",
+      "kernel": "O",
+      "method": "BF16 O 8-column split",
+      "note": "정적 27,239→27,752로 증가. 기존 FP8 O8 기록과 다름.",
+      "evidence": [
+        "moa-dev/experiments/candidates/output-bf16-eight-columns-e53/README.md"
+      ]
+    },
+    {
+      "id": "S-O-scale-fusion",
+      "category": "static_only",
+      "kernel": "O",
+      "method": "BF16 O channel scale fusion",
+      "note": "정적 +154 cycles; scale DMA 비용 포함. NPU 미실행.",
+      "evidence": [
+        "moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/README.md"
+      ]
+    },
+    {
+      "id": "S-FFN-pre-RMS",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "입력 RMS shard 변경",
+      "note": "두 변형 모두 정적 증가(+0.32%/+1.24%). NPU 미실행.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-sharded-input-rms-e53/README.md"
+      ]
+    },
+    {
+      "id": "S-FFN-up-tile8",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "up 8행 staged fused decode",
+      "note": "첫 in-place 소유권 compile 실패, 최종 owned tensor compile PASS. 정적 162,209→162,644. NPU 미실행.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/README.md"
+      ]
+    },
+    {
+      "id": "E43",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "down activation hierarchical broadcast",
+      "note": "4개 compile 실패 후 최종 compile PASS. 정적 162,209→166,181; NPU 미실행.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-down-activation-broadcast-four/README.md"
+      ]
+    },
+    {
+      "id": "S-FFN-row-interleave",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "BF16 row interleave",
+      "note": "자체 정적 기준 대비 +8.31%. NPU 미실행.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-bf16-row-interleave/README.md"
+      ]
+    },
+    {
+      "id": "S-memory-down-axis",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "unsplit L 축의 down pitch padding 3종",
+      "note": "packed/scale/both 모두 cannot factorize common axis L로 compile 실패. 수정 후 실행한 후보는 E58/E59/E60.",
+      "evidence": [
+        "moa-dev/experiments/candidates/memory-layout-e55/README.md"
+      ]
+    },
+    {
+      "id": "S-memory-skew8",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "BF16 row skew +8B 2종",
+      "note": "up/gate·down 모두 32B commit 제약으로 compile 실패. 수정 +32B 후보는 E61/E62.",
+      "evidence": [
+        "moa-dev/experiments/candidates/memory-layout-e55/README.md"
+      ]
+    },
+    {
+      "id": "S-memory-O-direct",
+      "category": "static_only",
+      "kernel": "O",
+      "method": "직접 column-major 계산",
+      "note": "reduction 축이 Partitioning 최내부여야 한다는 제약으로 compile 실패. 실제 재배치 비용을 포함한 후보가 E64.",
+      "evidence": [
+        "moa-dev/experiments/candidates/memory-layout-e55/README.md"
+      ]
+    }
+  ]
+}

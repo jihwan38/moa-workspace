@@ -6,6 +6,11 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
+[현재 baseline 구성](baseline/README.md)에서 E55에 적용한 15개 방법의 코드·설정·의존 관계를
+확인할 수 있다. [성능별 실험 분류](docs/experiments/optimization-results.md)는 빨라진 후보,
+차이 미확인, 회귀, 정확도 실패를 비교 기준과 함께 정리한다.
+새 조합은 [추가·제거·변경 기록 양식](docs/experiments/combination-template.md)을 사용한다.
+
 `opt/ffn-dataflow`의 후속 [메모리 배치 실험 E57–E64](docs/research/e55-memory-layout-audit.md)은
 QKV·O·FFN 변경 후보 8개를 Arena에서 실행했다. 정확도 검사는 통과했지만 반복 가능한 성능
 개선을 확보하지 못해 runtime은 E55를 유지한다. 결과·실패 원인·재현 source를 함께 보존했다.
