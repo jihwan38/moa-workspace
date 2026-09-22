@@ -10,6 +10,16 @@ QKV103764 / O51033 / FFN354648,15 comparisons PASS. The [public leaderboard snap
 already shows this submission for BEEF at rank41 of60 teams.
 E55/E74 source and measurements remain frozen comparison controls. QKV/O images are unchanged.
 
+[C07](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) replaces the FFN
+execution structure with native FP8 terms and compares scale-DPE, F32 VE, compensated partials,
+row layouts, column splits and input/weight materialization. E86–E104 cover 19 basic hardware
+configurations; the fastest passing basic screen is E93 at **316977 versus 352705 cycles (−10.13%)**.
+This is a single allocation, not an adopted speedup. Separate projection diagnostics expose
+incorrect rows/timeouts in some E5 designs, and CPU counterexamples delimit E4/partial precision.
+[Final validation/adoption decision](../../moa-dev/experiments/candidates/c07-native-scale-dpe/decision.json)
+and [measurement table](../../moa-dev/experiments/candidates/c07-native-scale-dpe/measurements.md)
+keep these observations distinct. Failed builds and exact attempted sources are retained.
+
 Browse by outcome: [최적화 방법별 결과](optimization-results.md).
 The [current baseline recipe](../../baseline/README.md) lists active methods, parameters,
 source symbols and coupling. Use the [combination template](combination-template.md) to

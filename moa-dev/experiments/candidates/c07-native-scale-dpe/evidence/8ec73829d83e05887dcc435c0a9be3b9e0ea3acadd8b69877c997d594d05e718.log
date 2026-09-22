@@ -1,0 +1,24 @@
+error[E0599]: the method `vector_inter_slice_reduce` exists for struct `VectorTensor<'_, Main, ..., f32, ..., ..., ..., ..., ..., ..., IntraFirst, ..., Way8>`, but its trait bounds were not satisfied
+   --> src/device/shared/mlp.rs:450:10
+    |
+447 |       let down: DmTensor<f32, Chip, DownCluster, DownRows, m![H % 30]> = device.main
+    |  ________________________________________________________________________-
+448 | |         .begin(partial.view()).fetch::<m![H % 30], m![1 # 8]>().collect::<m![H % 30], m![1 # 8]>()
+449 | |         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+450 | |         .vector_inter_slice_reduce::<DownRows, m![H % 30]>(InterSliceReduceOpF32::Add)
+    | |         -^^^^^^^^^^^^^^^^^^^^^^^^^ method cannot be called due to unsatisfied trait bounds
+    | |_________|
+    |
+    |
+   ::: /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.8.1/src/engine/vector/stage/markers.rs:119:1
+    |
+119 |   pub struct Tag;
+    |   -------------- doesn't satisfy `_: CanTransitionTo<InterSliceReduce>`
+    |
+    = note: the following trait bounds were not satisfied:
+            `furiosa_opt_std::prelude::stage::Tag: furiosa_opt_std::prelude::stage::CanTransitionTo<furiosa_opt_std::prelude::stage::InterSliceReduce>`
+    = note: the full name for the type has been written to '/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-9204255481920601121.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error

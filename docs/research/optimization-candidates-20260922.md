@@ -3,7 +3,9 @@
 2026-09-22. 기준은 [E55 구성표](../../baseline/e55.json)의 `baseline-e55`
 (`873f64ed94229c88cd18d2731bdcca7eea0d6365`)다. 최초 작성은 조사·설계 단계였다.
 **C01–C03은 구현 후 미채택, C05는 E74, 후속 C04는 E79로 채택했다.
-C06·C07 두 방향은 아래 제안대로 완성·검증되지 않았다.**
+C07은 native FP8 결합 구조를 구현·실행했으며 후속 정확도 판정은 아래 기록에 있다.
+C06은 아직 아래 제안대로 구현·검증되지 않았다.**
+[C07 구조별 측정·실패·소스 동결](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md).
 [C04의9개 조합·E79 반복과 정확도](../../moa-dev/experiments/candidates/c04-down-transfer/README.md).
 E55/E74는 고정 비교군이며 탐색 구조를 제한하지 않는다. Decode·dot·scale·tile·통신의
 결합 설계를 직접 비교할 수 있고, 각 중간 단계의 단독 성능 개선을 요구하지 않는다.
@@ -99,7 +101,7 @@ P3는 정확도 위험이 큰 연구 후보다. 구현 부담은 상대적 판�
 | C04 | P2 | FFN down의 column 분할과 activation broadcast 동시 재설계; F1 변경 | weight/scale DMA와 activation 전달을 함께 줄이는 구조 후보 | 큼 / 통신 증가·합산 순서 |
 | C05 | P2 | FFN staged fused decode와 실제 겹침; F2/F4 변경 | 전체 중간 weight 저장 감소. LUT setup·DMA 대기까지 줄여야 유효 | 큼 / 기존 E56 오동작 |
 | C06 | P2 | O 작은 tensor 전송·후단 의존성 조정; O3/R1 주변 | 작은 DMA·Sub 준비 비용 축소. 큰 개선 근거는 아직 없음 | 중간 / 직렬화·BF16 경계 |
-| C07 | P3 | Native FP8 FFN과 scale-DPE의 결합; F2/F3 대체 | BF16 weight 변환을 없애는 큰 구조 후보. 비용·정확도 모두 미확인 | 매우 큼 / 입력 근사·상쇄 |
+| C07 | P1 실행 | Native FP8 FFN·scale-DPE·F32 VE·down 분할 결합; F2/F3 대체 | 기본 단회 최대 −10.13%; 경계 정확도와 실행 실패는 별도 판정 | 매우 큼 / 입력 근사·상쇄·일부 행 오동작 |
 
 ### C01 — Scale-DPE는 partial 진단부터
 
@@ -248,6 +250,16 @@ F32 scale→BF16→RMS, residual의 BF16 경계를 보존한다. 보존하지 �
 
 ### C07 — Native FP8 + scale-DPE는 결합 연구
 
+**후속 구현:** E86–E104의 19개 기본 실행 구성에서 FP4→native FP8, term의 lane/time
+배치, contiguous row, BF16 scale-DPE와 F32 VE, 보정 partial, 2/4-column down,
+입력 reload와 weight materialization을 비교했다. 가장 빠른 기본 단회 관측은
+E93의 FFN **352705 → 316977 cycles (−10.13%)**다. 이 수치는 반복 검증된 채택 결과나
+공식 점수가 아니다. E4 입력 근사와 BF16 partial의 상쇄 제약, 일부 E5 projection의
+행 오류/timeout을 확인했다. [구성별 결과](../../moa-dev/experiments/candidates/c07-native-scale-dpe/measurements.md)와
+[후속 진단·채택 판정](../../moa-dev/experiments/candidates/c07-native-scale-dpe/decision.json)을 따른다.
+Direct DMA 입력 복제도 전달 경로를 분리하는 추가 진단 구조로 빌드했다.
+이하 문단은 실행 전의 가설이다.
+
 FP4 weight는 FP8로 정확히 표현할 수 있지만 BF16 activation은 별도 FP8 근사가 필요하다.
 [E35](../../moa-dev/experiments/candidates/ffn-native-fp8-full256/README.md)와 후속 native FFN은
 실행 가능한 경로를 이미 확인했다. 가장 유리했던 E39도 FFN 415,457 cycles로 현재 기준보다 느렸다.
@@ -286,8 +298,9 @@ Public hyunjun 측정 노트의 SDK는 0.6.0이고 우리 설치 SDK는 0.8.1이
 
 ## 후속 작업과 채택 조건
 
-C01–C05의 위 결과는 실행 기록이다. 다음 미완료 방향은 C06/O 후단 전달과 C07/native FP8
-결합이다. C04의4열30행 E81, QKV의 다른 배치, C05의 staging도 후속 탐색이 가능하다.
+C01–C05와 C07의 위 결과는 실행 기록이다. C06/O 후단 전달은 미구현이고 C07/native FP8은
+새 구조의 정확도 제약을 확인한 단계다. C04의4열30행 E81, QKV의 다른 배치,
+C05의 staging도 후속 탐색이 가능하다.
 고정 순서나 후보 수 제한 없이 관측된 병목과 검증 가능성에 따라 다룬다.
 
 E55/E74는 비교군이다. 후보 구조와 출발점은 자유롭게 정하고, 결합 설계를 직접 시험할 수 있다.

@@ -1,0 +1,44 @@
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `feedforward` is never used
+   --> src/device/shared/mlp.rs:143:15
+    |
+143 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `project_down` is never used
+   --> src/device/shared/mlp.rs:341:15
+    |
+341 | pub(crate) fn project_down(
+    |               ^^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [1/1] ops::decoder_feedforward
+error: furiosa-opt: ops::decoder_feedforward: mir: unsupported type in device function: Alias(AliasTy { args: [furiosa_opt_std::backend::Npu, furiosa_opt_std::prelude::f8e5m2], kind: Projection { def_id: DefId(20:5393 ~ furiosa_opt_std[2d90]::backend::Backend::Storage) }, .. })
+    --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.8.1/src/tensor/memory.rs:1011:5
+     |
+1009 | #[derive(Debug, Clone)]
+     |                 ----- in this derive macro expansion
+1010 | pub struct DmTensorView<'l, D: Scalar, Chip: M, Cluster: M, Slice: M, Element: M, B: Backend = CurrentBackend> {
+1011 |     pub(crate) inner: TensorView<'l, D, Pair<Chip, Pair<Cluster, Pair<Slice, Element>>>, B>,
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 1 compiled, 14 not matching ops::decoder_feedforward
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 5 warnings emitted

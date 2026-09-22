@@ -1330,6 +1330,258 @@
       "evidence": [
         "moa-dev/experiments/candidates/memory-layout-e55/README.md"
       ]
+    },
+    {
+      "id": "E86",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "FP8 pair16 · row2 · scale DPE",
+      "note": "동시 E79 대조보다 느린 단회 관측. 미채택.",
+      "report": "docs/experiments/e86-c07-pair-row2.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md"
+      ],
+      "reference": "docs/experiments/c07-first-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E87",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "FP8 time2 · row2 · scale DPE",
+      "note": "동시 E79 대조보다 느린 단회 관측. 미채택.",
+      "report": "docs/experiments/e87-c07-time-row2.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md"
+      ],
+      "reference": "docs/experiments/c07-time-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E88",
+      "category": "accuracy_limited",
+      "kernel": "FFN",
+      "method": "FP8 time2 · contiguous rows",
+      "note": "기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택.",
+      "report": "docs/experiments/e88-c07-time-contiguous.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json"
+      ],
+      "reference": "docs/experiments/c07-contiguous-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E89",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "up/down native FP8 pair16",
+      "note": "동시 E79 대조보다 느린 단회 관측. 미채택.",
+      "report": "docs/experiments/e89-c07-full-pair-row2.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md"
+      ],
+      "reference": "docs/experiments/c07-full-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E90",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "contiguous up + native down pair16",
+      "note": "최종 FFN 기본 정확도 실패. 실패 stage cycles는 성능 집계에서 제외.",
+      "report": "docs/experiments/e90-c07-full-time-contiguous.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md"
+      ]
+    },
+    {
+      "id": "E91",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "FP8 pair16 · contiguous rows",
+      "note": "−0.85% 단회 관측으로 개선 미확인. E4 근사/BF16 block partial 정밀도 제약; 미채택.",
+      "report": "docs/experiments/e91-c07-pair-contiguous.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md"
+      ],
+      "reference": "docs/experiments/c07-full-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E94",
+      "category": "accuracy_limited",
+      "kernel": "FFN",
+      "method": "FP8 time2 · F32 partial / VE scale",
+      "note": "기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택.",
+      "report": "docs/experiments/e94-c07-up-f32.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json"
+      ],
+      "reference": "docs/experiments/c07-precision-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E95",
+      "category": "accuracy_limited",
+      "kernel": "FFN",
+      "method": "up/down FP8 · F32 partial / VE scale",
+      "note": "기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택.",
+      "report": "docs/experiments/e95-c07-full-f32.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json"
+      ],
+      "reference": "docs/experiments/c07-precision-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E96",
+      "category": "accuracy_limited",
+      "kernel": "FFN",
+      "method": "E5M2 three terms · scale DPE",
+      "note": "기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택.",
+      "report": "docs/experiments/e96-c07-e5-dpe.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json"
+      ],
+      "reference": "docs/experiments/c07-precision-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E97",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "E5M2 three terms · F32 partial",
+      "note": "기본 FFN non-finite 출력. 별도 projection 진단도 gate 일부 행 실패.",
+      "report": "docs/experiments/e97-c07-e5-f32.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md"
+      ]
+    },
+    {
+      "id": "E92",
+      "category": "accuracy_limited",
+      "kernel": "FFN",
+      "method": "FP8 time2 · late input scale",
+      "note": "기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택.",
+      "report": "docs/experiments/e92-c07-late-up.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json"
+      ],
+      "reference": "docs/experiments/c07-late-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E93",
+      "category": "accuracy_limited",
+      "kernel": "FFN",
+      "method": "up/down FP8 time2 · 4-column down",
+      "note": "기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택.",
+      "report": "docs/experiments/e93-c07-full-time4-late.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json"
+      ],
+      "reference": "docs/experiments/c07-late-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E98",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "native down · 2-column time",
+      "note": "기본 FFN launch request timeout. 유효 FFN cycles 없음.",
+      "report": "docs/experiments/e98-c07-two-column-time.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md"
+      ]
+    },
+    {
+      "id": "E99",
+      "category": "invalid",
+      "kernel": "FFN",
+      "method": "native down · 2-column pair16",
+      "note": "기본 FFN launch request timeout. 유효 FFN cycles 없음.",
+      "report": "docs/experiments/e99-c07-two-column-pair.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md"
+      ]
+    },
+    {
+      "id": "E100",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "E5M2 · compensated BF16 scale DPE",
+      "note": "동시 E79 대조보다 느린 단회 관측. 미채택. 별도 projection 진단에서 mismatch와 timeout도 확인.",
+      "report": "docs/experiments/e100-c07-compensated-dpe.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md"
+      ],
+      "reference": "docs/experiments/c07-compensated-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E101",
+      "category": "accuracy_limited",
+      "kernel": "FFN",
+      "method": "E5M2 / F32 · late input scale",
+      "note": "기본 단회 −6.26%, 동일 image의 추가 6입력/30비교 PASS. 별도 projection 일부 행 오류/timeout으로 미채택.",
+      "report": "docs/experiments/e101-c07-e5-f32-late.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/projection-probe-e5-late-v1-results.json",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/c07-screen-extra-results.json"
+      ],
+      "reference": "docs/experiments/c07-e5-paths-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E102",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "E5M2 / F32 · materialized FP8 weight",
+      "note": "기본 단회 −4.80%, 별도 6-case projection 207360개 PASS. 독립 반복/추가 입력은 E104에서 진행했으며 이 구성에는 승계하지 않음.",
+      "report": "docs/experiments/e102-c07-e5-materialized.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/projection-probe-materialized-v1-results.json"
+      ],
+      "reference": "docs/experiments/c07-e5-paths-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E103",
+      "category": "accuracy_limited",
+      "kernel": "FFN",
+      "method": "E5M2 / F32 · per-projection input reload",
+      "note": "기본 3회 −7.17%지만 별도 projection up/gate mismatch와 timeout. 입력 reload만으로 해결되지 않아 미채택.",
+      "report": "docs/experiments/e103-c07-e5-reload.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/projection-probe-reload-v1-results.json"
+      ],
+      "reference": "docs/experiments/c07-reload-e79-control.json",
+      "reference_label": "동시 E79"
+    },
+    {
+      "id": "E104",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "E5M2 / F32 · reload + materialized weight",
+      "note": "동일 package 3회 FFN −4.93%, 앞뒤 E79 범위와 겹치지 않음. 기본45/추가30비교 및 projection207360개 PASS. 채택 후보; native 입력 근사는 일반 BF16 동치가 아님.",
+      "report": "docs/experiments/e104-c07-e5-reload-materialized.json",
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "docs/experiments/e104-c07-extra-correctness.json",
+        "docs/experiments/e104-c07-probe-correctness.json"
+      ],
+      "reference": "docs/experiments/c07-reload-e79-control.json",
+      "reference_label": "동시 E79"
     }
   ]
 }

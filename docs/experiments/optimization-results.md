@@ -12,18 +12,18 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 117개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.
+수록: 136개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
 | 분류 | 항목 수 |
 |---|---:|
-| [빨라진 기록](#improved) | 34 |
-| [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 11 |
-| [느리게 측정됨](#regressed) | 29 |
-| [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 1 |
+| [빨라진 기록](#improved) | 35 |
+| [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 13 |
+| [느리게 측정됨](#regressed) | 33 |
+| [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 9 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
-| [정확도 실패·실행 실패](#invalid) | 13 |
+| [정확도 실패·실행 실패](#invalid) | 17 |
 | [대조군·기존 커널 조합](#control) | 10 |
 | [컴파일·정적 분석만 수행](#static_only) | 17 |
 
@@ -67,6 +67,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E3-rows · 256-row slices](e3-output-256rows.json) | O | [E2](e2-fp8-fusion.json): 334,457 → 195,210 | -41.63% | 1 → 1 | 단회 큰 개선. |
 | [E2-QKV · FP8 weight lookup+contraction fusion](e2-fp8-fusion.json) | QKV | [원본](baseline-rngd.json): 244,051 → 227,840 | -6.64% | 3 → 1 | 단회 개선. weight의 BF16 중간 저장을 줄이는 초기 경로. |
 | [E2-O · FP8 weight lookup+contraction fusion](e2-fp8-fusion.json) | O | [원본](baseline-rngd.json): 404,222 → 334,457 | -17.26% | 3 → 1 | 단회 개선. 현재 O2도 lookup을 dot에 연결. |
+| [E104 · E5M2 / F32 · reload + materialized weight](e104-c07-e5-reload-materialized.json) | FFN | [동시 E79](c07-reload-e79-control.json): 353,154 → 335,761 | -4.93% | 3 → 3 | 동일 package 3회 FFN −4.93%, 앞뒤 E79 범위와 겹치지 않음. 기본45/추가30비교 및 projection207360개 PASS. 채택 후보; native 입력 근사는 일반 BF16 동치가 아님. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](e104-c07-extra-correctness.json), [근거3](e104-c07-probe-correctness.json) |
 
 <a id="inconclusive"></a>
 
@@ -85,6 +86,8 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E48 · up-only fused decode](e48-up-only-fused-decode.json) | FFN | [E37](e37-combined-repeats.json): 379,741 → 381,532 | +0.47% | 3 → 1 | 단회 소폭 증가. 성능 이득을 입증하지 못함; 미채택. |
 | [E9-QKV · replicated norm32](e9-upgate2-norm32-parallel-residual.json) | QKV | [E8](e8-blockscale-o2-ring32.json): 129,964 → 130,496 | +0.41% | 1 → 1 | 단회 소폭 증가; QKV 개선 근거로 세지 않음. |
 | [E7-FFN · hierarchical input broadcast](e7-qkv-two-clusters.json) | FFN | [E6](e6-all-unrolled.json): 820,226 → 828,972 | +1.07% | 1 → 1 | 단회 1.07% 증가. QKV 개선과 구분하고 FFN 이득을 주장하지 않음. |
+| [E91 · FP8 pair16 · contiguous rows](e91-c07-pair-contiguous.json) | FFN | [동시 E79](c07-full-e79-control.json): 354,440 → 351,437 | -0.85% | 1 → 1 | −0.85% 단회 관측으로 개선 미확인. E4 근사/BF16 block partial 정밀도 제약; 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
+| [E102 · E5M2 / F32 · materialized FP8 weight](e102-c07-e5-materialized.json) | FFN | [동시 E79](c07-e5-paths-e79-control.json): 352,610 → 335,696 | -4.80% | 1 → 1 | 기본 단회 −4.80%, 별도 6-case projection 207360개 PASS. 독립 반복/추가 입력은 E104에서 진행했으며 이 구성에는 승계하지 않음. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/projection-probe-materialized-v1-results.json) |
 
 <a id="regressed"></a>
 
@@ -121,6 +124,10 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E19 · FP8 hi/lo 두 번의 dot](e19-qkv-fp8-split-two-dot.json) | QKV | [E18](e18-best-repeats.json): 105,462 → 110,479 | +4.76% | 3 → 1 | 단회 회귀. 단순 dtype 축소가 전체 속도 향상으로 이어지지 않음. |
 | [E17 · down 2-column+HBM relay](e17-down-two-columns-hbm.json) | FFN | [E16](e16-parallel-ffn-residual.json): 388,813 → 416,500 | +7.12% | 1 → 1 | 단회 회귀; 미채택. |
 | [E8-FFN · 첫 blockscale FFN 조합](e8-blockscale-o2-ring32.json) | FFN | [E6](e6-all-unrolled.json): 820,226 → 921,693 | +12.37% | 1 → 1 | E6보다 느림. 같은 E8의 QKV/O 이득을 FFN에도 적용하지 않음. |
+| [E86 · FP8 pair16 · row2 · scale DPE](e86-c07-pair-row2.json) | FFN | [동시 E79](c07-first-e79-control.json): 352,565 → 392,413 | +11.30% | 1 → 1 | 동시 E79 대조보다 느린 단회 관측. 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
+| [E87 · FP8 time2 · row2 · scale DPE](e87-c07-time-row2.json) | FFN | [동시 E79](c07-time-e79-control.json): 352,902 → 377,290 | +6.91% | 1 → 1 | 동시 E79 대조보다 느린 단회 관측. 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
+| [E89 · up/down native FP8 pair16](e89-c07-full-pair-row2.json) | FFN | [동시 E79](c07-full-e79-control.json): 354,440 → 387,879 | +9.43% | 1 → 1 | 동시 E79 대조보다 느린 단회 관측. 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
+| [E100 · E5M2 · compensated BF16 scale DPE](e100-c07-compensated-dpe.json) | FFN | [동시 E79](c07-compensated-e79-control.json): 352,993 → 507,518 | +43.78% | 1 → 1 | 동시 E79 대조보다 느린 단회 관측. 미채택. 별도 projection 진단에서 mismatch와 timeout도 확인. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 
 <a id="accuracy_limited"></a>
 
@@ -129,6 +136,14 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | 실험·방법 | 대상 | 비교 기준 → 후보 cycles | 변화 | job 수 | 판정·후속 근거 |
 |---|---|---|---:|---:|---|
 | [E47 · 16-column split](e47-output-sixteen-columns-repeats.json) | O | [E37](e37-combined-repeats.json): 45,748 → 44,588 | -2.54% | 3 → 3 | 당시 3회 성능 개선과 추가 입력 PASS. 이후 O 경계 검사 실패; E53 BF16 경로가 대체. [근거1](output-boundary-comparison.md) |
+| [E88 · FP8 time2 · contiguous rows](e88-c07-time-contiguous.json) | FFN | [동시 E79](c07-contiguous-e79-control.json): 353,238 → 325,543 | -7.84% | 1 → 1 | 기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json) |
+| [E94 · FP8 time2 · F32 partial / VE scale](e94-c07-up-f32.json) | FFN | [동시 E79](c07-precision-e79-control.json): 352,176 → 332,066 | -5.71% | 1 → 1 | 기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json) |
+| [E95 · up/down FP8 · F32 partial / VE scale](e95-c07-full-f32.json) | FFN | [동시 E79](c07-precision-e79-control.json): 352,176 → 327,093 | -7.12% | 1 → 1 | 기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json) |
+| [E96 · E5M2 three terms · scale DPE](e96-c07-e5-dpe.json) | FFN | [동시 E79](c07-precision-e79-control.json): 352,176 → 333,980 | -5.17% | 1 → 1 | 기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json) |
+| [E92 · FP8 time2 · late input scale](e92-c07-late-up.json) | FFN | [동시 E79](c07-late-e79-control.json): 352,705 → 335,983 | -4.74% | 1 → 1 | 기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json) |
+| [E93 · up/down FP8 time2 · 4-column down](e93-c07-full-time4-late.json) | FFN | [동시 E79](c07-late-e79-control.json): 352,705 → 316,977 | -10.13% | 1 → 1 | 기본 입력에서 빠른 단회 관측. 입력 FP8 근사 또는 BF16 block partial의 CPU 상쇄 반례가 있어 일반 동치 아님. 공식 최종 FFN 실패를 뜻하지 않으며 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json) |
+| [E101 · E5M2 / F32 · late input scale](e101-c07-e5-f32-late.json) | FFN | [동시 E79](c07-e5-paths-e79-control.json): 352,610 → 330,531 | -6.26% | 1 → 1 | 기본 단회 −6.26%, 동일 image의 추가 6입력/30비교 PASS. 별도 projection 일부 행 오류/timeout으로 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json), [근거3](../../moa-dev/experiments/candidates/c07-native-scale-dpe/projection-probe-e5-late-v1-results.json), [근거4](../../moa-dev/experiments/candidates/c07-native-scale-dpe/c07-screen-extra-results.json) |
+| [E103 · E5M2 / F32 · per-projection input reload](e103-c07-e5-reload.json) | FFN | [동시 E79](c07-reload-e79-control.json): 353,154 → 327,830 | -7.17% | 3 → 3 | 기본 3회 −7.17%지만 별도 projection up/gate mismatch와 timeout. 입력 reload만으로 해결되지 않아 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/projection-probe-reload-v1-results.json) |
 
 <a id="correctness_fix"></a>
 
@@ -158,6 +173,10 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E13 · FP4 LUT→F32→BF16 fused decode](e13-ffn-blockscale-fused-bf16.json) | FFN | 성능 집계 제외 | — | 1 | FFN 정확도 실패 후 timeout. compile/static 이득은 채택 근거가 아님. |
 | [E5-two · direct-layout·2행 commit](e5-ffn-direct.json) | FFN | 성능 집계 제외 | — | 1 | 정확도 실패. 낮은 cycles를 유효한 개선으로 집계하지 않음. |
 | [E4 · 2행 commit 단독](e4-ffn-two-row.json) | FFN | 성능 집계 제외 | — | 1 | 정확도 실패; 공통 two-row 경로를 분리한 진단. |
+| [E90 · contiguous up + native down pair16](e90-c07-full-time-contiguous.json) | FFN | 성능 집계 제외 | — | 1 | 최종 FFN 기본 정확도 실패. 실패 stage cycles는 성능 집계에서 제외. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
+| [E97 · E5M2 three terms · F32 partial](e97-c07-e5-f32.json) | FFN | 성능 집계 제외 | — | 1 | 기본 FFN non-finite 출력. 별도 projection 진단도 gate 일부 행 실패. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
+| [E98 · native down · 2-column time](e98-c07-two-column-time.json) | FFN | 성능 집계 제외 | — | 1 | 기본 FFN launch request timeout. 유효 FFN cycles 없음. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
+| [E99 · native down · 2-column pair16](e99-c07-two-column-pair.json) | FFN | 성능 집계 제외 | — | 1 | 기본 FFN launch request timeout. 유효 FFN cycles 없음. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 
 <a id="control"></a>
 

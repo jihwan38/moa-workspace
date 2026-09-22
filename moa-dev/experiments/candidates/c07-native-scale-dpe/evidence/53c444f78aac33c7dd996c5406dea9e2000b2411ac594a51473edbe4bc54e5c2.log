@@ -1,0 +1,40 @@
+error[E0382]: use of moved value: `x`
+   --> src/device/shared/mlp.rs:126:20
+    |
+ 77 |     x: DmTensorView<'_, f8e5m2, Chip, UpGateCluster, UpGateSlices, m![FfnTerm, H]>,
+    |     - move occurs because `x` has type `DmTensorView<'_, f8e5m2, Broadcast<1>, Symbol<Dummy2>, ..., ...>`, which does not implement the `Copy` trait
+...
+102 |         .sub.begin(x)
+    |                    - value moved here
+...
+126 |         .sub.begin(x)
+    |                    ^ value used here after move
+    |
+    = note: the full name for the type has been written to '/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-17574114174101198746.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+help: consider cloning the value if the performance cost is acceptable
+    |
+102 |         .sub.begin(x.clone())
+    |                     ++++++++
+
+error[E0382]: use of moved value: `x_scale`
+   --> src/device/shared/mlp.rs:130:20
+    |
+ 78 |     x_scale: DmTensorView<'_, f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
+    |     ------- move occurs because `x_scale` has type `DmTensorView<'_, f32, Broadcast<1>, Symbol<Dummy2>, Symbol<...>, ...>`, which does not implement the `Copy` trait
+...
+106 |         .sub.begin(x_scale)
+    |                    ------- value moved here
+...
+130 |         .sub.begin(x_scale)
+    |                    ^^^^^^^ value used here after move
+    |
+    = note: the full name for the type has been written to '/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-11272354049710663918.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+help: consider cloning the value if the performance cost is acceptable
+    |
+106 |         .sub.begin(x_scale.clone())
+    |                           ++++++++
+
+For more information about this error, try `rustc --explain E0382`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors

@@ -1,0 +1,52 @@
+{
+  "status": "validated_pending_official_submission",
+  "adopted": "E104",
+  "previous_baseline": "E79",
+  "official_submission": null,
+  "basic_configurations_measured": 19,
+  "full_build_attempts": 48,
+  "successful_full_builds": 23,
+  "performance": {
+    "report": "docs/experiments/e104-c07-e5-reload-materialized.json",
+    "reference": "docs/experiments/c07-reload-e79-control.json",
+    "candidate_build": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-up-e5-reload-materialized-v3-repro.json",
+    "valid": true,
+    "independent_jobs": 3,
+    "jobs": [
+      74420,
+      74476,
+      74481
+    ],
+    "median_cycles": 335761,
+    "job_medians": [
+      336403,
+      335761,
+      335238
+    ],
+    "min_cycles": 335238,
+    "max_cycles": 336403,
+    "relative_range": 0.0034697299567251704,
+    "control_median_cycles": 353154,
+    "change_percent": -4.925046863408033
+  },
+  "validation": {
+    "basic_comparisons_passed": 45,
+    "extra_comparisons_passed": 30,
+    "projection_elements_checked": 207360,
+    "independent_performance_jobs": 3
+  },
+  "precision_limits": [
+    "Native E5M2 input representation is approximate; not exact for all BF16 dynamic ranges.",
+    "CPU mixed-scale 2^-32 counterexample remains. Six independent projection cases and nine standard FFN inputs are bounded evidence."
+  ],
+  "controls": "E55 remains immutable reference; E79 remains immutable contemporary comparison control. Neither restricts subsequent architectures.",
+  "conclusion": "FP8 weight materialization variants E102/E104 pass the six projection cases. Direct unpack-to-DPE variants tested here fail some separate diagnostics; the internal compiler/hardware cause is not established. E104 is selected after independent repeats and extra-input validation; single-screen E102 does not inherit these.",
+  "best_single_basic_screen": {
+    "id": "E93",
+    "cycles": 316977,
+    "control": 352705,
+    "change_percent": -10.13,
+    "adopted": false,
+    "reason": "Single screen and known E4/BF16-partial precision limitations; no validated final combination."
+  }
+}

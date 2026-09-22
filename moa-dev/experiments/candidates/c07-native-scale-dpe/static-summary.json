@@ -1,0 +1,1629 @@
+{
+  "scope": "Compiler schedules, not hardware cycles. Resource-duration sums can overlap and do not establish critical paths or additive speedups.",
+  "builds": {
+    "c07-e104-reviewed-v1": {
+      "variant": "e104-reviewed",
+      "source": {
+        "bytes": 28831,
+        "sha256": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0"
+      },
+      "schedule": {
+        "bytes": 189237,
+        "sha256": "f5f7a888e70e2ca1c494c88b58060467155268e4bb0a129d888a8dbd4d6e15dd"
+      },
+      "makespan_cycles": 157045,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "DmaLoad": 487,
+          "Sub": 267,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 18412,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Main": 17768,
+          "Sub": 4430
+        },
+        "project_up_and_gate": {
+          "Sub": 2237,
+          "DmaLoad": 58984,
+          "Main": 18526,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-full-f32-v1": {
+      "variant": "full-time4-f32-ve",
+      "source": {
+        "bytes": 31772,
+        "sha256": "e4781ff20e948eacbf1d38ab330361db9821c00b644a9e9b21cbd446bbd9b584"
+      },
+      "schedule": {
+        "bytes": 244198,
+        "sha256": "01074f02d08e4aaab7704f0e0b8a54328c1696f911333ad6471252b0c481d44b"
+      },
+      "makespan_cycles": 156918,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 1757,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 5827,
+          "DmaLoad": 6078,
+          "Core": 12838,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 1223,
+          "DmaStos": 8104,
+          "DmaLoad": 35992,
+          "Core": 0,
+          "Main": 4751
+        },
+        "project_native_down_rows": {
+          "Core": 270,
+          "Main": 12468,
+          "Sub": 2215
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Sub": 4430,
+          "Main": 24926
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        },
+        "quantize_down": {
+          "Sub": 2851,
+          "Core": 476,
+          "Main": 5972,
+          "DmaStos": 8550
+        }
+      }
+    },
+    "c07-full-pair-v5": {
+      "variant": "full-stream-pair-dpe",
+      "source": {
+        "bytes": 32597,
+        "sha256": "f1ba9453ef8cd7c4c14810e8e5266129b909099ce866e7708766dc990971b038"
+      },
+      "schedule": {
+        "bytes": 160741,
+        "sha256": "f0b524d301f9a64d0a905b5cbf2a04860dcb4d1991c52537ebf84a311f9ad0d5"
+      },
+      "makespan_cycles": 166357,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "compact_full256_rows": {
+          "Main": 650
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 1757,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 5827,
+          "DmaLoad": 6078,
+          "Core": 4320,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 1223,
+          "DmaLoad": 35992,
+          "DmaStos": 8104,
+          "Core": 0,
+          "Main": 4751
+        },
+        "project_native_down_rows": {
+          "Sub": 4127,
+          "Main": 9980
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19960
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 71984,
+          "DmaStos": 1060,
+          "Core": 0
+        },
+        "quantize_down": {
+          "Sub": 2851,
+          "Core": 476,
+          "Main": 5972,
+          "DmaStos": 8550
+        }
+      }
+    },
+    "c07-full-pair2-v2": {
+      "variant": "full-pair2-late-scale",
+      "source": {
+        "bytes": 32573,
+        "sha256": "d49bfff97c6ec9571c164764384a99d87a90e7d27faa0482b10aa64b4266f89f"
+      },
+      "schedule": {
+        "bytes": 214205,
+        "sha256": "3a76e54f779f7fa043170324dc36723ad7d597f2c5c60f1d5d2af3695e2f0daa"
+      },
+      "makespan_cycles": 158167,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "DmaLoad": 487,
+          "Sub": 1757,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 5827,
+          "DmaLoad": 6797,
+          "Core": 4459,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 2183,
+          "DmaStos": 8104,
+          "DmaLoad": 29573,
+          "Core": 0,
+          "Main": 8880
+        },
+        "project_native_down_rows": {
+          "Main": 9980,
+          "Sub": 4127
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19992
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        },
+        "quantize_down": {
+          "Sub": 5435,
+          "Core": 908,
+          "Main": 11100,
+          "DmaStos": 16230
+        }
+      }
+    },
+    "c07-full-time-contig-v2": {
+      "variant": "full-stream-time-dpe-contiguous",
+      "source": {
+        "bytes": 32034,
+        "sha256": "fc37a1ac9e124196661c71b7adc606d8bfd9e2279e973dd618bf155a5889db40"
+      },
+      "schedule": {
+        "bytes": 159419,
+        "sha256": "7dbc64fbd83e0726b27e2e159142dabffb2857a13e858fc49d7778a17b57d86a"
+      },
+      "makespan_cycles": 154797,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 1757,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 5827,
+          "DmaLoad": 6078,
+          "Core": 4320,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 1223,
+          "DmaLoad": 35992,
+          "DmaStos": 8104,
+          "Core": 0,
+          "Main": 4751
+        },
+        "project_native_down_rows": {
+          "Sub": 4127,
+          "Main": 9980
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19956
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        },
+        "quantize_down": {
+          "Sub": 2851,
+          "Core": 476,
+          "Main": 5972,
+          "DmaStos": 8550
+        }
+      }
+    },
+    "c07-full-time2-v2": {
+      "variant": "full-time2-late-scale",
+      "source": {
+        "bytes": 32271,
+        "sha256": "fcdcce086bcc349c3d121fdc5a7db0284df11a1ccd305f4028a9241d1a7d3a82"
+      },
+      "schedule": {
+        "bytes": 211816,
+        "sha256": "e766ad9390b7b4c96f3ba74350f3655c7b1cf811c638a90cb68292f4b33fa1db"
+      },
+      "makespan_cycles": 158167,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "DmaLoad": 487,
+          "Sub": 1757,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 5827,
+          "DmaLoad": 6797,
+          "Core": 4459,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 2183,
+          "DmaStos": 8104,
+          "DmaLoad": 29573,
+          "Core": 0,
+          "Main": 8880
+        },
+        "project_native_down_rows": {
+          "Main": 9980,
+          "Sub": 4127
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19992
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        },
+        "quantize_down": {
+          "Sub": 5435,
+          "Core": 908,
+          "Main": 11100,
+          "DmaStos": 16230
+        }
+      }
+    },
+    "c07-full-time4-v1": {
+      "variant": "full-time4-late-scale",
+      "source": {
+        "bytes": 31715,
+        "sha256": "b2112bc9b1d1a303e0f161e49e357a477bcf4715bcd2783b8fd10754a46e7c48"
+      },
+      "schedule": {
+        "bytes": 157882,
+        "sha256": "a0e938ac9434b76c4bac59a7db84794649bb54a14b47f92c532f56b4bfb3e462"
+      },
+      "makespan_cycles": 152625,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 1757,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 5827,
+          "DmaLoad": 6078,
+          "Core": 4320,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 1223,
+          "DmaStos": 8104,
+          "DmaLoad": 35992,
+          "Core": 0,
+          "Main": 4751
+        },
+        "project_native_down_rows": {
+          "Main": 9980,
+          "Sub": 4127
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19992
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        },
+        "quantize_down": {
+          "Sub": 2851,
+          "Core": 476,
+          "Main": 5972,
+          "DmaStos": 8550
+        }
+      }
+    },
+    "c07-up-e5-comp-v2": {
+      "variant": "up-e5-compensated-dpe",
+      "source": {
+        "bytes": 29830,
+        "sha256": "921363cfd3bc0e11490a7d55b2a6037841f722d9537d315c3d12761b851055d0"
+      },
+      "schedule": {
+        "bytes": 265788,
+        "sha256": "10c8dc505f1aeebdf9c484d0a3f5a54472cfcdbe32987f85851a1972b692694d"
+      },
+      "makespan_cycles": 218381,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 2237,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 4621,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 24844,
+          "Core": 1168,
+          "Main": 30076,
+          "DmaStos": 63204
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-e5-direct-v1": {
+      "variant": "up-e5-f32-direct-dma",
+      "source": {
+        "bytes": 27704,
+        "sha256": "f0629a7acc50177144b0a84c92b277d43e9b5cd2538aa6e666654b1a7212c5f0"
+      },
+      "schedule": {
+        "bytes": 186115,
+        "sha256": "9cccbc39b759176b94e1cdf68366760c9873cac955e34e9b08d00fc8a2c60972"
+      },
+      "makespan_cycles": 225132,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 67624
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 267,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6197,
+          "Core": 7845,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "DmaLoad": 39201,
+          "Core": 270,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Main": 24926,
+          "Sub": 4430
+        },
+        "project_up_and_gate": {
+          "Sub": 2237,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-e5-f32-late-extra-v1": {
+      "variant": "up-e5-three-f32-ve-late",
+      "source": {
+        "bytes": 27666,
+        "sha256": "280cec69e212a5769c4aab3db04052de9fc792a4df1c9fcd4d4a6319d4502d76"
+      },
+      "schedule": {
+        "bytes": 187835,
+        "sha256": "8c1a36f16e0fe7f83205bb6b035b348fcd4db71be1828c885d659bd432e7ecd6"
+      },
+      "makespan_cycles": 155645,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 2237,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 12728,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Sub": 4430,
+          "Main": 24926
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-e5-f32-late-v2": {
+      "variant": "up-e5-three-f32-ve-late",
+      "source": {
+        "bytes": 27666,
+        "sha256": "280cec69e212a5769c4aab3db04052de9fc792a4df1c9fcd4d4a6319d4502d76"
+      },
+      "schedule": {
+        "bytes": 187835,
+        "sha256": "8c1a36f16e0fe7f83205bb6b035b348fcd4db71be1828c885d659bd432e7ecd6"
+      },
+      "makespan_cycles": 155645,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 2237,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 12728,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Sub": 4430,
+          "Main": 24926
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-e5-f32-v1": {
+      "variant": "up-e5-three-f32-ve",
+      "source": {
+        "bytes": 27854,
+        "sha256": "563ef58cc6ee1ef04451c54f2a7af36c1a1238cd04da2cf95ee7884893c42d07"
+      },
+      "schedule": {
+        "bytes": 186971,
+        "sha256": "81c94651b49fd32d68508e1f8853b194c2985ea71f27f45c691347e4f1dac5fd"
+      },
+      "makespan_cycles": 156968,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "DmaLoad": 487,
+          "Sub": 2237,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 12728,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Sub": 4430,
+          "Main": 24926
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-e5-materialized-v1": {
+      "variant": "up-e5-f32-materialized",
+      "source": {
+        "bytes": 28432,
+        "sha256": "92b3f1a44c3b6240d21c14142b890dbfac3289a6bd693ff935e9f5f2d586f72d"
+      },
+      "schedule": {
+        "bytes": 188527,
+        "sha256": "2de541db56e69ee31a72522494db62a91b485483dd902885d603f3b51d7266ab"
+      },
+      "makespan_cycles": 156430,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "DmaLoad": 487,
+          "Sub": 2237,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 18412,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "DmaStos": 5349,
+          "Main": 2726
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Sub": 4430,
+          "Main": 17768
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "Main": 18526,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-e5-reload-materialized-extra-v1": {
+      "variant": "validated-reload-materialized",
+      "source": {
+        "bytes": 28831,
+        "sha256": "4a169963e6ff9aaa4688c81dfec0aeabf726806fcfafdb00b331d79291b66a2e"
+      },
+      "schedule": {
+        "bytes": 189237,
+        "sha256": "f5f7a888e70e2ca1c494c88b58060467155268e4bb0a129d888a8dbd4d6e15dd"
+      },
+      "makespan_cycles": 157045,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "DmaLoad": 487,
+          "Sub": 267,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 18412,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Main": 17768,
+          "Sub": 4430
+        },
+        "project_up_and_gate": {
+          "Sub": 2237,
+          "DmaLoad": 58984,
+          "Main": 18526,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-e5-reload-materialized-v3": {
+      "variant": "up-e5-f32-reload-materialized",
+      "source": {
+        "bytes": 28831,
+        "sha256": "4a169963e6ff9aaa4688c81dfec0aeabf726806fcfafdb00b331d79291b66a2e"
+      },
+      "schedule": {
+        "bytes": 189237,
+        "sha256": "f5f7a888e70e2ca1c494c88b58060467155268e4bb0a129d888a8dbd4d6e15dd"
+      },
+      "makespan_cycles": 157045,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "DmaLoad": 487,
+          "Sub": 267,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 18412,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Main": 17768,
+          "Sub": 4430
+        },
+        "project_up_and_gate": {
+          "Sub": 2237,
+          "DmaLoad": 58984,
+          "Main": 18526,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-e5-reload-v3": {
+      "variant": "up-e5-f32-reload",
+      "source": {
+        "bytes": 28253,
+        "sha256": "e19939d8ad38c19ab811fdd3cd0ada9e16c9ae0fb934ff896ecee313287f3967"
+      },
+      "schedule": {
+        "bytes": 187715,
+        "sha256": "c1653b7764784e339db2a28651a6d1e2e4f021b7740b4bb3c07221f43eac5652"
+      },
+      "makespan_cycles": 155661,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 267,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 4461,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Main": 24926,
+          "Sub": 4430
+        },
+        "project_up_and_gate": {
+          "Sub": 2237,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-e5-v1": {
+      "variant": "up-e5-three-dpe",
+      "source": {
+        "bytes": 27864,
+        "sha256": "63e7765a11abf6151abe7440a6c9542bc03f6f17465ab463c2ffd09dd4d3cb11"
+      },
+      "schedule": {
+        "bytes": 129929,
+        "sha256": "b6365d42dbf2d41370d4d28855c3f436e8a8be1c43db64d7465b08cccb5aac1b"
+      },
+      "makespan_cycles": 161831,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 3344,
+          "Main": 11783,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 2237,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 4280,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 1615,
+          "Core": 66,
+          "Main": 2726,
+          "DmaStos": 5349
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19956
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-f32-v1": {
+      "variant": "up-time-f32-ve",
+      "source": {
+        "bytes": 26367,
+        "sha256": "d03040914dab260afb785d15ff1b71c2387f2ffada49e19ffcd830d0303b32e8"
+      },
+      "schedule": {
+        "bytes": 181884,
+        "sha256": "ca423708d6eace76d22d72366d78ff1070a7b9ee726bd2d733f46f971a527ef8"
+      },
+      "makespan_cycles": 160418,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 1757,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 7815,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Core": 540,
+          "Sub": 4430,
+          "Main": 24926
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-late64-v1": {
+      "variant": "up-time-packet64-late-scale",
+      "source": {
+        "bytes": 26345,
+        "sha256": "6ea39adc4e65bb08e99c2063110dc313995091ad36671b574e3624ebd49bc487"
+      },
+      "schedule": {
+        "bytes": 124672,
+        "sha256": "d723596c2f39b5631248b7e0d9897c6e50640a88db196e463d95a7358a48f465"
+      },
+      "makespan_cycles": 158591,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "DmaLoad": 487,
+          "Sub": 1757,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 4270,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "DmaStos": 4664,
+          "Main": 2325
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "DmaLoad": 39201,
+          "Core": 270,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19992
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-pair-contig-v2": {
+      "variant": "up-stream-pair-dpe-contiguous",
+      "source": {
+        "bytes": 26624,
+        "sha256": "7c66b17f09118a1a673d6995197dd3917bb1a9fcd6b8c597b2735bc330ad46a0"
+      },
+      "schedule": {
+        "bytes": 125485,
+        "sha256": "b3cfa8a4467671ba2986b1c75c7c51e62aed08f7837adda6085e9c2beb6173f6"
+      },
+      "makespan_cycles": 159217,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 1757,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 4270,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19956
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-pair-v1": {
+      "variant": "up-stream-pair-dpe",
+      "source": {
+        "bytes": 26940,
+        "sha256": "8744614119276ab54c759f3e73faf204258f6fc8323062ee1a6ec80459430d79"
+      },
+      "schedule": {
+        "bytes": 125981,
+        "sha256": "0ee7076d9b822e84f73eb74c6ff846444e488a6518b68b26995fa5d6771ca69b"
+      },
+      "makespan_cycles": 170221,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "compact_full256_rows": {
+          "Main": 650
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 1757,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 4270,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19960
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 71984,
+          "DmaStos": 1060,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-time-contig-v3": {
+      "variant": "up-stream-time-dpe-contiguous",
+      "source": {
+        "bytes": 26377,
+        "sha256": "e2d52364cc4d2a8c4bb3ae57bcf88f865d722a4fde09cb92a6b655c9113f8f8f"
+      },
+      "schedule": {
+        "bytes": 124678,
+        "sha256": "3966c7bfc0d0add43eb4736ff008cdfc3a80d750de48c58942fbf53fb35d1406"
+      },
+      "makespan_cycles": 159217,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "cast_gathered_rows": {
+          "Main": 558
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 1757,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 4270,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19956
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 58984,
+          "DmaStos": 1252,
+          "Core": 0
+        }
+      }
+    },
+    "c07-up-time-v3": {
+      "variant": "up-stream-time-dpe",
+      "source": {
+        "bytes": 26693,
+        "sha256": "62e06bd21f3c4fe77ceb1501ef0b9b220fa71976c6bc567fe0a7d232753a20c9"
+      },
+      "schedule": {
+        "bytes": 125173,
+        "sha256": "111f029cfd4b7e79aaa42d0e15e4ec50e6378e8d03e2a53bcc5ba34e66998e0c"
+      },
+      "makespan_cycles": 170221,
+      "resource_duration_sums_by_source_function": {
+        "broadcast_ffn_quantized": {
+          "DmaStos": 2652,
+          "Main": 7943,
+          "Sub": 0
+        },
+        "compact_full256_rows": {
+          "Main": 650
+        },
+        "feedforward_sharded": {
+          "DmaStos": 960,
+          "Core": 0,
+          "Sub": 1757,
+          "DmaLoad": 487,
+          "Main": 401
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 7120,
+          "DmaLoad": 6916,
+          "Core": 4270,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "prepare_ffn_fp8_split": {
+          "Sub": 590,
+          "Core": 44,
+          "Main": 2325,
+          "DmaStos": 4664
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_rows_with_scale_contraction": {
+          "Sub": 8254,
+          "Main": 19960
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 71984,
+          "DmaStos": 1060,
+          "Core": 0
+        }
+      }
+    },
+    "c04-eight-ring32-v1": {
+      "variant": "eight-ring32",
+      "source": {
+        "bytes": 22163,
+        "sha256": "9af0d12a461e23a3bf12543690394f583173d4b07e1939ea9cfe2d5d2cce9752"
+      },
+      "schedule": {
+        "bytes": 157853,
+        "sha256": "f3fef5f24fafbd726faa97ea252294c50f89c401aa23358735acd4f99d48ebc4"
+      },
+      "makespan_cycles": 160203,
+      "resource_duration_sums_by_source_function": {
+        "feedforward_sharded": {
+          "DmaStos": 8352,
+          "Core": 0,
+          "Main": 4504,
+          "Sub": 1490,
+          "DmaLoad": 487
+        },
+        "geglu": {
+          "DmaLoad": 2656,
+          "Sub": 1200,
+          "Main": 1521
+        },
+        "outside_mlp_or_unattributed": {
+          "Sub": 9706,
+          "DmaLoad": 8592,
+          "Core": 4330,
+          "DmaStos": 1217,
+          "Main": 6522,
+          "DmaStore": 648
+        },
+        "project_down_sharded": {
+          "Sub": 2958,
+          "Core": 270,
+          "DmaLoad": 39201,
+          "Main": 35139,
+          "DmaStos": 5253
+        },
+        "project_up_and_gate": {
+          "Sub": 0,
+          "DmaLoad": 60528,
+          "Main": 58652,
+          "DmaStos": 4784,
+          "Core": 0
+        },
+        "reduce_eight_rows_f32": {
+          "Core": 432,
+          "Sub": 4024,
+          "Main": 6080
+        }
+      }
+    }
+  }
+}
