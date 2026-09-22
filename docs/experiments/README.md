@@ -21,6 +21,10 @@ rounding remains. [A/B/combined recipe](combinations/e67-scale-dpe.md).
 
 All rows in the main performance table use the unchanged official three-kernel, three-input harness.
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
+On September 22, E55 was accepted by the official service as **BEEF / `3ab72d66`**.
+The server reports `contract OK`; the last recorded state is remote building.
+[Submission and status record](e55-official-submit-retry-20260922.json) preserves the
+23 verified source fingerprints and actual CLI responses. No official score is available yet.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
 Current adopted source: E55, which combines the BF16 QKV dot and F32 channel multiply in one Main
 pipeline before the first BF16 cast and row Switch. Its three same-package jobs71027/71057/71072

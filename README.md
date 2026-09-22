@@ -50,9 +50,11 @@ byte-identical하며, 별도 추가 입력 빌드도 세 device image가 모두 
 [소스 계약 검사](docs/experiments/e55-source-contract-audit.json)는 공개 signature와 공식 harness 보존을 확인한다.
 현재 검증 범위를 넘어 임의 입력이나 모델 전체의 정확성을 보장하지 않는다.
 
-공식 제출기 인증은 완료했다. [E55 실제 제출 시도](docs/experiments/e55-official-submit-attempt-20260922.json)는 평가 기준 수정 중이라는 서버 오류로 거절됐고, 제출 ID·점수는 아직 없다.
-공식 점수·순위는 미확인이며 최소3위 목표도 아직 달성하지 못했다.
-[공식 상태 확인](docs/experiments/official-submission-status-20260921.json).
+9월 22일 공식 제출이 재개돼 검증된 **E55가 BEEF / `3ab72d66`으로 접수됐다.**
+23개 업로드 소스가 이전 검증본과 같고 서버의 skeleton contract도 통과했다.
+[접수·채점 추적 기록](docs/experiments/e55-official-submit-retry-20260922.json)의 마지막 확인은
+원격 빌드 진행 중이며, 아직 공식 점수·순위는 미확인이다. 최소3위 목표도 달성하지 못했다.
+이전 [점검 중 거절 기록](docs/experiments/e55-official-submit-attempt-20260922.json)은 이력으로 보존한다.
 
 ```text
 moa-workspace/

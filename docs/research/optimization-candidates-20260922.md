@@ -4,7 +4,9 @@
 (`873f64ed94229c88cd18d2731bdcca7eea0d6365`)다. 최초 작성은 조사·설계 단계였다.
 **후속 C01은 구현·Arena 검증을 마쳤고 미채택이며, C02–C07은 미구현 제안이다.**
 [C01의 코드·D01 진단·E65–E67 결과](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md)는
-별도로 보존했다. E55는 유지하며 공식 제출은 하지 않았다.
+별도로 보존했다. E55를 유지하며 C01 후보의 공식 제출은 하지 않았다.
+후속으로 [E55 공식 제출 `3ab72d66`](../experiments/e55-official-submit-retry-20260922.json)이
+정상 접수됐다. 이 조사에 기록한 과거 snapshot 수치를 새 공식 점수로 해석하지 않는다.
 과거 시도는 [측정 결과 분류](../experiments/optimization-results.md)에 따로 보존한다.
 조사 대상 commit·파일 해시·점수 계산 입력은 [조사 근거 JSON](optimization-candidates-20260922-evidence.json)에 있다.
 
@@ -36,9 +38,10 @@ QKV/O를 그대로 두고 FFN만 2배 빠르게 해도 참고값은 **7.184×**�
 이는 달성 예측이 아니라 FFN만 개선하는 전략의 부담을 보여 주는 가정 계산이다.
 세 커널 각각을 표의 값으로 맞출 필요는 없으며 개선의 곱이 목표를 결정한다.
 
-현재도 [공식 홈페이지](https://micro2026-moa.github.io/index.html)에 제출 서버 점검과
-Arena 이용 가능 안내가 있다. 리더보드는 참고용이며 최종 순위는 같은 조건의 재실행으로
-결정한다고 명시한다. 이번 leaderboard API 재조회는 연결이 끊겨 위 snapshot을 사용했다.
+최초 조사 때는 [공식 홈페이지](https://micro2026-moa.github.io/index.html)에 제출 서버
+점검과 Arena 이용 가능 안내가 있었다. 이후 9월 22일 E55의 실제 제출이 접수돼 재개를 확인했다.
+리더보드는 참고용이며 최종 순위는 같은 조건의 재실행으로 결정한다고 명시한다.
+위 표는 최초 조사 당시 API 연결 실패로 사용했던 과거 snapshot이며 새 채점 결과가 아니다.
 
 ## 확인한 구현과 병목
 
