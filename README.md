@@ -6,6 +6,10 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
+`opt/ffn-dataflow`의 후속 [메모리 배치 실험 E57–E64](docs/research/e55-memory-layout-audit.md)은
+QKV·O·FFN 변경 후보 8개를 Arena에서 실행했다. 정확도 검사는 통과했지만 반복 가능한 성능
+개선을 확보하지 못해 runtime은 E55를 유지한다. 결과·실패 원인·재현 source를 함께 보존했다.
+
 현재 `baseline`은 QKV와 O projection의 입력을 BF16으로 보존하는 **E55**다.
 동일 패키지3회에서 공식 입력3세트의15개 비교를 각각 통과했고, 별도 추가6세트의30개 비교도 통과했다.
 QKV 상쇄 진단2개도 통과했고 비대상 KV cache8,380,416개 BF16 원소가 유지됐다.

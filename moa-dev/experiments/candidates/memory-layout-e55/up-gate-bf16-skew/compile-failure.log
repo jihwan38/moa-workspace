@@ -1,0 +1,48 @@
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `feedforward` is never used
+   --> src/device/shared/mlp.rs:150:15
+    |
+150 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `project_down` is never used
+   --> src/device/shared/mlp.rs:363:15
+    |
+363 | pub(crate) fn project_down(
+    |               ^^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [1/1] ops::decoder_feedforward
+error: furiosa-opt: ops::decoder_feedforward: visa: while lowering TensorUnit
+       caused by: CommitArgs::commit_projection() failed: commit of a 16-bit stream [Time (L % 32, H / 16)] x [Packet H % 16] into DM [Element (L % 32, H # 3844)]
+       
+       Caused by:
+           Commit: the trimmed packet H % 16 must be the innermost run of the DM element (L % 32, H # 3844), but that element's innermost 16 cells are ((L % 32, H / 4 # 961) % 4, H % 4). If the element's layout is the intended one, the stream has to reach the commit in that order: run it through the transpose engine so the packet becomes the element's innermost run
+       
+       Location:
+           crates/npu-ir/tu-ops/src/renegade/low_level_args/tensor_unit_args/commit_args.rs:160:6
+   --> src/device/shared/mlp.rs:100:10
+    |
+100 |         .commit();
+    |          ^^^^^^^^
+
+    Finished 1 compiled, 14 not matching ops::decoder_feedforward
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 5 warnings emitted

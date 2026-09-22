@@ -1,5 +1,10 @@
 # Experiment ledger
 
+The [E57–E64 memory-layout audit](../research/e55-memory-layout-audit.md) covers
+eight hardware-tested candidates across QKV, O and FFN. All 225 comparisons in
+15 unique candidate/control jobs passed. E59's three-job −0.24% FFN difference
+overlaps run variation; no candidate is adopted. E55 remains the runtime source.
+
 All rows in the main performance table use the unchanged official three-kernel, three-input harness.
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
@@ -148,6 +153,15 @@ E48 up-only fused decode passes its first screen, without a demonstrated perform
 | E55 same package repeated | 71027, 71057, 71072 | Pass | 102878 | 51249 | 380339 | Current checkpoint; QKV5.36% below E54 and7.59% above lossy E53; original speedups2.372×/7.887×/11.212×; ranges0.976%/1.169%/1.036% |
 | E56 up sixteen-row staging | 72023 | Fail | 103176 | 50977 | — | [Candidate](../../moa-dev/experiments/candidates/ffn-up-sixteen-row-e55/README.md): static−1.83%, but FFN run0 only30.96% within tolerance; subsequent device launch timeout; rejected |
 | E55 paired control for E56 | 72024 | Pass | 104432 | 51283 | 380911 | [Unchanged package rerun](e55-up16-control.json), all15 comparisons PASS; single control, not a new aggregate |
+| E55 memory-layout control, 3 jobs | 72092/72126/72127 | Pass | 103858 | 51445 | 379073 | [Same E55 package](e55-memory-layout-control-repeats.json), fresh control for E57–E64 |
+| E57 up/gate packed pitch | 72091 | Pass | 103546 | 50835 | 420958 | [Screen](e57-up-gate-packed-screen.json), FFN regression |
+| E58 down packed pitch | 72102 | Pass | 103572 | 50433 | 400543 | [Screen](e58-down-packed-screen.json), FFN regression |
+| E59 down scale pitch, 3 jobs | 72111/72124/72125 | Pass | 104506 | 51029 | 378149 | [Repeats](e59-down-scale-repeats.json), −0.24% overlaps variation; no demonstrated gain |
+| E60 combined down pitches | 72112 | Pass | 104142 | 51041 | 394900 | [Screen](e60-down-both-screen.json), FFN regression |
+| E61 up/gate BF16 bank skew | 72115 | Pass | 103066 | 51523 | 387214 | [Screen](e61-up-gate-bf16-skew-screen.json), static improvement did not transfer to hardware |
+| E62 down BF16 bank skew | 72117 | Pass | 103166 | 50889 | 382908 | [Screen](e62-down-bf16-skew-screen.json), no improvement |
+| E63 BF16 QKV sixteen-row layout, 3 jobs | 72129/72136/72137 | Pass | 104525 | 51452 | 378532 | [Repeats](e63-qkv-sixteen-row-repeats.json), no QKV improvement |
+| E64 O column-major staging | 72135 | Pass | 103976 | 128411 | 378992 | [Screen](e64-output-column-major-screen.json), routing back to the required reduce layout is costly |
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.

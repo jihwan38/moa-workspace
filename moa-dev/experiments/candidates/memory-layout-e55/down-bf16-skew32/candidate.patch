@@ -1,0 +1,20 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -404,7 +404,7 @@
+         .collect::<m![H % 60, L / 32 % 60], m![L % 32]>()
+         .commit_trim::<m![L % 32]>()
+         .commit();
+-    let down_weight_bf16: DmTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![H % 60, L % 1920]> = device
++    let down_weight_bf16: DmTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![H % 60, L % 1920 # 1936]> = device
+         .main
+         .begin(down_weight_fp8.view())
+         .fetch::<m![H % 60], m![L % 1920]>()
+@@ -424,7 +424,7 @@
+ 
+         device
+             .main
+-            .begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))
++            .begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920 # 1936]>(12 * i))
+             .fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()
+             .collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()
+             .contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)

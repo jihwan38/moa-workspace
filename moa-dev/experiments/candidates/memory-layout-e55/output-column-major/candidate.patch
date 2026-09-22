@@ -1,0 +1,17 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -163,7 +163,7 @@
+     weight: &HbmTensor<f8e4m3, Chip, m![H, Qs]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![H]>,
+ ) -> DmTensor<bf16, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> {
+-    type OutputRows = m![H / 120 % 16, 1 # 16];
++    type OutputRows = m![1 # 16, H / 120 % 16];
+     // Preserve every stored BF16 activation; no amax, FP8 hi/lo, or input scale.
+     let x: DmTensor<bf16, Chip, OutputCluster, OutputColumns, m![Qs % 256]> = x.to_dm(&mut device.tdma);
+     let x_trf: TrfTensor<bf16, Chip, OutputCluster, OutputColumns, m![1], m![Qs % 256]> = device
+@@ -259,4 +259,4 @@
+ 
+ // O projection partitions 4096 BF16 inputs into sixteen 256-column groups.
+ type OutputCluster = m![Dummy2];
+-type OutputColumns = m![H / 120 % 16, Qs / 256];
++type OutputColumns = m![Qs / 256, H / 120 % 16];

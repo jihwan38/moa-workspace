@@ -1,0 +1,38 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -28,7 +28,7 @@
+ fn project_eight_rows_scaled_after_dot(
+     device: &mut Device,
+     x_trf: &TrfTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![1], m![H]>,
+-    weights: &DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]>,
++    weights: &DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H # 3844]>,
+     scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]>,
+     output: &mut DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]>,
+     row_offset: usize,
+@@ -43,7 +43,7 @@
+ 
+     device
+         .main
+-        .begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))
++        .begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H # 3844]>(row_offset))
+         .fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()
+         .collect::<m![L % 32 = 8, H / 16], m![H % 16]>()
+         // Keep each 16-element scale block separate through the DPE.
+@@ -90,7 +90,7 @@
+         .commit();
+ 
+     // Materialize each unscaled BF16 matrix once; later row tiles reuse it.
+-    let up_weight_bf16: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> = device
++    let up_weight_bf16: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H # 3844]> = device
+         .main
+         .begin(up_weight_packed.view())
+         .fetch::<m![L % 32], m![H]>()
+@@ -122,7 +122,7 @@
+         .commit();
+ 
+     // Materialize each unscaled BF16 matrix once; later row tiles reuse it.
+-    let gate_weight_bf16: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> = device
++    let gate_weight_bf16: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H # 3844]> = device
+         .main
+         .begin(gate_weight_packed.view())
+         .fetch::<m![L % 32], m![H]>()

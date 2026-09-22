@@ -1,0 +1,12 @@
+--- a/src/device/sliding/projection.rs
++++ b/src/device/sliding/projection.rs
+@@ -172,6 +172,9 @@
+         .collect::<m![Qs / 16 % 16], m![Qs % 16]>()
+         .to_trf();
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H % 1920, Qs]> = unsafe { weight.view().reshape() };
++    // Load with column-major slice order, then route to the innermost
++    // column partition required by the inter-slice reduction engine.
++    let weight: DmTensor<f8e4m3, Chip, OutputCluster, m![Qs / 256, H / 120 % 16], m![H % 120, Qs % 256]> = weight.to_dm(&mut device.tdma);
+     let weight: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120, Qs % 256]> = weight.to_dm(&mut device.tdma);
+     // Native FP8 weight values are exactly representable in BF16. Fuse the
+     // supported lookup with one BF16 dot, retaining the FP32 column sum.

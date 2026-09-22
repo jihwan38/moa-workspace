@@ -1,0 +1,2598 @@
+{
+  "e55": {
+    "makespan_cycles": 162209,
+    "instruction_count": 242,
+    "context_interval_union_cycles": {
+      "DmaEngine": 135607,
+      "PeCore": 29352,
+      "SubContext": 19378,
+      "MainContext": 125274,
+      "VectorEngine": 34748
+    },
+    "main_dma_overlap_cycles": 104921,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 250052608,
+      "cycle": 86273,
+      "active_tensor_ids": [
+        "166",
+        "15",
+        "162",
+        "164",
+        "157",
+        "160",
+        "18",
+        "167",
+        "82",
+        "168",
+        "169",
+        "99",
+        "80",
+        "43",
+        "144",
+        "155",
+        "145"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 97,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/candidates/ffn-parallel-epilogue/candidate.json",
+    "sha256": "97cd593f04a79e79c6be5cd9375e4657448625142abb64b827d6aa1e62de5074",
+    "large_dma_operations": [
+      {
+        "cycles": 26475,
+        "schedule_index": "71",
+        "description": "--> src/device/shared/mlp.rs:114:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 8352,
+        "schedule_index": "145",
+        "description": "--> src/device/shared/mlp.rs:182:84\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 26475,
+        "schedule_index": "191",
+        "description": "--> src/device/shared/mlp.rs:82:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 29427,
+        "schedule_index": "303",
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9774,
+        "schedule_index": "405",
+        "description": "--> src/device/shared/mlp.rs:391:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9392,
+        "schedule_index": "432",
+        "description": "--> src/device/shared/mlp.rs:379:81\n\nx.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 86178,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T301)_i6_project_eight_rows_scaled_after_dot_39",
+        "index": "166",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84974,
+          "end": 104461,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 176160768,
+        "size": 125829120,
+        "physical_pages": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T310)_i2_project_up_and_gate_111",
+        "index": "59",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 4285,
+          "end": 40635,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 31457280,
+        "physical_pages": [
+          2,
+          3
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T312)_i2_project_up_and_gate_120",
+        "index": "101",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 30772,
+          "end": 64314,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 62914560,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T344)_i10_project_eight_rows_scaled_after_dot_39",
+        "index": "117",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44851,
+          "end": 64338,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 168034304,
+        "size": 125829120,
+        "physical_pages": [
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          12,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T385)_i12_project_down_sharded_38",
+        "index": "168",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84977,
+          "end": 124922,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1966080,
+        "size": 29491200,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T267)_i2_project_up_and_gate_22",
+        "index": "119",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44960,
+          "end": 84950,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 301989888,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T387)_i12_project_down_sharded_47",
+        "index": "195",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 115659,
+          "end": 144122,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 58982400,
+        "physical_pages": [
+          2,
+          3,
+          4,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T269)_i2_project_up_and_gate_31",
+        "index": "145",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 75087,
+          "end": 104437,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 92274688,
+        "size": 62914560,
+        "physical_pages": [
+          1,
+          2,
+          3,
+          4,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T424)_i12_project_down_sharded_314",
+        "index": "206",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 125859,
+          "end": 144152,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 163577856,
+        "size": 117964800,
+        "physical_pages": [
+          0,
+          1,
+          5,
+          6,
+          7,
+          8,
+          9,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "78fd84de32ec4aab5bade1d518b3ed15ce34371918b3c734a0a18620e9419cc1",
+    "hbm_large_transfers": {
+      "IO(4)+0": {
+        "graph_operator": "148",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x384000)\ndst1: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst2: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xA8C000)\ndst3: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst4: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1194000)\ndst5: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst6: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x189C000)\ndst7: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O154\nhistory: "
+      },
+      "IO(7)+0": {
+        "graph_operator": "179",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x70800)\ndst1: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0xE1000)\ndst2: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x151800)\ndst3: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x1C2000)\ndst4: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x232800)\ndst5: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x2A3000)\ndst6: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x313800)\ndst7: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O152\nhistory: "
+      },
+      "IO(5)+0": {
+        "graph_operator": "128",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O30\nhistory: "
+      },
+      "IO(6)+0": {
+        "graph_operator": "94",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O81\nhistory: "
+      },
+      "IO(2)+0": {
+        "graph_operator": "106",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O22\nhistory: "
+      },
+      "IO(3)+0": {
+        "graph_operator": "48",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O73\nhistory: "
+      }
+    }
+  },
+  "e55_qkv": {
+    "makespan_cycles": 51293,
+    "instruction_count": 140,
+    "context_interval_union_cycles": {
+      "DmaEngine": 44569,
+      "PeCore": 3192,
+      "MainContext": 29969,
+      "VectorEngine": 18981,
+      "SubContext": 10979
+    },
+    "main_dma_overlap_cycles": 26715,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 42213376,
+      "cycle": 26900,
+      "active_tensor_ids": [
+        "80",
+        "15",
+        "71",
+        "21",
+        "17",
+        "37",
+        "83",
+        "56",
+        "50",
+        "81"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 78,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/qkv-bf16-fused-channel-scale-e54/candidate.json",
+    "sha256": "79105c61f6e174e6564f837e4680e8ee652e4257197e82443a9b7e23e26a6d12",
+    "large_dma_operations": [
+      {
+        "cycles": 13383,
+        "schedule_index": "125",
+        "description": "--> src/device/sliding/projection.rs:25:89\n\nweight.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 6966,
+        "schedule_index": "145",
+        "description": "--> src/device/sliding/projection.rs:83:83\n\nweight.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 6966,
+        "schedule_index": "204",
+        "description": "--> src/device/sliding/projection.rs:83:83\n\nweight.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 10389,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T180)_i1_project_query_51",
+        "index": "71",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 11307,
+          "end": 31963,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 16777216,
+        "size": 15728640,
+        "physical_pages": [
+          2
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Qs / 2048, Slice: (Qs / 64 % 32, Qs % 8), Element: (Qs / 8 % 8, H)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "fbba7ca3011926ffa3d5d45d6718314f36c741530736b098a73e6b05de12ad70",
+    "hbm_large_transfers": {
+      "IO(1)+0": {
+        "graph_operator": "57",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 15728640,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst1: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst2: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst3: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x780000)\ndst4: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x960000)\ndst5: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Qs_8=8:30720, H_256=15:256, Qs_64=4:245760, Qs_1=8:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0xD20000)\ndst7: [Qs_8=8:3840, H_256=15:256, Qs_64=4:33554432, Qs_1=8:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O14\nhistory: "
+      },
+      "IO(3)+0": {
+        "graph_operator": "82",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 7864320,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0xF0000)\ndst1: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst2: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x2D0000)\ndst3: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst4: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x4B0000)\ndst5: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst6: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x690000)\ndst7: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O40\nhistory: "
+      },
+      "IO(2)+0": {
+        "graph_operator": "65",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 7864320,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0xF0000)\ndst1: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst2: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x2D0000)\ndst3: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst4: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x4B0000)\ndst5: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst6: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_8=4:30720, H_256=15:256, Ps_32=4:122880, Ps_1=8:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x690000)\ndst7: [Ps_8=4:3840, H_256=15:256, Ps_32=4:33554432, Ps_1=8:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O28\nhistory: "
+      }
+    }
+  },
+  "e55_output": {
+    "makespan_cycles": 27239,
+    "instruction_count": 32,
+    "context_interval_union_cycles": {
+      "DmaEngine": 18229,
+      "PeCore": 1800,
+      "SubContext": 3036,
+      "MainContext": 7178,
+      "VectorEngine": 7178
+    },
+    "main_dma_overlap_cycles": 1638,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 26329088,
+      "cycle": 17328,
+      "active_tensor_ids": [
+        "19",
+        "12",
+        "7",
+        "16",
+        "8",
+        "10"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 20,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/output-bf16-activation-e47/candidate.json",
+    "sha256": "c33d3a353603781fb9a4f79dde83281a5015abdab72c3f051e4074f571e5c173",
+    "large_dma_operations": [
+      {
+        "cycles": 13383,
+        "schedule_index": "16",
+        "description": "--> src/device/sliding/projection.rs:298:95\n\nweight.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 5063,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T52)_i0_project_output_38",
+        "index": "10",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 2774,
+          "end": 21220,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 16777216,
+        "size": 15728640,
+        "physical_pages": [
+          1
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Element: (H % 120, Qs % 256)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "24d45fc706964d6dbfb7eb3a52a29381dd59347cd714d681ed2ab603f506cee0",
+    "hbm_large_transfers": {
+      "IO(2)+0": {
+        "graph_operator": "7",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 15728640,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=120:4096, H_120=2:491520, Qs_256=16:256, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=120:256, H_120=2:67108864, Qs_256=16:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=120:4096, H_120=2:491520, Qs_256=16:256, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst1: [H_1=120:256, H_120=2:67108864, Qs_256=16:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=120:4096, H_120=2:491520, Qs_256=16:256, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst2: [H_1=120:256, H_120=2:67108864, Qs_256=16:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=120:4096, H_120=2:491520, Qs_256=16:256, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst3: [H_1=120:256, H_120=2:67108864, Qs_256=16:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=120:4096, H_120=2:491520, Qs_256=16:256, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0x780000)\ndst4: [H_1=120:256, H_120=2:67108864, Qs_256=16:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=120:4096, H_120=2:491520, Qs_256=16:256, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0x960000)\ndst5: [H_1=120:256, H_120=2:67108864, Qs_256=16:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=120:4096, H_120=2:491520, Qs_256=16:256, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [H_1=120:256, H_120=2:67108864, Qs_256=16:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=120:4096, H_120=2:491520, Qs_256=16:256, H_240=2:983040, Qs_1=1:256], Dram(chip=0, in_chip=0xD20000)\ndst7: [H_1=120:256, H_120=2:67108864, Qs_256=16:4194304, H_240=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O4\nhistory: "
+      }
+    }
+  },
+  "up-gate-packed": {
+    "makespan_cycles": 174238,
+    "instruction_count": 242,
+    "context_interval_union_cycles": {
+      "DmaEngine": 148439,
+      "PeCore": 27469,
+      "SubContext": 19378,
+      "MainContext": 125274,
+      "VectorEngine": 34748
+    },
+    "main_dma_overlap_cycles": 106058,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 250044416,
+      "cycle": 97556,
+      "active_tensor_ids": [
+        "164",
+        "15",
+        "162",
+        "157",
+        "160",
+        "18",
+        "165",
+        "83",
+        "166",
+        "167",
+        "112",
+        "82",
+        "85",
+        "126",
+        "155",
+        "145"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 97,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/memory-layout-e55/up-gate-packed/candidate.json",
+    "sha256": "19941b4db880ec31c8bbe314035f93fdfc0eb810e16c7bc4ee7632bcf7d4edd8",
+    "large_dma_operations": [
+      {
+        "cycles": 32891,
+        "schedule_index": "45",
+        "description": "--> src/device/shared/mlp.rs:114:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 8352,
+        "schedule_index": "156",
+        "description": "--> src/device/shared/mlp.rs:182:84\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 32891,
+        "schedule_index": "183",
+        "description": "--> src/device/shared/mlp.rs:82:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 29427,
+        "schedule_index": "303",
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9392,
+        "schedule_index": "431",
+        "description": "--> src/device/shared/mlp.rs:379:81\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9774,
+        "schedule_index": "432",
+        "description": "--> src/device/shared/mlp.rs:391:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 86178,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T301)_i6_project_eight_rows_scaled_after_dot_39",
+        "index": "164",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 96260,
+          "end": 115747,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 176160768,
+        "size": 125829120,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T310)_i2_project_up_and_gate_111",
+        "index": "43",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 2679,
+          "end": 51195,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 33554432,
+        "physical_pages": [
+          1,
+          2
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H # 4096)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T312)_i2_project_up_and_gate_120",
+        "index": "110",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 41332,
+          "end": 74874,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 62914560,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T344)_i10_project_eight_rows_scaled_after_dot_39",
+        "index": "124",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 55411,
+          "end": 74898,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 168034304,
+        "size": 125829120,
+        "physical_pages": [
+          1,
+          2,
+          8,
+          9,
+          10,
+          11,
+          12,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T385)_i12_project_down_sharded_38",
+        "index": "166",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 96266,
+          "end": 135744,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 70778880,
+        "size": 29491200,
+        "physical_pages": [
+          14,
+          13
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T267)_i2_project_up_and_gate_22",
+        "index": "116",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 53473,
+          "end": 96236,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 33554432,
+        "physical_pages": [
+          14,
+          15
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H # 4096)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T387)_i12_project_down_sharded_47",
+        "index": "187",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 126481,
+          "end": 154926,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 108527616,
+        "size": 58982400,
+        "physical_pages": [
+          1,
+          2,
+          3,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T269)_i2_project_up_and_gate_31",
+        "index": "145",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 86373,
+          "end": 115723,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 104595456,
+        "size": 62914560,
+        "physical_pages": [
+          1,
+          2,
+          3,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T424)_i12_project_down_sharded_314",
+        "index": "206",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 136663,
+          "end": 154956,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 175112192,
+        "size": 117964800,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          1
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "70143b25e96431f460f504b74040b18d1129b8fcf48a9b64f45bf1c6b4d01ca2",
+    "hbm_large_transfers": {
+      "IO(7)+0": {
+        "graph_operator": "186",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x70800)\ndst1: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0xE1000)\ndst2: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x151800)\ndst3: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x1C2000)\ndst4: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x232800)\ndst5: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x2A3000)\ndst6: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x313800)\ndst7: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O152\nhistory: "
+      },
+      "IO(3)+0": {
+        "graph_operator": "35",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x3C0000)\ndst1: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x780000)\ndst2: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst3: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x11D0000)\ndst4: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x1590000)\ndst5: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_960=2:960, L_1=32:1920, L_32=16:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0xB40000)\ndst6: [H_960=2:960, L_1=32:2048, L_32=16:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_960=2:960, L_1=32:1920, L_32=16:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x1950000)\ndst7: [H_960=2:960, L_1=32:2048, L_32=16:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [H_960=2:960, L_1=32:1920, L_32=16:61440, H_1=1:960], Dram(chip=0, in_chip=0xC30000)\ndst8: [H_960=2:960, L_1=32:2048, L_32=16:4194304, H_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [H_960=2:960, L_1=32:1920, L_32=16:61440, H_1=1:960], Dram(chip=0, in_chip=0x1A40000)\ndst9: [H_960=2:960, L_1=32:2048, L_32=16:4194304, H_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O73\nhistory: "
+      },
+      "IO(2)+0": {
+        "graph_operator": "101",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x3C0000)\ndst1: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x780000)\ndst2: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst3: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x11D0000)\ndst4: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_960=2:960, L_1=32:1920, L_32=32:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x1590000)\ndst5: [H_960=2:960, L_1=32:2048, L_32=32:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_960=2:960, L_1=32:1920, L_32=16:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0xB40000)\ndst6: [H_960=2:960, L_1=32:2048, L_32=16:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_960=2:960, L_1=32:1920, L_32=16:61440, L_1024=2:1966080, H_1=1:960], Dram(chip=0, in_chip=0x1950000)\ndst7: [H_960=2:960, L_1=32:2048, L_32=16:4194304, L_1024=2:134217728, H_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [H_960=2:960, L_1=32:1920, L_32=16:61440, H_1=1:960], Dram(chip=0, in_chip=0xC30000)\ndst8: [H_960=2:960, L_1=32:2048, L_32=16:4194304, H_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [H_960=2:960, L_1=32:1920, L_32=16:61440, H_1=1:960], Dram(chip=0, in_chip=0x1A40000)\ndst9: [H_960=2:960, L_1=32:2048, L_32=16:4194304, H_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O22\nhistory: "
+      },
+      "IO(6)+0": {
+        "graph_operator": "98",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O81\nhistory: "
+      },
+      "IO(5)+0": {
+        "graph_operator": "133",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O30\nhistory: "
+      },
+      "IO(4)+0": {
+        "graph_operator": "147",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x384000)\ndst1: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst2: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xA8C000)\ndst3: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst4: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1194000)\ndst5: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst6: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x189C000)\ndst7: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O154\nhistory: "
+      }
+    },
+    "base_schedule": "e55",
+    "makespan_change_fraction": 0.07415741420019861
+  },
+  "down-packed-split": {
+    "makespan_cycles": 162815,
+    "instruction_count": 243,
+    "context_interval_union_cycles": {
+      "DmaEngine": 135607,
+      "PeCore": 31140,
+      "SubContext": 19378,
+      "MainContext": 125274,
+      "VectorEngine": 34748
+    },
+    "main_dma_overlap_cycles": 104652,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 240680960,
+      "cycle": 84925,
+      "active_tensor_ids": [
+        "167",
+        "170",
+        "15",
+        "152",
+        "18",
+        "163",
+        "93",
+        "168",
+        "171",
+        "161",
+        "92",
+        "160",
+        "145",
+        "143",
+        "165",
+        "146",
+        "99"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 98,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/memory-layout-e55/down-packed-split/candidate.json",
+    "sha256": "d90a36694bf0cd72e74866ac676279ae72912d14e018a98605fe0daa995fa54f",
+    "large_dma_operations": [
+      {
+        "cycles": 26475,
+        "schedule_index": "99",
+        "description": "--> src/device/shared/mlp.rs:120:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 8352,
+        "schedule_index": "145",
+        "description": "--> src/device/shared/mlp.rs:188:84\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 26475,
+        "schedule_index": "191",
+        "description": "--> src/device/shared/mlp.rs:88:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 29427,
+        "schedule_index": "308",
+        "description": "--> src/device/shared/mlp.rs:404:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9392,
+        "schedule_index": "434",
+        "description": "--> src/device/shared/mlp.rs:385:81\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9774,
+        "schedule_index": "435",
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 86178,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T389)_i12_project_down_sharded_49",
+        "index": "193",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 115037,
+          "end": 143503,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 58982400,
+        "physical_pages": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T302)_i6_project_eight_rows_scaled_after_dot_39",
+        "index": "170",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84892,
+          "end": 104379,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 159383552,
+        "size": 125829120,
+        "physical_pages": [
+          6,
+          1,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T311)_i2_project_up_and_gate_111",
+        "index": "89",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 4221,
+          "end": 40571,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 31457280,
+        "physical_pages": [
+          2,
+          3
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T426)_i12_project_down_sharded_316",
+        "index": "207",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 125240,
+          "end": 143533,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 180355072,
+        "size": 117964800,
+        "physical_pages": [
+          0,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T313)_i2_project_up_and_gate_120",
+        "index": "101",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 30708,
+          "end": 64250,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 62914560,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T345)_i10_project_eight_rows_scaled_after_dot_39",
+        "index": "117",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44787,
+          "end": 64274,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 168034304,
+        "size": 125829120,
+        "physical_pages": [
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          12,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "down_weight_packed",
+        "index": "171",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84925,
+          "end": 114352,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, DownShard), Element: (H % 60, DownElement # 2048)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T268)_i2_project_up_and_gate_22",
+        "index": "119",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44896,
+          "end": 84883,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 301989888,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T387)_i12_project_down_sharded_40",
+        "index": "192",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 114352,
+          "end": 124300,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920 # 2048)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T270)_i2_project_up_and_gate_31",
+        "index": "146",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 75020,
+          "end": 104355,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 83886080,
+        "size": 62914560,
+        "physical_pages": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "692be34e4200c8aa44bd01795b9a36aac9e89f7bd534bb08e28ccd44de642931",
+    "hbm_large_transfers": {
+      "IO(5)+0": {
+        "graph_operator": "135",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O30\nhistory: "
+      },
+      "IO(6)+0": {
+        "graph_operator": "94",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O81\nhistory: "
+      },
+      "IO(7)+0": {
+        "graph_operator": "187",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x70800)\ndst1: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0xE1000)\ndst2: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x151800)\ndst3: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x1C2000)\ndst4: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x232800)\ndst5: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x2A3000)\ndst6: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x313800)\ndst7: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O152\nhistory: "
+      },
+      "IO(4)+0": {
+        "graph_operator": "150",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x384000)\ndst1: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst2: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0xA8C000)\ndst3: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst4: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x1194000)\ndst5: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst6: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x189C000)\ndst7: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O154\nhistory: "
+      },
+      "IO(3)+0": {
+        "graph_operator": "78",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O73\nhistory: "
+      },
+      "IO(2)+0": {
+        "graph_operator": "106",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O22\nhistory: "
+      }
+    },
+    "base_schedule": "e55",
+    "makespan_change_fraction": 0.003735920941501325
+  },
+  "down-scale-split": {
+    "makespan_cycles": 162209,
+    "instruction_count": 243,
+    "context_interval_union_cycles": {
+      "DmaEngine": 135607,
+      "PeCore": 29352,
+      "SubContext": 19378,
+      "MainContext": 125274,
+      "VectorEngine": 34748
+    },
+    "main_dma_overlap_cycles": 104921,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 250052608,
+      "cycle": 86273,
+      "active_tensor_ids": [
+        "166",
+        "15",
+        "157",
+        "18",
+        "162",
+        "82",
+        "164",
+        "160",
+        "80",
+        "43",
+        "167",
+        "144",
+        "155",
+        "168",
+        "145",
+        "169",
+        "99"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 98,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/memory-layout-e55/down-scale-split/candidate.json",
+    "sha256": "cf22802763a33001b94337c9681cfc3f610c15c14558ceea5041a81f6aac7131",
+    "large_dma_operations": [
+      {
+        "cycles": 26475,
+        "schedule_index": "71",
+        "description": "--> src/device/shared/mlp.rs:120:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 8352,
+        "schedule_index": "145",
+        "description": "--> src/device/shared/mlp.rs:188:84\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 26475,
+        "schedule_index": "191",
+        "description": "--> src/device/shared/mlp.rs:88:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 29427,
+        "schedule_index": "303",
+        "description": "--> src/device/shared/mlp.rs:406:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9774,
+        "schedule_index": "405",
+        "description": "--> src/device/shared/mlp.rs:398:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9392,
+        "schedule_index": "433",
+        "description": "--> src/device/shared/mlp.rs:385:81\n\nx.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 86178,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T389)_i12_project_down_sharded_49",
+        "index": "195",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 115659,
+          "end": 144122,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 58982400,
+        "physical_pages": [
+          2,
+          3,
+          4,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T302)_i6_project_eight_rows_scaled_after_dot_39",
+        "index": "166",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84974,
+          "end": 104461,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 176160768,
+        "size": 125829120,
+        "physical_pages": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T311)_i2_project_up_and_gate_111",
+        "index": "59",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 4285,
+          "end": 40635,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 31457280,
+        "physical_pages": [
+          2,
+          3
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T426)_i12_project_down_sharded_316",
+        "index": "206",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 125859,
+          "end": 144152,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 163577856,
+        "size": 117964800,
+        "physical_pages": [
+          0,
+          1,
+          5,
+          6,
+          7,
+          8,
+          9,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T313)_i2_project_up_and_gate_120",
+        "index": "101",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 30772,
+          "end": 64314,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 62914560,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T345)_i10_project_eight_rows_scaled_after_dot_39",
+        "index": "117",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44851,
+          "end": 64338,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 168034304,
+        "size": 125829120,
+        "physical_pages": [
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          12,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T268)_i2_project_up_and_gate_22",
+        "index": "119",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44960,
+          "end": 84950,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 301989888,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T387)_i12_project_down_sharded_40",
+        "index": "168",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84977,
+          "end": 124922,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1966080,
+        "size": 29491200,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T270)_i2_project_up_and_gate_31",
+        "index": "145",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 75087,
+          "end": 104437,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 92274688,
+        "size": 62914560,
+        "physical_pages": [
+          1,
+          2,
+          3,
+          4,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "712c249764b242bd5f8e82d6edaf5cecb3476287d0e076eb2a50878486865bb6",
+    "hbm_large_transfers": {
+      "IO(4)+0": {
+        "graph_operator": "148",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x384000)\ndst1: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst2: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xA8C000)\ndst3: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst4: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1194000)\ndst5: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst6: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x189C000)\ndst7: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O155\nhistory: "
+      },
+      "IO(7)+0": {
+        "graph_operator": "179",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x70800)\ndst1: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0xE1000)\ndst2: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x151800)\ndst3: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x1C2000)\ndst4: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x232800)\ndst5: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x2A3000)\ndst6: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x313800)\ndst7: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O152\nhistory: "
+      },
+      "IO(5)+0": {
+        "graph_operator": "128",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O30\nhistory: "
+      },
+      "IO(6)+0": {
+        "graph_operator": "94",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O81\nhistory: "
+      },
+      "IO(2)+0": {
+        "graph_operator": "106",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O22\nhistory: "
+      },
+      "IO(3)+0": {
+        "graph_operator": "48",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O73\nhistory: "
+      }
+    },
+    "base_schedule": "e55",
+    "makespan_change_fraction": 0.0
+  },
+  "down-both-split": {
+    "makespan_cycles": 162815,
+    "instruction_count": 244,
+    "context_interval_union_cycles": {
+      "DmaEngine": 135607,
+      "PeCore": 31140,
+      "SubContext": 19378,
+      "MainContext": 125274,
+      "VectorEngine": 34748
+    },
+    "main_dma_overlap_cycles": 104652,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 240680960,
+      "cycle": 84925,
+      "active_tensor_ids": [
+        "160",
+        "170",
+        "165",
+        "15",
+        "99",
+        "167",
+        "152",
+        "18",
+        "93",
+        "92",
+        "145",
+        "143",
+        "163",
+        "168",
+        "171",
+        "146",
+        "161"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 99,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/memory-layout-e55/down-both-split/candidate.json",
+    "sha256": "80bd04a80a6dc091ca3d2c3de0d62293b006879f2d967e02dd62aee0d35bb9e7",
+    "large_dma_operations": [
+      {
+        "cycles": 26475,
+        "schedule_index": "99",
+        "description": "--> src/device/shared/mlp.rs:120:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 8352,
+        "schedule_index": "145",
+        "description": "--> src/device/shared/mlp.rs:188:84\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 26475,
+        "schedule_index": "191",
+        "description": "--> src/device/shared/mlp.rs:88:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 29427,
+        "schedule_index": "308",
+        "description": "--> src/device/shared/mlp.rs:407:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9392,
+        "schedule_index": "434",
+        "description": "--> src/device/shared/mlp.rs:385:81\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9774,
+        "schedule_index": "435",
+        "description": "--> src/device/shared/mlp.rs:398:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 86178,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T303)_i6_project_eight_rows_scaled_after_dot_39",
+        "index": "170",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84892,
+          "end": 104379,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 159383552,
+        "size": 125829120,
+        "physical_pages": [
+          6,
+          1,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T312)_i2_project_up_and_gate_111",
+        "index": "89",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 4221,
+          "end": 40571,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 31457280,
+        "physical_pages": [
+          2,
+          3
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T389)_i12_project_down_sharded_42",
+        "index": "192",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 114352,
+          "end": 124300,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920 # 2048)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T314)_i2_project_up_and_gate_120",
+        "index": "101",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 30708,
+          "end": 64250,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 62914560,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T391)_i12_project_down_sharded_51",
+        "index": "193",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 115037,
+          "end": 143503,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 58982400,
+        "physical_pages": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T346)_i10_project_eight_rows_scaled_after_dot_39",
+        "index": "117",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44787,
+          "end": 64274,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 168034304,
+        "size": 125829120,
+        "physical_pages": [
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          12,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T428)_i12_project_down_sharded_318",
+        "index": "207",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 125240,
+          "end": 143533,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 180355072,
+        "size": 117964800,
+        "physical_pages": [
+          0,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T269)_i2_project_up_and_gate_22",
+        "index": "119",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44896,
+          "end": 84883,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 301989888,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "down_weight_packed",
+        "index": "171",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84925,
+          "end": 114352,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, DownShard), Element: (H % 60, DownElement # 2048)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T271)_i2_project_up_and_gate_31",
+        "index": "146",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 75020,
+          "end": 104355,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 83886080,
+        "size": 62914560,
+        "physical_pages": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "f31e028fac7ffc4a29fc8cedd2d438734b8c31f91552b0e7164210b50a0280e2",
+    "hbm_large_transfers": {
+      "IO(5)+0": {
+        "graph_operator": "135",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O30\nhistory: "
+      },
+      "IO(6)+0": {
+        "graph_operator": "94",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O81\nhistory: "
+      },
+      "IO(7)+0": {
+        "graph_operator": "187",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x70800)\ndst1: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0xE1000)\ndst2: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x151800)\ndst3: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x1C2000)\ndst4: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x232800)\ndst5: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x2A3000)\ndst6: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:960, H_60=4:57600, DownShard_1=8:120, H_240=2:230400, DownBlock_1=1:120], Dram(chip=0, in_chip=0x313800)\ndst7: [H_1=60:128, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownBlock_1=1:120], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O152\nhistory: "
+      },
+      "IO(4)+0": {
+        "graph_operator": "150",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x384000)\ndst1: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst2: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0xA8C000)\ndst3: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst4: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x1194000)\ndst5: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst6: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:7680, H_60=4:460800, DownShard_1=8:960, H_240=2:1843200, DownElement_1=1:960], Dram(chip=0, in_chip=0x189C000)\ndst7: [H_1=60:1024, H_60=4:33554432, DownShard_1=8:4194304, H_240=2:134217728, DownElement_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O155\nhistory: "
+      },
+      "IO(3)+0": {
+        "graph_operator": "78",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O73\nhistory: "
+      },
+      "IO(2)+0": {
+        "graph_operator": "106",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O22\nhistory: "
+      }
+    },
+    "base_schedule": "e55",
+    "makespan_change_fraction": 0.003735920941501325
+  },
+  "up-gate-bf16-skew32": {
+    "makespan_cycles": 161666,
+    "instruction_count": 242,
+    "context_interval_union_cycles": {
+      "DmaEngine": 135607,
+      "PeCore": 29355,
+      "SubContext": 19378,
+      "MainContext": 125274,
+      "VectorEngine": 34748
+    },
+    "main_dma_overlap_cycles": 105476,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 250552320,
+      "cycle": 84977,
+      "active_tensor_ids": [
+        "161",
+        "15",
+        "153",
+        "157",
+        "159",
+        "156",
+        "72",
+        "163",
+        "162",
+        "165",
+        "70",
+        "41",
+        "140",
+        "151",
+        "141"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 97,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/memory-layout-e55/up-gate-bf16-skew32/candidate.json",
+    "sha256": "0d9a77989ecdc5d10f0dad55f302bfd2022aaf8572900a869df212df7569aec5",
+    "large_dma_operations": [
+      {
+        "cycles": 26475,
+        "schedule_index": "69",
+        "description": "--> src/device/shared/mlp.rs:114:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 8352,
+        "schedule_index": "141",
+        "description": "--> src/device/shared/mlp.rs:182:84\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 26475,
+        "schedule_index": "187",
+        "description": "--> src/device/shared/mlp.rs:82:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 29427,
+        "schedule_index": "305",
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9774,
+        "schedule_index": "396",
+        "description": "--> src/device/shared/mlp.rs:391:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9392,
+        "schedule_index": "424",
+        "description": "--> src/device/shared/mlp.rs:379:81\n\nx.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 86178,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T301)_i6_project_eight_rows_scaled_after_dot_39",
+        "index": "161",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84971,
+          "end": 104458,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 238551040,
+        "size": 126353408,
+        "physical_pages": [
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H # 3856)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T310)_i2_project_up_and_gate_111",
+        "index": "57",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 4285,
+          "end": 40635,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 31457280,
+        "physical_pages": [
+          2,
+          3
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T312)_i2_project_up_and_gate_120",
+        "index": "97",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 30772,
+          "end": 64314,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 62914560,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T344)_i10_project_eight_rows_scaled_after_dot_39",
+        "index": "113",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44851,
+          "end": 64338,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 163577856,
+        "size": 126353408,
+        "physical_pages": [
+          7,
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          12,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H # 3856)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T385)_i12_project_down_sharded_38",
+        "index": "163",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84977,
+          "end": 124388,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 119406592,
+        "size": 29491200,
+        "physical_pages": [
+          15,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T267)_i2_project_up_and_gate_22",
+        "index": "115",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44960,
+          "end": 84947,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T387)_i12_project_down_sharded_47",
+        "index": "185",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 115125,
+          "end": 143579,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 149291008,
+        "size": 58982400,
+        "physical_pages": [
+          14,
+          1,
+          2,
+          3,
+          4
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T269)_i2_project_up_and_gate_31",
+        "index": "141",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 75084,
+          "end": 104434,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 163577856,
+        "size": 62914560,
+        "physical_pages": [
+          7,
+          1,
+          2,
+          3,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T424)_i12_project_down_sharded_314",
+        "index": "199",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 125316,
+          "end": 143609,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 208273408,
+        "size": 117964800,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "2101c647b568cf49f2aa37ca712a48e83fadd67a886232615da7c1e0cf3d156b",
+    "hbm_large_transfers": {
+      "IO(5)+0": {
+        "graph_operator": "124",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O30\nhistory: "
+      },
+      "IO(6)+0": {
+        "graph_operator": "90",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O81\nhistory: "
+      },
+      "IO(4)+0": {
+        "graph_operator": "145",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x384000)\ndst1: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst2: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xA8C000)\ndst3: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst4: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1194000)\ndst5: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst6: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x189C000)\ndst7: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O154\nhistory: "
+      },
+      "IO(3)+0": {
+        "graph_operator": "46",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O73\nhistory: "
+      },
+      "IO(2)+0": {
+        "graph_operator": "102",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O22\nhistory: "
+      },
+      "IO(7)+0": {
+        "graph_operator": "175",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x70800)\ndst1: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0xE1000)\ndst2: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x151800)\ndst3: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x1C2000)\ndst4: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x232800)\ndst5: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x2A3000)\ndst6: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x313800)\ndst7: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O152\nhistory: "
+      }
+    },
+    "base_schedule": "e55",
+    "makespan_change_fraction": -0.0033475331208502324
+  },
+  "down-bf16-skew32": {
+    "makespan_cycles": 162209,
+    "instruction_count": 242,
+    "context_interval_union_cycles": {
+      "DmaEngine": 135607,
+      "PeCore": 29352,
+      "SubContext": 19378,
+      "MainContext": 125274,
+      "VectorEngine": 34748
+    },
+    "main_dma_overlap_cycles": 104921,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 250052608,
+      "cycle": 86273,
+      "active_tensor_ids": [
+        "166",
+        "15",
+        "162",
+        "164",
+        "157",
+        "160",
+        "18",
+        "167",
+        "82",
+        "168",
+        "169",
+        "99",
+        "80",
+        "43",
+        "144",
+        "155",
+        "145"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 97,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/memory-layout-e55/down-bf16-skew32/candidate.json",
+    "sha256": "615aca01279d21611b6e3914e2cf6e38eb3f3a4229ed4c6130aeee59e48a41f8",
+    "large_dma_operations": [
+      {
+        "cycles": 26475,
+        "schedule_index": "71",
+        "description": "--> src/device/shared/mlp.rs:114:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 8352,
+        "schedule_index": "145",
+        "description": "--> src/device/shared/mlp.rs:182:84\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 26475,
+        "schedule_index": "191",
+        "description": "--> src/device/shared/mlp.rs:82:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 29427,
+        "schedule_index": "303",
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9774,
+        "schedule_index": "405",
+        "description": "--> src/device/shared/mlp.rs:391:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 9392,
+        "schedule_index": "432",
+        "description": "--> src/device/shared/mlp.rs:379:81\n\nx.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 86178,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T301)_i6_project_eight_rows_scaled_after_dot_39",
+        "index": "166",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84974,
+          "end": 104461,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 176160768,
+        "size": 125829120,
+        "physical_pages": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T310)_i2_project_up_and_gate_111",
+        "index": "59",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 4285,
+          "end": 40635,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 67108864,
+        "size": 31457280,
+        "physical_pages": [
+          2,
+          3
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T312)_i2_project_up_and_gate_120",
+        "index": "101",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 30772,
+          "end": 64314,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 62914560,
+        "physical_pages": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T344)_i10_project_eight_rows_scaled_after_dot_39",
+        "index": "117",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44851,
+          "end": 64338,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 168034304,
+        "size": 125829120,
+        "physical_pages": [
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          12,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T385)_i12_project_down_sharded_38",
+        "index": "168",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84977,
+          "end": 124922,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1966080,
+        "size": 29491200,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T267)_i2_project_up_and_gate_22",
+        "index": "119",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44960,
+          "end": 84950,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 301989888,
+        "size": 31457280,
+        "physical_pages": [
+          13,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T387)_i12_project_down_sharded_47",
+        "index": "195",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 115659,
+          "end": 144122,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 100663296,
+        "size": 58982400,
+        "physical_pages": [
+          2,
+          3,
+          4,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T269)_i2_project_up_and_gate_31",
+        "index": "145",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 75087,
+          "end": 104437,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 92274688,
+        "size": 62914560,
+        "physical_pages": [
+          1,
+          2,
+          3,
+          4,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T424)_i12_project_down_sharded_314",
+        "index": "206",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 125859,
+          "end": 144152,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 163577856,
+        "size": 118947840,
+        "physical_pages": [
+          0,
+          1,
+          5,
+          6,
+          7,
+          8,
+          9,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920 # 1936)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "d2a57129050549810067582a3c8828d394a1b594c89419377398b149d1375e4c",
+    "hbm_large_transfers": {
+      "IO(4)+0": {
+        "graph_operator": "148",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x384000)\ndst1: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst2: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xA8C000)\ndst3: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst4: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1194000)\ndst5: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst6: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:7680, H_60=4:460800, L_1920=8:960, H_240=2:1843200, L_1=1:960], Dram(chip=0, in_chip=0x189C000)\ndst7: [H_1=60:960, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O154\nhistory: "
+      },
+      "IO(7)+0": {
+        "graph_operator": "179",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x70800)\ndst1: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0xE1000)\ndst2: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x151800)\ndst3: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x1C2000)\ndst4: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x232800)\ndst5: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x2A3000)\ndst6: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=60:960, H_60=4:57600, L_1920=8:120, H_240=2:230400, L_16=1:120], Dram(chip=0, in_chip=0x313800)\ndst7: [H_1=60:120, H_60=4:33554432, L_1920=8:4194304, H_240=2:134217728, L_16=1:120], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O152\nhistory: "
+      },
+      "IO(5)+0": {
+        "graph_operator": "128",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O30\nhistory: "
+      },
+      "IO(6)+0": {
+        "graph_operator": "94",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 3686400,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x78000)\ndst1: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0xF0000)\ndst2: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x1C2000)\ndst3: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x23A000)\ndst4: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=30:256, L_32=32:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x2B2000)\ndst5: [None=30:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x168000)\ndst6: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=30:256, L_32=16:7680, L_1024=2:245760, None=1:256], Dram(chip=0, in_chip=0x32A000)\ndst7: [None=30:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x186000)\ndst8: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=30:256, L_32=16:7680, None=1:256], Dram(chip=0, in_chip=0x348000)\ndst9: [None=30:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O81\nhistory: "
+      },
+      "IO(2)+0": {
+        "graph_operator": "106",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O22\nhistory: "
+      },
+      "IO(3)+0": {
+        "graph_operator": "48",
+        "dtype": "Float4e2m1",
+        "logical_bytes": 29491200,
+        "source_descriptor_count": 10,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst1: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x780000)\ndst2: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst3: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x11D0000)\ndst4: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=240:256, L_32=32:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1590000)\ndst5: [None=240:256, L_32=32:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=240:256, L_32=16:61440, L_1024=2:1966080, None=1:256], Dram(chip=0, in_chip=0x1950000)\ndst7: [None=240:256, L_32=16:4194304, L_1024=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc8: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0xC30000)\ndst8: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=16, in_slice=0x0)\nsrc9: [None=240:256, L_32=16:61440, None=1:256], Dram(chip=0, in_chip=0x1A40000)\ndst9: [None=240:256, L_32=16:4194304, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=16, in_slice=0x0)\n\nname: DmaCommand#O73\nhistory: "
+      }
+    },
+    "base_schedule": "e55",
+    "makespan_change_fraction": 0.0
+  },
+  "qkv-sixteen-rows": {
+    "makespan_cycles": 51446,
+    "instruction_count": 140,
+    "context_interval_union_cycles": {
+      "DmaEngine": 44015,
+      "PeCore": 3192,
+      "MainContext": 30593,
+      "VectorEngine": 18981,
+      "SubContext": 11555
+    },
+    "main_dma_overlap_cycles": 26632,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 42213376,
+      "cycle": 26759,
+      "active_tensor_ids": [
+        "80",
+        "15",
+        "71",
+        "21",
+        "17",
+        "37",
+        "83",
+        "56",
+        "50",
+        "81"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 78,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/memory-layout-e55/qkv-sixteen-rows/candidate.json",
+    "sha256": "0731c0c4c0596c919bf382b90a607e06fea5c9dacce1ede0ca395db099acff00",
+    "large_dma_operations": [
+      {
+        "cycles": 13383,
+        "schedule_index": "125",
+        "description": "--> src/device/sliding/projection.rs:25:90\n\nweight.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 6966,
+        "schedule_index": "145",
+        "description": "--> src/device/sliding/projection.rs:83:84\n\nweight.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 6966,
+        "schedule_index": "207",
+        "description": "--> src/device/sliding/projection.rs:83:84\n\nweight.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 10389,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T180)_i1_project_query_51",
+        "index": "71",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 11166,
+          "end": 31822,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 16777216,
+        "size": 15728640,
+        "physical_pages": [
+          2
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Qs / 2048, Slice: (Qs / 128 % 16, Qs % 16), Element: (Qs / 16 % 8, H)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "25967e28d1c54ed5d8290ee7e2a4218134021a5d4f2a4040c3bcc5c048e17207",
+    "hbm_large_transfers": {
+      "IO(1)+0": {
+        "graph_operator": "57",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 15728640,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst1: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst2: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst3: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x780000)\ndst4: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0x960000)\ndst5: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0xB40000)\ndst6: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Qs_16=8:61440, H_256=15:256, Qs_128=2:491520, Qs_1=16:3840, Qs_256=2:983040, H_1=1:256], Dram(chip=0, in_chip=0xD20000)\ndst7: [Qs_16=8:3840, H_256=15:256, Qs_128=2:67108864, Qs_1=16:4194304, Qs_256=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O14\nhistory: "
+      },
+      "IO(3)+0": {
+        "graph_operator": "83",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 7864320,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0xF0000)\ndst1: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst2: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x2D0000)\ndst3: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst4: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x4B0000)\ndst5: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst6: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x690000)\ndst7: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O40\nhistory: "
+      },
+      "IO(2)+0": {
+        "graph_operator": "65",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 7864320,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0xF0000)\ndst1: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x1E0000)\ndst2: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x2D0000)\ndst3: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x3C0000)\ndst4: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x4B0000)\ndst5: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x5A0000)\ndst6: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [Ps_16=4:61440, H_256=15:256, Ps_64=2:245760, Ps_1=16:3840, Ps_128=2:491520, H_1=1:256], Dram(chip=0, in_chip=0x690000)\ndst7: [Ps_16=4:3840, H_256=15:256, Ps_64=2:67108864, Ps_1=16:4194304, Ps_128=2:134217728, H_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O28\nhistory: "
+      }
+    },
+    "base_schedule": "e55_qkv",
+    "makespan_change_fraction": 0.002982863158715654
+  },
+  "output-column-major-staged": {
+    "makespan_cycles": 44406,
+    "instruction_count": 33,
+    "context_interval_union_cycles": {
+      "DmaEngine": 35393,
+      "PeCore": 1800,
+      "SubContext": 3036,
+      "MainContext": 7178,
+      "VectorEngine": 7178
+    },
+    "main_dma_overlap_cycles": 1638,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 40828928,
+      "cycle": 16212,
+      "active_tensor_ids": [
+        "8",
+        "12",
+        "7",
+        "10"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 21,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/memory-layout-e55/output-column-major-staged/candidate.json",
+    "sha256": "06c4c3d92785c6f972e10da507b2c5b0889a601cc6ae726c0ab06d77d35dbc1f",
+    "large_dma_operations": [
+      {
+        "cycles": 13435,
+        "schedule_index": "16",
+        "description": "--> src/device/sliding/projection.rs:177:108\n\nweight.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 17112,
+        "schedule_index": "26",
+        "description": "--> src/device/sliding/projection.rs:178:95\n\nweight.to_dm(&mut device.tdma)"
+      }
+    ],
+    "main_cycles_with_lookup": 5063,
+    "large_sram_tensors": [
+      {
+        "name": "vISA(T54)_i0_project_output_42",
+        "index": "12",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 16212,
+          "end": 38387,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 33554432,
+        "size": 15728640,
+        "physical_pages": [
+          2
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Element: (H % 120, Qs % 256)]",
+        "fingerprint": null
+      },
+      {
+        "name": "weight",
+        "index": "10",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 2774,
+          "end": 33324,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 16777216,
+        "size": 15728640,
+        "physical_pages": [
+          1
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (Qs / 256, H / 120 % 16), Element: (H % 120, Qs % 256)]",
+        "fingerprint": null
+      }
+    ],
+    "graph_sha256": "695fcb652ce215ab141aafff35220df7f5a6762a44cca68513e3ee9a7b15dbb5",
+    "hbm_large_transfers": {
+      "IO(2)+0": {
+        "graph_operator": "7",
+        "dtype": "Float8e4m3",
+        "logical_bytes": 15728640,
+        "source_descriptor_count": 8,
+        "descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=120:4096, Qs_256=2:256, H_120=16:491520, Qs_512=2:512, Qs_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=120:256, Qs_256=2:67108864, H_120=16:4194304, Qs_512=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=120:4096, Qs_256=2:256, H_120=16:491520, Qs_512=2:512, Qs_1=1:256], Dram(chip=0, in_chip=0x400)\ndst1: [H_1=120:256, Qs_256=2:67108864, H_120=16:4194304, Qs_512=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=120:4096, Qs_256=2:256, H_120=16:491520, Qs_512=2:512, Qs_1=1:256], Dram(chip=0, in_chip=0x800)\ndst2: [H_1=120:256, Qs_256=2:67108864, H_120=16:4194304, Qs_512=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=120:4096, Qs_256=2:256, H_120=16:491520, Qs_512=2:512, Qs_1=1:256], Dram(chip=0, in_chip=0xC00)\ndst3: [H_1=120:256, Qs_256=2:67108864, H_120=16:4194304, Qs_512=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=120:4096, Qs_256=2:256, H_120=16:491520, Qs_512=2:512, Qs_1=1:256], Dram(chip=0, in_chip=0x780000)\ndst4: [H_1=120:256, Qs_256=2:67108864, H_120=16:4194304, Qs_512=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=120:4096, Qs_256=2:256, H_120=16:491520, Qs_512=2:512, Qs_1=1:256], Dram(chip=0, in_chip=0x780400)\ndst5: [H_1=120:256, Qs_256=2:67108864, H_120=16:4194304, Qs_512=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=120:4096, Qs_256=2:256, H_120=16:491520, Qs_512=2:512, Qs_1=1:256], Dram(chip=0, in_chip=0x780800)\ndst6: [H_1=120:256, Qs_256=2:67108864, H_120=16:4194304, Qs_512=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=120:4096, Qs_256=2:256, H_120=16:491520, Qs_512=2:512, Qs_1=1:256], Dram(chip=0, in_chip=0x780C00)\ndst7: [H_1=120:256, Qs_256=2:67108864, H_120=16:4194304, Qs_512=2:134217728, Qs_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O4\nhistory: "
+      }
+    },
+    "base_schedule": "e55_output",
+    "makespan_change_fraction": 0.6302360585924593
+  }
+}

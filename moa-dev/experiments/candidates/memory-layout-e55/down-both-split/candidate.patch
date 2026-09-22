@@ -1,0 +1,50 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -14,6 +14,12 @@
+         )+
+     };
+ }
++
++mod down_dma_axes {
++    use furiosa_opt_std::prelude::*;
++    axes![DownShard = 8, DownElement = 1920, DownBlock = 120];
++}
++use down_dma_axes::{DownShard, DownElement, DownBlock};
+ 
+ const INVSQRT2: f32 = 0.70710678118f32;
+ 
+@@ -386,15 +392,21 @@
+ 
+     let mut down: DmTensor<bf16, Chip, DownCluster, DownRows, m![H % 60]> = DmTensor::new();
+ 
+-    let down_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H % 1920, L / 16]> = unsafe { down_weight_scale.view().reshape() };
+-    let down_weight_scale: DmTensor<f8e4m3, Chip, DownCluster, DownRowsByColumns, m![H % 60, L / 16 % 120]> =
++    // Same HBM order: h = 1920*c + 60*r + row, column = 120*shard + local.
++    let down_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H % 1920, DownShard, DownBlock]> = unsafe { down_weight_scale.view().reshape() };
++    let down_weight_scale: DmTensor<f8e4m3, Chip, DownCluster, m![H / 60 % 32, DownShard], m![H % 60, DownBlock # 128]> =
+         down_weight_scale.to_dm(&mut device.tdma);
++    // Rename only; the row stride and inaccessible-to-math padding stay intact.
++    let down_weight_scale: DmTensor<f8e4m3, Chip, DownCluster, DownRowsByColumns, m![H % 60, L / 16 % 120 # 128]> = unsafe { down_weight_scale.reshape() };
+ 
+     // The same full-matrix unpack pattern is used by the up/gate path.
+     // Keep the column partition during both HBM loading and FP4 expansion.
+-    let down_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, H % 1920, L]> = unsafe { down_weight_packed.view().reshape() };
+-    let down_weight_packed: DmTensor<f4e2m1, Chip, DownCluster, DownRowsByColumns, m![H % 60, L % 1920]> =
++    // Same HBM order: h = 1920*c + 60*r + row, column = 1920*shard + local.
++    let down_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, H % 1920, DownShard, DownElement]> = unsafe { down_weight_packed.view().reshape() };
++    let down_weight_packed: DmTensor<f4e2m1, Chip, DownCluster, m![H / 60 % 32, DownShard], m![H % 60, DownElement # 2048]> =
+         down_weight_packed.to_dm(&mut device.tdma);
++    // Rename only; the row stride and inaccessible-to-math padding stay intact.
++    let down_weight_packed: DmTensor<f4e2m1, Chip, DownCluster, DownRowsByColumns, m![H % 60, L % 1920 # 2048]> = unsafe { down_weight_packed.reshape() };
+     // Keep the two-pass decode topology validated for E12 up/gate on RNGD.
+     let down_weight_fp8: DmTensor<f8e4m3, Chip, DownCluster, DownRowsByColumns, m![H % 60, L % 1920]> = device
+         .main
+@@ -416,7 +428,7 @@
+     static_passes!(i, [0, 1, 2, 3, 4], {
+         let scale_vrf: VrfTensor<f32, Chip, DownCluster, DownRowsByColumns, m![H % 60 = 12, L / 16 % 120]> = device
+             .sub
+-            .begin(down_weight_scale.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i))
++            .begin(down_weight_scale.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120 # 128]>(12 * i))
+             .fetch::<m![H % 60 = 12], m![L / 16 % 120]>()
+             .fetch_cast::<f32>()
+             .collect::<m![H % 60 = 12, L / 16 / 8 % 15], m![L / 16 % 8]>()

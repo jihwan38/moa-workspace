@@ -1,0 +1,20 @@
+--- a/src/device/shared/mlp.rs
++++ b/src/device/shared/mlp.rs
+@@ -78,7 +78,7 @@
+     let mut up: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]> = DmTensor::new();
+ 
+     let up_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, L % 7680, H]> = unsafe { up_weight_packed.view().reshape() };
+-    let up_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> =
++    let up_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![L % 32, H # 4096]> =
+         up_weight_packed.to_dm(&mut device.tdma);
+     let up_weight_packed: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> = device
+         .main
+@@ -110,7 +110,7 @@
+     let mut gate: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]> = DmTensor::new();
+ 
+     let gate_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, L % 7680, H]> = unsafe { gate_weight_packed.view().reshape() };
+-    let gate_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> =
++    let gate_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![L % 32, H # 4096]> =
+         gate_weight_packed.to_dm(&mut device.tdma);
+     let gate_weight_packed: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> = device
+         .main
