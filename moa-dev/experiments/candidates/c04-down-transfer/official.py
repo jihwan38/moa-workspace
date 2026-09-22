@@ -75,7 +75,7 @@ def status():
         assert all(checked[k.removeprefix("ops::")]["median_cycles"] == int(v) for k, v in cycles)
         data.update(official_score=float(scores[0]), official_cycles={k: int(v) for k, v in cycles},
                     official_rank=None, official_basic_comparisons_passed=15)
-    path = ROOT / f"moa-dev/logs/e79-official-{data['submission_id']}.log"
+    path = ROOT / f"moa-dev/logs/e79-official-{data['submission_id']}-observation-{len(data.get('observations', [])) + 1}.log"
     path.write_text(log)
     observation["log"].update(local_log=str(path.relative_to(ROOT)), sha256=common.digest(log.encode())["sha256"])
     data.setdefault("observations", []).append(observation)

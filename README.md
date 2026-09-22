@@ -6,7 +6,7 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
-[현재 baseline 구성](baseline/README.md)에서 E74에 적용한 15개 구성요소의 코드·설정·의존 관계를
+[현재 baseline 구성](baseline/README.md)에서 E79에 적용한 15개 구성요소의 코드·설정·의존 관계를
 확인할 수 있다. [성능별 실험 분류](docs/experiments/optimization-results.md)는 빨라진 후보,
 차이 미확인, 회귀, 정확도 실패를 비교 기준과 함께 정리한다.
 새 조합은 [추가·제거·변경 기록 양식](docs/experiments/combination-template.md)을 사용한다.
@@ -21,7 +21,14 @@ C03 cluster별 head 유지는 반복 QKV +1.56%로 모두 미채택이다. 기�
 별도로 C02 block 상쇄 진단과 C03 추가 입력·cache 경계도 통과했다.
 소스·실패 경로·업로드 fingerprint를 보존했다.
 
-현재 작업 코드는 **E74**다. [C05 실험](moa-dev/experiments/candidates/c05-streamed-decode/README.md)에서
+현재 작업 코드는 **E79**다. [C04 실험](moa-dev/experiments/candidates/c04-down-transfer/README.md)에서
+2/4/8열·Main/Sub 방송·입력 gather를 결합한9개 후보를 NPU에서 비교했다.
+8열+leader DMA/Main ring32 방송이 동시기 E74 대비 **369997 → 353136 cycles, −4.56%**로
+독립3회 개선됐다. 기본45개·추가30개 비교와 projection 출력138240개를 통과했다.
+`baseline-e79` / `2735b58`, [구성 변경표](docs/experiments/combinations/e79-down-broadcast.md).
+공식 제출 **`df79b0b9`**는 접수되어 채점 중이며 [추적 기록](docs/experiments/e79-official-submit-20260922.json)에 보관한다.
+
+이전 채택본은 **E74**다. [C05 실험](moa-dev/experiments/candidates/c05-streamed-decode/README.md)에서
 전체 BF16 weight 대신 작은 F32 block dot을 저장하는 구조를 채택했다. 동시기 E55와
 독립3회 비교해 FFN **377,804 → 369,246 cycles, −2.27%**다. 기본45개·추가30개 비교와
 full-shape/cancellation 진단138,240개 출력이 통과했다. QKV/O image는 E55 그대로다.

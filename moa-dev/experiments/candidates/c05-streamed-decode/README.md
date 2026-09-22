@@ -1,7 +1,8 @@
 # C05: BF16 weight 행렬 대신 F32 block dot 저장
 
 `opt/c05-streamed-decode`에서 두 FFN 데이터 흐름을 구현하고 비교했다.
-**E74는 동시기 E55보다 FFN cycles가 2.27% 낮아 현재 작업 코드에 반영한다.**
+**E74는 동시기 E55보다 FFN cycles가2.27% 낮아 C05 시점에 채택했다.**
+후속 [C04의 E79](../c04-down-transfer/README.md)가 현재 작업 코드이며 이 문서는 E74의 고정 기록이다.
 E55는 고정 비교군이며 후보 설계의 제약이 아니다. 이번 후보는 편의상 E55의 공개
 진입점·QKV/O·FFN 후단을 재사용했지만, decode와 dot의 경계 및 저장 자료를 바꿨다.
 앞으로 layout·tile·통신까지 함께 바꾸는 후보도 허용한다.

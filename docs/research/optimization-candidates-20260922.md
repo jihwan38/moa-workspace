@@ -2,8 +2,9 @@
 
 2026-09-22. 기준은 [E55 구성표](../../baseline/e55.json)의 `baseline-e55`
 (`873f64ed94229c88cd18d2731bdcca7eea0d6365`)다. 최초 작성은 조사·설계 단계였다.
-**C01–C03은 구현 후 미채택, C05의 F32 partial 구조는 E74로 채택했다.
-C04·C06·C07 세 방향은 아래 제안대로 완성·검증되지 않았다.**
+**C01–C03은 구현 후 미채택, C05는 E74, 후속 C04는 E79로 채택했다.
+C06·C07 두 방향은 아래 제안대로 완성·검증되지 않았다.**
+[C04의9개 조합·E79 반복과 정확도](../../moa-dev/experiments/candidates/c04-down-transfer/README.md).
 E55/E74는 고정 비교군이며 탐색 구조를 제한하지 않는다. Decode·dot·scale·tile·통신의
 결합 설계를 직접 비교할 수 있고, 각 중간 단계의 단독 성능 개선을 요구하지 않는다.
 [C05 코드·반복·정확도 결과](../../moa-dev/experiments/candidates/c05-streamed-decode/README.md).
@@ -53,10 +54,11 @@ QKV/O를 그대로 두고 FFN만 2배 빠르게 해도 참고값은 **7.184×**�
 `sliding_project_qkv`, `sliding_attention_output`, `decoder_feedforward`다.
 채택 구성의 호출·자료형·반올림 경계는 [baseline/methods.md](../../baseline/methods.md)를 따른다.
 
-- **FFN:** `decoder_feedforward → feedforward_sharded → project_up_and_gate / project_down_sharded`
+- **FFN, 최초 E55 조사:** `decoder_feedforward → feedforward_sharded → project_up_and_gate / project_down_sharded`
   ([shared/mlp.rs](../../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)). FP4 weight를
   FP8 DM, BF16 DM으로 차례로 넓힌 뒤 16원소 dot을 한다. Block 결과는 F32로 유지하며
-  scale 곱과 block 합산을 VE에서 수행한다. 전체 BF16 weight는 여러 row tile이 재사용한다.
+  scale 곱과 block 합산을 VE에서 수행한다. E55의 전체 BF16 weight는 여러 row tile이 재사용했다.
+  현재 E79는 C05에서 바꾼 BF16 stream/DPE→F32 partial 저장 경로와 C04 down 입력 방송을 쓴다.
 - **QKV:** [projection.rs](../../furiosa-opt-gemma4-12B/src/device/sliding/projection.rs)의
   `project_query`/`project_one_kv_matrix`는 두 cluster에서 dot·scale·row 복원을 수행한 뒤
   `output.to_dm`으로 `Cluster` 배치에 head를 모은다. 이후
@@ -177,16 +179,23 @@ RMS/RoPE의 산술 순서와 BF16 경계를 유지하고도 dot/weight DMA가 �
 
 ### C04 — Down의 weight 전송과 activation 복제를 함께 변경
 
-현재 `project_down_sharded`는 column 8분할, shard당 activation 1,920개를 사용한다.
-[기존 2-column 시도](../../moa-dev/experiments/candidates/ffn-down-two-columns/README.md)는
-weight/scale DMA를 줄였지만 activation 전달이 9,392→39,136 정적 cycles로 커졌다.
-따라서 같은 `to_dm`을 두고 column 수만 줄이는 재시도는 하지 않는다.
+**실행 결과:** E74를 출발점으로2/4/8열, Main/Sub 방송,30행 padding 제거,
+선행 full-L gather를 결합한9개 후보를 NPU에서 실행했다. **E79:8열+Main ring32 방송**이
+동시기 E74 **369997→353136 cycles(−4.56%)**로 독립3회 개선됐다.
+기본45개·추가30개 비교, projection 출력138240개를 통과해 채택했다.
+[구현·단회와 반복의 구분](../../moa-dev/experiments/candidates/c04-down-transfer/README.md),
+[조합 기록](../experiments/combinations/e79-down-broadcast.md).
 
-제안은 4-column부터 **GeGLU 출력의 필요한 조각을 leader에 전달 → cluster 내부 Switch로
-사용 slice에 복제 → 더 연속적인 weight/scale load → column partial 합산**을 함께 설계하는 것이다.
-Cluster를 가로지르는 값은 실제 전달 경로를 포함하며 reshape/padding을 데이터 복사로 간주하지 않는다.
-먼저 weight/scale/activation의 byte·명령 수와 gather·복제·restore 비용표를 만든다.
-그 비용표가 기존 8-column보다 유리할 때만 compile한다. 합산 순서 변경에 따른 정확도 검사도 필요하다.
+E79는 GeGLU 조각을32-slice ring의8개 leader에 DMA하고 같은 column의4개 row group에
+Main Switch로 복제한다. 계산 배치와 weight/scale 좌표는8열 E74와 같다.2/4열도 실제로
+비교한 뒤 고른 결과이며8열 유지가 탐색 전제는 아니었다.4열30행 E81은 단회−1.65%로
+후속 후보에 남지만 반복·추가 진단까지 완료한 개선으로 취급하지 않는다.
+
+[과거2-column](../../moa-dev/experiments/candidates/ffn-down-two-columns/README.md)의
+activation9392→39136 정적 cycles 회귀를 피하도록 leader 방송을 결합했다.
+다만 E79도 전체 정적 makespan은157822→160203으로 늘었다. 실제 NPU에서는 개선됐으므로
+**정적 비용표는 설계·원인 추적에 사용하고, 정적 개선을 compile/NPU 실행의 필수조건으로
+삼지 않는다.** 새로운 열 분할은 F32 합산 순서와 VRF/TRF, 출력 복원 비용을 함께 검증한다.
 
 ### C05 — BF16 weight 미저장 구조 검증, E56 staging은 별도
 
@@ -194,7 +203,7 @@ Cluster를 가로지르는 값은 실제 전달 경로를 포함하며 reshape/p
 E74는 전체 lookup→DPE→compact F32 block dot 저장→별도 VE scale/reduce로 바꿔
 동시기 E55 **377804→369246 cycles, −2.27%**를 독립3회에서 확인했다.
 기본45개·추가30개 비교, 실제 projection 크기의 네 case·138240개 출력도 통과했다.
-E74를 현재 코드에 반영하고 E55는 보존했다. Main/Sub로 dot과 합산을 나누는 다른 설계는
+당시 E74를 채택하고 E55를 보존했으며, 후속 C04의 E79가 현재 코드다. Main/Sub로 dot과 합산을 나누는 다른 설계는
 SDK 내부 compiler 오류로 미실행이다. E56의8/16행 HBM staging 오류를 해결한 것은 아니다.
 
 후속 E55 스케줄 재확인에서 weight decode 6개는 **86,178 정적 cycles**,
@@ -277,9 +286,9 @@ Public hyunjun 측정 노트의 SDK는 0.6.0이고 우리 설치 SDK는 0.8.1이
 
 ## 후속 작업과 채택 조건
 
-C01–C03과 C05의 위 결과는 실행 기록이다. 다음은 C04의 down column/activation 전달을
-weight decode·partial 배치와 함께 재설계하는 방향이지만 고정 순서나 후보 수 제한은 없다.
-C06/O, QKV의 다른 배치, C07의 정밀도 보정도 관측된 병목과 검증 가능성에 따라 다룬다.
+C01–C05의 위 결과는 실행 기록이다. 다음 미완료 방향은 C06/O 후단 전달과 C07/native FP8
+결합이다. C04의4열30행 E81, QKV의 다른 배치, C05의 staging도 후속 탐색이 가능하다.
+고정 순서나 후보 수 제한 없이 관측된 병목과 검증 가능성에 따라 다룬다.
 
 E55/E74는 비교군이다. 후보 구조와 출발점은 자유롭게 정하고, 결합 설계를 직접 시험할 수 있다.
 중간 단계의 단독 개선을 요구하지 않는다. 기여를 분리할 수 있을 때는 단독/조합 또는

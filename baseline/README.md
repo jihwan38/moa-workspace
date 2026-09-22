@@ -1,16 +1,18 @@
-# 현재 baseline: E74
+# 현재 baseline: E79
 
 여기는 **채택한 코드의 구성과 검증 근거**를 보관하는 폴더다. 현재 실행 소스는
-`furiosa-opt-gemma4-12B/src/`에 있고, 현재 채택 source는 `baseline-e74` 태그의
-`9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7`다. Git의 `baseline` 브랜치와 이 폴더는
+`furiosa-opt-gemma4-12B/src/`에 있고, 현재 채택 source는 `baseline-e79` 태그의
+`2735b5899f41195dedeab1e076c82317e24efcb2`다. Git의 `baseline` 브랜치와 이 폴더는
 별개다. 이전 E55는 `baseline-e55` / `873f64ed94229c88cd18d2731bdcca7eea0d6365`로 보존한다.
+이전 E74는 `baseline-e74` / `9e2058e`로 보존한다.
 고정 commit은 **비교군의 신원**을 식별한다. 후보를 E55나 E74 구조에서 시작하거나
 그 주변만 탐색해야 한다는 제약은 없다. 후보의 실제 출발 commit과 설계를 별도로 기록한다.
 
 | 찾는 내용 | 파일 |
 |---|---|
 | 현재 적용한 15개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
-| 현재 구성표와 기준 commit | [e74.json](e74.json) |
+| 현재 구성표와 기준 commit | [e79.json](e79.json) |
+| 이전 E74 구성표와 고정 비교군 | [e74.json](e74.json) |
 | 이전 E55 구성표와 고정 비교군 | [e55.json](e55.json) |
 | 현재 채택 구성표를 가리키는 포인터 | [current.json](current.json) |
 | 빨라짐·미확인·느려짐·정확도 실패별 과거 결과 | [최적화 결과 분류](../docs/experiments/optimization-results.md) |
@@ -20,6 +22,8 @@
 | C01 scale-DPE의 단독·조합과 미채택 이유 | [E65 + E66 → E67](../docs/experiments/combinations/e67-scale-dpe.md) |
 | C05의 두 dataflow·정확도·반복 측정 | [E73 / E74 / E75](../moa-dev/experiments/candidates/c05-streamed-decode/README.md) |
 | E74에서 함께 대체한 F2/F3/F4 | [E74 조합 구성](../docs/experiments/combinations/e74-streamed-partials.md) |
+| C04의 열 분할·방송·gather 9개 조합 | [E76–E85](../moa-dev/experiments/candidates/c04-down-transfer/README.md) |
+| E79에서 변경한 F1과 보존한 계산 경계 | [E79 조합 구성](../docs/experiments/combinations/e79-down-broadcast.md) |
 
 ## 실제 호출과 적용 구성
 
@@ -33,7 +37,7 @@ QKV → attention → O → `self.mlp` 순서로 실행한다. `Decode::full`도
 |---|---|
 | `sliding_project_qkv` | BF16 x → 분할 RMS **Q1** → 2-cluster ring32 복제 **Q2** → 8-way 행 배치 **Q3** → BF16 입력·weight lookup dot **Q4** → F32 channel scale fusion **Q5** → head RMS/RoPE **Q6** → Q 출력·지정 K/V cache 슬롯 쓰기 |
 | `sliding_attention_output` | BF16 attention 결과 → 2-cluster/16-column dot **O1** → F32 합산·channel scale 뒤 BF16 **O2** → H480×8 post-RMS·residual **O3/R1** → residual HBM 갱신 |
-| `decoder_feedforward` | residual·pre-RMS → 2-cluster up/gate **F1** → FP4→FP8 DM→BF16 stream/DPE→compact F32 partial **F2** → 별도 F32 scale·합산 **F3**, 8/12행 scale tile **F4** → GeGLU·down → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
+| `decoder_feedforward` | residual·pre-RMS → 2-cluster up/gate **F1** → FP4→FP8 DM→BF16 stream/DPE→compact F32 partial **F2** → 별도 F32 scale·합산 **F3**, 8/12행 scale tile **F4** → GeGLU·leader DMA/ring32 입력 방송·down **F1** → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
 
 QKV/O는 [sliding/projection.rs](../furiosa-opt-gemma4-12B/src/device/sliding/projection.rs),
 FFN은 [shared/mlp.rs](../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)가 중심이다.
@@ -42,24 +46,26 @@ FFN은 [shared/mlp.rs](../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)가 �
 **현재 FFN은 전체 BF16 weight를 DM에 저장하지 않는다.** FP8 DM은 유지하고 lookup의
 BF16 출력을 DPE로 바로 보내16원소별 F32 dot을 저장한다. 이후 별도 VE에서 scale과 합산을
 수행한다. Block dot을 BF16으로 반올림하는 C01 scale-DPE와 다르다. 과거 후보·회귀·컴파일
-실패를 새 구성의 검증과 섞지 않는다. F1/후단을 유지한 것은 이번 후보의 선택이며 이후
+실패를 새 구성의 검증과 섞지 않는다. E79는 down 입력을 leader에만 DMA한 뒤 Main
+ring32에서 각 column의4개 row group에 방송한다. 계산 배치·후단 유지가 이후
 layout·decode·dot·scale·tile·통신의 동시 재설계를 제한하지 않는다.
 
 ## 현재 검증과 성능 기준
 
-[E74 동일 batch package 3회](../docs/experiments/e74-c05-partials-repeats.json)의
-job 중앙값들에서 구한 중앙값은 QKV **103,964**, O **51,075**, FFN **369,246 cycles**다.
-[E75 동시기 E55 대조](../docs/experiments/e75-c05-control-repeats.json)의 FFN **377,804**보다
-**2.27% 감소**했다. 비교 대상은 각 독립 job의 control_before이며 control_after도 별도 보존했다.
-QKV/O image는 E55와 동일하므로 이 두 커널의 cycle 차이를 코드 변경의 효과로 해석하지 않는다.
+[E79 동일 batch package 3회](../docs/experiments/e79-c04-eight-ring32.json)의
+job 중앙값들에서 구한 FFN 중앙값은 **353136 cycles**다.
+[E85 동시기 E74 대조](../docs/experiments/e85-c04-e74-control.json)의 **369997**보다
+**4.56% 감소**했다. 앞/뒤 E74의 job 중앙값 관측 범위와도 겹치지 않는다.
+QKV/O image는 E55/E74와 같으므로 이 두 커널의 cycle 차이를 FFN 변경 효과로 해석하지 않는다.
 
-E74는 기본45개 비교, [추가30개 비교](../docs/experiments/e74-c05-extra-correctness.json),
-[네 case의 projection 출력138240개](../docs/experiments/e74-c05-probe-correctness.json)를 통과했다.
-[정확한 source/build 연결](../moa-dev/experiments/candidates/c05-streamed-decode/source-build-audit.json).
-QKV/O 경계 근거는 동일 image의 기존 검사를 승계하지만 새 FFN의 증거는 위 별도 검사다.
-모델 전체의 추론 성능이나 모든 입력의 정확성을 보장하지 않는다.
-[공식 E74 제출](../docs/experiments/e74-official-submit-20260922.json)은 **5.7805×**로 완료됐고
-FFN은 **369335 cycles**다. Arena 수치와 구분한다.
+기본45개 비교, [추가30개 비교](../docs/experiments/e79-c04-extra-correctness.json),
+[projection 출력138240개](../docs/experiments/e79-c04-probe-correctness.json)를 통과했다.
+[정확한 source/build 연결](../moa-dev/experiments/candidates/c04-down-transfer/source-build-audit.json),
+[compiler 방송 bitmap 확인](../moa-dev/experiments/candidates/c04-down-transfer/broadcast-proof.json).
+QKV/O 경계 근거는 동일 image의 기존 검사를 승계하지만 새 FFN은 별도로 검사했다.
+모델 전체 성능이나 모든 입력의 정확성을 보장하지 않는다.
+[공식 E79 제출 `df79b0b9`](../docs/experiments/e79-official-submit-20260922.json)은 접수되어
+채점 중이다. Arena 측정과 공식 점수·순위를 구분한다.
 
 E55 당시 자료와 E57–E72의 각 동시기 대조는 그대로 남긴다. 새로운 기준값을 과거
 실험의 비교군으로 소급 적용하지 않는다.

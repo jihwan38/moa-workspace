@@ -137,14 +137,17 @@ def generate(name, columns, rows, tile, ring):
     path.write_text(source)
     return dict(name=name, columns=columns, rows_per_slice=rows, row_tile=tile,
                 valid_groups_per_cluster=groups, physical_groups_per_cluster=physical,
-                blocks_per_slice=blocks, ring_size=ring, replicas_per_ring=copies,
+                blocks_per_slice=blocks,
+                ring_size=None if name.endswith("-gather-direct") else ring,
+                replicas_per_ring=None if name.endswith("-gather-direct") else copies,
                 scale_vrf_bytes=tile * blocks * 4, activation_trf_bytes=width * 2,
-                leader_activation_logical_bytes=2 * (groups if name.endswith("-gather-direct") else 256 // ring) * 15360 * 2,
-                post_broadcast_activation_physical_bytes=512 * width * 2,
+                activation_dma_destination_logical_bytes=2 * (groups if name.endswith("-gather-direct") else 256 // ring) * 15360 * 2,
+                final_activation_physical_bytes=512 * width * 2,
                 source_base=BASE, unchanged_upgate_geglu_prefix=True,
                 activation_broadcast_engine="TDMA after compact gather" if name.endswith("-gather-direct") else "Sub" if name.endswith("-sub") else "Main",
                 logical_index_checks_passed=True,
-                numerical_note="New FP32 reduction grouping requires NPU validation; static address proof is insufficient.")
+                numerical_note=("FP32 reduction grouping changes; static address proof is insufficient." if columns != 8 else
+                                "FP32 reduction grouping is unchanged; activation delivery requires NPU validation."))
 
 
 if __name__ == "__main__":

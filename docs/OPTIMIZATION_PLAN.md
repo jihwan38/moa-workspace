@@ -1,8 +1,8 @@
 # MOA 2026 최적화 실행 계획
 
-2026-09-22 현재 작업 코드는 **E74**, 브랜치는 `opt/c05-streamed-decode`다.
+2026-09-22 현재 작업 코드는 **E79**, 브랜치는 `opt/c04-down-transfer`다.
 목표는 공식 평가 최소3위 진입이며 아직 달성하지 못했다. 현재 코드는
-[baseline 구성표](../baseline/e74.json), 이전 E55는 [고정 비교군](../baseline/e55.json)으로 보존한다.
+[baseline 구성표](../baseline/e79.json), 이전 E55는 [고정 비교군](../baseline/e55.json)으로 보존한다.
 
 **Baseline은 비교군이다. E55/E74 주변만 탐색하거나 현재 방법을 유지해야 한다는 제약은 없다.**
 후보는 다른 출발점·layout·decode·dot·scale·tile·통신 구조를 사용할 수 있다.
@@ -10,6 +10,16 @@
 그것만으로 조합을 배제하지 않는다. 공개 인터페이스, 허용 수정 범위와 정확도 계약은 지킨다.
 
 ## 현재 채택 결과
+
+[C04 비교](../moa-dev/experiments/candidates/c04-down-transfer/README.md)에서 열 분할·방송·gather
+9개 조합을 NPU에서 실행했다. **E79: E74 F32 partials + down leader DMA/Main ring32 방송**을
+채택했다. 같은 package의 독립3 jobs에서 E74 **369997→353136 cycles, −4.56%**이며
+기본45개·추가30개 비교와 projection 출력138240개가 통과했다. QKV/O image는 동일하다.
+공식 제출 [`df79b0b9`](experiments/e79-official-submit-20260922.json)는 접수되어 채점 중이다.
+[구성 변경](experiments/combinations/e79-down-broadcast.md), [E85 대조](experiments/e85-c04-e74-control.json).
+4열30행 E81은 단회−1.65%로 후보에 남고, 나머지는 회귀했다. E81의 반복·추가 진단은 미실행이다.
+
+아래 C05는 이전 E74를 채택했을 때의 기록이다.
 
 [C05 비교](../moa-dev/experiments/candidates/c05-streamed-decode/README.md)에서 두 구조를 구현했다.
 E73은 lookup·dot·scale을 row tile마다 연결했고, E74는 lookup·dot을 전체 행에 stream한 뒤
@@ -43,7 +53,7 @@ Arena의2.27% FFN 개선을 공식 점수나 현재 순위로 환산하지 않�
   → BF16 → H480×8 post-RMS·residual 쓰기.
 - FFN: residual/pre-RMS → ring16 복제 → FP4→FP8 DM → BF16 lookup을 DPE에 연결
   → compact F32 block dot 저장 → 별도 F32 scale·합산 → BF16 up/gate → GeGLU
-  → 같은 방식의 down과8-column F32 합산 → global scale/post-RMS/residual/layer scale.
+  → leader DMA/Main ring32 입력 방송 → 같은 방식의 down과8-column F32 합산 → global scale/post-RMS/residual/layer scale.
 
 FFN의 weight dot은 up/gate32행·down60행을 stream한다. Scale VRF만8/12행으로 나눈다.
 최종 projection까지 F32 partial을 유지하지만 F32 합산 순서는 E55와 다르다.
@@ -51,10 +61,9 @@ FFN의 weight dot은 up/gate32행·down60행을 stream한다. Scale VRF만8/12�
 
 ## 다음 탐색
 
-1. **C04: down column 분할과 activation 전달을 함께 바꾼다.** 현재8-column에서 weight,
-   scale, GeGLU activation이 움직이는 byte·명령 수와 의존성을 비교한다.4-column 등의
-   후보는 leader load/Switch 복제, reduction, F32 partial 배치까지 포함해 설계한다.
-   E55와 E74 각각을 대조할 수 있으며 어느 쪽의 내부 구조도 필수는 아니다.
+1. **C06: O의 작은 전송·scale/RMS/residual 의존성을 검토한다.** 현재 입력·weight·scale·후단
+   배치의 실제 비용을 확인하고 BF16 경계를 포함한 전체 조합으로 검증한다. C04에서는 E79를
+   채택했지만4열30행 E81을 다른 decode/scale 구조와 결합하는 후속 탐색도 가능하다.
 2. **C05 후속: decode와 전달·소비 일정을 함께 탐색한다.** 이번 Sub reduction은 SDK ISA
    lowering 내부 오류로 실패했다. 이전 E56의8/16행 HBM staging 오류도 미해결이다.
    해당 경로를 다시 쓸 때는 실제 shape의 nibble·row/cluster/chunk 경계와 DPE consumer까지

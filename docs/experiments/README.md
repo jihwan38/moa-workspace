@@ -1,5 +1,13 @@
 # Experiment ledger
 
+Current adopted source is **E79 / baseline-e79**, commit `2735b58`.
+[C04](../../moa-dev/experiments/candidates/c04-down-transfer/README.md) ran nine coupled down-layout/activation-delivery candidates.
+E79 combines E74 F32 partials with leader DMA and Main ring32 broadcast; three independent identical
+batch jobs show FFN **369997 → 353136 cycles (−4.56%)** against contemporary E74 controls.
+Its45 basic comparisons,30 additional-input comparisons and138240 full-shape projection outputs pass.
+[Official submission `df79b0b9`](e79-official-submit-20260922.json) was accepted and is being evaluated.
+E55/E74 source and measurements remain frozen comparison controls. QKV/O images are unchanged.
+
 Browse by outcome: [최적화 방법별 결과](optimization-results.md).
 The [current baseline recipe](../../baseline/README.md) lists active methods, parameters,
 source symbols and coupling. Use the [combination template](combination-template.md) to
@@ -9,7 +17,7 @@ is a completed example from existing measurements. This ledger preserves chronol
 The [E57–E64 memory-layout audit](../research/e55-memory-layout-audit.md) covers
 eight hardware-tested candidates across QKV, O and FFN. All 225 comparisons in
 15 unique candidate/control jobs passed. E59's three-job −0.24% FFN difference
-overlaps run variation; no candidate is adopted. E55 remains the runtime source.
+overlaps run variation; no candidate is adopted. E55 remained the runtime source at that stage.
 
 The [C01 scale-DPE experiment](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md)
 adds E65 up/gate, E66 down and E67 combined. All 120 basic output comparisons
@@ -40,7 +48,7 @@ The server passed `contract OK` and completed evaluation: **5.6665×**, QKV **10
 [Submission and status record](e55-official-submit-retry-20260922.json) preserves the
 23 verified source fingerprints and actual CLI responses. Rank was not included in this CLI result.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
-Current adopted source: **E74 / baseline-e74**, with the F32-partial FFN described above.
+Previous adopted source: **E74 / baseline-e74**, with the F32-partial FFN described above.
 Its [official submission `01ba2ec2`](e74-official-submit-20260922.json) completed at **5.7805×**:
 QKV102721 / O51230 / FFN369335, all15 comparisons PASS. These are separate from Arena repeats.
 The previous E55 combines the BF16 QKV dot and F32 channel multiply in one Main

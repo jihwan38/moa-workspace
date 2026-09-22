@@ -3,11 +3,141 @@
   "coverage": "시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.",
   "entries": [
     {
+      "id": "E79",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "E74 F32 partials + 8열 Main ring32 입력 방송",
+      "note": "동시기 E74 대비 -4.56%, 독립 3 job(s); 기본 비교 모두 PASS. 현재 채택. 기본45·추가30·projection 출력138240 PASS. E55/E74를 탐색 제약으로 삼지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e79-c04-eight-ring32.json",
+      "reference": "docs/experiments/e85-c04-e74-control.json",
+      "reference_label": "C04 동시기 E74 before"
+    },
+    {
+      "id": "E81",
+      "category": "inconclusive",
+      "kernel": "FFN",
+      "method": "padding 없는 4열30행 + Main ring16 + F32 output gather",
+      "note": "동시기 E74 대비 -1.65%, 독립 1 job(s); 기본 비교 모두 PASS. 단회에서 개선 관측. 독립 반복·추가 진단은 미실행; E79 우선 채택, 후속 후보로 보존.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e81-c04-four-row30-ring16.json",
+      "reference": "docs/experiments/c04-third-e74-control.json",
+      "reference_label": "C04 동시기 E74 before"
+    },
+    {
+      "id": "E76",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "4열32행 + Main ring16 입력 방송",
+      "note": "동시기 E74 대비 +2.57%, 독립 1 job(s); 기본 비교 모두 PASS. 성능 회귀로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e76-c04-four-ring16.json",
+      "reference": "docs/experiments/c04-first-e74-control.json",
+      "reference_label": "C04 동시기 E74 before"
+    },
+    {
+      "id": "E77",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "4열32행 + Main ring32 입력 방송",
+      "note": "동시기 E74 대비 +2.17%, 독립 1 job(s); 기본 비교 모두 PASS. 성능 회귀로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e77-c04-four-ring32.json",
+      "reference": "docs/experiments/c04-first-e74-control.json",
+      "reference_label": "C04 동시기 E74 before"
+    },
+    {
+      "id": "E78",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "2열16행 + Main ring16 입력 방송",
+      "note": "동시기 E74 대비 +1.39%, 독립 3 job(s); 기본 비교 모두 PASS. 성능 회귀로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e78-c04-two-ring16.json",
+      "reference": "docs/experiments/e85-c04-e74-control.json",
+      "reference_label": "C04 동시기 E74 before"
+    },
+    {
+      "id": "E80",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "4열32행 + Sub ring16 입력 방송",
+      "note": "동시기 E74 대비 +8.03%, 독립 3 job(s); 기본 비교 모두 PASS. 성능 회귀로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e80-c04-four-ring16-sub.json",
+      "reference": "docs/experiments/e85-c04-e74-control.json",
+      "reference_label": "C04 동시기 E74 before"
+    },
+    {
+      "id": "E82",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "4열30행 + Main ring8 입력 방송",
+      "note": "동시기 E74 대비 +2.85%, 독립 1 job(s); 기본 비교 모두 PASS. 성능 회귀로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e82-c04-four-row30-ring8.json",
+      "reference": "docs/experiments/c04-third-e74-control.json",
+      "reference_label": "C04 동시기 E74 before"
+    },
+    {
+      "id": "E83",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "4열30행 + full-L gather 후 직접 입력 복제",
+      "note": "동시기 E74 대비 +11.59%, 독립 1 job(s); 기본 비교 모두 PASS. 성능 회귀로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e83-c04-four-row30-gather-direct.json",
+      "reference": "docs/experiments/c04-fourth-e74-control.json",
+      "reference_label": "C04 동시기 E74 before"
+    },
+    {
+      "id": "E84",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "8열60행 + full-L gather 후 직접 입력 복제",
+      "note": "동시기 E74 대비 +2.34%, 독립 1 job(s); 기본 비교 모두 PASS. 성능 회귀로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e84-c04-eight-gather-direct.json",
+      "reference": "docs/experiments/c04-fourth-e74-control.json",
+      "reference_label": "C04 동시기 E74 before"
+    },
+    {
+      "id": "E85",
+      "category": "control",
+      "kernel": "FFN",
+      "method": "C04 동시기 E74 대조",
+      "note": "동일 batch 3개 독립 jobs의 control_before만 집계. E55와 E74 after도 원본에 보존; stage를 추가 독립 반복으로 세지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c04-down-transfer/README.md"
+      ],
+      "report": "docs/experiments/e85-c04-e74-control.json",
+      "reference": "docs/experiments/e74-c05-partials-repeats.json",
+      "reference_label": "C05의 이전 E74 측정"
+    },
+    {
       "id": "E74",
       "category": "improved",
       "kernel": "FFN",
       "method": "BF16 weight 미저장 + F32 block partial/VE 합산",
-      "note": "현재 채택. 동일 batch 3개 독립 jobs에서 FFN −2.27%; 기본45·추가30·full-shape 출력138240 PASS. E55/E74는 비교군이며 탐색 구조를 제한하지 않음.",
+      "note": "이전 채택본; 후속 E79가 현재 구성.  동일 batch 3개 독립 jobs에서 FFN −2.27%; 기본45·추가30·full-shape 출력138240 PASS. E55/E74는 비교군이며 탐색 구조를 제한하지 않음.",
       "evidence": [
         "moa-dev/experiments/candidates/c05-streamed-decode/README.md"
       ],

@@ -34,5 +34,5 @@ Sub reduction 조합은 SDK 내부 compiler 오류로 실행되지 않았다.
 
 [E73 반복](../e73-c05-direct-repeats.json), [E74 반복](../e74-c05-partials-repeats.json),
 [E75 대조](../e75-c05-control-repeats.json), [공식5.7805× 결과](../e74-official-submit-20260922.json).
-다음 C04는 column 분할·activation 전달·partial 배치를 함께 바꿀 수 있다.
+후속 [C04/E79](e79-down-broadcast.md)는 column 분할·activation 전달을9개 조합으로 비교했다.
 새 후보를 E55나 E74 주변으로 제한하지 않는다.
