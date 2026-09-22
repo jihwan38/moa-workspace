@@ -1,5 +1,11 @@
 # C07 — Native FP8 FFN의 결합 구조 실험
 
+**채택: E104.** 기본19개 구성 비교 후, FP8 weight 중간 저장과 projection별 input reload를
+포함한 구조가 독립3회에서 FFN **353154 → 335761 cycles (−4.93%)**를 기록했다.
+기본45개/추가30개 비교와 projection207360개가 PASS다. QKV/O의 image는 동일하다.
+E93의 단회 −10.13%는 미채택 관측이다. [구성표](../../../../baseline/e104.json) ·
+[공식 제출](../../../../docs/experiments/e104-official-submit-20260922.json).
+
 E79의 작은 파라미터 변경에 탐색을 제한하지 않고, 입력 표현·weight decode·DPE dot·block
 scale 합산·행 배치·down 분할을 함께 바꾼다. 소스 부모는 E79
 `2735b5899f41195dedeab1e076c82317e24efcb2`, SDK는 0.8.1이다. E55는 고정 참고군,
@@ -52,9 +58,9 @@ hash를 확인한 기본 benchmark 결과다. 원본은 `c07-screen-*-results.js
 정확도에 실패한 stage의 cycles는 성능표에서 제외한다. 다른 stage 때문에 전체 job이
 FAILED여도 성공 stage와 앞뒤 대조군이 완전하면 그 성공 stage는 단회 관측으로 기록한다.
 
-E86–E104는 서로 다른 19개 실행 구성에 부여했다. 같은 구성의 compile 수정 횟수를
+E86–E104는 서로 다른 19개 기본 실행 구성에 부여했다. 별도 direct-DMA 구조도 projection 진단했으나 실패했다. 같은 구성의 compile 수정 횟수를
 최적화 방법 수로 세지 않는다. 한 번 빨랐던 결과를 바로 baseline으로 채택하지 않는다.
-최종 기본 측정·진단·채택 판정은 [decision.json](decision.json)에 기록한다.
+E103/E104만 동일 batch를3회 실행했다. 최종 기본 측정·진단·채택 판정은 [decision.json](decision.json)에 기록한다.
 
 ## 정확도와 실패의 범위
 
@@ -121,3 +127,17 @@ python3 moa-dev/experiment_index.py --check --check-live
 embedded image, unchanged QKV/O, 실제 Arena archive, 로그 재파싱과 집계를 확인한다.
 `results.py`의 ID/group에 등록되지 않은 새 batch는 원본에만 보존되므로 새 구성을 넣을
 때 ID와 catalog도 함께 갱신한다. 공식 점수는 별도 official submission 결과만 사용한다.
+
+## 이번에 닫은 결론과 다음 탐색
+
+E102(weight materialization)와 E104(materialization + reload)는6-case projection을 모두
+통과했다. Reload만 한 E103, scale 위치를 바꾼 E101, direct-DMA 진단은 실패했다.
+따라서 이번 구현에서 FP8 weight 중간 저장을 유지한 E104를 채택한다. 이것은 모든
+streamed unpack의 불가능성이나 compiler 내부 원인을 증명한 결과가 아니다.
+E102의 단회 수치는 E104와 비슷하지만 E104만3회 반복과 추가 입력까지 확인했다.
+
+E104의 점수 기여 예상은 QKV/O가 같을 때 약1.7%다. 이 작은 개선을 더 세분화하지
+않고 C07을 마무리한다. 다음 C08에서는 Q/K/V 세 projection을 묶는 weight/scale 배치와
+공유 dot pipeline을 우선 시험한다. 기본 정확도와 대조1회로 개선 폭을 먼저 판단한다.
+[정적 함수별 자원 시간](static-summary.json)은 후속 설계 참고이며, 겹치는 시간을 더해
+실측 latency나 절감 가능량으로 해석하지 않는다.

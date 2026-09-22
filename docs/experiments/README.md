@@ -1,6 +1,14 @@
 # Experiment ledger
 
-Current adopted source is **E79 / baseline-e79**, commit `2735b58`.
+Current adopted source is **E104 / baseline-e104**, commit `7f891f9`.
+[C07](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) compares 19 basic
+architectures and adopts materialized native E5M2 up/gate with F32 partials. Three independent
+allocations show **353154 → 335761 FFN cycles (−4.93%)** against contemporary E79 controls.
+All45 basic,30 additional-input comparisons and207360 diagnostic projection values pass.
+QKV/O images and E79 down/epilogue are preserved. Native input quantization remains an approximation.
+[Official submission](e104-official-submit-20260922.json) is tracked separately.
+
+Previous adopted source is **E79 / baseline-e79**, commit `2735b58`.
 [C04](../../moa-dev/experiments/candidates/c04-down-transfer/README.md) ran nine coupled down-layout/activation-delivery candidates.
 E79 combines E74 F32 partials with leader DMA and Main ring32 broadcast; three independent identical
 batch jobs show FFN **369997 → 353136 cycles (−4.56%)** against contemporary E74 controls.

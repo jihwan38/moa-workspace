@@ -3,7 +3,7 @@
 2026-09-22. 기준은 [E55 구성표](../../baseline/e55.json)의 `baseline-e55`
 (`873f64ed94229c88cd18d2731bdcca7eea0d6365`)다. 최초 작성은 조사·설계 단계였다.
 **C01–C03은 구현 후 미채택, C05는 E74, 후속 C04는 E79로 채택했다.
-C07은 native FP8 결합 구조를 구현·실행했으며 후속 정확도 판정은 아래 기록에 있다.
+C07은 native FP8 결합 구조를 구현·실행해 E104(FFN 반복 −4.93%)를 채택했다.
 C06은 아직 아래 제안대로 구현·검증되지 않았다.**
 [C07 구조별 측정·실패·소스 동결](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md).
 [C04의9개 조합·E79 반복과 정확도](../../moa-dev/experiments/candidates/c04-down-transfer/README.md).
@@ -101,7 +101,7 @@ P3는 정확도 위험이 큰 연구 후보다. 구현 부담은 상대적 판�
 | C04 | P2 | FFN down의 column 분할과 activation broadcast 동시 재설계; F1 변경 | weight/scale DMA와 activation 전달을 함께 줄이는 구조 후보 | 큼 / 통신 증가·합산 순서 |
 | C05 | P2 | FFN staged fused decode와 실제 겹침; F2/F4 변경 | 전체 중간 weight 저장 감소. LUT setup·DMA 대기까지 줄여야 유효 | 큼 / 기존 E56 오동작 |
 | C06 | P2 | O 작은 tensor 전송·후단 의존성 조정; O3/R1 주변 | 작은 DMA·Sub 준비 비용 축소. 큰 개선 근거는 아직 없음 | 중간 / 직렬화·BF16 경계 |
-| C07 | P1 실행 | Native FP8 FFN·scale-DPE·F32 VE·down 분할 결합; F2/F3 대체 | 기본 단회 최대 −10.13%; 경계 정확도와 실행 실패는 별도 판정 | 매우 큼 / 입력 근사·상쇄·일부 행 오동작 |
+| C07 | 완료/E104 | Native FP8 FFN·scale-DPE·F32 VE·down 분할 결합; F2/F3 대체 | 기본 단회 최대 −10.13%; 경계 정확도와 실행 실패는 별도 판정 | 매우 큼 / 입력 근사·상쇄·일부 행 오동작 |
 
 ### C01 — Scale-DPE는 partial 진단부터
 

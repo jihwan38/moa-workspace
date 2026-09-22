@@ -1,17 +1,19 @@
-# 현재 baseline: E79
+# 현재 baseline: E104
 
-여기는 **채택한 코드의 구성과 검증 근거**를 보관하는 폴더다. 현재 실행 소스는
-`furiosa-opt-gemma4-12B/src/`에 있고, 현재 채택 source는 `baseline-e79` 태그의
-`2735b5899f41195dedeab1e076c82317e24efcb2`다. Git의 `baseline` 브랜치와 이 폴더는
-별개다. 이전 E55는 `baseline-e55` / `873f64ed94229c88cd18d2731bdcca7eea0d6365`로 보존한다.
-이전 E74는 `baseline-e74` / `9e2058e`로 보존한다.
-고정 commit은 **비교군의 신원**을 식별한다. 후보를 E55나 E74 구조에서 시작하거나
-그 주변만 탐색해야 한다는 제약은 없다. 후보의 실제 출발 commit과 설계를 별도로 기록한다.
+현재 실행 소스는 **E104 / `baseline-e104` / `7f891f9`**다. E79의 up/gate를
+E5M2 세 항 native DPE, FP8 weight 중간 저장, projection별 입력 reload, F32 partial과
+30행 contiguous 배치로 대체했다. Down·후단과 QKV/O image는 E79 그대로다.
+
+동일 package 3회에서 FFN **353154 → 335761 cycles (−4.93%)**다. 기본45개 비교,
+추가30개 비교, 별도6-case projection207360개를 통과했다. 입력 FP8 표현은 근사이며
+일반 BF16 동치나 모델 전체 정확도를 보장하지 않는다. [C07 판정](../moa-dev/experiments/candidates/c07-native-scale-dpe/decision.json).
+이전 E79/E74/E55는 고정 비교군으로 보존하며 이후 구조의 제약으로 삼지 않는다.
 
 | 찾는 내용 | 파일 |
 |---|---|
-| 현재 적용한 15개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
-| 현재 구성표와 기준 commit | [e79.json](e79.json) |
+| 현재 적용한 16개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
+| 현재 구성표와 기준 commit | [e104.json](e104.json) |
+| 이전 E79 구성표 | [e79.json](e79.json) |
 | 이전 E74 구성표와 고정 비교군 | [e74.json](e74.json) |
 | 이전 E55 구성표와 고정 비교군 | [e55.json](e55.json) |
 | 현재 채택 구성표를 가리키는 포인터 | [current.json](current.json) |
@@ -37,20 +39,22 @@ QKV → attention → O → `self.mlp` 순서로 실행한다. `Decode::full`도
 |---|---|
 | `sliding_project_qkv` | BF16 x → 분할 RMS **Q1** → 2-cluster ring32 복제 **Q2** → 8-way 행 배치 **Q3** → BF16 입력·weight lookup dot **Q4** → F32 channel scale fusion **Q5** → head RMS/RoPE **Q6** → Q 출력·지정 K/V cache 슬롯 쓰기 |
 | `sliding_attention_output` | BF16 attention 결과 → 2-cluster/16-column dot **O1** → F32 합산·channel scale 뒤 BF16 **O2** → H480×8 post-RMS·residual **O3/R1** → residual HBM 갱신 |
-| `decoder_feedforward` | residual·pre-RMS → 2-cluster up/gate **F1** → FP4→FP8 DM→BF16 stream/DPE→compact F32 partial **F2** → 별도 F32 scale·합산 **F3**, 8/12행 scale tile **F4** → GeGLU·leader DMA/ring32 입력 방송·down **F1** → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
+| `decoder_feedforward` | residual·pre-RMS → E5M2 세 항 입력 **F6** → 2-cluster/30행 up/gate **F1** → FP4→E5M2 DM→native DPE/F32 partial **F2** → F32 scale·합산 **F3**, 6/12행 scale tile **F4** → GeGLU·leader DMA/ring32 입력 방송·down **F1** → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
 
 QKV/O는 [sliding/projection.rs](../furiosa-opt-gemma4-12B/src/device/sliding/projection.rs),
 FFN은 [shared/mlp.rs](../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)가 중심이다.
 공유 RMS를 바꾸는 실험은 두 호출 경로와 각각의 image를 확인한다.
 
-**현재 FFN은 전체 BF16 weight를 DM에 저장하지 않는다.** FP8 DM은 유지하고 lookup의
+**E79의 down 경로는 E104에서도 유지한다.** 이하 문단은 E79의 설계 기록이다. E104 up/gate의 native FP8 경로는 [methods.md](methods.md)의 F1–F4/F6을 따른다.
+
+E79 FFN은 전체 BF16 weight를 DM에 저장하지 않는다. FP8 DM은 유지하고 lookup의
 BF16 출력을 DPE로 바로 보내16원소별 F32 dot을 저장한다. 이후 별도 VE에서 scale과 합산을
 수행한다. Block dot을 BF16으로 반올림하는 C01 scale-DPE와 다르다. 과거 후보·회귀·컴파일
 실패를 새 구성의 검증과 섞지 않는다. E79는 down 입력을 leader에만 DMA한 뒤 Main
 ring32에서 각 column의4개 row group에 방송한다. 계산 배치·후단 유지가 이후
 layout·decode·dot·scale·tile·통신의 동시 재설계를 제한하지 않는다.
 
-## 현재 검증과 성능 기준
+## 이전 E79 검증과 성능 기준
 
 [E79 동일 batch package 3회](../docs/experiments/e79-c04-eight-ring32.json)의
 job 중앙값들에서 구한 FFN 중앙값은 **353136 cycles**다.
