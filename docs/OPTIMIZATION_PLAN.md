@@ -1,101 +1,106 @@
 # MOA 2026 최적화 실행 계획
 
-2026-09-22 현재 후보 우선순위는 [E55 이후 C01–C07](research/optimization-candidates-20260922.md)에 정리했다.
-Scale-DPE·F32 packet scale·BF16 QKV head 배치를 먼저 판별하고, FFN 전송/변환 구조와 O 후단으로 확장한다.
-공개 구현 재조사, 이전 실패와 다른 점, 선행 진단, 채택·중단 조건을 포함한다. 이는 미실행 제안이며 현재 baseline은 E55다.
+2026-09-22 현재 작업 코드는 **E74**, 브랜치는 `opt/c05-streamed-decode`다.
+목표는 공식 평가 최소3위 진입이며 아직 달성하지 못했다. 현재 코드는
+[baseline 구성표](../baseline/e74.json), 이전 E55는 [고정 비교군](../baseline/e55.json)으로 보존한다.
 
-2026-09-22 후속: [메모리 정렬·배치 감사와 E57–E64](research/e55-memory-layout-audit.md)를 완료했다.
-QKV/O/FFN의 실제 loader·DMA·계산 배치를 추적하고 8개 후보를 Arena에서 실행했다.
-대조·반복을 포함한 15개 job은 모두 정확도 PASS지만 재현 가능한 개선은 없어 E55를 유지한다.
-FFN scale padding의 −0.24%는 반복 변동폭 안이며, 단순 행 padding·O의 별도 DM 재배치를
-성능 개선으로 채택하지 않는다. 다음 FFN 설계는 중간 저장과 전송/계산 중첩을 함께 다룬다.
+**Baseline은 비교군이다. E55/E74 주변만 탐색하거나 현재 방법을 유지해야 한다는 제약은 없다.**
+후보는 다른 출발점·layout·decode·dot·scale·tile·통신 구조를 사용할 수 있다.
+서로 영향을 주는 선택은 조합 전체로 설계하고 측정한다. 중간 단계 하나가 느려도
+그것만으로 조합을 배제하지 않는다. 공개 인터페이스, 허용 수정 범위와 정확도 계약은 지킨다.
 
-2026-09-21. 목표는 공식 평가에서 최소3위 진입이며, **아직 공식 제출·점수·순위를 확보하지 못했다.** 현재 기준 구현은 **E55**다. E54의 BF16 QKV 입력과 scale 뒤 BF16 경계를 유지하면서 dot·scale 실행을 합쳐 비용을 줄였다. 실제 RNGD에서 공식3개·추가6개 입력 구성과 별도 QKV 상쇄 진단2개를 통과했고 동일 패키지3회 반복을 완료했다. 이 진단은 현재 공식 QKV generator 지원 범위 밖이다. O 경계8개는 E53와 동일한 O image의 기존 검사 근거를 승계한다. 모델 전체 정확성·처리량이나 모든 입력의 정확성을 보장하는 기록은 아니다.
+## 현재 채택 결과
 
-## 현재 기준과 채택 근거
+[C05 비교](../moa-dev/experiments/candidates/c05-streamed-decode/README.md)에서 두 구조를 구현했다.
+E73은 lookup·dot·scale을 row tile마다 연결했고, E74는 lookup·dot을 전체 행에 stream한 뒤
+compact F32 partial을 저장하고 별도 VE에서 scale·합산을 수행한다.
 
-2026-09-22: 검증된 E55의30개 커밋을 `main`에 fast-forward 병합하고
-`baseline-e55` 태그(873f64e)를 남겼다. 후속 작업은 `opt/ffn-dataflow`에서 진행한다.
-첫 [16행 up staging 후보 E56](../moa-dev/experiments/candidates/ffn-up-sixteen-row-e55/README.md)는
-정적−1.83%였지만 Arena72023에서 FFN 정확도 실패 및 후속 device launch timeout으로 제외했다.
-같은 시기의 E55 대조군72024는15개 비교 모두 PASS였다. 현재 채택 소스는 E55를 유지한다.
+| 구성 | FFN 중앙값 cycles | 동시기 E55 대비 | 결과 |
+|---|---:|---:|---|
+| E75: E55 고정 대조 | 377804 | — | 각 독립 job의 control_before |
+| E73: 직접 tile fusion | 416500 | +10.24% | 미채택 |
+| E74: F32 partial stream | 369246 | **−2.27%** | 채택 |
 
-E55는 E54의 O·FFN device image를 유지하고 QKV의 완전한 F32 dot 뒤 같은 Main에서 channel scale을 곱한다. 첫 BF16 cast 뒤 row Switch를 수행해 E54의 F32 재배치와 별도 scale pass를 없앴다. QKV 입력의 FP8 hi/lo 근사는 E54에서 제거됐고, O 입력 근사와 scale 전 BF16 반올림은 E53에서 제거됐다. [E55 소스·빌드 감사](experiments/e55-source-build-audit.json), [O 수치 검토](../moa-dev/experiments/candidates/output-bf16-activation-e47/math-review.md).
+세 독립 Arena jobs의 동일 package에서 비교했다. Control_after도 별도 보관한다.
+E74의45개 기본 비교·30개 추가 입력 비교·네 full-shape 진단의138240개 출력은 모두 PASS다.
+QKV/O image는 E55와 같다. 메모리 사용 감소는 compiler schedule 모델로 확인한 것이며
+runtime telemetry가 아니다. [빌드·소스 귀속](../moa-dev/experiments/candidates/c05-streamed-decode/source-build-audit.json).
 
-| 커널 | 원본 반복 중앙값 cycles | 이전 E54 반복 중앙값 cycles | E55 반복 중앙값 cycles |
-|---|---:|---:|---:|
-| QKV | 244,051 | 108,700 | 102,878 |
-| Attention output | 404,222 | 50,970 | 51,249 |
-| FFN | 4,264,297 | 382,268 | 380,339 |
+E55 공식 제출 `3ab72d66`은 **5.6665×**로 완료됐다.
+[E74 공식 제출 `01ba2ec2`](experiments/e74-official-submit-20260922.json)도 **5.7805×**로 완료됐다.
+공식 cycles는 QKV102721 / O51230 / FFN369335이다.
+Arena의2.27% FFN 개선을 공식 점수나 현재 순위로 환산하지 않는다.
 
-E55는 [동일 패키지 job71027/71057/71072](experiments/e55-fused-qkv-repeats.json)의 job 중앙값들의 중앙값이다. 세 job 모두15개 비교를 통과했고 상대 범위는 QKV0.976%/O1.169%/FFN1.036%다. 원본 대비2.37×/7.89×/11.21×이며 [첫 screen](experiments/e55-fused-qkv-screen.json)을 최종 집계로 대신하지 않는다. 이전 E54 열은 [job70933/70974/70987 반복](experiments/e54-bf16-qkv-repeats.json)이다. E55의 O/FFN image는 E54와 같으므로 그 두 커널의 cycle 차이를 소스 개선·회귀로 해석하지 않는다.
+## 실제 실행 경로
 
-- 공식 입력: E55 세 반복 job 각각 출력 비교15개 모두 PASS.
-- 별도 입력 run3..8: E55 job71052의 출력 비교30개 모두 PASS. 같은 입력의 반복 job을 새 입력으로 세지 않는다. [추가 검사](experiments/e55-fused-qkv-extra-correctness.json).
-- QKV 경계: E55 job71032의2개 case/QKV6개 비교 모두 PASS이며 checksum38/38과 비대상 KV cache8,380,416개 BF16 bits 보존을 확인했다. 같은 probe·oracle·payload에서 원본70944와 E54 70958도 PASS지만 E53 70943은8,072개 값이 실패했다. 요약값의 일치로 전체 출력 배열의 동일성을 추론하지 않는다. [기존 대조와 E55 후속](experiments/qkv-boundary-comparison.md).
-- O 경계: **새 E55 실행이 아니라 같은 O image의 E53 job70810 근거를 승계**한다. 원본70799와 E53 70810은8/8 PASS, E47 70785는 상쇄 입력3840개가 기대0.609375 대신0.5였다. [O 비교](experiments/output-boundary-comparison.md).
-- 동결된46개 source/Cargo/toolchain 입력을 독립 scratch와 live에서 대조했고 두 전체 host 빌드가 byte-identical하다. exact QKV image와 공식 host가 일치하며 별도 추가 입력 빌드도 같은 세 device image를 각각 한 번 포함한다. [빌드 감사](experiments/e55-source-build-audit.json).
+세 public device 진입점은 [ops.rs](../furiosa-opt-gemma4-12B/src/ops.rs)의
+`sliding_project_qkv`, `sliding_attention_output`, `decoder_feedforward`다.
+`host/runtime.rs`의 sliding/full layer가 같은 FFN 구현을 호출한다.
 
-E55 QKV 반복 중앙값102,878 cycles는 이전 BF16 기준 E54의108,700보다5.36% 낮다. 입력 근사가 있던 [E53 반복](experiments/e53-bf16-output-repeats.json)의95,621보다는7.59% 높아 일반 입력 정확도를 위한 비용이 남는다. 과거 E54는 E53보다13.68% 느렸고 E53의 O 반복 중앙값은 E47보다14.12% 높았다. E47/E53 모두 실패 범위를 명시한 과거 성능 후보로 보존한다. QKV 반례는 공식 generator 지원 범위 밖이므로 E53의 기존 공식 입력 PASS를 뒤집는 결과가 아니다. E55도 모든 finite 입력의 수학적 동치를 증명하지 않으며 F32 합산 순서·RMS·overflow/FTZ는 별도 한계다. O의 tiny case처럼 expected가 atol보다 작으면 통과만으로 작은 값 보존을 증명하지 못한다.
+- QKV: BF16 pre-RMS → ring32 복제 → FP8 weight의 BF16 lookup/DPE → F32 channel scale
+  → BF16 row 복원 → head RMS/RoPE → Q와 지정 KV cache slot 쓰기.
+- O: BF16 activation과 BF16 weight lookup/DPE → column partial F32 합산·channel scale
+  → BF16 → H480×8 post-RMS·residual 쓰기.
+- FFN: residual/pre-RMS → ring16 복제 → FP4→FP8 DM → BF16 lookup을 DPE에 연결
+  → compact F32 block dot 저장 → 별도 F32 scale·합산 → BF16 up/gate → GeGLU
+  → 같은 방식의 down과8-column F32 합산 → global scale/post-RMS/residual/layer scale.
 
-공식 사이트는 평가 기준 수정으로 제출을 중단했고 Arena 개발은 계속 가능하다고 안내한다. 별도 `moa-submitter` 인증은 완료했다. [실제 E55 제출 시도](experiments/e55-official-submit-attempt-20260922.json)는 같은 maintenance 오류로 거절됐고, 인증된 status에서도 제출 내역이 없음을 확인했다. 리더보드는 참고용이며 최종 순위는 동일 조건의 재실행으로 결정된다. [공식 공지](https://micro2026-moa.github.io/leaderboard.html), [상태 기록](experiments/official-submission-status-20260921.json). 과거 공개 기준에서 계산한 참고 점수를 현재 순위로 환산하지 않는다.
+FFN의 weight dot은 up/gate32행·down60행을 stream한다. Scale VRF만8/12행으로 나눈다.
+최종 projection까지 F32 partial을 유지하지만 F32 합산 순서는 E55와 다르다.
+현재 값·호출 위치·coupling은 [methods.md](../baseline/methods.md)에 있다.
 
-## 구현의 실제 실행 경로
+## 다음 탐색
 
-진입점은 [src/ops.rs](../furiosa-opt-gemma4-12B/src/ops.rs)의 `sliding_project_qkv`, `sliding_attention_output`, `decoder_feedforward`다. 공식 입력 생성·비교 harness와 공개 device signature는 유지했다. [E55 계약 검사](experiments/e55-source-contract-audit.json)에서 source43개 중 허용된7개 경로만 원본과 다르고, 공개10개 signature와 공식 harness6개 파일은 원본과 같음을 확인했다. E54 대비 변경은 `projection.rs`의 `project_query`, `project_one_kv_matrix` 두 함수 본문뿐이며 `ops.rs` 전체와 head norm·RoPE·cache 후단, 다른42개 source는 같다.
+1. **C04: down column 분할과 activation 전달을 함께 바꾼다.** 현재8-column에서 weight,
+   scale, GeGLU activation이 움직이는 byte·명령 수와 의존성을 비교한다.4-column 등의
+   후보는 leader load/Switch 복제, reduction, F32 partial 배치까지 포함해 설계한다.
+   E55와 E74 각각을 대조할 수 있으며 어느 쪽의 내부 구조도 필수는 아니다.
+2. **C05 후속: decode와 전달·소비 일정을 함께 탐색한다.** 이번 Sub reduction은 SDK ISA
+   lowering 내부 오류로 실패했다. 이전 E56의8/16행 HBM staging 오류도 미해결이다.
+   해당 경로를 다시 쓸 때는 실제 shape의 nibble·row/cluster/chunk 경계와 DPE consumer까지
+   검사한다. 소유 tensor 두 개를 만들었다는 이유로 physical double buffer라고 부르지 않는다.
+3. **QKV/O도 병행 가능한 탐색 대상이다.** C03의 한 head 배치가 느렸다는 사실로 다른
+   head/weight/입력 전달 구조를 배제하지 않는다. C06 O의 scale/RMS/residual 전달은
+   전송 비용과 BF16 경계, shared caller 영향을 함께 확인한다.
+4. **C07 native FP8 및 정밀도 보정은 설계가 성립하면 비교한다.** 과거 hi/lo 구현의
+   정확도 PASS·회귀·실패 범위를 읽고, BF16 입력 전체 범위의 동치를 가정하지 않는다.
+   C01/C02의 특정 구현이 느렸다는 이유로 다른 layout/packet/보정 조합까지 닫지 않는다.
 
-**QKV:** HBM BF16 x → H480×8 BF16 pre-RMS → full-H gather와 ring32 BF16 broadcast → FP8 weight의 정확한 BF16 lookup 및 BF16 DPE → 같은 Main에서 완전한 F32 dot에 channel scale 곱하기 → 첫 BF16 cast → BF16 row Switch → head RMS → Q/K RoPE → Q 출력과 지정 KV cache 슬롯 write. [projection.rs](../furiosa-opt-gemma4-12B/src/device/sliding/projection.rs)의 `project_query`와 `project_one_kv_matrix`는 contiguous scale DMA 뒤 inverse `InterTranspose`로 각 raw row에 맞는 F32 scale을 VRF에 놓는다. dot을 완전히 reduce한 뒤 곱하고 BF16으로 변환하므로 scale 전 추가 BF16 반올림이 없다. K/V는 `project_key_value`가 같은 BF16 TRF를 재사용하고 Q의 TRF 적재는 별도다. 두 cluster와8-way row interleave를 유지한다. 삭제된 `prepare_fp8_split`·`broadcast_quantized`는 [이전 E53 동결 소스](../moa-dev/experiments/candidates/qkv-bf16-f32-scale-e53/projection.rs.original)의 FP8 근사 경로이며 현재 실행되지 않는다.
+이는 고정 순서나 후보 수 제한이 아니다. 관측된 병목과 검증 가능성을 근거로 순서를 바꾼다.
+후보의 실제 출발점과 대체한 구성은 [조합 양식](experiments/combination-template.md)에 남긴다.
+독립적으로 분리할 수 있을 때 단독/조합 또는 최종 설계에서 하나씩 제거하는 비교를 수행한다.
 
-**O:** HBM BF16 attention 결과 → 16개256-column shard의 BF16 TRF → FP8 weight를 정확히 BF16으로 lookup한 단일 dot → F32 column reduction → F32 H480×8 gather → F32 channel scale → 첫 BF16 cast → RMS → residual → HBM 갱신. `project_output`과 `apply_output_channel_scale_f32`가 이 경계를 구현한다. 여기에는 attention softmax 계산이 없다. 원본 Python reference와 scale/cast 순서는 맞지만 F32 reduction grouping은 달라질 수 있다.
+## 검증과 기록
 
-**FFN:** residual → pre-RMS → FP4 up/gate → GeGLU → FP4 down → global scale → post-RMS → residual 및 layer scale → HBM write. [mlp.rs](../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)의 `feedforward_sharded`는 matrix별 FP4→FP8→unscaled BF16 weight를 한 번 준비하고 row tile에서 재사용한다. 16원소 F32 dot마다 해당 local scale을 적용한 뒤 합한다. Reduction축을 따라 scale이 달라지므로 최종 GEMV 뒤 한 번 곱하는 것으로 바꿀 수 없다. Down 이후 H480×8 후단을 유지한다.
+1. 실제 source·SDK/lock·compiler·host/fixture/runner와 image를 동결한다. Compile 실패 뒤
+   이전 binary를 실행하지 않는다. Shared target의 빌드는 직렬로 한다.
+2. 변경하지 않은 공식 기본 harness로 정확도와 cycles를 검사한다. 성능 가능성이 있으면
+   동일 package를 대조군과 최소3개의 독립 Arena jobs에서 비교하고 추가/경계 검사를 한다.
+   한 job 안의3개 입력이나 여러 프로세스를 독립 job으로 세지 않는다.
+3. 기본·추가·진단·모델 전체 측정은 구별한다. 모델 전체 정확도나 임의 입력 동치는
+   별도 근거 없이 주장하지 않는다. QKV cache 부수효과, scale/block 좌표와 cast 경계도 확인한다.
+4. 빠름·미확인·회귀·정확도 실패·compile 실패를 모두 남긴다. 관측 범위가 겹치는 작은
+   개선을 확정하지 않는다. 채택 source commit/tag·recipe·current pointer를 함께 갱신한다.
+   이전 baseline과 실패 원본을 덮어쓰지 않는다. 검증한 후보는 공식 제출로 별도 평가한다.
 
-공유 코드의 범위는 [caller 감사](experiments/e47-shared-caller-audit.md)에 있다. `Decode::sliding`과 `Decode::full`이 모두 `self.mlp`→`decoder_feedforward`를 호출한다. Full-attention의 shared residual loop expansion도 image에 영향을 준다. 후속 [실제 full-O 복원 대조71281](experiments/e55-model-control-full-o.json)에서는 E55와 네 prefix의1,048,576개 logits가 bit-identical이었다. 이는 해당 네 실행 경로에 대한 결과다. Vision의 직접 shared 호출 `add_vision`은 원본과 같지만 이후 text decoder를 거치므로 멀티모달 전체에 영향이 없다고 주장하지 않는다.
+[실험 원장](experiments/README.md), [성능별 분류](experiments/optimization-results.md),
+[후보 연구 기록](research/optimization-candidates-20260922.md),
+[메모리 배치 E57–E64](research/e55-memory-layout-audit.md),
+[C01](../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md),
+[C02/C03](../moa-dev/experiments/candidates/c02-c03-e55/README.md).
 
-## 다음 작업과 실험을 시작할 조건
-
-1. **공식 평가가 열리면 계약부터 재확인한다.** 변경 입력·허용오차·채점식을 확인하고 인증이 완료된 제출기로 검증된 E55를 다시 제출한다. 설치된 공식 CLI1.2.0의 [로컬 전송 검사](experiments/e55-official-submit-preflight.json)에서는 크레이트·하위 폴더·명시적 `--source` 세 경로 모두 실측 E55의 허용 소스23개/160,829B를 정확히 전송했다. 이 preflight 검사는 loopback 수신기로 수행했다. 후속 실제 서버 인증은 완료했으나 제출은 maintenance로 거절돼 평가 계약의 실행·점수는 미검증이다. 공식 결과를 얻기 전까지3위 달성을 선언하지 않는다. 입력에 fixture/seed/좌표 전용 분기를 넣지 않는다.
-2. **새 QKV 실험에는 E55를 넘을 구체적인 전송·일정 근거가 필요하다.** [BF16 QKV dot·channel-scale 결합](../moa-dev/experiments/candidates/qkv-bf16-fused-channel-scale-e54/README.md)은 이미 E55로 채택했고 공식 입력·추가 입력·동일 경계·3회 반복 검증을 마쳤다. 정적52,282→51,293(−1.89%)와 실제 QKV 반복−5.36%는 서로 다른 측정이다. 후속 공통 TRF는 정적 회귀, broadcast→TRF 결합은 compile 실패로 제외했다. 9월 22일 새 제안 C03은 BF16 head를 원래 cluster에 유지하는 배치이며, gather 비용 분석·독립 구현·검증을 앞둔 상태다. [C01–C07 후보 계획](research/optimization-candidates-20260922.md)을 현재 작업 순서로 사용한다. 아래 실패 근거를 새 사실 없이 반복하지 않는다. BF16 입력 보존·완전한 F32 dot 뒤 scale·첫 BF16 경계와 cache 부수효과를 유지하고, 새 공식 입력이나 실제 모델 workload가 공개되면 별도 검증한다. [QKV 반례와 실제 대조](experiments/qkv-boundary-comparison.md)는 현재 공식 x 생성 범위 밖의2개 진단에 한정된다. 이전 [BF16 QKV 초안](../moa-dev/experiments/candidates/qkv-bf16-sharded-rms-e47/README.md)의 E47 O와 scale 전 BF16 경계로 되돌리지 않는다.
-3. **FFN은 DMA·복호화·중첩을 같이 줄이는 새 근거가 필요하다.** 현재 static162,209에서 FP4→FP8→BF16 Main 작업량86,178, DMA 합집합135,607이다. 현재 DMA 순서·시간을 고정하면 decode만 공짜가 되어도 정적 개선 상한은 약1.196배다. 일반적인 성능 roofline으로 확대하지 않는다. [병목 분석](../moa-dev/experiments/candidates/ffn-parallel-epilogue/remaining-bottlenecks.md).
-4. **Stage2는 실제 host 실행을 기준으로 다시 측정한다.** [모델용 host 격리 빌드](experiments/e55-model-host-build.json)는 `gemma4`/`server` 모두 성공했고 실제 ELF의14개 registry image와 실측 E55 세 image의 일치를 확인했다. 후속 [Arena 자산 조회](experiments/e55-arena-model-assets.json)에서 모델·tokenizer/template을 찾았고 [전체 파일 해시와1,149개 header 계약](experiments/e55-arena-model-identity.json)도 확인했다. 다만 [첫 실제 실행](experiments/e55-arena-model-smoke.json)은 `model loaded` 이전70초 timeout이었다. 후속 [고정-prefix 진단71198](experiments/e55-arena-model-progress.json)은 Device0.317초, 모델 적재 완료16.058초를 기록하고14-token text prefix의262,144개 finite logits를 얻었다. [실제 원본/E55 비교71207](experiments/e55-model-fixed-prefix-pair.md)은 max abs1.5·mean abs0.194487·raw top1 동일을 관측했다. 단일 prefix/read 시간은1.815→0.375초였으나 비통제1회이므로 공식 성능이 아니다. [후속4-prefix71239](experiments/e55-model-prefix-suite.md)도 실제82token·1,048,576개 finite logits에서 raw top1 네 개 일치를 보였지만 max abs0.584–1.5의 차이가 있다. 같은 job의 전체 weight hash와 전후 stat/header·metadata hash를 연결했다. 후속 [단일-kernel 복원 대조4건](experiments/e55-model-single-kernel-controls.md)은 모두 완료했다. Full-O 복원은 E55와1,048,576개 logits가 bit-identical이고, QKV/O/FFN 복원은 원본과의 차이를 일관되게 줄이지 못했다. 다른9개 image를 E55와 동일하게 고정했으나 최종 오차를 kernel별 가산 기여율로 분해하지 않는다. 이후 [원본 생성 토큰을 고정한 진단71329](experiments/e55-model-continuation.md)은42.448초에32개 checkpoint·8,388,608개 finite logits 비교를 완료했고32개 실제 greedy 선택이 일치했다. 원본 EOS를 포함하며 모델당110forward를 실행했다. 최소 선택 margin0.875, 최대 절대 차이1.6875로 수치 차이는 남는다. 후속 [Python 최대40 진단71362](experiments/e55-model-continuation-python40.md)는 14번째 선택 EOS에서 정상 종료했고 14개 선택·3,670,016개 finite logits를 비교했다. 기존 첫8개 보고값이 재현됐고 새6개 중 step9에서 원본 margin0.125가 E55 동점2개(margin0)로 바뀌었다. 실제 선택은 같았지만 이를 일반 선택 보존으로 확대하지 않는다. [무수정 CLI71395](experiments/e55-model-cli-python40.md)도 같은 E55 ELF로 실제 문자열을 출력하고 Stop/exit0으로 완료했다. 기본 확률적 sampler에서 Python 식의 결과3을 출력했으며, 이전 timeout의 원인은 여전히 미확정이다. 다음은 다른 prompt·정답이 있는 평가로 범위를 넓힌다. 관측된 동점 하나로 일반 선택 보존을 주장하지 않으며512-page·1024-ring 검사는 별도로 남는다. 원본과 다르다는 사실만으로 정확도 오류나 개선을 단정하지 않는다. E2E 정확도 수용 여부·공식 성능은 아직 미검증이다. [실행 준비 감사](research/e55-model-runtime-readiness.md)에 필요한 자산과 비교 조건을 기록했다. Workload가 공개되면 [host/runtime.rs](../furiosa-opt-gemma4-12B/src/host/runtime.rs)의 초기화·prefill TTFT·decode TPOT·KV 상태·host-device 동기화·NPU 시간·메모리를 나누어 측정한다. Shared full-attention 및 vision/audio 이후 decoder도 포함한다. Stage1 세 커널 PASS를 전체 모델의 정확성·처리량으로 대신하지 않는다.
-
-E53에서 추가 검사한 [BF16 O8](../moa-dev/experiments/candidates/output-bf16-eight-columns-e53/README.md)은 정적+1.88%, [FFN sharded pre-RMS](../moa-dev/experiments/candidates/ffn-sharded-input-rms-e53/README.md)의 두 경로도 각각+0.32%/+1.24%로 회귀해 NPU 없이 제외했다. FFN Main/DMA 작업량 감소가 두 엔진의 중첩 감소를 보상하지 못했다.
-
-[O channel-scale fusion](../moa-dev/experiments/candidates/output-bf16-fused-channel-scale-e53/README.md)도 수치 경계를 유지하며 컴파일됐지만 scale DMA가 dot 이전 의존성이 되어 정적+154 cycles로 회귀했다. 별도 Main401과 결과 DMA24를 줄이는 것보다 새 선행 전송579가 컸다. 이 후보도 NPU 없이 제외했다.
-
-[O scale→RMS 결합 API 검토](research/output-scale-rms-fusion-audit.md)는 별도 scale Main의 BF16 반올림을 RMS square·분자 앞에 보존해야 한다는 제약을 확인했다. 조사한 SDK0.8.1 VE 경로에서 같은 Main 중간 BF16 반올림은 표현하지 못했고 DM commit을 넣으면 기존 scale pass가 돌아온다. 이는 조사한 API 경로의 미해결 설계이며 NPU 성능 결과가 아니다.
-
-[QKV 입력 staging 감사](research/qkv-bf16-input-staging-audit.md)는 gather·ring broadcast가 이미 공유되고 Q/KV TRF 적재만 중복임을 확인했다. [공통 TRF 후보](../moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/README.md)는 첫 exact compile에서 Sub1,223과 TRF 예약 절반을 줄였지만 전체51,293→52,562로 회귀했다. K lookup 준비가 뒤로 밀린 일정이 원인이며 NPU 없이 제외했다.
-
-[Broadcast→공통 TRF 결합](../moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/README.md)은 named output의 Switch bitmap 검증에서 첫 compile이 실패했다. 의도한 leader 주소와 실제 lowering을 구분하며, 유효 image·schedule이 없어 성능 수치는 없다. 검증되지 않은 TRF 변환이나 weight의 anonymous-copy 재해석으로 우회하지 않았다.
-
-[Mixed-dtype DPE 감사](research/mixed-dtype-dpe-audit.md)는 공개 SDK0.8.1의 float contraction이 같은 dtype의 두 operand를 요구함을 확인했다. FP8 weight와 BF16 activation을 직접 곱해 lookup만 제거하는 공개 경로는 없다. 현재 lookup은 DPE와 같은 Main pipeline에 있고 전체 BF16 weight를 DM에 저장하지 않는다. 별도 FP8→F32→BF16 materialization으로 우회하면 Q/K/V 합계 BF16 DM write60MiB와 read60MiB가 추가되며, 이는 검증된 성능 후보가 아니다.
-
-[Lookup table 공유 감사](research/fp8-lookup-table-sharing-audit.md)에서도 공개 prepared-table handle·수명·재사용 API를 찾지 못했다. E55의 세 table 준비는 각 DMA838+Sub1,293 cycles지만 합계6,393을 전체 시간에서 뺄 수 없다. K table은 dot보다 일찍 준비되며 late-K 현상은 회귀한 공통 TRF 후보에서만 관측했다. Compiler 내부 공유 정책이나 미래 SDK의 지원 가능성까지 부정하는 결론은 아니다.
-
-[K/V 단일 stream 후보](../moa-dev/experiments/candidates/qkv-bf16-interleaved-kv-e55/README.md)는 matrix selector를 유지하며 공개 `begin_interleaved`로 lookup·dot을 합치려 했다. 실제 첫 exact compile에서 declared `Dummy2`와 native pipeline의 `interleave` 축 불일치로 실패했다. 공개 식별자는 대문자로 시작해야 하므로 내부 이름을 그대로 쓰는 수정도 지원되지 않는다. 유효 image/schedule은 없으며 NPU 없이 제외했다. 이 composition의 compiler 제약으로 한정하고 모든 interleaved 경로의 불가능으로 일반화하지 않는다.
-
-기존 실패 후보를 새 근거 없이 반복하지 않는다. Native FP8 FFN은 E35/E38/E39/E41/E42/E46에서 정확성 통과 경로를 확보했지만 채택 BF16 FFN보다 느렸다. E40은 non-finite, E33은 큰 수치 오차로 실패했다. Down-only fused decode의 첫 개선은 E51의3회 반복에서 재현되지 않았다. Up staging·O32·QKV16-row도 전체 정적 또는 장치 비용에서 이득을 입증하지 못했다. [실험 원장](experiments/README.md)에 패키지별 결과와 실패 원인을 확인한 범위까지만 기록한다.
-
-RNGD SDK0.8.1에는 확인되지 않은 prefetch priority/barrier/lifetime 강제 설정을 가정하지 않는다. [공개 API 검토](../moa-dev/experiments/candidates/ffn-up-gate-fused-decode-e37/scheduling-options.md). 새 배치 후보는 실제 weight/scale 전송·materialization·activation 복제를 줄이는 경로, 정확한 좌표 대응, compiler schedule의 전체 비용을 먼저 제시해야 한다.
-
-## 조사 근거와 재현 절차
-
-- [MOA 규칙·평가 계약](research/moa-rules-and-target.md): 허용 수정 범위, 모든 원소 비교, 단계별 metric을 우선한다.
-- [RNGD/SDK](research/rngd-furiosa-opt.md): cluster/slice, DM/TRF, packet, TDMA/Switch의 실제 제약에 맞춰 consumer 배치를 정한다. Padding을 초기화된0으로 가정하지 않는다.
-- [구현 분석](research/kernel-analysis.md): projection→norm→scatter/write와 scale축·반올림·cache 부수효과를 추적한다.
-- [국내외 대회·논문](research/competition-techniques.md): AMD/FlashInfer 수상 구현의 layout·split-K·workload별 검증, 국내 대회의 단계별 제출 계약, FlashAttention의 중간 저장 제거 원칙을 참고한다. GPU 명령·완화된 오차·재양자화 허용을 RNGD에 그대로 적용하지 않는다.
-- [O 입력 경계](research/output-boundary-design-audit.md), [잔차 scale 대안](research/output-residual-scale-design-audit.md): 적은 seed의 PASS가 상쇄 입력에 대한 보장이 아님을 확인한다. Adaptive residual scale나3/4항 FP8 분해도 전체 BF16 범위의 동치를 보장하지 않는다.
-
-각 후보는 source/compiler/Cargo.lock/fixture/image/host hash 고정 → exact compile → 공식 harness 장치 검사 → 독립 추가 입력과 변경 부수효과 검사 → 동일 패키지 반복 → 소스 재빌드·image 확인 순서로 검증한다. `capture.py`는 소스와 기존 바이너리를 각각 관찰하므로 빌드 성공 후 즉시 캡처한다. Collector는 실제 업로드 archive를 내려받아 비교한다.
+[규칙·평가 계약](research/moa-rules-and-target.md), [RNGD/SDK](research/rngd-furiosa-opt.md),
+[국내외 대회·논문](research/competition-techniques.md),
+[mixed dtype DPE](research/mixed-dtype-dpe-audit.md),
+[lookup table API 감사](research/fp8-lookup-table-sharing-audit.md)를 참고한다.
+SDK에 없는 prefetch/barrier/table handle을 가정하지 않는다. 다른 플랫폼의 허용 오차나
+메모리 명령을 RNGD에 그대로 적용하지 않는다.
 
 ```bash
-./moa-dev/moa cargo furiosa-opt build --release --bin test_kernels
-./moa-dev/moa env RNGD_SUBMIT_TIMEOUT=70 ./scripts/rngd_test.sh --no-build --no-wait
-python3 moa-dev/measure.py --jobs JOB_ID --reruns 2 \
-  --label candidate --output docs/experiments/candidate.json \
-  --provenance PATH_TO_PROVENANCE.json \
-  --leaderboard-snapshot docs/experiments/leaderboard-20260921-initial.json
+python3 moa-dev/experiment_index.py --check --check-live
+python3 moa-dev/experiments/candidates/c05-streamed-decode/verify.py
 ```
 
-Arena 작업 상한은70초, queued/running 합계는2개다. 진단 cycles는 공식 입력 반복과 합치지 않는다. 원시 로그·대용량 artifact는 Git 제외 경로에, 재현 source/patch·결과·해시는 저장소에 보관한다.
+Arena70초/동시 queued+running2개 정책에 맞춰 작업을 제출한다. 실제 업로드 archive를
+내려받아 fingerprint를 확인한다. 큰 binary·원시 log·schedule은 ignored artifacts에,
+source·빌드/업로드 해시·검사 결과·판정은 Git에 보관한다.

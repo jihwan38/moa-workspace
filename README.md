@@ -6,14 +6,14 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
-[현재 baseline 구성](baseline/README.md)에서 E55에 적용한 15개 방법의 코드·설정·의존 관계를
+[현재 baseline 구성](baseline/README.md)에서 E74에 적용한 15개 구성요소의 코드·설정·의존 관계를
 확인할 수 있다. [성능별 실험 분류](docs/experiments/optimization-results.md)는 빨라진 후보,
 차이 미확인, 회귀, 정확도 실패를 비교 기준과 함께 정리한다.
 새 조합은 [추가·제거·변경 기록 양식](docs/experiments/combination-template.md)을 사용한다.
 
 `opt/ffn-dataflow`의 후속 [메모리 배치 실험 E57–E64](docs/research/e55-memory-layout-audit.md)은
 QKV·O·FFN 변경 후보 8개를 Arena에서 실행했다. 정확도 검사는 통과했지만 반복 가능한 성능
-개선을 확보하지 못해 runtime은 E55를 유지한다. 결과·실패 원인·재현 source를 함께 보존했다.
+개선을 확보하지 못해 당시 runtime은 E55를 유지했다. 결과·실패 원인·재현 source를 함께 보존했다.
 
 후속 [C02/C03 실험](moa-dev/experiments/candidates/c02-c03-e55/README.md)도 완료했다.
 C02 F32 packet scale의 up/gate·down·결합은 단회 FFN +14.10%/+9.52%/+20.28%,
@@ -21,14 +21,25 @@ C03 cluster별 head 유지는 반복 QKV +1.56%로 모두 미채택이다. 기�
 별도로 C02 block 상쇄 진단과 C03 추가 입력·cache 경계도 통과했다.
 소스·실패 경로·업로드 fingerprint를 보존했다.
 
-현재 `baseline`은 QKV와 O projection의 입력을 BF16으로 보존하는 **E55**다.
+현재 작업 코드는 **E74**다. [C05 실험](moa-dev/experiments/candidates/c05-streamed-decode/README.md)에서
+전체 BF16 weight 대신 작은 F32 block dot을 저장하는 구조를 채택했다. 동시기 E55와
+독립3회 비교해 FFN **377,804 → 369,246 cycles, −2.27%**다. 기본45개·추가30개 비교와
+full-shape/cancellation 진단138,240개 출력이 통과했다. QKV/O image는 E55 그대로다.
+`baseline-e74`는 source commit `9e2058e`이며 E55 태그·실험 원본도 보존한다.
+공식 제출 **`01ba2ec2`**는 **5.7805×**로 완료됐다. 공식 FFN **369,335 cycles**와
+[채점 기록](docs/experiments/e74-official-submit-20260922.json)은 Arena 측정과 별도로 보관한다.
+
+E55/E74는 비교군으로 활용한다. 후보를 그 구조에서 시작하거나 가까운 변경만 탐색해야
+한다는 제약은 없다. 다음 후보는 layout·decode·dot·scale·tile·통신을 함께 바꿀 수 있다.
+
+아래는 QKV/O 기반이 된 **이전 E55**의 검증과 채택 당시 성능 기록이다.
 동일 패키지3회에서 공식 입력3세트의15개 비교를 각각 통과했고, 별도 추가6세트의30개 비교도 통과했다.
 QKV 상쇄 진단2개도 통과했고 비대상 KV cache8,380,416개 BF16 원소가 유지됐다.
 같은 진단에서 E53은8,072개 출력이 허용오차를 벗어났다.
 이 진단 입력은 현재 공식 QKV generator 지원 범위 밖이며, 공식 평가 실패와 구분한다.
 [원본·E53·E54 비교와 E55 후속](docs/experiments/qkv-boundary-comparison.md).
 
-아래는 동일 패키지3회 실행의 job 중앙값들에서 구한 중앙값이다.
+아래는 이전 E55의 동일 패키지3회 실행에서 구한 중앙값이다.
 E55는 job71027/71057/71072 모두15개 비교를 통과했다. 원본/E54 열은 이전 반복 기록이다.
 전체 Gemma 추론 속도나 공식 순위를 뜻하지 않는다.
 

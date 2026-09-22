@@ -1,21 +1,25 @@
-# 현재 baseline: E55
+# 현재 baseline: E74
 
 여기는 **채택한 코드의 구성과 검증 근거**를 보관하는 폴더다. 현재 실행 소스는
-`furiosa-opt-gemma4-12B/src/`에 있고, 기준점은 `baseline-e55` 태그의
-`873f64ed94229c88cd18d2731bdcca7eea0d6365`다. Git의 `baseline` 브랜치와 이 폴더는
-별개다. 위 commit은 **비교군의 신원**을 고정한다. 후보를 E55 구조에서 시작하거나
-그 주변만 탐색해야 한다는 제약은 없다. 후보의 실제 출발 commit과 구성은 별도로 기록한다.
+`furiosa-opt-gemma4-12B/src/`에 있고, 현재 채택 source는 `baseline-e74` 태그의
+`9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7`다. Git의 `baseline` 브랜치와 이 폴더는
+별개다. 이전 E55는 `baseline-e55` / `873f64ed94229c88cd18d2731bdcca7eea0d6365`로 보존한다.
+고정 commit은 **비교군의 신원**을 식별한다. 후보를 E55나 E74 구조에서 시작하거나
+그 주변만 탐색해야 한다는 제약은 없다. 후보의 실제 출발 commit과 설계를 별도로 기록한다.
 
 | 찾는 내용 | 파일 |
 |---|---|
 | 현재 적용한 15개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
-| 같은 내용을 도구에서 읽을 구성표와 기준 commit | [e55.json](e55.json) |
+| 현재 구성표와 기준 commit | [e74.json](e74.json) |
+| 이전 E55 구성표와 고정 비교군 | [e55.json](e55.json) |
 | 현재 채택 구성표를 가리키는 포인터 | [current.json](current.json) |
 | 빨라짐·미확인·느려짐·정확도 실패별 과거 결과 | [최적화 결과 분류](../docs/experiments/optimization-results.md) |
 | 다음 최적화 후보·우선순위·검증 조건 | [E55 이후 C01–C07](../docs/research/optimization-candidates-20260922.md) |
 | 무엇을 추가·제거·변경했는지 남기는 양식 | [조합 실험 양식](../docs/experiments/combination-template.md) |
 | 실제 단독/조합 비교를 채운 예시 | [E58 + E59 → E60](../docs/experiments/combinations/e60-down-padding.md) |
 | C01 scale-DPE의 단독·조합과 미채택 이유 | [E65 + E66 → E67](../docs/experiments/combinations/e67-scale-dpe.md) |
+| C05의 두 dataflow·정확도·반복 측정 | [E73 / E74 / E75](../moa-dev/experiments/candidates/c05-streamed-decode/README.md) |
+| E74에서 함께 대체한 F2/F3/F4 | [E74 조합 구성](../docs/experiments/combinations/e74-streamed-partials.md) |
 
 ## 실제 호출과 적용 구성
 
@@ -29,44 +33,44 @@ QKV → attention → O → `self.mlp` 순서로 실행한다. `Decode::full`도
 |---|---|
 | `sliding_project_qkv` | BF16 x → 분할 RMS **Q1** → 2-cluster ring32 복제 **Q2** → 8-way 행 배치 **Q3** → BF16 입력·weight lookup dot **Q4** → F32 channel scale fusion **Q5** → head RMS/RoPE **Q6** → Q 출력·지정 K/V cache 슬롯 쓰기 |
 | `sliding_attention_output` | BF16 attention 결과 → 2-cluster/16-column dot **O1** → F32 합산·channel scale 뒤 BF16 **O2** → H480×8 post-RMS·residual **O3/R1** → residual HBM 갱신 |
-| `decoder_feedforward` | residual 읽기·기존 pre-RMS → 2-cluster up/gate **F1** → 두 단계 weight decode **F2** → 16원소 dot 뒤 F32 scale **F3**, 8/12행 tile **F4** → GeGLU·down → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
+| `decoder_feedforward` | residual·pre-RMS → 2-cluster up/gate **F1** → FP4→FP8 DM→BF16 stream/DPE→compact F32 partial **F2** → 별도 F32 scale·합산 **F3**, 8/12행 scale tile **F4** → GeGLU·down → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
 
 QKV/O는 [sliding/projection.rs](../furiosa-opt-gemma4-12B/src/device/sliding/projection.rs),
 FFN은 [shared/mlp.rs](../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)가 중심이다.
 공유 RMS를 바꾸는 실험은 두 호출 경로와 각각의 image를 확인한다.
 
-**현재 FFN은 전체 FP8·BF16 중간 weight를 DM에 저장한다.** Scale 곱·합산을 두 번째
-DPE로 옮기는 방식과 중간 weight 저장을 없애는 staging은 현재 채택 구성에 없다.
-과거 E23/E33과 E48/E50/E56의 관련 시도도 결과 분류에 남겼다. 현재 상태를
-“모든 dataflow 최적화를 적용한 코드”로 해석하지 않는다.
-후속 [C01 실험](../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md)은 up/gate,
-down, 결합을 실제로 실행했다. Up/gate의 −2.72%는 반복 범위가 겹치고 down/결합은
-단회에서 느려 채택하지 않았다. D01 padding 수정은 해당 실험 경로의 수정이며
-기존 E55에 같은 문제가 있다는 의미가 아니다.
+**현재 FFN은 전체 BF16 weight를 DM에 저장하지 않는다.** FP8 DM은 유지하고 lookup의
+BF16 출력을 DPE로 바로 보내16원소별 F32 dot을 저장한다. 이후 별도 VE에서 scale과 합산을
+수행한다. Block dot을 BF16으로 반올림하는 C01 scale-DPE와 다르다. 과거 후보·회귀·컴파일
+실패를 새 구성의 검증과 섞지 않는다. F1/후단을 유지한 것은 이번 후보의 선택이며 이후
+layout·decode·dot·scale·tile·통신의 동시 재설계를 제한하지 않는다.
 
 ## 현재 검증과 성능 기준
 
-[채택 당시 동일 package 3회](../docs/experiments/e55-fused-qkv-repeats.json)의
-job 중앙값들에서 구한 중앙값은 QKV **102,878**, O **51,249**, FFN **380,339 cycles**다.
-공식 입력의 15개 비교를 매 job 통과했다. 별도 추가 입력 30개 비교와 QKV 상쇄 진단도
-통과했다. O 경계 검사는 같은 O image를 실행한 기존 E53의 근거를 승계한다.
-[빌드·검증 연결](../docs/experiments/e55-source-build-audit.json),
-[QKV 경계 비교](../docs/experiments/qkv-boundary-comparison.md),
-[O 경계 비교](../docs/experiments/output-boundary-comparison.md).
+[E74 동일 batch package 3회](../docs/experiments/e74-c05-partials-repeats.json)의
+job 중앙값들에서 구한 중앙값은 QKV **103,964**, O **51,075**, FFN **369,246 cycles**다.
+[E75 동시기 E55 대조](../docs/experiments/e75-c05-control-repeats.json)의 FFN **377,804**보다
+**2.27% 감소**했다. 비교 대상은 각 독립 job의 control_before이며 control_after도 별도 보존했다.
+QKV/O image는 E55와 동일하므로 이 두 커널의 cycle 차이를 코드 변경의 효과로 해석하지 않는다.
 
-최근 메모리 실험의 [동시기 E55 대조 3회](../docs/experiments/e55-memory-layout-control-repeats.json)는
-QKV **103,858**, O **51,445**, FFN **379,073**이다. **E57–E64의 변화율은 이 대조군을
-사용한다.** 같은 코드도 측정 시점에 따라 cycles가 달라지므로 유리한 기준값을 골라
-비교하지 않는다. E55의 추가·경계 검사 통과를 소스가 달라진 후보에 자동 승계하지 않는다.
-이는 Arena 개발 측정이며 공식 점수·순위나 모든 입력의 정확도 보장은 아니다.
+E74는 기본45개 비교, [추가30개 비교](../docs/experiments/e74-c05-extra-correctness.json),
+[네 case의 projection 출력138240개](../docs/experiments/e74-c05-probe-correctness.json)를 통과했다.
+[정확한 source/build 연결](../moa-dev/experiments/candidates/c05-streamed-decode/source-build-audit.json).
+QKV/O 경계 근거는 동일 image의 기존 검사를 승계하지만 새 FFN의 증거는 위 별도 검사다.
+모델 전체의 추론 성능이나 모든 입력의 정확성을 보장하지 않는다.
+[공식 E74 제출](../docs/experiments/e74-official-submit-20260922.json)은 **5.7805×**로 완료됐고
+FFN은 **369335 cycles**다. Arena 수치와 구분한다.
+
+E55 당시 자료와 E57–E72의 각 동시기 대조는 그대로 남긴다. 새로운 기준값을 과거
+실험의 비교군으로 소급 적용하지 않는다.
 
 ## 조합을 시험하는 순서
 
-1. 비교군은 `e55.json`으로 식별하고, 후보의 실제 출발 commit과 설계를 별도로 남긴다.
+1. 비교군은 동결한 구성표(`e55.json`, `e74.json` 등)로 식별하고 후보의 실제 출발점과 설계를 남긴다.
    **추가 / 제거 / 파라미터 변경 / 대체 구현**을 구별한다. E55 구성요소의 유지 여부를
    적되, 기존 구조를 유지하는 것을 목표로 삼지 않는다.
 2. Decode·dot·scale·tile·통신처럼 서로 영향을 주는 선택은 함께 재설계할 수 있다.
-   각 중간 단계가 E55보다 빨라야 다음 조합을 시험할 수 있는 것은 아니다.
+   각 중간 단계가 비교군보다 빨라야 다음 조합을 시험할 수 있는 것은 아니다.
    독립적으로 분리 가능한 변경은 **C / C+A / C+B / C+A+B**나 최종 후보에서 하나씩
    제거하는 비교로 기여와 상호작용을 확인한다. 이 형식을 모든 설계의 선행조건으로 삼지 않는다.
 3. `methods.md`의 연결 항목을 따라 layout·scale 좌표·자료형·반올림 경계를 함께

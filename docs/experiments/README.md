@@ -28,13 +28,22 @@ including controls, 30 extra boundary-input comparisons, four packet cases and
 25,141,248 non-target cache elements pass. No candidate is adopted.
 
 All rows in the main performance table use the unchanged official three-kernel, three-input harness.
+The [C05 dataflow comparison](../../moa-dev/experiments/candidates/c05-streamed-decode/README.md)
+adds E73 direct tiled lookup (FFN +10.24%), **E74 compact F32 partials (−2.27%, adopted)**,
+and E75 contemporary E55 controls. Three independent identical batch allocations pass180
+comparisons including controls; E74's additional30 comparisons and138240 full-shape projection
+outputs also pass. QKV/O images remain unchanged. E55/E74 are controls, not architecture constraints.
+
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
 On September 22, E55 was accepted by the official service as **BEEF / `3ab72d66`**.
 The server passed `contract OK` and completed evaluation: **5.6665×**, QKV **105,623**, O **51,662**, FFN **378,116** cycles.
 [Submission and status record](e55-official-submit-retry-20260922.json) preserves the
 23 verified source fingerprints and actual CLI responses. Rank was not included in this CLI result.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
-Current adopted source: E55, which combines the BF16 QKV dot and F32 channel multiply in one Main
+Current adopted source: **E74 / baseline-e74**, with the F32-partial FFN described above.
+Its [official submission `01ba2ec2`](e74-official-submit-20260922.json) completed at **5.7805×**:
+QKV102721 / O51230 / FFN369335, all15 comparisons PASS. These are separate from Arena repeats.
+The previous E55 combines the BF16 QKV dot and F32 channel multiply in one Main
 pipeline before the first BF16 cast and row Switch. Its three same-package jobs71027/71057/71072
 each pass all15 official-harness comparisons; the median-of-job-medians is102878/51249/380339.
 The first screen remains a separate historical row. E54 is the previous correctness checkpoint.
@@ -197,6 +206,9 @@ E48 up-only fused decode passes its first screen, without a demonstrated perform
 | E70 C02 up/gate | 73881, upgate stage | Pass | 104214 | 50855 | 432912 | [Single process screen](e70-c02-upgate.json); FFN +14.27% vs E69; +14.10% vs in-batch control midpoint |
 | E71 C02 down | 73881, down stage | Pass | 104876 | 51333 | 415542 | [Single process screen](e71-c02-down.json); FFN +9.68% vs E69; +9.52% vs in-batch controls |
 | E72 C02 combined | 73881, combined stage | Pass | 105240 | 50449 | 456372 | [Single process screen](e72-c02-combined.json); FFN +20.46% vs E69; +20.28% vs in-batch controls |
+| E73 C05 direct tiled lookup, 3 jobs | 73965/73983/73984, candidate_0 | Pass | 104704 | 50756 | 416500 | [Repeats](e73-c05-direct-repeats.json), FFN +10.24% vs E75; initial screen73954 kept separately |
+| E74 C05 F32 partials, 3 jobs | 73965/73983/73984, candidate_1 | Pass | 103964 | 51075 | 369246 | [Repeats](e74-c05-partials-repeats.json), FFN −2.27%; adopted; extra30 and full-shape138240 PASS |
+| E75 C05 E55 control, 3 jobs | 73965/73983/73984, control_before | Pass | 103244 | 51275 | 377804 | [Control](e75-c05-control-repeats.json); after controls378510/379987/377290 are separate |
 
 
 E70–E72 retain the original basic host, fixture and runner; a surrounding batch script

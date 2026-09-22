@@ -93,8 +93,11 @@ DMA 일정 자체는 그대로이고 overlap도 줄어 실측 개선은2.27%였�
 
 E74 FFN image: `317a37c8c74d72a4c4f79030ffb91f407d0c7b26c9afb38e5fd371a11889a460`.
 [23파일 CLI payload 확인](official-payload-preflight.json) 후 공식 제출
-**`01ba2ec2`**를 접수했다. [공식 채점 추적](../../../../docs/experiments/e74-official-submit-20260922.json).
-Arena 개선율과 공식 점수는 별도로 기록한다.
+**`01ba2ec2`**가 채점 완료됐다. 공식 점수 **5.7805×**, QKV **102721**, O **51230**,
+FFN **369335 cycles**이며 서버의15개 비교도 PASS다.
+[공식 채점 추적](../../../../docs/experiments/e74-official-submit-20260922.json).
+이전 E55 공식 점수는5.6665×다. QKV/O는 동일 image의 측정 변동도 있으므로 전체 공식
+점수 차이를 FFN 변경 효과로만 해석하지 않는다. 공식 순위는 이 CLI 결과에 없다.
 
 ## 실패 경로와 다음 탐색
 

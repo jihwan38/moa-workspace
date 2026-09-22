@@ -2,7 +2,11 @@
 
 2026-09-22. 기준은 [E55 구성표](../../baseline/e55.json)의 `baseline-e55`
 (`873f64ed94229c88cd18d2731bdcca7eea0d6365`)다. 최초 작성은 조사·설계 단계였다.
-**C01–C03은 구현·Arena 검증 후 모두 미채택이다. C04–C07 네 후보는 미구현 제안이다.**
+**C01–C03은 구현 후 미채택, C05의 F32 partial 구조는 E74로 채택했다.
+C04·C06·C07 세 방향은 아래 제안대로 완성·검증되지 않았다.**
+E55/E74는 고정 비교군이며 탐색 구조를 제한하지 않는다. Decode·dot·scale·tile·통신의
+결합 설계를 직접 비교할 수 있고, 각 중간 단계의 단독 성능 개선을 요구하지 않는다.
+[C05 코드·반복·정확도 결과](../../moa-dev/experiments/candidates/c05-streamed-decode/README.md).
 [C01의 코드·D01 진단·E65–E67 결과](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md)는
 별도로 보존했다. E55를 유지하며 C01 후보의 공식 제출은 하지 않았다.
 후속으로 [E55 공식 제출 `3ab72d66`](../experiments/e55-official-submit-retry-20260922.json)이
@@ -184,7 +188,14 @@ Cluster를 가로지르는 값은 실제 전달 경로를 포함하며 reshape/p
 먼저 weight/scale/activation의 byte·명령 수와 gather·복제·restore 비용표를 만든다.
 그 비용표가 기존 8-column보다 유리할 때만 compile한다. 합산 순서 변경에 따른 정확도 검사도 필요하다.
 
-### C05 — Decode staging은 E56의 실패 경계를 먼저 분리
+### C05 — BF16 weight 미저장 구조 검증, E56 staging은 별도
+
+**실행 결과:** E73은 row tile마다 lookup/dot/scale을 연결해 반복 FFN +10.24%로 회귀했다.
+E74는 전체 lookup→DPE→compact F32 block dot 저장→별도 VE scale/reduce로 바꿔
+동시기 E55 **377804→369246 cycles, −2.27%**를 독립3회에서 확인했다.
+기본45개·추가30개 비교, 실제 projection 크기의 네 case·138240개 출력도 통과했다.
+E74를 현재 코드에 반영하고 E55는 보존했다. Main/Sub로 dot과 합산을 나누는 다른 설계는
+SDK 내부 compiler 오류로 미실행이다. E56의8/16행 HBM staging 오류를 해결한 것은 아니다.
 
 후속 E55 스케줄 재확인에서 weight decode 6개는 **86,178 정적 cycles**,
 Main 작업 합계의 **68.8%**였다. FP8+BF16 중간 write는 논리 **506.25 MiB**다.
@@ -197,7 +208,7 @@ consumer 시작 시점까지 확인해야 하며 이 근거만으로 C05의 성�
 DMA/LUT 준비와 겹침 악화로 정적 회귀했다. [E56의 16행 staging](../../moa-dev/experiments/candidates/ffn-up-sixteen-row-e55/README.md)은
 정적 −1.83%였지만 정확도 실패 뒤 timeout이 발생했다. 코드상 tensor 두 개는 물리 double buffer의 증거가 아니다.
 
-**선행 D02:** 전체 실제 shape에서 16개 FP4 code, 인접 nibble, row/cluster/chunk마다 구별되는
+**E56 방식의 staging 재시도 전 D02:** 전체 실제 shape에서 16개 FP4 code, 인접 nibble, row/cluster/chunk마다 구별되는
 입력을 사용한다. 8/16행 decode의 단독 값뿐 아니라 뒤의 BF16 DPE consumer까지 연결해
 검사한다. 별도 소유 buffer와 의도한 재사용 buffer를 비교하고 경계 sentinel을 확인한다.
 이전 단독 변환 probe가 통과했다는 사실로 결합 pipeline의 정확성을 대신하지 않는다.
@@ -264,21 +275,17 @@ Public hyunjun 측정 노트의 SDK는 0.6.0이고 우리 설치 SDK는 0.8.1이
 이번 변경에는 외부 구현 본문이나 실행 코드를 추가하지 않았다. 자체 후보를 구현할 때도
 아이디어 출처·달라진 설계·자체 측정 근거를 연구 기록에 유지한다.
 
-## 실제 작업 순서와 채택 조건
+## 후속 작업과 채택 조건
 
-1. **D01과 C02의 작은 판별부터:** E33의 block 좌표·padding·반올림을 분리하고,
-   C02의 F32 scale 재배치가 SDK에서 표현되는지 확인한다. 실패한 전체 FFN 재실행을 앞세우지 않는다.
-2. **C03의 head 배치 검증과 독립 구현:** E55의 산술을 유지하는 QKV 후보로 점수 개선 경로를 넓힌다.
-   첫 schedule에서 대상 gather 비용이 충분하지 않으면 범위를 확대하지 않는다.
-3. **C01의 up/gate부터 전체 검증:** D01 결과에 따라 단일 BF16 partial/보정 경로를 선택한다.
-   C02와 C01은 같은 F3의 대안이므로 처음부터 함께 적용하지 않는다.
-4. **C04의 전송 비용표와 D02를 먼저, 이후 C05:** decode 감소만으로 가려진 DMA 병목까지 다룬다.
-   C06은 별도 O 후보로 해당 임계 전송을 확인했을 때 진행한다. C07은 마지막 연구 경로다.
-5. 정확도 screen을 통과하고 성능 가능성이 있는 후보를 같은 시점의 E55 대조와 동일 package 최소 3회 측정한다.
-   첫 screen에서 큰 회귀가 보이면 반복 없이 중단하고 단회 결과임을 표시한다.
-   Source·SDK/lock·fixture·image·host·package hash를 고정하고 공식 입력, 추가 입력,
-   변경에 맞는 경계·cache 검사를 수행한다. 결과가 겹치면 개선 미확인으로 남긴다.
-6. 단독 개선 후 [조합 양식](../experiments/combination-template.md)으로 C / C+A / C+B / C+A+B를
-   비교한다. C04+C05는 layout과 buffer를 함께 다시 설계해야 하며 단순 patch 합치기가 아니다.
-   공유 `rmsnorm` 변경은 QKV/O/FFN의 affected image를 확인한다. 전체 정확도·반복 측정을 통과한
-   조합만 새 baseline으로 채택하고, 그때 실험 ID와 실제 결과를 결과 분류에 등록한다.
+C01–C03과 C05의 위 결과는 실행 기록이다. 다음은 C04의 down column/activation 전달을
+weight decode·partial 배치와 함께 재설계하는 방향이지만 고정 순서나 후보 수 제한은 없다.
+C06/O, QKV의 다른 배치, C07의 정밀도 보정도 관측된 병목과 검증 가능성에 따라 다룬다.
+
+E55/E74는 비교군이다. 후보 구조와 출발점은 자유롭게 정하고, 결합 설계를 직접 시험할 수 있다.
+중간 단계의 단독 개선을 요구하지 않는다. 기여를 분리할 수 있을 때는 단독/조합 또는
+최종 설계에서 하나씩 제거하는 비교를 [조합 양식](../experiments/combination-template.md)에 남긴다.
+
+정확도 screen 후 유망 후보는 동시기 고정 대조와 동일 package 최소3개 독립 jobs에서
+비교한다. Source·SDK/lock·fixture·image·host·실제 upload hash를 고정하고 추가/경계 검사를 한다.
+단회 회귀 중단, compile 실패, 정확도 실패는 각각 표시한다. Shared helper 변경은 affected
+image/caller를 확인하고, 전체 조합 검증 후에 새 recipe/tag/current pointer로 채택한다.

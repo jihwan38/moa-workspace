@@ -1,13 +1,72 @@
 {
   "schema_version": 1,
-  "coverage": "시간순 원장의 E1–E72 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.",
+  "coverage": "시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.",
   "entries": [
+    {
+      "id": "E74",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "BF16 weight 미저장 + F32 block partial/VE 합산",
+      "note": "현재 채택. 동일 batch 3개 독립 jobs에서 FFN −2.27%; 기본45·추가30·full-shape 출력138240 PASS. E55/E74는 비교군이며 탐색 구조를 제한하지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c05-streamed-decode/README.md"
+      ],
+      "report": "docs/experiments/e74-c05-partials-repeats.json",
+      "reference": "docs/experiments/e75-c05-control-repeats.json",
+      "reference_label": "E75 동시기 E55"
+    },
+    {
+      "id": "E73",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "row tile마다 BF16 lookup→dot→F32 scale fusion",
+      "note": "동일 batch 3개 독립 jobs, 기본45 PASS, FFN +10.24%. Partial 저장까지 없앴지만 lookup 반복과 일정 변화로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c05-streamed-decode/README.md"
+      ],
+      "report": "docs/experiments/e73-c05-direct-repeats.json",
+      "reference": "docs/experiments/e75-c05-control-repeats.json",
+      "reference_label": "E75 동시기 E55"
+    },
+    {
+      "id": "E75",
+      "category": "control",
+      "kernel": "FFN",
+      "method": "C05 동시기 E55 대조",
+      "note": "3개 독립 batch의 control_before만 집계. control_after는 별도 보관하고 6개 독립 반복으로 세지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c05-streamed-decode/README.md"
+      ],
+      "report": "docs/experiments/e75-c05-control-repeats.json",
+      "reference": "docs/experiments/e69-c02-c03-control.json",
+      "reference_label": "E69 이전 E55 대조"
+    },
+    {
+      "id": "S-C05-transpose4",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "F32 partial 4값 transpose",
+      "note": "Compile 실패: 유효 입력 최대2행 제약. NPU 미실행. 2값 transpose로 수정한 후보가 E74.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c05-streamed-decode/README.md"
+      ]
+    },
+    {
+      "id": "S-C05-sub-reduce",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "Main dot + Sub F32 partial reduction",
+      "note": "SDK0.8.1 NPU ISA lowering 내부 오류. NPU 미실행. 공개 typestate 메서드만으로 지원을 가정하지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c05-streamed-decode/README.md"
+      ]
+    },
     {
       "id": "E55",
       "category": "improved",
       "kernel": "QKV",
       "method": "BF16 dot와 F32 channel scale fusion",
-      "note": "현재 채택. 반복 3회·추가 입력·QKV 상쇄 진단 통과. O/FFN image는 E54와 같음.",
+      "note": "당시 채택. E74의 QKV/O는 이 image를 유지한다. 반복 3회·추가 입력·QKV 상쇄 진단 통과. O/FFN image는 E54와 같음.",
       "evidence": [
         "moa-dev/experiments/candidates/qkv-bf16-fused-channel-scale-e54/README.md"
       ],
