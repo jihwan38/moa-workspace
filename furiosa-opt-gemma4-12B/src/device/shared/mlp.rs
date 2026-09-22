@@ -25,10 +25,10 @@ pub(crate) type UpGateSlices = m![L / 32 % 240 # 256];
 
 // Local block scales apply to 16-element FP32 dot products. FP4*FP8 weight
 // products are BF16-exact, but this changes FP32 reduction order; validate on NPU.
-fn project_eight_rows_scaled_after_dot(
+fn reduce_eight_rows_f32(
     device: &mut Device,
     x_trf: &TrfTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![1], m![H]>,
-    weights: &DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]>,
+    weights: &DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]>,
     scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]>,
     output: &mut DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]>,
     row_offset: usize,
@@ -41,19 +41,13 @@ fn project_eight_rows_scaled_after_dot(
         .collect::<m![L % 32 = 8, H / 16 / 8], m![H / 16 % 8]>()
         .to_vrf();
 
-    device
-        .main
-        .begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))
-        .fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()
-        .collect::<m![L % 32 = 8, H / 16], m![H % 16]>()
-        // Keep each 16-element scale block separate through the DPE.
-        .contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)
-        .contract_packet::<m![1]>()
-        .contract_time::<m![L % 32 = 8, H / 16]>()
-        .contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)
+    device.main
+        .begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))
+        .fetch::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()
+        .collect::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()
         .vector_init()
         .vector_intra_slice_tag(TagMode::Zero)
-        .vector_narrow_trim::<m![1 # 4]>()
+        .vector_narrow_split::<m![L % 32 = 8, H / 64], m![H / 16 % 4]>()
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
         .vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)
         .vector_widen_pad::<m![1 # 8]>()
@@ -89,22 +83,26 @@ pub(crate) fn project_up_and_gate(
         .commit_trim::<m![H % 32]>()
         .commit();
 
-    // Materialize each unscaled BF16 matrix once; later row tiles reuse it.
-    let up_weight_bf16: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> = device
-        .main
-        .begin(up_weight_packed.view())
-        .fetch::<m![L % 32], m![H]>()
-        .fetch_table_lookup::<bf16>()
-        .collect::<m![L % 32, H / 16], m![H % 16]>()
-        .commit_trim::<m![H % 16]>()
-        .commit();
-
     let up_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, L % 7680, H / 16]> = unsafe { up_weight_scale.view().reshape() };
     let up_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]> =
         up_weight_scale.to_dm(&mut device.tdma);
 
+    // Decode only into the DPE stream. The stored tensor has one F32 per block.
+    let partials: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]> = device.main
+        .begin(up_weight_packed.view())
+        .fetch::<m![L % 32], m![H]>()
+        .fetch_table_lookup::<bf16>()
+        .collect::<m![L % 32, H / 16], m![H % 16]>()
+        .contract_outer::<m![L % 32, H / 16], m![H % 16], _, _, _>(x_trf)
+        .contract_packet::<m![1]>()
+        .contract_time::<m![L % 32, H / 16]>()
+        .contract_lane::<m![L % 32, H / 16], m![1 # 8]>(LaneMode::Interleaved)
+        .transpose::<m![L % 32, H / 32], m![H / 16 % 2 # 8]>()
+        .commit_trim::<m![H / 16 % 2]>()
+        .commit();
+
     static_passes!(i, [0, 1, 2, 3], {
-        project_eight_rows_scaled_after_dot(device, x_trf, &up_weight_bf16, &up_weight_scale, &mut up, 8 * i);
+        reduce_eight_rows_f32(device, x_trf, &partials, &up_weight_scale, &mut up, 8 * i);
     });
 
     let mut gate: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32]> = DmTensor::new();
@@ -121,22 +119,26 @@ pub(crate) fn project_up_and_gate(
         .commit_trim::<m![H % 32]>()
         .commit();
 
-    // Materialize each unscaled BF16 matrix once; later row tiles reuse it.
-    let gate_weight_bf16: DmTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![L % 32, H]> = device
-        .main
-        .begin(gate_weight_packed.view())
-        .fetch::<m![L % 32], m![H]>()
-        .fetch_table_lookup::<bf16>()
-        .collect::<m![L % 32, H / 16], m![H % 16]>()
-        .commit_trim::<m![H % 16]>()
-        .commit();
-
     let gate_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, L % 7680, H / 16]> = unsafe { gate_weight_scale.view().reshape() };
     let gate_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]> =
         gate_weight_scale.to_dm(&mut device.tdma);
 
+    // Decode only into the DPE stream. The stored tensor has one F32 per block.
+    let partials: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![L % 32, H / 16]> = device.main
+        .begin(gate_weight_packed.view())
+        .fetch::<m![L % 32], m![H]>()
+        .fetch_table_lookup::<bf16>()
+        .collect::<m![L % 32, H / 16], m![H % 16]>()
+        .contract_outer::<m![L % 32, H / 16], m![H % 16], _, _, _>(x_trf)
+        .contract_packet::<m![1]>()
+        .contract_time::<m![L % 32, H / 16]>()
+        .contract_lane::<m![L % 32, H / 16], m![1 # 8]>(LaneMode::Interleaved)
+        .transpose::<m![L % 32, H / 32], m![H / 16 % 2 # 8]>()
+        .commit_trim::<m![H / 16 % 2]>()
+        .commit();
+
     static_passes!(i, [0, 1, 2, 3], {
-        project_eight_rows_scaled_after_dot(device, x_trf, &gate_weight_bf16, &gate_weight_scale, &mut gate, 8 * i);
+        reduce_eight_rows_f32(device, x_trf, &partials, &gate_weight_scale, &mut gate, 8 * i);
     });
 
     // Remove padding with typed copies before reinterpreting the high row axis.
@@ -404,13 +406,18 @@ pub(crate) fn project_down_sharded(
         .collect::<m![H % 60, L / 32 % 60], m![L % 32]>()
         .commit_trim::<m![L % 32]>()
         .commit();
-    let down_weight_bf16: DmTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![H % 60, L % 1920]> = device
-        .main
+    // Decode only into the DPE stream. The stored tensor has one F32 per block.
+    let partials: DmTensor<f32, Chip, DownCluster, DownRowsByColumns, m![H % 60, L / 16 % 120]> = device.main
         .begin(down_weight_fp8.view())
         .fetch::<m![H % 60], m![L % 1920]>()
         .fetch_table_lookup::<bf16>()
         .collect::<m![H % 60, L / 16 % 120], m![L % 16]>()
-        .commit_trim::<m![L % 16]>()
+        .contract_outer::<m![H % 60, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)
+        .contract_packet::<m![1]>()
+        .contract_time::<m![H % 60, L / 16 % 120]>()
+        .contract_lane::<m![H % 60, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)
+        .transpose::<m![H % 60, L / 32 % 60], m![L / 16 % 2 # 8]>()
+        .commit_trim::<m![L / 16 % 2]>()
         .commit();
 
     static_passes!(i, [0, 1, 2, 3, 4], {
@@ -422,19 +429,13 @@ pub(crate) fn project_down_sharded(
             .collect::<m![H % 60 = 12, L / 16 / 8 % 15], m![L / 16 % 8]>()
             .to_vrf();
 
-        device
-            .main
-            .begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))
-            .fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()
-            .collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()
-            .contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)
-            .contract_packet::<m![1]>()
-            // Identity time contraction preserves 120 independent scale blocks.
-            .contract_time::<m![H % 60 = 12, L / 16 % 120]>()
-            .contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)
+        device.main
+            .begin(partials.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i))
+            .fetch::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()
+            .collect::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()
             .vector_init()
             .vector_intra_slice_tag(TagMode::Zero)
-            .vector_narrow_trim::<m![1 # 4]>()
+            .vector_narrow_split::<m![H % 60 = 12, L / 64 % 30], m![L / 16 % 4]>()
             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
             // Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.
             .vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)

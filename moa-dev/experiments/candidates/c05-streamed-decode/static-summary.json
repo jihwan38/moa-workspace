@@ -1,0 +1,1886 @@
+{
+  "e55": {
+    "makespan_cycles": 162209,
+    "instruction_count": 242,
+    "context_interval_union_cycles": {
+      "DmaEngine": 135607,
+      "PeCore": 29352,
+      "SubContext": 19378,
+      "MainContext": 125274,
+      "VectorEngine": 34748
+    },
+    "main_dma_overlap_cycles": 104921,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 250052608,
+      "cycle": 86273,
+      "active_tensor_ids": [
+        "166",
+        "15",
+        "162",
+        "164",
+        "157",
+        "160",
+        "18",
+        "167",
+        "82",
+        "168",
+        "169",
+        "99",
+        "80",
+        "43",
+        "144",
+        "155",
+        "145"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 97,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/e55-control-schedule.json",
+    "sha256": "800ce2438777f22340f1df1081f574cead1ce6a1e63b2d7220fe7732246dd7b8",
+    "main_operations": [
+      {
+        "index": "54",
+        "lifetime": {
+          "begin": 3675,
+          "end": 4076
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:18:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          46,
+          48
+        ],
+        "output_tensors": [
+          47
+        ]
+      },
+      {
+        "index": "60",
+        "lifetime": {
+          "begin": 4076,
+          "end": 6655
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:35:92\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![1 # 32, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          47
+        ],
+        "output_tensors": [
+          51
+        ]
+      },
+      {
+        "index": "106",
+        "lifetime": {
+          "begin": 6655,
+          "end": 6937
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:48:76\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          51
+        ],
+        "output_tensors": [
+          83
+        ]
+      },
+      {
+        "index": "116",
+        "lifetime": {
+          "begin": 7204,
+          "end": 7605
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:79:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          46,
+          85,
+          81
+        ],
+        "output_tensors": [
+          86
+        ]
+      },
+      {
+        "index": "134",
+        "lifetime": {
+          "begin": 7605,
+          "end": 8349
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:95:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![1], m![H % 480]>()\n.switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          86
+        ],
+        "output_tensors": [
+          100
+        ]
+      },
+      {
+        "index": "142",
+        "lifetime": {
+          "begin": 30772,
+          "end": 40635
+        },
+        "description": "--> src/device/shared/mlp.rs:115:98\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()",
+        "input_tensors": [
+          59,
+          23
+        ],
+        "output_tensors": [
+          101
+        ]
+      },
+      {
+        "index": "167",
+        "lifetime": {
+          "begin": 40724,
+          "end": 44827
+        },
+        "description": "--> src/device/shared/mlp.rs:183:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })\n.collect::<m![H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()",
+        "input_tensors": [
+          105,
+          103
+        ],
+        "output_tensors": [
+          107
+        ]
+      },
+      {
+        "index": "187",
+        "lifetime": {
+          "begin": 44851,
+          "end": 64314
+        },
+        "description": "--> src/device/shared/mlp.rs:125:94\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32, H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()",
+        "input_tensors": [
+          101,
+          45
+        ],
+        "output_tensors": [
+          117
+        ]
+      },
+      {
+        "index": "205",
+        "lifetime": {
+          "begin": 64593,
+          "end": 66796
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          121,
+          118,
+          111,
+          41
+        ],
+        "output_tensors": [
+          122
+        ]
+      },
+      {
+        "index": "220",
+        "lifetime": {
+          "begin": 67378,
+          "end": 69581
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          123,
+          118,
+          126,
+          128
+        ],
+        "output_tensors": [
+          129
+        ]
+      },
+      {
+        "index": "232",
+        "lifetime": {
+          "begin": 70163,
+          "end": 72366
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          124,
+          118,
+          130,
+          132
+        ],
+        "output_tensors": [
+          133
+        ]
+      },
+      {
+        "index": "245",
+        "lifetime": {
+          "begin": 72869,
+          "end": 75072
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          125,
+          118,
+          136,
+          138
+        ],
+        "output_tensors": [
+          141
+        ]
+      },
+      {
+        "index": "263",
+        "lifetime": {
+          "begin": 75087,
+          "end": 84950
+        },
+        "description": "--> src/device/shared/mlp.rs:83:96\n\ndevice\n.main\n.begin(up_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()",
+        "input_tensors": [
+          119,
+          142
+        ],
+        "output_tensors": [
+          145
+        ]
+      },
+      {
+        "index": "298",
+        "lifetime": {
+          "begin": 84974,
+          "end": 104437
+        },
+        "description": "--> src/device/shared/mlp.rs:93:92\n\ndevice\n.main\n.begin(up_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32, H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()",
+        "input_tensors": [
+          145,
+          144
+        ],
+        "output_tensors": [
+          166
+        ]
+      },
+      {
+        "index": "321",
+        "lifetime": {
+          "begin": 104716,
+          "end": 106919
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          170,
+          118,
+          149,
+          56
+        ],
+        "output_tensors": [
+          171
+        ]
+      },
+      {
+        "index": "331",
+        "lifetime": {
+          "begin": 106919,
+          "end": 107213
+        },
+        "description": "--> src/device/shared/mlp.rs:289:78\n\ndevice\n.main\n.begin(gate.view())\n.fetch::<m![L / 4 % 15], m![L % 4 # 16]>()\n.switch::<UpGateRowsPaired, m![L / 4 % 15, L / 60 % 2]>(SwitchConfig::Broadcast1 { slice1: 2, slice0: 1 })\n.collect::<m![L / 4 % 15, L / 60 % 2], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit()",
+        "input_tensors": [
+          157
+        ],
+        "output_tensors": [
+          175
+        ]
+      },
+      {
+        "index": "343",
+        "lifetime": {
+          "begin": 107501,
+          "end": 109704
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          172,
+          118,
+          176,
+          178
+        ],
+        "output_tensors": [
+          179
+        ]
+      },
+      {
+        "index": "348",
+        "lifetime": {
+          "begin": 109704,
+          "end": 110015
+        },
+        "description": "--> src/device/shared/mlp.rs:298:78\n\ndevice\n.main\n.begin(gate.view())\n.fetch::<m![1], m![L % 120]>()\n.fetch_cast::<f32>()\n.collect::<m![L / 8 % 15], m![L % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L / 4 % 30], m![L % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gate_global_scale_vrf)\n.vector_widen_concat::<m![L / 8 % 15], m![L % 8]>()\n.vector_final()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()",
+        "input_tensors": [
+          175,
+          120
+        ],
+        "output_tensors": [
+          180
+        ]
+      },
+      {
+        "index": "364",
+        "lifetime": {
+          "begin": 110750,
+          "end": 112953
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          173,
+          118,
+          181,
+          183
+        ],
+        "output_tensors": [
+          186
+        ]
+      },
+      {
+        "index": "384",
+        "lifetime": {
+          "begin": 113456,
+          "end": 115659
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 16], m![H % 16]>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          174,
+          118,
+          189,
+          191
+        ],
+        "output_tensors": [
+          192
+        ]
+      },
+      {
+        "index": "391",
+        "lifetime": {
+          "begin": 115659,
+          "end": 124922
+        },
+        "description": "--> src/device/shared/mlp.rs:399:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()",
+        "input_tensors": [
+          168,
+          167
+        ],
+        "output_tensors": [
+          195
+        ]
+      },
+      {
+        "index": "414",
+        "lifetime": {
+          "begin": 124922,
+          "end": 125216
+        },
+        "description": "--> src/device/shared/mlp.rs:246:76\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L / 4 % 15], m![L % 4 # 16]>()\n.switch::<UpGateRowsPaired, m![L / 4 % 15, L / 60 % 2]>(SwitchConfig::Broadcast1 { slice1: 2, slice0: 1 })\n.collect::<m![L / 4 % 15, L / 60 % 2], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit()",
+        "input_tensors": [
+          202
+        ],
+        "output_tensors": [
+          203
+        ]
+      },
+      {
+        "index": "419",
+        "lifetime": {
+          "begin": 125216,
+          "end": 125527
+        },
+        "description": "--> src/device/shared/mlp.rs:264:76\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![1], m![L % 120]>()\n.fetch_cast::<f32>()\n.collect::<m![L / 8 % 15], m![L % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L / 4 % 30], m![L % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &up_global_scale_vrf)\n.vector_widen_concat::<m![L / 8 % 15], m![L % 8]>()\n.vector_final()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()",
+        "input_tensors": [
+          203,
+          188
+        ],
+        "output_tensors": [
+          204
+        ]
+      },
+      {
+        "index": "425",
+        "lifetime": {
+          "begin": 125527,
+          "end": 125838
+        },
+        "description": "--> src/device/shared/mlp.rs:340:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L / 8 % 15], m![L % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L / 8 % 15], m![L % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L / 4 % 30], m![L % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu_vrf)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L / 8 % 15], m![L % 8]>()\n.vector_final()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()",
+        "input_tensors": [
+          204,
+          187
+        ],
+        "output_tensors": [
+          205
+        ]
+      },
+      {
+        "index": "431",
+        "lifetime": {
+          "begin": 125859,
+          "end": 144122
+        },
+        "description": "--> src/device/shared/mlp.rs:407:104\n\ndevice\n.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()",
+        "input_tensors": [
+          195,
+          169
+        ],
+        "output_tensors": [
+          206
+        ]
+      },
+      {
+        "index": "468",
+        "lifetime": {
+          "begin": 144401,
+          "end": 146186
+        },
+        "description": "--> src/device/shared/mlp.rs:425:9\n\ndevice\n.main\n.begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          217,
+          216,
+          209,
+          98
+        ],
+        "output_tensors": [
+          218
+        ]
+      },
+      {
+        "index": "484",
+        "lifetime": {
+          "begin": 146708,
+          "end": 148493
+        },
+        "description": "--> src/device/shared/mlp.rs:425:9\n\ndevice\n.main\n.begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          219,
+          216,
+          223,
+          225
+        ],
+        "output_tensors": [
+          226
+        ]
+      },
+      {
+        "index": "496",
+        "lifetime": {
+          "begin": 149015,
+          "end": 150800
+        },
+        "description": "--> src/device/shared/mlp.rs:425:9\n\ndevice\n.main\n.begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          220,
+          216,
+          227,
+          229
+        ],
+        "output_tensors": [
+          230
+        ]
+      },
+      {
+        "index": "508",
+        "lifetime": {
+          "begin": 151322,
+          "end": 153107
+        },
+        "description": "--> src/device/shared/mlp.rs:425:9\n\ndevice\n.main\n.begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          221,
+          216,
+          231,
+          233
+        ],
+        "output_tensors": [
+          234
+        ]
+      },
+      {
+        "index": "520",
+        "lifetime": {
+          "begin": 153629,
+          "end": 155414
+        },
+        "description": "--> src/device/shared/mlp.rs:425:9\n\ndevice\n.main\n.begin(down_weight_bf16.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          222,
+          216,
+          235,
+          237
+        ],
+        "output_tensors": [
+          238
+        ]
+      },
+      {
+        "index": "549",
+        "lifetime": {
+          "begin": 157859,
+          "end": 158260
+        },
+        "description": "--> src/device/shared/mlp.rs:220:80\n\ndevice\n.main\n.begin(down.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &down_global_scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          244,
+          196
+        ],
+        "output_tensors": [
+          246
+        ]
+      },
+      {
+        "index": "554",
+        "lifetime": {
+          "begin": 158260,
+          "end": 158661
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:115:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          246,
+          248
+        ],
+        "output_tensors": [
+          247
+        ]
+      },
+      {
+        "index": "559",
+        "lifetime": {
+          "begin": 158661,
+          "end": 158950
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:135:83\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.switch::<ScalarSlice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 480], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          247
+        ],
+        "output_tensors": [
+          249
+        ]
+      },
+      {
+        "index": "564",
+        "lifetime": {
+          "begin": 158950,
+          "end": 159232
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:151:69\n\ndevice\n.main\n.begin(total_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, EPS)\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          249
+        ],
+        "output_tensors": [
+          250
+        ]
+      },
+      {
+        "index": "575",
+        "lifetime": {
+          "begin": 159818,
+          "end": 160219
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:183:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          246,
+          252,
+          239
+        ],
+        "output_tensors": [
+          253
+        ]
+      },
+      {
+        "index": "580",
+        "lifetime": {
+          "begin": 160219,
+          "end": 160560
+        },
+        "description": "--> src/device/shared/residual.rs:212:75\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &residual_vrf)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          253,
+          243
+        ],
+        "output_tensors": [
+          254
+        ]
+      },
+      {
+        "index": "585",
+        "lifetime": {
+          "begin": 160560,
+          "end": 160961
+        },
+        "description": "--> src/device/shared/residual.rs:225:78\n\ndevice\n.main\n.begin(sum.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scalar)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          254,
+          245
+        ],
+        "output_tensors": [
+          255
+        ]
+      }
+    ],
+    "full_bf16_weight_tensors": [
+      {
+        "name": "vISA(T301)_i6_project_eight_rows_scaled_after_dot_39",
+        "index": "166",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 84974,
+          "end": 104461,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 176160768,
+        "size": 125829120,
+        "physical_pages": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T344)_i10_project_eight_rows_scaled_after_dot_39",
+        "index": "117",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 44851,
+          "end": 64338,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 168034304,
+        "size": 125829120,
+        "physical_pages": [
+          2,
+          3,
+          8,
+          9,
+          10,
+          11,
+          12,
+          0
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: L / 32 % 240 # 256, Element: (L % 32, H)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T424)_i12_project_down_sharded_314",
+        "index": "206",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 125859,
+          "end": 144152,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 163577856,
+        "size": 117964800,
+        "physical_pages": [
+          0,
+          1,
+          5,
+          6,
+          7,
+          8,
+          9,
+          14
+        ],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+        "fingerprint": null
+      }
+    ]
+  },
+  "direct": {
+    "makespan_cycles": 168523,
+    "instruction_count": 259,
+    "context_interval_union_cycles": {
+      "DmaEngine": 143987,
+      "PeCore": 11799,
+      "SubContext": 32308,
+      "MainContext": 101355,
+      "VectorEngine": 68018
+    },
+    "main_dma_overlap_cycles": 82828,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 172433408,
+      "cycle": 86301,
+      "active_tensor_ids": [
+        "165",
+        "18",
+        "15",
+        "166",
+        "91",
+        "175",
+        "161",
+        "89",
+        "172",
+        "169",
+        "97",
+        "149",
+        "129",
+        "174",
+        "24",
+        "153",
+        "171"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 114,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/c05-streamed-decode/c05-direct-first/schedule.json",
+    "sha256": "453cc591f4ba749d34bf54aa93db59ef17a392e443ebf2c5f7f39482d441dc7a",
+    "main_operations": [
+      {
+        "index": "65",
+        "lifetime": {
+          "begin": 2837,
+          "end": 3238
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:18:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          26,
+          62
+        ],
+        "output_tensors": [
+          61
+        ]
+      },
+      {
+        "index": "95",
+        "lifetime": {
+          "begin": 3238,
+          "end": 5817
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:35:92\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![1 # 32, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          61
+        ],
+        "output_tensors": [
+          85
+        ]
+      },
+      {
+        "index": "109",
+        "lifetime": {
+          "begin": 5817,
+          "end": 6099
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:48:76\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          85
+        ],
+        "output_tensors": [
+          90
+        ]
+      },
+      {
+        "index": "121",
+        "lifetime": {
+          "begin": 6366,
+          "end": 6767
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:79:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          26,
+          93,
+          86
+        ],
+        "output_tensors": [
+          94
+        ]
+      },
+      {
+        "index": "126",
+        "lifetime": {
+          "begin": 6767,
+          "end": 7511
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:95:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![1], m![H % 480]>()\n.switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          94
+        ],
+        "output_tensors": [
+          95
+        ]
+      },
+      {
+        "index": "136",
+        "lifetime": {
+          "begin": 30076,
+          "end": 39939
+        },
+        "description": "--> src/device/shared/mlp.rs:106:98\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()",
+        "input_tensors": [
+          87,
+          23
+        ],
+        "output_tensors": [
+          98
+        ]
+      },
+      {
+        "index": "176",
+        "lifetime": {
+          "begin": 43441,
+          "end": 47544
+        },
+        "description": "--> src/device/shared/mlp.rs:164:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })\n.collect::<m![H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()",
+        "input_tensors": [
+          101,
+          106
+        ],
+        "output_tensors": [
+          113
+        ]
+      },
+      {
+        "index": "204",
+        "lifetime": {
+          "begin": 48767,
+          "end": 53830
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          102,
+          128,
+          109,
+          116,
+          83
+        ],
+        "output_tensors": [
+          130
+        ]
+      },
+      {
+        "index": "233",
+        "lifetime": {
+          "begin": 54412,
+          "end": 59475
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          103,
+          128,
+          134,
+          121,
+          136
+        ],
+        "output_tensors": [
+          137
+        ]
+      },
+      {
+        "index": "245",
+        "lifetime": {
+          "begin": 60057,
+          "end": 65120
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          104,
+          128,
+          138,
+          131,
+          140
+        ],
+        "output_tensors": [
+          141
+        ]
+      },
+      {
+        "index": "256",
+        "lifetime": {
+          "begin": 65623,
+          "end": 70686
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          105,
+          128,
+          142,
+          132,
+          144
+        ],
+        "output_tensors": [
+          145
+        ]
+      },
+      {
+        "index": "274",
+        "lifetime": {
+          "begin": 76730,
+          "end": 86593
+        },
+        "description": "--> src/device/shared/mlp.rs:84:96\n\ndevice\n.main\n.begin(up_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()",
+        "input_tensors": [
+          129,
+          149
+        ],
+        "output_tensors": [
+          153
+        ]
+      },
+      {
+        "index": "326",
+        "lifetime": {
+          "begin": 86793,
+          "end": 91856
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          176,
+          128,
+          157,
+          161,
+          88
+        ],
+        "output_tensors": [
+          177
+        ]
+      },
+      {
+        "index": "339",
+        "lifetime": {
+          "begin": 91856,
+          "end": 92150
+        },
+        "description": "--> src/device/shared/mlp.rs:270:78\n\ndevice\n.main\n.begin(gate.view())\n.fetch::<m![L / 4 % 15], m![L % 4 # 16]>()\n.switch::<UpGateRowsPaired, m![L / 4 % 15, L / 60 % 2]>(SwitchConfig::Broadcast1 { slice1: 2, slice0: 1 })\n.collect::<m![L / 4 % 15, L / 60 % 2], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit()",
+        "input_tensors": [
+          165
+        ],
+        "output_tensors": [
+          181
+        ]
+      },
+      {
+        "index": "351",
+        "lifetime": {
+          "begin": 92438,
+          "end": 97501
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          178,
+          128,
+          182,
+          166,
+          184
+        ],
+        "output_tensors": [
+          185
+        ]
+      },
+      {
+        "index": "357",
+        "lifetime": {
+          "begin": 97501,
+          "end": 97812
+        },
+        "description": "--> src/device/shared/mlp.rs:279:78\n\ndevice\n.main\n.begin(gate.view())\n.fetch::<m![1], m![L % 120]>()\n.fetch_cast::<f32>()\n.collect::<m![L / 8 % 15], m![L % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L / 4 % 30], m![L % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gate_global_scale_vrf)\n.vector_widen_concat::<m![L / 8 % 15], m![L % 8]>()\n.vector_final()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()",
+        "input_tensors": [
+          181,
+          133
+        ],
+        "output_tensors": [
+          186
+        ]
+      },
+      {
+        "index": "373",
+        "lifetime": {
+          "begin": 98547,
+          "end": 103610
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          179,
+          128,
+          187,
+          171,
+          189
+        ],
+        "output_tensors": [
+          192
+        ]
+      },
+      {
+        "index": "393",
+        "lifetime": {
+          "begin": 104113,
+          "end": 109176
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice\n.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H]>(row_offset))\n.fetch::<m![L % 32 = 8], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32 = 8, H / 16], m![H % 16]>()\n// Keep each 16-element scale block separate through the DPE.\n.contract_outer::<m![L % 32 = 8, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32 = 8, H / 16]>()\n.contract_lane::<m![L % 32 = 8, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          180,
+          128,
+          195,
+          174,
+          197
+        ],
+        "output_tensors": [
+          198
+        ]
+      },
+      {
+        "index": "416",
+        "lifetime": {
+          "begin": 119720,
+          "end": 120014
+        },
+        "description": "--> src/device/shared/mlp.rs:227:76\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L / 4 % 15], m![L % 4 # 16]>()\n.switch::<UpGateRowsPaired, m![L / 4 % 15, L / 60 % 2]>(SwitchConfig::Broadcast1 { slice1: 2, slice0: 1 })\n.collect::<m![L / 4 % 15, L / 60 % 2], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit()",
+        "input_tensors": [
+          205
+        ],
+        "output_tensors": [
+          209
+        ]
+      },
+      {
+        "index": "422",
+        "lifetime": {
+          "begin": 120014,
+          "end": 120325
+        },
+        "description": "--> src/device/shared/mlp.rs:245:76\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![1], m![L % 120]>()\n.fetch_cast::<f32>()\n.collect::<m![L / 8 % 15], m![L % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L / 4 % 30], m![L % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &up_global_scale_vrf)\n.vector_widen_concat::<m![L / 8 % 15], m![L % 8]>()\n.vector_final()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()",
+        "input_tensors": [
+          209,
+          194
+        ],
+        "output_tensors": [
+          212
+        ]
+      },
+      {
+        "index": "429",
+        "lifetime": {
+          "begin": 120325,
+          "end": 120636
+        },
+        "description": "--> src/device/shared/mlp.rs:321:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L / 8 % 15], m![L % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L / 8 % 15], m![L % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L / 4 % 30], m![L % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu_vrf)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L / 8 % 15], m![L % 8]>()\n.vector_final()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()",
+        "input_tensors": [
+          212,
+          193
+        ],
+        "output_tensors": [
+          213
+        ]
+      },
+      {
+        "index": "440",
+        "lifetime": {
+          "begin": 120645,
+          "end": 129908
+        },
+        "description": "--> src/device/shared/mlp.rs:380:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()",
+        "input_tensors": [
+          175,
+          206
+        ],
+        "output_tensors": [
+          215
+        ]
+      },
+      {
+        "index": "488",
+        "lifetime": {
+          "begin": 140404,
+          "end": 144267
+        },
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndevice\n.main\n.begin(down_weight_fp8.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          218,
+          225,
+          229,
+          214,
+          96
+        ],
+        "output_tensors": [
+          234
+        ]
+      },
+      {
+        "index": "516",
+        "lifetime": {
+          "begin": 144710,
+          "end": 148573
+        },
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndevice\n.main\n.begin(down_weight_fp8.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          219,
+          225,
+          246,
+          235,
+          248
+        ],
+        "output_tensors": [
+          251
+        ]
+      },
+      {
+        "index": "540",
+        "lifetime": {
+          "begin": 149095,
+          "end": 152958
+        },
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndevice\n.main\n.begin(down_weight_fp8.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          220,
+          225,
+          254,
+          240,
+          256
+        ],
+        "output_tensors": [
+          257
+        ]
+      },
+      {
+        "index": "552",
+        "lifetime": {
+          "begin": 153480,
+          "end": 157343
+        },
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndevice\n.main\n.begin(down_weight_fp8.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          221,
+          225,
+          258,
+          252,
+          260
+        ],
+        "output_tensors": [
+          261
+        ]
+      },
+      {
+        "index": "566",
+        "lifetime": {
+          "begin": 157865,
+          "end": 161728
+        },
+        "description": "--> src/device/shared/mlp.rs:397:9\n\ndevice\n.main\n.begin(down_weight_fp8.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L % 1920]>(12 * i))\n.fetch::<m![H % 60 = 12], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60 = 12, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60 = 12, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n// Identity time contraction preserves 120 independent scale blocks.\n.contract_time::<m![H % 60 = 12, L / 16 % 120]>()\n.contract_lane::<m![H % 60 = 12, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          222,
+          225,
+          262,
+          253,
+          264
+        ],
+        "output_tensors": [
+          265
+        ]
+      },
+      {
+        "index": "595",
+        "lifetime": {
+          "begin": 164173,
+          "end": 164574
+        },
+        "description": "--> src/device/shared/mlp.rs:201:80\n\ndevice\n.main\n.begin(down.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &down_global_scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          271,
+          217
+        ],
+        "output_tensors": [
+          273
+        ]
+      },
+      {
+        "index": "600",
+        "lifetime": {
+          "begin": 164574,
+          "end": 164975
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:115:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          273,
+          275
+        ],
+        "output_tensors": [
+          274
+        ]
+      },
+      {
+        "index": "605",
+        "lifetime": {
+          "begin": 164975,
+          "end": 165264
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:135:83\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.switch::<ScalarSlice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 480], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          274
+        ],
+        "output_tensors": [
+          276
+        ]
+      },
+      {
+        "index": "610",
+        "lifetime": {
+          "begin": 165264,
+          "end": 165546
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:151:69\n\ndevice\n.main\n.begin(total_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, EPS)\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          276
+        ],
+        "output_tensors": [
+          277
+        ]
+      },
+      {
+        "index": "621",
+        "lifetime": {
+          "begin": 166132,
+          "end": 166533
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:183:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          273,
+          279,
+          266
+        ],
+        "output_tensors": [
+          280
+        ]
+      },
+      {
+        "index": "626",
+        "lifetime": {
+          "begin": 166533,
+          "end": 166874
+        },
+        "description": "--> src/device/shared/residual.rs:212:75\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &residual_vrf)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          280,
+          270
+        ],
+        "output_tensors": [
+          281
+        ]
+      },
+      {
+        "index": "631",
+        "lifetime": {
+          "begin": 166874,
+          "end": 167275
+        },
+        "description": "--> src/device/shared/residual.rs:225:78\n\ndevice\n.main\n.begin(sum.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scalar)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          281,
+          272
+        ],
+        "output_tensors": [
+          282
+        ]
+      }
+    ],
+    "full_bf16_weight_tensors": []
+  },
+  "partials": {
+    "makespan_cycles": 157822,
+    "instruction_count": 242,
+    "context_interval_union_cycles": {
+      "DmaEngine": 135607,
+      "PeCore": 32515,
+      "SubContext": 19378,
+      "MainContext": 108315,
+      "VectorEngine": 17789
+    },
+    "main_dma_overlap_cycles": 92298,
+    "sram_physical_lifetime_union": {
+      "peak_bytes": 147263488,
+      "cycle": 80884,
+      "active_tensor_ids": [
+        "15",
+        "148",
+        "149",
+        "18",
+        "91",
+        "158",
+        "141",
+        "97",
+        "117",
+        "89",
+        "24",
+        "151",
+        "145"
+      ],
+      "sram_tensors_with_nonempty_lifetime": 97,
+      "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+    },
+    "path": "moa-dev/experiments/artifacts/c05-streamed-decode/c05-partials-transpose2/schedule.json",
+    "sha256": "0bbc7e769fc2d5bb572e1e2a82d5ddb27491c4594da183a168173aa0deeefdb3",
+    "main_operations": [
+      {
+        "index": "65",
+        "lifetime": {
+          "begin": 2837,
+          "end": 3238
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:18:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          26,
+          62
+        ],
+        "output_tensors": [
+          61
+        ]
+      },
+      {
+        "index": "94",
+        "lifetime": {
+          "begin": 3238,
+          "end": 5817
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:35:92\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![1 # 32, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          61
+        ],
+        "output_tensors": [
+          85
+        ]
+      },
+      {
+        "index": "109",
+        "lifetime": {
+          "begin": 5817,
+          "end": 6099
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:48:76\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          85
+        ],
+        "output_tensors": [
+          90
+        ]
+      },
+      {
+        "index": "120",
+        "lifetime": {
+          "begin": 6366,
+          "end": 6767
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:79:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          26,
+          93,
+          86
+        ],
+        "output_tensors": [
+          94
+        ]
+      },
+      {
+        "index": "125",
+        "lifetime": {
+          "begin": 6767,
+          "end": 7511
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:95:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![1], m![H % 480]>()\n.switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          94
+        ],
+        "output_tensors": [
+          95
+        ]
+      },
+      {
+        "index": "135",
+        "lifetime": {
+          "begin": 30076,
+          "end": 39939
+        },
+        "description": "--> src/device/shared/mlp.rs:113:98\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()",
+        "input_tensors": [
+          87,
+          23
+        ],
+        "output_tensors": [
+          98
+        ]
+      },
+      {
+        "index": "160",
+        "lifetime": {
+          "begin": 40028,
+          "end": 44131
+        },
+        "description": "--> src/device/shared/mlp.rs:185:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H]>()\n.switch::<m![Dummy256 / 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })\n.collect::<m![H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()",
+        "input_tensors": [
+          102,
+          100
+        ],
+        "output_tensors": [
+          105
+        ]
+      },
+      {
+        "index": "188",
+        "lifetime": {
+          "begin": 45436,
+          "end": 64899
+        },
+        "description": "--> src/device/shared/mlp.rs:127:90\n\ndevice.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32, H / 16], m![H % 16]>()\n.contract_outer::<m![L % 32, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32, H / 16]>()\n.contract_lane::<m![L % 32, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![L % 32, H / 32], m![H / 16 % 2 # 8]>()\n.commit_trim::<m![H / 16 % 2]>()\n.commit()",
+        "input_tensors": [
+          98,
+          116,
+          106
+        ],
+        "output_tensors": [
+          118
+        ]
+      },
+      {
+        "index": "204",
+        "lifetime": {
+          "begin": 65178,
+          "end": 65938
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.collect::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 32 = 8, H / 64], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          121,
+          119,
+          83
+        ],
+        "output_tensors": [
+          122
+        ]
+      },
+      {
+        "index": "219",
+        "lifetime": {
+          "begin": 66520,
+          "end": 67280
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.collect::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 32 = 8, H / 64], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          123,
+          126,
+          128
+        ],
+        "output_tensors": [
+          129
+        ]
+      },
+      {
+        "index": "231",
+        "lifetime": {
+          "begin": 67862,
+          "end": 68622
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.collect::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 32 = 8, H / 64], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          124,
+          130,
+          132
+        ],
+        "output_tensors": [
+          133
+        ]
+      },
+      {
+        "index": "242",
+        "lifetime": {
+          "begin": 69125,
+          "end": 69885
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.collect::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 32 = 8, H / 64], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          125,
+          134,
+          136
+        ],
+        "output_tensors": [
+          137
+        ]
+      },
+      {
+        "index": "262",
+        "lifetime": {
+          "begin": 73842,
+          "end": 83705
+        },
+        "description": "--> src/device/shared/mlp.rs:77:96\n\ndevice\n.main\n.begin(up_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()",
+        "input_tensors": [
+          117,
+          141
+        ],
+        "output_tensors": [
+          145
+        ]
+      },
+      {
+        "index": "294",
+        "lifetime": {
+          "begin": 83705,
+          "end": 103168
+        },
+        "description": "--> src/device/shared/mlp.rs:91:90\n\ndevice.main\n.begin(up_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32, H / 16], m![H % 16]>()\n.contract_outer::<m![L % 32, H / 16], m![H % 16], _, _, _>(x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![L % 32, H / 16]>()\n.contract_lane::<m![L % 32, H / 16], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![L % 32, H / 32], m![H / 16 % 2 # 8]>()\n.commit_trim::<m![H / 16 % 2]>()\n.commit()",
+        "input_tensors": [
+          145,
+          116,
+          149
+        ],
+        "output_tensors": [
+          159
+        ]
+      },
+      {
+        "index": "301",
+        "lifetime": {
+          "begin": 103368,
+          "end": 104128
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.collect::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 32 = 8, H / 64], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          160,
+          154,
+          88
+        ],
+        "output_tensors": [
+          161
+        ]
+      },
+      {
+        "index": "311",
+        "lifetime": {
+          "begin": 104392,
+          "end": 104686
+        },
+        "description": "--> src/device/shared/mlp.rs:291:78\n\ndevice\n.main\n.begin(gate.view())\n.fetch::<m![L / 4 % 15], m![L % 4 # 16]>()\n.switch::<UpGateRowsPaired, m![L / 4 % 15, L / 60 % 2]>(SwitchConfig::Broadcast1 { slice1: 2, slice0: 1 })\n.collect::<m![L / 4 % 15, L / 60 % 2], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit()",
+        "input_tensors": [
+          148
+        ],
+        "output_tensors": [
+          165
+        ]
+      },
+      {
+        "index": "323",
+        "lifetime": {
+          "begin": 104974,
+          "end": 105734
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.collect::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 32 = 8, H / 64], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          162,
+          166,
+          168
+        ],
+        "output_tensors": [
+          169
+        ]
+      },
+      {
+        "index": "328",
+        "lifetime": {
+          "begin": 105734,
+          "end": 106045
+        },
+        "description": "--> src/device/shared/mlp.rs:300:78\n\ndevice\n.main\n.begin(gate.view())\n.fetch::<m![1], m![L % 120]>()\n.fetch_cast::<f32>()\n.collect::<m![L / 8 % 15], m![L % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L / 4 % 30], m![L % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gate_global_scale_vrf)\n.vector_widen_concat::<m![L / 8 % 15], m![L % 8]>()\n.vector_final()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()",
+        "input_tensors": [
+          165,
+          120
+        ],
+        "output_tensors": [
+          170
+        ]
+      },
+      {
+        "index": "344",
+        "lifetime": {
+          "begin": 106780,
+          "end": 107540
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.collect::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 32 = 8, H / 64], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          163,
+          171,
+          173
+        ],
+        "output_tensors": [
+          176
+        ]
+      },
+      {
+        "index": "364",
+        "lifetime": {
+          "begin": 108043,
+          "end": 108803
+        },
+        "description": "--> src/device/shared/mlp.rs:44:5\n\ndevice.main\n.begin(weights.view().tile::<m![L % 32], 8, m![L % 32 = 8 # 32, H / 16]>(row_offset))\n.fetch::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.collect::<m![L % 32 = 8, H / 128], m![H / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 32 = 8, H / 64], m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_intra_slice_reduce::<H, m![L % 32 = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![L % 32 = 8 / 4], m![L % 32 = 8 % 4 # 16]>()\n.commit_trim::<m![L % 32 = 8 % 4]>()\n.commit_view(output.view_mut().tile::<m![L % 32], 8, m![L % 32 = 8 #{!} 32]>(row_offset))",
+        "input_tensors": [
+          164,
+          179,
+          181
+        ],
+        "output_tensors": [
+          182
+        ]
+      },
+      {
+        "index": "387",
+        "lifetime": {
+          "begin": 114303,
+          "end": 114597
+        },
+        "description": "--> src/device/shared/mlp.rs:248:76\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L / 4 % 15], m![L % 4 # 16]>()\n.switch::<UpGateRowsPaired, m![L / 4 % 15, L / 60 % 2]>(SwitchConfig::Broadcast1 { slice1: 2, slice0: 1 })\n.collect::<m![L / 4 % 15, L / 60 % 2], m![L % 4 # 16]>()\n.commit_trim::<m![L % 4]>()\n.commit()",
+        "input_tensors": [
+          189
+        ],
+        "output_tensors": [
+          193
+        ]
+      },
+      {
+        "index": "393",
+        "lifetime": {
+          "begin": 114597,
+          "end": 114908
+        },
+        "description": "--> src/device/shared/mlp.rs:266:76\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![1], m![L % 120]>()\n.fetch_cast::<f32>()\n.collect::<m![L / 8 % 15], m![L % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L / 4 % 30], m![L % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &up_global_scale_vrf)\n.vector_widen_concat::<m![L / 8 % 15], m![L % 8]>()\n.vector_final()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()",
+        "input_tensors": [
+          193,
+          178
+        ],
+        "output_tensors": [
+          196
+        ]
+      },
+      {
+        "index": "400",
+        "lifetime": {
+          "begin": 114908,
+          "end": 115219
+        },
+        "description": "--> src/device/shared/mlp.rs:342:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L / 8 % 15], m![L % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L / 8 % 15], m![L % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L / 4 % 30], m![L % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu_vrf)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L / 8 % 15], m![L % 8]>()\n.vector_final()\n.cast::<bf16, m![L % 8 # 16]>()\n.commit_trim::<m![L % 8]>()\n.commit()",
+        "input_tensors": [
+          196,
+          177
+        ],
+        "output_tensors": [
+          197
+        ]
+      },
+      {
+        "index": "411",
+        "lifetime": {
+          "begin": 115228,
+          "end": 124491
+        },
+        "description": "--> src/device/shared/mlp.rs:401:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()",
+        "input_tensors": [
+          158,
+          190
+        ],
+        "output_tensors": [
+          199
+        ]
+      },
+      {
+        "index": "443",
+        "lifetime": {
+          "begin": 126966,
+          "end": 145229
+        },
+        "description": "--> src/device/shared/mlp.rs:410:99\n\ndevice.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, L / 16 % 120]>()\n.contract_lane::<m![H % 60, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, L / 32 % 60], m![L / 16 % 2 # 8]>()\n.commit_trim::<m![L / 16 % 2]>()\n.commit()",
+        "input_tensors": [
+          199,
+          204,
+          198
+        ],
+        "output_tensors": [
+          205
+        ]
+      },
+      {
+        "index": "465",
+        "lifetime": {
+          "begin": 145429,
+          "end": 146131
+        },
+        "description": "--> src/device/shared/mlp.rs:432:9\n\ndevice.main\n.begin(partials.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.collect::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H % 60 = 12, L / 64 % 30], m![L / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          217,
+          209,
+          96
+        ],
+        "output_tensors": [
+          218
+        ]
+      },
+      {
+        "index": "482",
+        "lifetime": {
+          "begin": 146653,
+          "end": 147355
+        },
+        "description": "--> src/device/shared/mlp.rs:432:9\n\ndevice.main\n.begin(partials.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.collect::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H % 60 = 12, L / 64 % 30], m![L / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          219,
+          223,
+          225
+        ],
+        "output_tensors": [
+          226
+        ]
+      },
+      {
+        "index": "494",
+        "lifetime": {
+          "begin": 147877,
+          "end": 148579
+        },
+        "description": "--> src/device/shared/mlp.rs:432:9\n\ndevice.main\n.begin(partials.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.collect::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H % 60 = 12, L / 64 % 30], m![L / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          220,
+          227,
+          229
+        ],
+        "output_tensors": [
+          230
+        ]
+      },
+      {
+        "index": "506",
+        "lifetime": {
+          "begin": 149101,
+          "end": 149803
+        },
+        "description": "--> src/device/shared/mlp.rs:432:9\n\ndevice.main\n.begin(partials.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.collect::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H % 60 = 12, L / 64 % 30], m![L / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          221,
+          231,
+          233
+        ],
+        "output_tensors": [
+          234
+        ]
+      },
+      {
+        "index": "518",
+        "lifetime": {
+          "begin": 150325,
+          "end": 151027
+        },
+        "description": "--> src/device/shared/mlp.rs:432:9\n\ndevice.main\n.begin(partials.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, L / 16 % 120]>(12 * i))\n.fetch::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.collect::<m![H % 60 = 12, L / 128 % 15], m![L / 16 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H % 60 = 12, L / 64 % 30], m![L / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n// Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.\n.vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.cast::<bf16, m![1 # 16]>()\n.transpose::<m![H % 60 = 12 / 4], m![H % 60 = 12 % 4 # 16]>()\n.commit_trim::<m![H % 60 = 12 % 4]>()\n.commit_view(down.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i))",
+        "input_tensors": [
+          222,
+          235,
+          237
+        ],
+        "output_tensors": [
+          238
+        ]
+      },
+      {
+        "index": "547",
+        "lifetime": {
+          "begin": 153472,
+          "end": 153873
+        },
+        "description": "--> src/device/shared/mlp.rs:222:80\n\ndevice\n.main\n.begin(down.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &down_global_scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          244,
+          201
+        ],
+        "output_tensors": [
+          246
+        ]
+      },
+      {
+        "index": "552",
+        "lifetime": {
+          "begin": 153873,
+          "end": 154274
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:115:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          246,
+          248
+        ],
+        "output_tensors": [
+          247
+        ]
+      },
+      {
+        "index": "557",
+        "lifetime": {
+          "begin": 154274,
+          "end": 154563
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:135:83\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.switch::<ScalarSlice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 480], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          247
+        ],
+        "output_tensors": [
+          249
+        ]
+      },
+      {
+        "index": "562",
+        "lifetime": {
+          "begin": 154563,
+          "end": 154845
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:151:69\n\ndevice\n.main\n.begin(total_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, EPS)\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "input_tensors": [
+          249
+        ],
+        "output_tensors": [
+          250
+        ]
+      },
+      {
+        "index": "573",
+        "lifetime": {
+          "begin": 155431,
+          "end": 155832
+        },
+        "description": "--> src/device/shared/rmsnorm.rs:183:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          246,
+          252,
+          239
+        ],
+        "output_tensors": [
+          253
+        ]
+      },
+      {
+        "index": "578",
+        "lifetime": {
+          "begin": 155832,
+          "end": 156173
+        },
+        "description": "--> src/device/shared/residual.rs:212:75\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &residual_vrf)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          253,
+          243
+        ],
+        "output_tensors": [
+          254
+        ]
+      },
+      {
+        "index": "583",
+        "lifetime": {
+          "begin": 156173,
+          "end": 156574
+        },
+        "description": "--> src/device/shared/residual.rs:225:78\n\ndevice\n.main\n.begin(sum.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scalar)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "input_tensors": [
+          254,
+          245
+        ],
+        "output_tensors": [
+          255
+        ]
+      }
+    ],
+    "full_bf16_weight_tensors": []
+  }
+}

@@ -64,10 +64,14 @@ def measurement(path, kernel):
 
 
 def check_comparable(candidate, reference):
-    left = read_json(candidate)["runs"][0]["package_files"]
-    right = read_json(reference)["runs"][0]["package_files"]
+    left_run = read_json(candidate)["runs"][0]
+    right_run = read_json(reference)["runs"][0]
+    left = left_run["package_files"]
+    right = right_run["package_files"]
     for name in ("fixtures.safetensors", "remote_entrypoint.sh"):
-        assert left[name] == right[name], f"Different {name}: {candidate} vs {reference}"
+        left_name = left_run.get("benchmark_files", {}).get(name, name)
+        right_name = right_run.get("benchmark_files", {}).get(name, name)
+        assert left[left_name] == right[right_name], f"Different {name}: {candidate} vs {reference}"
 
 
 def validate_baseline(baseline, check_live):
