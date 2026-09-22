@@ -378,7 +378,19 @@ pub(crate) fn project_down_sharded(
     down_weight_packed: &HbmTensor<f4e2m1, Chip, m![H, L]>,
     down_weight_scale: &HbmTensor<f8e4m3, Chip, m![H, L / 16]>,
 ) -> DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]> {
-    let x: DmTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![L % 1920]> = x.to_dm(&mut device.tdma);
+    // Each ring receives one segment per column; its row replicas use Switch.
+    // The anonymous replica axis denotes equal values, not distinct H rows.
+    let x: DmTensor<bf16, Chip, DownCluster, m![Dummy256 / 32, 1 # 4, L / 1920], m![L % 1920]> = x.to_dm(&mut device.tdma);
+    let x: DmTensor<bf16, Chip, DownCluster, m![Dummy256 / 32, 4, L / 1920], m![L % 1920]> = device.main
+        .begin(x.view())
+        .fetch::<m![1], m![L % 1920]>()
+        .switch::<m![Dummy256 / 32, 4, L / 1920], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
+        .collect::<m![L / 16 % 120], m![L % 16]>()
+        .commit_trim::<m![L % 16]>()
+        .commit();
+    // Physical slice s holds column s % 8; row replicas share x.
+    // Padded row groups are excluded by the typed consumer mapping below.
+    let x: DmTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![L % 1920]> = unsafe { x.reshape() };
     let x_trf: TrfTensor<bf16, Chip, DownCluster, DownRowsByColumns, m![1], m![L % 1920]> = device
         .sub
         .begin(x.view())
@@ -437,7 +449,7 @@ pub(crate) fn project_down_sharded(
             .vector_intra_slice_tag(TagMode::Zero)
             .vector_narrow_split::<m![H % 60 = 12, L / 64 % 30], m![L / 16 % 4]>()
             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
-            // Preserve local FP32 sum -> eight column-slice FP32 sum -> BF16.
+            // Preserve local FP32 sum -> 8 column-slice FP32 sum -> BF16.
             .vector_intra_slice_reduce::<L, m![H % 60 = 12], m![1 # 4]>(IntraSliceReduceOpF32::Add)
             .vector_widen_pad::<m![1 # 8]>()
             .vector_inter_slice_reduce::<DownRows, m![H % 60 = 12]>(InterSliceReduceOpF32::Add)
