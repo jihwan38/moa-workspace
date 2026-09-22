@@ -7,7 +7,11 @@ E55/E74는 고정 비교군이다. 2/4/8열, row padding 제거, Main/Sub 방송
 현재 가장 좋은 **E79: 8열 + Main ring32 방송**은 독립 세 Arena jobs에서
 E74 **369997 → 353136 cycles, −4.56%**다. 기본45개와 추가30개 비교를 통과했다.
 전체 projection 경계 진단138240개 출력도 통과해 **E79를 작업 코드에 채택했다.**
-공식 채점은 Arena와 별도이며 제출·완료 상태는 후속 기록에 연결한다.
+공식 제출 **`df79b0b9`**도 **5.8470×**로 채점 완료됐다.
+[공식 기록](../../../../docs/experiments/e79-official-submit-20260922.json): QKV103764 / O51033 /
+FFN354648 cycles,15개 비교 PASS. [리더보드 snapshot](../../../../docs/experiments/leaderboard-e79-20260922.json)은
+BEEF60팀 중41위다. E74의5.7805×에서 점수는 올랐지만 순위는 유지됐다.
+QKV/O image는 같으므로 전체 공식 점수 차이를 FFN 변경 효과만으로 해석하지 않는다.
 
 ## 실행 경로와 바뀐 배치
 

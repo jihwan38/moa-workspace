@@ -26,7 +26,9 @@ C03 cluster별 head 유지는 반복 QKV +1.56%로 모두 미채택이다. 기�
 8열+leader DMA/Main ring32 방송이 동시기 E74 대비 **369997 → 353136 cycles, −4.56%**로
 독립3회 개선됐다. 기본45개·추가30개 비교와 projection 출력138240개를 통과했다.
 `baseline-e79` / `2735b58`, [구성 변경표](docs/experiments/combinations/e79-down-broadcast.md).
-공식 제출 **`df79b0b9`**는 접수되어 채점 중이며 [추적 기록](docs/experiments/e79-official-submit-20260922.json)에 보관한다.
+공식 제출 **`df79b0b9`**는 **5.8470×**로 채점 완료됐다. 공식 FFN은**354648 cycles**다.
+[채점 기록](docs/experiments/e79-official-submit-20260922.json), [리더보드 snapshot](docs/experiments/leaderboard-e79-20260922.json)의
+BEEF는 **60팀 중41위**이며 새 제출이 반영됐다. 이전5.7805×보다 점수는 올랐지만 순위는 유지됐다.
 
 이전 채택본은 **E74**다. [C05 실험](moa-dev/experiments/candidates/c05-streamed-decode/README.md)에서
 전체 BF16 weight 대신 작은 F32 block dot을 저장하는 구조를 채택했다. 동시기 E55와

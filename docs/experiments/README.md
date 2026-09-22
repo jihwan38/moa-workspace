@@ -5,7 +5,9 @@ Current adopted source is **E79 / baseline-e79**, commit `2735b58`.
 E79 combines E74 F32 partials with leader DMA and Main ring32 broadcast; three independent identical
 batch jobs show FFN **369997 → 353136 cycles (−4.56%)** against contemporary E74 controls.
 Its45 basic comparisons,30 additional-input comparisons and138240 full-shape projection outputs pass.
-[Official submission `df79b0b9`](e79-official-submit-20260922.json) was accepted and is being evaluated.
+[Official submission `df79b0b9`](e79-official-submit-20260922.json) completed at **5.8470×**:
+QKV103764 / O51033 / FFN354648,15 comparisons PASS. The [public leaderboard snapshot](leaderboard-e79-20260922.json)
+already shows this submission for BEEF at rank41 of60 teams.
 E55/E74 source and measurements remain frozen comparison controls. QKV/O images are unchanged.
 
 Browse by outcome: [최적화 방법별 결과](optimization-results.md).

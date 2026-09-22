@@ -38,3 +38,6 @@ CPU oracle과 정확히 일치했다. Full-model 성능이나 임의 입력 전�
 [반복](../e79-c04-eight-ring32.json), [대조](../e85-c04-e74-control.json),
 [추가 입력](../e79-c04-extra-correctness.json), [projection 경계·상쇄](../e79-c04-probe-correctness.json),
 [공식 제출 추적](../e79-official-submit-20260922.json).
+
+공식 제출 `df79b0b9`는 **5.8470×**, FFN**354648 cycles**로 완료됐다. 공식15개 비교도
+통과했다. [당시 리더보드](../leaderboard-e79-20260922.json)는60팀 중41위이며 새 제출이 반영됐다.

@@ -15,7 +15,8 @@
 9개 조합을 NPU에서 실행했다. **E79: E74 F32 partials + down leader DMA/Main ring32 방송**을
 채택했다. 같은 package의 독립3 jobs에서 E74 **369997→353136 cycles, −4.56%**이며
 기본45개·추가30개 비교와 projection 출력138240개가 통과했다. QKV/O image는 동일하다.
-공식 제출 [`df79b0b9`](experiments/e79-official-submit-20260922.json)는 접수되어 채점 중이다.
+공식 제출 [`df79b0b9`](experiments/e79-official-submit-20260922.json)는 **5.8470×**로 완료됐다.
+공식 FFN354648 cycles,15개 비교 PASS이며 [리더보드 snapshot](experiments/leaderboard-e79-20260922.json)은60팀 중41위다.
 [구성 변경](experiments/combinations/e79-down-broadcast.md), [E85 대조](experiments/e85-c04-e74-control.json).
 4열30행 E81은 단회−1.65%로 후보에 남고, 나머지는 회귀했다. E81의 반복·추가 진단은 미실행이다.
 

@@ -64,8 +64,10 @@ QKV/O image는 E55/E74와 같으므로 이 두 커널의 cycle 차이를 FFN 변
 [compiler 방송 bitmap 확인](../moa-dev/experiments/candidates/c04-down-transfer/broadcast-proof.json).
 QKV/O 경계 근거는 동일 image의 기존 검사를 승계하지만 새 FFN은 별도로 검사했다.
 모델 전체 성능이나 모든 입력의 정확성을 보장하지 않는다.
-[공식 E79 제출 `df79b0b9`](../docs/experiments/e79-official-submit-20260922.json)은 접수되어
-채점 중이다. Arena 측정과 공식 점수·순위를 구분한다.
+[공식 E79 제출 `df79b0b9`](../docs/experiments/e79-official-submit-20260922.json)은 **5.8470×**로
+완료됐다. QKV103764 / O51033 / FFN354648, 기본15개 비교 PASS다.
+[리더보드 snapshot](../docs/experiments/leaderboard-e79-20260922.json)은60팀 중41위다.
+Arena 반복, 공식 채점과 리더보드 snapshot을 구분한다.
 
 E55 당시 자료와 E57–E72의 각 동시기 대조는 그대로 남긴다. 새로운 기준값을 과거
 실험의 비교군으로 소급 적용하지 않는다.
