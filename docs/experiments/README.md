@@ -19,12 +19,20 @@ regress in single screens. None is adopted. D01 separately isolates and repairs
 the compact120→128 tail problem in the old down-scale path; extra BF16 partial
 rounding remains. [A/B/combined recipe](combinations/e67-scale-dpe.md).
 
+The [C02/C03 experiments](../../moa-dev/experiments/candidates/c02-c03-e55/README.md) add
+E68 cluster-local BF16 heads, E69 E55 control, and E70–E72 up/gate, down, combined
+F32 packet scaling. C03 regresses 1.56% in three independent jobs. C02 regresses
+in a single batch screen with E55 before/after controls; all three configurations
+share job73881 and are not independent repetitions. All 165 basic comparisons
+including controls, 30 extra boundary-input comparisons, four packet cases and
+25,141,248 non-target cache elements pass. No candidate is adopted.
+
 All rows in the main performance table use the unchanged official three-kernel, three-input harness.
 An Arena result is a development measurement; official ranking requires `moa-submitter` evaluation.
 On September 22, E55 was accepted by the official service as **BEEF / `3ab72d66`**.
-The server reports `contract OK`; the last recorded state is remote building.
+The server passed `contract OK` and completed evaluation: **5.6665×**, QKV **105,623**, O **51,662**, FFN **378,116** cycles.
 [Submission and status record](e55-official-submit-retry-20260922.json) preserves the
-23 verified source fingerprints and actual CLI responses. No official score is available yet.
+23 verified source fingerprints and actual CLI responses. Rank was not included in this CLI result.
 Baseline checkpoint: workspace commit `2890176`, official kernel source `8559916`.
 Current adopted source: E55, which combines the BF16 QKV dot and F32 channel multiply in one Main
 pipeline before the first BF16 cast and row Switch. Its three same-package jobs71027/71057/71072
@@ -184,6 +192,17 @@ E48 up-only fused decode passes its first screen, without a demonstrated perform
 | E65 up/gate streamed scale-DPE, 3 jobs | 72754/72760/72762 | Pass | 103598 | 51054 | 367967 | [Repeats](e65-c01-upgate-scale-dpe-repeats.json); FFN −2.72%, ranges overlap; extra30 PASS72775; not adopted |
 | E66 down scale-DPE with BF16 tail clear | 72801 | Pass | 103832 | 50958 | 413913 | [Single screen](e66-c01-down-scale-dpe.json); FFN +9.42%; stopped |
 | E67 combined E65+E66 | 72805 | Pass | 103815 | 51523 | 392118 | [Single screen](e67-c01-combined-scale-dpe.json); FFN +3.66%; stopped |
+| E68 C03 cluster-local heads, 3 jobs | 73780/73814/73848 | Pass | 104762 | 50813 | 378228 | [Repeats](e68-c03-cluster-heads.json), QKV +1.56%; extra boundary/cache checks PASS in73881; not adopted |
+| E69 E55 C02/C03 control, 3 jobs | 73781/73815/73849 | Pass | 103157 | 51203 | 378860 | [Same frozen E55 package](e69-c02-c03-control.json) |
+| E70 C02 up/gate | 73881, upgate stage | Pass | 104214 | 50855 | 432912 | [Single process screen](e70-c02-upgate.json); FFN +14.27% vs E69; +14.10% vs in-batch control midpoint |
+| E71 C02 down | 73881, down stage | Pass | 104876 | 51333 | 415542 | [Single process screen](e71-c02-down.json); FFN +9.68% vs E69; +9.52% vs in-batch controls |
+| E72 C02 combined | 73881, combined stage | Pass | 105240 | 50449 | 456372 | [Single process screen](e72-c02-combined.json); FFN +20.46% vs E69; +20.28% vs in-batch controls |
+
+
+E70–E72 retain the original basic host, fixture and runner; a surrounding batch script
+invokes each host as a separate process. E55 FFN controls before/after are379238/379598
+(midpoint379418). These two controls are not pooled into E69, and edge-harness cycles
+are never pooled into performance rows. [Complete batch with uploaded hashes](../../moa-dev/experiments/candidates/c02-c03-e55/batch-results.json).
 
 Cycles shown for passing kernels inside a failed package are diagnostic observations from the raw log.
 They do not constitute a valid combined result and must not be mixed with other jobs' FFN cycles.

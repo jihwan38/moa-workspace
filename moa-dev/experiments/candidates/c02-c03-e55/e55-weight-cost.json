@@ -1,0 +1,57 @@
+{
+  "schedule": "moa-dev/experiments/artifacts/c01-scale-dpe-e55/e55-control-schedule.json",
+  "schedule_sha256": "800ce2438777f22340f1df1081f574cead1ce6a1e63b2d7220fe7732246dd7b8",
+  "static_makespan": 162209,
+  "main_duration_sum": 125274,
+  "weight_decode_duration_sum": 86178,
+  "decode_fraction_main": 0.687916087935246,
+  "decode_fraction_schedule_not_runtime_attribution": 0.5312775493345006,
+  "logical_weight_elements": 176947200,
+  "logical_packed_weights_plus_scale_bytes": 99532800.0,
+  "logical_fp8_bf16_intermediate_write_bytes": 530841600,
+  "decode_instructions": [
+    {
+      "index": "142",
+      "begin": 30772,
+      "end": 40635,
+      "cycles": 9863,
+      "description": "--> src/device/shared/mlp.rs:115:98\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()"
+    },
+    {
+      "index": "187",
+      "begin": 44851,
+      "end": 64314,
+      "cycles": 19463,
+      "description": "--> src/device/shared/mlp.rs:125:94\n\ndevice\n.main\n.begin(gate_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32, H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+    },
+    {
+      "index": "263",
+      "begin": 75087,
+      "end": 84950,
+      "cycles": 9863,
+      "description": "--> src/device/shared/mlp.rs:83:96\n\ndevice\n.main\n.begin(up_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![L % 32, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>()\n.commit()"
+    },
+    {
+      "index": "298",
+      "begin": 84974,
+      "end": 104437,
+      "cycles": 19463,
+      "description": "--> src/device/shared/mlp.rs:93:92\n\ndevice\n.main\n.begin(up_weight_packed.view())\n.fetch::<m![L % 32], m![H]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![L % 32, H / 16], m![H % 16]>()\n.commit_trim::<m![H % 16]>()\n.commit()"
+    },
+    {
+      "index": "391",
+      "begin": 115659,
+      "end": 124922,
+      "cycles": 9263,
+      "description": "--> src/device/shared/mlp.rs:399:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()"
+    },
+    {
+      "index": "431",
+      "begin": 125859,
+      "end": 144122,
+      "cycles": 18263,
+      "description": "--> src/device/shared/mlp.rs:407:104\n\ndevice\n.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()"
+    }
+  ],
+  "note": "Compiler 0.8.1 schedule, not hardware per-instruction measurements; decode/DM/HBM overlap prevents additive runtime attribution."
+}

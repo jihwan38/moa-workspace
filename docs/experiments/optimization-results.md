@@ -12,7 +12,7 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 95개 커널별 비교/진단 항목. 시간순 원장의 E1–E67 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.
+수록: 102개 커널별 비교/진단 항목. 시간순 원장의 E1–E72 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
@@ -20,12 +20,12 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 |---|---:|
 | [빨라진 기록](#improved) | 32 |
 | [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 10 |
-| [느리게 측정됨](#regressed) | 17 |
+| [느리게 측정됨](#regressed) | 21 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 1 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
 | [정확도 실패·실행 실패](#invalid) | 13 |
-| [대조군·기존 커널 조합](#control) | 7 |
-| [컴파일·정적 분석만 수행](#static_only) | 13 |
+| [대조군·기존 커널 조합](#control) | 8 |
+| [컴파일·정적 분석만 수행](#static_only) | 15 |
 
 <a id="improved"></a>
 
@@ -89,6 +89,10 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 
 | 실험·방법 | 대상 | 비교 기준 → 후보 cycles | 변화 | job 수 | 판정·후속 근거 |
 |---|---|---|---:|---:|---|
+| [E68 · BF16 head를 원래 cluster에 유지](e68-c03-cluster-heads.json) | QKV | [E69 E55 대조](e69-c02-c03-control.json): 103,157 → 104,762 | +1.56% | 3 → 3 | 기본 3회·추가 6입력/cache 경계 PASS. 반복 +1.56%, 관측 범위 비중첩. Typed head gather 비용은 그대로이고 cos/sin 복제 증가. [근거1](../../moa-dev/experiments/candidates/c02-c03-e55/README.md) |
+| [E70 · up/gate F32 two-block packet](e70-c02-upgate.json) | FFN | [E69 E55 독립대조](e69-c02-c03-control.json): 378,860 → 432,912 | +14.27% | 3 → 1 | Job73881 안의 별도 프로세스 단회 screen, 기본15 PASS. 3개 행이 같은 Arena job이며 독립 반복이 아님. F32 partial 저장/재읽기·scale repack 비용으로 미채택. [근거1](../../moa-dev/experiments/candidates/c02-c03-e55/README.md) |
+| [E71 · down F32 two-block packet](e71-c02-down.json) | FFN | [E69 E55 독립대조](e69-c02-c03-control.json): 378,860 → 415,542 | +9.68% | 3 → 1 | Job73881 안의 별도 프로세스 단회 screen, 기본15 PASS. 3개 행이 같은 Arena job이며 독립 반복이 아님. F32 partial 저장/재읽기·scale repack 비용으로 미채택. [근거1](../../moa-dev/experiments/candidates/c02-c03-e55/README.md) |
+| [E72 · up/gate+down F32 packet 결합](e72-c02-combined.json) | FFN | [E69 E55 독립대조](e69-c02-c03-control.json): 378,860 → 456,372 | +20.46% | 3 → 1 | Job73881 안의 별도 프로세스 단회 screen, 기본15 PASS. 3개 행이 같은 Arena job이며 독립 반복이 아님. F32 partial 저장/재읽기·scale repack 비용으로 미채택. [근거1](../../moa-dev/experiments/candidates/c02-c03-e55/README.md) |
 | [E66 · down scale-DPE + 실제 BF16 zero tail](e66-c01-down-scale-dpe.json) | FFN | [E55 C01 대조](e55-c01-control-repeats.json): 378,270 → 413,913 | +9.42% | 3 → 1 | D01 padding 수정 후 기본15 PASS. 단회 +9.42%; 추가 입력·반복 없이 중단. Compact120→128 복사 비용 포함. [근거1](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md) |
 | [E67 · up/gate + down scale-DPE 결합](e67-c01-combined-scale-dpe.json) | FFN | [E55 C01 대조](e55-c01-control-repeats.json): 378,270 → 392,118 | +3.66% | 3 → 1 | 기본15 PASS. 단회 +3.66%로 미채택. 두 단독 개선율의 합으로 조합 성능을 추정하지 않음. [근거1](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md), [근거2](combinations/e67-scale-dpe.md) |
 | [E64 · column-major 적재 후 DM 재배치](e64-output-column-major-screen.json) | O | [E55 재측정](e55-memory-layout-control-repeats.json): 51,445 → 128,411 | +149.61% | 3 → 1 | 단회 큰 회귀. 필요한 재배치 비용 포함; 미채택. [근거1](../../moa-dev/experiments/candidates/memory-layout-e55/README.md) |
@@ -150,6 +154,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 
 | 실험·방법 | 대상 | 비교 기준 → 후보 cycles | 변화 | job 수 | 판정·후속 근거 |
 |---|---|---|---:|---:|---|
+| [E69 · C02/C03 동시기 E55 재측정](e69-c02-c03-control.json) | FFN | [E55 채택 당시](e55-fused-qkv-repeats.json): 380,339 → 378,860 | -0.39% | 3 → 3 | 동일 E55 package 3회. C02 job73881 내부의 E55 앞/뒤 2회는 별도 기록이며 여기 합치지 않음. [근거1](../../moa-dev/experiments/candidates/c02-c03-e55/README.md) |
 | [E55-control-C01 · C01 동시기 E55 재측정](e55-c01-control-repeats.json) | FFN | [E55 채택 당시](e55-fused-qkv-repeats.json): 380,339 → 378,270 | -0.54% | 3 → 3 | 동일 E55 package 3회. E65–E67 비교 기준이며 채택 코드는 변경 없음. [근거1](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md) |
 | [E37-QKV · 커널별 RMS 조합](e37-combined-repeats.json) | QKV | [E29](e29-qkv-input-control-repeats.json): 94,491 → 94,195 | -0.31% | 3 → 3 | QKV는 E29 image 그대로 재사용. 동일 image의 측정 차이를 새 최적화 효과로 세지 않음. [근거1](../../moa-dev/experiments/candidates/kernel-specific-rms/README.md) |
 | [E37-FFN · E29 QKV+E36 O/FFN 조합](e37-combined-repeats.json) | FFN | [E36](e36-ffn-parallel-epilogue.json): 378,021 → 379,741 | +0.46% | 1 → 3 | FFN은 E36 image 그대로. 새 조합 package의 반복·추가 입력 통과 기록. [근거1](../../moa-dev/experiments/candidates/kernel-specific-rms/README.md) |
@@ -164,6 +169,8 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 
 | 실험·방법 | 대상 | 비교 기준 → 후보 cycles | 변화 | job 수 | 판정·후속 근거 |
 |---|---|---|---:|---:|---|
+| S-C02-DMA-padding · F32 scale의 typed-DMA padding | FFN | Arena 미측정 | — | 0 | Compiler 성공, FFN 정적162,209→1,599,773. NPU 미실행. Sequencer padding으로 대체한 실제 후보는 E70–E72. [근거1](../../moa-dev/experiments/candidates/c02-c03-e55/README.md) |
+| S-C02-reducer · 두 block F32 packet의 padded reduce/transpose | FFN | Arena 미측정 | — | 0 | Padded reduce·commit trim·transpose 제약으로 4개 probe compile 실패. Compact F32 partial 경로로 수정 후 microkernel/전체 FFN NPU PASS. [근거1](../../moa-dev/experiments/candidates/c02-c03-e55/README.md) |
 | S-C01-materialized · 전체 BF16 weight DM 유지한 up/gate scale-DPE | FFN | Arena 미측정 | — | 0 | 정적 162,209→202,779 (+25.01%). Compile PASS, NPU 미실행. Streamed 후보는 별도 E65. [근거1](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md) |
 | S-QKV-shared-TRF · Q/K/V 공통 TRF | QKV | Arena 미측정 | — | 0 | 정적 51,293→52,562로 증가. NPU 미실행. [근거1](../../moa-dev/experiments/candidates/qkv-bf16-shared-trf-e55/README.md) |
 | S-QKV-broadcast-TRF · Switch로 TRF broadcast | QKV | Arena 미측정 | — | 0 | Switch bitmap 제약으로 compile 실패. NPU 미실행. [근거1](../../moa-dev/experiments/candidates/qkv-bf16-broadcast-trf-e55/README.md) |

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "coverage": "시간순 원장의 E1–E67 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.",
+  "coverage": "시간순 원장의 E1–E72 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다.",
   "entries": [
     {
       "id": "E55",
@@ -14,6 +14,91 @@
       "report": "docs/experiments/e55-fused-qkv-repeats.json",
       "reference": "docs/experiments/e54-bf16-qkv-repeats.json",
       "reference_label": "E54"
+    },
+    {
+      "id": "E68",
+      "category": "regressed",
+      "kernel": "QKV",
+      "method": "BF16 head를 원래 cluster에 유지",
+      "note": "기본 3회·추가 6입력/cache 경계 PASS. 반복 +1.56%, 관측 범위 비중첩. Typed head gather 비용은 그대로이고 cos/sin 복제 증가.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c02-c03-e55/README.md"
+      ],
+      "report": "docs/experiments/e68-c03-cluster-heads.json",
+      "reference": "docs/experiments/e69-c02-c03-control.json",
+      "reference_label": "E69 E55 대조"
+    },
+    {
+      "id": "E70",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "up/gate F32 two-block packet",
+      "note": "Job73881 안의 별도 프로세스 단회 screen, 기본15 PASS. 3개 행이 같은 Arena job이며 독립 반복이 아님. F32 partial 저장/재읽기·scale repack 비용으로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c02-c03-e55/README.md"
+      ],
+      "report": "docs/experiments/e70-c02-upgate.json",
+      "reference": "docs/experiments/e69-c02-c03-control.json",
+      "reference_label": "E69 E55 독립대조"
+    },
+    {
+      "id": "E71",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "down F32 two-block packet",
+      "note": "Job73881 안의 별도 프로세스 단회 screen, 기본15 PASS. 3개 행이 같은 Arena job이며 독립 반복이 아님. F32 partial 저장/재읽기·scale repack 비용으로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c02-c03-e55/README.md"
+      ],
+      "report": "docs/experiments/e71-c02-down.json",
+      "reference": "docs/experiments/e69-c02-c03-control.json",
+      "reference_label": "E69 E55 독립대조"
+    },
+    {
+      "id": "E72",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "up/gate+down F32 packet 결합",
+      "note": "Job73881 안의 별도 프로세스 단회 screen, 기본15 PASS. 3개 행이 같은 Arena job이며 독립 반복이 아님. F32 partial 저장/재읽기·scale repack 비용으로 미채택.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c02-c03-e55/README.md"
+      ],
+      "report": "docs/experiments/e72-c02-combined.json",
+      "reference": "docs/experiments/e69-c02-c03-control.json",
+      "reference_label": "E69 E55 독립대조"
+    },
+    {
+      "id": "E69",
+      "category": "control",
+      "kernel": "FFN",
+      "method": "C02/C03 동시기 E55 재측정",
+      "note": "동일 E55 package 3회. C02 job73881 내부의 E55 앞/뒤 2회는 별도 기록이며 여기 합치지 않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c02-c03-e55/README.md"
+      ],
+      "report": "docs/experiments/e69-c02-c03-control.json",
+      "reference": "docs/experiments/e55-fused-qkv-repeats.json",
+      "reference_label": "E55 채택 당시"
+    },
+    {
+      "id": "S-C02-DMA-padding",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "F32 scale의 typed-DMA padding",
+      "note": "Compiler 성공, FFN 정적162,209→1,599,773. NPU 미실행. Sequencer padding으로 대체한 실제 후보는 E70–E72.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c02-c03-e55/README.md"
+      ]
+    },
+    {
+      "id": "S-C02-reducer",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "두 block F32 packet의 padded reduce/transpose",
+      "note": "Padded reduce·commit trim·transpose 제약으로 4개 probe compile 실패. Compact F32 partial 경로로 수정 후 microkernel/전체 FFN NPU PASS.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c02-c03-e55/README.md"
+      ]
     },
     {
       "id": "E65",

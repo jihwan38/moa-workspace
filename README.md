@@ -15,6 +15,12 @@
 QKV·O·FFN 변경 후보 8개를 Arena에서 실행했다. 정확도 검사는 통과했지만 반복 가능한 성능
 개선을 확보하지 못해 runtime은 E55를 유지한다. 결과·실패 원인·재현 source를 함께 보존했다.
 
+후속 [C02/C03 실험](moa-dev/experiments/candidates/c02-c03-e55/README.md)도 완료했다.
+C02 F32 packet scale의 up/gate·down·결합은 단회 FFN +14.10%/+9.52%/+20.28%,
+C03 cluster별 head 유지는 반복 QKV +1.56%로 모두 미채택이다. 기본 입력은 모두 통과했고,
+별도로 C02 block 상쇄 진단과 C03 추가 입력·cache 경계도 통과했다.
+소스·실패 경로·업로드 fingerprint를 보존했다.
+
 현재 `baseline`은 QKV와 O projection의 입력을 BF16으로 보존하는 **E55**다.
 동일 패키지3회에서 공식 입력3세트의15개 비교를 각각 통과했고, 별도 추가6세트의30개 비교도 통과했다.
 QKV 상쇄 진단2개도 통과했고 비대상 KV cache8,380,416개 BF16 원소가 유지됐다.
@@ -50,10 +56,11 @@ byte-identical하며, 별도 추가 입력 빌드도 세 device image가 모두 
 [소스 계약 검사](docs/experiments/e55-source-contract-audit.json)는 공개 signature와 공식 harness 보존을 확인한다.
 현재 검증 범위를 넘어 임의 입력이나 모델 전체의 정확성을 보장하지 않는다.
 
-9월 22일 공식 제출이 재개돼 검증된 **E55가 BEEF / `3ab72d66`으로 접수됐다.**
-23개 업로드 소스가 이전 검증본과 같고 서버의 skeleton contract도 통과했다.
-[접수·채점 추적 기록](docs/experiments/e55-official-submit-retry-20260922.json)의 마지막 확인은
-원격 빌드 진행 중이며, 아직 공식 점수·순위는 미확인이다. 최소3위 목표도 달성하지 못했다.
+9월 22일 공식 제출 **BEEF / `3ab72d66`의 채점이 완료됐고 E55는 5.6665×를 받았다.**
+공식 cycles는 QKV **105,623**, O **51,662**, FFN **378,116**이다.
+23개 업로드 소스가 검증본과 같고 서버의 skeleton contract도 통과했다.
+[접수·채점 추적 기록](docs/experiments/e55-official-submit-retry-20260922.json)에 결과를 보존했다.
+이 기록에는 공식 순위가 포함되지 않으며 최소3위 목표는 아직 미달성이다.
 이전 [점검 중 거절 기록](docs/experiments/e55-official-submit-attempt-20260922.json)은 이력으로 보존한다.
 
 ```text

@@ -2,11 +2,11 @@
 
 2026-09-22. 기준은 [E55 구성표](../../baseline/e55.json)의 `baseline-e55`
 (`873f64ed94229c88cd18d2731bdcca7eea0d6365`)다. 최초 작성은 조사·설계 단계였다.
-**후속 C01은 구현·Arena 검증을 마쳤고 미채택이며, C02–C07은 미구현 제안이다.**
+**C01–C03은 구현·Arena 검증 후 모두 미채택이다. C04–C07 네 후보는 미구현 제안이다.**
 [C01의 코드·D01 진단·E65–E67 결과](../../moa-dev/experiments/candidates/c01-scale-dpe-e55/README.md)는
 별도로 보존했다. E55를 유지하며 C01 후보의 공식 제출은 하지 않았다.
 후속으로 [E55 공식 제출 `3ab72d66`](../experiments/e55-official-submit-retry-20260922.json)이
-정상 접수됐다. 이 조사에 기록한 과거 snapshot 수치를 새 공식 점수로 해석하지 않는다.
+채점이 완료돼 **5.6665×**를 받았다. 이 조사에 기록한 과거 snapshot 수치와는 구분한다.
 과거 시도는 [측정 결과 분류](../experiments/optimization-results.md)에 따로 보존한다.
 조사 대상 commit·파일 해시·점수 계산 입력은 [조사 근거 JSON](optimization-candidates-20260922-evidence.json)에 있다.
 
@@ -102,7 +102,7 @@ P3는 정확도 위험이 큰 연구 후보다. 구현 부담은 상대적 판�
 기본 FFN도 PASS다. Up/gate E65는 3회 중앙값 −2.72%이나 대조 범위와 겹쳐 개선
 미확인, down E66은 단회 +9.42%, 결합 E67은 단회 +3.66%다. E65의 추가 6입력도 PASS다.
 새 BF16 partial rounding의 상쇄 반례는 남는다. [단독·조합 기록](../experiments/combinations/e67-scale-dpe.md).
-이하 내용은 최초 가설이며, hi/lo 보정은 이번에 구현하지 않았다. 다음 우선순위는 C02다.
+이하 내용은 최초 가설이며, hi/lo 보정은 구현하지 않았다. 후속 C02/C03도 검증 후 미채택이다.
 
 현재 `p[r,b] = sum16(x*w)`를 F32로 유지한 채 VE에서 `sum_b(p[r,b]*scale[r,b])`를
 계산한다. 후보는 block 결과와 scale을 두 번째 DPE의 operand로 보내 합산까지 맡긴다.
@@ -127,6 +127,13 @@ Up/gate와 down을 별개 후보로 검증하며, up/gate 통과를 down에 승�
 
 ### C02 — F32 packet scale의 미시도 경로
 
+**후속 E70–E72:** F32 변환과 padding을 분리한 sequencer 경로가 compile·NPU 검사에
+성공했다. 추가 BF16 partial cast 없이 두 block을 묶지만, padded reduce 제약 때문에
+F32 partial의 저장·재읽기를 추가했다. 단회 NPU에서 up/gate **+14.10%**, down **+9.52%**,
+결합 **+20.28%**(같은 job E55 앞뒤 중앙값 기준)로 회귀했다. 독립 4-case packet 검사와
+각 구성의 기본 15개 출력 비교는 통과했다. [구현·실패 경로·결과](../../moa-dev/experiments/candidates/c02-c03-e55/README.md).
+아래는 최초 가설이다. 네 번의 새 compiler 제약을 확인한 후 전체 후보를 검증한 결과와 구분한다.
+
 [기존 packed-lanes 실험](../../moa-dev/experiments/candidates/ffn-blockscale-packed-lanes/README.md)에서
 BF16 64B packet에 16원소 block 두 개를 넣는 contraction은 검증 단계를 통과했다.
 실패 지점은 그 두 F32 결과에 대응하는 scale VRF의 4연속 operand 배치와
@@ -143,6 +150,12 @@ Up/gate 4행이면 scale VRF 산정은 `4×120×4×4=7,680B`다. 8KiB 안에 들
 전체 schedule을 비교한다. 추가 전송이 이득을 소모하면 tile 숫자 탐색을 확대하지 않는다.
 
 ### C03 — QKV의 BF16 head를 두 cluster에 유지
+
+**후속 E68:** 해당 배치를 E55의 산술과 BF16 경계를 유지하며 구현했다.
+기본 입력 3회 반복에서 QKV **103,157 → 104,762 cycles (+1.56%)**로 회귀했다.
+45개 출력 비교는 모두 PASS다. 정적 −1.80%가 NPU 속도 개선으로 이어지지 않았다.
+[C02/C03 구현·원인·검증 기록](../../moa-dev/experiments/candidates/c02-c03-e55/README.md).
+아래는 최초 가설과 검증 계획이다.
 
 E55의 Q4/Q5, 즉 BF16 activation·완전한 F32 dot·channel scale 뒤 첫 BF16 cast는 유지한다.
 Row Switch 이후 이미 `Ns/4`로 나뉜 head를 각 cluster 안에서 gather하고,
@@ -172,6 +185,12 @@ Cluster를 가로지르는 값은 실제 전달 경로를 포함하며 reshape/p
 그 비용표가 기존 8-column보다 유리할 때만 compile한다. 합산 순서 변경에 따른 정확도 검사도 필요하다.
 
 ### C05 — Decode staging은 E56의 실패 경계를 먼저 분리
+
+후속 E55 스케줄 재확인에서 weight decode 6개는 **86,178 정적 cycles**,
+Main 작업 합계의 **68.8%**였다. FP8+BF16 중간 write는 논리 **506.25 MiB**다.
+[소스 위치와 비용 근거](../../moa-dev/experiments/candidates/c02-c03-e55/e55-weight-cost.json).
+실측 시간의 68.8%라는 의미는 아니다. HBM/DM 전송과의 중첩, lookup 준비 횟수,
+consumer 시작 시점까지 확인해야 하며 이 근거만으로 C05의 성능 개선을 보장하지 않는다.
 
 [E50 down-only fused decode](../../moa-dev/experiments/candidates/ffn-down-fused-decode-e37/README.md)의
 첫 작은 이득은 E51 반복에서 재현되지 않았다. [8행 staging](../../moa-dev/experiments/candidates/ffn-up-tiled-fused-decode-e47/README.md)은
