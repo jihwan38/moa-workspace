@@ -6,7 +6,10 @@ architectures and adopts materialized native E5M2 up/gate with F32 partials. Thr
 allocations show **353154 → 335761 FFN cycles (−4.93%)** against contemporary E79 controls.
 All45 basic,30 additional-input comparisons and207360 diagnostic projection values pass.
 QKV/O images and E79 down/epilogue are preserved. Native input quantization remains an approximation.
-[Official submission](e104-official-submit-20260922.json) is tracked separately.
+[Official submission `6ee0120a`](e104-official-submit-20260922.json) completed at **5.9266×**:
+QKV104091 / O51565 / FFN335987,15 comparisons PASS. The
+[leaderboard snapshot](leaderboard-e104-20260922.json) shows BEEF at rank41 of60, unchanged
+from E79. This modest gain is closed; the next screen changes the Q/K/V execution structure.
 
 Previous adopted source is **E79 / baseline-e79**, commit `2735b58`.
 [C04](../../moa-dev/experiments/candidates/c04-down-transfer/README.md) ran nine coupled down-layout/activation-delivery candidates.

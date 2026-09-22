@@ -9,6 +9,11 @@ E5M2 세 항 native DPE, FP8 weight 중간 저장, projection별 입력 reload, 
 일반 BF16 동치나 모델 전체 정확도를 보장하지 않는다. [C07 판정](../moa-dev/experiments/candidates/c07-native-scale-dpe/decision.json).
 이전 E79/E74/E55는 고정 비교군으로 보존하며 이후 구조의 제약으로 삼지 않는다.
 
+[공식 제출 `6ee0120a`](../docs/experiments/e104-official-submit-20260922.json)은
+**5.9266×**, QKV104091 / O51565 / FFN335987, 기본15개 비교 PASS로 완료됐다.
+[리더보드 snapshot](../docs/experiments/leaderboard-e104-20260922.json)은60팀 중41위로
+E79와 같은 순위다. 작은 개선의 추가 조정보다 새로운 실행 구조를 우선 탐색한다.
+
 | 찾는 내용 | 파일 |
 |---|---|
 | 현재 적용한 16개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
