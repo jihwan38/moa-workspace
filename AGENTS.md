@@ -19,6 +19,24 @@
 - While the gap to the leading teams remains large, prioritize materially
   different execution architectures and coupled designs over local parameter
   sweeps. The current winner is a comparison control, not a design constraint.
+- Classify the scope before implementation: parameter tuning, local dataflow
+  replacement, or whole-projection/FFN architecture redesign. C09 row staging
+  and C11 partial VRF are local dataflow replacements; do not count them as
+  evidence that broad architecture alternatives have been explored. C10 changes
+  operand ownership/mapping, but its lowering failure is not a performance test.
+- For a major candidate, write the proposed full execution graph and identify
+  which inherited assumptions it removes: weight materialization, activation
+  replication, cluster/row/column ownership, reduction/scale decomposition, or
+  whole-stage completion dependencies. Estimate both removed and newly added
+  work along that graph. Internal helper boundaries, E104 term count and E104
+  internal layouts are design choices, not competition contracts. Preserve the
+  actual public interface/input contract and validate changed arithmetic against
+  the unchanged correctness criteria.
+- Keep the design broad and the feasibility check small. A small primitive probe
+  may establish API support, but must not replace the proposed whole architecture
+  with a convenient edit of one existing helper. Evaluate a coherent coupled
+  design as such; count related parameter/build variants separately from distinct
+  architecture families. Closing one prototype does not reject the whole family.
 - Preserve the competition's public interfaces and correctness requirements.
   Keep source/build/package provenance and distinguish static estimates, Arena
   measurements and official submissions. Keep rejected and failed experiments.
@@ -43,3 +61,7 @@
   cutoff, not a significance or promotion rule. Record concrete reasons for an
   exception. Maintain correctness and contemporary-control requirements before
   adoption, and distinguish Arena experiments from official submissions.
+- Apply measured percentage screens to NPU results. Static schedules can justify
+  a budget-based early stop for a specific prototype, but are not a calibrated
+  NPU performance oracle; small static differences do not establish a hardware
+  regression or an architecture-wide upper bound. Report that limitation.
