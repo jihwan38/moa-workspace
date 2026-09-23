@@ -22,6 +22,7 @@ E79와 같은 순위다. 작은 개선의 추가 조정보다 새로운 실행 �
 | 이전 E74 구성표와 고정 비교군 | [e74.json](e74.json) |
 | 이전 E55 구성표와 고정 비교군 | [e55.json](e55.json) |
 | 현재 채택 구성표를 가리키는 포인터 | [current.json](current.json) |
+| 현재 작업 브랜치·구조 실험의 종료 상태 | [current-work.md](../docs/experiments/current-work.md) |
 | 빨라짐·미확인·느려짐·정확도 실패별 과거 결과 | [최적화 결과 분류](../docs/experiments/optimization-results.md) |
 | 다음 큰 구조 변경 후보·논문 근거·조기 종료 조건 | [9월 23일 C09–C14](../docs/research/structural-candidates-20260923.md) |
 | 이전 최적화 후보와 C01–C08 진행 이력 | [E55 이후 조사](../docs/research/optimization-candidates-20260922.md) |

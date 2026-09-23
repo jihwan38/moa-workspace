@@ -1,7 +1,13 @@
 # 큰 구조 변경 후보: C09–C14
 
-2026-09-23. 이번 작업은 **기존 시도 대조·논문 조사·설계 선별**이다. 아래 여섯 후보의
-새 구현, 컴파일, Arena 실행은 하지 않았다. 비교군은 현재 채택본
+**후속 실행 완료:** [C09](../../moa-dev/experiments/candidates/c09-output-pipeline/README.md)는
+compile PASS·정적 +0.71%, [C11](../../moa-dev/experiments/candidates/c11-ffn-partial-vrf/README.md)은
+compile PASS·정적 +3.55%로 종료했다. [C10](../../moa-dev/experiments/candidates/c10-direct-weight-trf/README.md)은
+lookup→TRF의 StoTrf lowering에서 target 설정 제약으로 실패해 종료했다.
+세 후보 모두 미채택·Arena 미실행이다. [현재 브랜치·진행 기록](../experiments/current-work.md).
+
+아래는 2026-09-23 최초 **기존 시도 대조·논문 조사·설계 선별** 시점의 가설이다.
+당시에는 여섯 후보를 구현·컴파일·실행하지 않았다. 비교군은 현재 채택본
 [E104](../../baseline/e104.json)(`baseline-e104`, `7f891f9`)이며 출발 구조를 제한하지 않는다.
 소스 조사 기준 HEAD는 `78b2930`이다. [검색 범위·해시·출처](structural-candidates-20260923-evidence.json).
 

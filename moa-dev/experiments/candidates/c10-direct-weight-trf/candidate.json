@@ -1,0 +1,19 @@
+{
+  "id": "C10",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "target_kernel": "sliding_project_qkv",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "hypothesis": "Main FP8 table lookup feeds BF16 weight TRF directly, removing the prior BF16 DM commit and Sub reload. Activation streams through 8 Q or 4 KV DPE lanes.",
+  "prior_related": [
+    "qkv-lane-parallel: BF16 DM materialization + TRF reload caused static regression"
+  ],
+  "difference": "Direct lookup-to-TRF chain; contiguous row lanes and scale-before-first-BF16 retained. Typed head gather uses current E104 output layout, not the old single-slice epilogue.",
+  "coupled_changes": [
+    "Weight/activation stream and TRF roles swapped",
+    "Contiguous 8-row Q and 4-row KV mapping replaces E104 interleaved row mapping",
+    "Channel scale fused into F32 contraction output before BF16"
+  ],
+  "stop_condition": "Stop if direct lookup-to-TRF lowering is unsupported, allowing at most one obvious API/shape correction; do not restore slow intermediate BF16 DM."
+}

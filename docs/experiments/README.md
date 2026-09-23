@@ -1,5 +1,15 @@
 # Experiment ledger
 
+September 23 structural screens are closed: [C09](../../moa-dev/experiments/candidates/c09-output-pipeline/README.md)
+compiles with real row-stage DMA/dot overlap but static O makespan rises 27239→27432 (+0.71%).
+[C11](../../moa-dev/experiments/candidates/c11-ffn-partial-vrf/README.md) successfully stores computed
+partials in VRF, but small DPE launches increase and static FFN rises 157045→162624 (+3.55%).
+[C10](../../moa-dev/experiments/candidates/c10-direct-weight-trf/README.md) fails direct lookup→TRF
+StoTrf lowering under the current compiler target. Each candidate had one compile attempt;
+C09/C11 also had one exact E104 control compile. No Arena jobs or official submissions were made.
+These are compiler results, not hardware measurements. E104 remains adopted.
+[Current branches and next candidates](current-work.md).
+
 Current adopted source is **E104 / baseline-e104**, commit `7f891f9`.
 [C07](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) compares 19 basic
 architectures and adopts materialized native E5M2 up/gate with F32 partials. Three independent
