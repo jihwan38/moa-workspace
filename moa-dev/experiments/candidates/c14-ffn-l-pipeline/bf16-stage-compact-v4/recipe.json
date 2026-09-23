@@ -1,0 +1,47 @@
+{
+  "id": "C14-B",
+  "base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "scope": "Whole-FFN architecture redesign: two L stages, producer-local GeGLU, L-owned down clusters, F32 stage and cluster reduction.",
+  "methods_selected": [
+    "E74: BF16 activation, FP4-to-FP8 materialization, streamed BF16 lookup/DPE and compact F32 block partials",
+    "ffn-geglu-two-cluster: producer-local GeGLU with preserved global-scale BF16 boundaries and erf expression",
+    "C04/E79: ring32 leader broadcast mechanism, with a new two-column down mapping"
+  ],
+  "methods_removed": [
+    "E104 activation E5M2 three-term quantizer and native FP8 contraction",
+    "Full-L up/gate gather and single-cluster GeGLU",
+    "Down clusters owning H halves and requiring cross-cluster activation replication",
+    "Down waiting for the complete L=15360 GeGLU vector"
+  ],
+  "graph": "BF16 RMS input -> replicated TRF -> [stage 0: up/gate L[0:7680] -> local GeGLU -> down F32 partial] and [stage 1: up/gate L[7680:15360] -> local GeGLU -> down F32 partial] -> stage/cluster F32 sum -> BF16 -> global scale -> unchanged RMS/residual/layer scale",
+  "layout": {
+    "tile_l": 7680,
+    "stages": 2,
+    "producer": "Dummy2=logical L-high cluster; slice=TileL/16%240#256; local=TileL%16; l=stage*7680+cluster*3840+slice*16+row",
+    "down": "Dummy2=logical L-high cluster; slice=(h/30, TileL/1920%2); local=(h%30, TileL%1920)",
+    "final": "Gather only F32 H partials; sum two stages and two L clusters before first down BF16 cast"
+  },
+  "prior_related": [
+    "Two-cluster GeGLU alone increased down redistribution 9392->28648 static cycles while retaining H-owned down clusters",
+    "C05/E73 repeated lookup within small row tiles regressed on NPU; this prototype uses six large dot streams, not per-scale-tile lookup",
+    "C09/C11 are local changes, not evidence against this full-FFN dependency/ownership redesign",
+    "C14-A v3 failed at padded producer -> down DMA; E74 already supports padded rows -> compact -> broadcast"
+  ],
+  "difference": "Stage/cluster-local 3840-value compact DMA replaces the unsupported padded producer -> two-column down transfer; full two-stage graph and L-owned down remain.",
+  "new_costs": [
+    "Six large weight decode/dot streams instead of three",
+    "Two sets of producer-local GeGLU/scale operations",
+    "Stage and cross-cluster F32 output gather/reduction",
+    "Strided HBM down tiles and changed down broadcast/fanout",
+    "Two stage-local compact DMA operations, each retaining separate L-owned clusters"
+  ],
+  "stop_condition": "Compile the full graph and repair concrete source/layout errors when understood. Inspect actual stage/weight costs; use one NPU screen if the complete path is valid and retains the pipeline question. Close measured regression without a tile sweep.",
+  "hardware_status": "not_run",
+  "adopted": false,
+  "api_shape_correction": "Remove producer slice padding into a canonical stage-local tensor before consumer distribution; no global L gather."
+}

@@ -4,7 +4,17 @@
 조사 기준: `research/structural-candidates-20260923` / `cd1ad4f`.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 최신 작업 — main 통합과 E104 비용 진단
+## 최신 작업 — 세 구조 실행
+
+진행 순서는 **C14-B → C15 → C12-B**다.
+[설계 범위·비용 가설·과거 시도 대조](structural-round-20260923.md).
+첫 `opt/c14-stage-compact`의 C14-B는 전체 compile·기본 NPU 정확도 PASS 후,
+FFN397348 vs 동시 E104336341/339553(+17.58%)로 종료했다.
+[source·측정·비용 분석](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact.md).
+실행 소스는 E104다. 다음 C15는 up/gate의 입력 column 분할과 producer/consumer
+배치를 함께 바꾸며, C12-B는 O의 두 구간 Main/Sub pipeline을 검증한다.
+
+## 이전 작업 — main 통합과 E104 비용 진단
 
 **main과 origin/main을 `873f64e`에서 `f9f905b`로 fast-forward해 push했다.**
 `opt/c13-int8-ffn`의 `2c51fe2`까지 26개 commit과 작업 규칙·안내 정리 commit을
@@ -16,7 +26,7 @@
 설계 선택을 바꾸는 최소 진단과 그 한계를 기록하도록 보완했다. Root README의
 현재 채택본 표시도 E79에서 E104로 수정했다.
 
-현재 브랜치는 **`diag/e104-cost-attribution`**이다. E104의 기존 schedule 293개
+당시 브랜치는 **`diag/e104-cost-attribution`**였다. E104의 기존 schedule 293개
 instruction을 source와 대조하고 긴 node 18개·context 중첩을 재현 가능한 JSON으로
 남겼다. [첫 정적 분석·다음 판별 질문](../../moa-dev/experiments/diagnostics/e104-cost-attribution/README.md).
 Weight 준비와 activation 분배 중 무엇을 먼저 크게 바꿀지 결정하는 최소 NPU

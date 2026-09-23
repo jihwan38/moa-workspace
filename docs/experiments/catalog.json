@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "coverage": "시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다.",
+  "coverage": "시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.",
   "entries": [
     {
       "id": "E79",
@@ -1686,6 +1686,20 @@
       "evidence": [
         "moa-dev/experiments/candidates/c13-int8-ffn/README.md",
         "moa-dev/experiments/candidates/c13-int8-ffn/decision.json"
+      ]
+    },
+    {
+      "id": "E109",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "C14-B: E74 BF16 L-stage FFN + stage-local compact DMA",
+      "note": "Whole-FFN compile/basic NPU PASS; FFN 397348 vs adjacent E104 336341/339553, +17.58%. Single allocation; full combination comparison, not isolated pipeline effect.",
+      "report": "docs/experiments/e109-c14-stage-compact.json",
+      "reference": "docs/experiments/c14-compact-screen-e104-before.json",
+      "reference_label": "동시 E104 before",
+      "evidence": [
+        "moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact.md",
+        "moa-dev/experiments/candidates/c14-ffn-l-pipeline/decision-stage-compact.json"
       ]
     }
   ]

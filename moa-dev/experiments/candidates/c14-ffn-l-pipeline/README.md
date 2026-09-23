@@ -1,5 +1,9 @@
 # C14-A — L 구간별 FFN과 producer/consumer 공동 배치
 
+후속 [C14-B](stage-compact.md)는 stage-local compact 전송으로 전체 compile과
+기본 NPU 정확도를 통과했다. 동시 E104보다 FFN17.58% 느려 미채택했다.
+아래는 초기 C14-A의 세 lowering 실패를 보존한 기록이다.
+
 **컴파일 실패로 종료. Arena·공식 제출 없음, E104 유지.** 브랜치는
 `opt/c14-ffn-l-pipeline`, 출발 소스는 E74
 `9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7`, 성능 비교군은 E104다.

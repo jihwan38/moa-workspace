@@ -1,0 +1,27 @@
+{
+  "id": "C14-B",
+  "status": "closed-after-valid-hardware-regression",
+  "adopted": false,
+  "scope": "E74 BF16 + L-stage local GeGLU + L-owned down + stage/cluster F32 sum + compact producer transfer; one complete combination, not an isolated pipeline effect.",
+  "source_base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "new_source_variants": 1,
+  "exact_compile_calls": 2,
+  "host_builds": 1,
+  "arena_jobs": [
+    79238
+  ],
+  "correctness": "Unchanged basic benchmark: all 15 comparisons pass, including 3 FFN inputs / 11520 outputs. No expanded validation.",
+  "report": "docs/experiments/e109-c14-stage-compact.json",
+  "change_percent": {
+    "vs_before": 18.138436883995702,
+    "vs_after": 17.020906898186738,
+    "vs_bracketing_median": 17.57701651442385
+  },
+  "static_cost": "moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact-cost.json",
+  "observed": "Stage-0 down dot at 77001..86264 precedes second-stage up/gate dot completion 124253; early consumption is expressed. Six matrix decode streams, two stage distributions and F32 partial combination add work. BF16 up/gate dot cost is retained from E74.",
+  "limitations": "No hardware stall/component attribution. No contemporary E74 control, so the measured regression is versus E104 for the complete combination. No rejection of all L pipelines.",
+  "next_condition": "Retry only with a concrete reduction of projection/decode/transfer or partial cost; a new tile count alone is not a new mechanism.",
+  "runtime": "E104 unchanged",
+  "official_submission": false
+}
