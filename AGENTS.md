@@ -16,3 +16,13 @@
   promptly after bounded validation, then move to a materially different design.
   Reserve extensive repeats and diagnostics for promising gains or a concrete
   correctness failure; avoid prolonged polishing of small improvements.
+- When asked to find candidates, audit prior attempts and produce a shortlist
+  before implementing. Distinguish an untried execution path from a new parameter
+  choice or an already-rejected architecture. Ground paper-inspired proposals
+  in the installed SDK and the competition's actual input/submission contract.
+- Use bounded feasibility gates: one minimal prototype and at most one obvious
+  API/shape correction by default. Compile-only closure, or a documented API/
+  lowering failure, is a valid outcome. Do not keep repairing an unpromising
+  candidate just to make it build; record why it ended and move to the next one.
+  Only promising candidates proceed to Arena and extended validation. A coupled
+  design may proceed on a concrete cost argument even if one isolated part loses.

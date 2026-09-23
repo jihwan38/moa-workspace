@@ -23,7 +23,8 @@ E79와 같은 순위다. 작은 개선의 추가 조정보다 새로운 실행 �
 | 이전 E55 구성표와 고정 비교군 | [e55.json](e55.json) |
 | 현재 채택 구성표를 가리키는 포인터 | [current.json](current.json) |
 | 빨라짐·미확인·느려짐·정확도 실패별 과거 결과 | [최적화 결과 분류](../docs/experiments/optimization-results.md) |
-| 다음 최적화 후보·우선순위·검증 조건 | [E55 이후 C01–C09](../docs/research/optimization-candidates-20260922.md) |
+| 다음 큰 구조 변경 후보·논문 근거·조기 종료 조건 | [9월 23일 C09–C14](../docs/research/structural-candidates-20260923.md) |
+| 이전 최적화 후보와 C01–C08 진행 이력 | [E55 이후 조사](../docs/research/optimization-candidates-20260922.md) |
 | 무엇을 추가·제거·변경했는지 남기는 양식 | [조합 실험 양식](../docs/experiments/combination-template.md) |
 | 실제 단독/조합 비교를 채운 예시 | [E58 + E59 → E60](../docs/experiments/combinations/e60-down-padding.md) |
 | C01 scale-DPE의 단독·조합과 미채택 이유 | [E65 + E66 → E67](../docs/experiments/combinations/e67-scale-dpe.md) |
@@ -93,10 +94,12 @@ E55 당시 자료와 E57–E72의 각 동시기 대조는 그대로 남긴다. �
 3. `methods.md`의 연결 항목을 따라 layout·scale 좌표·자료형·반올림 경계를 함께
    검토한다. 방법 ID는 구현된 on/off 옵션이 아니다. 과거 patch는 당시 base에 대한
    차이이므로 파일 전체를 순서대로 덮어쓰면 앞서 적용한 변경을 잃을 수 있다.
-4. source diff와 실제 compile 입력을 고정하고 정확한 image를 포함한 package를
-   확인한다. 기본 정확도 screen을 통과한 후보를 대조군과 반복 측정하고, 산술·배치
-   변경에 맞는 추가 입력·경계 검사를 수행한다. 기본 운영은 동일 package 최소 3회이며,
-   결과가 겹치면 개선 미확인으로 유지한다. 큰 회귀의 단회 중단은 그 사실을 적는다.
+4. source diff와 실제 compile 입력을 고정한다. 최소 compile과 schedule에서 가설이
+   성립하지 않으면 그 상태로 닫고 다음 후보로 간다. 유망한 후보만 정확한 image의
+   package로 기본 정확도·성능 screen을 수행한다. 채택할 후보의 반복 측정은 동일
+   package 최소 3회를 기본으로 하며, 산술·배치 변경에 맞는 경계 검사를 추가한다.
+   결과가 겹치면 개선 미확인으로 유지한다. Compile-only 종료와 단회 중단은 별도
+   상태로 남긴다. [짧은 판별 기준](../docs/research/structural-candidates-20260923.md)을 따른다.
 5. 채택 전에는 **조합 전체**의 정확도와 성능을 다시 확인한다. 단독 PASS를 조합 PASS로,
    각 개선율의 합을 조합의 실측값으로 대체하지 않는다. 새 채택본은 `eNN.json`과
    새 Git tag로 남기고 `current.json`을 갱신한다. 과거 `e55.json`과 실험 원본은 보존한다.
