@@ -1,0 +1,16 @@
+{
+  "id": "C09",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "target_kernel": "sliding_attention_output",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "hypothesis": "Two independent weight row halves allow the second TDMA load to overlap the first lookup/dot; preserve 16-column F32 reduction and scale-before-BF16.",
+  "prior_related": [
+    "qkv-prefetch: source load order alone had no effect",
+    "memory-layout E64: column-major load plus DM reorder regressed",
+    "C09 was proposed but not implemented"
+  ],
+  "difference": "Output row dependency is split into two independent 60-row-per-slice DM allocations, without splitting the reduction axis.",
+  "stop_condition": "Close after compile if weight DMA and dot do not overlap or schedule clearly regresses; one obvious API/shape correction allowed."
+}

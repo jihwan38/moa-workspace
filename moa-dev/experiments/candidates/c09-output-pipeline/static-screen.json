@@ -1,0 +1,146 @@
+{
+  "scope": "Compiler schedule only, not NPU performance. Resource durations overlap and are not additive latency.",
+  "control_image_matches_e104": true,
+  "makespan_change_percent": 0.7085428980505792,
+  "candidate_first_dot_second_weight_dma_overlap_cycles": 1825,
+  "builds": {
+    "c09-e104-control": {
+      "makespan_cycles": 27239,
+      "instruction_count": 32,
+      "context_interval_union_cycles": {
+        "DmaEngine": 18229,
+        "PeCore": 1800,
+        "SubContext": 3036,
+        "MainContext": 7178,
+        "VectorEngine": 7178
+      },
+      "main_dma_overlap_cycles": 1638,
+      "sram_physical_lifetime_union": {
+        "peak_bytes": 26329088,
+        "cycle": 17328,
+        "active_tensor_ids": [
+          "19",
+          "12",
+          "7",
+          "16",
+          "8",
+          "10"
+        ],
+        "sram_tensors_with_nonempty_lifetime": 20,
+        "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+      },
+      "projection_nodes": [
+        {
+          "index": "16",
+          "tpe": "DmaLoad",
+          "lifetime": {
+            "begin": 2774,
+            "end": 16157
+          },
+          "description": "--> src/device/sliding/projection.rs:175:95\n\nweight.to_dm(&mut device.tdma)",
+          "contexts": [
+            "DmaEngine"
+          ]
+        },
+        {
+          "index": "26",
+          "tpe": "Main",
+          "lifetime": {
+            "begin": 16157,
+            "end": 21220
+          },
+          "description": "--> src/device/sliding/projection.rs:178:79\n\ndevice\n.main.begin(weight.view())\n.fetch::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120, Qs / 32 % 8], m![Qs % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120]>()\n.contract_lane::<m![H % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_inter_slice_reduce::<OutputRows, m![H % 120]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.transpose::<m![H / 2 % 60], m![H % 2 # 8]>()\n.commit_trim::<m![H % 2]>()\n.commit()",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ]
+        }
+      ],
+      "dma_load_count": 6,
+      "weight_load_duration_sum": 13383,
+      "lookup_dot_duration_sum": 5063
+    },
+    "c09-two-stage-v1": {
+      "makespan_cycles": 27432,
+      "instruction_count": 49,
+      "context_interval_union_cycles": {
+        "DmaEngine": 19616,
+        "PeCore": 20485,
+        "SubContext": 4329,
+        "MainContext": 7441,
+        "VectorEngine": 7441
+      },
+      "main_dma_overlap_cycles": 4301,
+      "sram_physical_lifetime_union": {
+        "peak_bytes": 33738752,
+        "cycle": 10578,
+        "active_tensor_ids": [
+          "25",
+          "17",
+          "18",
+          "26",
+          "20",
+          "23",
+          "0"
+        ],
+        "sram_tensors_with_nonempty_lifetime": 25,
+        "scope": "Schedule Sram tensor extents mapped through physical_pages, unioned at each half-open lifetime event. Aliases counted once; includes recorded padding. Not runtime telemetry or a separate proof of worst per-slice occupancy."
+      },
+      "projection_nodes": [
+        {
+          "index": "27",
+          "tpe": "DmaLoad",
+          "lifetime": {
+            "begin": 2774,
+            "end": 9740
+          },
+          "description": "--> src/device/sliding/projection.rs:177:9\n\nweight.tile::<m![H % 120], 60, m![Dummy2, H / 120 % 16, H % 120 = 60 # 120, Qs]>(0)\n.to_dm(&mut device.tdma)",
+          "contexts": [
+            "DmaEngine"
+          ]
+        },
+        {
+          "index": "37",
+          "tpe": "Main",
+          "lifetime": {
+            "begin": 9740,
+            "end": 12403
+          },
+          "description": "--> src/device/sliding/projection.rs:197:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120 = 60, Qs / 32 % 8], m![Qs % 32], _, _, _>(x)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120 = 60]>()\n.contract_lane::<m![H % 120 = 60], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_inter_slice_reduce::<m![H / 120 % 16, 1 # 16], m![H % 120 = 60]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.transpose::<m![H % 120 = 60 / 2], m![H % 120 = 60 % 2 # 8]>()\n.commit_trim::<m![H % 120 = 60 % 2]>()\n.commit_view(output.view_mut().tile::<m![H % 120], 60, m![H % 120 = 60 #{!} 120]>(offset))",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ]
+        },
+        {
+          "index": "42",
+          "tpe": "DmaLoad",
+          "lifetime": {
+            "begin": 10578,
+            "end": 17544
+          },
+          "description": "--> src/device/sliding/projection.rs:180:9\n\nweight.tile::<m![H % 120], 60, m![Dummy2, H / 120 % 16, H % 120 = 60 # 120, Qs]>(60)\n.to_dm(&mut device.tdma)",
+          "contexts": [
+            "DmaEngine"
+          ]
+        },
+        {
+          "index": "53",
+          "tpe": "Main",
+          "lifetime": {
+            "begin": 17544,
+            "end": 20207
+          },
+          "description": "--> src/device/sliding/projection.rs:197:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120 = 60, Qs / 32 % 8], m![Qs % 32], _, _, _>(x)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120 = 60]>()\n.contract_lane::<m![H % 120 = 60], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_inter_slice_reduce::<m![H / 120 % 16, 1 # 16], m![H % 120 = 60]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.transpose::<m![H % 120 = 60 / 2], m![H % 120 = 60 % 2 # 8]>()\n.commit_trim::<m![H % 120 = 60 % 2]>()\n.commit_view(output.view_mut().tile::<m![H % 120], 60, m![H % 120 = 60 #{!} 120]>(offset))",
+          "contexts": [
+            "MainContext",
+            "VectorEngine"
+          ]
+        }
+      ],
+      "dma_load_count": 8,
+      "weight_load_duration_sum": 13932,
+      "lookup_dot_duration_sum": 5326
+    }
+  }
+}

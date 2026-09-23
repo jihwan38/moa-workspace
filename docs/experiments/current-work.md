@@ -9,7 +9,7 @@
 
 | 후보 | 브랜치 | 상태 |
 |---|---|---|
-| C09 | `opt/c09-output-pipeline` | 두 행 구간의 TDMA/Main 중첩 compile screen 진행 |
+| C09 | `opt/c09-output-pipeline` | [종료](../../moa-dev/experiments/candidates/c09-output-pipeline/README.md): compile PASS, 정적 +0.71%, Arena 미실행 |
 | C11 | 예정: `opt/c11-ffn-partial-vrf` | 대기 |
 | C10 | 예정: `opt/c10-direct-weight-trf` | 대기 |
 

@@ -12,7 +12,7 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 138개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다.
+수록: 139개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
@@ -25,7 +25,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
 | [정확도 실패·실행 실패](#invalid) | 18 |
 | [대조군·기존 커널 조합](#control) | 10 |
-| [컴파일·정적 분석만 수행](#static_only) | 17 |
+| [컴파일·정적 분석만 수행](#static_only) | 18 |
 
 <a id="improved"></a>
 
@@ -220,6 +220,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | S-memory-down-axis · unsplit L 축의 down pitch padding 3종 | FFN | Arena 미측정 | — | 0 | packed/scale/both 모두 cannot factorize common axis L로 compile 실패. 수정 후 실행한 후보는 E58/E59/E60. [근거1](../../moa-dev/experiments/candidates/memory-layout-e55/README.md) |
 | S-memory-skew8 · BF16 row skew +8B 2종 | FFN | Arena 미측정 | — | 0 | up/gate·down 모두 32B commit 제약으로 compile 실패. 수정 +32B 후보는 E61/E62. [근거1](../../moa-dev/experiments/candidates/memory-layout-e55/README.md) |
 | S-memory-O-direct · 직접 column-major 계산 | O | Arena 미측정 | — | 0 | reduction 축이 Partitioning 최내부여야 한다는 제약으로 compile 실패. 실제 재배치 비용을 포함한 후보가 E64. [근거1](../../moa-dev/experiments/candidates/memory-layout-e55/README.md) |
+| S-C09-output-pipeline · 두 행 구간 TDMA/lookup-dot 중첩 | O | Arena 미측정 | — | 0 | Compile PASS. E104 정적 27239→27432(+0.71%); 중첩1825 cycles가 생겨도 총비용이 늘어 조기 종료. Arena 미실행·미채택. [근거1](../../moa-dev/experiments/candidates/c09-output-pipeline/README.md), [근거2](../../moa-dev/experiments/candidates/c09-output-pipeline/decision.json) |
 
 ## 기록 추가
 
