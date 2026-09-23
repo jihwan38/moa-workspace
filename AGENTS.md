@@ -1,5 +1,17 @@
 # Optimization work
 
+- Workspace: `/home/jihwan38/moa-workspace`; private GitHub repository:
+  `jihwan38/moa-workspace`. Read `baseline/current.json` for the adopted runtime
+  and `docs/experiments/current-work.md` for the latest branches and decisions.
+- Prevent duplicate experiments: before a build, record the candidate ID, actual
+  starting commit, prior related attempts, the materially different execution
+  path, and its first stop condition. A renamed candidate or tile-size sweep is
+  not a new architecture. Retry a rejected family only with a specific change to
+  the cost or correctness mechanism that caused its rejection.
+- Keep a named branch per candidate. Preserve each candidate's source snapshots,
+  build logs/hashes, static-versus-NPU results and closure reason before moving
+  to the next branch. Carry records forward without carrying an unadopted kernel
+  into the next candidate. Push completed records to the private remote.
 - E55 is an immutable comparison control, not a required starting architecture.
   Explore replacements, removals, different layouts and coupled changes to decode,
   contraction, scale, tiling and communication. A slow intermediate design does
@@ -26,3 +38,8 @@
   candidate just to make it build; record why it ended and move to the next one.
   Only promising candidates proceed to Arena and extended validation. A coupled
   design may proceed on a concrete cost argument even if one isolated part loses.
+- The default screen closes regressions and gains below 5% of the target kernel
+  without further parameter tuning. This is a provisional experiment-budget
+  cutoff, not a significance or promotion rule. Record concrete reasons for an
+  exception. Maintain correctness and contemporary-control requirements before
+  adoption, and distinguish Arena experiments from official submissions.

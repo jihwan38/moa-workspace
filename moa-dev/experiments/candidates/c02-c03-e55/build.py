@@ -35,7 +35,8 @@ def run(args, log=None):
         subprocess.run(args, check=True, stdout=subprocess.DEVNULL)
 
 
-def build(variant, extra=False, label=None, edges=False):
+def build(variant, extra=False, label=None, edges=False, *, target_kernel=None,
+          changed_sources=None, compile_only=False):
     label = label or variant + ("-edges" if edges else "-extra" if extra else "")
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", label):
         raise SystemExit("Use a simple alphanumeric/hyphen/underscore label")
@@ -59,10 +60,11 @@ def build(variant, extra=False, label=None, edges=False):
     recorded_lock = json.loads((ROOT / recorded_lock["compile_inputs"]).read_text())["Cargo.lock"]
     assert digest(lock.read_bytes()) == recorded_lock
     shutil.copyfile(lock, crate / "Cargo.lock")
-    changed = {"projection.rs": "src/device/sliding/projection.rs", "rmsnorm.rs": "src/device/sliding/rmsnorm.rs", "rope.rs": "src/device/sliding/rope.rs", "ops.rs": "src/ops.rs"} if variant.startswith("c03") else {"mlp.rs": "src/device/shared/mlp.rs"}
+    changed = changed_sources if changed_sources is not None else ({"projection.rs": "src/device/sliding/projection.rs", "rmsnorm.rs": "src/device/sliding/rmsnorm.rs", "rope.rs": "src/device/sliding/rope.rs", "ops.rs": "src/ops.rs"} if variant.startswith("c03") else {"mlp.rs": "src/device/shared/mlp.rs"})
     for name, target in changed.items():
         shutil.copyfile(HERE / variant / name, crate / target)
-    target_kernel = "sliding_project_qkv" if variant.startswith("c03") else "decoder_feedforward"
+    target_kernel = target_kernel or ("sliding_project_qkv" if variant.startswith("c03") else "decoder_feedforward")
+    assert target_kernel in IMAGES
     if extra:
         sys.path.insert(0, str(ROOT / "moa-dev"))
         from extra_seeds import extended_harness
@@ -104,6 +106,12 @@ def build(variant, extra=False, label=None, edges=False):
              str(out / "exact-kernel.bin")])
         schedule = json.loads((out / "schedule.json").read_text())
         record["static_cycles"] = max(op["lifetime"]["end"] for op in schedule["instructions"])
+        record["schedule"] = digest((out / "schedule.json").read_bytes())
+        record["exact_image"] = digest((out / "exact-kernel.bin").read_bytes())
+        if compile_only:
+            record["compile_only"] = True
+            print(f"{label}: static {record['static_cycles']}; compile-only gate complete", flush=True)
+            return
         print(f"{label}: static {record['static_cycles']}; building host", flush=True)
         run(env + ["cargo", "clean", "--release", "-p", "furiosa-opt-gemma4"])
         run(env + ["cargo", "furiosa-opt", "build", "--release", "--locked", "--bin", "test_kernels"],
