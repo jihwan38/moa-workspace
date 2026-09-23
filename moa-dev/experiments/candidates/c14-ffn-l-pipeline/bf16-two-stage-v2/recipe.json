@@ -1,0 +1,45 @@
+{
+  "id": "C14-A",
+  "base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "scope": "Whole-FFN architecture redesign: two L stages, producer-local GeGLU, L-owned down clusters, F32 stage and cluster reduction.",
+  "methods_selected": [
+    "E74: BF16 activation, FP4-to-FP8 materialization, streamed BF16 lookup/DPE and compact F32 block partials",
+    "ffn-geglu-two-cluster: producer-local GeGLU with preserved global-scale BF16 boundaries and erf expression",
+    "C04/E79: ring32 leader broadcast mechanism, with a new two-column down mapping"
+  ],
+  "methods_removed": [
+    "E104 activation E5M2 three-term quantizer and native FP8 contraction",
+    "Full-L up/gate gather and single-cluster GeGLU",
+    "Down clusters owning H halves and requiring cross-cluster activation replication",
+    "Down waiting for the complete L=15360 GeGLU vector"
+  ],
+  "graph": "BF16 RMS input -> replicated TRF -> [stage 0: up/gate L[0:7680] -> local GeGLU -> down F32 partial] and [stage 1: up/gate L[7680:15360] -> local GeGLU -> down F32 partial] -> stage/cluster F32 sum -> BF16 -> global scale -> unchanged RMS/residual/layer scale",
+  "layout": {
+    "tile_l": 7680,
+    "stages": 2,
+    "producer": "cluster=tile_l/3840; slice=tile_l/16%240#256; local=tile_l%16",
+    "down": "cluster=tile_l/3840; slice=(h/30, tile_l/1920%2); local=(h%30, tile_l%1920)",
+    "final": "Gather only F32 H partials; sum two stages and two L clusters before first down BF16 cast"
+  },
+  "prior_related": [
+    "Two-cluster GeGLU alone increased down redistribution 9392->28648 static cycles while retaining H-owned down clusters",
+    "C05/E73 repeated lookup within small row tiles regressed on NPU; this prototype uses six large dot streams, not per-scale-tile lookup",
+    "C09/C11 are local changes, not evidence against this full-FFN dependency/ownership redesign"
+  ],
+  "difference": "Both producer and consumer layouts change together. Each stage's down consumes its own GeGLU output without another stage's completion. Down weight/scales are sliced in HBM preserving original pitches and loaded once per useful element.",
+  "new_costs": [
+    "Six large weight decode/dot streams instead of three",
+    "Two sets of producer-local GeGLU/scale operations",
+    "Stage and cross-cluster F32 output gather/reduction",
+    "Strided HBM down tiles and changed down broadcast/fanout"
+  ],
+  "stop_condition": "One full prototype and at most one clear API/shape correction. Close on unsupported redistribution/reduction, a schedule retaining the whole-L dependency, repeated weight loads, or a clear total-cost regression without a compensating architectural benefit. Small static differences alone do not reject the family. Arena requires coherent compiled graph and correctness; screen against actual E104 package.",
+  "hardware_status": "not_run",
+  "adopted": false,
+  "api_shape_correction": "Only reorder HBM split/rename before tile; the compiler rejects reshaping an already tiled HBM view. Preserve all original row pitches via Stage=1#2. Same graph, arithmetic and ownership as v1."
+}

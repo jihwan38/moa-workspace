@@ -12,7 +12,7 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 141개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다.
+수록: 142개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
@@ -25,7 +25,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
 | [정확도 실패·실행 실패](#invalid) | 18 |
 | [대조군·기존 커널 조합](#control) | 10 |
-| [컴파일·정적 분석만 수행](#static_only) | 20 |
+| [컴파일·정적 분석만 수행](#static_only) | 21 |
 
 <a id="improved"></a>
 
@@ -223,6 +223,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | S-C09-output-pipeline · 두 행 구간 TDMA/lookup-dot 중첩 | O | Arena 미측정 | — | 0 | Compile PASS. E104 정적 27239→27432(+0.71%); 중첩1825 cycles가 생겨도 총비용이 늘어 조기 종료. Arena 미실행·미채택. [근거1](../../moa-dev/experiments/candidates/c09-output-pipeline/README.md), [근거2](../../moa-dev/experiments/candidates/c09-output-pipeline/decision.json) |
 | S-C11-partial-vrf · Native FP8 DPE→F32 partial VRF · scale stream | FFN | Arena 미측정 | — | 0 | Compile PASS, partial DM 제거 확인. DPE 실행2→30개로 정적157045→162624(+3.55%). 조기 종료·Arena 미실행·미채택. [근거1](../../moa-dev/experiments/candidates/c11-ffn-partial-vrf/README.md), [근거2](../../moa-dev/experiments/candidates/c11-ffn-partial-vrf/decision.json) |
 | S-C10-direct-trf · FP8 lookup→BF16 weight TRF 직접 연결 | QKV | Arena 미측정 | — | 0 | Rust frontend 뒤 StoTrf lowering 실패: renegade feature is enabled in non renegade-s config. 첫 compile에서 종료·Arena 미실행·미채택. [근거1](../../moa-dev/experiments/candidates/c10-direct-weight-trf/README.md), [근거2](../../moa-dev/experiments/candidates/c10-direct-weight-trf/decision.json) |
+| S-C14-A-l-pipeline · E74 BF16 stream + 구간별 GeGLU/down + L-owned cluster + F32 stage 합산 | FFN | Arena 미측정 | — | 0 | Whole-FFN 재설계 소스 구현, compile 3회 모두 실패. 최종 producer→down DMA에서 3840→4096 padding 변환 lowering 불가. 논리 좌표/pitch 검사 PASS, image·정적 schedule·NPU 결과 없음. 미채택. [근거1](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/README.md), [근거2](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/decision.json) |
 
 ## 기록 추가
 

@@ -1,0 +1,44 @@
+warning: unused variable: `x_trf`
+  --> src/device/shared/mlp.rs:24:5
+   |
+24 |     x_trf: &TrfTensor<bf16, Chip, UpGateCluster, UpGateSlices, m![1], m![H]>,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_x_trf`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `feedforward` is never used
+   --> src/device/shared/mlp.rs:314:15
+    |
+314 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [1/1] ops::decoder_feedforward
+error: furiosa-opt: ops::decoder_feedforward: visa: src RngdShape { region: Dram, chip: [], cluster: [Dummy=2], pe: [Dummy=4], dmn: [Dummy=2], slice: [Dummy=32], local: [Dummy=2:29491200, TileL_1=7680:3840, H_1=3840:1], padded_tail_size: 1 }, dst RngdShape { region: Sram, chip: [], cluster: [TileL_3840=2], pe: [TileL_1024=4], dmn: [TileL_512=2], slice: [TileL_16=32], local: [TileL_1=16:3840, H_1=3840:1], padded_tail_size: 1 }
+       caused by: cannot factorize common axis TileL
+  --> src/device/shared/mlp.rs:66:97
+   |
+66 |     let packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![TileL % 16, H]> = weight.to_dm(&mut device.tdma);
+   |                                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 1 compiled, 14 not matching ops::decoder_feedforward
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 5 warnings emitted

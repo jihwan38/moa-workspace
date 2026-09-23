@@ -4,6 +4,25 @@
 조사 기준: `research/structural-candidates-20260923` / `cd1ad4f`.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
+## 최신 작업 — C14-A
+
+현재 브랜치는 `opt/c14-ffn-l-pipeline`이다. **C14-A는 producer→down DMA의
+layout lowering 실패로 종료**했다. [구현·세 버전·종료 근거](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/README.md).
+
+E74 `9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7`에서 출발해 BF16 stream 계산,
+분산 GeGLU, L-owned down cluster, 두 L 구간의 F32 partial 합산을 한 경로로
+구현했다. E104는 비교 계획에만 사용했다. 기존 전체-stage 대기와 H-owned down
+배치를 함께 변경한 whole-FFN 재설계 시도이며, 완성된 image는 생성되지 않았다.
+
+Compile 3회: 최초 tiled-view reshape 실패 → HBM 축 분할 순서 수정 후 factorize
+실패 → 별도 cluster 축 표현으로 수정 후 padded producer→down column DMA 실패.
+기본 수정 횟수를 한 번 넘긴 구체적 근거와 총 3회 제한은 v3 recipe에 사전 기록했다.
+논리 좌표/pitch/GeGLU 연산 순서 검사는 통과했지만 NPU 정확도·성능은 미평가다.
+Arena·공식 제출 없음, E104 실행 소스 유지. C14 전체가 느리다는 판정은 아니다.
+미구현 독립 후보 C13이 다음 우선순위이며 C12는 국소 변경으로 후순위다.
+
+## 이전 작업 — C09/C11/C10
+
 사용자가 승인한 실행 순서는 **C09 → C11 → C10**이다.
 [설계·과거 시도·종료 기준](../research/structural-candidates-20260923.md).
 
@@ -24,7 +43,8 @@ Arena 실험 상태를 구분한다.
 세 실험의 마지막 브랜치는 `opt/c10-direct-weight-trf`이며 C09 → C11 → C10 순서의 기록을
 모두 포함한다. 세 후보 브랜치는 private origin에 각각 push했다. E104 실행 소스는
 바꾸지 않았고 `experiment_index.py --check --check-live`로 확인한다.
-후속 미구현 후보는 C12(Main/Sub 분리), C13(INT8 DPE), C14(FFN 전체 구간 pipeline)다.
+당시 후속 미구현 후보는 C12(Main/Sub 분리), C13(INT8 DPE), C14(FFN 전체 구간
+pipeline)였다. C14-A의 후속 실행 결과는 위 최신 작업에 기록했다.
 
 ## 사용자 지적 이후 변경 범위 재검토
 
@@ -57,7 +77,7 @@ C14의 FFN 단계 간 의존성 재설계와 C13의 계산 표현 교체처럼 �
 
 ## 소스 선택의 E104 고정 제거
 
-현재 작업 브랜치는 `fix/recipe-driven-experiments`다. 후속 지적을 받고 실제 빌더를
+소스 선택 수정 브랜치는 `fix/recipe-driven-experiments`다. 후속 지적을 받고 실제 빌더를
 확인한 결과, `structural_build.py`는 JSON의 `base_commit`을 사용하지 않고 E104 상수를
 `common.BASE`에 대입하고 있었다. 변경하지 않은 image의 검사도 E104로 고정돼 있었다.
 이 고정은 내가 만든 구현 선택이며, 기록만으로 조합 탐색이 수행됐다고 볼 수 없다.

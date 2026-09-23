@@ -1,0 +1,70 @@
+{
+  "candidate": "C14-A",
+  "status": "blocked-by-layout-lowering",
+  "scope": "whole-FFN redesign attempted; no complete lowered graph or hardware measurement",
+  "adopted": false,
+  "source_base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "performance_control": "baseline/e104.json",
+  "candidate_compile_attempts": 3,
+  "architecture_families": 1,
+  "control_compile_attempts": 0,
+  "arena_jobs": [],
+  "official_submission": false,
+  "attempts": [
+    {
+      "label": "c14-bf16-two-stage-v1",
+      "variant": "bf16-two-stage-v1",
+      "frontend": "passed_with_warnings",
+      "exact_compile_exit_code": 1,
+      "error": "error: furiosa-opt: ops::decoder_feedforward: visa: while lowering LowLevelReshape\n       caused by: a tiled view is not supported (input T382)",
+      "build_record": "moa-dev/experiments/candidates/c14-ffn-l-pipeline/build-c14-bf16-two-stage-v1-repro.json",
+      "source_sha256": "65a446945969afd2e0cfb77da2ca9615c1b2f395dba207e47ec9956843c77d17"
+    },
+    {
+      "label": "c14-bf16-two-stage-v2",
+      "variant": "bf16-two-stage-v2",
+      "frontend": "passed_with_warnings",
+      "exact_compile_exit_code": 1,
+      "error": "error: furiosa-opt: ops::decoder_feedforward: visa: src RngdShape { region: Dram, chip: [], cluster: [Dummy=2], pe: [Dummy=4], dmn: [Dummy=2], slice: [Dummy=32], local: [Dummy=2:29491200, TileL_1=7680:3840, H_1=3840:1], padded_tail_size: 1 }, dst RngdShape { region: Sram, chip: [], cluster: [TileL_3840=2], pe: [TileL_1024=4], dmn: [TileL_512=2], slice: [TileL_16=32], local: [TileL_1=16:3840, H_1=3840:1], padded_tail_size: 1 }\n       caused by: cannot factorize common axis TileL",
+      "build_record": "moa-dev/experiments/candidates/c14-ffn-l-pipeline/build-c14-bf16-two-stage-v2-repro.json",
+      "source_sha256": "6171ddc901103aa5b49b2d52d8a046b1de022db995d869bcfcb803df62e2a368"
+    },
+    {
+      "label": "c14-bf16-two-stage-v3",
+      "variant": "bf16-two-stage-v3",
+      "frontend": "passed_with_warnings",
+      "exact_compile_exit_code": 1,
+      "error": "error: furiosa-opt: ops::decoder_feedforward: visa: TileL: cannot resize 3840 to 4096 through TileL_1920=2 of RngdShape { region: Sram, chip: [], cluster: [Dummy2_1=2], pe: [Broadcast=4], dmn: [Broadcast=2], slice: [Dummy=16, TileL_1920=2], local: [TileL_1=1920:1], padded_tail_size: 1 }",
+      "build_record": "moa-dev/experiments/candidates/c14-ffn-l-pipeline/build-c14-bf16-two-stage-v3-repro.json",
+      "source_sha256": "71d82335304b04d53cb8b9e3a7627d61dd6ae20a45f6fe8abbced63f870ee790"
+    }
+  ],
+  "bounded_gate_exception": {
+    "reason": "v2 failed before arithmetic lowering because a shared TileL axis crosses a non-power-of-two cluster boundary plus physical slice padding. E74 already compiles the separate Dummy2 cluster + padded low-L mapping. One final representational correction uses that proven form, preserving the complete graph, ownership, pitches and arithmetic.",
+    "scope": "Split full HBM views into Stage x Dummy2 x low TileL before tiling; carry Dummy2 to the final F32 cluster reduction.",
+    "max_total_candidate_compile_attempts": 3,
+    "after_failure": "Close this prototype without further fixes or tile sweeps; no family-wide performance conclusion."
+  },
+  "final_failure": {
+    "location": "src/device/shared/mlp.rs:218",
+    "operation": "producer GeGLU DM -> down ring32 leader DM",
+    "message": "TileL: cannot resize 3840 to 4096 through TileL_1920=2",
+    "logical_producer_rows": 3840,
+    "physical_row_extent": 4096,
+    "cause_scope": "The selected padded producer and two-column consumer mapping is rejected by DMA lowering. This is not proof that all L-staged FFN layouts are unsupported."
+  },
+  "logical_checks": "15360 producer/consumer L coordinates, 3840 H row partitions, source HBM strides and unchanged GeGLU scalar/cast sequence PASS for all three source versions; these checks are not physical DMA or NPU correctness validation.",
+  "performance": null,
+  "accuracy": "NPU not evaluated",
+  "schedule": null,
+  "runtime": "E104 unchanged",
+  "closure_reason": "Final bounded correction reached the intended producer-to-consumer transfer, which still fails lowering. No further padding/layout sweep or replacement by the old full-vector gather in this prototype.",
+  "next": "C13 is the next independent architecture on the shortlist; not started. A C14 retry must change the padding/consumer-transfer mechanism coherently, not rename the same failed mapping.",
+  "toolchain": {
+    "cargo_furiosa_opt": "0.8.1",
+    "furiosa_opt_std": "0.8.1 (pinned Cargo.lock)",
+    "container_image": "sha256:518d7b7ddaca5a97344d8bbd60e04f5e87ca7c50d883bfb5930a64a0c6ff382f",
+    "rust_toolchain_source": "source_inputs/rust-toolchain.toml in each build record",
+    "source_recipe_and_frozen_hash_audit": "PASS"
+  }
+}
