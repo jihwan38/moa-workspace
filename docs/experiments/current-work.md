@@ -4,9 +4,27 @@
 조사 기준: `research/structural-candidates-20260923` / `cd1ad4f`.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 최신 작업 — C13 재개 후 NPU 검증 완료
+## 통합과 다음 실험 준비 — 9월 23일
 
-현재 브랜치는 `opt/c13-int8-ffn`이다. **C13 v7은 전체 compile과 변경 없는 NPU
+통합 대상은 `opt/c13-int8-ffn`의 `2c51fe2`까지다. 기존 main `873f64e`보다
+26개 commit 앞서 있고, 확인한 모든 기존 local/origin 실험 브랜치 tip이 이 이력에
+포함된다. [통합 확인 기록](integration-20260923.json). 별도 실험 branch를 각각
+재병합할 필요 없이 이 기록과 정리 commit을 main으로 fast-forward한다.
+
+실행 소스는 채택 E104이며, C13/C14는 후보 snapshot에만 남는다. AGENTS.md와
+조합 양식에 최신 비교군의 비용 근거, 제거·추가 작업, 실제 의존성/자원 경쟁,
+설계 선택을 바꾸는 최소 진단과 그 한계를 기록하도록 보완했다. Root README의
+현재 채택본 표시도 E79에서 E104로 수정했다.
+
+다음 작업 단위는 **E104 비용 원인을 구분하는 진단**이다. 기존 schedule의
+weight 전송·변환, partial 처리, activation 분배 경로를 최신 source와 대응시키고,
+설계 선택에 필요한 미확인 비용을 최소 NPU 진단으로 구분한다. 이것은 새 최적화
+가족이나 E104 구조에 탐색을 고정하는 규칙이 아니다. C14 compact 전송 수정은
+아직 미구현인 후속 선택지이며, C12도 미구현이다.
+
+## 이전 작업 — C13 재개 후 NPU 검증 완료
+
+작업 브랜치는 `opt/c13-int8-ffn`이었다. **C13 v7은 전체 compile과 변경 없는 NPU
 기본 정확도 검사를 통과했지만, 동시 E104보다 FFN이 18.58% 느려 미채택**했다.
 [전체 구현·초기 실패·수정·실측](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md).
 

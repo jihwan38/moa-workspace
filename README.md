@@ -6,10 +6,22 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
-[현재 baseline 구성](baseline/README.md)에서 E79에 적용한 15개 구성요소의 코드·설정·의존 관계를
+[현재 baseline 구성](baseline/README.md)에서 E104에 적용한 16개 구성요소의 코드·설정·의존 관계를
 확인할 수 있다. [성능별 실험 분류](docs/experiments/optimization-results.md)는 빨라진 후보,
 차이 미확인, 회귀, 정확도 실패를 비교 기준과 함께 정리한다.
 새 조합은 [추가·제거·변경 기록 양식](docs/experiments/combination-template.md)을 사용한다.
+
+현재 실행 소스는 **E104 / `baseline-e104` / `7f891f9`**다.
+[C07](moa-dev/experiments/candidates/c07-native-scale-dpe/README.md)의 native E5M2
+up/gate 구조를 채택했으며, 동시 E79 대비 독립3회 FFN 중앙값은
+353154 → 335761 cycles (−4.93%)다. QKV/O와 down 경로는 유지했다.
+[9월 22일 공식 제출 기록](docs/experiments/e104-official-submit-20260922.json)은
+5.9266×다. 이 수치는 현재 리더보드 조회 결과가 아니다.
+
+이후 수행한 C08–C14 실험의 종료 기록과 빌더 수정을 함께 보존한다. C13 v7은 NPU 기본 검사를
+통과했지만 FFN이 동시 E104보다18.58% 느려 미채택했다. C14는 배치 lowering 오류로
+NPU 미평가다. [현재 작업·다음 진단](docs/experiments/current-work.md)과
+[작업 규칙](AGENTS.md)을 먼저 확인한다. 이하 E79/E74/E55 문단은 과거 채택 이력이다.
 
 `opt/ffn-dataflow`의 후속 [메모리 배치 실험 E57–E64](docs/research/e55-memory-layout-audit.md)은
 QKV·O·FFN 변경 후보 8개를 Arena에서 실행했다. 정확도 검사는 통과했지만 반복 가능한 성능
@@ -21,7 +33,7 @@ C03 cluster별 head 유지는 반복 QKV +1.56%로 모두 미채택이다. 기�
 별도로 C02 block 상쇄 진단과 C03 추가 입력·cache 경계도 통과했다.
 소스·실패 경로·업로드 fingerprint를 보존했다.
 
-현재 작업 코드는 **E79**다. [C04 실험](moa-dev/experiments/candidates/c04-down-transfer/README.md)에서
+이전 채택본 **E79**는 [C04 실험](moa-dev/experiments/candidates/c04-down-transfer/README.md)에서
 2/4/8열·Main/Sub 방송·입력 gather를 결합한9개 후보를 NPU에서 비교했다.
 8열+leader DMA/Main ring32 방송이 동시기 E74 대비 **369997 → 353136 cycles, −4.56%**로
 독립3회 개선됐다. 기본45개·추가30개 비교와 projection 출력138240개를 통과했다.

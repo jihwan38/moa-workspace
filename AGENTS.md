@@ -12,6 +12,12 @@
   build logs/hashes, static-versus-NPU results and closure reason before moving
   to the next branch. Carry records forward without carrying an unadopted kernel
   into the next candidate. Push completed records to the private remote.
+- Integrate completed records, verified tooling and the adopted runtime into
+  main before a new experiment series. Check branch ancestry instead of merging
+  every old branch separately; retain historical branch tips and evidence. Verify
+  `baseline/current.json` against the live sources before integration. New work
+  branches may start from main, but their candidate source recipes remain free
+  to select another architecture or historical commit.
 - E55 is an immutable comparison control, not a required starting architecture.
   Explore replacements, removals, different layouts and coupled changes to decode,
   contraction, scale, tiling and communication. A slow intermediate design does
@@ -46,6 +52,30 @@
   internal layouts are design choices, not competition contracts. Preserve the
   actual public interface/input contract and validate changed arithmetic against
   the unchanged correctness criteria.
+- Select large changes using cost evidence for the current control and the
+  proposed complete path. Trace the actual producer, transfer and consumer;
+  identify the dependency or shared resource that delays completion. Historical
+  bottleneck analyses must be rechecked after adoption changes the path. A paper,
+  faster arithmetic type or fewer source operations is a hypothesis, not evidence
+  that the target kernel's limiting interval becomes shorter.
+- Account for added work as explicitly as removed work: weight conversion and
+  materialization, activation quantization/replication, partial write/read,
+  scale/reduction, layout transfers/padding, lookup setup, smaller engine tasks
+  and register lifetimes. Record which work can overlap and which waits remain.
+  Do not add overlapping schedule durations into runtime savings, interpret
+  logical bytes as measured bus traffic, or infer hardware stall fractions from
+  a static schedule or a whole-kernel cycle count.
+- When the next architecture choice depends on an unresolved cost mechanism,
+  first run a bounded diagnostic that separates the competing explanations.
+  State the specific question, fixed source/layout/input, measured quantity,
+  added boundary costs and the outcome that changes the design decision. Reuse
+  existing evidence when sufficient; do not require an exhaustive profiler or
+  a new diagnostic before every experiment. A diagnostic is not an independent
+  optimization family, and isolated timings are not additive kernel speedups.
+  Diagnostic-only preconversion or partial execution must be labelled explicitly;
+  adopted/submitted kernels must include all required work under the unchanged
+  competition input and correctness contract. Validate a promising complete
+  design on NPU with contemporary controls before claiming improvement.
 - Keep the design broad and the feasibility check small. A small primitive probe
   may establish API support, but must not replace the proposed whole architecture
   with a convenient edit of one existing helper. Evaluate a coherent coupled
