@@ -4,23 +4,24 @@
 조사 기준: `research/structural-candidates-20260923` / `cd1ad4f`.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 통합과 다음 실험 준비 — 9월 23일
+## 최신 작업 — main 통합과 E104 비용 진단
 
-통합 대상은 `opt/c13-int8-ffn`의 `2c51fe2`까지다. 기존 main `873f64e`보다
-26개 commit 앞서 있고, 확인한 모든 기존 local/origin 실험 브랜치 tip이 이 이력에
-포함된다. [통합 확인 기록](integration-20260923.json). 별도 실험 branch를 각각
-재병합할 필요 없이 이 기록과 정리 commit을 main으로 fast-forward한다.
+**main과 origin/main을 `873f64e`에서 `f9f905b`로 fast-forward해 push했다.**
+`opt/c13-int8-ffn`의 `2c51fe2`까지 26개 commit과 작업 규칙·안내 정리 commit을
+포함한다. 확인한 모든 기존 local/origin 실험 브랜치 tip이 이 이력에 포함되어,
+별도로 병합할 기존 실험 변경은 없다. [통합 확인 기록](integration-20260923.json).
 
 실행 소스는 채택 E104이며, C13/C14는 후보 snapshot에만 남는다. AGENTS.md와
 조합 양식에 최신 비교군의 비용 근거, 제거·추가 작업, 실제 의존성/자원 경쟁,
 설계 선택을 바꾸는 최소 진단과 그 한계를 기록하도록 보완했다. Root README의
 현재 채택본 표시도 E79에서 E104로 수정했다.
 
-다음 작업 단위는 **E104 비용 원인을 구분하는 진단**이다. 기존 schedule의
-weight 전송·변환, partial 처리, activation 분배 경로를 최신 source와 대응시키고,
-설계 선택에 필요한 미확인 비용을 최소 NPU 진단으로 구분한다. 이것은 새 최적화
-가족이나 E104 구조에 탐색을 고정하는 규칙이 아니다. C14 compact 전송 수정은
-아직 미구현인 후속 선택지이며, C12도 미구현이다.
+현재 브랜치는 **`diag/e104-cost-attribution`**이다. E104의 기존 schedule 293개
+instruction을 source와 대조하고 긴 node 18개·context 중첩을 재현 가능한 JSON으로
+남겼다. [첫 정적 분석·다음 판별 질문](../../moa-dev/experiments/diagnostics/e104-cost-attribution/README.md).
+Weight 준비와 activation 분배 중 무엇을 먼저 크게 바꿀지 결정하는 최소 NPU
+진단은 아직 미구현·미실행이다. 이것은 새 최적화 가족이나 E104 구조에 탐색을 고정하는
+규칙이 아니다. C14 compact 전송 수정은 아직 미구현인 후속 선택지이며, C12도 미구현이다.
 
 ## 이전 작업 — C13 재개 후 NPU 검증 완료
 

@@ -1,0 +1,390 @@
+{
+  "scope": "Existing compiler schedule, not a new hardware measurement or an optimization candidate.",
+  "source_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "mlp_source": {
+    "bytes": 28831,
+    "sha256": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0"
+  },
+  "source_build_record": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-e104-reviewed-v1-repro.json",
+  "schedule": {
+    "bytes": 189237,
+    "sha256": "f5f7a888e70e2ca1c494c88b58060467155268e4bb0a129d888a8dbd4d6e15dd"
+  },
+  "makespan_cycles": 157045,
+  "instruction_count": 293,
+  "context_interval_unions": {
+    "DmaEngine": 126267,
+    "MainContext": 94944,
+    "PeCore": 18750,
+    "SubContext": 19827,
+    "VectorEngine": 33283
+  },
+  "main_dma_overlap": 70771,
+  "no_main_dma_sub_interval": 4166,
+  "long_nodes": [
+    {
+      "index": "106",
+      "engine": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "begin": 3238,
+      "end": 5817,
+      "duration": 2579,
+      "source_location": "src/device/shared/rmsnorm.rs:35:92",
+      "source_function": "outside_mlp_or_unattributed",
+      "input_tensors": [
+        62
+      ],
+      "output_tensors": [
+        96
+      ],
+      "operation": "device\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![1 # 32, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+    },
+    {
+      "index": "112",
+      "engine": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "begin": 3589,
+      "end": 28201,
+      "duration": 24612,
+      "source_location": "src/device/shared/mlp.rs:115:9",
+      "source_function": "project_up_and_gate",
+      "input_tensors": [
+        6
+      ],
+      "output_tensors": [
+        98
+      ],
+      "operation": "gate_weight_packed.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "213",
+      "engine": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "begin": 34953,
+      "end": 37685,
+      "duration": 2732,
+      "source_location": "src/device/shared/mlp.rs:562:48",
+      "source_function": "prepare_ffn_fp8_split",
+      "input_tensors": [
+        124
+      ],
+      "output_tensors": [
+        139
+      ],
+      "operation": "scale.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "229",
+      "engine": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "begin": 35834,
+      "end": 45097,
+      "duration": 9263,
+      "source_location": "src/device/shared/mlp.rs:116:98",
+      "source_function": "project_up_and_gate",
+      "input_tensors": [
+        98,
+        24
+      ],
+      "output_tensors": [
+        144
+      ],
+      "operation": "device.main\n.begin(gate_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+    },
+    {
+      "index": "250",
+      "engine": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "begin": 38298,
+      "end": 41642,
+      "duration": 3344,
+      "source_location": "src/device/shared/mlp.rs:458:87",
+      "source_function": "broadcast_ffn_quantized",
+      "input_tensors": [
+        149
+      ],
+      "output_tensors": [
+        150
+      ],
+      "operation": "x.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "251",
+      "engine": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "begin": 41642,
+      "end": 46522,
+      "duration": 4880,
+      "source_location": "src/device/shared/mlp.rs:123:9",
+      "source_function": "project_up_and_gate",
+      "input_tensors": [
+        2
+      ],
+      "output_tensors": [
+        151
+      ],
+      "operation": "gate_weight_scale.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "261",
+      "engine": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "begin": 45097,
+      "end": 56880,
+      "duration": 11783,
+      "source_location": "src/device/shared/mlp.rs:459:83",
+      "source_function": "broadcast_ffn_quantized",
+      "input_tensors": [
+        150,
+        115
+      ],
+      "output_tensors": [
+        152
+      ],
+      "operation": "device\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+    },
+    {
+      "index": "274",
+      "engine": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "begin": 47853,
+      "end": 72465,
+      "duration": 24612,
+      "source_location": "src/device/shared/mlp.rs:91:9",
+      "source_function": "project_up_and_gate",
+      "input_tensors": [
+        4
+      ],
+      "output_tensors": [
+        161
+      ],
+      "operation": "up_weight_packed.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "287",
+      "engine": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "begin": 58586,
+      "end": 64270,
+      "duration": 5684,
+      "source_location": "src/device/shared/mlp.rs:40:90",
+      "source_function": "project_rows_with_scale_contraction",
+      "input_tensors": [
+        144,
+        164,
+        146
+      ],
+      "output_tensors": [
+        165
+      ],
+      "operation": "device\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+    },
+    {
+      "index": "359",
+      "engine": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "begin": 72471,
+      "end": 81734,
+      "duration": 9263,
+      "source_location": "src/device/shared/mlp.rs:92:96",
+      "source_function": "project_up_and_gate",
+      "input_tensors": [
+        161,
+        143
+      ],
+      "output_tensors": [
+        191
+      ],
+      "operation": "device.main\n.begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+    },
+    {
+      "index": "362",
+      "engine": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "begin": 73097,
+      "end": 77977,
+      "duration": 4880,
+      "source_location": "src/device/shared/mlp.rs:99:9",
+      "source_function": "project_up_and_gate",
+      "input_tensors": [
+        0
+      ],
+      "output_tensors": [
+        193
+      ],
+      "operation": "up_weight_scale.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "383",
+      "engine": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "begin": 79314,
+      "end": 108741,
+      "duration": 29427,
+      "source_location": "src/device/shared/mlp.rs:394:9",
+      "source_function": "project_down_sharded",
+      "input_tensors": [
+        10
+      ],
+      "output_tensors": [
+        204
+      ],
+      "operation": "down_weight_packed.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "391",
+      "engine": "Main",
+      "contexts": [
+        "MainContext",
+        "VectorEngine"
+      ],
+      "begin": 81737,
+      "end": 87421,
+      "duration": 5684,
+      "source_location": "src/device/shared/mlp.rs:40:90",
+      "source_function": "project_rows_with_scale_contraction",
+      "input_tensors": [
+        191,
+        164,
+        148
+      ],
+      "output_tensors": [
+        205
+      ],
+      "operation": "device\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+    },
+    {
+      "index": "523",
+      "engine": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "begin": 112174,
+      "end": 121437,
+      "duration": 9263,
+      "source_location": "src/device/shared/mlp.rs:396:105",
+      "source_function": "project_down_sharded",
+      "input_tensors": [
+        204,
+        240
+      ],
+      "output_tensors": [
+        251
+      ],
+      "operation": "device\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()"
+    },
+    {
+      "index": "524",
+      "engine": "DmaStos",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "begin": 112192,
+      "end": 116976,
+      "duration": 4784,
+      "source_location": "src/device/shared/mlp.rs:366:98",
+      "source_function": "project_down_sharded",
+      "input_tensors": [
+        250,
+        107
+      ],
+      "output_tensors": [
+        252
+      ],
+      "operation": "x.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "531",
+      "engine": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "begin": 116976,
+      "end": 126750,
+      "duration": 9774,
+      "source_location": "src/device/shared/mlp.rs:388:9",
+      "source_function": "project_down_sharded",
+      "input_tensors": [
+        8
+      ],
+      "output_tensors": [
+        254
+      ],
+      "operation": "down_weight_scale.to_dm(&mut device.tdma)"
+    },
+    {
+      "index": "552",
+      "engine": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "begin": 121437,
+      "end": 125540,
+      "duration": 4103,
+      "source_location": "src/device/shared/mlp.rs:367:94",
+      "source_function": "project_down_sharded",
+      "input_tensors": [
+        255,
+        118
+      ],
+      "output_tensors": [
+        256
+      ],
+      "operation": "device.main\n.begin(x.view())\n.fetch::<m![1], m![L % 1920]>()\n.switch::<m![Dummy256 / 32, 4, L / 1920], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()"
+    },
+    {
+      "index": "563",
+      "engine": "Main",
+      "contexts": [
+        "MainContext"
+      ],
+      "begin": 126286,
+      "end": 144549,
+      "duration": 18263,
+      "source_location": "src/device/shared/mlp.rs:405:99",
+      "source_function": "project_down_sharded",
+      "input_tensors": [
+        251,
+        258,
+        248
+      ],
+      "output_tensors": [
+        259
+      ],
+      "operation": "device.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, L / 16 % 120]>()\n.contract_lane::<m![H % 60, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, L / 32 % 60], m![L / 16 % 2 # 8]>()\n.commit_trim::<m![L / 16 % 2]>()\n.commit()"
+    }
+  ],
+  "hardware_control_reference": "docs/experiments/c13-v7-screen-e104-before.json",
+  "limitations": [
+    "Context intervals overlap; their durations are not additive latency contributions.",
+    "Long nodes are a source-linked shortlist, not a demonstrated critical path.",
+    "Tensor views, aliases and resource dependencies require tracing before assigning wait causes.",
+    "No hardware traffic, stall fractions or isolated component timings were measured here."
+  ]
+}
