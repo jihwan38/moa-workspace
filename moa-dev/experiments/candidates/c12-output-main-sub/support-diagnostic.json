@@ -1,0 +1,47 @@
+{
+  "question": "Which Sub source pattern causes the full C12-v1 SFR lowering panic?",
+  "probes": [
+    {
+      "label": "c12-main-reduce-probe",
+      "entry": "main_reduce",
+      "compile_exit_code": 0,
+      "static_cycles": 22123,
+      "record": "moa-dev/experiments/candidates/c12-output-main-sub/build-c12-main-reduce-probe.json"
+    },
+    {
+      "label": "c12-sub-reduce-probe",
+      "entry": "sub_reduce",
+      "compile_exit_code": 0,
+      "static_cycles": 22306,
+      "record": "moa-dev/experiments/candidates/c12-output-main-sub/build-c12-sub-reduce-probe.json"
+    },
+    {
+      "label": "c12-sub-transpose-probe",
+      "entry": "sub_transpose",
+      "compile_exit_code": 0,
+      "static_cycles": 9854,
+      "record": "moa-dev/experiments/candidates/c12-output-main-sub/build-c12-sub-transpose-probe.json"
+    },
+    {
+      "label": "c12-sub-reduce-transpose-probe",
+      "entry": "sub_reduce_transpose",
+      "compile_exit_code": 0,
+      "static_cycles": 5795,
+      "record": "moa-dev/experiments/candidates/c12-output-main-sub/build-c12-sub-reduce-transpose-probe.json"
+    }
+  ],
+  "conclusion": "All four isolated patterns compile, including combined Sub inter-slice reduction plus transpose. The exact full-v1 cause is not isolated; failure depends on the complete mixed-context graph and/or allocation. v2 moves packing to Main through a padded DM boundary and successfully compiles the full kernel. This establishes a working route, not a proof of a general unsupported Sub instruction.",
+  "not_measured": "Probes were not executed on NPU; their schedules are neither candidate accuracy nor performance evidence.",
+  "sdk_source": [
+    "src/engine/vector/tensor/vector_tensor.rs: vector_inter_slice_reduce accepts generic Tu",
+    "src/engine/transpose.rs: transpose accepts generic Tu",
+    "src/engine/commit.rs: commit mapping verification"
+  ],
+  "sources": [
+    "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/index.html",
+    "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/commit-adapter.html",
+    "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/transpose-engine.html",
+    "https://developer.furiosa.ai/furiosa-opt/book/scheduling/tuning.html"
+  ],
+  "date": "2026-09-23"
+}

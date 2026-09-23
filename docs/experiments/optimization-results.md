@@ -12,7 +12,7 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 147개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
+수록: 148개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
@@ -20,7 +20,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 |---|---:|
 | [빨라진 기록](#improved) | 35 |
 | [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 13 |
-| [느리게 측정됨](#regressed) | 37 |
+| [느리게 측정됨](#regressed) | 38 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 9 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
 | [정확도 실패·실행 실패](#invalid) | 19 |
@@ -132,6 +132,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E108 · C13 v7 · INT8/I32 부분합 저장 + 분리된 F32 scale 복원](e108-c13-integer-v7.json) | FFN | [동시 E104 before](c13-v7-screen-e104-before.json): 334,969 → 397,318 | +18.61% | 1 → 1 | 기존 기본 15비교 PASS. 단회 screen FFN 397318, 앞뒤 E104 334969/335156 대비 +18.58%(앞뒤 중앙값). 미채택, 공식 제출 없음. 독립 반복·확대 검증은 하지 않음. [근거1](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md), [근거2](../../moa-dev/experiments/candidates/c13-int8-ffn/decision.json) |
 | [E109 · C14-B: E74 BF16 L-stage FFN + stage-local compact DMA](e109-c14-stage-compact.json) | FFN | [동시 E104 before](c14-compact-screen-e104-before.json): 336,341 → 397,348 | +18.14% | 1 → 1 | Whole-FFN compile/basic NPU PASS; FFN 397348 vs adjacent E104 336341/339553, +17.58%. Single allocation; full combination comparison, not isolated pipeline effect. [근거1](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact.md), [근거2](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/decision-stage-compact.json) |
 | [E110 · C15: two-column up/gate ownership + native FP8 + F32 column reduction](e110-c15-upgate-columns.json) | FFN | [동시 E104 before](c15-columns-screen-e104-before.json): 335,618 → 385,621 | +14.90% | 1 → 1 | Whole up/gate compile/basic NPU PASS; FFN385621 vs E104335618/335432, +14.93%. One allocation, no promotion or official submission. [근거1](../../moa-dev/experiments/candidates/c15-upgate-columns/README.md), [근거2](../../moa-dev/experiments/candidates/c15-upgate-columns/decision.json) |
+| [E111 · C12-B: two-stage vector-free Main dot + Sub F32 sum + separate Main packing](e111-c12-output-main-sub.json) | O | [동시 E104 before](c12-pipeline-screen-e104-before.json): 50,555 → 51,862 | +2.59% | 1 → 1 | Basic NPU PASS; O51862 vs E10450555/50680, observed +2.46%. Single screen with overlapping samples; no qualifying gain, no adoption/official submission. Full-v1 compiler failure repaired without declaring Sub unsupported. [근거1](../../moa-dev/experiments/candidates/c12-output-main-sub/README.md), [근거2](../../moa-dev/experiments/candidates/c12-output-main-sub/decision.json) |
 
 <a id="accuracy_limited"></a>
 

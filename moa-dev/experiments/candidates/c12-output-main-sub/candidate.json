@@ -1,0 +1,48 @@
+{
+  "id": "C12-B",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "sliding_attention_output",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-e104-reviewed-v1-repro.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "decoder_feedforward"
+  ],
+  "scope": "O projection producer/transfer/consumer redesign, C09 two-stage weights plus vector-free Main dot and separate Sub column sum; not a new arithmetic model or FFN redesign.",
+  "methods_selected": [
+    "C09 distinct row-stage weight allocations, source snapshot from two-stage-v1",
+    "E55/E104 BF16 stream DPE, 16-column F32 sum before BF16 and unchanged scale/RMS/residual",
+    "Native one-F32 padded packet DM boundary to remove Main VE transpose/reduction"
+  ],
+  "methods_removed": [
+    "Main dot -> Main VE column sum -> Main transpose before the next dot",
+    "Whole 120-row weight completion dependency"
+  ],
+  "graph": "HBM BF16 input -> column TRF; two HBM FP8 weight halves -> independent stage DM -> Main FP8/BF16 lookup and DPE -> padded F32 stage partial DM -> Sub 16-column F32 sum and compact output -> canonical DMA -> scale in F32 -> first BF16 -> unchanged post RMS and residual",
+  "layout": {
+    "cluster": "two H output halves",
+    "slice": "16 H row groups x 16 Qs input columns",
+    "stage": "60 H rows x 256 Qs values per slice",
+    "partial": "60 rows x 1#8 F32, 1920 physical bytes/slice/stage (240 valid bytes)",
+    "output": "120 compact F32 rows at row-group leaders, unchanged epilogue gather"
+  },
+  "prior_related": [
+    "C09 two-stage kept dot and column reduce in the same Main stream; static +0.71%, no NPU measurement",
+    "C05 partials-sub compile lowered into SFR panic. That producer used transpose before DM; this design makes Main producer vector-free. Support must be established by complete compile.",
+    "C12 earlier proposed but never executed"
+  ],
+  "cost_removed": [
+    "Main stream no longer includes column reduction or transpose, allowing stage-2 dot and stage-1 Sub reduction to overlap if resources permit",
+    "Second weight DMA can overlap first dot through distinct allocations"
+  ],
+  "cost_added": [
+    "Two FP8-to-BF16 lookup setups and row-stage tasks",
+    "Padded F32 write+read: 1920 bytes/slice/stage physical, eight times valid partial scalar size",
+    "Shared VE/TRF/Switch and DMA resource dependencies may serialize tasks; source engine split alone proves no overlap"
+  ],
+  "stop_condition": "Fix concrete source/shape issues, inspect actual producer/consumer contexts and overlap. One full E104-before/candidate/E104-after NPU screen if executable. Close measured regression or <5% O gain; no parameter sweep without a new cost mechanism.",
+  "adopted": false
+}

@@ -1,0 +1,30 @@
+{
+  "id": "C12-B",
+  "status": "closed-after-valid-hardware-screen",
+  "adopted": false,
+  "source_base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "projection_source_ancestor": "C09 two-stage-v1 snapshot, explicitly composed with vector-free producer and Sub reduction",
+  "comparison_recipe": "baseline/e104.json",
+  "whole_source_variants": 2,
+  "whole_exact_compile_calls": 3,
+  "standalone_probe_compiles": 4,
+  "host_builds": 1,
+  "arena_jobs": [
+    79329
+  ],
+  "correctness": "Unchanged basic benchmark: all 15 comparisons pass, including 3 O inputs / 11520 outputs. No expanded validation.",
+  "report": "docs/experiments/e111-c12-output-main-sub.json",
+  "change_percent": {
+    "vs_before": 2.5853031351992906,
+    "vs_after": 2.332280978689827,
+    "vs_bracketing_median": 2.458635847286028
+  },
+  "static_cost": "moa-dev/experiments/candidates/c12-output-main-sub/static-cost.json",
+  "compiler_failure": "v1 whole graph fails SFR lowering at sfr_impl.rs:868:33. Main reduce, Sub reduce, Sub transpose and combined Sub reduce+transpose all compile in isolated matched-layout probes. Exact full-graph root cause remains unresolved; no blanket unsupported-Sub claim.",
+  "repair": "v2 stores Sub reduced padded F32 to DM and uses a separate Main packing command. Whole projection now compiles and passes basic NPU correctness.",
+  "observed": "First stage Sub reduction 12403..13047; next dot starts17547 after weight DMA. No intended Sub-reduce/next-Main-dot overlap in this schedule. Partial write/read and task boundaries remain.",
+  "limitations": "Single allocation screen, target timing samples overlap controls. +2.46% is an observed median difference, not statistically established general regression. No evidence meeting the provisional 5% gain gate, so no repetition/sweep. Static intervals are not hardware stalls.",
+  "next_condition": "A supported source combination must bring next-stage operands earlier or remove preparation/partial costs, before another Main/Sub split attempt.",
+  "runtime": "E104 unchanged",
+  "official_submission": false
+}

@@ -40,4 +40,21 @@ source 오류를 포기하지 않되, 손실 원인이 확인된 같은 매개�
 [기록](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact.md).
 C15는4-column source 오류를2-column 정렬 배치로 수정해 compile·기본 NPU PASS,
 동시 E104 대비 FFN+14.93%로 종료했다. [기록](../../moa-dev/experiments/candidates/c15-upgate-columns/README.md).
-C12-B는 다음 실행 대상이다.
+C12-B는 전체 graph의 compiler 오류를 분리 진단 후 Main packing 경계로 수정,
+전체 compile·기본 NPU PASS. 동시 E104 대비 O 관측+2.46%로 종료했다.
+[기록](../../moa-dev/experiments/candidates/c12-output-main-sub/README.md).
+
+세 후보 모두 기본 NPU 실행까지 완료했다. 채택·공식 제출 없음, E104 유지.
+각 결과는한Arena allocation의 앞뒤 E104 대비 screen이며 독립 반복·확대 정확도 검증은 아니다.
+C15의 source3버전, C12의 source2버전·primitive4검사는 별도 구조 수로 세지 않는다.
+
+최종 [source/image/package/log 재검증](structural-round-20260923-verification.json):
+실행하지 않은 두 kernel의 image는 각 후보에서E104와 동일하고, 실제 host에 정확히
+한 번 포함된 target image도 exact compile과 일치한다. 기본 host·fixture·runner와
+정확도 기준은 유지했다. Candidate별45비교, 합계135비교 PASS다.
+
+이번 자료로 확인할 다음 설계 조건은 다음과 같다. C14는 stage 소비를 일찍 시작해도
+BF16 dot·반복 decode·전송·partial 합산을 포함한 전체 비용을 줄여야 한다. C15는
+activation 복제를 줄이면서 HBM weight/scale의 연속 읽기를 유지할 layout이 필요하다.
+C12는 다음 stage operand가 준비되는 시점이 reducer 완료보다 늦다는 제약을 먼저
+바꿔야 한다. 이 조건은 특정 source나 방법을 의무화하는 규칙이 아니다.

@@ -1,0 +1,721 @@
+{
+  "E104": {
+    "makespan": 27239,
+    "context_interval_unions": {
+      "Noop": 0,
+      "DmaEngine": 18229,
+      "PeCore": 1800,
+      "SubContext": 3036,
+      "MainContext": 7178,
+      "VectorEngine": 7178
+    },
+    "schedule": {
+      "bytes": 20636,
+      "sha256": "0892c22c587d52873e82c9f7380e1f000154b471fb4fce5eb5e8c63382125084"
+    },
+    "source_build_record": "moa-dev/experiments/candidates/c09-output-pipeline/build-c09-e104-control-repro.json",
+    "image": {
+      "bytes": 71168,
+      "sha256": "359473814839effc16ade242bad3c598a93610601bc650f550ff44228898d88b"
+    },
+    "nodes": [
+      {
+        "index": "4",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 1003,
+        "end": 1841,
+        "duration": 838,
+        "operation": ""
+      },
+      {
+        "index": "13",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 1841,
+        "end": 3134,
+        "duration": 1293,
+        "operation": ""
+      },
+      {
+        "index": "14",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 1841,
+        "end": 2774,
+        "duration": 933,
+        "operation": "--> src/device/sliding/projection.rs:168:79\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "16",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 2774,
+        "end": 16157,
+        "duration": 13383,
+        "operation": "--> src/device/sliding/projection.rs:175:95\n\nweight.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "21",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 3134,
+        "end": 3461,
+        "duration": 327,
+        "operation": "--> src/device/sliding/projection.rs:169:91\n\ndevice\n.sub.begin(x.view())\n.fetch::<m![Qs / 16 % 16], m![Qs % 16]>()\n.collect::<m![Qs / 16 % 16], m![Qs % 16]>()\n.to_trf()"
+      },
+      {
+        "index": "26",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 16157,
+        "end": 21220,
+        "duration": 5063,
+        "operation": "--> src/device/sliding/projection.rs:178:79\n\ndevice\n.main.begin(weight.view())\n.fetch::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120, Qs / 32 % 8], m![Qs % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120]>()\n.contract_lane::<m![H % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_inter_slice_reduce::<OutputRows, m![H % 120]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.transpose::<m![H / 2 % 60], m![H % 2 # 8]>()\n.commit_trim::<m![H % 2]>()\n.commit()"
+      },
+      {
+        "index": "28",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 16236,
+        "end": 16782,
+        "duration": 546,
+        "operation": "--> src/device/sliding/projection.rs:205:90\n\nweight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "32",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 16782,
+        "end": 17165,
+        "duration": 383,
+        "operation": "--> src/device/sliding/projection.rs:206:94\n\ndevice\n.sub\n.begin(weight_scale.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+      },
+      {
+        "index": "33",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 16782,
+        "end": 17328,
+        "duration": 546,
+        "operation": "--> src/device/shared/rmsnorm.rs:167:81\n\nrms_weight.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "39",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 17328,
+        "end": 17711,
+        "duration": 383,
+        "operation": "--> src/device/shared/rmsnorm.rs:168:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+      },
+      {
+        "index": "40",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 17328,
+        "end": 17874,
+        "duration": 546,
+        "operation": "--> src/device/sliding/projection.rs:236:80\n\nresidual.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "46",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 17874,
+        "end": 18257,
+        "duration": 383,
+        "operation": "--> src/device/sliding/projection.rs:237:84\n\ndevice\n.sub\n.begin(residual.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+      },
+      {
+        "index": "ExplicitSync(4)",
+        "engine": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "begin": 1203,
+        "end": 1803,
+        "duration": 600,
+        "operation": ""
+      },
+      {
+        "index": "54",
+        "engine": "DmaStos",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 21220,
+        "end": 21690,
+        "duration": 470,
+        "operation": "--> src/device/sliding/projection.rs:194:83\n\nresult.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "ExplicitSync(18)",
+        "engine": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "begin": 21690,
+        "end": 22290,
+        "duration": 600,
+        "operation": ""
+      },
+      {
+        "index": "62",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 23290,
+        "end": 23691,
+        "duration": 401,
+        "operation": "--> src/device/sliding/projection.rs:214:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      },
+      {
+        "index": "67",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 23691,
+        "end": 24092,
+        "duration": 401,
+        "operation": "--> src/device/shared/rmsnorm.rs:115:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+      },
+      {
+        "index": "72",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 24092,
+        "end": 24381,
+        "duration": 289,
+        "operation": "--> src/device/shared/rmsnorm.rs:135:83\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.switch::<ScalarSlice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 480], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+      },
+      {
+        "index": "77",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 24381,
+        "end": 24663,
+        "duration": 282,
+        "operation": "--> src/device/shared/rmsnorm.rs:151:69\n\ndevice\n.main\n.begin(total_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, EPS)\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+      },
+      {
+        "index": "80",
+        "engine": "DmaStos",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 24663,
+        "end": 24982,
+        "duration": 319,
+        "operation": "--> src/device/shared/rmsnorm.rs:165:72\n\nrms.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "84",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 24982,
+        "end": 25249,
+        "duration": 267,
+        "operation": "--> src/device/shared/rmsnorm.rs:176:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+      },
+      {
+        "index": "88",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 25249,
+        "end": 25650,
+        "duration": 401,
+        "operation": "--> src/device/shared/rmsnorm.rs:183:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      },
+      {
+        "index": "93",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 25650,
+        "end": 25991,
+        "duration": 341,
+        "operation": "--> src/device/sliding/projection.rs:244:78\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &residual_vrf)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      },
+      {
+        "index": "96",
+        "engine": "DmaStore",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 25991,
+        "end": 26639,
+        "duration": 648,
+        "operation": "--> src/ops.rs:155:5\n\nresidual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut())"
+      },
+      {
+        "index": "ExplicitSync(28)",
+        "engine": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "begin": 26639,
+        "end": 27239,
+        "duration": 600,
+        "operation": ""
+      }
+    ]
+  },
+  "C12-v2": {
+    "makespan": 28404,
+    "context_interval_unions": {
+      "Noop": 0,
+      "DmaEngine": 19616,
+      "PeCore": 21581,
+      "SubContext": 5617,
+      "MainContext": 8091,
+      "VectorEngine": 3403
+    },
+    "schedule": {
+      "bytes": 33435,
+      "sha256": "018ea2bc8ab7defbba3c5f5de0f62967b8edc1bfaff26a6a3a7073a99224592c"
+    },
+    "source_build_record": "moa-dev/experiments/candidates/c12-output-main-sub/build-c12-two-stage-separate-pack-v2-repro.json",
+    "image": {
+      "bytes": 85504,
+      "sha256": "9205df6fdcfaec1ca63b5b4868f21aa6f462a112799f2257c2861f5facbf31a8"
+    },
+    "nodes": [
+      {
+        "index": "5",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 1003,
+        "end": 1841,
+        "duration": 838,
+        "operation": ""
+      },
+      {
+        "index": "23",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 1841,
+        "end": 3134,
+        "duration": 1293,
+        "operation": ""
+      },
+      {
+        "index": "24",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 1841,
+        "end": 2774,
+        "duration": 933,
+        "operation": "--> src/device/sliding/projection.rs:168:79\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "26",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 2774,
+        "end": 9740,
+        "duration": 6966,
+        "operation": "--> src/device/sliding/projection.rs:177:9\n\nweight.tile::<m![H % 120], 60, m![Dummy2, H / 120 % 16, H % 120 = 60 # 120, Qs]>(0)\n.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "31",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 3134,
+        "end": 3461,
+        "duration": 327,
+        "operation": "--> src/device/sliding/projection.rs:169:91\n\ndevice\n.sub.begin(x.view())\n.fetch::<m![Qs / 16 % 16], m![Qs % 16]>()\n.collect::<m![Qs / 16 % 16], m![Qs % 16]>()\n.to_trf()"
+      },
+      {
+        "index": "36",
+        "engine": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "begin": 9740,
+        "end": 12403,
+        "duration": 2663,
+        "operation": "--> src/device/sliding/projection.rs:199:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120 = 60, Qs / 32 % 8], m![Qs % 32], _, _, _>(x)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120 = 60]>()\n.contract_lane::<m![H % 120 = 60], m![1 # 8]>(LaneMode::Interleaved)\n// Keeping scalar flit padding avoids the VE transpose in the producer.\n.commit_trim::<m![1 # 8]>().commit()"
+      },
+      {
+        "index": "37",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 9740,
+        "end": 10578,
+        "duration": 838,
+        "operation": ""
+      },
+      {
+        "index": "40",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 10578,
+        "end": 11871,
+        "duration": 1293,
+        "operation": ""
+      },
+      {
+        "index": "42",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 10581,
+        "end": 17547,
+        "duration": 6966,
+        "operation": "--> src/device/sliding/projection.rs:180:9\n\nweight.tile::<m![H % 120], 60, m![Dummy2, H / 120 % 16, H % 120 = 60 # 120, Qs]>(60)\n.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "49",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext",
+          "VectorEngine"
+        ],
+        "begin": 12403,
+        "end": 13047,
+        "duration": 644,
+        "operation": "--> src/device/sliding/projection.rs:219:106\n\ndevice.sub.begin(partial.view())\n.fetch::<m![H % 120 = 60], m![1 # 8]>()\n.collect::<m![H % 120 = 60], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![H / 120 % 16, 1 # 16], m![H % 120 = 60]>(InterSliceReduceOpF32::Add)\n.vector_final().commit_trim::<m![1 # 8]>().commit()"
+      },
+      {
+        "index": "54",
+        "engine": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "begin": 13047,
+        "end": 13372,
+        "duration": 325,
+        "operation": "--> src/device/sliding/projection.rs:225:5\n\ndevice.main.begin(reduced.view())\n.fetch::<m![H % 120 = 60], m![1 # 8]>()\n.collect::<m![H % 120 = 60], m![1 # 8]>()\n.transpose::<m![H % 120 = 60 / 2], m![H % 120 = 60 % 2 # 8]>()\n.commit_trim::<m![H % 120 = 60 % 2]>()\n.commit_view(output.view_mut().tile::<m![H % 120], 60, m![H % 120 = 60 #{!} 120]>(offset))"
+      },
+      {
+        "index": "63",
+        "engine": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "begin": 17547,
+        "end": 20210,
+        "duration": 2663,
+        "operation": "--> src/device/sliding/projection.rs:199:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120 = 60, Qs / 32 % 8], m![Qs % 32], _, _, _>(x)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120 = 60]>()\n.contract_lane::<m![H % 120 = 60], m![1 # 8]>(LaneMode::Interleaved)\n// Keeping scalar flit padding avoids the VE transpose in the producer.\n.commit_trim::<m![1 # 8]>().commit()"
+      },
+      {
+        "index": "64",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 17547,
+        "end": 18093,
+        "duration": 546,
+        "operation": "--> src/device/sliding/projection.rs:240:90\n\nweight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "67",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 18093,
+        "end": 18476,
+        "duration": 383,
+        "operation": "--> src/device/sliding/projection.rs:241:94\n\ndevice\n.sub\n.begin(weight_scale.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+      },
+      {
+        "index": "68",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 18093,
+        "end": 18639,
+        "duration": 546,
+        "operation": "--> src/device/shared/rmsnorm.rs:167:81\n\nrms_weight.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "74",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 18639,
+        "end": 19022,
+        "duration": 383,
+        "operation": "--> src/device/shared/rmsnorm.rs:168:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+      },
+      {
+        "index": "75",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 18639,
+        "end": 19185,
+        "duration": 546,
+        "operation": "--> src/device/sliding/projection.rs:271:80\n\nresidual.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "81",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 19185,
+        "end": 19568,
+        "duration": 383,
+        "operation": "--> src/device/sliding/projection.rs:272:84\n\ndevice\n.sub\n.begin(residual.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+      },
+      {
+        "index": "88",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext",
+          "VectorEngine"
+        ],
+        "begin": 20210,
+        "end": 20854,
+        "duration": 644,
+        "operation": "--> src/device/sliding/projection.rs:219:106\n\ndevice.sub.begin(partial.view())\n.fetch::<m![H % 120 = 60], m![1 # 8]>()\n.collect::<m![H % 120 = 60], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![H / 120 % 16, 1 # 16], m![H % 120 = 60]>(InterSliceReduceOpF32::Add)\n.vector_final().commit_trim::<m![1 # 8]>().commit()"
+      },
+      {
+        "index": "93",
+        "engine": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "begin": 20854,
+        "end": 21179,
+        "duration": 325,
+        "operation": "--> src/device/sliding/projection.rs:225:5\n\ndevice.main.begin(reduced.view())\n.fetch::<m![H % 120 = 60], m![1 # 8]>()\n.collect::<m![H % 120 = 60], m![1 # 8]>()\n.transpose::<m![H % 120 = 60 / 2], m![H % 120 = 60 % 2 # 8]>()\n.commit_trim::<m![H % 120 = 60 % 2]>()\n.commit_view(output.view_mut().tile::<m![H % 120], 60, m![H % 120 = 60 #{!} 120]>(offset))"
+      },
+      {
+        "index": "ExplicitSync(14)",
+        "engine": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "begin": 1082,
+        "end": 21385,
+        "duration": 20303,
+        "operation": ""
+      },
+      {
+        "index": "101",
+        "engine": "DmaStos",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 22385,
+        "end": 22855,
+        "duration": 470,
+        "operation": "--> src/device/sliding/projection.rs:190:83\n\nresult.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "ExplicitSync(39)",
+        "engine": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "begin": 22855,
+        "end": 23455,
+        "duration": 600,
+        "operation": ""
+      },
+      {
+        "index": "109",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 24455,
+        "end": 24856,
+        "duration": 401,
+        "operation": "--> src/device/sliding/projection.rs:249:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      },
+      {
+        "index": "114",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 24856,
+        "end": 25257,
+        "duration": 401,
+        "operation": "--> src/device/shared/rmsnorm.rs:115:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+      },
+      {
+        "index": "119",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 25257,
+        "end": 25546,
+        "duration": 289,
+        "operation": "--> src/device/shared/rmsnorm.rs:135:83\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.switch::<ScalarSlice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 480], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+      },
+      {
+        "index": "124",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 25546,
+        "end": 25828,
+        "duration": 282,
+        "operation": "--> src/device/shared/rmsnorm.rs:151:69\n\ndevice\n.main\n.begin(total_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, EPS)\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+      },
+      {
+        "index": "127",
+        "engine": "DmaStos",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 25828,
+        "end": 26147,
+        "duration": 319,
+        "operation": "--> src/device/shared/rmsnorm.rs:165:72\n\nrms.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "131",
+        "engine": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "begin": 26147,
+        "end": 26414,
+        "duration": 267,
+        "operation": "--> src/device/shared/rmsnorm.rs:176:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+      },
+      {
+        "index": "135",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 26414,
+        "end": 26815,
+        "duration": 401,
+        "operation": "--> src/device/shared/rmsnorm.rs:183:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      },
+      {
+        "index": "140",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 26815,
+        "end": 27156,
+        "duration": 341,
+        "operation": "--> src/device/sliding/projection.rs:279:78\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![1], m![H % 480]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &residual_vrf)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+      },
+      {
+        "index": "143",
+        "engine": "DmaStore",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 27156,
+        "end": 27804,
+        "duration": 648,
+        "operation": "--> src/ops.rs:155:5\n\nresidual.view().to_hbm_view(&mut device.tdma, residual_hbm.view_mut())"
+      },
+      {
+        "index": "ExplicitSync(49)",
+        "engine": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "begin": 27804,
+        "end": 28404,
+        "duration": 600,
+        "operation": ""
+      }
+    ]
+  },
+  "overlap": {
+    "stage0_dot": [
+      9740,
+      12403
+    ],
+    "stage1_weight_dma": [
+      10581,
+      17547
+    ],
+    "dma_dot_overlap": 1822,
+    "stage0_sub_reduce": [
+      12403,
+      13047
+    ],
+    "stage1_dot": [
+      17547,
+      20210
+    ],
+    "sub_reduce_next_dot_overlap": 0,
+    "explanation": "Stage1 weight DMA completes 4500 cycles after stage0 Sub reduction. This complete prototype does not expose the intended compute/compute overlap. Main producer is vector-free in its contexts, but weight arrival remains later."
+  },
+  "scope": "Static compiler schedule only; union intervals overlap and cannot be added as runtime savings or hardware stall fractions."
+}

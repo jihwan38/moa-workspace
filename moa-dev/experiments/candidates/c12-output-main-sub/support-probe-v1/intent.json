@@ -1,0 +1,10 @@
+{
+  "question": "Does the v1 SFR panic come from Sub inter-slice reduce or Sub transpose, independently of DPE/concurrent stages?",
+  "fixed": "SDK 0.8.1, 2 clusters x 16 row groups x 16 columns,60 rows and one valid F32 per padded flit, same as full candidate.",
+  "arms": [
+    "Main reduce + padded commit, positive reference",
+    "Sub reduce + padded commit, no transpose",
+    "Sub transpose + compact commit, no reduction"
+  ],
+  "meaning": "Compile support only, no NPU accuracy or performance. If Sub reduction passes and Sub transpose fails, move packing to a supported consumer without abandoning split ownership. If Sub reduction itself fails, investigate supported switch reduction path instead of renaming the engine."
+}

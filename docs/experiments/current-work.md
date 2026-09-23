@@ -13,7 +13,9 @@ FFN397348 vs 동시 E104336341/339553(+17.58%)로 종료했다.
 [source·측정·비용 분석](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact.md).
 C15도 up/gate column 소유권을 교체해 compile·기본 NPU PASS 후 FFN385621 vs
 E104335618/335432(+14.93%)로 종료했다. [전송 비용·수정 기록](../../moa-dev/experiments/candidates/c15-upgate-columns/README.md).
-실행 소스는 E104다. 다음 C12-B는 O의 두 구간 Main/Sub pipeline을 검증한다.
+C12-B도 전체 compile·기본 NPU PASS 후 O51862 vs E10450555/50680(관측+2.46%)로
+종료했다. [컴파일 분리 진단·완성 경로·측정](../../moa-dev/experiments/candidates/c12-output-main-sub/README.md).
+세 후보 모두 기본 NPU까지 실행했으며 채택·공식 제출은 없다. 실행 source는E104다.
 
 ## 이전 작업 — main 통합과 E104 비용 진단
 
