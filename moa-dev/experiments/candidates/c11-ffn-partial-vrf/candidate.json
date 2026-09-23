@@ -1,0 +1,17 @@
+{
+  "id": "C11",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "hypothesis": "Replace native FP8 block partial DM commit/refetch with computed F32 partial VRF and streamed FP8-to-F32 scales.",
+  "prior_related": [
+    "C05 E73: repeated BF16 lookup within row tiles regressed",
+    "C05 Sub partial reduction: compiler ISA lowering failed"
+  ],
+  "difference": "Weight FP4-to-FP8 materialization stays outside the tiles; native DPE results go directly through input-scale restoration into VRF; Main consumes scales with partials as VRF operand.",
+  "tile_rows": 2,
+  "tile_choice": "Research upper bound was 3 rows/5760B. Two rows/3840B chosen before first build to satisfy the existing 8-byte F32 output commit alignment, avoiding a padded temporary output. Not a tile sweep.",
+  "stop_condition": "Stop on unsupported computed VRF path or clear static loss from small DPE launches; at most one obvious shape/API correction."
+}
