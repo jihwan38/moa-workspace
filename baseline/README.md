@@ -27,6 +27,7 @@ E79와 같은 순위다. 작은 개선의 추가 조정보다 새로운 실행 �
 | 다음 큰 구조 변경 후보·논문 근거·조기 종료 조건 | [9월 23일 C09–C14](../docs/research/structural-candidates-20260923.md) |
 | 이전 최적화 후보와 C01–C08 진행 이력 | [E55 이후 조사](../docs/research/optimization-candidates-20260922.md) |
 | 무엇을 추가·제거·변경했는지 남기는 양식 | [조합 실험 양식](../docs/experiments/combination-template.md) |
+| Source 부모·variant 파일·성능 비교군을 별도로 지정하는 실제 JSON 입력 | [소스 조립 recipe](../docs/experiments/combination-template.md#json을-실제-소스-선택에-연결하기) |
 | 실제 단독/조합 비교를 채운 예시 | [E58 + E59 → E60](../docs/experiments/combinations/e60-down-padding.md) |
 | C01 scale-DPE의 단독·조합과 미채택 이유 | [E65 + E66 → E67](../docs/experiments/combinations/e67-scale-dpe.md) |
 | C05의 두 dataflow·정확도·반복 측정 | [E73 / E74 / E75](../moa-dev/experiments/candidates/c05-streamed-decode/README.md) |

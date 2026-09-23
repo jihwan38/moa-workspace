@@ -21,8 +21,8 @@ Arena 실험 상태를 구분한다.
 각 1회 compile했으며 exact image hash가 채택본과 동일했다. Arena 실행·공식 제출은
 없다. 성능표의 +0.71%/+3.55%는 compiler schedule이며 NPU cycle 변화가 아니다.
 
-현재 작업 브랜치는 `opt/c10-direct-weight-trf`이며 C09 → C11 → C10 순서의 기록을
-모두 포함한다. 세 후보 브랜치는 private origin에 각각 push한다. E104 실행 소스는
+세 실험의 마지막 브랜치는 `opt/c10-direct-weight-trf`이며 C09 → C11 → C10 순서의 기록을
+모두 포함한다. 세 후보 브랜치는 private origin에 각각 push했다. E104 실행 소스는
 바꾸지 않았고 `experiment_index.py --check --check-live`로 확인한다.
 후속 미구현 후보는 C12(Main/Sub 분리), C13(INT8 DPE), C14(FFN 전체 구간 pipeline)다.
 
@@ -54,3 +54,25 @@ NPU에서 해당 비율로 느려진다고 확정하거나 전체 설계 계열�
 C12도 현재 제안 범위는 국소 자원 배치 변경이므로 자동으로 다음 대형 설계로 세지 않는다.
 C14의 FFN 단계 간 의존성 재설계와 C13의 계산 표현 교체처럼 넓은 가설을 우선 검토하되,
 실제 개선 여부는 아직 미검증이다. 이번 재검토에서 새 kernel을 구현·실행하지 않았다.
+
+## 소스 선택의 E104 고정 제거
+
+현재 작업 브랜치는 `fix/recipe-driven-experiments`다. 후속 지적을 받고 실제 빌더를
+확인한 결과, `structural_build.py`는 JSON의 `base_commit`을 사용하지 않고 E104 상수를
+`common.BASE`에 대입하고 있었다. 변경하지 않은 image의 검사도 E104로 고정돼 있었다.
+이 고정은 내가 만든 구현 선택이며, 기록만으로 조합 탐색이 수행됐다고 볼 수 없다.
+
+빌더가 recipe의 출발 commit과 variant별 파일 선택을 실제로 사용하도록 수정했다.
+성능 비교군은 `comparison_recipe`로 분리했다. 과거 build를 image 기준으로 쓸 때는
+선택한 출발 source와 일치하는지 검사한다. 같은 destination의 중복 덮어쓰기는 거부한다.
+[실제 입력 형식과 조립 범위](combination-template.md)를 따른다.
+
+검증: E55/E79/E104 source 선택과 E104 비교군의 독립성, variant별 source 선택,
+기준 image의 잘못된 승계 거부, 중복 destination 거부, 기존 세 recipe 호환성,
+실제 Git archive→변경 파일 복사 결과까지 **6개 테스트 PASS**다. 실제 조립 검사는
+첫 Docker 호출 직전에 멈추도록 만든 테스트다. 새 compiler/NPU/공식 제출 실행은 없다.
+기존 실험의 frozen source/log/build JSON과 채택 E104는 변경하지 않았다.
+
+이 수정은 선택한 조합을 빌더가 따르게 만든 것이다. 과거 method ID를 자동으로
+서로 호환되는 코드로 합치는 기능은 아니다. 다음 실험은 출발 구조·과거 방법·제거할
+충돌 요소의 조합부터 정하고, 그 조합을 담은 실제 코드와 JSON이 일치하는지 확인한다.

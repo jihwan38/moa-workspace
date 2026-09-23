@@ -16,6 +16,20 @@
   Explore replacements, removals, different layouts and coupled changes to decode,
   contraction, scale, tiling and communication. A slow intermediate design does
   not rule out a coherent combination. Record the actual candidate starting point.
+- The exploration unit is a coherent architecture-and-method combination. Use
+  historical recipes and rejected snapshots as options, not only as records to
+  compare against the current winner. Select the architecture, compatible prior
+  methods, conflicting methods to remove, and changed producer/consumer layouts
+  together. A method that loses in one combination is not globally rejected.
+- The source recipe and performance control must be separate explicit inputs.
+  Use `structural_build.py --plan` to check the selected commit and file origins;
+  never hard-code the adopted source into the builder. A variant `recipe.json`
+  can choose a different origin and source bundle from another variant. Baseline
+  method IDs are descriptions, not implemented independent switches. Compose
+  methods sharing a file explicitly and verify all intended changes survive;
+  JSON metadata alone does not prove source-level or numerical compatibility.
+  Before an Arena comparison, verify its actual control package matches the
+  declared comparison recipe; source planning does not configure a batch runner.
 - While the gap to the leading teams remains large, prioritize materially
   different execution architectures and coupled designs over local parameter
   sweeps. The current winner is a comparison control, not a design constraint.

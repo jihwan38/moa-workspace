@@ -36,7 +36,8 @@ def run(args, log=None):
 
 
 def build(variant, extra=False, label=None, edges=False, *, target_kernel=None,
-          changed_sources=None, compile_only=False):
+          changed_sources=None, compile_only=False, expected_images=None,
+          expected_source_inputs=None):
     label = label or variant + ("-edges" if edges else "-extra" if extra else "")
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", label):
         raise SystemExit("Use a simple alphanumeric/hyphen/underscore label")
@@ -62,9 +63,14 @@ def build(variant, extra=False, label=None, edges=False, *, target_kernel=None,
     shutil.copyfile(lock, crate / "Cargo.lock")
     changed = changed_sources if changed_sources is not None else ({"projection.rs": "src/device/sliding/projection.rs", "rmsnorm.rs": "src/device/sliding/rmsnorm.rs", "rope.rs": "src/device/sliding/rope.rs", "ops.rs": "src/ops.rs"} if variant.startswith("c03") else {"mlp.rs": "src/device/shared/mlp.rs"})
     for name, target in changed.items():
+        (crate / target).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(HERE / variant / name, crate / target)
     target_kernel = target_kernel or ("sliding_project_qkv" if variant.startswith("c03") else "decoder_feedforward")
     assert target_kernel in IMAGES
+    # Historical callers retain their recorded image checks. New recipe-driven
+    # callers explicitly choose checks for their source origin, independently
+    # of whichever implementation is used as the performance comparison.
+    image_checks = IMAGES if expected_images is None else expected_images
     if extra:
         sys.path.insert(0, str(ROOT / "moa-dev"))
         from extra_seeds import extended_harness
@@ -78,6 +84,8 @@ def build(variant, extra=False, label=None, edges=False, *, target_kernel=None,
               for p in sorted(crate.rglob("*")) if p.is_file()
               and (p.is_relative_to(crate / "src") or p.name in
                    {"Cargo.toml", "Cargo.lock", "rust-toolchain.toml"})}
+    if expected_source_inputs is not None:
+        assert inputs == expected_source_inputs, "Assembled source differs from the selected recipe; stop before compilation"
     container = f"/tmp/moa-c02-c03/{label}"
     run(["docker", "exec", "moa2026-dev", "mkdir", "-p", container])
     run(["docker", "cp", str(crate) + "/.", f"moa2026-dev:{container}"])
@@ -125,14 +133,16 @@ def build(variant, extra=False, label=None, edges=False, *, target_kernel=None,
         run(["docker", "cp", f"moa2026-dev:{image_dir}/.", str(out / "kernels")])
         host = (package / "test_runtime").read_bytes()
         record["images"] = {}
-        for name, baseline_hash in IMAGES.items():
+        record["unchanged_image_checks"] = {}
+        for name in IMAGES:
             data = (out / "kernels" / f"furiosa_opt_gemma4::ops::{name}.bin").read_bytes()
             record["images"][name] = dict(digest(data), host_occurrences=host.count(data))
             assert host.count(data) == 1
             if name == target_kernel:
                 assert data == (out / "exact-kernel.bin").read_bytes()
-            else:
-                assert digest(data)["sha256"] == baseline_hash
+            elif name in image_checks:
+                assert digest(data)["sha256"] == image_checks[name]
+                record["unchanged_image_checks"][name] = image_checks[name]
         fixture = (ROOT / "moa-dev/experiments/artifacts/extra-seeds-run3-8/crate/ref/fixtures.safetensors"
                    if extra else frozen / "ref/fixtures.safetensors")
         fixture_hash = ("f85f6e03d8eb359cc8589d375f89ba7b501924b095059800e322378e017cb4df" if extra else
