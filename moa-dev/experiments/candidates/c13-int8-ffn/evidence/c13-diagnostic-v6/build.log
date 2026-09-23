@@ -1,0 +1,115 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/tmp/moa-c13/c13-diagnostic-v6)
+error: `Term` is ambiguous
+  --> src/bin/probe.rs:55:30
+   |
+55 |     let x: HbmTensor<i8,Chip,m![Term,K]> = HostTensor::<i8,m![Term,K]>::from_vec(digits.clone()).to_hbm(&mut d.pdma).await.unwrap();
+   |                              ^^^^^^^^^^ ambiguous name
+   |
+   = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Term` could refer to the struct imported here
+  --> src/bin/probe.rs:1:5
+   |
+ 1 | use furiosa_opt_std::prelude::*;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `Term` to disambiguate
+note: `Term` could also refer to the struct imported here
+  --> src/bin/probe.rs:2:32
+   |
+ 2 | use furiosa_opt_gemma4::{Chip, axes::*, integer_probe};
+   |                                ^^^^^^^
+   = help: consider adding an explicit import of `Term` to disambiguate
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
+   = note: `#[deny(ambiguous_glob_imports)]` (part of `#[deny(future_incompatible)]`) on by default
+   = note: this error originates in the macro `m` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: `Term` is ambiguous
+  --> src/bin/probe.rs:55:60
+   |
+55 |     let x: HbmTensor<i8,Chip,m![Term,K]> = HostTensor::<i8,m![Term,K]>::from_vec(digits.clone()).to_hbm(&mut d.pdma).await.unwrap();
+   |                                                            ^^^^^^^^^^ ambiguous name
+   |
+   = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Term` could refer to the struct imported here
+  --> src/bin/probe.rs:1:5
+   |
+ 1 | use furiosa_opt_std::prelude::*;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `Term` to disambiguate
+note: `Term` could also refer to the struct imported here
+  --> src/bin/probe.rs:2:32
+   |
+ 2 | use furiosa_opt_gemma4::{Chip, axes::*, integer_probe};
+   |                                ^^^^^^^
+   = help: consider adding an explicit import of `Term` to disambiguate
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
+   = note: this error originates in the macro `m` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `furiosa_opt_std::prelude::Term: furiosa_opt_std::prelude::AxisName` is not satisfied
+  --> src/bin/probe.rs:55:12
+   |
+55 |     let x: HbmTensor<i8,Chip,m![Term,K]> = HostTensor::<i8,m![Term,K]>::from_vec(digits.clone()).to_hbm(&mut d.pdma).await.unwrap();
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `furiosa_opt_std::prelude::AxisName` is not implemented for `furiosa_opt_std::prelude::Term`
+   |
+   = help: the following other types implement trait `furiosa_opt_std::prelude::AxisName`:
+             furiosa_opt_gemma4::axes::H
+             furiosa_opt_gemma4::axes::IntBlockElt
+             furiosa_opt_gemma4::axes::IntTerm
+             furiosa_opt_gemma4::axes::K
+             furiosa_opt_gemma4::axes::L
+             furiosa_opt_gemma4::axes::QuantCopies
+             furiosa_opt_gemma4::axes::Rows
+             furiosa_opt_gemma4::axes::Term
+note: required by a bound in `furiosa_opt_std::prelude::Symbol`
+  --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-mapping-types-0.8.1/src/dsl.rs:89:22
+   |
+89 | pub struct Symbol<S: AxisName> {
+   |                      ^^^^^^^^ required by this bound in `Symbol`
+
+error[E0277]: the trait bound `furiosa_opt_std::prelude::Term: furiosa_opt_std::prelude::AxisName` is not satisfied
+  --> src/bin/probe.rs:55:44
+   |
+55 |     let x: HbmTensor<i8,Chip,m![Term,K]> = HostTensor::<i8,m![Term,K]>::from_vec(digits.clone()).to_hbm(&mut d.pdma).await.unwrap();
+   |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `furiosa_opt_std::prelude::AxisName` is not implemented for `furiosa_opt_std::prelude::Term`
+   |
+   = help: the following other types implement trait `furiosa_opt_std::prelude::AxisName`:
+             furiosa_opt_gemma4::axes::H
+             furiosa_opt_gemma4::axes::IntBlockElt
+             furiosa_opt_gemma4::axes::IntTerm
+             furiosa_opt_gemma4::axes::K
+             furiosa_opt_gemma4::axes::L
+             furiosa_opt_gemma4::axes::QuantCopies
+             furiosa_opt_gemma4::axes::Rows
+             furiosa_opt_gemma4::axes::Term
+note: required by a bound in `furiosa_opt_std::prelude::Symbol`
+  --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-mapping-types-0.8.1/src/dsl.rs:89:22
+   |
+89 | pub struct Symbol<S: AxisName> {
+   |                      ^^^^^^^^ required by this bound in `Symbol`
+
+error[E0599]: the associated function or constant `from_vec` exists for struct `HostTensor<i8, Pair<Symbol<Term>, Symbol<K>>>`, but its trait bounds were not satisfied
+   --> src/bin/probe.rs:55:73
+    |
+ 55 |     let x: HbmTensor<i8,Chip,m![Term,K]> = HostTensor::<i8,m![Term,K]>::from_vec(digits.clone()).to_hbm(&mut d.pdma).await.unwrap();
+    |                                                                         ^^^^^^^^ associated function or constant cannot be called on `HostTensor<i8, Pair<Symbol<Term>, Symbol<K>>>` due to unsatisfied trait bounds
+    |
+   ::: /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-mapping-types-0.8.1/src/lib.rs:600:1
+    |
+600 | pub struct Term {
+    | --------------- doesn't satisfy `_: AxisName`
+    |
+   ::: /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-mapping-types-0.8.1/src/dsl.rs:276:1
+    |
+276 | pub struct Pair<L, R> {
+    | --------------------- doesn't satisfy `_: M`
+    |
+    = note: the following trait bounds were not satisfied:
+            `furiosa_opt_std::prelude::Term: furiosa_opt_std::prelude::AxisName`
+            which is required by `furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<furiosa_opt_std::prelude::Term>, furiosa_opt_std::prelude::Symbol<furiosa_opt_gemma4::axes::K>>: furiosa_opt_std::prelude::M`
+    = note: the full name for the type has been written to '/tmp/moa-c01-probe/target/release/deps/probe-0da08ae25bd353c0.long-type-3097438021186928463.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `furiosa-opt-gemma4` (bin "probe") due to 7 previous errors

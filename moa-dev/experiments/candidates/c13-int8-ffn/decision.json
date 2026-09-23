@@ -1,15 +1,17 @@
 {
   "candidate": "C13",
-  "status": "blocked-by-scale-dma-alignment",
-  "scope": "Whole-FFN integer representation/contraction replacement implemented in source; no complete compiled FFN image",
+  "status": "closed-after-valid-hardware-regression",
+  "scope": "Whole-FFN INT8 representation/contraction replacement compiled and passed the unchanged three-seed competition screen; not adopted",
   "adopted": false,
   "source_base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
   "performance_control": "baseline/e104.json",
   "architecture_families": 1,
   "primitive_compile_attempts": 1,
-  "whole_ffn_compile_attempts": 2,
   "control_compile_attempts": 0,
-  "arena_jobs": [],
+  "arena_jobs": [
+    78631,
+    78730
+  ],
   "official_submission": false,
   "primitive": {
     "status": "compile-pass",
@@ -46,27 +48,94 @@
       "build_record": "moa-dev/experiments/candidates/c13-int8-ffn/build-c13-integer-v2-repro.json",
       "source_sha256": "80f3fd15ae1549f14994cd3f9cf43d4e967012f77546c33d4c42d7df24526c62",
       "error": "DmaCommand verifying restore.to_dm: strides([4,16,4,0,0,0,0,0]) is not aligned by 8 (mlp.rs:580)"
+    },
+    {
+      "label": "c13-integer-v3",
+      "variant": "integer-v3",
+      "build_record": "moa-dev/experiments/candidates/c13-int8-ffn/build-c13-integer-v3-repro.json",
+      "exact_compile_exit_code": 1,
+      "source_sha256": "ed1498fe028841bf56f2ce6d37d054f77067422936e16473fffb247e9b62ace7"
+    },
+    {
+      "label": "c13-integer-v4",
+      "variant": "integer-v4",
+      "build_record": "moa-dev/experiments/candidates/c13-int8-ffn/build-c13-integer-v4-repro.json",
+      "exact_compile_exit_code": 1,
+      "source_sha256": "71692befd6dd14a96c8084f2bc4d0d5337eeec0346cefc974610b5230d5d92b3"
+    },
+    {
+      "label": "c13-integer-v5",
+      "variant": "integer-v5",
+      "build_record": "moa-dev/experiments/candidates/c13-int8-ffn/build-c13-integer-v5-repro.json",
+      "exact_compile_exit_code": 1,
+      "source_sha256": "c33e49191a20a68ca6171031dff180fd3f8f69cadc6ae13540821ffd74e09d32"
+    },
+    {
+      "label": "c13-integer-v6",
+      "variant": "integer-v6",
+      "build_record": "moa-dev/experiments/candidates/c13-int8-ffn/build-c13-integer-v6-repro.json",
+      "exact_compile_exit_code": 0,
+      "source_sha256": "216283474bfdf37ba7163860122bb760b2397dd1250a67efa3665f3b7d57dacc"
+    },
+    {
+      "label": "c13-integer-v7-package",
+      "variant": "integer-v7",
+      "build_record": "moa-dev/experiments/candidates/c13-int8-ffn/build-c13-integer-v7-package-repro.json",
+      "exact_compile_exit_code": 0,
+      "host_build_exit_code": 0,
+      "source_sha256": "1f5e5aea3ed8a73c0334f6d1edc42d9c9fec2bb5d5c7197868cd66739659fad6"
     }
   ],
-  "final_failure": {
-    "location": "integer-v2/mlp.rs:580",
-    "operation": "Per-block activation restoration scale from quantization slices to canonical slice",
-    "producer": "QuantSlices=H/64#256, local H/16%4 scalars in padded 1#8 F32 packets",
-    "consumer": "Slice=1#256, compact H/16 F32 vector",
-    "cause": "DMA destination scalar stride of 4 bytes violates the required 8-byte sequencer alignment",
-    "reached_scope": "Full FFN Rust frontend passes; lowering fails while verifying the first quantizer scale gather"
+  "performance": {
+    "scope": "One Arena allocation, serial E104/candidate/E104 processes, three input seeds each; no independent repeat or official score claim.",
+    "job": 78730,
+    "control_before": 334969,
+    "candidate": 397318,
+    "control_after": 335156,
+    "change_percent_vs_bracketing_median": 18.580264875955987,
+    "report": "docs/experiments/e108-c13-integer-v7.json"
   },
-  "performance": null,
-  "npu_accuracy": "not evaluated",
-  "whole_ffn_schedule": null,
+  "npu_accuracy": "v7 unchanged 3-seed/15-comparison package PASS, including all 11520 FFN output values. Separate zero-input raw-scale diagnostic retains a documented subnormal flush difference.",
+  "whole_ffn_schedule": {
+    "variant": "integer-v7",
+    "cycles": 187947,
+    "sha256": "7aaaafa08e46b79f4b7234f44fb3dffcd42c7b0c6cdafdc133dc80d90eeec91d"
+  },
   "runtime": "E104 unchanged",
-  "closure_reason": "The one permitted shape correction was used to separate the reduction axis from the retained block index. The next failure is scale DMA alignment. Close at the recorded gate; no further packing/parameter repairs in this prototype.",
-  "retry_condition": "A later C13 layout revision must specify aligned scale production, transfer and dot-consumer indexing together (e.g. packed scale pairs before DMA), check that contract, and count as the same architecture family. This failure does not reject INT8 or establish a speed bound.",
+  "closure_reason": "The implementation errors were repaired and v7 passed the unchanged standard NPU correctness screen. Its measured FFN median is 18.58% above the adjacent E104 control midpoint; close this implementation without performance tuning under the measured-regression rule.",
+  "retry_condition": "A later C13 cost redesign must reduce integer weight-conversion/quantization work or otherwise change the cost mechanism. Current data rejects this measured combination, not all integer architectures.",
   "untried_shortlist": "C12 remains unimplemented, but its current scope is local Main/Sub resource placement; do not present it as a new whole-FFN architecture.",
   "toolchain": {
     "cargo_furiosa_opt": "0.8.1",
     "furiosa_opt_std": "0.8.1 (pinned Cargo.lock)",
     "container_image": "sha256:518d7b7ddaca5a97344d8bbd60e04f5e87ca7c50d883bfb5930a64a0c6ff382f",
     "source_recipe_and_frozen_hash_audit": "PASS"
-  }
+  },
+  "initial_decision": "decision-initial-v2.json",
+  "whole_ffn_source_variants": 7,
+  "whole_ffn_exact_compile_invocations": 9,
+  "whole_ffn_package_builds": 2,
+  "diagnostic_host_build_attempts": 6,
+  "diagnostic_arena_jobs": [
+    78667,
+    78699,
+    78711,
+    78729
+  ],
+  "final_image": {
+    "bytes": 268288,
+    "sha256": "330ef670c897c7ff25f34dc15248094d18bec604e37707100a9ac531a0cf931f",
+    "host_occurrences": 1
+  },
+  "policy_change": "AGENTS.md now distinguishes repairable source/layout errors from demonstrated SDK limitations and measured losses; compile count alone is not a reason to abandon a concrete supported repair.",
+  "diagnosis": {
+    "v3": "F32 transpose supports two rows, not four; corrected to paired 8B scale records.",
+    "v4_v5": "Fetch-sequencer normalization discarded anonymous high padding for the 60-slice H quantizer; explicit anonymous factor did not fix it.",
+    "v6": "Four named identical input copies retain a full 256-slice partition and compile. Full Arena execution returns non-finite FFN outputs; no performance aggregate from that run.",
+    "v6c_v6d": "K=3840 plain integer dot has 0/960 mismatches; inline narrow/per-block scale after I32 unzip/zip has 956/960 mismatches. Weight conversion and normal H/L quantization match independently.",
+    "v7": "Keep exact integer sums in F32 DM, then apply restoration in a fresh tag-zero FP stream. Diagnostic scaled dot returns 0/960 mismatches and full standard FFN accuracy passes.",
+    "root_cause_limit": "The problematic compiled operation composition is isolated. The precise internal compiler/ISA cause is not established.",
+    "zero_scale_boundary": "For all-zero inputs, hardware returns restoration scale 0 instead of the CPU mathematical subnormal 2^-134; digits are zero. All four diagnostic jobs retain 1200 raw-scale bit mismatches and are not labeled globally passing."
+  },
+  "c14_review": "c14-assessment.md: prior padded producer/consumer DMA failure does not prove C14 is impossible; a per-stage compaction repair is identified but not executed in this work."
 }

@@ -11,11 +11,11 @@ lookup→TRF의 StoTrf lowering에서 target 설정 제약으로 실패해 종�
 
 그 뒤 [C14-A](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/README.md)는
 E74 기반 L-stage FFN을 구현했으나 producer→down DMA padding lowering에서 종료했다.
-[C13](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md)은 up/gate/down을
-INT8 두 항/I32 누산으로 작성했다. Primitive compile과 CPU 계산식 screen은
-통과했지만 전체 FFN은 block scale DMA 정렬에서 실패했다. 두 후보 모두 NPU
-성능 미평가·미채택이다. 현재 목록에서 C12가 미구현으로 남으며, 국소 Main/Sub
-자원 배치 변경이라는 범위를 유지한다.
+[C13](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md)은 초기 scale DMA
+정렬 실패 뒤 재개했다. v6 전체 compile 후 NPU 정확도 오류를 진단하고, v7의
+별도 F32 scale 단계로 수정해 기존 기본 검사를 통과했다. 단회 FFN screen에서
+동시 E104보다 18.58% 느려 미채택했다. C14는 아직 NPU 미평가이며, C12는
+미구현인 국소 Main/Sub 자원 배치 후보다.
 
 아래는 2026-09-23 최초 **기존 시도 대조·논문 조사·설계 선별** 시점의 가설이다.
 당시에는 여섯 후보를 구현·컴파일·실행하지 않았다. 비교군은 현재 채택본

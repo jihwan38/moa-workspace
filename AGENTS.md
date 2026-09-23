@@ -70,6 +70,15 @@
   candidate just to make it build; record why it ended and move to the next one.
   Only promising candidates proceed to Arena and extended validation. A coupled
   design may proceed on a concrete cost argument even if one isolated part loses.
+- The user clarified that these gates must not become automatic abandonment of
+  fixable implementation errors before any performance evaluation. An axis,
+  padding, alignment or API-use error in our source is not proof that the SDK
+  cannot express the architecture. Identify the failing producer/transfer/consumer
+  contract and continue a concrete supported repair when its cause is understood;
+  record the reason and each frozen attempt. Reassess after new evidence, rather
+  than stopping solely because a compile count was reached. Distinguish a source
+  bug, a demonstrated SDK limitation, an unresolved issue and a measured loss.
+  Do not replace one arbitrary retry count with an unbounded parameter sweep.
 - The default screen closes regressions and gains below 5% of the target kernel
   without further parameter tuning. This is a provisional experiment-budget
   cutoff, not a significance or promotion rule. Record concrete reasons for an

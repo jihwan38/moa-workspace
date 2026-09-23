@@ -1,0 +1,43 @@
+{
+  "id": "C13",
+  "base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "scope": "Replace the numerical representation and contraction/scale path of up, gate and down with integer DPE; preserve the public interface and BF16 nonlinear/epilogue boundaries.",
+  "whole_graph": "BF16 normalized input -> 16-element block scale and two signed INT8 radix-128 digits -> replicated two-lane TRF -> exact FP4-to-2w INT8 conversion -> I8xI8 dot -> I32 128*hi+lo -> F32 scale restoration and weight block scale -> BF16 up/gate -> unchanged GeGLU -> same block quantization and integer contraction for down -> F32 column sum -> BF16 and unchanged epilogue",
+  "activation": "For each 16-element block: s=2^floor(log2(max(amax,2^-120)))/64; hi=clip(round_half_away_from_zero(x/s),-127,127); lo=round_half_away_from_zero((x/s-hi)*128). Restore x approximately as (128*hi+lo)*s/128. Two digits chosen independently of E104's three E5M2 terms; numerical screening is required.",
+  "weight": "FP4 E2M1 -> exact FP8 lookup -> F32 widening -> vector_fp_to_fxp(30), which represents 2*w -> INT8 cast. No host prepacking; all conversion costs remain inside the kernel.",
+  "integer_bound": "For 16 elements, |dot_hi|<=16*127*12=24384, |dot_lo|<=16*64*12=12288, so |128*dot_hi+dot_lo|<=3133440 <2^24 and <2^31. F32 conversion is exact before scale restoration.",
+  "selected_components": [
+    "E74 BF16 input contract, F32 block-scale reduction and BF16 nonlinear/epilogue boundaries",
+    "C07 two-lane term layout/unzip mechanism, with integer radix coefficients and I32 arithmetic instead of FP8 approximation",
+    "C04 ring broadcast mechanism for redistributed down inputs"
+  ],
+  "removed_assumptions": [
+    "BF16 weight lookup immediately before each dot",
+    "E104 global activation scale and three floating-point residual terms",
+    "Existing block dot dtype and scale-restoration placement"
+  ],
+  "prior_related": [
+    "C07 native FP8 and scale-contraction variants; integer operands, I32 radix combination and per-block activation quantization were not tested there",
+    "C14-A whole-FFN producer/consumer pipeline failed padding redistribution; that mapping is not inherited"
+  ],
+  "first_gate": "Independent arithmetic/range checks, then a small diagnostic compiling exact FP4 conversion and two-lane INT8 dot/I32 radix combination. This probe is not a competition submission or evidence of whole-FFN performance.",
+  "stop_condition": "One primitive prototype and at most one clear API/shape correction. If unsupported or numerical/cost evidence removes the benefit, close with source and logs. If viable, implement the declared complete three-projection FFN and screen it, with one clear compile correction at most; do not substitute a local E104 edit for this architecture.",
+  "promotion": "Whole-kernel correctness and contemporary E104 control on Arena required; static primitive timings do not establish speedup. Default <5% target-kernel gain closes tuning after bounded validation.",
+  "adopted": false,
+  "variant": "integer-v4",
+  "prior_attempt": "integer-v3",
+  "reopening": {
+    "reason": "User challenged closure before compilation/performance evaluation. v2 is our padded scalar gather layout error, not evidence that INT8 FFN is unsupported or unpromising.",
+    "specific_repair": "Before scale DMA, transpose four scalar time steps into a contiguous 4-F32 (16-byte) packet and trim padding. Both H and L quantizers use this producer layout; canonical scale vectors and dot consumers retain the original block indexing.",
+    "scope": "Same C13 architecture, no changed arithmetic or parameter search. Follow concrete implementation failures to an executable full kernel; retain every attempt and reassess if an actual unsupported operation or cost/accuracy failure is established."
+  },
+  "correction": {
+    "cause": "F32 transpose max_in_rows is two, so packing four scalar rows in a packet was invalid.",
+    "fix": "Use the existing C07 F32 two-row transpose form; two packed F32 values satisfy 8B DMA alignment. Same producer/gather/consumer contract and arithmetic."
+  }
+}

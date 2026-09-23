@@ -1,0 +1,72 @@
+{
+  "candidate": "C13",
+  "status": "blocked-by-scale-dma-alignment",
+  "scope": "Whole-FFN integer representation/contraction replacement implemented in source; no complete compiled FFN image",
+  "adopted": false,
+  "source_base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "performance_control": "baseline/e104.json",
+  "architecture_families": 1,
+  "primitive_compile_attempts": 1,
+  "whole_ffn_compile_attempts": 2,
+  "control_compile_attempts": 0,
+  "arena_jobs": [],
+  "official_submission": false,
+  "primitive": {
+    "status": "compile-pass",
+    "static_cycles": 4630,
+    "record": "build-c13-integer-probe-v1.json",
+    "scope": "Standalone API gate only. No complete FFN, activation quantization, NPU accuracy or speedup claim."
+  },
+  "cpu_numeric": {
+    "status": "PASS",
+    "runs": 3,
+    "checked_outputs": 11520,
+    "max_abs_error": 0.0078125,
+    "maximum_error_over_tolerance": 0.5865103006362915,
+    "unchanged_tolerance": "atol=0.01 + rtol=0.01*abs(expected)",
+    "report": "numeric-screen.json",
+    "provenance": "numeric-provenance.json",
+    "scope": "CPU mathematics of proposed C13 arithmetic against unchanged fixture outputs. Does not emulate compiler mapping, NPU conversion rounding or F32 reduction tree."
+  },
+  "attempts": [
+    {
+      "label": "c13-integer-v1",
+      "variant": "integer-v1",
+      "frontend": "passed_with_warnings",
+      "exact_compile_exit_code": 1,
+      "build_record": "moa-dev/experiments/candidates/c13-int8-ffn/build-c13-integer-v1-repro.json",
+      "source_sha256": "9ad3e4a06ad8b4f2436f94238a399738257070f4b13fcc677a1d4d7546c51e33",
+      "error": "amax reduce<H/L> removed all factors of the reduction axis: declared H_16=4 plus scalar, pipeline only scalar (mlp.rs:507)"
+    },
+    {
+      "label": "c13-integer-v2",
+      "variant": "integer-v2",
+      "frontend": "passed_with_warnings",
+      "exact_compile_exit_code": 1,
+      "build_record": "moa-dev/experiments/candidates/c13-int8-ffn/build-c13-integer-v2-repro.json",
+      "source_sha256": "80f3fd15ae1549f14994cd3f9cf43d4e967012f77546c33d4c42d7df24526c62",
+      "error": "DmaCommand verifying restore.to_dm: strides([4,16,4,0,0,0,0,0]) is not aligned by 8 (mlp.rs:580)"
+    }
+  ],
+  "final_failure": {
+    "location": "integer-v2/mlp.rs:580",
+    "operation": "Per-block activation restoration scale from quantization slices to canonical slice",
+    "producer": "QuantSlices=H/64#256, local H/16%4 scalars in padded 1#8 F32 packets",
+    "consumer": "Slice=1#256, compact H/16 F32 vector",
+    "cause": "DMA destination scalar stride of 4 bytes violates the required 8-byte sequencer alignment",
+    "reached_scope": "Full FFN Rust frontend passes; lowering fails while verifying the first quantizer scale gather"
+  },
+  "performance": null,
+  "npu_accuracy": "not evaluated",
+  "whole_ffn_schedule": null,
+  "runtime": "E104 unchanged",
+  "closure_reason": "The one permitted shape correction was used to separate the reduction axis from the retained block index. The next failure is scale DMA alignment. Close at the recorded gate; no further packing/parameter repairs in this prototype.",
+  "retry_condition": "A later C13 layout revision must specify aligned scale production, transfer and dot-consumer indexing together (e.g. packed scale pairs before DMA), check that contract, and count as the same architecture family. This failure does not reject INT8 or establish a speed bound.",
+  "untried_shortlist": "C12 remains unimplemented, but its current scope is local Main/Sub resource placement; do not present it as a new whole-FFN architecture.",
+  "toolchain": {
+    "cargo_furiosa_opt": "0.8.1",
+    "furiosa_opt_std": "0.8.1 (pinned Cargo.lock)",
+    "container_image": "sha256:518d7b7ddaca5a97344d8bbd60e04f5e87ca7c50d883bfb5930a64a0c6ff382f",
+    "source_recipe_and_frozen_hash_audit": "PASS"
+  }
+}

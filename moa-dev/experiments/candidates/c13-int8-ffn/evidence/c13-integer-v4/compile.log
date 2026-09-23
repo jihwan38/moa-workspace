@@ -1,0 +1,47 @@
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `feedforward` is never used
+   --> src/device/shared/mlp.rs:166:15
+    |
+166 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `project_down` is never used
+   --> src/device/shared/mlp.rs:375:15
+    |
+375 | pub(crate) fn project_down(
+    |               ^^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [1/1] ops::decoder_feedforward
+
+thread 'rustc' (1060040) panicked at crates/npu-ir/tu-ops/src/renegade/fetch_sequencer/like.rs:94:77:
+called `Result::unwrap()` on an `Err` value: [] | [Dummy=2] | [H_64=60] | [H_16=4, IntBlockElt_1=16] | [](1)
+
+Caused by:
+    invalid partitioning shape volume: self.partitioning_volume() (64) != config::global_config().num_slices() (256)
+
+Location:
+    crates/npu-ir-common/src/shape/kind/buffer_shape.rs:177:9
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: could not compile `furiosa-opt-gemma4` (lib); 5 warnings emitted
+
+Caused by:
+  process didn't exit successfully: `/home/moa/.cargo/bin/furiosa-opt-driver /home/moa/.rustup/toolchains/nightly-2026-05-01-x86_64-unknown-linux-gnu/bin/rustc --crate-name furiosa_opt_gemma4 --edition=2024 src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata -C panic=abort -C embed-bitcode=no -C debuginfo=2 --warn=unexpected_cfgs --check-cfg 'cfg(backend, values("npu"))' --check-cfg 'cfg(furiosa_opt)' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=b575df85711ad8c6 -C extra-filename=-786705238801314c --out-dir /tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps -C incremental=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/incremental -L dependency=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps --extern furiosa_opt_std=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libfuriosa_opt_std-2227abdbd5fae3a0.rmeta --extern image=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libimage-b63e02e32fa7ba70.rmeta --extern llm_tokenizer=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libllm_tokenizer-37d0bb552e6611ae.rmeta --extern memmap2=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libmemmap2-ae44ce924e686add.rmeta --extern num_traits=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libnum_traits-bda7def6915a0c8c.rmeta --extern rand=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/librand-ae59932330f9a1db.rmeta --extern safetensors=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libsafetensors-ebbd4036f8929a23.rmeta --extern serde=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libserde-2239c2dc1ad8730e.rmeta --extern serde_json=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libserde_json-5d54f4adcd78ca43.rmeta --extern tokio=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libtokio-58b0f4dc284e769b.rmeta --extern tracing=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/libtracing-769111fcc359f640.rmeta '--cfg=backend="npu"' -Zmir-opt-level=0 -Zalways-encode-mir -L native=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/build/furiosa-mapping-8205a1c76e411625/out/furiosa-mapping-impl-target/x86_64-unknown-linux-gnu/release -L native=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/build/furiosa-opt-lower-8739c1e7be789539/out/furiosa-opt-lower-impl-target/x86_64-unknown-linux-gnu/release -L native=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/build/blake3-73cafca01066c640/out -L native=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/build/blake3-73cafca01066c640/out -L native=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/build/ring-78406d4772cbfa38/out -L native=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/build/esaxx-rs-d020e994a95e1156/out -L native=/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/build/onig_sys-1e8635d374065ac0/out` (exit status: 101)

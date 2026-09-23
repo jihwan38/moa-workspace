@@ -12,7 +12,7 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 143개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다.
+수록: 145개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
@@ -20,10 +20,10 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 |---|---:|
 | [빨라진 기록](#improved) | 35 |
 | [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 13 |
-| [느리게 측정됨](#regressed) | 34 |
+| [느리게 측정됨](#regressed) | 35 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 9 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
-| [정확도 실패·실행 실패](#invalid) | 18 |
+| [정확도 실패·실행 실패](#invalid) | 19 |
 | [대조군·기존 커널 조합](#control) | 10 |
 | [컴파일·정적 분석만 수행](#static_only) | 22 |
 
@@ -129,6 +129,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E89 · up/down native FP8 pair16](e89-c07-full-pair-row2.json) | FFN | [동시 E79](c07-full-e79-control.json): 354,440 → 387,879 | +9.43% | 1 → 1 | 동시 E79 대조보다 느린 단회 관측. 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 | [E100 · E5M2 · compensated BF16 scale DPE](e100-c07-compensated-dpe.json) | FFN | [동시 E79](c07-compensated-e79-control.json): 352,993 → 507,518 | +43.78% | 1 → 1 | 동시 E79 대조보다 느린 단회 관측. 미채택. 별도 projection 진단에서 mismatch와 timeout도 확인. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 | [E106 · 8열 BF16 dot · F32 slice 합산 · 전체 입력 방송 제거](e106-c08-columns8.json) | QKV | [동시 E104](c08-columns8-e104-control.json): 104,604 → 136,334 | +30.33% | 1 → 1 | 기본15개 비교 PASS, 앞쪽 E104보다+30.33%, 뒤쪽103544보다도 느림. 단회 screen에서 종료, 미채택. [근거1](../../moa-dev/experiments/candidates/c08-fused-qkv/README.md) |
+| [E108 · C13 v7 · INT8/I32 부분합 저장 + 분리된 F32 scale 복원](e108-c13-integer-v7.json) | FFN | [동시 E104 before](c13-v7-screen-e104-before.json): 334,969 → 397,318 | +18.61% | 1 → 1 | 기존 기본 15비교 PASS. 단회 screen FFN 397318, 앞뒤 E104 334969/335156 대비 +18.58%(앞뒤 중앙값). 미채택, 공식 제출 없음. 독립 반복·확대 검증은 하지 않음. [근거1](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md), [근거2](../../moa-dev/experiments/candidates/c13-int8-ffn/decision.json) |
 
 <a id="accuracy_limited"></a>
 
@@ -179,6 +180,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E98 · native down · 2-column time](e98-c07-two-column-time.json) | FFN | 성능 집계 제외 | — | 1 | 기본 FFN launch request timeout. 유효 FFN cycles 없음. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 | [E99 · native down · 2-column pair16](e99-c07-two-column-pair.json) | FFN | 성능 집계 제외 | — | 1 | 기본 FFN launch request timeout. 유효 FFN cycles 없음. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 | [E105 · Q/K/V 통합 weight 배치와 단일 dot pipeline](e105-c08-fused.json) | QKV | 성능 집계 제외 | — | 1 | 기본 Q/K/V9개 비교 모두 실패. 앞뒤 E104 정상. 단회 screen에서 중단하며 실패 cycles는 성능 집계에서 제외. [근거1](../../moa-dev/experiments/candidates/c08-fused-qkv/README.md) |
+| [E107 · C13 v6 · INT8/I32 + 같은 pipeline의 activation scale 복원](e107-c13-integer-v6.json) | FFN | 성능 집계 제외 | — | 1 | 전체 compile 성공 뒤 FFN 3입력 모두 non-finite 출력. 앞뒤 E104 정상. 실패 cycles는 성능 집계 제외; 별도 진단 후 v7에서 수정. [근거1](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md), [근거2](../../moa-dev/experiments/candidates/c13-int8-ffn/decision.json) |
 
 <a id="control"></a>
 
@@ -224,7 +226,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | S-C11-partial-vrf · Native FP8 DPE→F32 partial VRF · scale stream | FFN | Arena 미측정 | — | 0 | Compile PASS, partial DM 제거 확인. DPE 실행2→30개로 정적157045→162624(+3.55%). 조기 종료·Arena 미실행·미채택. [근거1](../../moa-dev/experiments/candidates/c11-ffn-partial-vrf/README.md), [근거2](../../moa-dev/experiments/candidates/c11-ffn-partial-vrf/decision.json) |
 | S-C10-direct-trf · FP8 lookup→BF16 weight TRF 직접 연결 | QKV | Arena 미측정 | — | 0 | Rust frontend 뒤 StoTrf lowering 실패: renegade feature is enabled in non renegade-s config. 첫 compile에서 종료·Arena 미실행·미채택. [근거1](../../moa-dev/experiments/candidates/c10-direct-weight-trf/README.md), [근거2](../../moa-dev/experiments/candidates/c10-direct-weight-trf/decision.json) |
 | S-C14-A-l-pipeline · E74 BF16 stream + 구간별 GeGLU/down + L-owned cluster + F32 stage 합산 | FFN | Arena 미측정 | — | 0 | Whole-FFN 재설계 소스 구현, compile 3회 모두 실패. 최종 producer→down DMA에서 3840→4096 padding 변환 lowering 불가. 논리 좌표/pitch 검사 PASS, image·정적 schedule·NPU 결과 없음. 미채택. [근거1](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/README.md), [근거2](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/decision.json) |
-| S-C13-int8-ffn · E74 기반 up/gate/down INT8 두 항 · I32 radix 합산 · block activation scale | FFN | Arena 미측정 | — | 0 | Primitive compile PASS, CPU 계산식 11520출력 PASS. 전체 FFN 2회 compile 실패: block reduction 축 수정 후 scale gather 4B stride/8B DMA 정렬 제약. 전체 image·schedule·NPU 성능 없음, 미채택. [근거1](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md), [근거2](../../moa-dev/experiments/candidates/c13-int8-ffn/decision.json) |
+| S-C13-int8-ffn · E74 기반 up/gate/down INT8 두 항 · I32 radix 합산 · block activation scale | FFN | Arena 미측정 | — | 0 | 초기 v1/v2는 block reduction/DMA 정렬로 compile 실패. 사용자 지적 후 재개해 v6 compile·NPU 정확도 실패(E107), v7 수정 후 정확도 PASS·속도 회귀(E108). 초기 컴파일 기록이며 계열 전체 실패로 해석하지 않음. [근거1](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md), [근거2](../../moa-dev/experiments/candidates/c13-int8-ffn/decision.json) |
 
 ## 기록 추가
 

@@ -1,89 +1,105 @@
 # C13 — FFN의 INT8 곱셈과 I32 누산
 
-**전체 FFN 컴파일은 scale DMA의 8바이트 정렬 제약으로 종료했다. 성능 미평가,
-미채택, E104 유지.** 브랜치 `opt/c13-int8-ffn`. 출발 소스는 E74
-`9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7`, 비교 계획은 E104다.
-[판정](decision.json) · [사전 설계와 중단 기준](candidate.json) ·
-[최종 소스](integer-v2/mlp.rs) · [E74 대비 diff](e74-to-c13-v2.patch).
+**v7은 전체 컴파일·기존 NPU 기본 정확도 검사를 통과했다. FFN은 동시 E104보다
+18.58% 느려 미채택으로 종료했다.** 브랜치 `opt/c13-int8-ffn`, E104 runtime 유지.
+[최종 판정](decision.json) · [최종 소스](integer-v7/mlp.rs) ·
+[실측 E108](../../../../docs/experiments/e108-c13-integer-v7.json).
 
-E104의 한 helper에 정수 연산을 끼워 넣은 실험이 아니다. E74의 BF16 입력에서
-출발해 `feedforward_sharded → quantize_h → project_up_and_gate → geglu →
-project_down_sharded → quantize_l` 호출 경로의 up/gate/down 세 projection을
-모두 INT8 weight·activation, I32 block dot, F32 복원으로 작성했다. 전체 Rust
-frontend는 통과했지만 DMA lowering 실패로 실행 가능한 FFN image는 없다.
+| 같은 Arena job 78730의 실행 순서 | FFN median cycles | 기본 정확도 |
+|---|---:|---|
+| E104 before | 334,969 | 15비교 PASS |
+| C13 v7 | 397,318 | 15비교 PASS |
+| E104 after | 335,156 | 15비교 PASS |
 
-선택한 기존 방법은 E74의 F32 weight block-scale 합산과 BF16 비선형 경계,
-C07의 두 lane/unzip 기법, C04의 down ring32 전송이다. E104의 global input
-scale과 세 FP8 항은 사용하지 않는다. 다만 up/gate 행 소유권, 전체 GeGLU 완성
-후 down을 시작하는 의존성, down의 H-owned cluster와 8-column 합산은 유지했다.
-C14의 L-stage 배치를 다시 시험한 것은 아니다. 공개 `decoder_feedforward`
-인터페이스, RMS/residual/layer scale, host와 fixture를 바꾸지 않았다.
+각 process는 변경 없는 fixture의 3개 입력을 실행했다. FFN은 11,520개 출력 모두
+기존 `atol=0.01 + rtol=0.01*abs(expected)`를 만족했다. +18.58%는 두 control
+median의 중앙값 대비 변화이며, before 대비는 +18.61%다. 독립 반복이나 공식 점수
+주장이 아닌 단회 screen이다. 개선 후보가 아니므로 추가 튜닝·확대 검증·공식 제출은
+하지 않았다. [원본 로그](evidence/c13-v7-screen/arena-78730.log).
 
-## 계산과 비용
+## 컴파일을 재개해 고친 부분
 
-각 16개 BF16 입력 블록에서 `s = 2^floor(log2(max(amax, 2^-120))) / 64`를 구한다.
-`hi = clamp(round(x/s), -127, 127)`, `lo = round((x/s-hi)*128)` 두 INT8 항으로
-입력을 근사한다. 반올림은 설치된 SDK의 fixed-point 변환에 맞춰 half-away-from-zero다.
-FP4 E2M1 weight는 두 배 값 `2w`를 INT8로 정확히 표현한다. Dot 뒤에
-`128*dot_hi + dot_lo`를 I32에서 계산하고 F32로 변환한 뒤 `s/256`과 weight
-block scale을 적용한다. Up/gate는 BF16으로 내보내 기존 GeGLU에 연결하고,
-그 BF16 결과를 다시 양자화해 down에서 같은 정수 계산을 한다.
+처음 v2에서 scale DMA 정렬 실패를 이유로 중단했다. 사용자는 수정 횟수만 세어
+구현 오류를 방치한 판단을 지적했다. [초기 판정](decision-initial-v2.json)은 보존하며,
+AGENTS.md에는 수정 가능한 구현 오류와 실제 SDK 제약·성능 탈락을 구분하도록
+보완했다. [재개 근거](reopening.json). 아래는 같은 C13 구조의 수정 과정이다.
 
-블록당 정수 결과의 절댓값 상한은 `16*12*(128*127+64) = 3,133,440`으로
-I32와 F32 정확 정수 범위 안이다. 이는 activation 근사와 최종 F32 합산 오차를
-없앤다는 뜻은 아니다. 작은 값과 큰 값이 같은 블록에 섞이면 작은 값이 사라질 수 있다.
+| 버전 | 결과와 수정 |
+|---|---|
+| v1 | `reduce<H/L>`가 유지할 block 축까지 없앰 |
+| v2 | 16개 내부 원소만 별도 축으로 reduce; 다음 scale gather의 4B stride가 8B DMA 정렬에 걸림 |
+| v3 | scale을 4개씩 pack하려 했으나 F32 transpose는 2행까지만 지원 |
+| v4 | scale 두 개를 8B로 pack해 정렬 해결; 60개 H quant slice의 padding을 잃는 fetch-sequencer 내부 오류 발생 |
+| v5 | anonymous high padding을 명시해도 같은 오류 |
+| v6 | 네 개의 이름 있는 동일 입력 복제로 256-slice 배치를 유지해 전체 compile 성공; NPU FFN 출력은 non-finite |
+| v7 | integer unzip/zip 뒤의 F32 scale 복원을 별도 pipeline으로 분리; 전체 NPU 기본 검사 PASS |
 
-두 항 × 64개 INT8 입력으로 4개 block dot을 얻는 경로를 택했다. E74의 16개
-BF16 입력 packet보다 큰 packet을 쓰지만, 이 사실만으로 전체 속도를 예측하지 않는다.
-FP4→FP8 lookup→F32 widening→정수 변환은 weight 전체를 지나며, 별도 scale 계산,
-hi/lo 생성, GeGLU 결과의 canonical gather, scale 전송을 추가한다. Weight HBM
-payload와 F32 block partial 저장·합산도 남는다. 특히 weight 변환은 정수화 전에
-8개 F32 단위로 처리되어 E74의 FP8 materialization보다 stream 길이가 늘어난다.
-완성된 schedule이 없으므로 이러한 비용의 중첩이나 순이익은 확인하지 못했다.
+v6은 host·fixture·기준을 바꾸지 않고 실행한 첫 전체 image다. 앞뒤 E104는
+정상이었지만 FFN 3입력 모두 실패했다. [E107](../../../../docs/experiments/e107-c13-integer-v6.json)의
+실패 시간은 유효 성능 집계에서 제외한다. 이를 컴파일 성공만으로 검증됐다고 보지 않았다.
 
-## 확인한 결과
+원인을 구분하려고 실제 quantizer body를 복사한 별도 진단을 실행했다.
+FP4 16개 code 변환과 일반 H/L 입력의 정수 항·scale은 일치했다. K=3840의
+정수 dot만 실행하면 960개 결과 모두 맞지만, 같은 pipeline에서 narrow와 per-block
+VRF scale 곱셈을 붙이면 956개가 틀렸다. F32 부분합을 DM에 저장하고 새 tag-zero
+stream에서 scale을 곱하자 진단의 960개가 모두 맞았고 전체 fixture도 통과했다.
+[결합 실패](c13-diagnostic-v6c-results.json) · [정수 dot 분리](c13-diagnostic-v6d-results.json) ·
+[수정한 결합](c13-diagnostic-v7-results.json).
+정확한 compiler/ISA 내부 원인까지 확정한 것은 아니다.
 
-| 검사 | 결과 | 해석 범위 |
-|---|---|---|
-| FP4→INT8 + 2-lane integer dot + I32 radix 결합 primitive | 첫 compile PASS | 작은 API 경로 지원, 전체 FFN/NPU 검증 아님 |
-| CPU 전체 FFN 계산식, 기존 fixture 3개 | 11,520개 출력 PASS, 최대 절대오차 0.0078125 | 고정 fixture의 수학적 screen, NPU mapping/rounding/reduction tree 검증 아님 |
-| 전체 FFN v1 | compile FAIL | `reduce<H/L>`가 유지하려던 block time 축까지 줄임 |
-| 전체 FFN v2 | compile FAIL | scale gather의 4B stride가 DMA의 8B 정렬에 맞지 않음 |
+진단 전체를 PASS로 표시하지 않았다. 모든 0 입력에서 하드웨어는 수학적 복원 scale
+`2^-134`를 0으로 내보냈고, zero digits는 맞았다. 각 진단에 이 subnormal 차이
+1,200개를 그대로 기록했다. 일반 입력/정수 dot 검사 통과와 이 raw-scale bit 차이를
+분리한다. 전체 BF16 입력의 동치나 확대 정확도 검증을 주장하지 않는다.
 
-작은 primitive의 정적 schedule은 4,630 cycles이며 전체 FFN이나 E104와 비교할
-수 없다. CPU 검증은 기존 `atol=0.01 + rtol=0.01*abs(expected)`를 그대로 적용했다.
-최대 오차/허용오차 비율은 0.5866 미만이다. FP4 16개 code의 정수 변환과
-누산 범위도 확인했다. BF16 유한값 65,280개를 인접 bit-pattern 블록으로 묶은
-검사와 zero/half-tie/outlier/최대·최소값 검사를 추가했지만 모든 블록 조합의
-동치를 증명한 것은 아니다. [수치 결과](numeric-screen.json),
-[실행 script와 reference/fixture provenance](numeric-provenance.json).
+## 구현한 계산과 비용
 
-v1의 최대값 계산은 H/L 축 전체를 reduce했다. v2는 블록 안의 16개 원소만
-`IntBlockElt` 축으로 이름 붙여 그 축을 reduce한다. 이 사전 기록된 한 번의
-shape 수정 뒤, `quantize_h` 마지막 `restore.to_dm`에서 실패했다. Producer는
-각 scale을 32B padded packet에 저장하고 consumer는 F32 scalar를 4B 간격으로
-모으려 한다. 생성된 `strides([4,16,4,...])`가 compiler의 8B 정렬 검사에 걸린다.
-[최종 로그](evidence/c13-integer-v2/compile.log).
+출발 source는 E74 `9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7`, 성능 비교군은
+E104다. E74의 F32 block 합산과 BF16 비선형 경계, C07의 lane/unzip 기법,
+C04의 down ring32를 조합했다. E104의 global input scale과 FP8 세 항은 쓰지 않는다.
+행 소유권과 전체 GeGLU 완성 후 down을 시작하는 의존성은 남겼다.
 
-AGENTS.md의 한 번 수정 한도에 따라 추가 packing 수정은 하지 않았다. 이 결과는
-INT8 구조의 성능 회귀나 계열 전체의 실패를 뜻하지 않는다. 후속 C13 수정은 scale을
-8B 이상 묶음으로 생산·전송하고 dot consumer의 block 인덱스까지 맞추는 계약을 먼저
-정해야 한다. 같은 계열의 layout 수정으로 세며 새 독립 구조로 집계하지 않는다.
+실제 경로는 `feedforward_sharded → quantize_h → project_up_and_gate → geglu →
+project_down_sharded → quantize_l`다. up/gate/down 세 projection 모두를 바꾸며,
+공개 decoder 인터페이스와 RMS/residual/layer scale 및 host 입력 형식은 유지한다.
 
-## 재현
+각 16개 BF16 입력에서 `s = 2^floor(log2(max(amax,2^-120))) / 64`를 구하고,
+`hi = clamp(round(x/s),-127,127)`, `lo = round((x/s-hi)*128)`로 표현한다.
+반올림은 SDK의 half-away-from-zero다. FP4 weight는 정확한 정수 `2w`로 변환한다.
+I32에서 `128*dot_hi + dot_lo`를 계산하고 F32로 바꿔 DM에 저장한다. 다음 F32
+단계가 `s/256`을 곱하고, 기존 weight block scale과 합산을 거쳐 BF16 projection을
+만든다. 기존 GeGLU의 BF16 결과를 다시 같은 방식으로 양자화해 down에 넣는다.
 
-각 `build-*-repro.json`은 E74 출발 source와 E104 비교 계획을 분리하고, 실제
-container 입력·동결 source/log hash를 기록한다. `evidence/`의 실패 source도
-보존한다. CPU reference 세 파일은 선택한 E74 archive와 일치한다. SDK/CLI는
-0.8.1, toolchain/Cargo.lock/container image는 build 기록과 판정에 남겼다.
+블록 정수 상한 `16*12*(128*127+64)=3,133,440`은 I32와 F32 정확 정수 범위 안이다.
+Activation 근사와 F32 합산 오차는 별개다. [CPU 계산식 screen](numeric-screen.json)은
+기존 11,520개 출력을 통과했지만 NPU mapping 검증을 대신하지 못했다.
+
+v7 정적 schedule은 187,947 cycles다. Weight는 FP4→FP8→F32→INT8로 변환하며
+이 비용은 모두 timed kernel에 들어간다. 정적 schedule의 weight materialization
+세 연산은 각각 17,559/17,559/16,479 cycles, E104는 각각 9,263 cycles다.
+[비용 기록](weight-conversion-cost.json). 배치 차이와 연산 중첩이 있으므로 이 값을
+합산해 NPU 소요 시간이나 정확한 병목 기여율로 해석하지 않는다. 재시도하려면
+변환·양자화 비용을 바꾸는 구체적인 설계가 필요하며, INT8 계열 전체를 폐기하는
+결론은 아니다.
+
+## 기록과 재현
+
+한 구조의 source variant 7개, exact compile 호출 9회(같은 v4의 backtrace 재실행과
+v6 package용 재컴파일 포함), 전체 host package 2개를 기록했다. 별도 진단 host
+build는 6회이며 2회는 Rust host 작성 오류, 4회는 실행 가능한 진단이다.
+진단/지원 검사 수를 독립 아키텍처 수로 세지 않는다.
+
+`build-*.json`은 source origin·실제 container 입력·image·package hash를 기록한다.
+`evidence/`에는 각 실패 source/log, 성공 schedule, Arena 로그를 보존한다.
+E104 control package가 선언한 baseline source manifest와 같고, C13의 변경 없는
+QKV/O image도 E104와 동일함을 확인했다. SDK/CLI 0.8.1과 pinned Cargo.lock을 사용했다.
 
 ```bash
-python3 moa-dev/experiments/structural_build.py c13-int8-ffn integer-v2 --plan
-python3 moa-dev/experiments/structural_build.py c13-int8-ffn integer-v2 --label NEW-LABEL
-python3 moa-dev/experiments/candidates/c13-int8-ffn/build_probe.py probe-v1 --label NEW-PROBE-LABEL
+python3 moa-dev/experiments/structural_build.py c13-int8-ffn integer-v7 --plan
+python3 moa-dev/experiments/structural_build.py c13-int8-ffn integer-v7 --label NEW-LABEL --package
+python3 moa-dev/experiment_index.py --check --check-live
 ```
 
-수치 script는 PyTorch와 safetensors가 설치된 환경에서 실행한다. `--reference-dir`은
-E74의 `scripts/`, `--fixture`는 기존 `fixtures.safetensors`, `--out`은 결과 JSON을
-지정한다. 정확한 사용 경로와 파일 hash는 `numeric-provenance.json`에 있다.
-Arena·공식 제출은 수행하지 않았다. FFN image가 없어 정확도/성능 실험에 보낼 수 없다.
+C14도 이전 lowering 실패만으로 불가능하다고 판단하지 않는다. 실제 v3 코드와
+E74의 compact/gather를 대조한 [후속 검토](c14-assessment.md)를 남겼다.
+C14 수정본을 이번 작업에서 컴파일·실행한 것은 아니다.

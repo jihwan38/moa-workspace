@@ -1,0 +1,97 @@
+C13_BEGIN control_before
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=103378 (of 3 runs: [110180, 103236, 103378])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=51085 (of 3 runs: [52144, 50449, 51085])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=335262 (of 3 runs: [339715, 334267, 335262])
+
+
+all 3 tests passed
+remote_entrypoint.sh: all kernel tests passed
+C13_EXIT control_before 0
+C13_END control_before
+C13_BEGIN candidate_0
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=103814 (of 3 runs: [110538, 102342, 103814])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=50729 (of 3 runs: [52263, 50025, 50729])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] FAIL -- non-finite device output at 0
+[decoder_feedforward run1          ] FAIL -- non-finite device output at 0
+[decoder_feedforward run2          ] FAIL -- non-finite device output at 0
+    median cycles=390975 (of 3 runs: [400675, 390975, 388208])
+
+
+1 of 3 tests failed: decoder_feedforward
+remote_entrypoint.sh: kernel tests failed (exit 1)
+C13_EXIT candidate_0 1
+C13_END candidate_0
+C13_BEGIN control_after
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=104900 (of 3 runs: [108578, 103427, 104900])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=50459 (of 3 runs: [52920, 50411, 50459])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=337000 (of 3 runs: [338199, 334085, 337000])
+
+
+all 3 tests passed
+remote_entrypoint.sh: all kernel tests passed
+C13_EXIT control_after 0
+C13_END control_after
+C13_COMPLETE
