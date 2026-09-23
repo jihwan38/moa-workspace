@@ -16,6 +16,8 @@ E104335618/335432(+14.93%)로 종료했다. [전송 비용·수정 기록](../..
 C12-B도 전체 compile·기본 NPU PASS 후 O51862 vs E10450555/50680(관측+2.46%)로
 종료했다. [컴파일 분리 진단·완성 경로·측정](../../moa-dev/experiments/candidates/c12-output-main-sub/README.md).
 세 후보 모두 기본 NPU까지 실행했으며 채택·공식 제출은 없다. 실행 source는E104다.
+세 실험 branch의 기록을 main에 fast-forward 통합했다. 각 branch와 원격 tip도 보존했다.
+[통합 이력](structural-round-20260923-integration.json), [전체 재검증](structural-round-20260923-verification.json).
 
 ## 이전 작업 — main 통합과 E104 비용 진단
 
