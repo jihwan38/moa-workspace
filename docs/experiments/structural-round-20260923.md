@@ -38,4 +38,6 @@ source 오류를 포기하지 않되, 손실 원인이 확인된 같은 매개�
 
 현재 상태: C14-B 전체 compile·기본 NPU PASS, 동시 E104 대비 FFN+17.58%로 종료.
 [기록](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact.md).
-C15와 C12-B는 다음 실행 대상이다.
+C15는4-column source 오류를2-column 정렬 배치로 수정해 compile·기본 NPU PASS,
+동시 E104 대비 FFN+14.93%로 종료했다. [기록](../../moa-dev/experiments/candidates/c15-upgate-columns/README.md).
+C12-B는 다음 실행 대상이다.

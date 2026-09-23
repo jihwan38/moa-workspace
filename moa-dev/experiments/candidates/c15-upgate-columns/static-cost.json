@@ -1,0 +1,309 @@
+{
+  "E104": {
+    "makespan": 157045,
+    "context_interval_unions": {
+      "Noop": 0,
+      "DmaEngine": 126267,
+      "PeCore": 18750,
+      "SubContext": 19827,
+      "MainContext": 94944,
+      "VectorEngine": 33283
+    },
+    "schedule_sha256": "f5f7a888e70e2ca1c494c88b58060467155268e4bb0a129d888a8dbd4d6e15dd",
+    "long_nodes": [
+      {
+        "index": "112",
+        "engine": "DmaLoad",
+        "begin": 3589,
+        "end": 28201,
+        "duration": 24612,
+        "operation": "--> src/device/shared/mlp.rs:115:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "229",
+        "engine": "Main",
+        "begin": 35834,
+        "end": 45097,
+        "duration": 9263,
+        "operation": "--> src/device/shared/mlp.rs:116:98\n\ndevice.main\n.begin(gate_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+      },
+      {
+        "index": "250",
+        "engine": "DmaStos",
+        "begin": 38298,
+        "end": 41642,
+        "duration": 3344,
+        "operation": "--> src/device/shared/mlp.rs:458:87\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "251",
+        "engine": "DmaLoad",
+        "begin": 41642,
+        "end": 46522,
+        "duration": 4880,
+        "operation": "--> src/device/shared/mlp.rs:123:9\n\ngate_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "261",
+        "engine": "Main",
+        "begin": 45097,
+        "end": 56880,
+        "duration": 11783,
+        "operation": "--> src/device/shared/mlp.rs:459:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+      },
+      {
+        "index": "274",
+        "engine": "DmaLoad",
+        "begin": 47853,
+        "end": 72465,
+        "duration": 24612,
+        "operation": "--> src/device/shared/mlp.rs:91:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "287",
+        "engine": "Main",
+        "begin": 58586,
+        "end": 64270,
+        "duration": 5684,
+        "operation": "--> src/device/shared/mlp.rs:40:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+      },
+      {
+        "index": "359",
+        "engine": "Main",
+        "begin": 72471,
+        "end": 81734,
+        "duration": 9263,
+        "operation": "--> src/device/shared/mlp.rs:92:96\n\ndevice.main\n.begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+      },
+      {
+        "index": "362",
+        "engine": "DmaLoad",
+        "begin": 73097,
+        "end": 77977,
+        "duration": 4880,
+        "operation": "--> src/device/shared/mlp.rs:99:9\n\nup_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "383",
+        "engine": "DmaLoad",
+        "begin": 79314,
+        "end": 108741,
+        "duration": 29427,
+        "operation": "--> src/device/shared/mlp.rs:394:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "391",
+        "engine": "Main",
+        "begin": 81737,
+        "end": 87421,
+        "duration": 5684,
+        "operation": "--> src/device/shared/mlp.rs:40:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+      },
+      {
+        "index": "523",
+        "engine": "Main",
+        "begin": 112174,
+        "end": 121437,
+        "duration": 9263,
+        "operation": "--> src/device/shared/mlp.rs:396:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()"
+      },
+      {
+        "index": "524",
+        "engine": "DmaStos",
+        "begin": 112192,
+        "end": 116976,
+        "duration": 4784,
+        "operation": "--> src/device/shared/mlp.rs:366:98\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "531",
+        "engine": "DmaLoad",
+        "begin": 116976,
+        "end": 126750,
+        "duration": 9774,
+        "operation": "--> src/device/shared/mlp.rs:388:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "552",
+        "engine": "Main",
+        "begin": 121437,
+        "end": 125540,
+        "duration": 4103,
+        "operation": "--> src/device/shared/mlp.rs:367:94\n\ndevice.main\n.begin(x.view())\n.fetch::<m![1], m![L % 1920]>()\n.switch::<m![Dummy256 / 32, 4, L / 1920], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()"
+      },
+      {
+        "index": "563",
+        "engine": "Main",
+        "begin": 126286,
+        "end": 144549,
+        "duration": 18263,
+        "operation": "--> src/device/shared/mlp.rs:405:99\n\ndevice.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, L / 16 % 120]>()\n.contract_lane::<m![H % 60, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, L / 32 % 60], m![L / 16 % 2 # 8]>()\n.commit_trim::<m![L / 16 % 2]>()\n.commit()"
+      }
+    ]
+  },
+  "C15-v3": {
+    "makespan": 175862,
+    "context_interval_unions": {
+      "Noop": 0,
+      "DmaEngine": 145493,
+      "PeCore": 9099,
+      "SubContext": 18840,
+      "MainContext": 89264,
+      "VectorEngine": 33363
+    },
+    "schedule_sha256": "1f52c29f22ad3f706a60589e218ed14ad68fa5a845851fc09743325adfebe443",
+    "long_nodes": [
+      {
+        "index": "79",
+        "engine": "DmaLoad",
+        "begin": 3589,
+        "end": 33016,
+        "duration": 29427,
+        "operation": "--> src/device/shared/mlp.rs:88:93\n\npacked.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "152",
+        "engine": "Main",
+        "begin": 33028,
+        "end": 42291,
+        "duration": 9263,
+        "operation": "--> src/device/shared/mlp.rs:89:90\n\ndevice.main\n.begin(packed.view()).fetch::<m![FfnRow], m![H % 1920]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32 % 60], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+      },
+      {
+        "index": "167",
+        "engine": "DmaLoad",
+        "begin": 36126,
+        "end": 45900,
+        "duration": 9774,
+        "operation": "--> src/device/shared/mlp.rs:94:97\n\nscales.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "257",
+        "engine": "DmaStos",
+        "begin": 51658,
+        "end": 55002,
+        "duration": 3344,
+        "operation": "--> src/device/shared/mlp.rs:424:104\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "263",
+        "engine": "Main",
+        "begin": 55002,
+        "end": 61025,
+        "duration": 6023,
+        "operation": "--> src/device/shared/mlp.rs:425:100\n\ndevice.main\n.begin(x.view()).fetch::<m![FfnTerm], m![H % 1920]>()\n.switch::<m![Dummy256 / 32, 16, H / 1920], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32 % 60], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+      },
+      {
+        "index": "276",
+        "engine": "DmaLoad",
+        "begin": 57171,
+        "end": 86598,
+        "duration": 29427,
+        "operation": "--> src/device/shared/mlp.rs:73:93\n\npacked.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "289",
+        "engine": "Main",
+        "begin": 62011,
+        "end": 67695,
+        "duration": 5684,
+        "operation": "--> src/device/shared/mlp.rs:25:96\n\ndevice.main\n.begin(weights.view()).fetch::<m![FfnRow], m![H % 1920]>()\n.collect::<m![FfnRow, H / 32 % 60], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64 % 30, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64 % 30]>()\n.contract_lane::<m![FfnRow, H / 64 % 30], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>().vector_final()\n.commit_trim::<m![H / 16 % 4]>().commit()"
+      },
+      {
+        "index": "355",
+        "engine": "Main",
+        "begin": 86598,
+        "end": 95861,
+        "duration": 9263,
+        "operation": "--> src/device/shared/mlp.rs:74:90\n\ndevice.main\n.begin(packed.view()).fetch::<m![FfnRow], m![H % 1920]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32 % 60], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+      },
+      {
+        "index": "356",
+        "engine": "DmaLoad",
+        "begin": 86598,
+        "end": 96372,
+        "duration": 9774,
+        "operation": "--> src/device/shared/mlp.rs:79:97\n\nscales.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "361",
+        "engine": "Main",
+        "begin": 95861,
+        "end": 101545,
+        "duration": 5684,
+        "operation": "--> src/device/shared/mlp.rs:25:96\n\ndevice.main\n.begin(weights.view()).fetch::<m![FfnRow], m![H % 1920]>()\n.collect::<m![FfnRow, H / 32 % 60], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64 % 30, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64 % 30]>()\n.contract_lane::<m![FfnRow, H / 64 % 30], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>().vector_final()\n.commit_trim::<m![H / 16 % 4]>().commit()"
+      },
+      {
+        "index": "383",
+        "engine": "DmaLoad",
+        "begin": 98236,
+        "end": 127663,
+        "duration": 29427,
+        "operation": "--> src/device/shared/mlp.rs:360:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "518",
+        "engine": "Main",
+        "begin": 130991,
+        "end": 140254,
+        "duration": 9263,
+        "operation": "--> src/device/shared/mlp.rs:362:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()"
+      },
+      {
+        "index": "519",
+        "engine": "DmaStos",
+        "begin": 131015,
+        "end": 135799,
+        "duration": 4784,
+        "operation": "--> src/device/shared/mlp.rs:332:98\n\nx.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "526",
+        "engine": "DmaLoad",
+        "begin": 135799,
+        "end": 145573,
+        "duration": 9774,
+        "operation": "--> src/device/shared/mlp.rs:354:9\n\ndown_weight_scale.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "547",
+        "engine": "Main",
+        "begin": 140254,
+        "end": 144357,
+        "duration": 4103,
+        "operation": "--> src/device/shared/mlp.rs:333:94\n\ndevice.main\n.begin(x.view())\n.fetch::<m![1], m![L % 1920]>()\n.switch::<m![Dummy256 / 32, 4, L / 1920], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()"
+      },
+      {
+        "index": "558",
+        "engine": "Main",
+        "begin": 145103,
+        "end": 163366,
+        "duration": 18263,
+        "operation": "--> src/device/shared/mlp.rs:371:99\n\ndevice.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, L / 16 % 120]>()\n.contract_lane::<m![H % 60, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, L / 32 % 60], m![L / 16 % 2 # 8]>()\n.commit_trim::<m![L / 16 % 2]>()\n.commit()"
+      }
+    ]
+  },
+  "observations": {
+    "input_ring_duration": {
+      "E104": 11783,
+      "C15-v3": 6023
+    },
+    "up_gate_weight_load_each": {
+      "E104": 24612,
+      "C15-v3": 29427
+    },
+    "up_gate_scale_load_each": {
+      "E104": 4880,
+      "C15-v3": 9774
+    },
+    "native_dot_each": {
+      "E104": 5684,
+      "C15-v3": 5684
+    },
+    "fp4_decode_each": {
+      "E104": 9263,
+      "C15-v3": 9263
+    }
+  },
+  "scope": "Compiler model intervals, not additive runtime costs, hardware bus traffic, or measured stall attribution. Smaller H activation works as intended, but H-strided weight/scale loads grow; dot/decode logical work stays fixed."
+}

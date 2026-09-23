@@ -1,0 +1,30 @@
+{
+  "id": "C15",
+  "status": "closed-after-valid-hardware-regression",
+  "adopted": false,
+  "source_base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "source_variants": 3,
+  "exact_compile_calls": 4,
+  "host_builds": 1,
+  "arena_jobs": [
+    79300
+  ],
+  "correctness": "Unchanged basic benchmark: all 15 comparisons pass, including 3 FFN inputs / 11520 outputs. No expanded validation.",
+  "report": "docs/experiments/e110-c15-upgate-columns.json",
+  "change_percent": {
+    "vs_before": 14.898783736271604,
+    "vs_after": 14.96249612440077,
+    "vs_bracketing_median": 14.930631100514113
+  },
+  "static_cost": "moa-dev/experiments/candidates/c15-upgate-columns/static-cost.json",
+  "observed": "Input ring duration shrinks 11783->6023 in the compiler model. Each up/gate weight load grows 24612->29427 and each scale load 4880->9774. Native dot and FP4 decode durations stay equal. These are overlapping modeled intervals, not measured stall attribution.",
+  "failed_variants": {
+    "four-column-v1": "source fetch/collect packet mismatch",
+    "four-column-v2": "scale HBM-to-DM H-axis factorization fails with 60#64 padded local blocks; 60-byte column offsets also do not satisfy 8-byte alignment",
+    "two-column-v3": "aligned 120-byte scale subrows; whole kernel compiles and passes basic hardware correctness"
+  },
+  "next_condition": "Revisit column ownership only with a concrete compatible scale/weight transfer design that reduces added DMA cost. No more column-count sweep in this round.",
+  "runtime": "E104 unchanged",
+  "official_submission": false
+}

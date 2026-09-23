@@ -11,8 +11,9 @@
 첫 `opt/c14-stage-compact`의 C14-B는 전체 compile·기본 NPU 정확도 PASS 후,
 FFN397348 vs 동시 E104336341/339553(+17.58%)로 종료했다.
 [source·측정·비용 분석](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact.md).
-실행 소스는 E104다. 다음 C15는 up/gate의 입력 column 분할과 producer/consumer
-배치를 함께 바꾸며, C12-B는 O의 두 구간 Main/Sub pipeline을 검증한다.
+C15도 up/gate column 소유권을 교체해 compile·기본 NPU PASS 후 FFN385621 vs
+E104335618/335432(+14.93%)로 종료했다. [전송 비용·수정 기록](../../moa-dev/experiments/candidates/c15-upgate-columns/README.md).
+실행 소스는 E104다. 다음 C12-B는 O의 두 구간 Main/Sub pipeline을 검증한다.
 
 ## 이전 작업 — main 통합과 E104 비용 진단
 

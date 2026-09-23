@@ -1,0 +1,52 @@
+{
+  "id": "C15",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-e104-reviewed-v1-repro.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Whole up/gate projection mapping redesign; quantized activation ownership, TRF extent, weight/scale DMA, DPE and reduction layouts change together. Down/GeGLU are reused, not claimed redesigned.",
+  "methods_selected": [
+    "C07/E104 runtime E5M2 three-term activation and materialized FP8 weights",
+    "C04/E79 column-aware ring leader distribution mechanism",
+    "F32 block-scale partials and F32 column reduction before BF16 output"
+  ],
+  "methods_removed": [
+    "Full H=3840 activation replicated at all 512 up/gate slices",
+    "30 output rows per slice with no input column splitting",
+    "E104 full-H row-only contraction and direct row gather"
+  ],
+  "graph": "pre-RMS -> unchanged global-scale three-term quantizer -> two H-column anchors/ring broadcast -> each slice owns 60 rows x 1920 inputs -> FP4 to FP8 -> native term/block DPE -> F32 scale/local H sum -> two-column F32 sum -> canonical row gather -> BF16 -> unchanged GeGLU/E79 down and epilogue",
+  "layout": {
+    "clusters": "two L-row halves",
+    "slices": "128 row groups x 2 H columns",
+    "local_weight": "60 x 1920",
+    "local_scale": "60 x 120, no local scale padding; 120-byte HBM column offset and DM row stride are divisible by 8",
+    "scale_tile": "12 rows x 120 F32, 5760 bytes VRF; packed eight-lane load then four-lane vector operation",
+    "row_output": "60 F32 rows at each group leader; gather before BF16"
+  },
+  "prior_related": [
+    "C04 varied down columns; this changes both up/gate producer and consumer, previously row-only",
+    "C07 upgate contig/row2 layouts retained full H at each slice",
+    "C11 split row dots to retain VRF partials and grew dot count; here one large dot per projection is kept, while scale is tiled"
+  ],
+  "cost_removed": [
+    "Per-slice quantized input and TRF extent shrink from 11520 to 5760 logical bytes, half of E104.",
+    "Compared with failed v2, no 60-to-64 scale-row padding and only five scale passes."
+  ],
+  "cost_added": [
+    "Strided 960-byte FP4 H subrows instead of complete 1920-byte rows.",
+    "Two-column F32 reduction and leader-to-canonical output gather.",
+    "Materialized FP8 weights and F32 block partials remain; no claim they disappear."
+  ],
+  "cost_evidence": "E104 compiled input ring stream 11783 and each native dot 5684 cycles; these overlap other work and are not direct savings. A full NPU A/B discriminates reduced activation traffic versus the added transfer/reduction costs.",
+  "stop_condition": "Repair concrete shape/axis/API errors, inspect the full schedule, then one unchanged benchmark screen when executable. Stop measured regression or sub-5% target gain without a sweep unless a distinct supported cost repair is identified.",
+  "adopted": false,
+  "repair": "v2 fixed fetch packets but scale HBM->DM fails shared H factorization with 60#64 local blocks. Four-column scale start offsets would additionally be 60 bytes, not multiples of 8. v3 changes ownership to two columns: 120-byte aligned scale subrows, no padding, 60 local output rows, packed 8-lane scales. This concrete transfer and VRF-cost repair retains the new column-owned projection; it is not a new candidate family."
+}

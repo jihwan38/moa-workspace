@@ -1,0 +1,51 @@
+{
+  "id": "C15",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-e104-reviewed-v1-repro.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Whole up/gate projection mapping redesign; quantized activation ownership, TRF extent, weight/scale DMA, DPE and reduction layouts change together. Down/GeGLU are reused, not claimed redesigned.",
+  "methods_selected": [
+    "C07/E104 runtime E5M2 three-term activation and materialized FP8 weights",
+    "C04/E79 column-aware ring leader distribution mechanism",
+    "F32 block-scale partials and F32 column reduction before BF16 output"
+  ],
+  "methods_removed": [
+    "Full H=3840 activation replicated at all 512 up/gate slices",
+    "30 output rows per slice with no input column splitting",
+    "E104 full-H row-only contraction and direct row gather"
+  ],
+  "graph": "pre-RMS -> unchanged global-scale three-term quantizer -> four H-column anchors/ring broadcast -> each slice owns 120 rows x 960 inputs -> FP4 to FP8 -> native term/block DPE -> F32 scale and local H sum -> four-column F32 sum -> canonical row gather -> BF16 -> unchanged GeGLU/E79 down and epilogue",
+  "layout": {
+    "clusters": "two L-row halves",
+    "slices": "64 row groups x 4 H columns",
+    "local_weight": "120 x 960",
+    "local_scale": "120 x 60#64 (8-byte row alignment)",
+    "scale_tile": "12 rows x 15 four-block packets, each packet padded to 8 F32 lanes, 5760 bytes VRF",
+    "row_output": "120 F32 rows at each group leader; gather before BF16"
+  },
+  "prior_related": [
+    "C04 varied down columns; this changes both up/gate producer and consumer, previously row-only",
+    "C07 upgate contig/row2 layouts retained full H at each slice",
+    "C11 split row dots to retain VRF partials and grew dot count; here one large dot per projection is kept, while scale is tiled"
+  ],
+  "cost_removed": [
+    "Up/gate quantized input per-slice storage/stream is 2880 bytes instead of 11520; corresponding TRF and ring stream shrink fourfold"
+  ],
+  "cost_added": [
+    "Strided 480-byte FP4 row segments and padded 60-to-64 scale rows may hurt DMA",
+    "Four-column F32 reduction and leader-to-canonical gather",
+    "Ten 12-row scale passes instead of five 6-row passes; total logical block partials unchanged"
+  ],
+  "cost_evidence": "E104 compiled input ring stream 11783 and each native dot 5684 cycles; these overlap other work and are not direct savings. A full NPU A/B discriminates reduced activation traffic versus the added transfer/reduction costs.",
+  "stop_condition": "Repair concrete shape/axis/API errors, inspect the full schedule, then one unchanged benchmark screen when executable. Stop measured regression or sub-5% target gain without a sweep unless a distinct supported cost repair is identified.",
+  "adopted": false,
+  "repair": "v1 fetched a complete 60#64-byte scale row, whose F32 cast emits an eight-value packet. v2 fetches each four-block packet explicitly before cast so the VRF producer agrees with the consumer; same four-column graph."
+}
