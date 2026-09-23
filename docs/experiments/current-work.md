@@ -4,9 +4,34 @@
 조사 기준: `research/structural-candidates-20260923` / `cd1ad4f`.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 최신 작업 — C14-A
+## 최신 작업 — C13
 
-현재 브랜치는 `opt/c14-ffn-l-pipeline`이다. **C14-A는 producer→down DMA의
+현재 브랜치는 `opt/c13-int8-ffn`이다. **C13은 activation block scale DMA의
+8B 정렬 제약으로 compile 단계에서 종료**했다.
+[구현·검증·종료 근거](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md).
+
+출발은 E74, 비교 계획은 E104다. Up/gate/down 모두의 FP4 weight를 정확한
+INT8 `2w`로 바꾸고, 입력은 16개 원소마다 두 INT8 항으로 표현해 I32 dot과
+radix-128 합산, F32 activation/weight scale 복원을 수행하는 소스를 구현했다.
+E74의 F32 block 합산, C07의 lane/unzip 기법, C04의 down ring32를 조합했다.
+E104의 FP8 세 항과 global activation scale은 상속하지 않았다. 행 소유권과
+전체 stage 의존성은 남아 있으므로 C14의 pipeline 가설과는 다른 변경 범위다.
+
+작은 integer primitive는 첫 compile PASS. CPU 계산식은 변경 없는 fixture
+3개/11,520출력 PASS, 최대 절대오차 0.0078125다. 전체 FFN 첫 compile은 block
+최대값 축 축소에서 실패했다. 한 번 허용한 축 이름 수정 뒤 scale gather에서
+4B stride가 8B DMA 정렬을 만족하지 못해 종료했다. Primitive 1회와 전체 2회는
+한 설계의 지원 검사·구현 수정이며 세 독립 구조로 세지 않는다.
+
+전체 FFN image/schedule·NPU 정확도/성능 결과는 없다. Arena·공식 제출 없음,
+E104 실행 소스 유지. INT8 계열 전체의 실패나 성능 회귀 판정은 아니다.
+후속 C13은 scale producer→DMA→dot consumer를 8B 이상 전송 단위에 맞춰
+설계하는 같은 계열의 수정으로 기록해야 한다. 현재 shortlist의 C12는 미구현이며,
+그 범위는 Main/Sub 자원 배치를 바꾸는 국소 dataflow 실험이다.
+
+## 이전 작업 — C14-A
+
+C14 작업 브랜치는 `opt/c14-ffn-l-pipeline`이다. **C14-A는 producer→down DMA의
 layout lowering 실패로 종료**했다. [구현·세 버전·종료 근거](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/README.md).
 
 E74 `9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7`에서 출발해 BF16 stream 계산,
@@ -19,7 +44,7 @@ Compile 3회: 최초 tiled-view reshape 실패 → HBM 축 분할 순서 수정 
 기본 수정 횟수를 한 번 넘긴 구체적 근거와 총 3회 제한은 v3 recipe에 사전 기록했다.
 논리 좌표/pitch/GeGLU 연산 순서 검사는 통과했지만 NPU 정확도·성능은 미평가다.
 Arena·공식 제출 없음, E104 실행 소스 유지. C14 전체가 느리다는 판정은 아니다.
-미구현 독립 후보 C13이 다음 우선순위이며 C12는 국소 변경으로 후순위다.
+당시 다음 우선순위였던 C13의 실행 결과는 위 최신 작업에 기록했다. C12는 미구현이다.
 
 ## 이전 작업 — C09/C11/C10
 

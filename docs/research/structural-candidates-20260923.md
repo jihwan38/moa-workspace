@@ -9,6 +9,14 @@ lookup→TRF의 StoTrf lowering에서 target 설정 제약으로 실패해 종�
 변경이다. C10은 operand 소유권/배치 재설계지만 성능 미평가다. 이 세 번의 판별로
 대형 아키텍처 탐색을 충분히 수행했다고 해석하지 않는다. 재검토 근거는 위 진행 기록에 있다.
 
+그 뒤 [C14-A](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/README.md)는
+E74 기반 L-stage FFN을 구현했으나 producer→down DMA padding lowering에서 종료했다.
+[C13](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md)은 up/gate/down을
+INT8 두 항/I32 누산으로 작성했다. Primitive compile과 CPU 계산식 screen은
+통과했지만 전체 FFN은 block scale DMA 정렬에서 실패했다. 두 후보 모두 NPU
+성능 미평가·미채택이다. 현재 목록에서 C12가 미구현으로 남으며, 국소 Main/Sub
+자원 배치 변경이라는 범위를 유지한다.
+
 아래는 2026-09-23 최초 **기존 시도 대조·논문 조사·설계 선별** 시점의 가설이다.
 당시에는 여섯 후보를 구현·컴파일·실행하지 않았다. 비교군은 현재 채택본
 [E104](../../baseline/e104.json)(`baseline-e104`, `7f891f9`)이며 출발 구조를 제한하지 않는다.
