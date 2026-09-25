@@ -3,6 +3,12 @@
 - Workspace: `/home/jihwan38/moa-workspace`; private GitHub repository:
   `jihwan38/moa-workspace`. Read `baseline/current.json` for the adopted runtime
   and `docs/experiments/current-work.md` for the latest branches and decisions.
+- Primary objective: workload-specialized RNGD dataflow and memory-mapping
+  design for Gemma's single-token quantized projections and FFN. The adopted
+  kernel's execution structure may itself be poorly matched to the workload or
+  hardware; it is not a proven foundation to which more techniques must be added.
+  Choose and compare complete execution structures, with compatible optimization
+  methods, before spending effort on local tuning.
 - Prevent duplicate experiments: before a build, record the candidate ID, actual
   starting commit, prior related attempts, the materially different execution
   path, and its first stop condition. A renamed candidate or tile-size sweep is
@@ -18,7 +24,8 @@
   `baseline/current.json` against the live sources before integration. New work
   branches may start from main, but their candidate source recipes remain free
   to select another architecture or historical commit.
-- E55 is an immutable comparison control, not a required starting architecture.
+- E55 is an immutable historical control; E104 or any later adopted runtime is
+  also a performance comparison, not a required source or starting architecture.
   Explore replacements, removals, different layouts and coupled changes to decode,
   contraction, scale, tiling and communication. A slow intermediate design does
   not rule out a coherent combination. Record the actual candidate starting point.
@@ -27,6 +34,11 @@
   compare against the current winner. Select the architecture, compatible prior
   methods, conflicting methods to remove, and changed producer/consumer layouts
   together. A method that loses in one combination is not globally rejected.
+  Ground a small set of distinct designs in the actual tensor shapes, input and
+  weight formats, reuse opportunities, and numerical contract. Reconsider row/
+  column and cluster/slice ownership, resident versus streamed operands, memory
+  layout, intermediate representation, and stage dependencies together. A new
+  Git parent or candidate name alone does not demonstrate broader exploration.
 - The source recipe and performance control must be separate explicit inputs.
   Use `structural_build.py --plan` to check the selected commit and file origins;
   never hard-code the adopted source into the builder. A variant `recipe.json`
@@ -47,9 +59,13 @@
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or
-  whole-stage completion dependencies. Estimate both removed and newly added
-  work along that graph. Internal helper boundaries, E104 term count and E104
-  internal layouts are design choices, not competition contracts. Preserve the
+  whole-stage completion dependencies. Trace HBM loads through conversion,
+  contraction, scale/reduction and final stores; specify each intermediate's
+  owner, HBM/DM/TRF/VRF placement, layout/alignment, lifetime, and consuming
+  engine. Include all required conversion and transfer work in the comparison.
+  Estimate both removed and newly added work along that graph. Internal helper
+  boundaries, E104 term count and E104 internal layouts are design choices,
+  not competition contracts. Preserve the
   actual public interface/input contract and validate changed arithmetic against
   the unchanged correctness criteria.
 - Select large changes using cost evidence for the current control and the
