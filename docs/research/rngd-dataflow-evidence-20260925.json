@@ -1,0 +1,405 @@
+{
+  "schema_version": 1,
+  "as_of_local_date": "2026-09-25",
+  "timezone": "Asia/Seoul",
+  "research_start_commit": "f125ca66901e58492541affda9ba7058c656ff53",
+  "external_sources": [
+    {
+      "id": "rngd-kernel-design",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/quick-start/kernel-design.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/quick-start/kernel-design.html",
+      "bytes": 53655,
+      "sha256": "9d8a408d938088e62da4d83d391e07d91b00eb5794c4e4bd6926f9825473c872",
+      "source_type": "official programming guide",
+      "reviewed_scope": "operand mapping, memory placement, explicit-address guidance; SDK discrepancy recorded",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-memory",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/moving-tensors/memory-performance.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/moving-tensors/memory-performance.html",
+      "bytes": 38851,
+      "sha256": "b3cc553556df2b302548a4be69348f79981b02930e4dfee42a0e28a7928dfbb9",
+      "source_type": "official programming guide",
+      "reviewed_scope": "HBM/DM alignment, locality, bank addressing and contention",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-dma",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/moving-tensors/dma-engine.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/moving-tensors/dma-engine.html",
+      "bytes": 79790,
+      "sha256": "f943cc85409e143b206a831d3cd1aaf10634b4acd36ec3aae5aa51ab67e64b36",
+      "source_type": "official programming guide",
+      "reviewed_scope": "source/destination mapping, DMA packet alignment and tensor transfers",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-fetch",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/moving-tensors/fetch-engine.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/moving-tensors/fetch-engine.html",
+      "bytes": 47658,
+      "sha256": "c74b46fe7a30bd219f7bf03b6932f5031dc0d7804fdddc149f2d1c75d00cec8c",
+      "source_type": "official programming guide",
+      "reviewed_scope": "fetch and chip/cluster/slice lifting; replication precondition",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-mapping",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/mapping-tensors/index.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/mapping-tensors/index.html",
+      "bytes": 36062,
+      "sha256": "cb82a42b637af8cc60800980be85596a89d82aa8ddd77044911a932a3438e921",
+      "source_type": "official programming guide",
+      "reviewed_scope": "mapping overview; actual formulas additionally checked against source",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-switch",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/switch-engine.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/switch-engine.html",
+      "bytes": 72148,
+      "sha256": "0b07fe4314041908dd2f8a50dde992bda08c1484d44a3a77fde56ab3e1a4a7f3",
+      "source_type": "official programming guide",
+      "reviewed_scope": "Transpose, InterTranspose, CustomBroadcast; ring cost and axis constraints",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-outer",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/contraction-engine/outer.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/contraction-engine/outer.html",
+      "bytes": 43780,
+      "sha256": "8dd79ca43eeaa0edc843303f69de4b6e659f0fd329ff055858f335268b9bfb52",
+      "source_type": "official programming guide",
+      "reviewed_scope": "operand placement and supported contraction types",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-registers",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/register-files.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/register-files.html",
+      "bytes": 39985,
+      "sha256": "151bd389270afd8168e9cd9ede81e98f2b54dbc61ad7e5a612497880d6f706b4",
+      "source_type": "official programming guide",
+      "reviewed_scope": "TRF/VRF capacity and operand lifetime",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-lookup",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/fetch-adapter.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/fetch-adapter.html",
+      "bytes": 36538,
+      "sha256": "e31847e9ef2adb2dae0e719e4bf3c3a45111d7fed19f5ec05da97a5688ef0fa5",
+      "source_type": "official programming guide",
+      "reviewed_scope": "typed fetch lookup/cast and pipeline placement",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-schedule",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/scheduling/index.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/scheduling/index.html",
+      "bytes": 21993,
+      "sha256": "796ec0dce697017e6d1b2b36d62d4e655178b5181ca226ab746b685e403f1e44",
+      "source_type": "official guide index",
+      "reviewed_scope": "index/navigation only; not a full scheduler implementation audit",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rngd-tuning",
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/scheduling/tuning.html",
+      "final_url": "https://developer.furiosa.ai/furiosa-opt/book/scheduling/tuning.html",
+      "bytes": 38778,
+      "sha256": "07e944ecbf5828cb7116307d9b4d283d429ae2873f8c67427f875202b27880ac",
+      "source_type": "official programming guide",
+      "reviewed_scope": "schedule interpretation, resource-aware tuning",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "tcp-isca24",
+      "url": "https://web.ist.utl.pt/nuno.lopes/pubs/tcp-isca24.pdf",
+      "final_url": "https://web.ist.utl.pt/nuno.lopes/pubs/tcp-isca24.pdf",
+      "bytes": 1580316,
+      "sha256": "a8c4ca98d8f5d192dd579438d26ff413a11769061992126391ad196e71dceef0",
+      "source_type": "primary paper, ISCA2024",
+      "reviewed_scope": "TCP spatial/temporal mapping, contraction, data movement, Llama mapping examples",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "tcp-micro25",
+      "url": "https://web.ist.utl.pt/nuno.lopes/pubs/tcp-micro25.pdf",
+      "final_url": "https://web.ist.utl.pt/nuno.lopes/pubs/tcp-micro25.pdf",
+      "bytes": 2182801,
+      "sha256": "d559d9d045d01b7811ed9104dd7299c2b583ff6464e3c0cf5b733b815595a29a",
+      "source_type": "primary article, IEEE Micro2025",
+      "reviewed_scope": "RNGD architecture and compiler-directed operand reuse",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "tilefuse",
+      "url": "https://arxiv.org/html/2606.11357v1",
+      "final_url": "https://arxiv.org/html/2606.11357v1",
+      "bytes": 315849,
+      "sha256": "b6390185e9590dd0aa6f405cacf0f02ac444f36bfee1e7e17f7b00cce5124014",
+      "source_type": "primary preprint, arXiv2606.11357v1",
+      "reviewed_scope": "GEMV partitioning, local dequantization, memory-core distribution and offline packing assumptions",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "marlin",
+      "url": "https://arxiv.org/html/2408.11743v1",
+      "final_url": "https://arxiv.org/html/2408.11743v1",
+      "bytes": 238137,
+      "sha256": "a3039a50d137c85d464ab7bdbce6954ffa8e23c2b2558c85190a95aea8cc34ba",
+      "source_type": "primary paper preprint, arXiv2408.11743v1",
+      "reviewed_scope": "quantized weight supply, pipelining, layout/scale handling and offline reshuffling",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "flute",
+      "url": "https://arxiv.org/html/2407.10960v1",
+      "final_url": "https://arxiv.org/html/2407.10960v1",
+      "bytes": 367427,
+      "sha256": "a136aef65e7d4ee3d0bfecfdbdab01de918d9b08b3aba4c5cf2e9f382e4c52fa",
+      "source_type": "primary paper preprint, arXiv2407.10960v1",
+      "reviewed_scope": "offline register-oriented layout, LUT access and vectorization",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "tmac",
+      "url": "https://arxiv.org/html/2407.00088v1",
+      "final_url": "https://arxiv.org/html/2407.00088v1",
+      "bytes": 228342,
+      "sha256": "ecd63a39947f21dd18dbfeabc95694e75b4e6238f37dc797163236c3336dc5ac",
+      "source_type": "primary paper preprint, arXiv2407.00088v1",
+      "reviewed_scope": "bitwise/activation LUT formulation and CPU-specific data access",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "zigzag",
+      "url": "https://arxiv.org/abs/2007.11360",
+      "final_url": "https://arxiv.org/abs/2007.11360",
+      "bytes": 43546,
+      "sha256": "103e8ab18fd238bdce26c2b34ce9c5d4bc8aae561e2cd34251334544feab9166",
+      "source_type": "primary abstract, arXiv2007.11360",
+      "reviewed_scope": "abstract only: memory-centric mapping space and uneven mapping",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "timeloop",
+      "url": "https://research.nvidia.com/publication/2019-03_timeloop-systematic-approach-dnn-accelerator-evaluation",
+      "final_url": "https://research.nvidia.com/publication/2019-03_timeloop-systematic-approach-dnn-accelerator-evaluation",
+      "bytes": 39672,
+      "sha256": "dd5a66edcdbd9f0b786c2806103426ea372e04e86015b0fb486422b4435a3fb4",
+      "source_type": "primary official publication page",
+      "reviewed_scope": "abstract/official summary only: systematic mapping evaluation",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "gemma12b",
+      "url": "https://blog.google/innovation-and-ai/technology/developers-tools/introducing-gemma-4-12b/",
+      "final_url": "https://blog.google/innovation-and-ai/technology/developers-tools/introducing-gemma-4-12b/",
+      "bytes": 372514,
+      "sha256": "bd188335ded74aa1aee6e5b691a534023a80f29b909b7b362cbf53dc910beb6f",
+      "source_type": "Google official model announcement",
+      "reviewed_scope": "model context only; shapes are taken from competition source",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "rules",
+      "url": "https://micro2026-moa.github.io/index.html",
+      "final_url": "https://micro2026-moa.github.io/index.html",
+      "bytes": 60522,
+      "sha256": "f5a4c02f6f74ab80eaa481ad8ac7c058c4a21c9568211d3cb6e2b13536567893",
+      "source_type": "official competition website",
+      "reviewed_scope": "Stage1 kernel scope and evaluation; mutable current page",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    },
+    {
+      "id": "competition-readme",
+      "url": "https://raw.githubusercontent.com/micro2026-moa/furiosa-opt-gemma4-12B/main/README.md",
+      "final_url": "https://raw.githubusercontent.com/micro2026-moa/furiosa-opt-gemma4-12B/main/README.md",
+      "bytes": 9322,
+      "sha256": "2478a1b8ed6659f5662ec667f7802044ceaf89e64c3cfc720bccbf47abced585",
+      "source_type": "official competition repository",
+      "reviewed_scope": "Stage1 input/edit contract, public functions and grading; mutable main README",
+      "raw_snapshot_committed": false,
+      "fetched_snapshot_only_does_not_imply_full_document_review": true
+    }
+  ],
+  "local_implementation_and_experiment_evidence": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "acafddafa9ff66488d54c622f623d568356e7226902c85d65d474d1796bcbe7c"
+    },
+    {
+      "path": "baseline/current.json",
+      "sha256": "469b6914ca06a6d9254555c65eecadcf5f93ef86899967c6c3417c22dc79d880"
+    },
+    {
+      "path": "baseline/e104.json",
+      "sha256": "13c0cab4ecbaf2ed8a0c4cb6288f700fad639a23c22944ab8a15a2d39be0a019"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/src/axes.rs",
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+      "sha256": "ffdab428fd4c8126b77e145b75073c907732bf0fa9ca830a123fe828e7b08888"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/src/host/runtime.rs",
+      "sha256": "207e7928f91bbb47dfd3742efc8f141f0529349e4b7bb243c5a735ff03ed75bc"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+      "sha256": "380e57d6502e26086bd6d933ce762f4ad5de18587d52a8ef4aac7fa87e3b9c9f"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+      "sha256": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0"
+    },
+    {
+      "path": "docs/research/e55-memory-layout-audit.md",
+      "sha256": "2cf52c59bd0e74d4d6834c1aed24d884268d230d6c0bf689dc3db12c0d80337c"
+    },
+    {
+      "path": "docs/research/structural-candidates-20260923.md",
+      "sha256": "d5ee58df182c2147e392644c109072bb3eeea9a9ef0b1ad1583a499466b65b04"
+    },
+    {
+      "path": "docs/research/mixed-dtype-dpe-audit.md",
+      "sha256": "9f0aaa2040ec42de5504e0d33713b00ad83a3f09c83c74bc710b569bca3bcaaf"
+    },
+    {
+      "path": "docs/research/fp8-lookup-table-sharing-audit.md",
+      "sha256": "4634a89c68da55d2f5edda884921b3e482a575f733ce236e055dbb14303decbb"
+    },
+    {
+      "path": "docs/experiments/structural-round-20260923.md",
+      "sha256": "5f57c2ab4b9d9bf074388af67aa427dc1be114dd0320c0ebde8be55006680356"
+    },
+    {
+      "path": "moa-dev/experiments/diagnostics/e104-cost-attribution/README.md",
+      "sha256": "2f9c3196c82e0b5c88f3dfde1be618c9f3b055494e68ab90c76fdf223c5748d9"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact.md",
+      "sha256": "88c4399ce5bc3bf24f37172ec8c498622bc90f902a5ea51baec3b10ec01f09ba"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/c14-ffn-l-pipeline/bf16-stage-compact-v4/mlp.rs",
+      "sha256": "eee46de774c4bcb26d2cdc6dfc59d8e91cc78a541661d1f3afc781c287e66028"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/c15-upgate-columns/README.md",
+      "sha256": "c1c8d07b609c0d68c80fc1b54091838d05673613350a4b3ac597b4776fe44a15"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/c12-output-main-sub/README.md",
+      "sha256": "670b226ec5dad4f8213938b2f7304f9b988411d700cecf3e0a80b42bdfd9c685"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/c13-int8-ffn/README.md",
+      "sha256": "da8b8876bac563bb70aecb35b7605971e0a1c69bcae7dd49c4bdfacfc5023177"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-two-cluster-column-split/README.md",
+      "sha256": "5185be49690d8337885859b97771b144c928e32639419f2c609f077e2bf624ee"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-two-clusters/README.md",
+      "sha256": "08b69504cd93890cb8bd82b3dff1c81930cf9c7a5547ac592a483e71106e0a1a"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-down-two-columns/README.md",
+      "sha256": "1d933da2bc37cc52a04aae8319fc63bf9702fa97af2af999ec1f338b286658b6"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/memory-layout-e55/output-column-major-staged/projection.rs",
+      "sha256": "0d0c05f70da1d2dc9d01a88fbe7a12fe2cb787203a7b5cb814a23affaa9959cb"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/output-column-sweep/projection.2.rs",
+      "sha256": "535bba49738dbf93297b2b17b3d2bcee1455a725e2ea4bb388bcfbf9ba33cbdf"
+    }
+  ],
+  "sdk": {
+    "crate": "furiosa-opt-std",
+    "version": "0.8.1",
+    "container": "moa2026-dev",
+    "container_image": "moa2026-dev:0.8.1",
+    "container_and_read_mirror_hashes_matched": true,
+    "source_files": [
+      {
+        "path": "src/cast.rs",
+        "sha256": "a5bc81ff9e06b89f4d5e25567592782af7e99ef90a2789a00c45a49012430d28"
+      },
+      {
+        "path": "src/tensor/memory.rs",
+        "sha256": "fec623ddf8fadd5cf31b32beb747243c2c463c48e4f73bb29bb2b6ef5d1aaff1"
+      },
+      {
+        "path": "src/engine/fetch.rs",
+        "sha256": "bdc4d90e6ddd49d5a836e0535713792ca1ee34f78634761179a7106a90516695"
+      },
+      {
+        "path": "src/engine/fetch_adapter.rs",
+        "sha256": "7e06090bccd65935e6e6793761831a9e3b1d08e6ffcfe3eff89f48344319b27e"
+      },
+      {
+        "path": "src/engine/collect.rs",
+        "sha256": "b5e643b7656f8b7b978714dd80c531d0d570f6464340dffecdb660695e1d5ea8"
+      },
+      {
+        "path": "src/engine/switch.rs",
+        "sha256": "59312cb683400e6f75bd598ec1e8adb066be66b167adce9a9f8d0ef6568b7167"
+      },
+      {
+        "path": "src/engine/contraction/outer/mod.rs",
+        "sha256": "1e8b114ba2b4d04d83cc77ce4cad0e2f08b30358f888b5543eb66aab73a964ac"
+      },
+      {
+        "path": "src/engine/vector/tensor/vector_tensor.rs",
+        "sha256": "bb7f04f33b3d44254735c09d90ab4d59eed8b9719430f84770f342e5c35118e1"
+      }
+    ],
+    "limitations": [
+      "Public source absence is not a proof that hardware cannot implement an operation.",
+      "Candidate compositions have not been compiled."
+    ]
+  },
+  "new_kernel_compiles": 0,
+  "new_arena_jobs": 0,
+  "new_submissions": 0,
+  "claim_policy": "External mechanisms and SDK constraints are sourced; candidate mappings are our hypotheses. Logical accounting is not measured hardware traffic or speedup.",
+  "verification": {
+    "coordinate_analysis": "passed; report reproduced exactly",
+    "json_parse": "passed",
+    "relative_report_links": "passed",
+    "local_source_hashes": "passed",
+    "baseline_check": "python3 moa-dev/experiment_index.py --check --check-live passed; E104 inputs, method references and measurements validated",
+    "verification_scope": "research artifacts and adopted runtime consistency, not candidate NPU correctness"
+  }
+}

@@ -1,10 +1,27 @@
 # 현재 구조 실험
 
 작업 폴더: `/home/jihwan38/moa-workspace`. Private GitHub: `jihwan38/moa-workspace`.
-조사 기준: `research/structural-candidates-20260923` / `cd1ad4f`.
+최신 조사: `research/rngd-dataflow-20260925` / 시작 commit `f125ca6`.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 최신 작업 — 세 구조 실행
+## 최신 작업 — RNGD 데이터플로·메모리 매핑 조사
+
+논문·공식 programming guide·SDK 0.8.1 및 과거 시도를 대조해
+[전체 경로 후보와 비용](../research/rngd-dataflow-candidates-20260925.md)을 정리했다.
+[설계 JSON](../research/rngd-dataflow-candidates-20260925.json),
+[출처·해시](../research/rngd-dataflow-evidence-20260925.json),
+[좌표·논리량 검사](../research/rngd-dataflow-accounting-20260925.json).
+
+다음 구현 우선순위는 **M02 O cluster K 소유권 → M03 producer-local FFN**이다.
+M03은 C14 가족을 native up/gate·한 L stage와 조합하는 재설계이며 새 가족으로 세지 않는다.
+M01은 E64의 weight repack을 partial 재배치로 바꾸는 조건부 후보로,
+적재·소비 경로의 이득을 먼저 제한된 진단으로 확인해야 한다.
+후보별 전체 graph, HBM/DM/TRF/VRF 소유권, 추가·제거 작업, 첫 검증/종료 조건을 기록했다.
+
+이번 작업은 조사·설계·정수 좌표 검사까지다. 후보 compile/Arena/제출은 없고,
+실행 소스·채택 runtime은 E104다. 후보의 속도 향상이나 순위 상승은 아직 입증하지 않았다.
+
+## 이전 작업 — 세 구조 실행
 
 진행 순서는 **C14-B → C15 → C12-B**다.
 [설계 범위·비용 가설·과거 시도 대조](structural-round-20260923.md).

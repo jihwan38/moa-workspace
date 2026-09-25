@@ -1,0 +1,407 @@
+{
+  "schema_version": 1,
+  "kind": "research_candidate_catalog_not_build_recipe",
+  "as_of_local_date": "2026-09-25",
+  "branch": "research/rngd-dataflow-20260925",
+  "report": "docs/research/rngd-dataflow-candidates-20260925.md",
+  "accounting": "docs/research/rngd-dataflow-accounting-20260925.json",
+  "evidence": "docs/research/rngd-dataflow-evidence-20260925.json",
+  "execution_order": [
+    "M02",
+    "M03"
+  ],
+  "conditional_diagnostic_queue": [
+    "M01"
+  ],
+  "candidates": [
+    {
+      "status": "proposed_not_implemented",
+      "compiled": false,
+      "arena_measured": false,
+      "predicted_speedup": null,
+      "comparison_recipe": "baseline/e104.json",
+      "implementation_checkout_commit": "f125ca66901e58492541affda9ba7058c656ff53",
+      "build_recipe_status": "design_only; materialize sources and run structural_build.py --plan before build",
+      "id": "M02",
+      "priority": 1,
+      "title": "O cluster K-half ownership",
+      "scope": "whole_projection_architecture",
+      "novelty": "Cluster ownership changes from output H to reduction K; distinct from prior intra-cluster column sweeps.",
+      "source_plan": {
+        "architecture": "New O ownership and full producer-to-reducer path.",
+        "retained_arithmetic": "BF16 DPE; F32 partial sum and channel scale before first BF16.",
+        "reference_files": [
+          "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "moa-dev/experiments/candidates/output-two-clusters/projection.rs",
+          "moa-dev/experiments/candidates/c14-ffn-l-pipeline/bf16-stage-compact-v4/mlp.rs"
+        ],
+        "replaced_symbols": [
+          "project_output"
+        ],
+        "other_kernels": "comparison checkout images, not proposed optimization sources"
+      },
+      "prior_related": [
+        {
+          "path": "moa-dev/experiments/candidates/output-two-clusters/README.md",
+          "difference": "Prior clusters own disjoint H, each reads full K."
+        },
+        {
+          "path": "moa-dev/experiments/candidates/output-two-cluster-column-split/README.md",
+          "difference": "Prior K split is inside each H-owned cluster."
+        },
+        {
+          "path": "moa-dev/experiments/candidates/output-column-sweep/projection.2.rs",
+          "difference": "Same local15x2048 tile was already compiled. New elements are cluster K ownership, H interleave, leader broadcast and F32 cluster sum; prior column sweep did not reduce static weight DMA."
+        }
+      ],
+      "graph": [
+        "HBM BF16 x -> cluster-specific K2048 leader DM -> ring32 -> BF16 TRF",
+        "HBM FP8 W -> local15x2048 DM -> BF16 lookup/DPE",
+        "F32 local15 -> 8-byte slot DM -> typed gather of two H vectors",
+        "F32 cluster sum -> channel scale -> BF16 -> post-RMS/residual/HBM"
+      ],
+      "mapping": {
+        "cluster": "c owns K[2048*c:2048*(c+1)]",
+        "slice": "s in [0,256)",
+        "row": "h=256*t+s, t<15",
+        "column": "k=2048*c+u, u<2048"
+      },
+      "placements": [
+        {
+          "value": "x",
+          "owner": "cluster-specific, replicated to 256 slices",
+          "memory": "DM then TRF",
+          "logical_bytes_per_slice": 4096,
+          "lifetime": "all local15 dots",
+          "consumer": "DPE"
+        },
+        {
+          "value": "W",
+          "owner": "cluster c, slice s",
+          "memory": "FP8 DM then BF16 stream",
+          "logical_bytes_per_slice": 30720,
+          "source_alignment_bytes": 256,
+          "lifetime": "local dot",
+          "consumer": "lookup/DPE"
+        },
+        {
+          "value": "partial",
+          "owner": "cluster c, slice s",
+          "memory": "F32 DM, 8-byte slot per valid scalar",
+          "useful_bytes_per_slice": 60,
+          "planned_storage_bytes_per_slice": 120,
+          "lifetime": "through gather",
+          "consumer": "DMA"
+        },
+        {
+          "value": "cluster partial pair",
+          "owner": "H480x8 epilogue",
+          "memory": "F32 DM/VRF",
+          "logical_bytes_total": 30720,
+          "lifetime": "sum and channel scale",
+          "consumer": "VE"
+        }
+      ],
+      "removed_or_shortened": [
+        "16-way inter-slice K reduction",
+        "short256B weight segments; proposed logical segments are2048B"
+      ],
+      "added_or_retained": [
+        "8x activation replica payload",
+        "ring32 broadcast",
+        "partial materialization/gather",
+        "cross-cluster F32 sum",
+        "unchanged total weight bytes"
+      ],
+      "first_gate": {
+        "question": "Does larger contiguous weight delivery plus no inter-slice K reduction beat extra activation broadcast and cluster partial transfer?",
+        "fixed": "official O shape, FP8 weights, BF16 inputs, unchanged epilogue precision boundaries",
+        "prototype": "complete O including input delivery and partial sum, not isolated preconverted dot",
+        "measurements": [
+          "whole O NPU cycles",
+          "accuracy with unchanged harness",
+          "schedule of actual weight/broadcast/partial path"
+        ],
+        "stop": "regression or <5% measured gain closes this mapping unless concrete exception is recorded"
+      },
+      "correctness_gate": [
+        "weight coverage",
+        "15-row output padding excluded",
+        "changed F32 summation order",
+        "channel scale before first BF16",
+        "official and cancellation/boundary inputs"
+      ],
+      "evidence_ids": [
+        "rngd-dma",
+        "rngd-switch",
+        "tcp-isca24",
+        "marlin"
+      ]
+    },
+    {
+      "status": "proposed_not_implemented",
+      "compiled": false,
+      "arena_measured": false,
+      "predicted_speedup": null,
+      "comparison_recipe": "baseline/e104.json",
+      "implementation_checkout_commit": "f125ca66901e58492541affda9ba7058c656ff53",
+      "build_recipe_status": "design_only; materialize sources and run structural_build.py --plan before build",
+      "id": "M03",
+      "priority": 2,
+      "title": "Native up/gate with producer-local GeGLU and L-owned down",
+      "scope": "whole_ffn_architecture_method_recombination",
+      "novelty": "C14-family retry with explicit cost changes, not a new independent family.",
+      "source_plan": {
+        "architecture": "C14-B v4 L ownership, replace two-stage graph with one-stage producer-local graph",
+        "architecture_source": "moa-dev/experiments/candidates/c14-ffn-l-pipeline/bf16-stage-compact-v4/mlp.rs",
+        "selected_methods": [
+          "C07 E5M2 native up/gate arithmetic and runtime input representation",
+          "E79 60x1920 down block pipeline and12-row scale tiles",
+          "C14 F32 cluster-partial restoration principle"
+        ],
+        "reference_files": [
+          "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "moa-dev/experiments/candidates/c14-ffn-l-pipeline/bf16-stage-compact-v4/mlp.rs"
+        ],
+        "remove": [
+          "C14 BF16 up/gate",
+          "C14 two L stages",
+          "E104 full-L single-cluster gather",
+          "E104 H-owned down"
+        ],
+        "composition_required": "Rewrite producer result types, local GeGLU, down HBM view and final sum together; metadata is not source compatibility proof."
+      },
+      "prior_related": [
+        {
+          "path": "moa-dev/experiments/candidates/c14-ffn-l-pipeline/stage-compact.md",
+          "difference": "Native up/gate and one stage; C14 loss is not attributable to locality alone."
+        },
+        {
+          "path": "moa-dev/experiments/candidates/ffn-down-two-columns/README.md",
+          "difference": "Producer and consumer cluster ownership changes together, avoiding an unmatched input redistribution."
+        }
+      ],
+      "graph": [
+        "pre-RMS -> runtime input representation and broadcast",
+        "cluster-owned L-half native up/gate -> local F32 compact -> BF16",
+        "local GeGLU -> same-cluster4-column leader DMA and ring32 -> down TRF",
+        "local FP4 weight -> FP8 DM -> BF16 lookup/DPE -> F32 block partial",
+        "block scales ->4-column F32 reduce -> two cluster H vectors",
+        "F32 cluster sum -> BF16 -> global scale and unchanged epilogue"
+      ],
+      "mapping": {
+        "producer": "l=7680*c+30*s+t",
+        "down_slice": "s=4*r+k, r<64,k<4",
+        "down_row": "h=60*r+t, t<60",
+        "down_column": "l=7680*c+1920*k+u, u<1920"
+      },
+      "placements": [
+        {
+          "value": "up/gate block partial",
+          "owner": "L-row slice",
+          "memory": "F32 DM",
+          "logical_bytes_per_slice": 28800,
+          "lifetime": "through scale/reduce",
+          "consumer": "VE"
+        },
+        {
+          "value": "up/gate final rows",
+          "owner": "same producer cluster",
+          "memory": "F32 DM paired30->60 then BF16",
+          "lifetime": "through local GeGLU",
+          "consumer": "DMA/VE",
+          "alignment": "F32 pair8B; BF16 group4 values8B"
+        },
+        {
+          "value": "GeGLU",
+          "owner": "L-half cluster",
+          "memory": "BF16 DM -> local leader/ring32 -> TRF",
+          "trf_bytes_per_slice": 3840,
+          "lifetime": "down dot",
+          "consumer": "DMA/Switch/DPE"
+        },
+        {
+          "value": "down packed/FP8/block partial",
+          "owner": "64 H groups x4 L columns per cluster",
+          "memory": "DM",
+          "logical_bytes_per_slice": {
+            "packed": 57600,
+            "fp8": 115200,
+            "partial": 28800
+          },
+          "lifetime": "decode -> dot -> scale/reduce; allocator peak unverified",
+          "consumer": "lookup/DPE/VE"
+        },
+        {
+          "value": "down scale tile",
+          "owner": "local slice",
+          "memory": "F32 VRF",
+          "logical_bytes_per_slice": 5760,
+          "lifetime": "12-row reduction",
+          "consumer": "VE"
+        },
+        {
+          "value": "two H partials",
+          "owner": "one per L cluster -> H480x8 epilogue",
+          "memory": "F32 DM/VRF",
+          "logical_bytes_total": 30720,
+          "lifetime": "through cluster sum",
+          "consumer": "DMA/VE"
+        }
+      ],
+      "removed_or_shortened": [
+        "full-L gather followed by cross-cluster down redistribution",
+        "C14 second-stage setup/partial merge",
+        "ring32 leader payload halves vs E104"
+      ],
+      "added_or_retained": [
+        "F32 H cluster partial transfer/sum",
+        "same total down activation replicas",
+        "same FP4 decode elements and block partial storage",
+        "same960B weight/120B scale row segments",
+        "up/gate completion dependency remains"
+      ],
+      "first_gate": {
+        "question": "Does matched producer/consumer ownership save more than the added H-partial path when native up/gate is already in the control?",
+        "fixed": "full FFN shapes, one L stage, E5M2 three-term first prototype, BF16 down, unchanged public weights/scales",
+        "prototype": "whole FFN composed from C14 ownership and C07/E79 methods",
+        "measurements": [
+          "whole FFN NPU cycles",
+          "local producer/down transfer and cluster-sum schedule",
+          "official and additional numeric checks"
+        ],
+        "stop": "regression or <5% measured gain closes this combination without parameter sweep; do not reject every C14-family composition"
+      },
+      "correctness_gate": [
+        "local30->60 packing",
+        "producer/down L ownership",
+        "scale group16 correspondence",
+        "native small-value/cancellation behavior",
+        "F32 cluster sum before BF16",
+        "global-scale and residual rounding"
+      ],
+      "evidence_ids": [
+        "tilefuse",
+        "tcp-isca24",
+        "rngd-memory",
+        "rngd-dma"
+      ]
+    },
+    {
+      "status": "conditional_diagnostic_before_implementation",
+      "compiled": false,
+      "arena_measured": false,
+      "predicted_speedup": null,
+      "comparison_recipe": "baseline/e104.json",
+      "implementation_checkout_commit": "f125ca66901e58492541affda9ba7058c656ff53",
+      "build_recipe_status": "design_only; materialize sources and run structural_build.py --plan before build",
+      "id": "M01",
+      "priority": 3,
+      "title": "O ingestion layout computes directly; reorder only reduced partials",
+      "scope": "whole_projection_mapping_and_reduction_path",
+      "novelty": "E64-family retry replacing full-weight repack with post-dot partial redistribution; ingestion alone has no demonstrated benefit.",
+      "source_plan": {
+        "architecture": "E64 column-major ingress with direct contraction and new post-dot layout change",
+        "reference_files": [
+          "moa-dev/experiments/candidates/memory-layout-e55/output-column-major-staged/projection.rs",
+          "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs"
+        ],
+        "remove": [
+          "E64 full weight repack",
+          "E104 inline reduction in the dot stream"
+        ],
+        "retain": "BF16 DPE and F32 scale-before-BF16 epilogue"
+      },
+      "prior_related": [
+        {
+          "path": "docs/research/e55-memory-layout-audit.md",
+          "difference": "Eliminates17112-static-cycle full W repack; prior ingress estimate13383->13435 gives no evidence of ingress speedup."
+        }
+      ],
+      "graph": [
+        "HBM FP8 W -> K-major-slice DM -> lookup/BF16 dot using matching x TRF",
+        "compact F32 partial A -> typed DMA to row-major partial B OR fetch/Switch transpose",
+        "16-column F32 reduce -> channel scale -> BF16 -> unchanged epilogue"
+      ],
+      "mapping": {
+        "slice": "s=16*k+r -> s'=16*r+k",
+        "row": "h=1920*c+120*r+t",
+        "column": "j=256*k+u"
+      },
+      "placements": [
+        {
+          "value": "W",
+          "owner": "K-major slice",
+          "memory": "FP8 DM",
+          "logical_bytes_per_slice": 30720,
+          "lifetime": "local dot",
+          "consumer": "lookup/DPE",
+          "source_alignment_bytes": 256
+        },
+        {
+          "value": "x",
+          "owner": "matching K column",
+          "memory": "BF16 TRF",
+          "logical_bytes_per_slice": 512,
+          "lifetime": "120-row dot",
+          "consumer": "DPE"
+        },
+        {
+          "value": "partial A",
+          "owner": "K-major slice",
+          "memory": "compact F32 DM",
+          "logical_bytes_per_slice": 480,
+          "lifetime": "through transpose",
+          "consumer": "DMA or fetch/Switch",
+          "alignment_bytes": 8
+        },
+        {
+          "value": "partial B",
+          "owner": "row-major slice, DMA alternative only",
+          "memory": "F32 DM",
+          "logical_bytes_total": 245760,
+          "lifetime": "through16-way reduce",
+          "consumer": "VE"
+        }
+      ],
+      "removed_or_shortened": [
+        "full15MiB weight layout copy vs E64, not vs E104"
+      ],
+      "added_or_retained": [
+        "partial materialization that E104 does not have",
+        "DMA path four extra partial edges =983040 useful bytes",
+        "optional fused Switch path two DM edges =491520 useful bytes plus ring256 communication",
+        "unchanged weight bytes and source segment size"
+      ],
+      "first_gate": {
+        "question": "Is there any actual ingestion/consumer-path advantage able to pay for partial redistribution?",
+        "fixed": "same public W/x, same120x256 local work, same full O shape",
+        "prototype": "bounded paired ingress/consumer diagnostic; label preconverted or incomplete work diagnostic-only",
+        "measurements": [
+          "actual NPU path timing with explicit partial boundary costs",
+          "compiled descriptor/layout evidence, not only logical bytes"
+        ],
+        "stop": "without advantage or concrete full-path overlap mechanism, hold; do not build a long parameter sweep"
+      },
+      "correctness_gate": [
+        "partial slice permutation",
+        "innermost K reduction axis",
+        "no padding in reduction",
+        "F32 scale and first BF16 boundary"
+      ],
+      "evidence_ids": [
+        "rngd-switch",
+        "rngd-dma",
+        "marlin",
+        "flute"
+      ]
+    }
+  ],
+  "common_limits": [
+    "No rank or percent speedup forecast is supported.",
+    "Coordinate proof is not SDK lowering, NPU correctness or measured traffic proof.",
+    "Stage1 must include conversion/packing; no free host prepack.",
+    "Use actual contemporary E104 control package, not only recipe name.",
+    "Research IDs are not experiment results and are not added to the performance catalog."
+  ]
+}

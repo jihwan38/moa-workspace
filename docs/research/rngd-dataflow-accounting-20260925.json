@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "scope": "logical coordinates and payload accounting only",
+  "axes_sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a",
+  "dimensions": {
+    "H": 3840,
+    "L": 15360,
+    "Qs": 4096,
+    "Ps": 2048
+  },
+  "payloads_exclude_scalar_and_norm_parameters": {
+    "qkv": {
+      "weight_bytes": 31457280,
+      "scale_bytes": 16384
+    },
+    "output": {
+      "weight_bytes": 15728640,
+      "scale_bytes": 7680
+    },
+    "ffn": {
+      "weight_bytes": 88473600,
+      "block_scale_bytes": 11059200
+    }
+  },
+  "candidates": {
+    "M01": {
+      "coverage": "every weight element exactly once",
+      "all_512_slices_have_work": true,
+      "row_segments_not_dma_descriptors": 61440,
+      "source_8_byte_alignment": "pass, assuming aligned matrix base",
+      "segments_with_256_byte_start": 61440,
+      "segments_with_256_byte_length": 61440,
+      "unique_payload_bytes": 15728640,
+      "max_weight_payload_bytes_per_slice": 30720,
+      "f32_partial_useful_bytes": 245760,
+      "partial_repack_only_read_write_useful_bytes": 491520,
+      "dma_path_all_extra_partial_edges_useful_bytes": 983040,
+      "fused_switch_path_extra_dm_edges_excluding_switch_traffic_bytes": 491520,
+      "e64_full_weight_repack_write_read_useful_bytes": 31457280,
+      "bf16_activation_replicas_useful_bytes": 262144,
+      "trf_input_useful_bytes_per_slice": 512
+    },
+    "M02": {
+      "coverage": "every weight element exactly once",
+      "all_512_slices_have_work": true,
+      "row_segments_not_dma_descriptors": 7680,
+      "source_8_byte_alignment": "pass, assuming aligned matrix base",
+      "segments_with_256_byte_start": 7680,
+      "segments_with_256_byte_length": 7680,
+      "unique_payload_bytes": 15728640,
+      "max_weight_payload_bytes_per_slice": 30720,
+      "rows_per_slice": 15,
+      "f32_partial_useful_bytes": 30720,
+      "f32_partial_8byte_slot_storage_bytes": 61440,
+      "bf16_activation_replicas_useful_bytes": 2097152,
+      "activation_replica_ratio_vs_e104": 8,
+      "ring32_input_leader_payload_bytes": 65536,
+      "trf_input_useful_bytes_per_slice": 4096
+    },
+    "M03": {
+      "down_weight": {
+        "coverage": "every weight element exactly once",
+        "all_512_slices_have_work": true,
+        "row_segments_not_dma_descriptors": 30720,
+        "source_8_byte_alignment": "pass, assuming aligned matrix base",
+        "segments_with_256_byte_start": 7680,
+        "segments_with_256_byte_length": 0,
+        "unique_payload_bytes": 29491200,
+        "max_weight_payload_bytes_per_slice": 57600
+      },
+      "down_block_scale": {
+        "coverage": "every weight element exactly once",
+        "all_512_slices_have_work": true,
+        "row_segments_not_dma_descriptors": 30720,
+        "source_8_byte_alignment": "pass, assuming aligned matrix base",
+        "segments_with_256_byte_start": 960,
+        "segments_with_256_byte_length": 0,
+        "unique_payload_bytes": 3686400,
+        "max_weight_payload_bytes_per_slice": 7200
+      },
+      "producer_pairing_and_consumer_coverage": "pass, all 15360 L coordinates",
+      "down_activation_replicas_useful_bytes": 1966080,
+      "e104_down_activation_replicas_useful_bytes": 1966080,
+      "ring32_leader_payload_bytes": 245760,
+      "e104_ring32_leader_payload_bytes": 491520,
+      "down_f32_cluster_partial_useful_bytes": 30720,
+      "down_trf_input_useful_bytes_per_slice": 3840,
+      "down_f32_block_partial_bytes_per_slice": 28800,
+      "down_scale_vrf_useful_bytes_per_slice": 5760,
+      "upgate_scale_vrf_useful_bytes_per_slice": 5760,
+      "stage_count": 1,
+      "matrix_decode_streams": 3,
+      "early_down_overlap_claimed": false
+    }
+  },
+  "limitations": [
+    "No Rust candidate exists and no compilation or NPU execution is implied.",
+    "Row segments are not compiled DMA descriptors or measured transactions.",
+    "Payload bytes exclude allocator padding, decoder tables and bus amplification.",
+    "Logical TRF/VRF footprints do not establish physical allocation feasibility.",
+    "No floating-point accuracy, engine overlap or latency prediction."
+  ]
+}
