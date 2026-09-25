@@ -1,0 +1,38 @@
+{
+  "id": "M01",
+  "variant": "dma-v1",
+  "base_commit": "8109a27c25b2c5fb4e34e6839be75d5387d98a13",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "sliding_attention_output",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-e104-reviewed-v1-repro.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "decoder_feedforward"
+  ],
+  "scope": "whole O projection mapping and reduction-path replacement, E64-family retry",
+  "source_composition": {
+    "origin": "E64 column-major weight ingress; newly matched BF16 input and direct dot",
+    "arithmetic_and_epilogue": "E104/E53 BF16 dot, F32 reduction and scale before first BF16",
+    "retained_file_regions": "Every function outside project_output is byte-identical to the selected origin",
+    "removed": "E64 full-weight DM repack; E104 inline dot/reduction coupling"
+  },
+  "graph": "HBM x/W -> column-major slice DM/TRF -> lookup+BF16 dot -> compact F32 partial DM -> typed DMA slice transpose -> fetch -> F32 16-column sum -> H480x8 gather -> F32 channel scale -> BF16 -> existing post-RMS/residual",
+  "prior_related": [
+    "E64 +149.61% measured O; full-weight repack dominated, ingress itself had no static gain",
+    "C12 added partial boundaries without useful overlap; this candidate has one120-row dot and compact partials"
+  ],
+  "cost_removed": [
+    "15MiB weight repack vs E64; E104 did not pay this cost"
+  ],
+  "cost_added": [
+    "new245760B F32 partial and its write/read",
+    "typed DMA or ring256 transpose",
+    "separate reducer launch"
+  ],
+  "diagnostic": "Two predeclared full-path alternatives, not two architecture families. Every input conversion/transfer remains timed. No preconverted-weight benchmark.",
+  "first_stop_condition": "Inspect supply and added partial path. Basic NPU screen with bracketing E104 if executable; close regression/<5% O gain without parameter sweep. Static small differences do not prove hardware loss. Repair identified source/axis faults rather than declaring SDK unsupported.",
+  "adopted": false
+}

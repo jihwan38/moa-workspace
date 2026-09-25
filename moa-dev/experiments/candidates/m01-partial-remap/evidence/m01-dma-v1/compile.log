@@ -1,0 +1,25 @@
+error[E0599]: the method `commit` exists for struct `TuTensor<'_, Main, PositionVectorFinal, f32, ..., ..., ..., ..., ...>`, but its trait bounds were not satisfied
+   --> src/device/sliding/projection.rs:204:10
+    |
+197 |       let result: DmTensor<f32, Chip, OutputCluster, OutputRows, m![H % 120]> = device
+    |  _______________________________________________________________________________-
+198 | |         .main.begin(partial.view())
+199 | |         .fetch::<m![H / 8 % 15], m![H % 8]>()
+200 | |         .collect::<m![H / 8 % 15], m![H % 8]>()
+...   |
+203 | |         .vector_final()
+204 | |         .commit();
+    | |_________-^^^^^^
+    |
+   ::: /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.8.1/src/engine/vector/tensor/mod.rs:78:1
+    |
+ 78 |   pub struct PositionVectorFinal;
+    |   ------------------------------ doesn't satisfy `_: CanApplyCommit`
+    |
+    = note: the following trait bounds were not satisfied:
+            `furiosa_opt_std::prelude::PositionVectorFinal: furiosa_opt_std::prelude::CanApplyCommit`
+    = note: the full name for the type has been written to '/tmp/moa-c01-upgate/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-786705238801314c.long-type-4290738032958241715.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error

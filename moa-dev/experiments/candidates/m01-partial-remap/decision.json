@@ -1,0 +1,50 @@
+{
+  "id": "M01",
+  "status": "closed-after-valid-hardware-screen",
+  "adopted": false,
+  "branch": "opt/m01-partial-remap",
+  "branch_start_commit": "8109a27c25b2c5fb4e34e6839be75d5387d98a13",
+  "comparison_recipe": "baseline/e104.json",
+  "architecture_families": 1,
+  "transport_alternatives": 2,
+  "source_snapshots": 4,
+  "distinct_sources_compiled": 3,
+  "whole_exact_compile_calls": 5,
+  "host_builds": 2,
+  "arena_jobs": [
+    95636
+  ],
+  "official_submission": false,
+  "runtime": "E104 unchanged",
+  "correctness": "All60 basic comparisons in four processes pass; each candidate O has3 inputs/11520 outputs. No expanded correctness or independent repetition.",
+  "results": {
+    "dma": {
+      "report": "docs/experiments/e112-m01-partial-dma.json",
+      "median_cycles": 55608,
+      "change_percent": {
+        "vs_before": 9.020330542866661,
+        "vs_after": 8.452627062448803,
+        "vs_bracketing_median": 8.735737820318533
+      }
+    },
+    "switch": {
+      "report": "docs/experiments/e113-m01-partial-switch.json",
+      "median_cycles": 60677,
+      "change_percent": {
+        "vs_before": 18.958182210284868,
+        "vs_after": 18.338729180481337,
+        "vs_bracketing_median": 18.647647168095727
+      }
+    }
+  },
+  "static_cost": "moa-dev/experiments/candidates/m01-partial-remap/static-cost.json",
+  "source_error": "dma-v1 direct commit after VectorFinal lacked commit adapter; commit_trim preserving8-F32 packet repaired it. switch-v1 corrected before compile.",
+  "observed_schedule": "No shorter weight supply or producer interval; partial DMA/reduction or ring256/reduction follows complete dot and delays epilogue.",
+  "closure_reason": "Both correct full O alternatives exceed both adjacent control timing samples; no5% gain. Stop this combination without parameter tuning.",
+  "limits": [
+    "One Arena allocation with serial processes, not independent replications.",
+    "Static schedule supports a dependency explanation, not hardware stall attribution.",
+    "Rejection is limited to these two complete mappings, not every column-major family."
+  ],
+  "retry_condition": "Concrete supported change that shortens ingress/compute or eliminates/hides partial boundaries; a renamed tile/padding sweep is insufficient."
+}

@@ -4,7 +4,28 @@
 최신 조사: `research/rngd-dataflow-20260925` / 시작 commit `f125ca6`.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 최신 작업 — RNGD 데이터플로·메모리 매핑 조사
+## 최신 작업 — M01 partial 재배치 검증 완료
+
+사용자의 실행 순서 지정에 따라 **M01을 먼저** 진행한다. 조사 기록을 main/origin에
+`8109a27`까지 fast-forward 통합한 뒤 `opt/m01-partial-remap`을 만들었다.
+[M01 설계·두 전송 경로·검증 기록](../../moa-dev/experiments/candidates/m01-partial-remap/README.md).
+E64의 column-major 적재 뒤 weight 전체 재배치를 제거하고, 동일 배치에서 dot 후
+compact F32 partial을 DMA 또는 Switch로 옮기는 완성 O 경로를 검사한다.
+단순 column 수 sweep이 아니며 두 경로를 별도 아키텍처 가족으로 세지 않는다.
+
+**두 경로 모두 compile·기본 NPU 정확도 PASS 후 실측 회귀로 종료했다.**
+Arena95636: E10451007 → DMA55608 → Switch60677 → E10451274 cycles.
+앞뒤 control 중앙값 대비 DMA+8.74%, Switch+18.65%다. 각 process의15비교가 모두 PASS다.
+[E112 DMA](e112-m01-partial-dma.json), [E113 Switch](e113-m01-partial-switch.json).
+
+첫 `dma-v1`의 commit-adapter source 오류는 v2에서 수정했다. 정적 일정에서는
+weight 적재13383→13435, dot stream5063→5063으로 줄지 않았고,
+새 partial 이동/합산이 직렬로 추가됐다. 정적 makespan은 DMA29824, Switch31995,
+E10427239다. NPU stall 분해 측정과 구분한다.
+긴 튜닝·추가 반복 없이 종료, E104 실행 소스 유지, 공식 제출 없음.
+후속 미실행 설계는 M02와 M03이다.
+
+## 이전 작업 — RNGD 데이터플로·메모리 매핑 조사
 
 논문·공식 programming guide·SDK 0.8.1 및 과거 시도를 대조해
 [전체 경로 후보와 비용](../research/rngd-dataflow-candidates-20260925.md)을 정리했다.

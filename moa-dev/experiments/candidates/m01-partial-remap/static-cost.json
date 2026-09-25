@@ -1,0 +1,313 @@
+{
+  "scope": "Compiler schedule and explicit producer/consumer intervals; not NPU stall times or measured bus traffic.",
+  "builds": {
+    "E104": {
+      "makespan": 27239,
+      "schedule": {
+        "bytes": 20636,
+        "sha256": "0892c22c587d52873e82c9f7380e1f000154b471fb4fce5eb5e8c63382125084"
+      },
+      "source_build_record": "moa-dev/experiments/candidates/c09-output-pipeline/build-c09-e104-control-repro.json",
+      "image": {
+        "bytes": 71168,
+        "sha256": "359473814839effc16ade242bad3c598a93610601bc650f550ff44228898d88b"
+      },
+      "nodes": [
+        {
+          "kind": "activation_ingress",
+          "index": "14",
+          "engine": "DmaLoad",
+          "begin": 1841,
+          "end": 2774,
+          "duration": 933,
+          "input_tensors": [
+            0
+          ],
+          "output_tensors": [
+            9
+          ],
+          "operation": "--> src/device/sliding/projection.rs:168:79\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "weight_ingress",
+          "index": "16",
+          "engine": "DmaLoad",
+          "begin": 2774,
+          "end": 16157,
+          "duration": 13383,
+          "input_tensors": [
+            2
+          ],
+          "output_tensors": [
+            10
+          ],
+          "operation": "--> src/device/sliding/projection.rs:175:95\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dot_and_fused_operations",
+          "index": "26",
+          "engine": "Main",
+          "begin": 16157,
+          "end": 21220,
+          "duration": 5063,
+          "input_tensors": [
+            10,
+            11,
+            8
+          ],
+          "output_tensors": [
+            12
+          ],
+          "operation": "--> src/device/sliding/projection.rs:178:79\n\ndevice\n.main.begin(weight.view())\n.fetch::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120, Qs / 32 % 8], m![Qs % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120]>()\n.contract_lane::<m![H % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_inter_slice_reduce::<OutputRows, m![H % 120]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.transpose::<m![H / 2 % 60], m![H % 2 # 8]>()\n.commit_trim::<m![H % 2]>()\n.commit()"
+        },
+        {
+          "kind": "epilogue_gather",
+          "index": "54",
+          "engine": "DmaStos",
+          "begin": 21220,
+          "end": 21690,
+          "duration": 470,
+          "input_tensors": [
+            22,
+            7
+          ],
+          "output_tensors": [
+            23
+          ],
+          "operation": "--> src/device/sliding/projection.rs:194:83\n\nresult.to_dm(&mut device.tdma)"
+        }
+      ],
+      "context_interval_unions": {
+        "Noop": 0,
+        "DmaEngine": 18229,
+        "PeCore": 1800,
+        "SubContext": 3036,
+        "MainContext": 7178,
+        "VectorEngine": 7178
+      }
+    },
+    "dma-v2": {
+      "makespan": 29824,
+      "schedule": {
+        "bytes": 22025,
+        "sha256": "7801a809376d8fdbe7610409a086341738846be00397e7ad65f389ffbc79ef7e"
+      },
+      "source_build_record": "moa-dev/experiments/candidates/m01-partial-remap/build-m01-dma-v2-repro.json",
+      "image": {
+        "bytes": 76288,
+        "sha256": "60b7a5c0b294ae750ee16ef6e1d77feae0c32670018d5316deb26315345c2217"
+      },
+      "nodes": [
+        {
+          "kind": "activation_ingress",
+          "index": "14",
+          "engine": "DmaLoad",
+          "begin": 1841,
+          "end": 2863,
+          "duration": 1022,
+          "input_tensors": [
+            0
+          ],
+          "output_tensors": [
+            9
+          ],
+          "operation": "--> src/device/sliding/projection.rs:171:78\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "weight_ingress",
+          "index": "16",
+          "engine": "DmaLoad",
+          "begin": 2863,
+          "end": 16298,
+          "duration": 13435,
+          "input_tensors": [
+            2
+          ],
+          "output_tensors": [
+            10
+          ],
+          "operation": "--> src/device/sliding/projection.rs:178:94\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dot_and_fused_operations",
+          "index": "26",
+          "engine": "Main",
+          "begin": 16298,
+          "end": 21361,
+          "duration": 5063,
+          "input_tensors": [
+            10,
+            11,
+            8
+          ],
+          "output_tensors": [
+            12
+          ],
+          "operation": "--> src/device/sliding/projection.rs:182:82\n\ndevice\n.main.begin(weight.view())\n.fetch::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120, Qs / 32 % 8], m![Qs % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120]>()\n.contract_lane::<m![H % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H / 2 % 60], m![H % 2 # 8]>()\n.commit_trim::<m![H % 2]>()\n.commit()"
+        },
+        {
+          "kind": "partial_dma_remap",
+          "index": "51",
+          "engine": "DmaStos",
+          "begin": 21361,
+          "end": 23389,
+          "duration": 2028,
+          "input_tensors": [
+            12
+          ],
+          "output_tensors": [
+            22
+          ],
+          "operation": "--> src/device/sliding/projection.rs:196:83\n\npartial.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "partial_reduce",
+          "index": "57",
+          "engine": "Main",
+          "begin": 23389,
+          "end": 23805,
+          "duration": 416,
+          "input_tensors": [
+            22
+          ],
+          "output_tensors": [
+            23
+          ],
+          "operation": "--> src/device/sliding/projection.rs:197:79\n\ndevice\n.main.begin(partial.view())\n.fetch::<m![H / 8 % 15], m![H % 8]>()\n.collect::<m![H / 8 % 15], m![H % 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<OutputRows, m![H / 8 % 15]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "epilogue_gather",
+          "index": "63",
+          "engine": "DmaStos",
+          "begin": 23805,
+          "end": 24275,
+          "duration": 470,
+          "input_tensors": [
+            24,
+            7
+          ],
+          "output_tensors": [
+            25
+          ],
+          "operation": "--> src/device/sliding/projection.rs:207:83\n\nresult.to_dm(&mut device.tdma)"
+        }
+      ],
+      "context_interval_unions": {
+        "Noop": 0,
+        "DmaEngine": 20398,
+        "PeCore": 1800,
+        "SubContext": 3036,
+        "MainContext": 7594,
+        "VectorEngine": 2531
+      },
+      "change_percent_vs_e104": 9.490069385807121
+    },
+    "switch-v2": {
+      "makespan": 31995,
+      "schedule": {
+        "bytes": 21498,
+        "sha256": "5f55c57e93cdcc977d1e67379fa87cc1d7a400a5220b9899e937fd40f1121b63"
+      },
+      "source_build_record": "moa-dev/experiments/candidates/m01-partial-remap/build-m01-switch-v2-repro.json",
+      "image": {
+        "bytes": 70912,
+        "sha256": "dea5481d0c287690b97f4242fb03397ada431c91fec9111b3a10d6bcdcc6b5c8"
+      },
+      "nodes": [
+        {
+          "kind": "activation_ingress",
+          "index": "14",
+          "engine": "DmaLoad",
+          "begin": 1841,
+          "end": 2863,
+          "duration": 1022,
+          "input_tensors": [
+            0
+          ],
+          "output_tensors": [
+            9
+          ],
+          "operation": "--> src/device/sliding/projection.rs:171:78\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "weight_ingress",
+          "index": "16",
+          "engine": "DmaLoad",
+          "begin": 2863,
+          "end": 16298,
+          "duration": 13435,
+          "input_tensors": [
+            2
+          ],
+          "output_tensors": [
+            10
+          ],
+          "operation": "--> src/device/sliding/projection.rs:178:94\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dot_and_fused_operations",
+          "index": "26",
+          "engine": "Main",
+          "begin": 16298,
+          "end": 21361,
+          "duration": 5063,
+          "input_tensors": [
+            10,
+            11,
+            8
+          ],
+          "output_tensors": [
+            12
+          ],
+          "operation": "--> src/device/sliding/projection.rs:182:82\n\ndevice\n.main.begin(weight.view())\n.fetch::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120, Qs / 32 % 8], m![Qs % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120]>()\n.contract_lane::<m![H % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H / 2 % 60], m![H % 2 # 8]>()\n.commit_trim::<m![H % 2]>()\n.commit()"
+        },
+        {
+          "kind": "partial_switch_and_reduce",
+          "index": "52",
+          "engine": "Main",
+          "begin": 21361,
+          "end": 25976,
+          "duration": 4615,
+          "input_tensors": [
+            12
+          ],
+          "output_tensors": [
+            22
+          ],
+          "operation": "--> src/device/sliding/projection.rs:197:79\n\ndevice\n.main.begin(partial.view())\n.fetch::<m![H / 8 % 15], m![H % 8]>()\n.switch::<OutputColumns, m![H / 8 % 15]>(SwitchConfig::Transpose { slice1: 16, slice0: 16 })\n.collect::<m![H / 8 % 15], m![H % 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<OutputRows, m![H / 8 % 15]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "epilogue_gather",
+          "index": "58",
+          "engine": "DmaStos",
+          "begin": 25976,
+          "end": 26446,
+          "duration": 470,
+          "input_tensors": [
+            23,
+            7
+          ],
+          "output_tensors": [
+            24
+          ],
+          "operation": "--> src/device/sliding/projection.rs:208:83\n\nresult.to_dm(&mut device.tdma)"
+        }
+      ],
+      "context_interval_unions": {
+        "Noop": 0,
+        "DmaEngine": 18370,
+        "PeCore": 1800,
+        "SubContext": 3036,
+        "MainContext": 11793,
+        "VectorEngine": 6730
+      },
+      "change_percent_vs_e104": 17.460259187194826
+    }
+  },
+  "finding": "Weight ingress and dot do not shorten in these schedules. The new remap/reduction waits for all dot partials, and the epilogue waits for that consumer. Compact partials avoid E64's full-weight repack but add work absent from E104.",
+  "limits": [
+    "Context intervals overlap and are not additive runtime contributions.",
+    "Dot timing includes fused operations; no isolated decode or arithmetic latency is measured.",
+    "Whole-kernel NPU measurements cannot identify hardware stall fractions."
+  ]
+}

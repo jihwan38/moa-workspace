@@ -3,6 +3,10 @@
 2026-09-25 조사. 브랜치 `research/rngd-dataflow-20260925`, 조사 시작 commit
 `f125ca66901e58492541affda9ba7058c656ff53`, 설치 SDK `furiosa-opt-std 0.8.1`.
 **설계·좌표 검사까지 완료했으며 후보 Rust 구현, compile, Arena 측정은 아직 없다.**
+위 상태는 조사 commit `8109a27` 시점이다. 이후 사용자 지정으로 M01을 먼저 실행했다.
+**후속 M01 검증:** DMA/Switch 모두 compile·기본 NPU PASS, 각각+8.74%/+18.65% 회귀로
+종료했다. [구현·실측·원인·판정](../../moa-dev/experiments/candidates/m01-partial-remap/README.md).
+M02/M03은 아직 미실행이다. 아래의 사전 설계·가설과 후속 실측을 구분한다.
 현재 실행본 [E104](../../baseline/e104.json)는 성능 비교군이다.
 [후보 JSON](rngd-dataflow-candidates-20260925.json),
 [출처·해시·열람 범위](rngd-dataflow-evidence-20260925.json),
