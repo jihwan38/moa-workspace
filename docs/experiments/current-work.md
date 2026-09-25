@@ -4,7 +4,32 @@
 최신 조사: `research/rngd-dataflow-20260925` / 시작 commit `f125ca6`.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 최신 작업 — M01 partial 재배치 검증 완료
+## 최신 작업 — M02 cluster K-half 소유권 검증 완료
+
+M01의 `ecdeaca`까지 main/origin에 fast-forward 통합하고 `opt/m02-cluster-k`에서
+전체 O 경로를 새로 구현했다. [M02 설계·수정·실측](../../moa-dev/experiments/candidates/m02-cluster-k/README.md).
+cluster는 H 반쪽 대신 K2048 반쪽을 소유하고, 각 slice가15×2048 dot을 수행한다.
+Ring32 leader 입력 방송, F32 partial gather/압축, 두 cluster의 F32 합+scale을 포함한다.
+15×2048 tile 자체는 이전 두열 실험에도 있었고 이 조합의 새 ownership을 검증했다.
+
+**두 완성 경로 모두 compile·기본 NPU PASS 후 큰 회귀로 종료했다.**
+Arena95914: E10451010 → v3 full-H 집결78981 → v4 H480 묶음89203 → E10450901.
+앞뒤 control 중앙값 대비 각각**+55.00%, +75.06%**다.
+[E114](e114-m02-full-h-gather.json), [E115](e115-m02-grouped-interleave.json).
+총60비교 PASS이며 각 후보 O는3입력·11520출력 원소를 검사했다.
+
+v1 방송 축, v2 H%256→H%480 직접 DMA factorization 오류를 구체적으로 수정했다.
+v3는 full-H 집결로 실행 가능성을 확인했고, v4는 producer row를 H480 경계에 맞춰
+그 중간 집결을 없앴다. 정적 전체37413→32382로 줄었지만 NPU 순서는 반대로 나타났다.
+Weight 적재·dot의 정적 interval은 줄지 않았고 partial 의존성이 추가됐다.
+NPU에서 어떤 bank/전송/stall이 얼마를 차지했는지는 측정하지 않았다.
+
+source snapshot4개·exact compile6회(그중 package 재compile2회)·host2개·Arena1회.
+한 architecture의 두 경로이며 독립 가족 두 개로 세지 않는다.
+추가 sweep·확장 정확도·독립 반복·채택·공식 제출 없이 종료하고 **E104를 유지**한다.
+Source/log/hash/실측/판정은 branch에 보존한다. 다음 미실행 사전 후보는 **M03**이다.
+
+## 이전 작업 — M01 partial 재배치 검증 완료
 
 사용자의 실행 순서 지정에 따라 **M01을 먼저** 진행한다. 조사 기록을 main/origin에
 `8109a27`까지 fast-forward 통합한 뒤 `opt/m01-partial-remap`을 만들었다.

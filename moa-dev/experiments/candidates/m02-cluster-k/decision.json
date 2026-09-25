@@ -1,0 +1,65 @@
+{
+  "id": "M02",
+  "status": "closed-after-valid-hardware-screen",
+  "adopted": false,
+  "branch": "opt/m02-cluster-k",
+  "branch_start_commit": "ecdeaca8187504e833a415731f626a3fa1ef3d5e",
+  "comparison_recipe": "baseline/e104.json",
+  "architecture_families": 1,
+  "complete_mapping_alternatives": 2,
+  "source_snapshots": 4,
+  "distinct_sources_compiled": 4,
+  "whole_exact_compile_calls": 6,
+  "host_builds": 2,
+  "arena_jobs": [
+    95914
+  ],
+  "official_submission": false,
+  "runtime": "E104 unchanged",
+  "correctness": "All60 basic comparisons in four processes pass. Each candidate O has3 inputs/11520 outputs, all within unchanged tolerance. Logged max absolute O error0.00391 in run1 for both, zero at printed precision for run0/run2. Not bitwise-equivalent proof; no expanded cancellation/boundary inputs or independent repetitions after regressions.",
+  "results": {
+    "full_h_v3": {
+      "report": "docs/experiments/e114-m02-full-h-gather.json",
+      "median_cycles": 78981,
+      "change_percent": {
+        "vs_before": 54.83434620662615,
+        "vs_after": 55.16591029645783,
+        "vs_bracketing_median": 54.99995093758279
+      }
+    },
+    "grouped_v4": {
+      "report": "docs/experiments/e115-m02-grouped-interleave.json",
+      "median_cycles": 89203,
+      "change_percent": {
+        "vs_before": 74.87355420505783,
+        "vs_after": 75.2480304905601,
+        "vs_bracketing_median": 75.06059208525086
+      }
+    }
+  },
+  "control_before_cycles": 51010,
+  "control_after_cycles": 50901,
+  "bracketing_median_cycles": 50955.5,
+  "static_cost": "moa-dev/experiments/candidates/m02-cluster-k/static-cost.json",
+  "source_repairs": [
+    "v1 Switch bitmap mismatch fixed by preserving Dummy256/32 ring axis with anonymous32 broadcast replicas.",
+    "v2 direct H%256 -> H%480 partial gather not factorizable. v3 full-H gather/compact followed by canonical DMA proved the complete architecture executable.",
+    "v3 static gather/compaction serialization motivated predeclared v4 grouped row ownership h=480*(s//32)+32*t+s%32; no K/tile/dtype sweep. Both were screened as one family."
+  ],
+  "observed_schedule": "Weight ingress13383 ->13512 and dot/reduction stream5063 ->5063: no shorter supply/producer interval. New F32 partial gather/compaction/VRF dependencies delay epilogue. Input broadcast overlaps weight load; do not sum all durations.",
+  "static_hardware_inversion": {
+    "v3_static_cycles": 37413,
+    "v4_static_cycles": 32382,
+    "v4_change_percent_vs_v3_static": -13.447197498195818,
+    "v4_change_percent_vs_v3_npu": 12.94235322419317,
+    "interpretation": "Grouped producer mapping and gather path changed together. Whole-kernel cycles do not isolate DMA bank/channel contention, ring behavior, compaction or synchronization. No measured stall attribution; static ranking does not predict NPU ranking."
+  },
+  "closure_reason": "Both complete correct O implementations exceed both contemporary controls by a large margin; close both without further tuning, promotion or official submission.",
+  "limits": [
+    "One Arena allocation with serial unchanged benchmark processes, not independent job replications.",
+    "Logical segment/slot bytes are not measured bus traffic or allocation extent.",
+    "Only these complete mappings were rejected; not every cluster-K ownership or tile choice."
+  ],
+  "retry_condition": "A concrete producer/consumer mapping or transfer change that removes the measured whole-path loss, supported by a bounded diagnostic of the static/NPU inversion; larger segments or fewer scalar partials alone are insufficient.",
+  "next_unimplemented_research_candidate": "M03"
+}

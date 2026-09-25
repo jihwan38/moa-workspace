@@ -7,19 +7,18 @@
   "accounting": "docs/research/rngd-dataflow-accounting-20260925.json",
   "evidence": "docs/research/rngd-dataflow-evidence-20260925.json",
   "execution_order": [
-    "M02",
     "M03"
   ],
   "conditional_diagnostic_queue": [],
   "candidates": [
     {
-      "status": "proposed_not_implemented",
-      "compiled": false,
-      "arena_measured": false,
+      "status": "closed-after-valid-hardware-screen",
+      "compiled": true,
+      "arena_measured": true,
       "predicted_speedup": null,
       "comparison_recipe": "baseline/e104.json",
       "implementation_checkout_commit": "f125ca66901e58492541affda9ba7058c656ff53",
-      "build_recipe_status": "design_only; materialize sources and run structural_build.py --plan before build",
+      "build_recipe_status": "implemented: four immutable source recipes with plans; two passing full-path mappings screened on NPU",
       "id": "M02",
       "priority": 1,
       "title": "O cluster K-half ownership",
@@ -134,7 +133,18 @@
         "rngd-switch",
         "tcp-isca24",
         "marlin"
-      ]
+      ],
+      "execution_record": "moa-dev/experiments/candidates/m02-cluster-k/decision.json",
+      "actual_source_checkout_commit": "ecdeaca8187504e833a415731f626a3fa1ef3d5e",
+      "measured_outcome": "Two basic-correct full O mappings regress55.00%/75.06% in one bracketing-control allocation; not adopted.",
+      "executed_mappings": {
+        "khalf-v3": "h=256*t+s; cluster-local full-H padded gather/compact then cross-cluster H480 gather",
+        "khalf-v4": "h=480*(s//32)+32*t+s%32; direct padded H480 cross-cluster gather then compact"
+      },
+      "correctness_gate_execution": {
+        "basic_three_inputs": "passed",
+        "expanded_cancellation_boundary": "not run; stopped after large whole-O regression"
+      }
     },
     {
       "status": "proposed_not_implemented",
@@ -406,7 +416,8 @@
     "Research IDs are not experiment results and are not added to the performance catalog."
   ],
   "completed_execution_order": [
-    "M01"
+    "M01",
+    "M02"
   ],
-  "execution_order_override": "User explicitly selected M01 first after research; M02/M03 remain proposed."
+  "execution_order_override": "User selected M01 first, then M02. Both are complete and closed after NPU regressions; M03 remains proposed."
 }

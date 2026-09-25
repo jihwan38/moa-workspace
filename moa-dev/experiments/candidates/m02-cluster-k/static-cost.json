@@ -1,0 +1,1181 @@
+{
+  "scope": "Compiler schedule and tensor allocations; not measured NPU stalls, traffic, or peak live memory.",
+  "builds": {
+    "E104": {
+      "makespan": 27239,
+      "source_build_record": "moa-dev/experiments/candidates/c09-output-pipeline/build-c09-e104-control-repro.json",
+      "schedule": {
+        "bytes": 20636,
+        "sha256": "0892c22c587d52873e82c9f7380e1f000154b471fb4fce5eb5e8c63382125084"
+      },
+      "image": {
+        "bytes": 71168,
+        "sha256": "359473814839effc16ade242bad3c598a93610601bc650f550ff44228898d88b"
+      },
+      "nodes": [
+        {
+          "kind": "activation_ingress",
+          "index": "14",
+          "engine": "DmaLoad",
+          "begin": 1841,
+          "end": 2774,
+          "duration": 933,
+          "input_tensors": [
+            0
+          ],
+          "output_tensors": [
+            9
+          ],
+          "operation": "--> src/device/sliding/projection.rs:168:79\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "weight_ingress",
+          "index": "16",
+          "engine": "DmaLoad",
+          "begin": 2774,
+          "end": 16157,
+          "duration": 13383,
+          "input_tensors": [
+            2
+          ],
+          "output_tensors": [
+            10
+          ],
+          "operation": "--> src/device/sliding/projection.rs:175:95\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "activation_trf",
+          "index": "21",
+          "engine": "Sub",
+          "begin": 3134,
+          "end": 3461,
+          "duration": 327,
+          "input_tensors": [
+            9
+          ],
+          "output_tensors": [
+            11
+          ],
+          "operation": "--> src/device/sliding/projection.rs:169:91\n\ndevice\n.sub.begin(x.view())\n.fetch::<m![Qs / 16 % 16], m![Qs % 16]>()\n.collect::<m![Qs / 16 % 16], m![Qs % 16]>()\n.to_trf()"
+        },
+        {
+          "kind": "dot_and_fused_operations",
+          "index": "26",
+          "engine": "Main",
+          "begin": 16157,
+          "end": 21220,
+          "duration": 5063,
+          "input_tensors": [
+            10,
+            11,
+            8
+          ],
+          "output_tensors": [
+            12
+          ],
+          "operation": "--> src/device/sliding/projection.rs:178:79\n\ndevice\n.main.begin(weight.view())\n.fetch::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()\n.contract_outer::<m![H % 120, Qs / 32 % 8], m![Qs % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 120]>()\n.contract_lane::<m![H % 120], m![1 # 8]>(LaneMode::Interleaved)\n.vector_init()\n.vector_inter_slice_reduce::<OutputRows, m![H % 120]>(InterSliceReduceOpF32::Add)\n.vector_final()\n.transpose::<m![H / 2 % 60], m![H % 2 # 8]>()\n.commit_trim::<m![H % 2]>()\n.commit()"
+        },
+        {
+          "kind": "control_epilogue_gather",
+          "index": "54",
+          "engine": "DmaStos",
+          "begin": 21220,
+          "end": 21690,
+          "duration": 470,
+          "input_tensors": [
+            22,
+            7
+          ],
+          "output_tensors": [
+            23
+          ],
+          "operation": "--> src/device/sliding/projection.rs:194:83\n\nresult.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "control_scale",
+          "index": "62",
+          "engine": "Main",
+          "begin": 23290,
+          "end": 23691,
+          "duration": 401,
+          "input_tensors": [
+            24,
+            15
+          ],
+          "output_tensors": [
+            25
+          ],
+          "operation": "--> src/device/sliding/projection.rs:214:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        }
+      ],
+      "compiler_tensor_allocations": [
+        {
+          "name": "result",
+          "index": "12",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 16157,
+            "end": 21220,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 32505856,
+          "size": 245760,
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, 1 # 16), Element: H % 120]",
+          "fingerprint": null
+        },
+        {
+          "name": "x_trf",
+          "index": "11",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 3134,
+            "end": 21220,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Lane: 1, Element: Qs % 256]",
+          "fingerprint": null
+        },
+        {
+          "name": "weight_scale_vrf",
+          "index": "15",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 16782,
+            "end": 23691,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 983040,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "7",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1000,
+            "end": 21690,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 8781824,
+          "size": 983040,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "result",
+          "index": "22",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 21220,
+            "end": 21690,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 32505856,
+          "size": 245760,
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: H / 1920, Slice: (H / 120 % 16, 1 # 16), Element: H % 120]",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T73)_i2_normalize_output_fused_100",
+          "index": "25",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 23290,
+            "end": 25650,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 9830400,
+          "size": 491520,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "23",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 21220,
+            "end": 21690,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 8781824,
+          "size": 983040,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T59)_i1_apply_output_channel_scale_f32_28",
+          "index": "24",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 21690,
+            "end": 23691,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 8781824,
+          "size": 983040,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "8",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1841,
+            "end": 21220,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 131072,
+          "size": 8388608,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T52)_i0_project_output_38",
+          "index": "10",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 2774,
+            "end": 21220,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 16777216,
+          "size": 15728640,
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Element: (H % 120, Qs % 256)]",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T47)_i0_project_output_14",
+          "index": "9",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1841,
+            "end": 3461,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 8519680,
+          "size": 262144,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Element: Qs % 256]",
+          "fingerprint": null
+        }
+      ]
+    },
+    "khalf-v3": {
+      "makespan": 37413,
+      "source_build_record": "moa-dev/experiments/candidates/m02-cluster-k/build-m02-khalf-v3-repro.json",
+      "schedule": {
+        "bytes": 25976,
+        "sha256": "ecd2ac7399c2d8a2babf7c3bdb3eed4a679f517edcf0c53c5f5ad04ff8b5460a"
+      },
+      "image": {
+        "bytes": 90880,
+        "sha256": "5e2ff9bdf264ae7ad6a41c9fa1d6f2346266f15e1972cb2e7bddfda8867d650b"
+      },
+      "nodes": [
+        {
+          "kind": "activation_ingress",
+          "index": "12",
+          "engine": "DmaLoad",
+          "begin": 1841,
+          "end": 2487,
+          "duration": 646,
+          "input_tensors": [
+            4
+          ],
+          "output_tensors": [
+            10
+          ],
+          "operation": "--> src/device/sliding/projection.rs:172:87\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "activation_broadcast",
+          "index": "24",
+          "engine": "Main",
+          "begin": 3213,
+          "end": 7572,
+          "duration": 4359,
+          "input_tensors": [
+            10,
+            11
+          ],
+          "output_tensors": [
+            15
+          ],
+          "operation": "--> src/device/sliding/projection.rs:173:83\n\ndevice.main\n.begin(x.view())\n.fetch::<m![1], m![Qs % 2048]>()\n.switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![Qs / 16 % 128], m![Qs % 16]>()\n.commit_trim::<m![Qs % 16]>()\n.commit()"
+        },
+        {
+          "kind": "weight_ingress",
+          "index": "26",
+          "engine": "DmaLoad",
+          "begin": 3216,
+          "end": 16728,
+          "duration": 13512,
+          "input_tensors": [
+            2
+          ],
+          "output_tensors": [
+            16
+          ],
+          "operation": "--> src/device/sliding/projection.rs:190:87\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "activation_trf",
+          "index": "32",
+          "engine": "Sub",
+          "begin": 7572,
+          "end": 8347,
+          "duration": 775,
+          "input_tensors": [
+            17
+          ],
+          "output_tensors": [
+            18
+          ],
+          "operation": "--> src/device/sliding/projection.rs:182:83\n\ndevice.sub\n.begin(x.view())\n.fetch::<m![Qs / 16 % 128], m![Qs % 16]>()\n.collect::<m![Qs / 16 % 128], m![Qs % 16]>()\n.to_trf()"
+        },
+        {
+          "kind": "dot_and_fused_operations",
+          "index": "37",
+          "engine": "Main",
+          "begin": 16728,
+          "end": 21791,
+          "duration": 5063,
+          "input_tensors": [
+            16,
+            18,
+            9
+          ],
+          "output_tensors": [
+            19
+          ],
+          "operation": "--> src/device/sliding/projection.rs:191:81\n\ndevice.main\n.begin(weight.view())\n.fetch::<m![H / 256, Qs / 16 % 128], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H / 256, Qs / 16 % 128], m![Qs % 16]>()\n.contract_outer::<m![H / 256, Qs / 32 % 64], m![Qs % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H / 256]>()\n.contract_lane::<m![H / 256], m![1 # 8]>(LaneMode::Interleaved)\n// Fifteen rows cannot form integral two-F32 commits; keep 8-byte slots.\n.commit_trim::<m![1 # 2]>()\n.commit()"
+        },
+        {
+          "kind": "partial_gather",
+          "index": "62",
+          "engine": "DmaStos",
+          "begin": 21791,
+          "end": 26449,
+          "duration": 4658,
+          "input_tensors": [
+            19
+          ],
+          "output_tensors": [
+            29
+          ],
+          "operation": "--> src/device/sliding/projection.rs:206:77\n\npartial.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "partial_compaction",
+          "index": "65",
+          "engine": "Main",
+          "begin": 26449,
+          "end": 30554,
+          "duration": 4105,
+          "input_tensors": [
+            29
+          ],
+          "output_tensors": [
+            30
+          ],
+          "operation": "--> src/device/sliding/projection.rs:207:70\n\ndevice.main\n.begin(partial.view())\n.fetch::<m![H], m![1 # 2]>()\n.collect::<m![H], m![1 # 8]>()\n.transpose::<m![H / 2], m![H % 2 # 8]>()\n.commit_trim::<m![H % 2]>()\n.commit()"
+        },
+        {
+          "kind": "partial_gather",
+          "index": "70",
+          "engine": "DmaStos",
+          "begin": 30554,
+          "end": 31355,
+          "duration": 801,
+          "input_tensors": [
+            30,
+            8
+          ],
+          "output_tensors": [
+            31
+          ],
+          "operation": "--> src/device/sliding/projection.rs:215:92\n\npartial.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "second_partial_vrf",
+          "index": "79",
+          "engine": "Sub",
+          "begin": 32961,
+          "end": 33464,
+          "duration": 503,
+          "input_tensors": [
+            33
+          ],
+          "output_tensors": [
+            34
+          ],
+          "operation": "--> src/device/sliding/projection.rs:219:84\n\ndevice.sub\n.begin(partial.view().tile::<m![Dummy2], 1, m![1 # 2, H % 480]>(1))\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "sum_scale",
+          "index": "85",
+          "engine": "Main",
+          "begin": 33464,
+          "end": 33865,
+          "duration": 401,
+          "input_tensors": [
+            35,
+            34,
+            22
+          ],
+          "output_tensors": [
+            36
+          ],
+          "operation": "--> src/device/sliding/projection.rs:231:5\n\ndevice.main\n.begin(partial.view().tile::<m![Dummy2], 1, m![1 # 2, H % 480]>(0))\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, &second)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        }
+      ],
+      "compiler_tensor_allocations": [
+        {
+          "name": "vISA(T69)_i0_project_output_64",
+          "index": "29",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 21791,
+            "end": 30554,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 16777216,
+          "size": 15728640,
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: 1 # 256, Element: (H, 1 # 2)]",
+          "fingerprint": null
+        },
+        {
+          "name": "x",
+          "index": "15",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 3213,
+            "end": 7572,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 12713984,
+          "size": 2097152,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (Dummy256 / 32, 32), Element: Qs % 2048]",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T58)_i0_project_output_18",
+          "index": "10",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1841,
+            "end": 7572,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 10485760,
+          "size": 2097152,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (Dummy256 / 32, 1 # 32), Element: Qs % 2048]",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T93)_i1_normalize_output_fused_100",
+          "index": "36",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 33464,
+            "end": 35824,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2097152,
+          "size": 491520,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+          "fingerprint": null
+        },
+        {
+          "name": "scale",
+          "index": "22",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 17353,
+            "end": 33865,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 983040,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "8",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1000,
+            "end": 31355,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 131072,
+          "size": 1966080,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "partial",
+          "index": "30",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 26449,
+            "end": 31355,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2097152,
+          "size": 7864320,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: 1 # 256, Element: H]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "9",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1841,
+            "end": 21791,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2097152,
+          "size": 8388608,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T66)_i0_project_output_48",
+          "index": "16",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 3216,
+            "end": 21791,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 16777216,
+          "size": 15728640,
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: H % 256, Element: (H / 256, Qs % 2048)]",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T61)_i0_project_output_28",
+          "index": "17",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 7572,
+            "end": 8347,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 12713984,
+          "size": 2097152,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: H % 256, Element: Qs % 2048]",
+          "fingerprint": null
+        },
+        {
+          "name": "second",
+          "index": "34",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 32961,
+            "end": 33865,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2228224,
+          "size": 983040,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "31",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 30554,
+            "end": 31355,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 131072,
+          "size": 1966080,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "partial",
+          "index": "19",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 16728,
+            "end": 26449,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 61440,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: H % 256, Element: (H / 256, 1 # 2)]",
+          "fingerprint": null
+        },
+        {
+          "name": "x_trf",
+          "index": "18",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 7572,
+            "end": 21791,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: H % 256, Lane: 1, Element: Qs % 2048]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "11",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 2487,
+            "end": 7572,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 12582912,
+          "size": 16384,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        }
+      ],
+      "change_percent_vs_e104": 37.35085722677043
+    },
+    "khalf-v4": {
+      "makespan": 32382,
+      "source_build_record": "moa-dev/experiments/candidates/m02-cluster-k/build-m02-khalf-v4-repro.json",
+      "schedule": {
+        "bytes": 25508,
+        "sha256": "e6d9152af82cfc2b579b7c35e9fb01924791a4ba772d5bc4e17b93792a29c1eb"
+      },
+      "image": {
+        "bytes": 89856,
+        "sha256": "5d53d1732baf503a37873b2a70c24a74aa60a7790a08506ee545957099395c4f"
+      },
+      "nodes": [
+        {
+          "kind": "activation_ingress",
+          "index": "12",
+          "engine": "DmaLoad",
+          "begin": 1841,
+          "end": 2487,
+          "duration": 646,
+          "input_tensors": [
+            4
+          ],
+          "output_tensors": [
+            10
+          ],
+          "operation": "--> src/device/sliding/projection.rs:172:87\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "activation_broadcast",
+          "index": "24",
+          "engine": "Main",
+          "begin": 3213,
+          "end": 7572,
+          "duration": 4359,
+          "input_tensors": [
+            10,
+            11
+          ],
+          "output_tensors": [
+            15
+          ],
+          "operation": "--> src/device/sliding/projection.rs:173:83\n\ndevice.main\n.begin(x.view())\n.fetch::<m![1], m![Qs % 2048]>()\n.switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![Qs / 16 % 128], m![Qs % 16]>()\n.commit_trim::<m![Qs % 16]>()\n.commit()"
+        },
+        {
+          "kind": "weight_ingress",
+          "index": "26",
+          "engine": "DmaLoad",
+          "begin": 3216,
+          "end": 16728,
+          "duration": 13512,
+          "input_tensors": [
+            2
+          ],
+          "output_tensors": [
+            16
+          ],
+          "operation": "--> src/device/sliding/projection.rs:191:91\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "activation_trf",
+          "index": "32",
+          "engine": "Sub",
+          "begin": 7572,
+          "end": 8347,
+          "duration": 775,
+          "input_tensors": [
+            17
+          ],
+          "output_tensors": [
+            18
+          ],
+          "operation": "--> src/device/sliding/projection.rs:182:83\n\ndevice.sub\n.begin(x.view())\n.fetch::<m![Qs / 16 % 128], m![Qs % 16]>()\n.collect::<m![Qs / 16 % 128], m![Qs % 16]>()\n.to_trf()"
+        },
+        {
+          "kind": "dot_and_fused_operations",
+          "index": "37",
+          "engine": "Main",
+          "begin": 16728,
+          "end": 21791,
+          "duration": 5063,
+          "input_tensors": [
+            16,
+            18,
+            9
+          ],
+          "output_tensors": [
+            19
+          ],
+          "operation": "--> src/device/sliding/projection.rs:192:85\n\ndevice.main\n.begin(weight.view())\n.fetch::<m![H / 32 % 15, Qs / 16 % 128], m![Qs % 16]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H / 32 % 15, Qs / 16 % 128], m![Qs % 16]>()\n.contract_outer::<m![H / 32 % 15, Qs / 32 % 64], m![Qs % 32], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H / 32 % 15]>()\n.contract_lane::<m![H / 32 % 15], m![1 # 8]>(LaneMode::Interleaved)\n// Fifteen rows cannot form integral two-F32 commits; keep 8-byte slots.\n.commit_trim::<m![1 # 2]>()\n.commit()"
+        },
+        {
+          "kind": "partial_gather",
+          "index": "64",
+          "engine": "DmaStos",
+          "begin": 21791,
+          "end": 25105,
+          "duration": 3314,
+          "input_tensors": [
+            19,
+            8
+          ],
+          "output_tensors": [
+            29
+          ],
+          "operation": "--> src/device/sliding/projection.rs:207:99\n\npartial.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "partial_compaction",
+          "index": "72",
+          "engine": "Main",
+          "begin": 26705,
+          "end": 27930,
+          "duration": 1225,
+          "input_tensors": [
+            30
+          ],
+          "output_tensors": [
+            31
+          ],
+          "operation": "--> src/device/sliding/projection.rs:208:92\n\ndevice.main\n.begin(partial.view())\n.fetch::<m![Dummy2, H % 480], m![1 # 2]>()\n.collect::<m![Dummy2, H % 480], m![1 # 8]>()\n.transpose::<m![Dummy2, H / 2 % 240], m![H % 2 # 8]>()\n.commit_trim::<m![H % 2]>()\n.commit()"
+        },
+        {
+          "kind": "second_partial_vrf",
+          "index": "77",
+          "engine": "Sub",
+          "begin": 27930,
+          "end": 28433,
+          "duration": 503,
+          "input_tensors": [
+            32
+          ],
+          "output_tensors": [
+            33
+          ],
+          "operation": "--> src/device/sliding/projection.rs:218:84\n\ndevice.sub\n.begin(partial.view().tile::<m![Dummy2], 1, m![1 # 2, H % 480]>(1))\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "sum_scale",
+          "index": "83",
+          "engine": "Main",
+          "begin": 28433,
+          "end": 28834,
+          "duration": 401,
+          "input_tensors": [
+            34,
+            33,
+            22
+          ],
+          "output_tensors": [
+            35
+          ],
+          "operation": "--> src/device/sliding/projection.rs:230:5\n\ndevice.main\n.begin(partial.view().tile::<m![Dummy2], 1, m![1 # 2, H % 480]>(0))\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, &second)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        }
+      ],
+      "compiler_tensor_allocations": [
+        {
+          "name": "vISA(T91)_i1_normalize_output_fused_100",
+          "index": "35",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 28433,
+            "end": 30793,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 3538944,
+          "size": 491520,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+          "fingerprint": null
+        },
+        {
+          "name": "scale",
+          "index": "22",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 17353,
+            "end": 28834,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 983040,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "29",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 21791,
+            "end": 25105,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 131072,
+          "size": 3932160,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T68)_i0_project_output_64",
+          "index": "30",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 25105,
+            "end": 27930,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 131072,
+          "size": 3932160,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (Dummy2, H % 480, 1 # 2)]",
+          "fingerprint": null
+        },
+        {
+          "name": "x",
+          "index": "15",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 3213,
+            "end": 7572,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 14680064,
+          "size": 2097152,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (Dummy256 / 32, 32), Element: Qs % 2048]",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T57)_i0_project_output_18",
+          "index": "10",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1841,
+            "end": 7572,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 12451840,
+          "size": 2097152,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (Dummy256 / 32, 1 # 32), Element: Qs % 2048]",
+          "fingerprint": null
+        },
+        {
+          "name": "second",
+          "index": "33",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 27930,
+            "end": 28834,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2228224,
+          "size": 983040,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T76)_i0_project_output_102",
+          "index": "31",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 26705,
+            "end": 27942,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 4063232,
+          "size": 1966080,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (Dummy2, H % 480)]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "9",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1841,
+            "end": 21791,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 4063232,
+          "size": 8388608,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T65)_i0_project_output_48",
+          "index": "16",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 3216,
+            "end": 21791,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 16777216,
+          "size": 15728640,
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 480, H % 32), Element: (H / 32 % 15, Qs % 2048)]",
+          "fingerprint": null
+        },
+        {
+          "name": "vISA(T60)_i0_project_output_28",
+          "index": "17",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 7572,
+            "end": 8347,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 14680064,
+          "size": 2097152,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 480, H % 32), Element: Qs % 2048]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "8",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 1000,
+            "end": 25105,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 131072,
+          "size": 3932160,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        {
+          "name": "partial",
+          "index": "19",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 16728,
+            "end": 25105,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 61440,
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 480, H % 32), Element: (H / 32 % 15, 1 # 2)]",
+          "fingerprint": null
+        },
+        {
+          "name": "x_trf",
+          "index": "18",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 7572,
+            "end": 21791,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 480, H % 32), Lane: 1, Element: Qs % 2048]",
+          "fingerprint": null
+        },
+        {
+          "name": "",
+          "index": "11",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 2487,
+            "end": 7572,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 14548992,
+          "size": 16384,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        }
+      ],
+      "change_percent_vs_e104": 18.881016190021672
+    }
+  },
+  "findings": [
+    "Both M02 mappings keep a13512-cycle weight load vs13383 in E104; segment length is not a supply speedup here.",
+    "M02 dot stream5063 equals E104 dot+inline16-column-reduction stream5063. Removing that reducer did not shorten the enclosing interval.",
+    "v3 full-H gather4658 -> compaction4105 -> compact cross-cluster gather801 are dependencies after dot completion.",
+    "v4 aligned groups replace those with one3314 gather and1225 compaction, then503 second-partial VRF and401 sum+scale.",
+    "Input broadcast4359 overlaps weight loading; do not add it to the critical path. Its setup and dependencies still precede dot.",
+    "Logical active-slot bytes differ from allocation extents: sparse cluster/slice dimensions reserve padding. Compare compiler_tensor_allocations, not a sum of logical payloads."
+  ],
+  "limits": [
+    "Context intervals overlap; durations are not additive NPU runtime contributions.",
+    "Whole-kernel Arena cycles cannot attribute decode, DMA or stall fractions.",
+    "Two realizations of one K-owned architecture; neither a global tile optimum nor an architecture-wide bound."
+  ]
+}

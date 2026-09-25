@@ -6,14 +6,17 @@
 위 상태는 조사 commit `8109a27` 시점이다. 이후 사용자 지정으로 M01을 먼저 실행했다.
 **후속 M01 검증:** DMA/Switch 모두 compile·기본 NPU PASS, 각각+8.74%/+18.65% 회귀로
 종료했다. [구현·실측·원인·판정](../../moa-dev/experiments/candidates/m01-partial-remap/README.md).
-M02/M03은 아직 미실행이다. 아래의 사전 설계·가설과 후속 실측을 구분한다.
+**후속 M02 검증:** K-half 소유권의 두 완성 경로도 compile·기본 NPU PASS 후
++55.00%/+75.06% 회귀로 종료했다. [설계 수정·실측·정적/NPU 역전](../../moa-dev/experiments/candidates/m02-cluster-k/README.md).
+M03은 아직 미실행이다. 아래의 사전 설계·가설과 후속 실측을 구분한다.
 현재 실행본 [E104](../../baseline/e104.json)는 성능 비교군이다.
 [후보 JSON](rngd-dataflow-candidates-20260925.json),
 [출처·해시·열람 범위](rngd-dataflow-evidence-20260925.json),
 [좌표·바이트 계산](rngd-dataflow-accounting-20260925.json)을 함께 보관한다.
 
 이번 조사에서 바꿀 설계 단위는 **weight를 가져오는 배치부터 마지막 합산까지의 경로**다.
-우선순위는 **M02: O의 cluster 소유권 변경 → M03: FFN 생산·소비 배치 결합**이다.
+조사 당시 우선순위는 **M02: O의 cluster 소유권 변경 → M03: FFN 생산·소비 배치 결합**이다.
+M01/M02 실측 종료 이후 남은 사전 후보는 M03이다.
 M01은 E64의 재배치 실패를 다른 경로로 푸는 조건부 후보다. 과거에 weight 적재 자체가
 빨라졌다는 증거가 없어, 먼저 작은 판별 실험에서 이득을 보여야 한다.
 세 항목을 모두 새로운 독립 아키텍처로 세지 않는다. 특히 M03은 C14 계열의 조합 재설계다.
@@ -113,6 +116,11 @@ SDK를 대조한 결과다. ZigZag/Timeloop은 이번에 초록·공식 소개 �
 SDK source 8개를 실행 container와 대조한 해시는 evidence JSON에 있다.
 
 ## 4. M02 — O의 두 cluster가 출력 행 대신 K 반쪽을 소유
+
+후속 실행 완료: [M02 기록](../../moa-dev/experiments/candidates/m02-cluster-k/README.md).
+원래 H%256→H%480 직접 gather가 factorization에 실패해 full-H 중간 집결(v3)을
+구현했고, H480 안에서32-way row interleave하는 v4도 기본 NPU까지 검사했다.
+두 결과는+55.00%/+75.06% 회귀, 미채택이다. 아래는 실행 전 가설을 보존한 것이다.
 
 **우선 실행 설계.** 기존 E104/E53 산술과 scale-before-BF16 경계는 참고하되
 `project_output`의 입력 분배·weight 매핑·합산 경로를 통째로 교체한다.

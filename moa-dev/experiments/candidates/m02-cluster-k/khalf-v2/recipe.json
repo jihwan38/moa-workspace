@@ -1,0 +1,52 @@
+{
+  "id": "M02",
+  "variant": "khalf-v2",
+  "base_commit": "ecdeaca8187504e833a415731f626a3fa1ef3d5e",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "sliding_attention_output",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-e104-reviewed-v1-repro.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "decoder_feedforward"
+  ],
+  "scope": "whole O projection cluster/slice ownership and memory-dataflow redesign",
+  "source_composition": {
+    "origin": "New K-half cluster owner and H-interleaved slices; outside project_output E104 plus Dummy256 import",
+    "arithmetic": "E104/E53 BF16 dot and F32 scale-before-first-BF16; reduction grouping changes 16x256 to 2x2048",
+    "reused_methods": [
+      "output-column-sweep 2cols: 15x2048 tile and padded scalar gather/compaction",
+      "C14: cross-cluster F32 partial gathering",
+      "existing custom ring broadcast and qkv-fp8-split AddF+MulF epilogue API pattern"
+    ],
+    "removed": [
+      "cluster H-half ownership",
+      "16-column intra-cluster reduction",
+      "120x256 weight tile",
+      "full replicated input HBM ingress",
+      "separate complete-dot scale helper"
+    ]
+  },
+  "graph": "HBM x -> ring32 leader DM -> Switch broadcast -> BF16 TRF; HBM W -> 15x2048 interleaved-row FP8 DM -> lookup+BF16 dot -> padded F32 partial DM -> cross-cluster H480 gather preserving8B slots -> TU compaction DM -> tile0 stream + tile1 VRF -> F32 AddF+channel MulF -> first BF16 -> existing post-RMS/residual/HBM",
+  "prior_related": [
+    "Old2cols already used15x2048 but H-owned clusters, BF16-before-scale and no K-half cluster sum; compile-only, weight DMA no gain",
+    "M01 kept120x256 and H-owned clusters; extra partial paths regressed on NPU"
+  ],
+  "cost_removed": [
+    "16-column inter-slice reduction",
+    "complete-dot DM write/read between F32 sum and scale"
+  ],
+  "cost_added": [
+    "2MiB activation replicas vs256KiB",
+    "ring32 leader broadcast/setup",
+    "61440B padded partial storage plus gathered copy",
+    "30720B compact partial storage",
+    "cross-cluster gather and F32 second-partial VRF loading"
+  ],
+  "hypothesis": "Larger contiguous HBM row segments plus H interleave and removal of inter-slice reduction may offset input broadcast and partial movement; segment count is not measured DMA transaction count.",
+  "first_stop_condition": "Whole-O compile and basic NPU with adjacent E104 controls. Repair concrete source mapping/API failures with frozen evidence. Close regression or <5% O gain without parameter sweeps; >=5% requires independent repeats and expanded correctness before adoption.",
+  "adopted": false,
+  "repair": "v1 Switch snoop bitmap mismatch: output Dummy256 names missing low coordinate, rather than broadcasting an anonymous ring lane. Preserve Dummy256/32 ring identity and use anonymous32 replicated lanes, as in existing qkv-replicated-norm32/ops.rs. No ownership, arithmetic, bytes or graph change."
+}

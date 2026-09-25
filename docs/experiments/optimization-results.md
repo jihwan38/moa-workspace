@@ -12,7 +12,7 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 150개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
+수록: 152개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
@@ -20,7 +20,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 |---|---:|
 | [빨라진 기록](#improved) | 35 |
 | [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 13 |
-| [느리게 측정됨](#regressed) | 40 |
+| [느리게 측정됨](#regressed) | 42 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 9 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
 | [정확도 실패·실행 실패](#invalid) | 19 |
@@ -135,6 +135,8 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E111 · C12-B: two-stage vector-free Main dot + Sub F32 sum + separate Main packing](e111-c12-output-main-sub.json) | O | [동시 E104 before](c12-pipeline-screen-e104-before.json): 50,555 → 51,862 | +2.59% | 1 → 1 | Basic NPU PASS; O51862 vs E10450555/50680, observed +2.46%. Single screen with overlapping samples; no qualifying gain, no adoption/official submission. Full-v1 compiler failure repaired without declaring Sub unsupported. [근거1](../../moa-dev/experiments/candidates/c12-output-main-sub/README.md), [근거2](../../moa-dev/experiments/candidates/c12-output-main-sub/decision.json) |
 | [E112 · M01: column-major ingress/direct BF16 dot + compact F32 partial DMA remap](e112-m01-partial-dma.json) | O | [동시 E104 before](m01-remap-screen-e104-before.json): 51,007 → 55,608 | +9.02% | 1 → 1 | Whole O compile/basic NPU PASS; O55608 vs E10451007/51274, +8.74%. One allocation, two transport alternatives in one M01 family; no adoption/official submission. [근거1](../../moa-dev/experiments/candidates/m01-partial-remap/README.md), [근거2](../../moa-dev/experiments/candidates/m01-partial-remap/decision.json) |
 | [E113 · M01: column-major ingress/direct BF16 dot + compact F32 partial Switch remap](e113-m01-partial-switch.json) | O | [동시 E104 before](m01-remap-screen-e104-before.json): 51,007 → 60,677 | +18.96% | 1 → 1 | Whole O compile/basic NPU PASS; O60677 vs E10451007/51274, +18.65%. One allocation, two transport alternatives in one M01 family; no adoption/official submission. [근거1](../../moa-dev/experiments/candidates/m01-partial-remap/README.md), [근거2](../../moa-dev/experiments/candidates/m01-partial-remap/decision.json) |
+| [E114 · M02: K-half clusters, global H interleave, full-H padded gather/compact and F32 cluster sum](e114-m02-full-h-gather.json) | O | [동시 E104 before](m02-khalf-screen-e104-before.json): 51,010 → 78,981 | +54.83% | 1 → 1 | Whole O compile/basic NPU PASS; O78981 vs E10451010/50901, +55.00%. One allocation, two complete mappings of one M02 family. v4 static ordering reverses on NPU. No adoption/official submission. [근거1](../../moa-dev/experiments/candidates/m02-cluster-k/README.md), [근거2](../../moa-dev/experiments/candidates/m02-cluster-k/decision.json) |
+| [E115 · M02: K-half clusters, H480-grouped32-way interleave and direct padded partial gather](e115-m02-grouped-interleave.json) | O | [동시 E104 before](m02-khalf-screen-e104-before.json): 51,010 → 89,203 | +74.87% | 1 → 1 | Whole O compile/basic NPU PASS; O89203 vs E10451010/50901, +75.06%. One allocation, two complete mappings of one M02 family. v4 static ordering reverses on NPU. No adoption/official submission. [근거1](../../moa-dev/experiments/candidates/m02-cluster-k/README.md), [근거2](../../moa-dev/experiments/candidates/m02-cluster-k/decision.json) |
 
 <a id="accuracy_limited"></a>
 
