@@ -1,0 +1,552 @@
+{
+  "schema_version": 1,
+  "id": "E122",
+  "status": "adopted",
+  "git": {
+    "tag": "baseline-e122",
+    "commit": "c3553ab87046fb4d59c10149a82517f8440bba27"
+  },
+  "compile_inputs": "moa-dev/experiments/candidates/m03-producer-local-ffn/compiled-source-manifest.json",
+  "tracked_lock": "moa-dev/locks/gemma4-Cargo.lock",
+  "source_build_audit": "moa-dev/experiments/candidates/m03-producer-local-ffn/source-build-audit.json",
+  "performance_report": "docs/experiments/e122-m03-adoption-validation.json",
+  "recent_control_report": "docs/experiments/e122-m03-e104-paired-control.json",
+  "correctness_evidence": [
+    "docs/experiments/e122-m03-extra-correctness.json",
+    "docs/experiments/e122-m03-probe-correctness.json",
+    "docs/experiments/e55-qkv-boundary-probe.json",
+    "docs/experiments/output-boundary-comparison.md"
+  ],
+  "scope": "E122 adopts exact M03: E104 native materialized up/gate, cluster-local GeGLU, L-owned four-column down, F32 cluster-partial sum before BF16. QKV/O and public interfaces unchanged. Native input representation remains approximate; no all-input or full-model equivalence claim.",
+  "methods": [
+    {
+      "id": "Q1",
+      "name": "입력 RMS를 H480×8로 분할",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "BF16 입력 3,840개를 480개씩 나눠 RMS를 계산한다. QKV는 normalize_sharded_inter_slice를 호출하며, O/FFN의 Switch-gather RMS와 다른 합산 경로를 유지한다.",
+      "parameters": "H=3840, 8개 유효 shard, BF16 정규화 출력",
+      "coupled_with": [
+        "Q2"
+      ],
+      "invariant": "정규화의 F32 연산 순서·EPS 위치·BF16 출력 경계를 보존한다. 같은 helper로 통일하면 세 커널 모두 빨라진다고 가정하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "sliding_project_qkv"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/rmsnorm.rs",
+          "symbols": [
+            "normalize_sharded_inter_slice"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/kernel-specific-rms/README.md",
+        "docs/experiments/e37-combined-repeats.json"
+      ]
+    },
+    {
+      "id": "Q2",
+      "name": "두 cluster에 ring32 입력 복제",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "분할 정규화 결과를 full-H 벡터로 모아 일부 slice에 DMA하고 CustomBroadcast ring32로 복제한다. Q와 K/V projection이 이 BF16 입력을 각자의 TRF 배치로 읽는다.",
+      "parameters": "2 clusters, 256 physical slices/cluster, ring_size=32",
+      "coupled_with": [
+        "Q1",
+        "Q3"
+      ],
+      "invariant": "unsafe reshape는 기존 복제 좌표의 이름 변경이다. 복제하지 않은 영역이나 padding을 유효 입력으로 해석하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "sliding_project_qkv"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_query",
+            "project_key_value"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-ring32/README.md",
+        "docs/experiments/e55-source-contract-audit.json"
+      ]
+    },
+    {
+      "id": "Q3",
+      "name": "Q/K/V 8-way row interleave",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "두 cluster에 출력 행을 나누고, 한 slice 안의 연속 행 계산을 8-way로 분산한다. dot 뒤 InterTranspose와 typed DMA로 head 배치를 복원한다.",
+      "parameters": "Q: 2×32×8 slices, local 8 rows; K/V: 같은 물리 grouping, local 4 rows",
+      "coupled_with": [
+        "Q2",
+        "Q5",
+        "Q6"
+      ],
+      "invariant": "Q 행=2048*c+64*g+8*r+s, KV 행=1024*c+32*g+8*r+s. KV의 4#8 padding을 실제 head로 승격하지 않는다. 16-way 변경 시 scale·Switch·head 대응을 함께 수정한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "QueryRows",
+            "KvRows",
+            "project_one_kv_matrix"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-row-interleaved/README.md",
+        "moa-dev/experiments/candidates/qkv-bf16-fused-channel-scale-e54/verification.json",
+        "docs/experiments/e63-qkv-sixteen-row-repeats.json"
+      ]
+    },
+    {
+      "id": "Q4",
+      "name": "BF16 입력과 FP8 weight lookup을 사용하는 dot",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "입력을 FP8로 재양자화하지 않고 BF16 TRF에 둔다. Main에서 FP8 weight를 BF16으로 lookup한 직후 DPE dot을 계산해 전체 BF16 weight 중간 저장을 생략한다. K/V는 동일한 activation TRF를 재사용한다.",
+      "parameters": "activation BF16, weight HBM/DM FP8, lookup BF16, dot F32",
+      "coupled_with": [
+        "Q3",
+        "Q5"
+      ],
+      "invariant": "Q/K/V에 원래 저장된 BF16 입력을 사용한다. FP8 hi/lo 근사를 다시 넣으면 E54/E55의 상쇄 진단 통과 근거를 승계할 수 없다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_query",
+            "project_one_kv_matrix",
+            "project_key_value"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-bf16-f32-scale-e53/README.md",
+        "docs/experiments/qkv-boundary-comparison.md"
+      ]
+    },
+    {
+      "id": "Q5",
+      "name": "완전한 F32 dot의 channel scale을 같은 Main에 결합",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "연속 scale DMA 뒤 inverse InterTranspose로 각 raw dot 행의 F32 scale을 VRF에 맞춘다. 완전한 F32 dot→channel scale→첫 BF16 변환을 한 Main에서 수행하고, 이미 반올림한 값을 output Switch로 옮긴다. E54의 별도 scale pass를 제거한 E55 변경이다.",
+      "parameters": "scalar마다 32B Time slot; Q 8개 / KV 4개 유효 scalar; 4 BF16 값=8B commit",
+      "coupled_with": [
+        "Q3",
+        "Q4"
+      ],
+      "invariant": "부분 dot에 scale을 적용하거나 scale 전에 BF16으로 바꾸지 않는다. 8B scale DMA 정렬, VRF 32B packet, weight와 scale의 동일 행 대응을 유지한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_query",
+            "project_one_kv_matrix"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-bf16-fused-channel-scale-e54/README.md",
+        "docs/experiments/e55-fused-qkv-repeats.json",
+        "docs/experiments/e55-qkv-boundary-probe.json"
+      ]
+    },
+    {
+      "id": "Q6",
+      "name": "head별 RMS·RoPE 병렬 처리",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "projection 결과를 Ns head별 slice로 모아 Q/K RMS, V RMS와 Q/K RoPE를 수행한다. q_out과 지정 KV cache 슬롯을 기록한다.",
+      "parameters": "Ns=8, Gs=2, Ds=256; HeadSlices=m![1 # 32, Ns]",
+      "coupled_with": [
+        "Q3"
+      ],
+      "invariant": "head/차원 순서, rope_offset과 kv_offset의 의미, 비대상 cache 원소 보존을 유지한다. 배치만 바꿔도 scatter 대상이 달라지지 않는지 검사한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/rmsnorm.rs",
+          "symbols": [
+            "normalize_query",
+            "normalize_key",
+            "normalize_value"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/rope.rs",
+          "symbols": [
+            "apply_rope"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "sliding_project_qkv"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-head-normalization/README.md",
+        "docs/experiments/e55-qkv-boundary-probe.json"
+      ]
+    },
+    {
+      "id": "O1",
+      "name": "O projection을 두 cluster·16개 column shard로 분할",
+      "kernels": [
+        "O"
+      ],
+      "behavior": "4,096차원 입력을 256개씩 나눠 dot을 병렬 계산하고 F32 partial을 slice 사이에서 더한다. 출력 행은 두 cluster와 16 row groups로 나뉜다.",
+      "parameters": "2 clusters; 16 row groups×16 column shards; local weight=120×256",
+      "coupled_with": [
+        "O2",
+        "O3"
+      ],
+      "invariant": "column 축은 VRU reduction이 허용하는 최내부 배치여야 한다. column-major DMA 뒤 재배치를 추가한 E64는 정확하지만 크게 느려졌다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_output",
+            "OutputCluster",
+            "OutputColumns"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/output-fp8-sixteen-columns/README.md",
+        "docs/experiments/e53-bf16-output-repeats.json",
+        "docs/experiments/e64-output-column-major-screen.json"
+      ]
+    },
+    {
+      "id": "O2",
+      "name": "BF16 입력·F32 합산·scale 후 첫 BF16 변환",
+      "kernels": [
+        "O"
+      ],
+      "behavior": "BF16 attention 결과와 FP8→BF16 weight lookup으로 dot을 수행한다. column 합산 결과를 F32로 H480×8에 모은 뒤 channel scale을 곱하고 처음 BF16으로 변환한다. O의 scale은 Q5와 달리 별도 Main pass다.",
+      "parameters": "입력 BF16; dot/column sum/channel scale F32; scale 이후 BF16",
+      "coupled_with": [
+        "O1",
+        "O3"
+      ],
+      "invariant": "입력 FP8 근사와 scale 이전 BF16 변환을 되살리지 않는다. 기존 E47의 O 경계 실패를 수정한 E53 산술 경로다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_output",
+            "apply_output_channel_scale_f32"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/output-bf16-activation-e47/README.md",
+        "docs/experiments/output-boundary-comparison.md"
+      ]
+    },
+    {
+      "id": "R1",
+      "name": "8개 RMS 부분합을 gather한 뒤 local 합산",
+      "kernels": [
+        "O",
+        "FFN"
+      ],
+      "behavior": "각 480원소 shard의 F32 부분 평균을 구하고 Broadcast1로 정확히 8개를 ScalarSlice의 Time 축에 모아 합산한다. EPS와 sqrt는 뒤의 별도 pass에서 수행한다.",
+      "parameters": "8 logical partials; Broadcast1 {slice1:8,slice0:1}; F32 RMS",
+      "coupled_with": [
+        "O3",
+        "F5"
+      ],
+      "invariant": "physical padding을 데이터로 더하지 않는다. reduce/EPS/sqrt 순서와 BF16 경계를 유지한다. QKV는 Q1을 사용한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/rmsnorm.rs",
+          "symbols": [
+            "normalize_output_fused"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "sliding_attention_output",
+            "decoder_feedforward"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/rmsnorm-switch-gather/README.md",
+        "moa-dev/experiments/candidates/kernel-specific-rms/README.md"
+      ]
+    },
+    {
+      "id": "O3",
+      "name": "O의 scale·RMS·residual을 H480×8 배치로 연결",
+      "kernels": [
+        "O"
+      ],
+      "behavior": "dot의 F32 결과를 H480×8로 모은 뒤 channel scale, post-RMS, residual 덧셈을 같은 shard 배치로 이어간다. 마지막에 residual_hbm을 덮어쓴다. 이 단계들이 하나의 Main에 모두 fusion된 것은 아니다.",
+      "parameters": "H%480 local, H/480=8 유효 shards",
+      "coupled_with": [
+        "O1",
+        "O2",
+        "R1"
+      ],
+      "invariant": "channel scale 이후와 post-RMS 이후의 BF16 값, residual 덧셈 뒤 BF16 변환을 유지한다. helper 반환 배치와 다음 호출의 입력 배치를 같이 바꾼다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "OutputEpilogueSlices",
+            "add_output_residual"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "sliding_attention_output"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/output-parallel-epilogue/README.md",
+        "docs/experiments/e53-bf16-output-repeats.json"
+      ]
+    },
+    {
+      "id": "F1",
+      "name": "L 절반의 소유권을 up/gate·GeGLU·down까지 유지",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "각 cluster가 L7680을 소유한다. Native up/gate의30행 F32 출력을 같은 cluster 안에서120행으로 모아 BF16으로 바꾸고 GeGLU를 계산한다. Down 입력은 그 L 절반 안에서 compact DMA와 ring32로 네 column에 방송한다. 전체 L의 cross-cluster gather/복제를 제거한다.",
+      "parameters": "up: l=7680*c+30*s+r; GeGLU: l=7680*c+120*r+t, slice=4*r; down: h=60*r+t, l=7680*c+1920*k+u, slice=4*r+k",
+      "coupled_with": [
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6"
+      ],
+      "invariant": "Weight/scale/activation의 동일 L-half 소유권을 유지한다. 네 column의 F32 합 뒤 두 cluster의 H partial을 더하며 합 이전 BF16 rounding을 추가하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "project_up_and_gate",
+            "cast_gathered_rows",
+            "geglu",
+            "project_down_tile",
+            "finish_down"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json"
+      ]
+    },
+    {
+      "id": "F2",
+      "name": "Materialized native up/gate와 BF16 down DPE",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "E104의 FP4→E5M2 DM→세 항 native dot→F32 block partial을 그대로 쓴다. Down은 각 cluster의 L 절반에 대해 FP4→E4M3 DM→BF16 lookup/dot으로16원소 F32 block partial을 만든다.",
+      "parameters": "up/gate30×240 F32 partial/slice; down60×120 F32 partial/slice, 네 L1920 columns/cluster",
+      "coupled_with": [
+        "F1",
+        "F3",
+        "F4",
+        "F6"
+      ],
+      "invariant": "이 채택본은 FP8 weight materialization을 유지한다. 직접 decode/dot 후보는 별도 검증이며 과거 실패를 일반 하드웨어 한계로 간주하지 않는다. Block partial은 F32를 유지한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "project_up_and_gate",
+            "project_rows_with_scale_contraction",
+            "project_down_tile"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json"
+      ]
+    },
+    {
+      "id": "F3",
+      "name": "Block scale과 column·cluster 합산을 F32로 유지",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "Up/gate는 input scale을 복원한 F32 block dot에 E4M3 weight scale을 곱하고 H를 합산한다. Down은 block scale→local L1920 합→네 column 합→두 L-half cluster 합을 F32로 수행한 뒤 처음 BF16으로 변환한다.",
+      "parameters": "block16; 두 H3840 F32 partial의30720 logical bytes와 gather/reduction 포함",
+      "coupled_with": [
+        "F1",
+        "F2",
+        "F4",
+        "F6"
+      ],
+      "invariant": "두 cluster partial을 각각 BF16으로 바꾸면 상쇄 결과가 달라진다. finish_down의 Dummy2 합 뒤에만 첫 BF16 변환을 둔다. 합산 순서 변경은 별도 정확도 검사를 요구한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "project_rows_with_scale_contraction",
+            "project_down_tile",
+            "finish_down"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json"
+      ]
+    },
+    {
+      "id": "F4",
+      "name": "30/60행 dot과6/12행 scale tile",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "Up/gate는30행 native dot 뒤6행 scale/reduction을5회, down은60행 BF16 dot 뒤12행 scale/reduction을5회 수행한다. Up/gate30행 F32 producer 네 개를 cluster 안에서120행으로 모아 BF16 commit 정렬을 충족한다.",
+      "parameters": "up scale6×240×4=5760B/slice; down scale12×120×4=5760B/slice",
+      "coupled_with": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "invariant": "타일 offset, weight/scale 대응과 VRF lifetime을 함께 검증한다. Down의 네 column 합과 두 cluster 합을 타일링 비용에서 빠뜨리지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "static_passes",
+            "project_rows_with_scale_contraction",
+            "cast_gathered_rows",
+            "project_down_tile"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json"
+      ]
+    },
+    {
+      "id": "F5",
+      "name": "FFN down 이후 H480×8 epilogue",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "두 cluster의 F32 H partial을 H480×8로 모아 finish_down에서 합친 뒤 BF16으로 바꾼다. 이후 global scale, post-RMS, residual 덧셈, layer scale, 최종 저장은 E104 경계를 유지한다. Host sliding/full 두 경로가 같은 decoder_feedforward를 사용한다.",
+      "parameters": "DownEpilogueSlices=m![1 # 32,H/480]; pre-FFN RMS는 기존 single-slice normalize",
+      "coupled_with": [
+        "F1",
+        "R1"
+      ],
+      "invariant": "global scale 뒤 BF16, post-RMS 뒤 BF16, residual 덧셈 뒤 BF16, layer scale 뒤 BF16 경계를 유지한다. add_and_scale_sharded도 덧셈·scale 사이 cast를 없애지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "feedforward_sharded",
+            "DownEpilogueSlices",
+            "finish_down"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/residual.rs",
+          "symbols": [
+            "add_and_scale_sharded"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "decoder_feedforward"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/host/runtime.rs",
+          "symbols": [
+            "sliding",
+            "full",
+            "mlp"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json"
+      ]
+    },
+    {
+      "id": "F6",
+      "name": "실제 BF16 입력의 E5M2 세 항 표현",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "실제 pre-RMS 결과의 amax에서 power-of-two scale을 계산한다. E5M2 high, 첫 residual, 두 번째 residual을480원소 shard에서 만든 뒤 ring32로 방송한다. 고정 입력값이나 fixture 분기는 없다.",
+      "parameters": "s=2^floor(log2(max(amax,2^-112)))/16384; hi=RN_E5(x/s), lo=RN_E5(x/s-hi), third=RN_E5(x/s-(hi+lo))",
+      "coupled_with": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "invariant": "이는 일반 BF16의 정확한 분해가 아니다. 표준9입력의 CPU 복원과 별도6-case NPU projection을 통과했지만2^-32 혼합 CPU 반례는 남는다. 새 dtype/scale은 작은 값·상쇄·zero·block 경계를 다시 검사한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "prepare_ffn_fp8_split",
+            "broadcast_ffn_quantized"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "docs/experiments/e104-c07-e5-reload-materialized.json",
+        "docs/experiments/e104-c07-extra-correctness.json",
+        "docs/experiments/e104-c07-probe-correctness.json",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json",
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json"
+      ]
+    }
+  ]
+}

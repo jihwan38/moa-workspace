@@ -1,5 +1,18 @@
 # Experiment ledger
 
+September27 **[E122 / exact M03 adopted](../../baseline/e122.json)** after six paired allocations,
+extra6 standard inputs and seven independent projection cases. FFN job-median aggregates
+336142 →331354 cycles (−1.4244%); median within-allocation ratio is−1.4846%.
+All90 candidate basic comparisons,30 extra comparisons and241920 projection outputs pass.
+QKV/O images are unchanged. This is a recovered modest gain, not an official ranking result.
+[Validation](../../moa-dev/experiments/candidates/m03-producer-local-ffn/validation/README.md).
+
+The [unchanged E104 QKV/O NPU profile](../../moa-dev/experiments/candidates/e104-qkv-output-profile/README.md)
+passes108 comparisons across two allocations and maps every observed engine.
+O waits for weight readiness; Q also waits for table preparation. Profile intervals are not
+additive speedup predictions. Historical direct FFN and joint QKV ingress are being rechecked
+against emitted DMA bounds; source transfer errors must not be classified as architecture limits.
+
 September27 [M07 / E121](../../moa-dev/experiments/candidates/m07-weight-ingress-chunks/README.md)
 splits only weight ingress while preserving M03's full decode/dot streams.
 v1 emitted redundant full-row DMA extents; v2's compact assembly failed range
@@ -24,7 +37,7 @@ combines C14 local GeGLU/L-owned down with validated native up/gate in one L sta
 First source compile and45 basic comparisons pass. Arena104289: FFN330837 versus
 E104335669/335107, **observed−1.36%** against the bracketing median. Closed below
 the5% screening cutoff; preserved as a modest positive option, not adopted or
-officially submitted. Independent repeats/expanded correctness were not run.
+officially submitted. Independent repeats/expanded correctness were not run at that initial screen; E122 below supersedes that adoption decision.
 The preceding [direct-FP4/native diagnostics](../../moa-dev/experiments/candidates/fp4-native-boundary/README.md)
 remain on hold with unresolved composition errors; they produced no whole-kernel
 speed result. E104 is still current.
@@ -47,7 +60,7 @@ C09/C11 also had one exact E104 control compile. No Arena jobs or official submi
 These are compiler results, not hardware measurements. E104 remains adopted.
 [Current branches and next candidates](current-work.md).
 
-Current adopted source is **E104 / baseline-e104**, commit `7f891f9`.
+The previously adopted source was **E104 / baseline-e104**, commit `7f891f9`.
 [C07](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) compares 19 basic
 architectures and adopts materialized native E5M2 up/gate with F32 partials. Three independent
 allocations show **353154 → 335761 FFN cycles (−4.93%)** against contemporary E79 controls.

@@ -1,3 +1,17 @@
+# 2026-09-27 E122 채택 및 전송 계약 재검증
+
+현재 runtime은 **E122 / `baseline-e122` / `c3553ab`**다. M03 원본을 그대로 채택했다.
+[검증](../../moa-dev/experiments/candidates/m03-producer-local-ffn/validation/README.md):
+동일 실행 stage의6allocation에서 모두개선, paired비율중앙값 FFN−1.4846%,
+추가6표준입력과7-case241920 projection출력 PASS. QKV/O image는E104와같다.
+5%는탐색예산문턱이며 이미반복검증된작은이득의채택금지가아니라는예외를기록했다.
+공식제출은아직E104이며 Arena결과를공식점수로환산해주장하지않는다.
+
+병행 후속은 E123 corrected direct FFN과 E124 corrected joint QKV다.
+둘다 과거실패의 padded destination DMA를 실제extent/stride와대조해수리하는재검증이며,
+새로운독립architecture가아니다. 각후보 fullgraph/추가복사비용/원본대조군을명시하고
+전체커널기본정확도·실측통과전에는채택하지않는다.
+
 # 현재 구조 실험
 
 작업 폴더: `/home/jihwan38/moa-workspace`. Private GitHub: `jihwan38/moa-workspace`.

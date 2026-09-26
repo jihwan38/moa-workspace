@@ -7,7 +7,7 @@
       "category": "improved",
       "kernel": "FFN",
       "method": "E74 F32 partials + 8열 Main ring32 입력 방송",
-      "note": "동시기 E74 대비 -4.56%, 독립 3 job(s); 기본 비교 모두 PASS. 현재 채택. 기본45·추가30·projection 출력138240 PASS. E55/E74를 탐색 제약으로 삼지 않음.",
+      "note": "동시기 E74 대비 -4.56%, 독립 3 job(s); 기본 비교 모두 PASS. 당시 채택; 현재는 E122. 기본45·추가30·projection 출력138240 PASS. E55/E74를 탐색 제약으로 삼지 않음.",
       "evidence": [
         "moa-dev/experiments/candidates/c04-down-transfer/README.md"
       ],
@@ -1805,7 +1805,7 @@
       "category": "improved",
       "kernel": "FFN",
       "method": "M03: one-stage native up/gate with producer-local GeGLU and L-owned down cluster partials",
-      "note": "Basic NPU PASS; 330837 vs E104335669/335107, observed -1.36% vs bracketing median. One screen, no independent repeats. Closed below5% budget cutoff; retained as modest positive option, not adopted/submitted.",
+      "note": "Basic NPU PASS; 330837 vs E104335669/335107, observed -1.36% vs bracketing median. One screen, no independent repeats. Closed below5% budget cutoff; retained as modest positive option, not adopted/submitted. 후속6allocation·확장검증 뒤 동일 source를 E122로 채택했다.",
       "report": "docs/experiments/e117-m03-producer-local-ffn.json",
       "reference": "docs/experiments/m03-native-local-screen-e104-before.json",
       "reference_label": "동시 E104 before",
@@ -1865,6 +1865,20 @@
       ],
       "reference": "docs/experiments/m07-stream-assembly-screen-e104-before.json",
       "reference_label": "동시 E104 before"
+    },
+    {
+      "id": "E122",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "검증된 M03 cluster-local GeGLU·L-owned down 채택",
+      "report": "docs/experiments/e122-m03-adoption-validation.json",
+      "reference": "docs/experiments/e122-m03-e104-paired-control.json",
+      "reference_label": "6allocation E104 앞뒤 paired controls",
+      "note": "현재 채택. 동일 stage binary/fixture/runner의6allocation에서 매번개선; paired비율중앙값 −1.4846%, 표는각집계중앙값비율 −1.4244%. 기본90·추가30비교와7-case projection241920출력 PASS. QKV/O image변경없음. 공식제출아님.",
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/validation/README.md",
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/source-build-audit.json"
+      ]
     }
   ]
 }

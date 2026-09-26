@@ -1,3 +1,6 @@
+**2026-09-27 후속: 동일 M03 source를 E122 / `baseline-e122`로 채택했다.**
+[6allocation·추가입력·상쇄 검증](validation/README.md), [채택 source 연결](source-build-audit.json), [현재 구성표](../../../../baseline/e122.json). 아래 최초 screen의 종료 판단은 당시 기록이다.
+
 # M03 — producer-local one-stage FFN
 
 후속 [E122 제한적 채택 검증](validation/README.md)은6개 allocation 성능, 추가6입력과7개 projection case를 확인했다. 아래 E117 단회 screen은 최초 실험의 역사 기록이다.
