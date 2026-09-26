@@ -5,6 +5,20 @@
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
+## 최신 작업 — M05 입력 준비·M03 조합, E118 개선 미확인으로 종료
+
+M03 기록 `db7cbf4`까지 main/origin에 통합한 뒤 `opt/m05-local-activation-ready`에서
+[M05](../../moa-dev/experiments/candidates/m05-local-activation-ready/README.md)를 시험한다.
+M03의 local GeGLU/L-owned down 배치에 M04의 producer-local 입력 준비만 결합했다.
+M04의15개 row-tile decode/dot 대신3개 전체 weight stream을 유지한다.
+첫 activation 복제 DMA 전에 amax를 시작할 수 있는지가 구체적 가설이며,
+새 독립 아키텍처 가족이나 타일 크기 sweep으로 세지 않는다.
+Arena104458: E104335775 → M05 335317 → 원본 M03 331749 → E104337758.
+기본60비교 PASS. E104 앞뒤 중앙값 대비−0.43%, 동시 M03 대비+1.08%여서 종료했다.
+정적 amax는 앞당겨졌지만 최종 입력 방송 완료는 M03보다 늦어졌다. 내부 NPU 시각
+측정은 아니며, 전체 실측에서도 유의미한 이득이 없다. 추가 튜닝·채택·공식 제출 없음.
+실행 source E104 유지. [E118](e118-m05-local-activation-ready.json).
+
 ## 최신 작업 — M03 producer-local 전체 FFN, E117 소폭 개선으로 종료
 
 진단 기록 `6ea3664`까지 main/origin에 통합하고 `opt/m03-producer-local-ffn`에서
@@ -40,7 +54,7 @@ Arena104289: **E104335669 → M03 330837 → E104335107 cycles**, 앞뒤 비교�
 NPU 미실행이며, v10(job104243)의 첫 projection 전체 warmup도 두 실제 출력에
 non-finite 값을 만들었다. 이 경로는 원인 미해결 상태로 보류하고 반복 수정을 중단했다.
 새 FFN 성능 결과·채택·공식 제출은 없다. 이 진단을 최적화 가족/성능 실험으로 세지 않는다.
-다음은 미실행 M03 전체 FFN: 검증된 weight materialization을 유지하면서
+당시 후속이었던 M03의 완료 결과는 위에 있다: 검증된 weight materialization을 유지하면서
 producer-local GeGLU와 L-owned down을 한 stage로 연결한다.
 
 ## 최신 작업 — M04 입력 준비·weight 타일 공급 결합, E116 종료
@@ -62,7 +76,7 @@ Arena 103108: E104 334906 → M04 381507 → E104 336369 cycles. 총45비교 PAS
 DMA 명령35→74, dot3→15, 정적 전체157045→165192다. 실제 NPU 내부 stall 비용을
 이 수치로 환산하지 않는다. [판정·해시·원본 로그](../../moa-dev/experiments/candidates/m04-tiled-weight-supply/decision.json)를 남기고,
 회귀 prototype의 tile sweep 없이 종료한다. 두 변경 각각이 나쁘다는 판정은 아니다.
-M03은 아직 미구현이며 후속 재시도는 반복 setup/전송/저장 비용을 바꾸는 구체적 근거가 필요하다.
+M04 종료 당시 M03은 미구현이었다. 후속 재시도는 반복 setup/전송/저장 비용을 바꾸는 구체적 근거가 필요하다.
 
 ## 이전 작업 — E104 whole-FFN 내부 NPU 진단 완료
 

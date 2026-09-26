@@ -1,0 +1,52 @@
+{
+  "id": "M05",
+  "base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "scope": "M03/M04 recombination with producer-local activation supply; a local dataflow replacement on the whole M03 FFN architecture, not a new independent family",
+  "integrated_parent": "db7cbf4cab1cb2a5e72b937d649fc4a2fbac0283",
+  "source_components": [
+    {
+      "commit": "db7cbf4cab1cb2a5e72b937d649fc4a2fbac0283",
+      "path": "moa-dev/experiments/candidates/m03-producer-local-ffn/native-local-v1/mlp.rs",
+      "sha256": "f321f960efdbf362dc1ebf20950a2e6b1ae0f0b337bc04b5d4ea508ef64730ff",
+      "used": "Whole M03 local GeGLU and L-owned down, materialized native up/gate, one L stage"
+    },
+    {
+      "commit": "db7cbf4cab1cb2a5e72b937d649fc4a2fbac0283",
+      "path": "moa-dev/experiments/candidates/m04-tiled-weight-supply/row-tiles-v1/mlp.rs",
+      "sha256": "cd9abf477cb65297cb28771682556bc979588310a4c8138fb6d721686ee7c889",
+      "used": "Only FfnQuantSlices/broadcast_ffn_quantized/prepare_ffn_fp8_split producer-local preparation; no row-tiled weight code"
+    }
+  ],
+  "graph": "preRMS on cluster0 -> local amax/scale/three E5M2 terms -> prepared terms DMA to both cluster leaders -> ring32 replication/TRF -> complete materialized native up/gate -> M03 local F32 compact/BF16/GeGLU -> cluster-local four-column down -> two F32 H partials sum/BF16 -> unchanged epilogue",
+  "methods_removed": [
+    "M03 raw-BF16 cluster replication before activation amax",
+    "M03 duplicate quantization on both clusters",
+    "M04 per-row-tile weight and scale DMA/decode/dot setup (not included)"
+  ],
+  "methods_retained": [
+    "M03 complete ownership graph, local GeGLU and L-owned down",
+    "Three complete FP4-to-FP8 materializations, three dots",
+    "Exact M04 input preparation arithmetic, with all conversion in measured kernel"
+  ],
+  "prior_related": [
+    "M03/E117 basic PASS, observed1.36% gain, preRMS-to-amax static gap23250 remains",
+    "M04/E116+13.67% regression; local preparation removed static early gap but row tiling expanded DMA35->74 and dots3->15",
+    "No independent A-only M04 local-prepare screen is in the prior ledger",
+    "Direct FP4/native composition unresolved; not reused"
+  ],
+  "mechanism": "Remove the small cross-cluster DMA dependency before amax while retaining full weight streams; complete ownership remains M03. Source order alone is not enforced scheduling. Check lowered dependencies and actual whole-FFN cycles.",
+  "costs": {
+    "removed": "One raw input cluster-copy dependency and duplicate preparation on cluster1; all15-tile M04 setup omitted",
+    "retained": "Same final512-slice term replicas and all3 full weight loads/materializations",
+    "added_or_changed": "Prepared terms and scale now cross clusters after quantization; scheduling/allocator interaction can move delay later rather than remove it",
+    "limits": "Do not add M03 gain or M04 static gap to estimate speedup"
+  },
+  "stop_condition": "One full-graph compile/package and unchanged NPU screen with adjacent E104 controls. Close regression or <5% target gain without tuning. If promising, independent repeats and expanded accuracy before adoption/submission.",
+  "adopted": false,
+  "hardware_status": "not_run"
+}

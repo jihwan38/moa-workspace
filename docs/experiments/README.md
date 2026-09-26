@@ -1,5 +1,11 @@
 # Experiment ledger
 
+September26 [M05 / E118](../../moa-dev/experiments/candidates/m05-local-activation-ready/README.md)
+combines M03 ownership with only M04 input preparation, excluding tiled weights.
+Arena104458 passes60 basic comparisons: FFN335317 versus E104335775/337758
+(observed−0.43%) and unchanged contemporary M03 331749 (M05+1.08%).
+Closed below5% without tuning/adoption/submission; E104 remains current.
+
 September26 [M03 / E117](../../moa-dev/experiments/candidates/m03-producer-local-ffn/README.md)
 combines C14 local GeGLU/L-owned down with validated native up/gate in one L stage.
 First source compile and45 basic comparisons pass. Arena104289: FFN330837 versus

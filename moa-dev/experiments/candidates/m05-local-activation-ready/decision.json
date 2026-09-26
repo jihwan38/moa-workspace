@@ -1,0 +1,56 @@
+{
+  "candidate": "M05",
+  "experiment": "E118",
+  "status": "closed_below_screen_cutoff",
+  "branch": "opt/m05-local-activation-ready",
+  "integrated_parent": "db7cbf4",
+  "source_base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "adopted": false,
+  "official_submission": null,
+  "scope": "M03 ownership plus M04 input-only preparation; no row-tiling",
+  "builds": {
+    "new_source_variants": 1,
+    "source_corrections": 0,
+    "exact_compile": 1,
+    "host_recompile": 1,
+    "m03_reused_without_compilation": true
+  },
+  "arena": {
+    "job": 104458,
+    "independent_allocations": 1,
+    "basic_comparisons_passed": 60,
+    "candidate_ffn_inputs": 3,
+    "candidate_ffn_elements": 11520,
+    "cycles": {
+      "control_before": 335775,
+      "candidate_0": 335317,
+      "candidate_1": 331749,
+      "control_after": 337758
+    },
+    "vs_e104_bracketing_median_percent": -0.43041692092294914,
+    "vs_contemporary_m03_percent": 1.0755119080992026
+  },
+  "static": {
+    "pre_rms_to_amax_gap_m03_m05": [
+      23250,
+      0
+    ],
+    "activation_broadcast_finish_m03_m05": [
+      56931,
+      60233
+    ],
+    "whole_makespan_m03_m05": [
+      154440,
+      156992
+    ],
+    "limit": "Emitted schedule; internal NPU readiness and isolated resource stalls not measured."
+  },
+  "interpretation": [
+    "amax starts earlier but later term preparation and broadcast end later in the emitted schedule.",
+    "Whole NPU screen gives only0.43% reduction versus adjacent E104 and1.08% regression versus M03 companion; no meaningful qualifying gain.",
+    "Deleting one DMA dependency alone does not prove the complete input path is earlier."
+  ],
+  "closure": "No tuning/adoption/submission; keep E104. M03 remains a modest positive combination option.",
+  "next_hypothesis": "Keep preRMS H480 shard outputs into quantization and eliminate gather/repartition, scalar redistribution and optional term packing copies. Check supported historical direct-packed commit mechanism; preserve arithmetic/accuracy. Not yet implemented at closure."
+}

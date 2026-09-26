@@ -12,14 +12,14 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 154개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
+수록: 155개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
 | 분류 | 항목 수 |
 |---|---:|
 | [빨라진 기록](#improved) | 36 |
-| [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 13 |
+| [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 14 |
 | [느리게 측정됨](#regressed) | 43 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 9 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
@@ -89,6 +89,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E7-FFN · hierarchical input broadcast](e7-qkv-two-clusters.json) | FFN | [E6](e6-all-unrolled.json): 820,226 → 828,972 | +1.07% | 1 → 1 | 단회 1.07% 증가. QKV 개선과 구분하고 FFN 이득을 주장하지 않음. |
 | [E91 · FP8 pair16 · contiguous rows](e91-c07-pair-contiguous.json) | FFN | [동시 E79](c07-full-e79-control.json): 354,440 → 351,437 | -0.85% | 1 → 1 | −0.85% 단회 관측으로 개선 미확인. E4 근사/BF16 block partial 정밀도 제약; 미채택. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md) |
 | [E102 · E5M2 / F32 · materialized FP8 weight](e102-c07-e5-materialized.json) | FFN | [동시 E79](c07-e5-paths-e79-control.json): 352,610 → 335,696 | -4.80% | 1 → 1 | 기본 단회 −4.80%, 별도 6-case projection 207360개 PASS. 독립 반복/추가 입력은 E104에서 진행했으며 이 구성에는 승계하지 않음. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](../../moa-dev/experiments/candidates/c07-native-scale-dpe/projection-probe-materialized-v1-results.json) |
+| [E118 · M05: M03 local FFN with producer-local input preparation and full weight streams](e118-m05-local-activation-ready.json) | FFN | [동시 E104 before](m05-local-prepare-screen-e104-before.json): 335,775 → 335,317 | -0.14% | 1 → 1 | 60 basic comparisons PASS. FFN335317 vs E104335775/337758 (-0.43% bracketing); contemporary M03 is331749 (M05+1.08%). One screen, below5% cutoff, no tuning/adoption/submission. Earlier static amax does not yield earlier complete input broadcast. [근거1](../../moa-dev/experiments/candidates/m05-local-activation-ready/README.md), [근거2](../../moa-dev/experiments/candidates/m05-local-activation-ready/decision.json) |
 
 <a id="regressed"></a>
 
