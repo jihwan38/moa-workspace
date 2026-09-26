@@ -1,3 +1,14 @@
+# 2026-09-27 E127 공식 제출·리더보드 반영 완료
+
+현재 runtime E127을 공식 제출 **`bc21122c`**로 평가했다. 서버 contract/build/evaluate 완료,
+기본15비교 PASS. QKV103186 / O49155 / FFN330948 cycles, **6.0699449×**다.
+제출 직전 E1045.9265771× 대비 **+2.4191%**, 공개 리더보드는 **53/69위 →53/69위**다.
+새 submissionCode가 실제 leaderboard에 반영됐음을 확인했다.
+[제출·원시 로그](e127-official-submit-20260927.json) · [제출 전 순위](leaderboard-e127-before-20260927.json) ·
+[제출 후 순위](leaderboard-e127-20260927.json).
+QKV 변경은 없으므로 두 공식 실행의 QKV 차이를 새 최적화 효과로 세지 않는다.
+아래 채택·실험 기록의 미제출 표시는 해당 작업 완료 당시의 상태다.
+
 # 2026-09-27 E127 / 동결 C09 채택
 
 현재 runtime은 **E127 / `baseline-e127`**다. E122의 QKV/FFN image를 유지하고,

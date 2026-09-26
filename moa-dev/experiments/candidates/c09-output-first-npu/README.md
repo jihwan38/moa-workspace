@@ -6,7 +6,9 @@
 세 allocation의 paired O 변화율은−2.4960% / −3.8255% / −3.9303%, 중앙값−3.8255%다.
 Candidate 표준45비교와 extra30비교가 PASS했다. 반복을 제외하면 커널별9개 표준 입력이다.
 별도 pre-RMS projection probe8case/30720출력도 PASS했으며 probe timing은 성능에 포함하지 않는다.
-5%는 추가 parameter tuning 예산 기준이며 채택의 최소 개선율이 아니다. 새 공식 제출은 없다.
+5%는 추가 parameter tuning 예산 기준이며 채택의 최소 개선율이 아니다.
+후속 [E127 공식 제출 `bc21122c`](../../../../docs/experiments/e127-official-submit-20260927.json)은
+기본15비교 PASS,6.0699449×, 공개 리더보드53/69위로 완료됐다. 채택 검증과 공식 평가를 구분한다.
 아래 E126 측정·trace·원본 decision은 당시 기록이며, 후속 채택 근거는 위 validation에 있다.
 
 Parent617aaef; branch `diag/c09-first-npu-20260927`. E125 M08 종료 기록을 main/origin에

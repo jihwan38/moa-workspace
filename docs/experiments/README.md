@@ -1,5 +1,13 @@
 # Experiment ledger
 
+September27 **E127 official submission `bc21122c` completed and published on the leaderboard**.
+All15 basic comparisons pass; QKV103186 / O49155 / FFN330948 cycles. Score is
+**6.0699449×**, +2.4191% versus the previous official E1045.9265771×.
+The immediate before/after public rank is **53/69 →53/69**. Unchanged QKV measurement
+variation is not attributed to optimization. [Official source and grading record](e127-official-submit-20260927.json) ·
+[Leaderboard snapshot](leaderboard-e127-20260927.json). Earlier non-submission statements
+below describe the adoption/experiment stage before this authorized submission.
+
 September27 **[E127 / frozen C09 adopted](../../baseline/e127.json)** supersedes E126's initial
 closure without adoption. The exact C09 O image is retained; QKV/FFN images remain E122.
 Three paired allocations105820/105902/105909 improve O by **2.4960% / 3.8255% / 3.9303%**,
