@@ -371,3 +371,15 @@ C14의 FFN 단계 간 의존성 재설계와 C13의 계산 표현 교체처럼 �
 이 수정은 선택한 조합을 빌더가 따르게 만든 것이다. 과거 method ID를 자동으로
 서로 호환되는 코드로 합치는 기능은 아니다. 다음 실험은 출발 구조·과거 방법·제거할
 충돌 요소의 조합부터 정하고, 그 조합을 담은 실제 코드와 JSON이 일치하는지 확인한다.
+# 2026-09-27 실행 후속: E104 QKV/O 실측
+
+[D-E104-QO](../../moa-dev/experiments/candidates/e104-qkv-output-profile/README.md)는
+동결 E104의 task bytes를 유지한 내부 계측이다. Arena104914/104933의108개 비교가
+통과했고76개 QKV/22개 O engine을 source와 대조했다. O dot은 weight 준비 직후,
+Q dot은 weight와 table 준비 직후 시작한다. Q 입력 준비 뒤20,118 / O 입력 준비
+뒤20,955 cycles 대기가 관측된다. 입력 방송 제거 시간을 전체 절감으로 계산하지
+않는다. K/V의 Main 순서와 Q table 준비도 다음 설계에 포함한다.
+
+[M06 timeout 감사](../research/m06-timeout-mechanism-20260927.md)는 generic code4,
+공통 global-Max/scalar-broadcast 경계까지 특정했다. Bank starvation을 입증할
+장치 증거가 없어 특정 수리 없이 성능 실험을 재개하지 않는다.

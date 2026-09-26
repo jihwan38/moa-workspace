@@ -1,0 +1,775 @@
+DIAG_STAGE_BEGIN control_before
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=102916 (of 3 runs: [109586, 102916, 102836])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=51339 (of 3 runs: [52878, 50350, 51339])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=335734 (of 3 runs: [339765, 334558, 335734])
+
+
+all 3 tests passed
+DIAG_STAGE_EXIT control_before 0
+DIAG_STAGE_END control_before
+DIAG_STAGE_BEGIN qkv_info
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000","cluster":0,"begin":583419669,"end":583528763}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000","cluster":1,"begin":293082933,"end":293192941}
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000","cluster":0,"begin":1927893995,"end":1927996409}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000","cluster":1,"begin":1637559328,"end":1637660581}
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000","cluster":0,"begin":3244821097,"end":3244925797}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000","cluster":1,"begin":2954485673,"end":2954589971}
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=104700 (of 3 runs: [110008, 102414, 104700])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT qkv_info 0
+DIAG_STAGE_END qkv_info
+DIAG_STAGE_BEGIN qkv_trace
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"004","cluster":0,"begin":586530710,"end":586532294}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000008","cluster":0,"begin":586532296,"end":586533337}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00c","cluster":0,"begin":586532302,"end":586533418}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"014","cluster":0,"begin":586536276,"end":586537734}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000010","cluster":0,"begin":586533420,"end":586540310}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"02a","cluster":0,"begin":586540311,"end":586541870}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000002c","cluster":0,"begin":586541872,"end":586542355}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000000e","cluster":0,"begin":586533338,"end":586542357}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000048","cluster":0,"begin":586542358,"end":586542703}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"030","cluster":0,"begin":586541878,"end":586543842}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"046","cluster":0,"begin":586541887,"end":586544646}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000004a","cluster":0,"begin":586542704,"end":586545032}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"04e","cluster":0,"begin":586545033,"end":586549434}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000004c","cluster":0,"begin":586543844,"end":586549522}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000050","cluster":0,"begin":586549525,"end":586550124}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"056","cluster":0,"begin":586550484,"end":586552234}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"058","cluster":0,"begin":586552236,"end":586552940}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000005a","cluster":0,"begin":586552942,"end":586553674}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"05e","cluster":0,"begin":586552949,"end":586554708}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"060","cluster":0,"begin":586554710,"end":586555402}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000062","cluster":0,"begin":586555404,"end":586556138}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"066","cluster":0,"begin":586555410,"end":586557048}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000068","cluster":0,"begin":586557050,"end":586557533}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000052","cluster":0,"begin":586550129,"end":586565863}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000006e","cluster":0,"begin":586565864,"end":586568119}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000070","cluster":0,"begin":586568120,"end":586570375}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"06c","cluster":0,"begin":586557056,"end":586583538}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"074","cluster":0,"begin":586568152,"end":586585104}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000076","cluster":0,"begin":586585106,"end":586590772}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"07a","cluster":0,"begin":586585161,"end":586599240}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000007c","cluster":0,"begin":586590773,"end":586602555}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000007e","cluster":0,"begin":586602556,"end":586603049}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000026","cluster":0,"begin":586536284,"end":586603059}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"082","cluster":0,"begin":586603060,"end":586606666}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"086","cluster":0,"begin":586603218,"end":586607710}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000008a","cluster":0,"begin":586607712,"end":586608544}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"08e","cluster":0,"begin":586607718,"end":586609300}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000090","cluster":0,"begin":586609302,"end":586609785}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000080","cluster":0,"begin":586603051,"end":586609787}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000096","cluster":0,"begin":586609788,"end":586610281}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000088","cluster":0,"begin":586606668,"end":586610282}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"094","cluster":0,"begin":586609309,"end":586611280}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000098","cluster":0,"begin":586610283,"end":586611371}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000009c","cluster":0,"begin":586611372,"end":586611792}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"09a","cluster":0,"begin":586610289,"end":586612356}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000a4","cluster":0,"begin":586612360,"end":586612713}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000a6","cluster":0,"begin":586612714,"end":586613541}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000aa","cluster":0,"begin":586613542,"end":586614343}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000a2","cluster":0,"begin":586612358,"end":586614345}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000a8","cluster":0,"begin":586612720,"end":586618117}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000ac","cluster":0,"begin":586614346,"end":586618273}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000b6","cluster":0,"begin":586618274,"end":586618685}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000b8","cluster":0,"begin":586618686,"end":586619057}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000c4","cluster":0,"begin":586619064,"end":586619509}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000c2","cluster":0,"begin":586619058,"end":586619512}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000c6","cluster":0,"begin":586619513,"end":586620201}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000d0","cluster":0,"begin":586620354,"end":586620687}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000de","cluster":0,"begin":586620844,"end":586621259}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000e4","cluster":0,"begin":586621260,"end":586621933}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000e8","cluster":0,"begin":586621940,"end":586622559}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000e6","cluster":0,"begin":586621934,"end":586622736}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000ea","cluster":0,"begin":586622737,"end":586623411}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000ec","cluster":0,"begin":586622743,"end":586624208}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000ee","cluster":0,"begin":586623412,"end":586624210}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000f0","cluster":0,"begin":586624211,"end":586624801}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000f2","cluster":0,"begin":586624802,"end":586625816}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0a0","cluster":0,"begin":586611378,"end":586625853}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000f4","cluster":0,"begin":586625817,"end":586627157}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0fa","cluster":0,"begin":586629140,"end":586630388}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0fe","cluster":0,"begin":586629298,"end":586632046}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000f6","cluster":0,"begin":586627159,"end":586634813}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000108","cluster":0,"begin":586634814,"end":586635307}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"10a","cluster":0,"begin":586635308,"end":586636738}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000010c","cluster":0,"begin":586636740,"end":586636742}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000010e","cluster":0,"begin":586636743,"end":586637511}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000110","cluster":0,"begin":586637512,"end":586637883}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000112","cluster":0,"begin":586637884,"end":586638322}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000114","cluster":0,"begin":586638323,"end":586638819}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"116","cluster":0,"begin":586638820,"end":586639512}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"11a","cluster":0,"begin":586639514,"end":586641120}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000011e","cluster":0,"begin":586641122,"end":586641124}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000","cluster":0,"begin":586530609,"end":586641127}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"004","cluster":1,"begin":296529498,"end":296530620}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000008","cluster":1,"begin":296531106,"end":296532143}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00c","cluster":1,"begin":296531112,"end":296532230}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"014","cluster":1,"begin":296535118,"end":296536576}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000010","cluster":1,"begin":296532232,"end":296538700}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"02a","cluster":1,"begin":296538701,"end":296540260}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000002c","cluster":1,"begin":296540262,"end":296540741}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000000e","cluster":1,"begin":296532144,"end":296540743}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000048","cluster":1,"begin":296540744,"end":296541085}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"030","cluster":1,"begin":296540268,"end":296542992}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"046","cluster":1,"begin":296540277,"end":296542996}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000004a","cluster":1,"begin":296541086,"end":296543050}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"04e","cluster":1,"begin":296543051,"end":296547640}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000004c","cluster":1,"begin":296542994,"end":296548668}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000050","cluster":1,"begin":296548671,"end":296549268}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"058","cluster":1,"begin":296550320,"end":296550480}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000005a","cluster":1,"begin":296550482,"end":296551216}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"060","cluster":1,"begin":296551217,"end":296551382}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000062","cluster":1,"begin":296552221,"end":296552954}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"066","cluster":1,"begin":296552227,"end":296554310}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000068","cluster":1,"begin":296554312,"end":296554791}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000052","cluster":1,"begin":296549273,"end":296564999}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000006e","cluster":1,"begin":296565000,"end":296567251}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000070","cluster":1,"begin":296567252,"end":296569503}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"06c","cluster":1,"begin":296554318,"end":296581354}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"074","cluster":1,"begin":296567284,"end":296582930}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000076","cluster":1,"begin":296582932,"end":296588608}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"07a","cluster":1,"begin":296582986,"end":296596952}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000007c","cluster":1,"begin":296588609,"end":296600389}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000007e","cluster":1,"begin":296600390,"end":296600879}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000026","cluster":1,"begin":296535126,"end":296600889}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"082","cluster":1,"begin":296600890,"end":296604946}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"086","cluster":1,"begin":296601078,"end":296604950}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000008a","cluster":1,"begin":296604952,"end":296605778}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"08e","cluster":1,"begin":296604958,"end":296606528}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000090","cluster":1,"begin":296606530,"end":296607009}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000080","cluster":1,"begin":296600881,"end":296607395}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000096","cluster":1,"begin":296607396,"end":296607885}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000088","cluster":1,"begin":296604948,"end":296607886}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"094","cluster":1,"begin":296606537,"end":296608518}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000098","cluster":1,"begin":296607887,"end":296608971}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000009c","cluster":1,"begin":296608972,"end":296609392}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"09a","cluster":1,"begin":296607893,"end":296609642}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000a4","cluster":1,"begin":296609646,"end":296609995}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000a6","cluster":1,"begin":296609996,"end":296610819}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000aa","cluster":1,"begin":296610820,"end":296611617}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000a2","cluster":1,"begin":296609644,"end":296612675}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000a8","cluster":1,"begin":296610002,"end":296615393}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000ac","cluster":1,"begin":296612676,"end":296615551}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000b6","cluster":1,"begin":296615552,"end":296615959}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000b8","cluster":1,"begin":296615960,"end":296616327}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000c4","cluster":1,"begin":296616334,"end":296616779}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000c2","cluster":1,"begin":296616328,"end":296616782}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000c6","cluster":1,"begin":296616783,"end":296617467}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000d0","cluster":1,"begin":296617622,"end":296617951}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000de","cluster":1,"begin":296618292,"end":296618707}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000e4","cluster":1,"begin":296618708,"end":296619377}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000e8","cluster":1,"begin":296619384,"end":296619999}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000e6","cluster":1,"begin":296619378,"end":296620194}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000ea","cluster":1,"begin":296620195,"end":296620867}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000ec","cluster":1,"begin":296620201,"end":296621782}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000ee","cluster":1,"begin":296620868,"end":296621784}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000f0","cluster":1,"begin":296621785,"end":296622371}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0a0","cluster":1,"begin":296608978,"end":296622700}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000f2","cluster":1,"begin":296622372,"end":296623328}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000f4","cluster":1,"begin":296623329,"end":296624711}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0fa","cluster":1,"begin":296625851,"end":296626012}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"00000000000000f6","cluster":1,"begin":296624713,"end":296631521}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000108","cluster":1,"begin":296631522,"end":296632011}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"10a","cluster":1,"begin":296632012,"end":296633498}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000010c","cluster":1,"begin":296633500,"end":296635609}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000000000000010e","cluster":1,"begin":296635610,"end":296636373}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000110","cluster":1,"begin":296636374,"end":296636741}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000112","cluster":1,"begin":296636742,"end":296637182}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000000000000114","cluster":1,"begin":296637183,"end":296637675}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"116","cluster":1,"begin":296637676,"end":296637838}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"000011e","cluster":1,"begin":296637840,"end":296639957}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":0,"name":"0000","cluster":1,"begin":296529399,"end":296639960}
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"004","cluster":0,"begin":1938848146,"end":1938849256}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000008","cluster":0,"begin":1938849258,"end":1938850299}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00c","cluster":0,"begin":1938849264,"end":1938851052}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000010","cluster":0,"begin":1938851054,"end":1938852606}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"014","cluster":0,"begin":1938851458,"end":1938852916}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"02a","cluster":0,"begin":1938852607,"end":1938854166}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000002c","cluster":0,"begin":1938854168,"end":1938854651}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000000e","cluster":0,"begin":1938850300,"end":1938855165}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000048","cluster":0,"begin":1938855166,"end":1938855511}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"030","cluster":0,"begin":1938854174,"end":1938856136}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000004a","cluster":0,"begin":1938855512,"end":1938856479}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"046","cluster":0,"begin":1938854183,"end":1938856940}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"04e","cluster":0,"begin":1938856480,"end":1938861360}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000004c","cluster":0,"begin":1938856138,"end":1938861814}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000050","cluster":0,"begin":1938861817,"end":1938862418}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"056","cluster":0,"begin":1938862778,"end":1938864530}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"058","cluster":0,"begin":1938864532,"end":1938865236}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000005a","cluster":0,"begin":1938865238,"end":1938865968}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"05e","cluster":0,"begin":1938865245,"end":1938867022}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"060","cluster":0,"begin":1938867024,"end":1938867716}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000062","cluster":0,"begin":1938867718,"end":1938868468}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"066","cluster":0,"begin":1938867724,"end":1938869453}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000068","cluster":0,"begin":1938869455,"end":1938869999}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000052","cluster":0,"begin":1938862423,"end":1938878955}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000006e","cluster":0,"begin":1938878956,"end":1938881211}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000070","cluster":0,"begin":1938881212,"end":1938883467}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"06c","cluster":0,"begin":1938869461,"end":1938896228}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"074","cluster":0,"begin":1938881244,"end":1938898536}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000076","cluster":0,"begin":1938898538,"end":1938904204}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"07a","cluster":0,"begin":1938898593,"end":1938912156}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000007c","cluster":0,"begin":1938904205,"end":1938915169}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000007e","cluster":0,"begin":1938915170,"end":1938915663}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000026","cluster":0,"begin":1938851466,"end":1938915673}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"082","cluster":0,"begin":1938915674,"end":1938918820}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"086","cluster":0,"begin":1938915832,"end":1938919876}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000008a","cluster":0,"begin":1938919878,"end":1938920716}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"08e","cluster":0,"begin":1938919884,"end":1938921574}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000090","cluster":0,"begin":1938921576,"end":1938922059}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000080","cluster":0,"begin":1938915665,"end":1938922175}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000096","cluster":0,"begin":1938922176,"end":1938922669}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000088","cluster":0,"begin":1938918822,"end":1938922670}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"094","cluster":0,"begin":1938921583,"end":1938923554}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000098","cluster":0,"begin":1938922671,"end":1938923759}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000009c","cluster":0,"begin":1938923760,"end":1938924180}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"09a","cluster":0,"begin":1938922677,"end":1938924630}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000a4","cluster":0,"begin":1938924634,"end":1938924987}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000a6","cluster":0,"begin":1938924988,"end":1938925815}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000aa","cluster":0,"begin":1938925816,"end":1938926617}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000a2","cluster":0,"begin":1938924632,"end":1938926619}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000a8","cluster":0,"begin":1938924994,"end":1938930391}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000ac","cluster":0,"begin":1938926620,"end":1938930547}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000b6","cluster":0,"begin":1938930548,"end":1938930959}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000b8","cluster":0,"begin":1938930960,"end":1938931331}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000c4","cluster":0,"begin":1938931338,"end":1938931783}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000c2","cluster":0,"begin":1938931332,"end":1938931786}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000c6","cluster":0,"begin":1938931787,"end":1938932475}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000d0","cluster":0,"begin":1938932628,"end":1938932961}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000de","cluster":0,"begin":1938933114,"end":1938933529}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000e4","cluster":0,"begin":1938933530,"end":1938934203}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000e8","cluster":0,"begin":1938934210,"end":1938934829}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000e6","cluster":0,"begin":1938934204,"end":1938935006}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000ea","cluster":0,"begin":1938935007,"end":1938935681}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000ec","cluster":0,"begin":1938935013,"end":1938936049}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000ee","cluster":0,"begin":1938935682,"end":1938936287}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000f0","cluster":0,"begin":1938936288,"end":1938936877}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0a0","cluster":0,"begin":1938923766,"end":1938937713}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000f2","cluster":0,"begin":1938936878,"end":1938937859}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000f4","cluster":0,"begin":1938937860,"end":1938939223}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0fa","cluster":0,"begin":1938940865,"end":1938942092}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0fe","cluster":0,"begin":1938941022,"end":1938943732}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000f6","cluster":0,"begin":1938939225,"end":1938946539}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000108","cluster":0,"begin":1938946540,"end":1938947033}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"10a","cluster":0,"begin":1938947034,"end":1938948460}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000010c","cluster":0,"begin":1938948462,"end":1938948464}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000010e","cluster":0,"begin":1938948465,"end":1938949233}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000110","cluster":0,"begin":1938949234,"end":1938949605}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000112","cluster":0,"begin":1938949606,"end":1938950044}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000114","cluster":0,"begin":1938950045,"end":1938950541}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"116","cluster":0,"begin":1938950542,"end":1938951234}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"11a","cluster":0,"begin":1938951236,"end":1938953044}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000011e","cluster":0,"begin":1938953046,"end":1938953048}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000","cluster":0,"begin":1938848045,"end":1938953051}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"004","cluster":1,"begin":1648848264,"end":1648849386}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000008","cluster":1,"begin":1648849388,"end":1648850425}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00c","cluster":1,"begin":1648849394,"end":1648850512}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"014","cluster":1,"begin":1648850914,"end":1648852700}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000010","cluster":1,"begin":1648850514,"end":1648852800}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"02a","cluster":1,"begin":1648852801,"end":1648854860}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000002c","cluster":1,"begin":1648854862,"end":1648855341}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000000e","cluster":1,"begin":1648850426,"end":1648855343}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000048","cluster":1,"begin":1648855344,"end":1648855685}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"030","cluster":1,"begin":1648854868,"end":1648856826}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"046","cluster":1,"begin":1648854877,"end":1648856828}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000004a","cluster":1,"begin":1648855686,"end":1648856884}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"04e","cluster":1,"begin":1648856885,"end":1648861474}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000004c","cluster":1,"begin":1648856829,"end":1648862502}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000050","cluster":1,"begin":1648862505,"end":1648863102}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"058","cluster":1,"begin":1648864150,"end":1648864312}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000005a","cluster":1,"begin":1648864314,"end":1648865048}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"060","cluster":1,"begin":1648865049,"end":1648865212}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000062","cluster":1,"begin":1648865214,"end":1648865946}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"066","cluster":1,"begin":1648865220,"end":1648866858}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000068","cluster":1,"begin":1648866860,"end":1648867339}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000052","cluster":1,"begin":1648863107,"end":1648878833}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000006e","cluster":1,"begin":1648878834,"end":1648881085}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000070","cluster":1,"begin":1648881086,"end":1648883337}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"06c","cluster":1,"begin":1648866866,"end":1648893366}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"074","cluster":1,"begin":1648881118,"end":1648894988}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000076","cluster":1,"begin":1648894990,"end":1648900664}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"07a","cluster":1,"begin":1648895044,"end":1648909002}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000007c","cluster":1,"begin":1648900665,"end":1648912429}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000007e","cluster":1,"begin":1648912430,"end":1648912919}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000026","cluster":1,"begin":1648850922,"end":1648912929}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"082","cluster":1,"begin":1648912930,"end":1648916116}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"086","cluster":1,"begin":1648913118,"end":1648916118}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000008a","cluster":1,"begin":1648916122,"end":1648916956}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"08e","cluster":1,"begin":1648916128,"end":1648917700}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000090","cluster":1,"begin":1648917702,"end":1648918181}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000080","cluster":1,"begin":1648912921,"end":1648919435}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000096","cluster":1,"begin":1648919436,"end":1648919925}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000088","cluster":1,"begin":1648916119,"end":1648919926}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"094","cluster":1,"begin":1648917709,"end":1648920234}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000098","cluster":1,"begin":1648919927,"end":1648921011}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000009c","cluster":1,"begin":1648921012,"end":1648921432}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"09a","cluster":1,"begin":1648919933,"end":1648921570}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000a4","cluster":1,"begin":1648921574,"end":1648921923}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000a6","cluster":1,"begin":1648921924,"end":1648922747}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000aa","cluster":1,"begin":1648922748,"end":1648923545}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000a2","cluster":1,"begin":1648921572,"end":1648924611}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000a8","cluster":1,"begin":1648921930,"end":1648927319}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000ac","cluster":1,"begin":1648924612,"end":1648927477}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000b6","cluster":1,"begin":1648927478,"end":1648927885}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000b8","cluster":1,"begin":1648927886,"end":1648928253}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000c4","cluster":1,"begin":1648928260,"end":1648928705}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000c2","cluster":1,"begin":1648928254,"end":1648928708}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000c6","cluster":1,"begin":1648928709,"end":1648929393}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000d0","cluster":1,"begin":1648929548,"end":1648929877}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000de","cluster":1,"begin":1648930032,"end":1648930447}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000e4","cluster":1,"begin":1648930448,"end":1648931117}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000e8","cluster":1,"begin":1648931124,"end":1648931739}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000e6","cluster":1,"begin":1648931118,"end":1648931916}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000ea","cluster":1,"begin":1648931917,"end":1648932587}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000ec","cluster":1,"begin":1648931923,"end":1648932811}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000ee","cluster":1,"begin":1648932588,"end":1648933189}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000f0","cluster":1,"begin":1648933190,"end":1648933775}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0a0","cluster":1,"begin":1648921018,"end":1648934560}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000f2","cluster":1,"begin":1648933776,"end":1648934633}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000f4","cluster":1,"begin":1648934634,"end":1648935475}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0fa","cluster":1,"begin":1648935484,"end":1648935648}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"00000000000000f6","cluster":1,"begin":1648935477,"end":1648941957}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000108","cluster":1,"begin":1648941958,"end":1648942447}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"10a","cluster":1,"begin":1648942448,"end":1648943942}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000010c","cluster":1,"begin":1648943944,"end":1648947409}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000000000000010e","cluster":1,"begin":1648947410,"end":1648948173}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000110","cluster":1,"begin":1648948174,"end":1648948541}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000112","cluster":1,"begin":1648948542,"end":1648948982}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000000000000114","cluster":1,"begin":1648948983,"end":1648949475}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"116","cluster":1,"begin":1648949476,"end":1648949638}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"000011e","cluster":1,"begin":1648949640,"end":1648951919}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":1,"name":"0000","cluster":1,"begin":1648848165,"end":1648951922}
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"004","cluster":0,"begin":3262144968,"end":3262146076}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000008","cluster":0,"begin":3262146078,"end":3262147119}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00c","cluster":0,"begin":3262146084,"end":3262147200}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"014","cluster":0,"begin":3262147604,"end":3262149062}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000010","cluster":0,"begin":3262147202,"end":3262149496}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"02a","cluster":0,"begin":3262149497,"end":3262151060}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000002c","cluster":0,"begin":3262151062,"end":3262151545}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000000e","cluster":0,"begin":3262147120,"end":3262151985}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000048","cluster":0,"begin":3262151986,"end":3262152331}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"030","cluster":0,"begin":3262151068,"end":3262153010}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000004a","cluster":0,"begin":3262152332,"end":3262153299}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"046","cluster":0,"begin":3262151077,"end":3262153882}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"04e","cluster":0,"begin":3262153300,"end":3262158266}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000004c","cluster":0,"begin":3262153012,"end":3262158686}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000050","cluster":0,"begin":3262158689,"end":3262159290}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"056","cluster":0,"begin":3262159650,"end":3262161416}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"058","cluster":0,"begin":3262161418,"end":3262162122}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000005a","cluster":0,"begin":3262162124,"end":3262162854}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"05e","cluster":0,"begin":3262162131,"end":3262163896}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"060","cluster":0,"begin":3262163898,"end":3262164590}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000062","cluster":0,"begin":3262164592,"end":3262165326}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"066","cluster":0,"begin":3262164598,"end":3262167006}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000068","cluster":0,"begin":3262167008,"end":3262167491}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000052","cluster":0,"begin":3262159295,"end":3262175029}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000006e","cluster":0,"begin":3262175030,"end":3262177285}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000070","cluster":0,"begin":3262177286,"end":3262179541}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"06c","cluster":0,"begin":3262167014,"end":3262193676}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"074","cluster":0,"begin":3262177318,"end":3262195586}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000076","cluster":0,"begin":3262195588,"end":3262201254}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"07a","cluster":0,"begin":3262195643,"end":3262209224}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000007c","cluster":0,"begin":3262201255,"end":3262213021}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000007e","cluster":0,"begin":3262213022,"end":3262213515}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000026","cluster":0,"begin":3262147612,"end":3262213525}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"082","cluster":0,"begin":3262213526,"end":3262216294}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"086","cluster":0,"begin":3262213684,"end":3262217442}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000008a","cluster":0,"begin":3262217444,"end":3262218278}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"08e","cluster":0,"begin":3262217450,"end":3262219026}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000090","cluster":0,"begin":3262219028,"end":3262219511}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000080","cluster":0,"begin":3262213517,"end":3262220027}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000096","cluster":0,"begin":3262220028,"end":3262220521}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000088","cluster":0,"begin":3262216296,"end":3262220522}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"094","cluster":0,"begin":3262219035,"end":3262221054}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000098","cluster":0,"begin":3262220523,"end":3262221611}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000009c","cluster":0,"begin":3262221612,"end":3262222032}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"09a","cluster":0,"begin":3262220529,"end":3262222118}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000a4","cluster":0,"begin":3262222122,"end":3262222475}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000a6","cluster":0,"begin":3262222476,"end":3262223303}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000aa","cluster":0,"begin":3262223304,"end":3262224105}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000a2","cluster":0,"begin":3262222120,"end":3262224107}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000a8","cluster":0,"begin":3262222482,"end":3262227879}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000ac","cluster":0,"begin":3262224108,"end":3262228035}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000b6","cluster":0,"begin":3262228036,"end":3262228447}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000b8","cluster":0,"begin":3262228448,"end":3262228819}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000c4","cluster":0,"begin":3262228826,"end":3262229271}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000c2","cluster":0,"begin":3262228820,"end":3262229274}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000c6","cluster":0,"begin":3262229275,"end":3262229963}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000d0","cluster":0,"begin":3262230116,"end":3262230449}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000de","cluster":0,"begin":3262230602,"end":3262231017}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000e4","cluster":0,"begin":3262231018,"end":3262231691}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000e8","cluster":0,"begin":3262231698,"end":3262232317}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000e6","cluster":0,"begin":3262231692,"end":3262232494}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000ea","cluster":0,"begin":3262232495,"end":3262233169}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000ec","cluster":0,"begin":3262232501,"end":3262233393}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000ee","cluster":0,"begin":3262233170,"end":3262233775}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000f0","cluster":0,"begin":3262233776,"end":3262234365}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0a0","cluster":0,"begin":3262221618,"end":3262234744}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000f2","cluster":0,"begin":3262234366,"end":3262235227}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000f4","cluster":0,"begin":3262235228,"end":3262236073}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0fa","cluster":0,"begin":3262236236,"end":3262238213}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0fe","cluster":0,"begin":3262236394,"end":3262239880}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000f6","cluster":0,"begin":3262236075,"end":3262242717}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000108","cluster":0,"begin":3262242718,"end":3262243211}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"10a","cluster":0,"begin":3262243212,"end":3262244638}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000010c","cluster":0,"begin":3262244640,"end":3262244642}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000010e","cluster":0,"begin":3262244643,"end":3262245411}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000110","cluster":0,"begin":3262245412,"end":3262245783}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000112","cluster":0,"begin":3262245784,"end":3262246222}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000114","cluster":0,"begin":3262246223,"end":3262246719}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"116","cluster":0,"begin":3262246720,"end":3262247412}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"11a","cluster":0,"begin":3262247414,"end":3262249016}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000011e","cluster":0,"begin":3262249018,"end":3262249020}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000","cluster":0,"begin":3262144867,"end":3262249023}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"004","cluster":1,"begin":2972144490,"end":2972145592}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000008","cluster":1,"begin":2972145594,"end":2972146631}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00c","cluster":1,"begin":2972145600,"end":2972146718}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"014","cluster":1,"begin":2972147122,"end":2972148582}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000010","cluster":1,"begin":2972146720,"end":2972148784}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"02a","cluster":1,"begin":2972148785,"end":2972150342}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000002c","cluster":1,"begin":2972150344,"end":2972150823}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000000e","cluster":1,"begin":2972146632,"end":2972151493}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000048","cluster":1,"begin":2972151494,"end":2972151835}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"030","cluster":1,"begin":2972150350,"end":2972152766}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"046","cluster":1,"begin":2972150359,"end":2972152770}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000004a","cluster":1,"begin":2972151836,"end":2972152830}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"04e","cluster":1,"begin":2972152831,"end":2972157414}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000004c","cluster":1,"begin":2972152768,"end":2972158442}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000050","cluster":1,"begin":2972158445,"end":2972159042}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"058","cluster":1,"begin":2972160094,"end":2972160256}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000005a","cluster":1,"begin":2972160258,"end":2972160992}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"060","cluster":1,"begin":2972160993,"end":2972161156}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000062","cluster":1,"begin":2972161158,"end":2972161890}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"066","cluster":1,"begin":2972161164,"end":2972162800}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000068","cluster":1,"begin":2972162802,"end":2972163281}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000052","cluster":1,"begin":2972159047,"end":2972174773}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000006e","cluster":1,"begin":2972174774,"end":2972177025}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000070","cluster":1,"begin":2972177026,"end":2972179277}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"06c","cluster":1,"begin":2972162808,"end":2972189870}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"074","cluster":1,"begin":2972177058,"end":2972191712}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000076","cluster":1,"begin":2972191714,"end":2972197388}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"07a","cluster":1,"begin":2972191768,"end":2972206238}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000007c","cluster":1,"begin":2972197389,"end":2972209157}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000007e","cluster":1,"begin":2972209158,"end":2972209647}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000026","cluster":1,"begin":2972147130,"end":2972209657}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"082","cluster":1,"begin":2972209658,"end":2972211932}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"086","cluster":1,"begin":2972209846,"end":2972211938}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000008a","cluster":1,"begin":2972211940,"end":2972212778}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"08e","cluster":1,"begin":2972211946,"end":2972213524}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000090","cluster":1,"begin":2972213526,"end":2972214007}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"094","cluster":1,"begin":2972213533,"end":2972215590}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000080","cluster":1,"begin":2972209649,"end":2972216165}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000096","cluster":1,"begin":2972216166,"end":2972216655}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000088","cluster":1,"begin":2972211934,"end":2972216656}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000098","cluster":1,"begin":2972216657,"end":2972217741}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000009c","cluster":1,"begin":2972217742,"end":2972218162}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"09a","cluster":1,"begin":2972216663,"end":2972218182}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000a4","cluster":1,"begin":2972218186,"end":2972218535}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000a6","cluster":1,"begin":2972218536,"end":2972219359}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000aa","cluster":1,"begin":2972219360,"end":2972220157}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000a2","cluster":1,"begin":2972218184,"end":2972221325}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000a8","cluster":1,"begin":2972218542,"end":2972223933}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000ac","cluster":1,"begin":2972221326,"end":2972224091}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000b6","cluster":1,"begin":2972224092,"end":2972224499}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000b8","cluster":1,"begin":2972224500,"end":2972224867}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000c4","cluster":1,"begin":2972224874,"end":2972225319}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000c2","cluster":1,"begin":2972224868,"end":2972225322}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000c6","cluster":1,"begin":2972225323,"end":2972226009}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000d0","cluster":1,"begin":2972226164,"end":2972226493}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000de","cluster":1,"begin":2972226672,"end":2972227087}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000e4","cluster":1,"begin":2972227088,"end":2972227757}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000e8","cluster":1,"begin":2972227764,"end":2972228379}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000e6","cluster":1,"begin":2972227758,"end":2972228556}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000ea","cluster":1,"begin":2972228557,"end":2972229227}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000ec","cluster":1,"begin":2972228563,"end":2972229451}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000ee","cluster":1,"begin":2972229228,"end":2972229829}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000f0","cluster":1,"begin":2972229830,"end":2972230415}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000f2","cluster":1,"begin":2972230416,"end":2972231273}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0a0","cluster":1,"begin":2972217748,"end":2972231726}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000f4","cluster":1,"begin":2972231274,"end":2972232115}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0fa","cluster":1,"begin":2972232124,"end":2972232286}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"00000000000000f6","cluster":1,"begin":2972232117,"end":2972238603}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000108","cluster":1,"begin":2972238604,"end":2972239093}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"10a","cluster":1,"begin":2972239094,"end":2972240590}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000010c","cluster":1,"begin":2972240592,"end":2972243525}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000000000000010e","cluster":1,"begin":2972243526,"end":2972244289}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000110","cluster":1,"begin":2972244290,"end":2972244657}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000112","cluster":1,"begin":2972244658,"end":2972245098}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000000000000114","cluster":1,"begin":2972245099,"end":2972245591}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"116","cluster":1,"begin":2972245592,"end":2972245752}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"000011e","cluster":1,"begin":2972245754,"end":2972247901}
+DIAG_SPAN {"kernel":"sliding_project_qkv","run":2,"name":"0000","cluster":1,"begin":2972144390,"end":2972247904}
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=105006 (of 3 runs: [110561, 105006, 104156])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT qkv_trace 0
+DIAG_STAGE_END qkv_trace
+DIAG_STAGE_BEGIN output_info
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_attention_output
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":0,"begin":454533488,"end":454587032}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":1,"begin":164395104,"end":164447747}
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":0,"begin":1642149680,"end":1642200050}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":1,"begin":1352011044,"end":1352060573}
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":0,"begin":2813832601,"end":2813883548}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":1,"begin":2523693995,"end":2523744169}
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=50947 (of 3 runs: [53544, 50370, 50947])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT output_info 0
+DIAG_STAGE_END output_info
+DIAG_STAGE_BEGIN output_trace
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_attention_output
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"004","cluster":0,"begin":454051614,"end":454053904}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"00c","cluster":0,"begin":454056544,"end":454058182}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000008","cluster":0,"begin":454056490,"end":454061871}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000012","cluster":0,"begin":454061873,"end":454062335}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"010","cluster":0,"begin":454056552,"end":454083316}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"018","cluster":0,"begin":454083624,"end":454085554}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000001a","cluster":0,"begin":454085556,"end":454086556}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"01e","cluster":0,"begin":454085562,"end":454086796}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000020","cluster":0,"begin":454086798,"end":454087810}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"024","cluster":0,"begin":454086804,"end":454088306}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000026","cluster":0,"begin":454088308,"end":454089037}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000014","cluster":0,"begin":454083318,"end":454095331}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000006","cluster":0,"begin":454052020,"end":454095332}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"028","cluster":0,"begin":454095333,"end":454096506}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000002a","cluster":0,"begin":454096508,"end":454098551}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002c","cluster":0,"begin":454098552,"end":454099507}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002e","cluster":0,"begin":454099508,"end":454100550}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000030","cluster":0,"begin":454100551,"end":454100975}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000032","cluster":0,"begin":454100976,"end":454101355}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"034","cluster":0,"begin":454101356,"end":454101998}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000036","cluster":0,"begin":454102000,"end":454102345}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000038","cluster":0,"begin":454102346,"end":454103314}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000003a","cluster":0,"begin":454103315,"end":454104145}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"03e","cluster":0,"begin":454104146,"end":454105006}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000042","cluster":0,"begin":454105008,"end":454105010}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":0,"begin":454051514,"end":454105013}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"004","cluster":1,"begin":163375242,"end":163377184}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"00c","cluster":1,"begin":163380302,"end":163382142}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000008","cluster":1,"begin":163380248,"end":163385627}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000012","cluster":1,"begin":163385629,"end":163386089}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"010","cluster":1,"begin":163380310,"end":163406548}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"018","cluster":1,"begin":163406848,"end":163407029}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"01e","cluster":1,"begin":163407591,"end":163407785}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000001a","cluster":1,"begin":163407575,"end":163409050}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"024","cluster":1,"begin":163409064,"end":163409228}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000020","cluster":1,"begin":163409052,"end":163410056}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000026","cluster":1,"begin":163410058,"end":163410797}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000014","cluster":1,"begin":163406550,"end":163418573}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000006","cluster":1,"begin":163375648,"end":163418574}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"028","cluster":1,"begin":163418575,"end":163419802}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000002a","cluster":1,"begin":163419804,"end":163419807}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002c","cluster":1,"begin":163419808,"end":163420761}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002e","cluster":1,"begin":163420762,"end":163421802}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000030","cluster":1,"begin":163421803,"end":163422225}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000032","cluster":1,"begin":163422226,"end":163422603}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"034","cluster":1,"begin":163422604,"end":163422766}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000036","cluster":1,"begin":163423008,"end":163423351}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000038","cluster":1,"begin":163423352,"end":163424318}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000003a","cluster":1,"begin":163424319,"end":163425147}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"03e","cluster":1,"begin":163425148,"end":163425310}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000042","cluster":1,"begin":163425312,"end":163427645}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":1,"begin":163375144,"end":163427648}
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"004","cluster":0,"begin":1609139884,"end":1609141842}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"00c","cluster":0,"begin":1609141898,"end":1609143588}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000008","cluster":0,"begin":1609141844,"end":1609147225}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000012","cluster":0,"begin":1609147227,"end":1609147689}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"010","cluster":0,"begin":1609141906,"end":1609168778}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"018","cluster":0,"begin":1609169084,"end":1609171164}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000001a","cluster":0,"begin":1609171166,"end":1609172178}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"01e","cluster":0,"begin":1609171172,"end":1609172406}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000020","cluster":0,"begin":1609172408,"end":1609173456}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"024","cluster":0,"begin":1609172414,"end":1609173676}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000026","cluster":0,"begin":1609173678,"end":1609174411}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000014","cluster":0,"begin":1609168780,"end":1609180791}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000006","cluster":0,"begin":1609140290,"end":1609180792}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"028","cluster":0,"begin":1609180793,"end":1609181966}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000002a","cluster":0,"begin":1609181968,"end":1609183775}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002c","cluster":0,"begin":1609183776,"end":1609184731}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002e","cluster":0,"begin":1609184732,"end":1609185774}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000030","cluster":0,"begin":1609185775,"end":1609186199}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000032","cluster":0,"begin":1609186200,"end":1609186579}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"034","cluster":0,"begin":1609186580,"end":1609187222}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000036","cluster":0,"begin":1609187224,"end":1609187569}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000038","cluster":0,"begin":1609187570,"end":1609188538}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000003a","cluster":0,"begin":1609188539,"end":1609189369}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"03e","cluster":0,"begin":1609189370,"end":1609190230}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000042","cluster":0,"begin":1609190232,"end":1609190234}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":0,"begin":1609139786,"end":1609190237}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"004","cluster":1,"begin":1318463246,"end":1318465190}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"00c","cluster":1,"begin":1318465246,"end":1318467124}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000008","cluster":1,"begin":1318465192,"end":1318470571}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000012","cluster":1,"begin":1318470573,"end":1318471033}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"010","cluster":1,"begin":1318465254,"end":1318491684}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"018","cluster":1,"begin":1318491984,"end":1318492165}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"01e","cluster":1,"begin":1318492751,"end":1318492949}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000001a","cluster":1,"begin":1318492736,"end":1318494240}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"024","cluster":1,"begin":1318494254,"end":1318494416}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000020","cluster":1,"begin":1318494242,"end":1318495250}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000026","cluster":1,"begin":1318495252,"end":1318495971}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000014","cluster":1,"begin":1318491686,"end":1318503703}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000006","cluster":1,"begin":1318463652,"end":1318503704}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"028","cluster":1,"begin":1318503705,"end":1318504934}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000002a","cluster":1,"begin":1318504936,"end":1318504939}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002c","cluster":1,"begin":1318504940,"end":1318505893}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002e","cluster":1,"begin":1318505894,"end":1318506934}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000030","cluster":1,"begin":1318506935,"end":1318507357}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000032","cluster":1,"begin":1318507358,"end":1318507735}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"034","cluster":1,"begin":1318507736,"end":1318507898}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000036","cluster":1,"begin":1318508140,"end":1318508483}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000038","cluster":1,"begin":1318508484,"end":1318509450}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000003a","cluster":1,"begin":1318509451,"end":1318510279}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"03e","cluster":1,"begin":1318510280,"end":1318510444}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000042","cluster":1,"begin":1318510446,"end":1318512957}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":1,"begin":1318463149,"end":1318512960}
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"004","cluster":0,"begin":2783109632,"end":2783112310}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"00c","cluster":0,"begin":2783112366,"end":2783114062}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000008","cluster":0,"begin":2783112312,"end":2783117693}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000012","cluster":0,"begin":2783117695,"end":2783118157}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"010","cluster":0,"begin":2783112374,"end":2783139984}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"018","cluster":0,"begin":2783140290,"end":2783142234}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000001a","cluster":0,"begin":2783142236,"end":2783143254}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"01e","cluster":0,"begin":2783142242,"end":2783143476}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000020","cluster":0,"begin":2783143478,"end":2783144496}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"024","cluster":0,"begin":2783143484,"end":2783144704}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000026","cluster":0,"begin":2783144706,"end":2783145431}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000014","cluster":0,"begin":2783139986,"end":2783151991}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000006","cluster":0,"begin":2783110038,"end":2783151992}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"028","cluster":0,"begin":2783151993,"end":2783153202}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000002a","cluster":0,"begin":2783153204,"end":2783154963}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002c","cluster":0,"begin":2783154964,"end":2783155919}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002e","cluster":0,"begin":2783155920,"end":2783156962}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000030","cluster":0,"begin":2783156963,"end":2783157387}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000032","cluster":0,"begin":2783157388,"end":2783157767}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"034","cluster":0,"begin":2783157768,"end":2783158410}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000036","cluster":0,"begin":2783158412,"end":2783158757}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000038","cluster":0,"begin":2783158758,"end":2783159726}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000003a","cluster":0,"begin":2783159727,"end":2783160557}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"03e","cluster":0,"begin":2783160558,"end":2783161418}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000042","cluster":0,"begin":2783161420,"end":2783161422}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":0,"begin":2783109533,"end":2783161425}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"004","cluster":1,"begin":2492432716,"end":2492434658}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"00c","cluster":1,"begin":2492434714,"end":2492436520}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000008","cluster":1,"begin":2492434660,"end":2492440039}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000012","cluster":1,"begin":2492440041,"end":2492440501}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"010","cluster":1,"begin":2492434722,"end":2492462338}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"018","cluster":1,"begin":2492462640,"end":2492462821}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"01e","cluster":1,"begin":2492463387,"end":2492463581}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000001a","cluster":1,"begin":2492463371,"end":2492464826}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"024","cluster":1,"begin":2492464840,"end":2492465002}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000020","cluster":1,"begin":2492464828,"end":2492465846}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000026","cluster":1,"begin":2492465848,"end":2492466603}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000014","cluster":1,"begin":2492462340,"end":2492474353}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000006","cluster":1,"begin":2492433122,"end":2492474354}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"028","cluster":1,"begin":2492474355,"end":2492475582}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000002a","cluster":1,"begin":2492475584,"end":2492477363}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002c","cluster":1,"begin":2492477364,"end":2492478317}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002e","cluster":1,"begin":2492478318,"end":2492479358}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000030","cluster":1,"begin":2492479359,"end":2492479781}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000032","cluster":1,"begin":2492479782,"end":2492480159}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"034","cluster":1,"begin":2492480160,"end":2492480324}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000036","cluster":1,"begin":2492480564,"end":2492480907}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000038","cluster":1,"begin":2492480908,"end":2492481874}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000003a","cluster":1,"begin":2492481875,"end":2492482703}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"03e","cluster":1,"begin":2492482704,"end":2492482866}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000042","cluster":1,"begin":2492482868,"end":2492484255}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":1,"begin":2492432620,"end":2492484258}
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=51892 (of 3 runs: [53499, 50451, 51892])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT output_trace 0
+DIAG_STAGE_END output_trace
+DIAG_STAGE_BEGIN control_after
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=109194 (of 3 runs: [109194, 102840, 123912])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=51375 (of 3 runs: [53918, 50227, 51375])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=335838 (of 3 runs: [338242, 335838, 334702])
+
+
+all 3 tests passed
+DIAG_STAGE_EXIT control_after 0
+DIAG_STAGE_END control_after
+DIAG_SCREEN_COMPLETE

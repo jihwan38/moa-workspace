@@ -1,0 +1,3312 @@
+{
+  "m06-sharded-packed-v4": {
+    "schedule": "/home/jihwan38/moa-workspace/moa-dev/experiments/candidates/m06-sharded-input-pipeline/evidence/m06-sharded-packed-v4/schedule.json",
+    "sha256": "5b64f51bcad3e7e9091cd06d634c80143ac2154fa001525338032287ed85e837",
+    "selected_instructions": [
+      {
+        "index": "95",
+        "history": {
+          "resourcelir": "O95"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 2837,
+          "end": 3238
+        },
+        "input_tensors": [
+          90,
+          92
+        ],
+        "output_tensors": [
+          91
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:211:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T313)_i0_normalize_sharded_inter_slice_82",
+            "index": "90",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2388,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "92",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 2837,
+              "end": 3238,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 524288,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T305)_i0_normalize_sharded_inter_slice_41",
+            "index": "91",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2837,
+              "end": 5817,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "96",
+        "history": {
+          "resourcelir": "O96"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 2837,
+          "end": 3383
+        },
+        "input_tensors": [
+          94
+        ],
+        "output_tensors": [
+          93
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:245:81\n\nrms_weight.to_dm(&mut device.tdma)",
+        "util": {
+          "total_util": 0.010989011,
+          "base_util": 0.010989011,
+          "efficiency": 1.0
+        },
+        "input_details": [
+          {
+            "index": 94,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T309)_i0_normalize_sharded_inter_slice_59",
+            "index": "93",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2837,
+              "end": 3766,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13107200,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "107",
+        "history": {
+          "resourcelir": "O107"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 3238,
+          "end": 5817
+        },
+        "input_tensors": [
+          91
+        ],
+        "output_tensors": [
+          96
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:228:76\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![1 # 32, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, EPS)\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T305)_i0_normalize_sharded_inter_slice_41",
+            "index": "91",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2837,
+              "end": 5817,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "rms",
+            "index": "96",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3238,
+              "end": 5817,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, Dummy8), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "110",
+        "history": {
+          "resourcelir": "O110"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 3383,
+          "end": 3766
+        },
+        "input_tensors": [
+          93
+        ],
+        "output_tensors": [
+          97
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:246:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T309)_i0_normalize_sharded_inter_slice_59",
+            "index": "93",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2837,
+              "end": 3766,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13107200,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "weight_vrf",
+            "index": "97",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 3383,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 540672,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "112",
+        "history": {
+          "resourcelir": "O112"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 3583,
+          "end": 4302
+        },
+        "input_tensors": [
+          99
+        ],
+        "output_tensors": [
+          98
+        ],
+        "description": "",
+        "util": {
+          "total_util": 0.018080669,
+          "base_util": 0.018080669,
+          "efficiency": 1.0
+        },
+        "input_details": [
+          {
+            "index": 99,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "",
+            "index": "98",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3583,
+              "end": 10001,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13631488,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "114",
+        "history": {
+          "resourcelir": "O114"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 4302,
+          "end": 28914
+        },
+        "input_tensors": [
+          8
+        ],
+        "output_tensors": [
+          100
+        ],
+        "description": "--> src/device/shared/mlp.rs:121:9\n\ngate_weight_packed.to_dm(&mut device.tdma)",
+        "util": {
+          "total_util": 0.88107425,
+          "base_util": 0.88107425,
+          "efficiency": 1.0
+        },
+        "input_details": [
+          {
+            "index": 8,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T413)_i4_project_up_and_gate_73",
+            "index": "100",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 4302,
+              "end": 38189,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 50331648,
+            "size": 29491200,
+            "physical_pages": [
+              2,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "126",
+        "history": {
+          "resourcelir": "O126"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 5817,
+          "end": 6084
+        },
+        "input_tensors": [
+          105
+        ],
+        "output_tensors": [
+          106
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:254:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T311)_i0_normalize_sharded_inter_slice_66",
+            "index": "105",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 5817,
+              "end": 6084,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "rms_vrf",
+            "index": "106",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 5817,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 524288,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "130",
+        "history": {
+          "resourcelir": "O130"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 6084,
+          "end": 6485
+        },
+        "input_tensors": [
+          90,
+          106,
+          97
+        ],
+        "output_tensors": [
+          107
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:261:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T313)_i0_normalize_sharded_inter_slice_82",
+            "index": "90",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2388,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "rms_vrf",
+            "index": "106",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 5817,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 524288,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          },
+          {
+            "name": "weight_vrf",
+            "index": "97",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 3383,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 540672,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T343)_i2_prepare_ffn_fp8_split_178",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "135",
+        "history": {
+          "resourcelir": "O135"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 6485,
+          "end": 6886
+        },
+        "input_tensors": [
+          107
+        ],
+        "output_tensors": [
+          108
+        ],
+        "description": "--> src/device/shared/mlp.rs:466:79\n\ndevice.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 # 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T343)_i2_prepare_ffn_fp8_split_178",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T317)_i2_prepare_ffn_fp8_split_35",
+            "index": "108",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6485,
+              "end": 9448,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "140",
+        "history": {
+          "resourcelir": "O140"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 6886,
+          "end": 9448
+        },
+        "input_tensors": [
+          108
+        ],
+        "output_tensors": [
+          109
+        ],
+        "description": "--> src/device/shared/mlp.rs:479:64\n\ndevice.main\n.begin(local_amax.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<Slice, m![1]>(InterSliceReduceOpF32::Max)\n.vector_final().commit_trim::<m![1 # 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T317)_i2_prepare_ffn_fp8_split_35",
+            "index": "108",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6485,
+              "end": 9448,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T319)_i2_prepare_ffn_fp8_split_53",
+            "index": "109",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6886,
+              "end": 9730,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12582912,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: 1 # 256, Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "145",
+        "history": {
+          "resourcelir": "O145"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 9448,
+          "end": 9730
+        },
+        "input_tensors": [
+          109
+        ],
+        "output_tensors": [
+          110
+        ],
+        "description": "--> src/device/shared/mlp.rs:487:65\n\ndevice\n.main.begin(amax.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)\n.vector_reinterpret::<f32>()\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.00006103515625f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T319)_i2_prepare_ffn_fp8_split_53",
+            "index": "109",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6886,
+              "end": 9730,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12582912,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: 1 # 256, Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T321)_i2_prepare_ffn_fp8_split_66",
+            "index": "110",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 9448,
+              "end": 40373,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: 1 # 256, Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "152",
+        "history": {
+          "resourcelir": "O152"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 9730,
+          "end": 10001
+        },
+        "input_tensors": [
+          110,
+          98
+        ],
+        "output_tensors": [
+          111
+        ],
+        "description": "--> src/device/shared/mlp.rs:500:84\n\ndevice.main\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.switch::<m![1 # 32, Dummy8], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 8 })\n.collect::<m![1], m![1 # 8]>()\n.commit_trim::<m![1 # 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T321)_i2_prepare_ffn_fp8_split_66",
+            "index": "110",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 9448,
+              "end": 40373,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: 1 # 256, Element: 1 # 8]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "98",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3583,
+              "end": 10001,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13631488,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "quant_scale",
+            "index": "111",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 9730,
+              "end": 10001,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13500416,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, Dummy8), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "157",
+        "history": {
+          "resourcelir": "O157"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 10001,
+          "end": 10268
+        },
+        "input_tensors": [
+          112
+        ],
+        "output_tensors": [
+          113
+        ],
+        "description": "--> src/device/shared/mlp.rs:507:79\n\ndevice\n.sub.begin(quant_scale.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T324)_i2_prepare_ffn_fp8_split_76",
+            "index": "112",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10001,
+              "end": 10268,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13500416,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "scale_vrf",
+            "index": "113",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10001,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1523712,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "162",
+        "history": {
+          "resourcelir": "O162"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 10268,
+          "end": 10669
+        },
+        "input_tensors": [
+          107,
+          113,
+          22
+        ],
+        "output_tensors": [
+          114
+        ],
+        "description": "--> src/device/shared/mlp.rs:511:5\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e5m2, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(0))",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T343)_i2_prepare_ffn_fp8_split_178",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "scale_vrf",
+            "index": "113",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10001,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1523712,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          },
+          {
+            "index": 22,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "index": 114,
+            "unlisted_view": true
+          }
+        ]
+      },
+      {
+        "index": "163",
+        "history": {
+          "resourcelir": "O163"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 10669,
+          "end": 10675
+        },
+        "input_tensors": [
+          12,
+          23,
+          114
+        ],
+        "output_tensors": [
+          115
+        ],
+        "description": "--> src/device/shared/mlp.rs:511:5\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e5m2, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(0))",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T328)_i2_prepare_ffn_fp8_split_99",
+            "index": "12",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 0,
+              "end": 10675,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (FfnTerm, H % 480)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "23",
+            "buffer_type": "Spm",
+            "lifetime": {
+              "begin": 1016,
+              "end": 10675,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 512,
+            "size": 32,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "index": 114,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T335)_i2_prepare_ffn_fp8_split_134",
+            "index": "115",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10669,
+              "end": 11478,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (FfnTerm, H % 480)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "166",
+        "history": {
+          "resourcelir": "O166"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 10675,
+          "end": 10681
+        },
+        "input_tensors": [
+          115,
+          24
+        ],
+        "output_tensors": [
+          116
+        ],
+        "description": "--> src/device/shared/mlp.rs:523:20\n\npacked.view().tile::<m![FfnTerm], 1, m![FfnTerm = 1 # 3, H % 480]>(0)",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T335)_i2_prepare_ffn_fp8_split_134",
+            "index": "115",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10669,
+              "end": 11478,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (FfnTerm, H % 480)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "24",
+            "buffer_type": "Spm",
+            "lifetime": {
+              "begin": 1026,
+              "end": 10681,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1024,
+            "size": 32,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "index": 116,
+            "unlisted_view": true
+          }
+        ]
+      },
+      {
+        "index": "169",
+        "history": {
+          "resourcelir": "O169"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 10748,
+          "end": 11071
+        },
+        "input_tensors": [
+          116
+        ],
+        "output_tensors": [
+          117
+        ],
+        "description": "--> src/device/shared/mlp.rs:522:78\n\ndevice\n.sub.begin(packed.view().tile::<m![FfnTerm], 1, m![FfnTerm = 1 # 3, H % 480]>(0))\n.fetch::<m![H / 32 % 15], m![H % 32]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>().to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "index": 116,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "hi_vrf",
+            "index": "117",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10748,
+              "end": 12073,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 3211264,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "170",
+        "history": {
+          "resourcelir": "O170"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 10681,
+          "end": 10687
+        },
+        "input_tensors": [
+          115,
+          25
+        ],
+        "output_tensors": [
+          118
+        ],
+        "description": "--> src/device/shared/mlp.rs:537:22\n\npacked.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1)",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T335)_i2_prepare_ffn_fp8_split_134",
+            "index": "115",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10669,
+              "end": 11478,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (FfnTerm, H % 480)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "25",
+            "buffer_type": "Spm",
+            "lifetime": {
+              "begin": 1036,
+              "end": 10687,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1536,
+            "size": 32,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "index": 118,
+            "unlisted_view": true
+          }
+        ]
+      },
+      {
+        "index": "175",
+        "history": {
+          "resourcelir": "O175"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 11071,
+          "end": 11472
+        },
+        "input_tensors": [
+          107,
+          113,
+          117,
+          118
+        ],
+        "output_tensors": [
+          119
+        ],
+        "description": "--> src/device/shared/mlp.rs:526:5\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &hi_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e5m2, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1))",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T343)_i2_prepare_ffn_fp8_split_178",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "scale_vrf",
+            "index": "113",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10001,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1523712,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          },
+          {
+            "name": "hi_vrf",
+            "index": "117",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10748,
+              "end": 12073,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 3211264,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "index": 118,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "index": 119,
+            "unlisted_view": true
+          }
+        ]
+      },
+      {
+        "index": "176",
+        "history": {
+          "resourcelir": "O176"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 11472,
+          "end": 11478
+        },
+        "input_tensors": [
+          115,
+          26,
+          119
+        ],
+        "output_tensors": [
+          120
+        ],
+        "description": "--> src/device/shared/mlp.rs:526:5\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &hi_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e5m2, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1))",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T335)_i2_prepare_ffn_fp8_split_134",
+            "index": "115",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10669,
+              "end": 11478,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (FfnTerm, H % 480)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "26",
+            "buffer_type": "Spm",
+            "lifetime": {
+              "begin": 1046,
+              "end": 11478,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 2048,
+            "size": 32,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "index": 119,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T344)_i2_prepare_ffn_fp8_split_186",
+            "index": "120",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 11472,
+              "end": 12983,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (FfnTerm, H % 480)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "179",
+        "history": {
+          "resourcelir": "O179"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 11478,
+          "end": 11484
+        },
+        "input_tensors": [
+          120,
+          27
+        ],
+        "output_tensors": [
+          121
+        ],
+        "description": "--> src/device/shared/mlp.rs:539:16\n\npacked.view().tile::<m![FfnTerm], 1, m![FfnTerm = 1 # 3, H % 480]>(1)",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T344)_i2_prepare_ffn_fp8_split_186",
+            "index": "120",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 11472,
+              "end": 12983,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (FfnTerm, H % 480)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "27",
+            "buffer_type": "Spm",
+            "lifetime": {
+              "begin": 1056,
+              "end": 11484,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 2560,
+            "size": 32,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "index": 121,
+            "unlisted_view": true
+          }
+        ]
+      },
+      {
+        "index": "182",
+        "history": {
+          "resourcelir": "O182"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 11672,
+          "end": 12073
+        },
+        "input_tensors": [
+          121,
+          117
+        ],
+        "output_tensors": [
+          122
+        ],
+        "description": "--> src/device/shared/mlp.rs:538:80\n\ndevice.main\n.begin(packed.view().tile::<m![FfnTerm], 1, m![FfnTerm = 1 # 3, H % 480]>(1)).fetch::<m![H / 32 % 15], m![H % 32]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, &hi_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final().commit_trim::<m![H % 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "index": 121,
+            "unlisted_view": true
+          },
+          {
+            "name": "hi_vrf",
+            "index": "117",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10748,
+              "end": 12073,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 3211264,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T341)_i2_prepare_ffn_fp8_split_161",
+            "index": "122",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 11672,
+              "end": 12576,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 14548992,
+            "size": 983040,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "183",
+        "history": {
+          "resourcelir": "O183"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 11484,
+          "end": 11490
+        },
+        "input_tensors": [
+          120,
+          28
+        ],
+        "output_tensors": [
+          123
+        ],
+        "description": "--> src/device/shared/mlp.rs:559:22\n\npacked.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2)",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T344)_i2_prepare_ffn_fp8_split_186",
+            "index": "120",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 11472,
+              "end": 12983,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (FfnTerm, H % 480)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "28",
+            "buffer_type": "Spm",
+            "lifetime": {
+              "begin": 1066,
+              "end": 11490,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 3072,
+            "size": 32,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "index": 123,
+            "unlisted_view": true
+          }
+        ]
+      },
+      {
+        "index": "187",
+        "history": {
+          "resourcelir": "O187"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 12073,
+          "end": 12576
+        },
+        "input_tensors": [
+          122
+        ],
+        "output_tensors": [
+          124
+        ],
+        "description": "--> src/device/shared/mlp.rs:545:79\n\ndevice.sub\n.begin(sum_terms.view()).fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>().to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T341)_i2_prepare_ffn_fp8_split_161",
+            "index": "122",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 11672,
+              "end": 12576,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 14548992,
+            "size": 983040,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "sum_vrf",
+            "index": "124",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 12073,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 2228224,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "192",
+        "history": {
+          "resourcelir": "O192"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 12576,
+          "end": 12977
+        },
+        "input_tensors": [
+          107,
+          113,
+          124,
+          123
+        ],
+        "output_tensors": [
+          125
+        ],
+        "description": "--> src/device/shared/mlp.rs:548:5\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &sum_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e5m2, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2))",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T343)_i2_prepare_ffn_fp8_split_178",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "scale_vrf",
+            "index": "113",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10001,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1523712,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          },
+          {
+            "name": "sum_vrf",
+            "index": "124",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 12073,
+              "end": 12977,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 2228224,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "index": 123,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "index": 125,
+            "unlisted_view": true
+          }
+        ]
+      },
+      {
+        "index": "193",
+        "history": {
+          "resourcelir": "O193"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 12977,
+          "end": 12983
+        },
+        "input_tensors": [
+          120,
+          29,
+          125
+        ],
+        "output_tensors": [
+          126
+        ],
+        "description": "--> src/device/shared/mlp.rs:548:5\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &sum_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e5m2, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2))",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T344)_i2_prepare_ffn_fp8_split_186",
+            "index": "120",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 11472,
+              "end": 12983,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: (FfnTerm, H % 480)]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "29",
+            "buffer_type": "Spm",
+            "lifetime": {
+              "begin": 1076,
+              "end": 12983,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 3584,
+            "size": 32,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          },
+          {
+            "index": 125,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T346)_i2_prepare_ffn_fp8_split_163",
+            "index": "126",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 12977,
+              "end": 34902,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 737280,
+            "physical_pages": [
+              0
+            ],
+            "shape": "",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "195",
+        "history": {
+          "resourcelir": "O195"
+        },
+        "tpe": "Core",
+        "contexts": [
+          "PeCore"
+        ],
+        "lifetime": {
+          "begin": 12983,
+          "end": 12993
+        },
+        "input_tensors": [],
+        "output_tensors": [
+          127
+        ],
+        "description": "--> src/device/shared/mlp.rs:340:26\n\ndown.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60]>(12 * i)",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [],
+        "output_details": [
+          {
+            "name": "",
+            "index": "127",
+            "buffer_type": "Spm",
+            "lifetime": {
+              "begin": 12983,
+              "end": 147406,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 32,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          }
+        ]
+      }
+    ]
+  },
+  "m06-sharded-dma-v5": {
+    "schedule": "/home/jihwan38/moa-workspace/moa-dev/experiments/candidates/m06-sharded-input-pipeline/evidence/m06-sharded-dma-v5/schedule.json",
+    "sha256": "5d6aa0710d9ca7a9dedb0f2f842c1a5956e9c85b247681f59f9d7d7de47f2c43",
+    "selected_instructions": [
+      {
+        "index": "62",
+        "history": {
+          "resourcelir": "O62"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 2837,
+          "end": 3238
+        },
+        "input_tensors": [
+          25,
+          61
+        ],
+        "output_tensors": [
+          60
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:211:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T317)_i0_normalize_sharded_inter_slice_82",
+            "index": "25",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2388,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "61",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 2837,
+              "end": 3238,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 524288,
+            "physical_pages": [],
+            "shape": "",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T309)_i0_normalize_sharded_inter_slice_41",
+            "index": "60",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2837,
+              "end": 5817,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "63",
+        "history": {
+          "resourcelir": "O63"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 2837,
+          "end": 3383
+        },
+        "input_tensors": [
+          63
+        ],
+        "output_tensors": [
+          62
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:245:81\n\nrms_weight.to_dm(&mut device.tdma)",
+        "util": {
+          "total_util": 0.010989011,
+          "base_util": 0.010989011,
+          "efficiency": 1.0
+        },
+        "input_details": [
+          {
+            "index": 63,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T313)_i0_normalize_sharded_inter_slice_59",
+            "index": "62",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2837,
+              "end": 3766,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13107200,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "86",
+        "history": {
+          "resourcelir": "O86"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 3238,
+          "end": 5817
+        },
+        "input_tensors": [
+          60
+        ],
+        "output_tensors": [
+          77
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:228:76\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![1 # 32, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, EPS)\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T309)_i0_normalize_sharded_inter_slice_41",
+            "index": "60",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2837,
+              "end": 5817,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "rms",
+            "index": "77",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3238,
+              "end": 5817,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, Dummy8), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "89",
+        "history": {
+          "resourcelir": "O89"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 3383,
+          "end": 3766
+        },
+        "input_tensors": [
+          62
+        ],
+        "output_tensors": [
+          78
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:246:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T313)_i0_normalize_sharded_inter_slice_59",
+            "index": "62",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2837,
+              "end": 3766,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13107200,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "weight_vrf",
+            "index": "78",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 3383,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 540672,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "91",
+        "history": {
+          "resourcelir": "O91"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 3583,
+          "end": 4302
+        },
+        "input_tensors": [
+          80
+        ],
+        "output_tensors": [
+          79
+        ],
+        "description": "",
+        "util": {
+          "total_util": 0.018080669,
+          "base_util": 0.018080669,
+          "efficiency": 1.0
+        },
+        "input_details": [
+          {
+            "index": 80,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "",
+            "index": "79",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3583,
+              "end": 10001,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13631488,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "93",
+        "history": {
+          "resourcelir": "O93"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 4302,
+          "end": 28914
+        },
+        "input_tensors": [
+          0
+        ],
+        "output_tensors": [
+          81
+        ],
+        "description": "--> src/device/shared/mlp.rs:121:9\n\ngate_weight_packed.to_dm(&mut device.tdma)",
+        "util": {
+          "total_util": 0.88107425,
+          "base_util": 0.88107425,
+          "efficiency": 1.0
+        },
+        "input_details": [
+          {
+            "index": 0,
+            "unlisted_view": true
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T421)_i4_project_up_and_gate_73",
+            "index": "81",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 4302,
+              "end": 38189,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67108864,
+            "size": 29491200,
+            "physical_pages": [
+              2,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "125",
+        "history": {
+          "resourcelir": "O125"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 5817,
+          "end": 6084
+        },
+        "input_tensors": [
+          105
+        ],
+        "output_tensors": [
+          106
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:254:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T315)_i0_normalize_sharded_inter_slice_66",
+            "index": "105",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 5817,
+              "end": 6084,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "rms_vrf",
+            "index": "106",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 5817,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 524288,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "129",
+        "history": {
+          "resourcelir": "O129"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 6084,
+          "end": 6485
+        },
+        "input_tensors": [
+          25,
+          106,
+          78
+        ],
+        "output_tensors": [
+          107
+        ],
+        "description": "--> src/device/shared/rmsnorm.rs:261:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T317)_i0_normalize_sharded_inter_slice_82",
+            "index": "25",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 2388,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "rms_vrf",
+            "index": "106",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 5817,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 524288,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          },
+          {
+            "name": "weight_vrf",
+            "index": "78",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 3383,
+              "end": 6485,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 540672,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T340)_i2_prepare_ffn_fp8_split_167",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "134",
+        "history": {
+          "resourcelir": "O134"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 6485,
+          "end": 6886
+        },
+        "input_tensors": [
+          107
+        ],
+        "output_tensors": [
+          108
+        ],
+        "description": "--> src/device/shared/mlp.rs:466:79\n\ndevice.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 # 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T340)_i2_prepare_ffn_fp8_split_167",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T321)_i2_prepare_ffn_fp8_split_35",
+            "index": "108",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6485,
+              "end": 9448,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "139",
+        "history": {
+          "resourcelir": "O139"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 6886,
+          "end": 9448
+        },
+        "input_tensors": [
+          108
+        ],
+        "output_tensors": [
+          109
+        ],
+        "description": "--> src/device/shared/mlp.rs:479:64\n\ndevice.main\n.begin(local_amax.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<Slice, m![1]>(InterSliceReduceOpF32::Max)\n.vector_final().commit_trim::<m![1 # 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T321)_i2_prepare_ffn_fp8_split_35",
+            "index": "108",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6485,
+              "end": 9448,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T323)_i2_prepare_ffn_fp8_split_53",
+            "index": "109",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6886,
+              "end": 9730,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12582912,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: 1 # 256, Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "144",
+        "history": {
+          "resourcelir": "O144"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 9448,
+          "end": 9730
+        },
+        "input_tensors": [
+          109
+        ],
+        "output_tensors": [
+          110
+        ],
+        "description": "--> src/device/shared/mlp.rs:487:65\n\ndevice\n.main.begin(amax.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)\n.vector_reinterpret::<f32>()\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.00006103515625f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T323)_i2_prepare_ffn_fp8_split_53",
+            "index": "109",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6886,
+              "end": 9730,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12582912,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: 1 # 256, Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T325)_i2_prepare_ffn_fp8_split_66",
+            "index": "110",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 9448,
+              "end": 35358,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: 1 # 256, Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "151",
+        "history": {
+          "resourcelir": "O151"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 9730,
+          "end": 10001
+        },
+        "input_tensors": [
+          110,
+          79
+        ],
+        "output_tensors": [
+          111
+        ],
+        "description": "--> src/device/shared/mlp.rs:500:84\n\ndevice.main\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.switch::<m![1 # 32, Dummy8], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 8 })\n.collect::<m![1], m![1 # 8]>()\n.commit_trim::<m![1 # 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T325)_i2_prepare_ffn_fp8_split_66",
+            "index": "110",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 9448,
+              "end": 35358,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12451840,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: 1 # 256, Element: 1 # 8]",
+            "fingerprint": null
+          },
+          {
+            "name": "",
+            "index": "79",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3583,
+              "end": 10001,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13631488,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "quant_scale",
+            "index": "111",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 9730,
+              "end": 10001,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13500416,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, Dummy8), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "156",
+        "history": {
+          "resourcelir": "O156"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 10001,
+          "end": 10268
+        },
+        "input_tensors": [
+          112
+        ],
+        "output_tensors": [
+          113
+        ],
+        "description": "--> src/device/shared/mlp.rs:507:79\n\ndevice\n.sub.begin(quant_scale.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T328)_i2_prepare_ffn_fp8_split_76",
+            "index": "112",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10001,
+              "end": 10268,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13500416,
+            "size": 16384,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "scale_vrf",
+            "index": "113",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10001,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1523712,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "161",
+        "history": {
+          "resourcelir": "O161"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 10268,
+          "end": 10669
+        },
+        "input_tensors": [
+          107,
+          113
+        ],
+        "output_tensors": [
+          114
+        ],
+        "description": "--> src/device/shared/mlp.rs:510:76\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e5m2, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T340)_i2_prepare_ffn_fp8_split_167",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "scale_vrf",
+            "index": "113",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10001,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1523712,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T343)_i2_prepare_ffn_fp8_split_176",
+            "index": "114",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10268,
+              "end": 29394,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12582912,
+            "size": 245760,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "166",
+        "history": {
+          "resourcelir": "O166"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 10669,
+          "end": 10992
+        },
+        "input_tensors": [
+          114
+        ],
+        "output_tensors": [
+          115
+        ],
+        "description": "--> src/device/shared/mlp.rs:520:78\n\ndevice\n.sub.begin(hi.view())\n.fetch::<m![H / 32 % 15], m![H % 32]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>().to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T343)_i2_prepare_ffn_fp8_split_176",
+            "index": "114",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10268,
+              "end": 29394,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12582912,
+            "size": 245760,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "hi_vrf",
+            "index": "115",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10669,
+              "end": 11915,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 3211264,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "171",
+        "history": {
+          "resourcelir": "O171"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 10992,
+          "end": 11393
+        },
+        "input_tensors": [
+          107,
+          113,
+          115
+        ],
+        "output_tensors": [
+          116
+        ],
+        "description": "--> src/device/shared/mlp.rs:524:76\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &hi_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e5m2, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T340)_i2_prepare_ffn_fp8_split_167",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "scale_vrf",
+            "index": "113",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10001,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1523712,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          },
+          {
+            "name": "hi_vrf",
+            "index": "115",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10669,
+              "end": 11915,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 3211264,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T347)_i2_prepare_ffn_fp8_split_184",
+            "index": "116",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10992,
+              "end": 30581,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13500416,
+            "size": 245760,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "176",
+        "history": {
+          "resourcelir": "O176"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 11393,
+          "end": 11915
+        },
+        "input_tensors": [
+          116,
+          115
+        ],
+        "output_tensors": [
+          117
+        ],
+        "description": "--> src/device/shared/mlp.rs:535:80\n\ndevice.sub\n.begin(lo.view()).fetch::<m![H / 32 % 15], m![H % 32]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::AddF, &hi_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final().commit_trim::<m![H % 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T347)_i2_prepare_ffn_fp8_split_184",
+            "index": "116",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 10992,
+              "end": 30581,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13500416,
+            "size": 245760,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "hi_vrf",
+            "index": "115",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10669,
+              "end": 11915,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 3211264,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T338)_i2_prepare_ffn_fp8_split_150",
+            "index": "117",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 11393,
+              "end": 12418,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 983040,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "180",
+        "history": {
+          "resourcelir": "O180"
+        },
+        "tpe": "Sub",
+        "contexts": [
+          "SubContext"
+        ],
+        "lifetime": {
+          "begin": 11915,
+          "end": 12418
+        },
+        "input_tensors": [
+          117
+        ],
+        "output_tensors": [
+          118
+        ],
+        "description": "--> src/device/shared/mlp.rs:542:79\n\ndevice.sub\n.begin(sum_terms.view()).fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>().to_vrf()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T338)_i2_prepare_ffn_fp8_split_150",
+            "index": "117",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 11393,
+              "end": 12418,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 983040,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "sum_vrf",
+            "index": "118",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 11915,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 2228224,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "185",
+        "history": {
+          "resourcelir": "O185"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "lifetime": {
+          "begin": 12418,
+          "end": 12819
+        },
+        "input_tensors": [
+          107,
+          113,
+          118
+        ],
+        "output_tensors": [
+          119
+        ],
+        "description": "--> src/device/shared/mlp.rs:545:79\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &sum_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()\n.cast::<f8e5m2, m![H % 8 # 32]>()\n.commit_trim::<m![H % 8]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        },
+        "input_details": [
+          {
+            "name": "vISA(T340)_i2_prepare_ffn_fp8_split_167",
+            "index": "107",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 6084,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 12976128,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          },
+          {
+            "name": "scale_vrf",
+            "index": "113",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 10001,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 1523712,
+            "size": 16384,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+            "fingerprint": null
+          },
+          {
+            "name": "sum_vrf",
+            "index": "118",
+            "buffer_type": "Vrf",
+            "lifetime": {
+              "begin": 11915,
+              "end": 12819,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 2228224,
+            "size": 983040,
+            "physical_pages": [],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ],
+        "output_details": [
+          {
+            "name": "vISA(T351)_i2_prepare_ffn_fp8_split_192",
+            "index": "119",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 12418,
+              "end": 35826,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 13762560,
+            "size": 245760,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ]
+  }
+}

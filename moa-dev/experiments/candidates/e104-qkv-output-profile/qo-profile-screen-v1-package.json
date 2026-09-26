@@ -1,0 +1,63 @@
+{
+  "label": "qo-profile-screen-v1",
+  "diagnostic_build": "profile-v1",
+  "stages": [
+    [
+      "control_before",
+      "info",
+      "test_runtime",
+      "all"
+    ],
+    [
+      "qkv_info",
+      "info",
+      "probe",
+      "sliding_project_qkv"
+    ],
+    [
+      "qkv_trace",
+      "trace",
+      "probe",
+      "sliding_project_qkv"
+    ],
+    [
+      "output_info",
+      "info",
+      "probe",
+      "sliding_attention_output"
+    ],
+    [
+      "output_trace",
+      "trace",
+      "probe",
+      "sliding_attention_output"
+    ],
+    [
+      "control_after",
+      "info",
+      "test_runtime",
+      "all"
+    ]
+  ],
+  "control_recipe": "baseline/e104.json",
+  "control_source_manifest_matches": true,
+  "scope": "One allocation; three distinct inputs per stage, not independent repetitions; compare profiling overhead",
+  "package_files": {
+    "fixtures.safetensors": {
+      "bytes": 202632,
+      "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+    },
+    "probe": {
+      "bytes": 3704792,
+      "sha256": "1dffc35dcfe2756d9289a7b92c8bfb35ce21d3ee297ca730816b949a163e642d"
+    },
+    "run.sh": {
+      "bytes": 1573,
+      "sha256": "e1182542684a70d225698ae889502877eb351b18ce57fa2e9dba02396fb1ae24"
+    },
+    "test_runtime": {
+      "bytes": 3671360,
+      "sha256": "07764df925c4e357153ebc45d6d3e174b3fdcd68e8d86f81de47aff8d91698b1"
+    }
+  }
+}
