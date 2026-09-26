@@ -1,0 +1,42 @@
+{
+  "description": "Independent dyadic cancellation example detects BF16 conversion before the two F32 L-half partials are combined.",
+  "bf16_rounding": "RN ties to even",
+  "input_positions": {
+    "0": 1,
+    "1": 0.05859375,
+    "7680": -1,
+    "7681": -0.0546875
+  },
+  "other_inputs": 0,
+  "block_scale": 1,
+  "cases": [
+    {
+      "weight": 0.5,
+      "cluster0_f32_exact": 0.529296875,
+      "cluster1_f32_exact": -0.52734375,
+      "expected_bf16": 0.001953125,
+      "incorrect_early_bf16": 0.00390625
+    },
+    {
+      "weight": 1.0,
+      "cluster0_f32_exact": 1.05859375,
+      "cluster1_f32_exact": -1.0546875,
+      "expected_bf16": 0.00390625,
+      "incorrect_early_bf16": 0.0078125
+    },
+    {
+      "weight": 2.0,
+      "cluster0_f32_exact": 2.1171875,
+      "cluster1_f32_exact": -2.109375,
+      "expected_bf16": 0.0078125,
+      "incorrect_early_bf16": 0.015625
+    },
+    {
+      "weight": 3.0,
+      "cluster0_f32_exact": 3.17578125,
+      "cluster1_f32_exact": -3.1640625,
+      "expected_bf16": 0.01171875,
+      "incorrect_early_bf16": 0.015625
+    }
+  ]
+}
