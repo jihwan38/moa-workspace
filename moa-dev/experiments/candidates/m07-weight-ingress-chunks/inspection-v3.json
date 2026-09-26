@@ -1,0 +1,53 @@
+{
+  "purpose": "Verify v3 compact DMA extents in identical source; not a new variant",
+  "command": [
+    "docker",
+    "exec",
+    "--workdir",
+    "/tmp/moa-c02-c03/m07-stream-assembly-v3",
+    "-e",
+    "CARGO_HOME=/home/moa/.cargo",
+    "-e",
+    "CARGO_NET_OFFLINE=true",
+    "-e",
+    "CARGO_TARGET_DIR=/tmp/moa-c01-upgate/target",
+    "-e",
+    "FURIOSA_OPT_OUT_DIR=/tmp/moa-c02-c03/m07-stream-assembly-v3/inspection-kernels",
+    "moa2026-dev",
+    "cargo",
+    "furiosa-opt",
+    "compile",
+    "ops::decoder_feedforward",
+    "--exact",
+    "--dump-graph",
+    "ingress-graph.json",
+    "--dump-ir",
+    "ingress-lir.txt",
+    "--dump-schedule",
+    "inspection-schedule.json"
+  ],
+  "exit_code": 0,
+  "log": {
+    "bytes": 906,
+    "sha256": "95ccfeb8f813c3d7ef2e598f59f6e28281597af55bb1ec2ef38a11345d8f7cbd"
+  },
+  "files": {
+    "ingress-graph.json": {
+      "bytes": 497485,
+      "sha256": "18472921e1db2c068185be744a17820afbd84d8ecbe13233c04235d7ebe7cc78"
+    },
+    "ingress-lir.txt": {
+      "bytes": 618779,
+      "sha256": "2d8ab639d30bace42a22d58126ed89b1f7507619cc0cf8567c6f4f5057b3e7bd"
+    },
+    "inspection-schedule.json": {
+      "bytes": 249635,
+      "sha256": "e776f410aba0a0c9c867721ca0f9ade339be4d4ea69936a041bbd0c37ed6ff9f"
+    }
+  },
+  "image": {
+    "bytes": 286976,
+    "sha256": "aa3408187fcf20f71ce3e2592f1888489025809bc045880742e9c52600cbb79f"
+  },
+  "identical_image_and_schedule": true
+}

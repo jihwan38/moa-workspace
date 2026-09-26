@@ -1,0 +1,54 @@
+{
+  "candidate": "M07",
+  "experiment": "E121",
+  "status": "closed_no_qualifying_gain",
+  "branch": "opt/m07-weight-ingress-chunks",
+  "integrated_parent": "0c6dea50db58e75bb89c705fd7b937eb3254a638",
+  "source_base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "source_method": "Pinned M03 full FFN; only ingress/assembly changed",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "One local transfer-dataflow combination; three implementation variants, not three architectures",
+  "adopted": false,
+  "official_submission": null,
+  "builds": {
+    "variants": 3,
+    "candidate_exact_compile_attempts": 3,
+    "identical_source_ir_inspection_compiles": 2,
+    "host_builds": 2,
+    "v1": "Compile/host PASS; emitted full30-row up/gate transfer per6-row tile, static cost closure; no NPU",
+    "v2": "Compact source created, but assembly DMA reads beyond source range; compiler rejects; no executable",
+    "v3": "Replace assembly DMA with raw FP4 Sub copy; full compile/host and basic NPU PASS"
+  },
+  "arena": {
+    "job": 104739,
+    "medians": {
+      "control_before": 335871,
+      "candidate_0": 336059,
+      "candidate_1": 330118,
+      "control_after": 335305
+    },
+    "e104_bracketing_median": 335588.0,
+    "change_vs_bracketing_percent": 0.14035066808109065,
+    "change_vs_m03_percent": 1.7996595156883233,
+    "basic_comparisons_passed": 60,
+    "candidate_ffn_inputs": 3,
+    "candidate_ffn_output_elements": 11520,
+    "independent_jobs": 1,
+    "expanded_accuracy": false
+  },
+  "evidence": {
+    "result": "docs/experiments/e121-m07-weight-ingress-chunks.json",
+    "frozen_log": "moa-dev/experiments/candidates/m07-weight-ingress-chunks/evidence/arena-104739.log",
+    "analysis": "moa-dev/experiments/candidates/m07-weight-ingress-chunks/static-analysis.json",
+    "verification": "moa-dev/experiments/candidates/m07-weight-ingress-chunks/verification.json"
+  },
+  "interpretation": [
+    "Smaller emitted ingress tasks are achieved in v3, while full decode and dot remain three streams each.",
+    "Source coverage alone did not constrain v1 emitted transfer volume; v3 graph confirms intended payload after the raw Sub repair.",
+    "Static pre-RMS-to-amax gap shrinks, but pre-RMS starts later; amax and final input broadcast are not earlier.",
+    "Whole-kernel NPU result has no qualifying gain. The actual internal contribution of copies/arbitration is not measured or inferred from the static schedule.",
+    "No new top10-capable submission established; E104 remains adopted."
+  ],
+  "closure": "Close this prototype after the basic screen under the5% experiment-budget rule; no tile sweep, repeated screening or official submission. A small one-job difference is not a statistical significance claim.",
+  "retry_condition": "A concrete change to transfer arbitration or full-buffer assembly/materialization cost. Merely changing the number of chunks is not a new mechanism."
+}

@@ -1,0 +1,45 @@
+{
+  "id": "M07",
+  "base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "scope": "M07 bounded ingress repair: compact six-row up/gate HBM destination plus assembly into unchanged full packed consumers",
+  "source_components": [
+    {
+      "commit": "0c6dea50db58e75bb89c705fd7b937eb3254a638",
+      "path": "moa-dev/experiments/candidates/m03-producer-local-ffn/native-local-v1/mlp.rs",
+      "sha256": "f321f960efdbf362dc1ebf20950a2e6b1ae0f0b337bc04b5d4ea508ef64730ff",
+      "used": "All M03 ownership, preparation, arithmetic and scales; replace only three FP4 HBM loads"
+    }
+  ],
+  "prior_related": [
+    "M04 chunks ingress/decode/dot together and changes activation preparation; NPU regression",
+    "C09 chunks O ingress and computation together; static-only",
+    "E47 tiled up decode stages compact tiles",
+    "FP4-native v7c packs projections, does not chunk each materialized matrix ingress",
+    "M05/M06 input changes excluded",
+    "M07 v1 emits full30-row descriptors for each nominal6-row up/gate tile"
+  ],
+  "graph": "M03 full FFN, with up/gate HBM->compact6row FP4->full30row FP4, down direct12row writes into full60row FP4; full decode/contraction unchanged",
+  "removed_costs": [
+    "Three indivisible full-matrix DMA tasks; payload unchanged"
+  ],
+  "new_costs": [
+    "Twelve additional weight HBM commands",
+    "Ten DM-to-DM compact-to-full up/gate copies and temporary compact allocations",
+    "Descriptor/setup and allocation-schedule effects must be measured"
+  ],
+  "retained_costs": [
+    "Full FP4 and FP8 materialization and lifetimes",
+    "Three full decode/dot streams",
+    "Full matrix completion before decode",
+    "M03 numerical and ownership paths"
+  ],
+  "stop_condition": "One bounded compile/package plus basic Arena screen with E104 before/after and original M03. Fix only understood source/API errors. Regression or <5% target gain closes without tile sweeps. Promising requires independent repeats/expanded accuracy.",
+  "adopted": false,
+  "hardware_status": "not_run",
+  "repair_reason": "Constrain HBM transfer extent using compact owned destination after v1 graph proved nominal six-row padded views emit full thirty-row descriptors."
+}

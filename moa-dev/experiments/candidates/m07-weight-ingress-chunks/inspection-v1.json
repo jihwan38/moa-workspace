@@ -1,0 +1,53 @@
+{
+  "purpose": "Inspect unexpected full-sized DMA tasks in identical v1 source; not a new candidate variant",
+  "command": [
+    "docker",
+    "exec",
+    "--workdir",
+    "/tmp/moa-c02-c03/m07-dma-only-v1",
+    "-e",
+    "CARGO_HOME=/home/moa/.cargo",
+    "-e",
+    "CARGO_NET_OFFLINE=true",
+    "-e",
+    "CARGO_TARGET_DIR=/tmp/moa-c01-upgate/target",
+    "-e",
+    "FURIOSA_OPT_OUT_DIR=/tmp/moa-c02-c03/m07-dma-only-v1/inspection-kernels",
+    "moa2026-dev",
+    "cargo",
+    "furiosa-opt",
+    "compile",
+    "ops::decoder_feedforward",
+    "--exact",
+    "--dump-graph",
+    "ingress-graph.json",
+    "--dump-ir",
+    "ingress-lir.txt",
+    "--dump-schedule",
+    "inspection-schedule.json"
+  ],
+  "exit_code": 0,
+  "log": {
+    "bytes": 906,
+    "sha256": "b7a70460e81b980b1d23dfd46f76364afa1c7ad80c44e890925fb7f10c07e35c"
+  },
+  "files": {
+    "ingress-graph.json": {
+      "bytes": 486054,
+      "sha256": "420f982c65d49fc1f9c072cf21d90a3685e5fbe11858351abe590aed59dc0336"
+    },
+    "ingress-lir.txt": {
+      "bytes": 589103,
+      "sha256": "a9d58570602bf1f18119a8c0c330a8aad69898c536875755a73dd64518d76275"
+    },
+    "inspection-schedule.json": {
+      "bytes": 241795,
+      "sha256": "4c53189bb1a29a16ef61c7e05c3c1f8e71300ae7c61dd9a5861ffcb0e0a47a4e"
+    }
+  },
+  "image": {
+    "bytes": 275200,
+    "sha256": "07a924729236af4b37113269d69e46be77952f4f62c922e5a4ba0460a430f38f"
+  },
+  "identical_image_and_schedule": true
+}

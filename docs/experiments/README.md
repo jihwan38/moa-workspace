@@ -1,5 +1,12 @@
 # Experiment ledger
 
+September27 [M07 / E121](../../moa-dev/experiments/candidates/m07-weight-ingress-chunks/README.md)
+splits only weight ingress while preserving M03's full decode/dot streams.
+v1 emitted redundant full-row DMA extents; v2's compact assembly failed range
+verification; v3's raw FP4 Sub assembly compiled and passed60 basic comparisons
+in Arena104739. FFN336059 versus E104335871/335305 and original M03 330118:
++0.14% versus bracketing E104, +1.80% versus M03. Closed without tuning/adoption/submission.
+
 September26–27 [M06 / E119–E120](../../moa-dev/experiments/candidates/m06-sharded-input-pipeline/README.md)
 connects pre-RMS H480 shards to native input preparation. Three lowering failures
 were repaired to executable v4; v4 direct packing and v5 separate-buffer packing

@@ -1,0 +1,2916 @@
+{
+  "coordinates": {
+    "upgate_row_segments": 15360,
+    "down_row_segments": 30720,
+    "per_matrix_logical_bytes": 29491200,
+    "intended_per_transfer_bytes": 5898240,
+    "per_slice_chunk_bytes": 11520,
+    "per_slice_full_packed_bytes": 57600,
+    "all_logical_elements_covered_once": true,
+    "destination_tiles_disjoint": true,
+    "scope": "Source coordinates only; emitted DMA may cover padded extents too."
+  },
+  "schedules": {
+    "E104": {
+      "schedule": {
+        "bytes": 189237,
+        "sha256": "f5f7a888e70e2ca1c494c88b58060467155268e4bb0a129d888a8dbd4d6e15dd"
+      },
+      "makespan": 157045,
+      "dma_count": 35,
+      "main_count": 47,
+      "instruction_count": 293,
+      "fp8_expansion": [
+        {
+          "index": "229",
+          "type": "Main",
+          "begin": 35834,
+          "end": 45097,
+          "description": "--> src/device/shared/mlp.rs:116:98\n\ndevice.main\n.begin(gate_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "index": "359",
+          "type": "Main",
+          "begin": 72471,
+          "end": 81734,
+          "description": "--> src/device/shared/mlp.rs:92:96\n\ndevice.main\n.begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "index": "523",
+          "type": "Main",
+          "begin": 112174,
+          "end": 121437,
+          "description": "--> src/device/shared/mlp.rs:396:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()"
+        }
+      ],
+      "dots": [
+        {
+          "index": "287",
+          "type": "Main",
+          "begin": 58586,
+          "end": 64270,
+          "description": "--> src/device/shared/mlp.rs:40:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "391",
+          "type": "Main",
+          "begin": 81737,
+          "end": 87421,
+          "description": "--> src/device/shared/mlp.rs:40:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "563",
+          "type": "Main",
+          "begin": 126286,
+          "end": 144549,
+          "description": "--> src/device/shared/mlp.rs:405:99\n\ndevice.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, L / 16 % 120]>()\n.contract_lane::<m![H % 60, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, L / 32 % 60], m![L / 16 % 2 # 8]>()\n.commit_trim::<m![L / 16 % 2]>()\n.commit()"
+        }
+      ],
+      "weight_loads": [
+        {
+          "index": "112",
+          "type": "DmaLoad",
+          "begin": 3589,
+          "end": 28201,
+          "description": "--> src/device/shared/mlp.rs:115:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "274",
+          "type": "DmaLoad",
+          "begin": 47853,
+          "end": 72465,
+          "description": "--> src/device/shared/mlp.rs:91:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "383",
+          "type": "DmaLoad",
+          "begin": 79314,
+          "end": 108741,
+          "description": "--> src/device/shared/mlp.rs:394:9\n\ndown_weight_packed.to_dm(&mut device.tdma)"
+        }
+      ],
+      "sub_assembly": [],
+      "pre_rms": [
+        {
+          "index": "140",
+          "type": "Main",
+          "begin": 6767,
+          "end": 7511,
+          "description": "--> src/device/shared/rmsnorm.rs:95:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![1], m![H % 480]>()\n.switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        }
+      ],
+      "amax": [
+        {
+          "index": "161",
+          "type": "Main",
+          "begin": 30761,
+          "end": 32002,
+          "description": "--> src/device/shared/mlp.rs:478:62\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H / 4], m![H % 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 # 8]>().commit()"
+        }
+      ],
+      "pre_rms_to_amax_gap": 23250,
+      "input_broadcast": [
+        {
+          "index": "261",
+          "type": "Main",
+          "begin": 45097,
+          "end": 56880,
+          "description": "--> src/device/shared/mlp.rs:459:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+        }
+      ],
+      "fp8_logical_write_bytes": 176947200,
+      "scope": "Compiler schedule, not NPU performance/stall measurement; intervals overlap."
+    },
+    "M03": {
+      "schedule": {
+        "bytes": 187979,
+        "sha256": "0ff75fc974479e67df565d62c0f871eb3e77cb7f7b5865149a63dfcbf313dc56"
+      },
+      "makespan": 154440,
+      "dma_count": 37,
+      "main_count": 48,
+      "instruction_count": 287,
+      "fp8_expansion": [
+        {
+          "index": "247",
+          "type": "Main",
+          "begin": 35885,
+          "end": 45148,
+          "description": "--> src/device/shared/mlp.rs:122:98\n\ndevice.main\n.begin(gate_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "index": "372",
+          "type": "Main",
+          "begin": 72019,
+          "end": 81282,
+          "description": "--> src/device/shared/mlp.rs:98:96\n\ndevice.main\n.begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "index": "503",
+          "type": "Main",
+          "begin": 109215,
+          "end": 118478,
+          "description": "--> src/device/shared/mlp.rs:297:93\n\ndevice.main\n.begin(packed.view())\n.fetch::<m![H % 60], m![TileL % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, TileL / 32 % 60], m![TileL % 32]>()\n.commit_trim::<m![TileL % 32]>()\n.commit()"
+        }
+      ],
+      "dots": [
+        {
+          "index": "300",
+          "type": "Main",
+          "begin": 58637,
+          "end": 64321,
+          "description": "--> src/device/shared/mlp.rs:46:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "393",
+          "type": "Main",
+          "begin": 81282,
+          "end": 86966,
+          "description": "--> src/device/shared/mlp.rs:46:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "537",
+          "type": "Main",
+          "begin": 123327,
+          "end": 141590,
+          "description": "--> src/device/shared/mlp.rs:306:99\n\ndevice.main\n.begin(fp8.view())\n.fetch::<m![H % 60], m![TileL % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, TileL / 16 % 120], m![TileL % 16]>()\n.contract_outer::<m![H % 60, TileL / 16 % 120], m![TileL % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, TileL / 16 % 120]>()\n.contract_lane::<m![H % 60, TileL / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, TileL / 32 % 60], m![TileL / 16 % 2 # 8]>()\n.commit_trim::<m![TileL / 16 % 2]>()\n.commit()"
+        }
+      ],
+      "weight_loads": [
+        {
+          "index": "116",
+          "type": "DmaLoad",
+          "begin": 3589,
+          "end": 28201,
+          "description": "--> src/device/shared/mlp.rs:121:9\n\ngate_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "282",
+          "type": "DmaLoad",
+          "begin": 47404,
+          "end": 72016,
+          "description": "--> src/device/shared/mlp.rs:97:9\n\nup_weight_packed.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "386",
+          "type": "DmaLoad",
+          "begin": 77462,
+          "end": 106889,
+          "description": "--> src/device/shared/mlp.rs:296:96\n\nweight.to_dm(&mut device.tdma)"
+        }
+      ],
+      "sub_assembly": [],
+      "pre_rms": [
+        {
+          "index": "137",
+          "type": "Main",
+          "begin": 6767,
+          "end": 7511,
+          "description": "--> src/device/shared/rmsnorm.rs:95:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![1], m![H % 480]>()\n.switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        }
+      ],
+      "amax": [
+        {
+          "index": "156",
+          "type": "Main",
+          "begin": 30761,
+          "end": 32002,
+          "description": "--> src/device/shared/mlp.rs:466:62\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H / 4], m![H % 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 # 8]>().commit()"
+        }
+      ],
+      "pre_rms_to_amax_gap": 23250,
+      "input_broadcast": [
+        {
+          "index": "280",
+          "type": "Main",
+          "begin": 45148,
+          "end": 56931,
+          "description": "--> src/device/shared/mlp.rs:447:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+        }
+      ],
+      "fp8_logical_write_bytes": 176947200,
+      "scope": "Compiler schedule, not NPU performance/stall measurement; intervals overlap."
+    },
+    "v1": {
+      "schedule": {
+        "bytes": 241795,
+        "sha256": "4c53189bb1a29a16ef61c7e05c3c1f8e71300ae7c61dd9a5861ffcb0e0a47a4e"
+      },
+      "makespan": 352298,
+      "dma_count": 49,
+      "main_count": 48,
+      "instruction_count": 392,
+      "fp8_expansion": [
+        {
+          "index": "267",
+          "type": "Main",
+          "begin": 128564,
+          "end": 137827,
+          "description": "--> src/device/shared/mlp.rs:135:98\n\ndevice.main\n.begin(gate_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "index": "492",
+          "type": "Main",
+          "begin": 272556,
+          "end": 281819,
+          "description": "--> src/device/shared/mlp.rs:112:96\n\ndevice.main\n.begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "index": "639",
+          "type": "Main",
+          "begin": 311919,
+          "end": 321182,
+          "description": "--> src/device/shared/mlp.rs:316:93\n\ndevice.main\n.begin(packed.view())\n.fetch::<m![H % 60], m![TileL % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, TileL / 32 % 60], m![TileL % 32]>()\n.commit_trim::<m![TileL % 32]>()\n.commit()"
+        }
+      ],
+      "dots": [
+        {
+          "index": "345",
+          "type": "Main",
+          "begin": 155387,
+          "end": 161071,
+          "description": "--> src/device/shared/mlp.rs:46:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "503",
+          "type": "Main",
+          "begin": 281819,
+          "end": 287503,
+          "description": "--> src/device/shared/mlp.rs:46:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "652",
+          "type": "Main",
+          "begin": 321185,
+          "end": 339448,
+          "description": "--> src/device/shared/mlp.rs:325:99\n\ndevice.main\n.begin(fp8.view())\n.fetch::<m![H % 60], m![TileL % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, TileL / 16 % 120], m![TileL % 16]>()\n.contract_outer::<m![H % 60, TileL / 16 % 120], m![TileL % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, TileL / 16 % 120]>()\n.contract_lane::<m![H % 60, TileL / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, TileL / 32 % 60], m![TileL / 16 % 2 # 8]>()\n.commit_trim::<m![TileL / 16 % 2]>()\n.commit()"
+        }
+      ],
+      "weight_loads": [
+        {
+          "index": "104",
+          "type": "DmaLoad",
+          "begin": 1844,
+          "end": 26456,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "152",
+          "type": "DmaLoad",
+          "begin": 28198,
+          "end": 52810,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "187",
+          "type": "DmaLoad",
+          "begin": 53770,
+          "end": 78382,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "216",
+          "type": "DmaLoad",
+          "begin": 78790,
+          "end": 103402,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "231",
+          "type": "DmaLoad",
+          "begin": 103940,
+          "end": 128552,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "318",
+          "type": "DmaLoad",
+          "begin": 143200,
+          "end": 167812,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "432",
+          "type": "DmaLoad",
+          "begin": 168378,
+          "end": 192990,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "464",
+          "type": "DmaLoad",
+          "begin": 193828,
+          "end": 218440,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "471",
+          "type": "DmaLoad",
+          "begin": 223320,
+          "end": 247932,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "486",
+          "type": "DmaLoad",
+          "begin": 247932,
+          "end": 272544,
+          "description": "--> src/device/shared/mlp.rs:89:9\n\nweight.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "495",
+          "type": "DmaLoad",
+          "begin": 273846,
+          "end": 280172,
+          "description": "--> src/device/shared/mlp.rs:312:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        },
+        {
+          "index": "499",
+          "type": "DmaLoad",
+          "begin": 280172,
+          "end": 286498,
+          "description": "--> src/device/shared/mlp.rs:312:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        },
+        {
+          "index": "510",
+          "type": "DmaLoad",
+          "begin": 287336,
+          "end": 293662,
+          "description": "--> src/device/shared/mlp.rs:312:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        },
+        {
+          "index": "598",
+          "type": "DmaLoad",
+          "begin": 294225,
+          "end": 300551,
+          "description": "--> src/device/shared/mlp.rs:312:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        },
+        {
+          "index": "625",
+          "type": "DmaLoad",
+          "begin": 305587,
+          "end": 311913,
+          "description": "--> src/device/shared/mlp.rs:312:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        }
+      ],
+      "sub_assembly": [],
+      "pre_rms": [
+        {
+          "index": "173",
+          "type": "Main",
+          "begin": 31382,
+          "end": 32126,
+          "description": "--> src/device/shared/rmsnorm.rs:95:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![1], m![H % 480]>()\n.switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        }
+      ],
+      "amax": [
+        {
+          "index": "196",
+          "type": "Main",
+          "begin": 55370,
+          "end": 56611,
+          "description": "--> src/device/shared/mlp.rs:485:62\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H / 4], m![H % 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 # 8]>().commit()"
+        }
+      ],
+      "pre_rms_to_amax_gap": 23244,
+      "input_broadcast": [
+        {
+          "index": "311",
+          "type": "Main",
+          "begin": 141898,
+          "end": 153681,
+          "description": "--> src/device/shared/mlp.rs:466:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+        }
+      ],
+      "fp8_logical_write_bytes": 176947200,
+      "scope": "Compiler schedule, not NPU performance/stall measurement; intervals overlap."
+    },
+    "v3": {
+      "schedule": {
+        "bytes": 249635,
+        "sha256": "e776f410aba0a0c9c867721ca0f9ade339be4d4ea69936a041bbd0c37ed6ff9f"
+      },
+      "makespan": 160799,
+      "dma_count": 49,
+      "main_count": 48,
+      "instruction_count": 402,
+      "fp8_expansion": [
+        {
+          "index": "306",
+          "type": "Main",
+          "begin": 37525,
+          "end": 46788,
+          "description": "--> src/device/shared/mlp.rs:144:98\n\ndevice.main\n.begin(gate_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "index": "536",
+          "type": "Main",
+          "begin": 78377,
+          "end": 87640,
+          "description": "--> src/device/shared/mlp.rs:121:96\n\ndevice.main\n.begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+        },
+        {
+          "index": "691",
+          "type": "Main",
+          "begin": 120420,
+          "end": 129683,
+          "description": "--> src/device/shared/mlp.rs:325:93\n\ndevice.main\n.begin(packed.view())\n.fetch::<m![H % 60], m![TileL % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, TileL / 32 % 60], m![TileL % 32]>()\n.commit_trim::<m![TileL % 32]>()\n.commit()"
+        }
+      ],
+      "dots": [
+        {
+          "index": "380",
+          "type": "Main",
+          "begin": 60969,
+          "end": 66653,
+          "description": "--> src/device/shared/mlp.rs:46:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "557",
+          "type": "Main",
+          "begin": 87643,
+          "end": 93327,
+          "description": "--> src/device/shared/mlp.rs:46:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+        },
+        {
+          "index": "704",
+          "type": "Main",
+          "begin": 129686,
+          "end": 147949,
+          "description": "--> src/device/shared/mlp.rs:334:99\n\ndevice.main\n.begin(fp8.view())\n.fetch::<m![H % 60], m![TileL % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, TileL / 16 % 120], m![TileL % 16]>()\n.contract_outer::<m![H % 60, TileL / 16 % 120], m![TileL % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, TileL / 16 % 120]>()\n.contract_lane::<m![H % 60, TileL / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, TileL / 32 % 60], m![TileL / 16 % 2 # 8]>()\n.commit_trim::<m![TileL / 16 % 2]>()\n.commit()"
+        }
+      ],
+      "weight_loads": [
+        {
+          "index": "18",
+          "type": "DmaLoad",
+          "begin": 1019,
+          "end": 6380,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "113",
+          "type": "DmaLoad",
+          "begin": 6380,
+          "end": 11741,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "122",
+          "type": "DmaLoad",
+          "begin": 11741,
+          "end": 17102,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "131",
+          "type": "DmaLoad",
+          "begin": 17102,
+          "end": 22463,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "177",
+          "type": "DmaLoad",
+          "begin": 24843,
+          "end": 30204,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "349",
+          "type": "DmaLoad",
+          "begin": 47401,
+          "end": 52762,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "357",
+          "type": "DmaLoad",
+          "begin": 52762,
+          "end": 58123,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "363",
+          "type": "DmaLoad",
+          "begin": 58123,
+          "end": 63484,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "395",
+          "type": "DmaLoad",
+          "begin": 63484,
+          "end": 68845,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "440",
+          "type": "DmaLoad",
+          "begin": 68977,
+          "end": 74338,
+          "description": "--> src/device/shared/mlp.rs:91:93\n\nweight\n.tile::<m![FfnRow], 6, m![Dummy2, FfnSlice, FfnRow = 6 # 30, H]>(6 * i)\n.to_dm(&mut device.tdma)"
+        },
+        {
+          "index": "531",
+          "type": "DmaLoad",
+          "begin": 77386,
+          "end": 83712,
+          "description": "--> src/device/shared/mlp.rs:321:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        },
+        {
+          "index": "558",
+          "type": "DmaLoad",
+          "begin": 88592,
+          "end": 94918,
+          "description": "--> src/device/shared/mlp.rs:321:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        },
+        {
+          "index": "596",
+          "type": "DmaLoad",
+          "begin": 94918,
+          "end": 101244,
+          "description": "--> src/device/shared/mlp.rs:321:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        },
+        {
+          "index": "673",
+          "type": "DmaLoad",
+          "begin": 107759,
+          "end": 114085,
+          "description": "--> src/device/shared/mlp.rs:321:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        },
+        {
+          "index": "685",
+          "type": "DmaLoad",
+          "begin": 114085,
+          "end": 120411,
+          "description": "--> src/device/shared/mlp.rs:321:9\n\nweight.tile::<m![H % 60], 12, m![H / 60, H % 60 = 12 # 60, Dummy2, TileL]>(12 * i)\n.to_dm_view(&mut device.tdma,\n    packed.view_mut().tile::<m![H % 60], 12, m![H % 60 = 12 #{!} 60, TileL % 1920]>(12 * i))"
+        }
+      ],
+      "sub_assembly": [
+        {
+          "index": "112",
+          "type": "Sub",
+          "begin": 6380,
+          "end": 8087,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "121",
+          "type": "Sub",
+          "begin": 11741,
+          "end": 13448,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "130",
+          "type": "Sub",
+          "begin": 17102,
+          "end": 18809,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "145",
+          "type": "Sub",
+          "begin": 22463,
+          "end": 24170,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "215",
+          "type": "Sub",
+          "begin": 30204,
+          "end": 31911,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "356",
+          "type": "Sub",
+          "begin": 52762,
+          "end": 54469,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "383",
+          "type": "Sub",
+          "begin": 60969,
+          "end": 62676,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "394",
+          "type": "Sub",
+          "begin": 63484,
+          "end": 65191,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "461",
+          "type": "Sub",
+          "begin": 70661,
+          "end": 72368,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        },
+        {
+          "index": "487",
+          "type": "Sub",
+          "begin": 74338,
+          "end": 76045,
+          "description": "--> src/device/shared/mlp.rs:96:9\n\ndevice.sub.begin(chunk.view())\n.fetch::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.collect::<m![FfnRow = 6, H / 64], m![H % 64]>()\n.commit_trim::<m![H % 64]>()\n.commit_view(packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i))"
+        }
+      ],
+      "pre_rms": [
+        {
+          "index": "206",
+          "type": "Main",
+          "begin": 28227,
+          "end": 28971,
+          "description": "--> src/device/shared/rmsnorm.rs:95:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![1], m![H % 480]>()\n.switch::<Slice, m![H / 480]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![H / 8], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        }
+      ],
+      "amax": [
+        {
+          "index": "229",
+          "type": "Main",
+          "begin": 32764,
+          "end": 34005,
+          "description": "--> src/device/shared/mlp.rs:494:62\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H / 4], m![H % 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 # 8]>().commit()"
+        }
+      ],
+      "pre_rms_to_amax_gap": 3793,
+      "input_broadcast": [
+        {
+          "index": "348",
+          "type": "Main",
+          "begin": 47401,
+          "end": 59184,
+          "description": "--> src/device/shared/mlp.rs:475:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()"
+        }
+      ],
+      "fp8_logical_write_bytes": 176947200,
+      "scope": "Compiler schedule, not NPU performance/stall measurement; intervals overlap."
+    }
+  },
+  "descriptors": {
+    "v1": {
+      "graph": {
+        "bytes": 486054,
+        "sha256": "420f982c65d49fc1f9c072cf21d90a3685e5fbe11858351abe590aed59dc0336"
+      },
+      "weight_dma": [
+        {
+          "graph_operator": "93",
+          "name": "DmaCommand#O153",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O153\nhistory: "
+        },
+        {
+          "graph_operator": "148",
+          "name": "DmaCommand#O174",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O174\nhistory: "
+        },
+        {
+          "graph_operator": "320",
+          "name": "DmaCommand#O297",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O297\nhistory: "
+        },
+        {
+          "graph_operator": "286",
+          "name": "DmaCommand#O290",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O290\nhistory: "
+        },
+        {
+          "graph_operator": "245",
+          "name": "DmaCommand#O64",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O64\nhistory: "
+        },
+        {
+          "graph_operator": "273",
+          "name": "DmaCommand#O85",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O85\nhistory: "
+        },
+        {
+          "graph_operator": "328",
+          "name": "DmaCommand#O304",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O304\nhistory: "
+        },
+        {
+          "graph_operator": "194",
+          "name": "DmaCommand#O57",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O57\nhistory: "
+        },
+        {
+          "graph_operator": "136",
+          "name": "DmaCommand#O167",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O167\nhistory: "
+        },
+        {
+          "graph_operator": "260",
+          "name": "DmaCommand#O71",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O71\nhistory: "
+        },
+        {
+          "graph_operator": "157",
+          "name": "DmaCommand#O181",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O181\nhistory: "
+        },
+        {
+          "graph_operator": "281",
+          "name": "DmaCommand#O283",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O283\nhistory: "
+        },
+        {
+          "graph_operator": "123",
+          "name": "DmaCommand#O160",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O160\nhistory: "
+        },
+        {
+          "graph_operator": "264",
+          "name": "DmaCommand#O78",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 29491200,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, anonymdma_tail(4)_1=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O78\nhistory: "
+        },
+        {
+          "graph_operator": "278",
+          "name": "DmaCommand#O276",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O276\nhistory: "
+        }
+      ],
+      "total_descriptor_byte_volume": 324403200,
+      "scope": "Emitted descriptor loop volume, not actual bus transactions/bandwidth or hardware time."
+    },
+    "v3": {
+      "graph": {
+        "bytes": 497485,
+        "sha256": "18472921e1db2c068185be744a17820afbd84d8ecbe13233c04235d7ebe7cc78"
+      },
+      "weight_dma": [
+        {
+          "graph_operator": "135",
+          "name": "DmaCommand#O187",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O187\nhistory: "
+        },
+        {
+          "graph_operator": "245",
+          "name": "DmaCommand#O86",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O86\nhistory: "
+        },
+        {
+          "graph_operator": "197",
+          "name": "DmaCommand#O54",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O54\nhistory: "
+        },
+        {
+          "graph_operator": "290",
+          "name": "DmaCommand#O293",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O293\nhistory: "
+        },
+        {
+          "graph_operator": "335",
+          "name": "DmaCommand#O307",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O307\nhistory: "
+        },
+        {
+          "graph_operator": "201",
+          "name": "DmaCommand#O62",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O62\nhistory: "
+        },
+        {
+          "graph_operator": "98",
+          "name": "DmaCommand#O163",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O163\nhistory: "
+        },
+        {
+          "graph_operator": "222",
+          "name": "DmaCommand#O78",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O78\nhistory: "
+        },
+        {
+          "graph_operator": "277",
+          "name": "DmaCommand#O286",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O286\nhistory: "
+        },
+        {
+          "graph_operator": "205",
+          "name": "DmaCommand#O70",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O70\nhistory: "
+        },
+        {
+          "graph_operator": "102",
+          "name": "DmaCommand#O171",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O171\nhistory: "
+        },
+        {
+          "graph_operator": "106",
+          "name": "DmaCommand#O179",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O179\nhistory: "
+        },
+        {
+          "graph_operator": "309",
+          "name": "DmaCommand#O300",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O300\nhistory: "
+        },
+        {
+          "graph_operator": "340",
+          "name": "DmaCommand#O314",
+          "projection_layout": "down",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Stride": {
+                          "inner": {
+                            "Symbol": {
+                              "symbol": "H",
+                              "size": 3840
+                            }
+                          },
+                          "stride": 60
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Padding": {
+                              "inner": {
+                                "Resize": {
+                                  "inner": {
+                                    "Modulo": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "H",
+                                          "size": 3840
+                                        }
+                                      },
+                                      "modulo": 60
+                                    }
+                                  },
+                                  "resize": 12
+                                }
+                              },
+                              "padding": 60,
+                              "kind": "Top"
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Symbol": {
+                                  "symbol": "Dummy2",
+                                  "size": 2
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "TileL",
+                                  "size": 7680
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x0)\ndst0: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708000)\ndst1: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10000)\ndst2: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518000)\ndst3: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xF00)\ndst4: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x708F00)\ndst5: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0xE10F00)\ndst6: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [H_1=12:7680, H_60=8:460800, TileL_1920=4:960, H_480=2:3686400, anonymdma_tail(4)_1=1:960], Dram(chip=0, in_chip=0x1518F00)\ndst7: [H_1=12:960, H_60=8:16777216, TileL_1920=4:4194304, H_480=2:134217728, anonymdma_tail(4)_1=1:960], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O314\nhistory: "
+        },
+        {
+          "graph_operator": "17",
+          "name": "DmaCommand#O155",
+          "projection_layout": "upgate",
+          "source_type": "Float4e2m1",
+          "source_shape": {
+            "MappingShape": {
+              "inner": {
+                "region": "Dram",
+                "mappings": {
+                  "Chip": {
+                    "Broadcast": {
+                      "size": 1
+                    }
+                  },
+                  "InSlice": {
+                    "Pair": {
+                      "left": {
+                        "Symbol": {
+                          "symbol": "Dummy2",
+                          "size": 2
+                        }
+                      },
+                      "right": {
+                        "Pair": {
+                          "left": {
+                            "Symbol": {
+                              "symbol": "FfnSlice",
+                              "size": 256
+                            }
+                          },
+                          "right": {
+                            "Pair": {
+                              "left": {
+                                "Padding": {
+                                  "inner": {
+                                    "Resize": {
+                                      "inner": {
+                                        "Symbol": {
+                                          "symbol": "FfnRow",
+                                          "size": 30
+                                        }
+                                      },
+                                      "resize": 6
+                                    }
+                                  },
+                                  "padding": 30,
+                                  "kind": "Top"
+                                }
+                              },
+                              "right": {
+                                "Symbol": {
+                                  "symbol": "H",
+                                  "size": 3840
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "source_descriptors": 8,
+          "descriptor_byte_volume": 5898240,
+          "description": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x0)\ndst0: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x384000)\ndst1: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x708000)\ndst2: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xA8C000)\ndst3: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0xE10000)\ndst4: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1194000)\ndst5: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x1518000)\ndst6: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [None=45:256, FfnSlice_1=32:57600, FfnSlice_32=2:1843200, None=1:256], Dram(chip=0, in_chip=0x189C000)\ndst7: [None=45:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O155\nhistory: "
+        }
+      ],
+      "total_descriptor_byte_volume": 88473600,
+      "scope": "Emitted descriptor loop volume, not actual bus transactions/bandwidth or hardware time."
+    }
+  }
+}

@@ -5,6 +5,25 @@
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
+## 최신 작업 — M07 weight 전송 분할, E121 개선 미확인으로 종료
+
+M06 기록 `0c6dea5`까지 main/origin에 통합하고 `opt/m07-weight-ingress-chunks`에서
+[M07](../../moa-dev/experiments/candidates/m07-weight-ingress-chunks/README.md)를 구현했다.
+E74 crate + 동결 M03 전체 FFN을 source로 선택하고 세 weight의 HBM 적재만5분할한다.
+M04와 달리 FP8 변환·dot은 전체 크기의3개 stream을 유지한다. Local transfer 변경이며
+새 전체 FFN 아키텍처 가족으로 세지 않는다.
+v1은 compile PASS지만 up/gate 각 tile이30행 전체 descriptor로 넓어져 정적 비용이 컸다.
+v2는 compact6행 임시 buffer를 만들었으나 assembly DMA가30행을 읽으려 해 범위 검사 실패.
+v3은 해당 assembly만 raw FP4 Sub copy로 고쳐 전체 compile·host PASS다.
+v3의15개 HBM weight command는 의도한5분할 payload이며 전체 FP8 변환·dot은3개다.
+입력 준비 앞의 상대 대기는 줄지만 pre-RMS 자체가 늦어져 정적 전체는 M03보다 늘었다.
+Arena104739: E104335871 → v3 336059 → 원본 M03 330118 → E104335305.
+기본60비교 PASS, 후보 FFN3입력/11520출력 PASS다. E104 앞뒤 중앙값 대비+0.14%,
+동시 M03 대비+1.80%로 채택할 이득이 없어 추가 튜닝 없이 종료했다. 단회 screen이며
+내부 NPU 시각·stall은 계측하지 않았다. [E121](e121-m07-weight-ingress-chunks.json).
+v1은 중복 전송 descriptor 비용으로 정적 종료, v2는 compile 실패, v3은 실측 종료다.
+세 구현 변형을 독립 아키텍처3개로 세지 않는다. Live E104 유지; 새 채택·공식 제출 없음.
+
 ## 최신 작업 — M06 실행 timeout으로 보류, E119/E120
 
 M05 기록 `83d09dd`까지 main/origin에 통합하고 `opt/m06-sharded-input-pipeline`에서

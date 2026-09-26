@@ -1,0 +1,71 @@
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `feedforward` is never used
+   --> src/device/shared/mlp.rs:388:15
+    |
+388 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [1/1] ops::decoder_feedforward
+error: furiosa-opt: ops::decoder_feedforward: visa: while verifying DmaCommand
+       caused by: verification of operator failed:
+       DmaCommand
+       inner: DmaCommand: sram -> sram
+       -- assigned_pe: None --
+       src0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst0: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)
+       dst1: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)
+       dst2: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)
+       dst3: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)
+       src4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst4: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)
+       dst5: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)
+       dst6: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)
+       dst7: [anonymdma_tail(4)_256=225:256, FfnSlice_1=32:4194304, FfnSlice_32=2:134217728, anonymdma_tail(4)_1=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)
+       
+       name: 
+       
+       input tensors: 2
+         input T69: MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H)], 5898240 B, f4_e2, sram
+         source: unknown
+         input T71: MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6 #{!} 30, H)], 29491200 B, f4_e2, sram
+         source: unknown
+         total bytes: 35389440
+       output tensors: 1
+         output T72: MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6 #{!} 30, H)], 29491200 B, f4_e2, sram
+         source: unknown
+         total bytes: 29491200
+       caused by: Condition failed: `source_accessing_range_local.end as usize <= input_tensor_range`
+  --> src/device/shared/mlp.rs:94:22
+   |
+94 |           chunk.view().to_dm_view(&mut device.tdma,
+   |  ______________________^
+95 | |             packed.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30, H]>(6 * i));
+   | |______________________________________________________________________________________^
+
+    Finished 1 compiled, 14 not matching ops::decoder_feedforward
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 4 warnings emitted
