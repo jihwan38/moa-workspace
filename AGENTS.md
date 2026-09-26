@@ -11,9 +11,12 @@
   methods, before spending effort on local tuning.
 - Prevent duplicate experiments: before a build, record the candidate ID, actual
   starting commit, prior related attempts, the materially different execution
-  path, and its first stop condition. A renamed candidate or tile-size sweep is
-  not a new architecture. Retry a rejected family only with a specific change to
-  the cost or correctness mechanism that caused its rejection.
+  path, and its first stop condition, specifying whether it stops tuning, defers
+  adoption validation, or rejects that prototype. A renamed candidate or tile-size
+  sweep is not a new architecture. Retry a rejected family only with a specific
+  change to the cost or correctness mechanism that caused its rejection. A
+  justified first NPU test after static-only closure is not a retry of a measured
+  hardware failure.
 - Keep a named branch per candidate. Preserve each candidate's source snapshots,
   build logs/hashes, static-versus-NPU results and closure reason before moving
   to the next branch. Carry records forward without carrying an unadopted kernel
@@ -51,6 +54,21 @@
 - While the gap to the leading teams remains large, prioritize materially
   different execution architectures and coupled designs over local parameter
   sweeps. The current winner is a comparison control, not a design constraint.
+- Allocate research across QKV, O and FFN using their proportional contribution
+  to the geometric-mean score; FFN's larger absolute cycle count is not a larger
+  score weight. Record current evidence and the expected complete-path change,
+  not a ranking promise or a sum of historical percentage gains.
+- As of 2026-09-27 after E127, provisional research questions are O's repeated
+  lookup setup and next-weight readiness, QKV's table preparation and Main
+  execution dependencies, and FFN's
+  decoded-weight/partial storage plus the packed copies introduced by direct
+  decode. These are evidence-based questions, not mandated implementations.
+  Reuse the recorded profiles and refresh affected assumptions when the path
+  changes. A 4/8-stage sweep or another input-broadcast tweak needs a concrete
+  explanation of which limiting work it removes and which new costs it adds.
+  M03/C09 adoption recovers modest gains; it does not establish a large redesign.
+  Follow `baseline/current.json` and the latest `docs/experiments/current-work.md`
+  evidence when these provisional priorities become stale.
 - Classify the scope before implementation: parameter tuning, local dataflow
   replacement, or whole-projection/FFN architecture redesign. C09 row staging
   and C11 partial VRF are local dataflow replacements; do not count them as
@@ -102,10 +120,10 @@
   measurements and official submissions. Keep rejected and failed experiments.
 - Use contemporary controls for performance claims. Do not promote a candidate
   based on one favorable sample or inherit another implementation's validation.
-- Screen correctness and improvement magnitude early. Close modest improvements
-  promptly after bounded validation, then move to a materially different design.
-  Reserve extensive repeats and diagnostics for promising gains or a concrete
-  correctness failure; avoid prolonged polishing of small improvements.
+- Screen correctness and complete-kernel improvement early. For a modest positive
+  result, freeze the implementation and complete bounded adoption validation;
+  stop parameter exploration independently. Reserve extensive repeats or new
+  diagnostics for a concrete unresolved question, and avoid prolonged polishing.
 - When asked to find candidates, audit prior attempts and produce a shortlist
   before implementing. Distinguish an untried execution path from a new parameter
   choice or an already-rejected architecture. Ground paper-inspired proposals
@@ -114,7 +132,8 @@
   API/shape correction by default. Compile-only closure, or a documented API/
   lowering failure, is a valid outcome. Do not keep repairing an unpromising
   candidate just to make it build; record why it ended and move to the next one.
-  Only promising candidates proceed to Arena and extended validation. A coupled
+  Candidates with a concrete benefit hypothesis proceed to Arena; an observed
+  small positive gain also qualifies for bounded adoption validation. A coupled
   design may proceed on a concrete cost argument even if one isolated part loses.
 - The user clarified that these gates must not become automatic abandonment of
   fixable implementation errors before any performance evaluation. An axis,
@@ -125,18 +144,31 @@
   than stopping solely because a compile count was reached. Distinguish a source
   bug, a demonstrated SDK limitation, an unresolved issue and a measured loss.
   Do not replace one arbitrary retry count with an unbounded parameter sweep.
-- The default screen closes regressions and gains below 5% of the target kernel
-  without further parameter tuning. This is a provisional experiment-budget
-  cutoff, not a significance or promotion rule. Record concrete reasons for an
-  exception. Maintain correctness and contemporary-control requirements before
-  adoption, and distinguish Arena experiments from official submissions.
-- The user clarified that a positive gain below 5% can still be worth adopting.
-  Closing parameter exploration must not automatically cancel bounded adoption
-  validation. Keep the candidate frozen, verify the gain with contemporary
-  independent controls and correctness checks for its changed boundaries, and
-  adopt it if those checks support the gain. Use 5% to limit further tuning, not
-  as a minimum acceptable runtime improvement. Recovered small gains and the
-  search for large architectural improvements can proceed separately.
+- At candidate selection and after the first NPU screen, record three separate
+  decisions in the existing recipe/decision record or clearly labelled sections:
+  adoption (evidence, missing checks, adopt/validate/defer/reject), further tuning
+  (continue/stop and the specific cost mechanism), and major research priority
+  (which materialization, ownership or completion dependency changes). One
+  overall "closed" flag must not silently decide all three. A candidate may be
+  adopted while both parameter tuning and further research on it stop.
+- The provisional 5% target-kernel cutoff limits additional parameter tuning;
+  it is neither a significance threshold nor a minimum adoption gain. A single
+  positive allocation calls for bounded independent contemporary controls and
+  correctness checks at the changed arithmetic/layout boundaries. Adopt the
+  frozen implementation when these support a reproducible net gain. If that
+  validation must be deferred, record its actual cost or unresolved issue and
+  the remaining checks; gain below 5% alone is not a deferral/rejection reason.
+  Do not describe an unvalidated positive candidate, such as E123's initial
+  screen, as a failed architecture or a proven worthless adoption option.
+- Before running a new experiment, inspect its recipe, result-classification
+  code and proposed next actions against these three decisions. Never copy a
+  numeric branch such as "gain < 5% => no repeats/correctness/adoption" into a
+  new runner. E126's frozen recipe/results.py/decision preserve that historical
+  mistake for reproduction; their policy is superseded by E127 and these rules.
+  Keep historical evidence immutable and write a separate follow-up decision.
+  Include this strategy-consistency check when delegating candidate work; the
+  parent agent owns the final adoption/tuning/research decision. AGENTS.md is an
+  execution instruction, not an automatic enforcement mechanism in the tools.
 - Apply measured percentage screens to NPU results. Static schedules can justify
   a budget-based early stop for a specific prototype, but are not a calibrated
   NPU performance oracle; small static differences do not establish a hardware
