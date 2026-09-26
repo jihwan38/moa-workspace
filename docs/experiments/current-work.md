@@ -5,6 +5,21 @@
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
+## 최신 감사 — 10위권 격차와 누적 실험 재평가, 2026-09-27
+
+[코드·실험·논문 재점검](../research/top10-audit-20260927.md)을 추가했다.
+9월27일00:41 KST 공식 조회는 BEEF52/69위5.926577×, 10위8.859047×다.
+FFN만 바꿔 그 점수를 맞추려면335987→100594 cycles가 필요하므로 QKV/O의
+큰 비율 개선 경로도 병행해야 한다. 메모리 배치 전체가 잘못됐다고 단정하지 않는다.
+
+M03의 첫 E117은 단회였지만, 후속 companion을 포함하면 동일 package의5개 allocation에서
+앞뒤 E104 대비1.35–1.63% 감소, 감소율 중앙값1.4891%다.
+[누적 원본·해시·계산](../research/m03-cumulative-audit-20260927.json).
+동일3입력 반복이며 확대 정확도나 새 채택을 뜻하지 않는다. 아래 단회 설명은 첫 실험의
+역사 기록이다. 5% 탐색 예산 cutoff와 제한적 채택 검증은 구분할 필요가 있다.
+QKV/O 내부 계측, direct-FP4 고정 shape boundary 재계산 후보, M06 timeout 기제 진단의
+조건과 중복 여부를 정리했다. 새 compile/Arena/채택/공식 제출은 없고 runtime은E104다.
+
 ## 최신 작업 — M07 weight 전송 분할, E121 개선 미확인으로 종료
 
 M06 기록 `0c6dea5`까지 main/origin에 통합하고 `opt/m07-weight-ingress-chunks`에서

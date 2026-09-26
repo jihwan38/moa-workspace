@@ -1,0 +1,182 @@
+{
+  "audit_date_kst": "2026-09-27",
+  "record_parent_commit": "4b29ece60e7957edd2a93500c2d625b075009a56",
+  "scope": "Read-only code/history/results and primary literature audit; new research records only; no new kernel build, NPU run, adoption, official submission or remote publication.",
+  "baseline_validation": {
+    "command": "python3 moa-dev/experiment_index.py --check --check-live",
+    "result": "PASS",
+    "recipe": "baseline/e104.json"
+  },
+  "local_branches_ancestors_of_head": {
+    "baseline": true,
+    "chore/integrate-experiments-20260923": true,
+    "diag/e104-cost-attribution": true,
+    "diag/e104-weight-path": true,
+    "diag/fp4-native-boundary": true,
+    "fix/recipe-driven-experiments": true,
+    "main": true,
+    "opt/c01-scale-dpe": true,
+    "opt/c02-c03-e55": true,
+    "opt/c04-down-transfer": true,
+    "opt/c05-streamed-decode": true,
+    "opt/c07-native-scale-dpe": true,
+    "opt/c08-fused-qkv": true,
+    "opt/c09-output-pipeline": true,
+    "opt/c10-direct-weight-trf": true,
+    "opt/c11-ffn-partial-vrf": true,
+    "opt/c12-output-main-sub": true,
+    "opt/c13-int8-ffn": true,
+    "opt/c14-ffn-l-pipeline": true,
+    "opt/c14-stage-compact": true,
+    "opt/c15-upgate-columns": true,
+    "opt/ffn-dataflow": true,
+    "opt/m01-partial-remap": true,
+    "opt/m02-cluster-k": true,
+    "opt/m03-producer-local-ffn": true,
+    "opt/m04-tiled-weight-supply": true,
+    "opt/m05-local-activation-ready": true,
+    "opt/m06-sharded-input-pipeline": true,
+    "opt/m07-weight-ingress-chunks": true,
+    "research/rngd-dataflow-20260925": true,
+    "research/structural-candidates-20260923": true
+  },
+  "leaderboard": {
+    "path": "docs/research/top10-leaderboard-20260927.json",
+    "sha256": "2f98b5f7921ea98833e3f1edb1f73df7e1658659921783d99ae3094fa84df65d",
+    "capture_at_utc": "2026-09-26T15:41:53.803511+00:00",
+    "beef": {
+      "rank": 52,
+      "teamName": "BEEF",
+      "submissionId": "2026-09-22-13-11-42-210-6ee0120a",
+      "submissionCode": "6ee0120a",
+      "qkvCycles": 104091,
+      "attentionCycles": 51565,
+      "ffnCycles": 335987,
+      "cycles": {
+        "ops::sliding_project_qkv": 104091,
+        "ops::sliding_attention_output": 51565,
+        "ops::decoder_feedforward": 335987
+      },
+      "score": 5.926577056826218,
+      "skeleton": "0.8.1"
+    },
+    "tenth": {
+      "rank": 10,
+      "teamName": "Participant #398",
+      "submissionId": "2026-09-15-17-52-04-798-27b30f89",
+      "submissionCode": "27b30f89",
+      "qkvCycles": 78870,
+      "attentionCycles": 30228,
+      "ffnCycles": 226475,
+      "cycles": {
+        "ops::sliding_project_qkv": 78870,
+        "ops::sliding_attention_output": 30228,
+        "ops::decoder_feedforward": 226475
+      },
+      "score": 8.859046613946372,
+      "skeleton": null
+    },
+    "score_ratio_to_tenth": 1.4947998699759657,
+    "cycle_product_speedup_needed": 3.3400206678044215,
+    "uniform_cycle_reduction_percent": 33.10141243081065,
+    "gap_by_kernel": {
+      "qkvCycles": {
+        "beef_cycles": 104091,
+        "tenth_cycles": 78870,
+        "reduction_to_tenth_percent": 24.229760498025765,
+        "only_this_kernel_target_cycles": 31164.77721331728,
+        "score_if_only_this_matches_tenth": 6.500863523931514
+      },
+      "attentionCycles": {
+        "beef_cycles": 51565,
+        "tenth_cycles": 30228,
+        "reduction_to_tenth_percent": 41.3788422379521,
+        "only_this_kernel_target_cycles": 15438.527221418812,
+        "score_if_only_this_matches_tenth": 7.081400189771863
+      },
+      "ffnCycles": {
+        "beef_cycles": 335987,
+        "tenth_cycles": 226475,
+        "reduction_to_tenth_percent": 32.59411822481228,
+        "only_this_kernel_target_cycles": 100594.2877056694,
+        "score_if_only_this_matches_tenth": 6.759345888118447
+      }
+    },
+    "score_if_only_ffn_halved": 7.467019187719357,
+    "illustrative_target": {
+      "qkv": 70000,
+      "output": 35000,
+      "ffn": 210000,
+      "score": 9.002691496548472,
+      "status": "design target only, not measured or ranking guarantee"
+    }
+  },
+  "m03_cumulative": {
+    "path": "docs/research/m03-cumulative-audit-20260927.json",
+    "sha256": "1d148505d23e6a1f7c9e01f86b30a7fae94edbef05f7a08f3a15906db11d5b12",
+    "observed_median_paired_delta_percent": -1.4890713225914842,
+    "status": "Repeated companion evidence on same three inputs; not expanded correctness or adoption"
+  },
+  "logical_ffn_bytes": {
+    "packed_fp4": 88473600,
+    "fp8_materialized": 176947200,
+    "f32_block_partials": 44236800,
+    "block_scales_fp8": 11059200,
+    "first_row_fallback_fp8": 1966080,
+    "scope": "logical payload; not measured bus traffic, simultaneous occupancy or latency"
+  },
+  "primary_sources": [
+    {
+      "url": "https://micro2026-moa.github.io/index.html",
+      "use": "deadline and last-submission evaluation"
+    },
+    {
+      "url": "https://micro2026-moa.github.io/leaderboard.html",
+      "use": "score and public leaderboard endpoint"
+    },
+    {
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/moving-tensors/memory-performance.html",
+      "use": "alignment/channel/DM bank priority; not evidence that a specific conflict occurred"
+    },
+    {
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/moving-tensors/dma-engine.html",
+      "use": "sequencer/interleaving/transfer startup and SRAM transfer alternatives"
+    },
+    {
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/fetch-adapter.html",
+      "use": "fixed typed LUT constraints"
+    },
+    {
+      "url": "https://arxiv.org/html/2602.06063v1",
+      "use": "Gemma3 AMD FusedDQP; different quantization and hardware"
+    },
+    {
+      "url": "https://arxiv.org/html/2606.11357v1",
+      "use": "TileFuse producer-consumer and metadata coupling; offline prepack caveat"
+    },
+    {
+      "url": "https://arxiv.org/html/2511.11248v1",
+      "use": "T-MAN vector LUT decode; Qualcomm-specific feasibility caveat"
+    },
+    {
+      "url": "https://arxiv.org/html/2407.00088v2",
+      "use": "T-MAC runtime LUT algebra; not equivalent to RNGD fixed LUT"
+    },
+    {
+      "url": "https://arxiv.org/html/2407.10960v2",
+      "use": "FLUTE consume-oriented weight layout; offline prepack caveat"
+    },
+    {
+      "url": "https://github.com/IST-DASLab/marlin",
+      "use": "Marlin load/dequant/compute co-design; CUDA/offline layout caveat"
+    }
+  ],
+  "audit_verification": {
+    "local_document_links": "PASS",
+    "M03_five_results_and_raw_log_hashes": "PASS",
+    "all_69_leaderboard_score_rows_recomputed": "PASS",
+    "baseline_manifest_and_generated_index_check": "PASS",
+    "technical_and_experiment_cross_review": "PASS with corrections applied",
+    "kernel_source_changes": false
+  }
+}
