@@ -1,0 +1,58 @@
+{
+  "candidate": "M03",
+  "experiment": "E117",
+  "variant": "native-local-v1",
+  "status": "closed_modest_gain_below_screen_cutoff",
+  "branch": "opt/m03-producer-local-ffn",
+  "integrated_parent": "6ea3664",
+  "source_base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "Whole-FFN C14-family recombination: one stage, materialized native up/gate, local GeGLU and L-owned down",
+  "adopted": false,
+  "official_submission": null,
+  "builds": {
+    "source_variants": 1,
+    "source_corrections": 0,
+    "exact_compiles": 1,
+    "host_recompiles": 1,
+    "exact_and_host_image_match": true
+  },
+  "arena": {
+    "job_id": 104289,
+    "independent_allocations": 1,
+    "total_comparisons_passed": 45,
+    "candidate_ffn_inputs": 3,
+    "candidate_ffn_elements": 11520,
+    "e104_before_cycles": 335669,
+    "candidate_cycles": 330837,
+    "e104_after_cycles": 335107,
+    "bracketing_median": 335388.0,
+    "change_percent": -1.3569358474364024,
+    "report": "docs/experiments/e117-m03-producer-local-ffn.json"
+  },
+  "static": {
+    "control": {
+      "makespan": 157045,
+      "dma_count": 35,
+      "pre_rms_to_amax_gap": 23250,
+      "fp8_logical_write_bytes": 176947200,
+      "fp8_peak_live_allocated_bytes": 58982400
+    },
+    "candidate": {
+      "makespan": 154440,
+      "dma_count": 37,
+      "pre_rms_to_amax_gap": 23250,
+      "fp8_logical_write_bytes": 176947200,
+      "fp8_peak_live_allocated_bytes": 58982400
+    }
+  },
+  "interpretation": [
+    "Observed1.36% FFN reduction is a single screen, not independent repeat evidence.",
+    "Source and emitted transfers implement local GeGLU, L-owned down and F32 cluster sum; this is not an E104 helper-only parameter change.",
+    "Leader activation payload is halved but final activation replication and all three full weight materializations remain. The early pre-RMS-to-amax schedule gap is unchanged.",
+    "These facts constrain removed work; no claimed hardware stall decomposition or proof that dataflow/mapping is globally optimal."
+  ],
+  "closure": "Stop this prototype below5% screen budget cutoff. Retain as a modest positive composition option, keep E104 runtime. No further tile tuning or official submission.",
+  "retry_condition": "A coherent combination that changes remaining operand-supply/materialization costs, with new numerical validation; do not assume additive gains.",
+  "next_design_constraint": "Address weight supply or activation readiness without restoring M04 repeated per-tile setup or relying on incorrect direct-FP4/native composition. Further candidates need a concrete mechanism before builds."
+}

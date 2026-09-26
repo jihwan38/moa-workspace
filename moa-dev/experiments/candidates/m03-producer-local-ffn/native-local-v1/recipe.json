@@ -1,0 +1,67 @@
+{
+  "id": "M03",
+  "base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "scope": "Whole-FFN ownership redesign; C14 family recombination, not an independent new architecture family",
+  "source_components": [
+    {
+      "source": "moa-dev/experiments/candidates/c14-ffn-l-pipeline/bf16-stage-compact-v4/mlp.rs",
+      "sha256": "eee46de774c4bcb26d2cdc6dfc59d8e91cc78a541661d1f3afc781c287e66028",
+      "used": "cluster-local GeGLU, compact distribution, L-owned down and F32 H-partial gather"
+    },
+    {
+      "commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+      "source": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+      "sha256": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0",
+      "used": "actual E5M2 quantization, validated materialized native up/gate, global-scale epilogue; E79 down block method"
+    }
+  ],
+  "graph": "preRMS -> runtime3termE5 quantize/replicate -> cluster-local L7680 native up/gate -> local F32 30-to-120 compact -> BF16 -> local GeGLU -> local compact/ring32 four-column replication -> BF16 down dot -> F32 four-column sum -> gather and sum two H3840 cluster partials -> BF16/global scale -> unchanged postRMS/residual",
+  "methods_removed": [
+    "C14-B BF16 up/gate",
+    "C14-B two L stages and stage reduction",
+    "E104 full-L up/gate gather and single-cluster GeGLU",
+    "E104 H-owned down clusters and cross-cluster activation replication"
+  ],
+  "methods_retained": [
+    "FP4->FP8 materialization boundary; direct-fusion failures not reused",
+    "E104 actual3termE5 preparation and native up/gate arithmetic",
+    "BF16 global-scale boundaries and erf GeGLU",
+    "E79 block16F32 down partials and bounded scale VRF"
+  ],
+  "layout": {
+    "producer": "l=7680*c+30*s+t, both clusters256 slices",
+    "geglu": "l=7680*c+120*r+t; physical slice=4*r, r<64, t<120",
+    "down": "h=60*r+t; l=7680*c+1920*k+u; physical slice=4*r+k",
+    "partial": "two F32 H3840 partials, gathered into Dummy2 epilogue reduction axis"
+  },
+  "design_adjustment": "Use120-row local GeGLU packets instead of proposed60: matches existing 8-lane F32 packet width without a partial tail and removes separate60-to120 Switch pairing. Same local L ownership, no cross-cluster gather.",
+  "new_costs": [
+    "local compact DMA per up/gate and activation",
+    "30720 logical bytes of F32 H cluster partials plus gather/reduction",
+    "four-column down mapping changes summation order and HBM placement"
+  ],
+  "removed_costs": [
+    "full-L cross-cluster up/gate gather",
+    "cross-cluster GeGLU replication before down",
+    "C14-B repeated stage setup and stage output addition"
+  ],
+  "unchanged_costs": [
+    "three complete FP4 decode matrices and total weight bytes",
+    "native up/gate cost already in E104",
+    "1966080 bytes of final replicated BF16 down activation"
+  ],
+  "prior_related": [
+    "C14-B v4 FFN+17.58% used BF16 up/gate and two stages",
+    "E104 materialized native up/gate is validated",
+    "M04+13.67% row-tiling changes supply but retains E104 ownership",
+    "D-FP4-NATIVE direct projection composition remains incorrect"
+  ],
+  "stop_condition": "Compile full graph with concrete source/layout repairs only. One Arena screen with adjacent E104 controls. Close actual regression or <5% target gain without tile sweeps; promising gains require independent repeats and expanded correctness.",
+  "adopted": false,
+  "hardware_status": "not_run"
+}

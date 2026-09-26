@@ -1,5 +1,15 @@
 # Experiment ledger
 
+September26 [M03 / E117](../../moa-dev/experiments/candidates/m03-producer-local-ffn/README.md)
+combines C14 local GeGLU/L-owned down with validated native up/gate in one L stage.
+First source compile and45 basic comparisons pass. Arena104289: FFN330837 versus
+E104335669/335107, **observed−1.36%** against the bracketing median. Closed below
+the5% screening cutoff; preserved as a modest positive option, not adopted or
+officially submitted. Independent repeats/expanded correctness were not run.
+The preceding [direct-FP4/native diagnostics](../../moa-dev/experiments/candidates/fp4-native-boundary/README.md)
+remain on hold with unresolved composition errors; they produced no whole-kernel
+speed result. E104 is still current.
+
 September26 [M04 / E116](../../moa-dev/experiments/candidates/m04-tiled-weight-supply/README.md)
 couples producer-local input preparation with tiled HBM/FP8/partial supply in
 up/gate/down. Full compile and45 basic comparisons pass in Arena103108, but FFN

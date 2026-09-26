@@ -1,0 +1,845 @@
+{
+  "control": {
+    "schedule": {
+      "bytes": 189237,
+      "sha256": "f5f7a888e70e2ca1c494c88b58060467155268e4bb0a129d888a8dbd4d6e15dd"
+    },
+    "makespan": 157045,
+    "instruction_count": 293,
+    "dma_count": 35,
+    "weight_loads": [
+      {
+        "index": "112",
+        "type": "DmaLoad",
+        "begin": 3589,
+        "end": 28201,
+        "description": "--> src/device/shared/mlp.rs:115:9\n\ngate_weight_packed.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "vISA(T419)_i4_project_up_and_gate_73",
+            "index": "98",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3589,
+              "end": 45097,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67108864,
+            "size": 29491200,
+            "physical_pages": [
+              2,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "274",
+        "type": "DmaLoad",
+        "begin": 47853,
+        "end": 72465,
+        "description": "--> src/device/shared/mlp.rs:91:9\n\nup_weight_packed.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "vISA(T364)_i4_project_up_and_gate_23",
+            "index": "161",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 47853,
+              "end": 81734,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67108864,
+            "size": 29491200,
+            "physical_pages": [
+              7,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "383",
+        "type": "DmaLoad",
+        "begin": 79314,
+        "end": 108741,
+        "description": "--> src/device/shared/mlp.rs:394:9\n\ndown_weight_packed.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "vISA(T511)_i10_project_down_sharded_50",
+            "index": "204",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 79314,
+              "end": 121437,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 178126848,
+            "size": 29491200,
+            "physical_pages": [
+              8,
+              5,
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "fp8_expansion": [
+      {
+        "index": "229",
+        "type": "Main",
+        "begin": 35834,
+        "end": 45097,
+        "description": "--> src/device/shared/mlp.rs:116:98\n\ndevice.main\n.begin(gate_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()",
+        "outputs": [
+          {
+            "name": "vISA(T428)_i6_project_rows_with_scale_contraction_23",
+            "index": "144",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 35834,
+              "end": 64270,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 104595456,
+            "size": 58982400,
+            "physical_pages": [
+              1,
+              4,
+              5,
+              6
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "359",
+        "type": "Main",
+        "begin": 72471,
+        "end": 81734,
+        "description": "--> src/device/shared/mlp.rs:92:96\n\ndevice.main\n.begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()",
+        "outputs": [
+          {
+            "name": "vISA(T373)_i5_project_rows_with_scale_contraction_23",
+            "index": "191",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 72471,
+              "end": 87421,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 103546880,
+            "size": 58982400,
+            "physical_pages": [
+              1,
+              2,
+              4,
+              6
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "523",
+        "type": "Main",
+        "begin": 112174,
+        "end": 121437,
+        "description": "--> src/device/shared/mlp.rs:396:105\n\ndevice\n.main\n.begin(down_weight_packed.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, L / 32 % 60], m![L % 32]>()\n.commit_trim::<m![L % 32]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "vISA(T513)_i10_project_down_sharded_64",
+            "index": "251",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 112174,
+              "end": 144549,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67108864,
+            "size": 58982400,
+            "physical_pages": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L % 1920)]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "dots": [
+      {
+        "index": "287",
+        "type": "Main",
+        "begin": 58586,
+        "end": 64270,
+        "description": "--> src/device/shared/mlp.rs:40:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "vISA(T465)_i6_project_rows_with_scale_contraction_250",
+            "index": "165",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 58586,
+              "end": 64300,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 14745600,
+            "physical_pages": [
+              2
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H / 16)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "391",
+        "type": "Main",
+        "begin": 81737,
+        "end": 87421,
+        "description": "--> src/device/shared/mlp.rs:40:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "vISA(T410)_i5_project_rows_with_scale_contraction_250",
+            "index": "205",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 81737,
+              "end": 87451,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 14745600,
+            "physical_pages": [
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H / 16)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "563",
+        "type": "Main",
+        "begin": 126286,
+        "end": 144549,
+        "description": "--> src/device/shared/mlp.rs:405:99\n\ndevice.main\n.begin(down_weight_fp8.view())\n.fetch::<m![H % 60], m![L % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, L / 16 % 120], m![L % 16]>()\n.contract_outer::<m![H % 60, L / 16 % 120], m![L % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, L / 16 % 120]>()\n.contract_lane::<m![H % 60, L / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, L / 32 % 60], m![L / 16 % 2 # 8]>()\n.commit_trim::<m![L / 16 % 2]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "vISA(T550)_i10_project_down_sharded_302",
+            "index": "259",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 126286,
+              "end": 144579,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 126091264,
+            "size": 14745600,
+            "physical_pages": [
+              4,
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60 % 32, L / 1920), Element: (H % 60, L / 16 % 120)]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "output_layout_transfers": [
+      {
+        "index": "360",
+        "type": "DmaStos",
+        "begin": 72471,
+        "end": 73097,
+        "description": "--> src/device/shared/mlp.rs:139:70\n\ngate.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "",
+            "index": "192",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 72471,
+              "end": 73097,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 49938432,
+            "size": 122880,
+            "physical_pages": [
+              6
+            ],
+            "shape": "",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "480",
+        "type": "DmaStos",
+        "begin": 108741,
+        "end": 109367,
+        "description": "--> src/device/shared/mlp.rs:138:68\n\nup.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "",
+            "index": "236",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 108741,
+              "end": 109367,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 50200576,
+            "size": 122880,
+            "physical_pages": [
+              6
+            ],
+            "shape": "",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "649",
+        "type": "DmaStos",
+        "begin": 150626,
+        "end": 151095,
+        "description": "--> src/device/shared/mlp.rs:449:5\n\ndown.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "",
+            "index": "294",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 150626,
+              "end": 151095,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 31981568,
+            "size": 491520,
+            "physical_pages": [
+              0
+            ],
+            "shape": "",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "ring32_streams": [
+      {
+        "index": "261",
+        "type": "Main",
+        "begin": 45097,
+        "end": 56880,
+        "description": "--> src/device/shared/mlp.rs:459:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()",
+        "outputs": [
+          {
+            "name": "x",
+            "index": "152",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 45097,
+              "end": 56880,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 19398656,
+            "size": 5898240,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 2, Slice: (Dummy256 / 32, 32), Element: (FfnTerm, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "552",
+        "type": "Main",
+        "begin": 121437,
+        "end": 125540,
+        "description": "--> src/device/shared/mlp.rs:367:94\n\ndevice.main\n.begin(x.view())\n.fetch::<m![1], m![L % 1920]>()\n.switch::<m![Dummy256 / 32, 4, L / 1920], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![L / 16 % 120], m![L % 16]>()\n.commit_trim::<m![L % 16]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "x",
+            "index": "256",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 121437,
+              "end": 125540,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 29622272,
+            "size": 1966080,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (Dummy256 / 32, 4, L / 1920), Element: L % 1920]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "pre_rms_to_amax_gap": 23250,
+    "fp8_logical_write_bytes": 176947200,
+    "fp8_peak_live_allocated_bytes": 58982400,
+    "scope": "Compiler allocation/intervals only, not hardware traffic/stalls. Overlapping intervals cannot be added as savings."
+  },
+  "candidate": {
+    "schedule": {
+      "bytes": 187979,
+      "sha256": "0ff75fc974479e67df565d62c0f871eb3e77cb7f7b5865149a63dfcbf313dc56"
+    },
+    "makespan": 154440,
+    "instruction_count": 287,
+    "dma_count": 37,
+    "weight_loads": [
+      {
+        "index": "116",
+        "type": "DmaLoad",
+        "begin": 3589,
+        "end": 28201,
+        "description": "--> src/device/shared/mlp.rs:121:9\n\ngate_weight_packed.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "vISA(T425)_i4_project_up_and_gate_73",
+            "index": "100",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 3589,
+              "end": 45148,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 83886080,
+            "size": 29491200,
+            "physical_pages": [
+              2,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "282",
+        "type": "DmaLoad",
+        "begin": 47404,
+        "end": 72016,
+        "description": "--> src/device/shared/mlp.rs:97:9\n\nup_weight_packed.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "vISA(T370)_i4_project_up_and_gate_23",
+            "index": "156",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 47404,
+              "end": 81282,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 83886080,
+            "size": 29491200,
+            "physical_pages": [
+              7,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "386",
+        "type": "DmaLoad",
+        "begin": 77462,
+        "end": 106889,
+        "description": "--> src/device/shared/mlp.rs:296:96\n\nweight.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "vISA(T518)_i12_project_down_tile_46",
+            "index": "200",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 77462,
+              "end": 118478,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 201326592,
+            "size": 29491200,
+            "physical_pages": [
+              2,
+              6
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60, TileL % 1920)]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "fp8_expansion": [
+      {
+        "index": "247",
+        "type": "Main",
+        "begin": 35885,
+        "end": 45148,
+        "description": "--> src/device/shared/mlp.rs:122:98\n\ndevice.main\n.begin(gate_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()",
+        "outputs": [
+          {
+            "name": "vISA(T434)_i6_project_rows_with_scale_contraction_23",
+            "index": "146",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 35885,
+              "end": 64321,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 138149888,
+            "size": 58982400,
+            "physical_pages": [
+              1,
+              4,
+              5,
+              6
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "372",
+        "type": "Main",
+        "begin": 72019,
+        "end": 81282,
+        "description": "--> src/device/shared/mlp.rs:98:96\n\ndevice.main\n.begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()",
+        "outputs": [
+          {
+            "name": "vISA(T379)_i5_project_rows_with_scale_contraction_23",
+            "index": "191",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 72019,
+              "end": 86966,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 125829120,
+            "size": 58982400,
+            "physical_pages": [
+              8,
+              1,
+              4,
+              5,
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "503",
+        "type": "Main",
+        "begin": 109215,
+        "end": 118478,
+        "description": "--> src/device/shared/mlp.rs:297:93\n\ndevice.main\n.begin(packed.view())\n.fetch::<m![H % 60], m![TileL % 1920]>()\n.fetch_table_lookup::<f8e4m3>()\n.collect::<m![H % 60, TileL / 32 % 60], m![TileL % 32]>()\n.commit_trim::<m![TileL % 32]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "vISA(T523)_i12_project_down_tile_67",
+            "index": "240",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 109215,
+              "end": 141590,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 83886080,
+            "size": 58982400,
+            "physical_pages": [
+              1,
+              3,
+              4,
+              5
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60, TileL % 1920)]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "dots": [
+      {
+        "index": "300",
+        "type": "Main",
+        "begin": 58637,
+        "end": 64321,
+        "description": "--> src/device/shared/mlp.rs:46:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "vISA(T471)_i6_project_rows_with_scale_contraction_250",
+            "index": "165",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 58637,
+              "end": 64351,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 0,
+            "size": 14745600,
+            "physical_pages": [
+              2
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H / 16)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "393",
+        "type": "Main",
+        "begin": 81282,
+        "end": 86966,
+        "description": "--> src/device/shared/mlp.rs:46:90\n\ndevice\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "vISA(T416)_i5_project_rows_with_scale_contraction_250",
+            "index": "201",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 81282,
+              "end": 86996,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 29622272,
+            "size": 14745600,
+            "physical_pages": [
+              0,
+              3
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow, H / 16)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "537",
+        "type": "Main",
+        "begin": 123327,
+        "end": 141590,
+        "description": "--> src/device/shared/mlp.rs:306:99\n\ndevice.main\n.begin(fp8.view())\n.fetch::<m![H % 60], m![TileL % 1920]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![H % 60, TileL / 16 % 120], m![TileL % 16]>()\n.contract_outer::<m![H % 60, TileL / 16 % 120], m![TileL % 16], _, _, _>(&x_trf)\n.contract_packet::<m![1]>()\n.contract_time::<m![H % 60, TileL / 16 % 120]>()\n.contract_lane::<m![H % 60, TileL / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)\n.transpose::<m![H % 60, TileL / 32 % 60], m![TileL / 16 % 2 # 8]>()\n.commit_trim::<m![TileL / 16 % 2]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "vISA(T561)_i12_project_down_tile_301",
+            "index": "250",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 123327,
+              "end": 141620,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 142868480,
+            "size": 14745600,
+            "physical_pages": [
+              5,
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60, TileL / 16 % 120)]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "output_layout_transfers": [
+      {
+        "index": "375",
+        "type": "DmaStos",
+        "begin": 76899,
+        "end": 77462,
+        "description": "--> src/device/shared/mlp.rs:146:80\n\ngate.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "vISA(T482)_i8_cast_gathered_rows_9",
+            "index": "193",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 76899,
+              "end": 88100,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 29229056,
+            "size": 245760,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (TileL / 120, 1 # 4), Element: TileL % 120]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "480",
+        "type": "DmaStos",
+        "begin": 107727,
+        "end": 108290,
+        "description": "--> src/device/shared/mlp.rs:145:78\n\nup.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "vISA(T480)_i7_cast_gathered_rows_9",
+            "index": "234",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 107727,
+              "end": 108584,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 63176704,
+            "size": 245760,
+            "physical_pages": [
+              6
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (TileL / 120, 1 # 4), Element: TileL % 120]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "636",
+        "type": "DmaStos",
+        "begin": 147487,
+        "end": 147969,
+        "description": "--> src/device/shared/mlp.rs:344:5\n\ndown.to_dm(&mut device.tdma)",
+        "outputs": [
+          {
+            "name": "",
+            "index": "291",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 147487,
+              "end": 147969,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 67108864,
+            "size": 1966080,
+            "physical_pages": [
+              9
+            ],
+            "shape": "",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "ring32_streams": [
+      {
+        "index": "280",
+        "type": "Main",
+        "begin": 45148,
+        "end": 56931,
+        "description": "--> src/device/shared/mlp.rs:447:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()",
+        "outputs": [
+          {
+            "name": "x",
+            "index": "155",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 45148,
+              "end": 56931,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 19398656,
+            "size": 5898240,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: 2, Slice: (Dummy256 / 32, 32), Element: (FfnTerm, H)]",
+            "fingerprint": null
+          }
+        ]
+      },
+      {
+        "index": "526",
+        "type": "Main",
+        "begin": 118478,
+        "end": 122581,
+        "description": "--> src/device/shared/mlp.rs:278:104\n\ndevice.main\n.begin(x.view())\n.fetch::<m![1], m![TileL % 1920]>()\n.switch::<m![Dummy256 / 32, 8, TileL / 1920], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![TileL / 16 % 120], m![TileL % 16]>()\n.commit_trim::<m![TileL % 16]>()\n.commit()",
+        "outputs": [
+          {
+            "name": "x",
+            "index": "247",
+            "buffer_type": "Sram",
+            "lifetime": {
+              "begin": 118478,
+              "end": 122581,
+              "block_begin": 0,
+              "block_end": 0
+            },
+            "address": 29229056,
+            "size": 1966080,
+            "physical_pages": [
+              0
+            ],
+            "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (Dummy256 / 32, 8, TileL / 1920), Element: TileL % 1920]",
+            "fingerprint": null
+          }
+        ]
+      }
+    ],
+    "pre_rms_to_amax_gap": 23250,
+    "fp8_logical_write_bytes": 176947200,
+    "fp8_peak_live_allocated_bytes": 58982400,
+    "scope": "Compiler allocation/intervals only, not hardware traffic/stalls. Overlapping intervals cannot be added as savings."
+  },
+  "coordinates": {
+    "upgate_rows_per_projection": 15360,
+    "down_row_segments": 30720,
+    "weight_and_scale_coverage": "every logical HBM element exactly once",
+    "local_geglu_ownership": "same cluster for each of15360 activation values",
+    "down_leader_logical_bytes": 245760,
+    "e104_down_leader_logical_bytes": 491520,
+    "down_replicated_logical_bytes": 1966080,
+    "cluster_output_partial_logical_bytes": 30720,
+    "scope": "Source coordinate/alignment accounting, not arithmetic or actual bus traffic."
+  },
+  "static_change_percent": -1.6587602279601432
+}

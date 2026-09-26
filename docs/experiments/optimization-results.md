@@ -12,13 +12,13 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 153개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
+수록: 154개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
 | 분류 | 항목 수 |
 |---|---:|
-| [빨라진 기록](#improved) | 35 |
+| [빨라진 기록](#improved) | 36 |
 | [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 13 |
 | [느리게 측정됨](#regressed) | 43 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 9 |
@@ -68,6 +68,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E2-QKV · FP8 weight lookup+contraction fusion](e2-fp8-fusion.json) | QKV | [원본](baseline-rngd.json): 244,051 → 227,840 | -6.64% | 3 → 1 | 단회 개선. weight의 BF16 중간 저장을 줄이는 초기 경로. |
 | [E2-O · FP8 weight lookup+contraction fusion](e2-fp8-fusion.json) | O | [원본](baseline-rngd.json): 404,222 → 334,457 | -17.26% | 3 → 1 | 단회 개선. 현재 O2도 lookup을 dot에 연결. |
 | [E104 · E5M2 / F32 · reload + materialized weight](e104-c07-e5-reload-materialized.json) | FFN | [동시 E79](c07-reload-e79-control.json): 353,154 → 335,761 | -4.93% | 3 → 3 | 동일 package 3회 FFN −4.93%, 앞뒤 E79 범위와 겹치지 않음. 기본45/추가30비교 및 projection207360개 PASS. E104로 채택; native 입력 근사는 일반 BF16 동치가 아님. [근거1](../../moa-dev/experiments/candidates/c07-native-scale-dpe/README.md), [근거2](e104-c07-extra-correctness.json), [근거3](e104-c07-probe-correctness.json) |
+| [E117 · M03: one-stage native up/gate with producer-local GeGLU and L-owned down cluster partials](e117-m03-producer-local-ffn.json) | FFN | [동시 E104 before](m03-native-local-screen-e104-before.json): 335,669 → 330,837 | -1.44% | 1 → 1 | Basic NPU PASS; 330837 vs E104335669/335107, observed -1.36% vs bracketing median. One screen, no independent repeats. Closed below5% budget cutoff; retained as modest positive option, not adopted/submitted. [근거1](../../moa-dev/experiments/candidates/m03-producer-local-ffn/README.md), [근거2](../../moa-dev/experiments/candidates/m03-producer-local-ffn/decision.json) |
 
 <a id="inconclusive"></a>
 

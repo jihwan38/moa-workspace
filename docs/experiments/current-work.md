@@ -5,6 +5,25 @@
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
+## 최신 작업 — M03 producer-local 전체 FFN, E117 소폭 개선으로 종료
+
+진단 기록 `6ea3664`까지 main/origin에 통합하고 `opt/m03-producer-local-ffn`에서
+[M03](../../moa-dev/experiments/candidates/m03-producer-local-ffn/README.md)를 구현했다.
+실제 source origin은 E74이며 C14-B의 local GeGLU/L-owned down에 E104의 검증된
+materialized native up/gate를 조합했다. C14의 두 L stage는 한 stage로 바뀌었다.
+전체 L gather 대신 cluster-local 120행 compact와 local down 입력 분배를 사용하며,
+마지막에 두 F32 H partial을 더한다. C14 가족의 재조합이다.
+
+첫 source compile·host build PASS, QKV/O image는 E104와 같다. 정적154440은
+E104157045 대비 작은 감소지만 NPU 실측 성능으로 해석하지 않는다.
+Arena104289: **E104335669 → M03 330837 → E104335107 cycles**, 앞뒤 비교군 중앙값
+대비 **1.36% 감소**다. 총45비교 PASS, 후보 FFN3입력/11520출력 PASS.
+단회 screen이며 확대 정확도·독립 반복은 없다. 5% 실험 예산 기준에 따라 추가 타일
+튜닝 없이 종료하고 소폭 개선된 조합 선택지로 보존했다. 실행 source E104 유지,
+새 채택·공식 제출 없음. [E117](e117-m03-producer-local-ffn.json).
+전체 FP8 저장량과 초반 입력 준비 대기는 이 구조에서도 남는다. 이것을 메모리 배치가
+전역 최적이라는 근거나 10위권 진입 방법이 확보됐다는 주장으로 해석하지 않는다.
+
 ## 최신 진단 — 직접 FP4/native 경로 보류, 정확도 미해결
 
 `c49300d`까지 main/origin에 통합한 뒤 `diag/fp4-native-boundary`에서
