@@ -1,5 +1,7 @@
 # M03 — producer-local one-stage FFN
 
+후속 [E122 제한적 채택 검증](validation/README.md)은6개 allocation 성능, 추가6입력과7개 projection case를 확인했다. 아래 E117 단회 screen은 최초 실험의 역사 기록이다.
+
 Branch `opt/m03-producer-local-ffn`, integrated parent `6ea3664`.
 Source origin E74 `9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7`, with explicit
 C14-B v4 and E104 method composition in `native-local-v1/recipe.json`.
