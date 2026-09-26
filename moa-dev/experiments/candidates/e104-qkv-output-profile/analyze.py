@@ -7,6 +7,7 @@ sets in every run/cluster. Intervals include dependency/queue waits. All windows
 use one cluster's Task clock; neither overlapping durations nor compiler cycles
 are converted into predicted speedups.
 """
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -193,6 +194,9 @@ def dependency_observation(kernel, rows, task):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--check', action='store_true', help='Verify saved reports without rewriting them')
+    args = parser.parse_args()
     paths = sorted(HERE.glob("qo-profile-screen-v1-job-*-results.json"))
     assert paths, "Collect at least one completed profile screen first"
     reports = [json.loads(path.read_text()) for path in paths]
@@ -309,8 +313,12 @@ def main():
         ],
         "kernels": analyses,
     }
-    (HERE / "marker-source-map.json").write_text(json.dumps(maps, indent=2) + "\n")
-    (HERE / "profile-analysis.json").write_text(json.dumps(output, indent=2) + "\n")
+    for name, value in [('marker-source-map.json', maps), ('profile-analysis.json', output)]:
+        path = HERE / name
+        if args.check:
+            assert json.loads(path.read_text()) == value, f'Regenerate {path}'
+        else:
+            path.write_text(json.dumps(value, indent=2) + "\n")
     for kernel, analysis in analyses.items():
         print(kernel, "mapped", analysis["mapped_operation_count"], "compiler makespan", analysis["compiler_makespan"])
         for job, data in analysis["jobs"].items():
