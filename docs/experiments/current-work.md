@@ -1,3 +1,13 @@
+# 2026-09-27 E127 이후 큰 중간 저장 제거 shortlist
+
+[현재 코드·과거 실패·SDK를 대조한 후보 분석](../research/e127-large-cost-shortlist-20260927.md)을 추가했다.
+첫 검증 대상은 native FFN dot→입력 scale→block scale→F32 합산의 단일 Main stream이다.
+Up/gate F32 partial28.125MiB write/read를 제거하되 native dot 시작은2→10으로 늘어난다.
+E73의 반복 BF16 lookup과 C11의 partial VRF handoff를 피하는 국소 데이터 흐름 교체이며 미구현·미측정이다.
+더 큰 구조 연구는 projection별 cluster 소유권으로 FP8 전체 저장과 joint packed 복사를 함께 없애는 안이다.
+전송 계약·direct 정확도부터 확인해야 한다. E103/direct reload와 v7b/interleave를 새 후보로 반복하지 않는다.
+새 compile/Arena/제출은 없으며 runtime은 아래 E127 그대로다.
+
 # 2026-09-27 E127 공식 제출·리더보드 반영 완료
 
 현재 runtime E127을 공식 제출 **`bc21122c`**로 평가했다. 서버 contract/build/evaluate 완료,
