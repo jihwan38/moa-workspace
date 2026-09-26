@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "valid": true,
+  "runs": [
+    {
+      "job": {
+        "id": 105045,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-e123-whole-screen",
+        "status": "SUCCEEDED",
+        "created_at": "2026-09-26T16:21:32Z",
+        "started_at": "2026-09-26T16:22:40Z",
+        "finished_at": "2026-09-26T16:23:07Z",
+        "duration_sec": 26.588446019,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log_sha256": "430b02073121bfe41e7d6cdcb74064f491059fac5877a39fdd9124ffa7f2092a",
+      "package_files": {
+        "candidate_fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "m03_control_test_runtime": {
+          "bytes": 3689792,
+          "sha256": "af64ce53da4f4c36860d6245087d00e6cc2da4155c3a001f08ccf19d5449bdcc"
+        },
+        "candidate_remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "job.yaml": {
+          "bytes": 86,
+          "sha256": "17a96c2b068d3c50efd82157da3762e407afd7151f6f5084de7f5e7d45bd9dfe"
+        },
+        "control_before_remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "control_before_fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "control_before_test_runtime": {
+          "bytes": 3671360,
+          "sha256": "07764df925c4e357153ebc45d6d3e174b3fdcd68e8d86f81de47aff8d91698b1"
+        },
+        "m03_control_remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "control_after_test_runtime": {
+          "bytes": 3671360,
+          "sha256": "07764df925c4e357153ebc45d6d3e174b3fdcd68e8d86f81de47aff8d91698b1"
+        },
+        "screen.sh": {
+          "bytes": 1868,
+          "sha256": "0e3155781d06990126dc89e1cc79815f78f6aa28a6c52b4b11676b5dda72fa90"
+        },
+        "control_after_remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "m03_control_fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "control_after_fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "candidate_test_runtime": {
+          "bytes": 3659584,
+          "sha256": "ca4edee6fe6e19e58fcae32f4555e4c9c192a355fc3104c026ee32818a58346d"
+        }
+      },
+      "log": "moa-dev/experiments/candidates/ffn-direct-boundary-recompute/evidence/e123-whole-screen/arena.log",
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 104763,
+          "cycles_by_run": [
+            108414,
+            104763,
+            104609
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 51298,
+          "cycles_by_run": [
+            52832,
+            50278,
+            51298
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 335390,
+          "cycles_by_run": [
+            341832,
+            335258,
+            335390
+          ],
+          "output_comparisons_passed": 3
+        }
+      },
+      "comparisons_passed": 15,
+      "valid": true,
+      "batch_stage": "control_after",
+      "executed_host": "control_after_test_runtime",
+      "benchmark_files": {
+        "test_runtime": "control_after_test_runtime",
+        "fixtures.safetensors": "control_after_fixtures.safetensors",
+        "remote_entrypoint.sh": "control_after_remote_entrypoint.sh"
+      }
+    }
+  ],
+  "independent_arena_jobs": 1,
+  "method": "One upload-verified allocation, four serial unchanged standard benchmark processes: E104before -> E123 -> original M03 -> E104after. Reports share the same job and are not independent repetitions.",
+  "aggregate": {
+    "sliding_project_qkv": {
+      "median_cycles": 104763,
+      "job_medians": [
+        104763
+      ]
+    },
+    "sliding_attention_output": {
+      "median_cycles": 51298,
+      "job_medians": [
+        51298
+      ]
+    },
+    "decoder_feedforward": {
+      "median_cycles": 335390,
+      "job_medians": [
+        335390
+      ]
+    }
+  },
+  "target_kernel": "decoder_feedforward",
+  "evidence_source": "moa-dev/experiments/candidates/ffn-direct-boundary-recompute/e123-whole-screen-results.json",
+  "control_role": "control_after",
+  "control_source_build": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-e104-reviewed-v1-repro.json"
+}

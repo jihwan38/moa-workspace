@@ -1,0 +1,80 @@
+{
+  "id": "E123",
+  "candidate": "ffn-direct-boundary-recompute",
+  "status": "closed_below_target_screen",
+  "adopted": false,
+  "runtime_retained": "E122/M03 (root-managed main)",
+  "decision_date_kst": "2026-09-27",
+  "scope": "Corrected direct joint FP4 lookup/native producer in complete E104 FFN. One architecture-family repair, not a new unrelated family.",
+  "cause_and_repair": {
+    "inherited_transfer_defect": "v7c-style padded HBM-to-joint DMA emitted 58,982,400B per29,491,200B input and source range57,600B beyond its allocation. v2/v3 graph verified; historicalimage causality not independently isolated.",
+    "repair": "compact HBM load plus exact raw FP4 Main copies into full Projection2/Row30 joint buffer",
+    "fallback": "Removed after direct_fixed passed the same exact row oracle as hybrid; no16row-specific branch and no broader fallback sweep."
+  },
+  "primitive_gate": {
+    "job": 105009,
+    "overall_job_status": "FAILED",
+    "direct_fixed": {
+      "checked": 122880,
+      "mismatches": 0,
+      "nonfinite": 0,
+      "cases": 4,
+      "projections": 2
+    },
+    "hybrid": {
+      "checked": 122880,
+      "mismatches": 0,
+      "nonfinite": 0,
+      "cases": 4,
+      "projections": 2
+    },
+    "materialized_control": {
+      "status": "first_launch_timeout",
+      "exit_code": 101,
+      "checked": 0,
+      "interpretation": "Unresolved newly compiled diagnostic failure; not a passing E104 production control."
+    },
+    "limits": [
+      "Exact synthetic oracle does not prove arbitrary public-input correctness.",
+      "Probe passes the same blockscale tensor to both projections, so it cannot detect swapping the two blockscale inputs. WholeFFN graph uses distinct IO5/IO6 and standard public tests passed.",
+      "Corrected ingress and new raw-copy scheduling changed together; no unique hardware root cause is proven."
+    ]
+  },
+  "full_ffn_gate": {
+    "job": 105045,
+    "status": "SUCCEEDED",
+    "valid": true,
+    "comparison_stages": [
+      "E104before",
+      "E123",
+      "originalM03",
+      "E104after"
+    ],
+    "median_cycles": {
+      "control_before": 336282,
+      "candidate": 329395,
+      "m03_control": 331848,
+      "control_after": 335390
+    },
+    "e104_bracket_mean_cycles": 335836.0,
+    "reduction_percent_vs_e104_bracket": 1.9179004037685021,
+    "reduction_percent_vs_m03": 0.7391938477857352,
+    "standard_comparisons_passed_total": 60,
+    "candidate_standard_ffn_inputs": 3,
+    "independent_allocations": 1,
+    "actual_upload_archive_verified": true
+  },
+  "static_cycles": {
+    "e104": 157045,
+    "e123": 157208,
+    "m03": 154440,
+    "interpretation": "Not a hardware performance oracle or measured stall fraction."
+  },
+  "closure_reason": "Measured target-kernel improvement is below the provisional5percent screen. Additional packed assembly and the combined lookup/native path did not produce a large wholeFFN gain. No repeated runs, expanded correctness, adoption, or parameter tuning are justified by this screen.",
+  "retained_finding": "The direct lookup/native family is expressible and passes this wholeFFN standard correctness gate after correcting source-transfer contracts. Historical failure is not proof of a universal native-DPE composition limitation.",
+  "cost_correction": "moa-dev/experiments/candidates/ffn-direct-boundary-recompute/cost-accounting-correction.json",
+  "source_build_verification": "moa-dev/experiments/candidates/ffn-direct-boundary-recompute/verification-e123-whole-v1.json",
+  "primitive_verification": "moa-dev/experiments/candidates/ffn-direct-boundary-recompute/verification-ffn-boundary-v4.json",
+  "whole_report": "docs/experiments/e123-ffn-direct-joint.json",
+  "root_authorization": "Root explicitly closed this implementation after the first screen; candidate and report files authorized for commit only."
+}
