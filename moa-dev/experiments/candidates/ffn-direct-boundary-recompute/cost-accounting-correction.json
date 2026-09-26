@@ -1,0 +1,29 @@
+{
+  "affected_recipe": "whole-v1/recipe.json",
+  "preserve_frozen_recipe": true,
+  "correction": "added_work lists the 56.25 MiB raw assembly source read, which unchanged_work already accounts for as the former packed decode read. Count this read once. The genuinely new read is the 56.25 MiB joint packed native fetch, replacing the removed 112.5 MiB FP8 native fetch.",
+  "scope": "Logical up/gate weight bytes across both projections. Not measured bus traffic, transactions, overlap, or runtime savings. Other graph work is excluded from this table and retained by the implementation.",
+  "before_e104_MiB": {
+    "hbm_weight_read": 56.25,
+    "dm_compact_packed_write": 56.25,
+    "dm_packed_decode_read": 56.25,
+    "dm_decoded_fp8_write": 112.5,
+    "dm_native_fp8_read": 112.5,
+    "total_listed_dm_write": 168.75,
+    "total_listed_dm_read": 168.75
+  },
+  "after_e123_MiB": {
+    "hbm_weight_read": 56.25,
+    "dm_compact_packed_write": 56.25,
+    "dm_raw_assembly_source_read": 56.25,
+    "dm_joint_packed_write": 56.25,
+    "dm_joint_native_packed_read": 56.25,
+    "total_listed_dm_write": 112.5,
+    "total_listed_dm_read": 112.5
+  },
+  "net_reduction_MiB": {
+    "hbm_weight_read": 0,
+    "listed_dm_write": 56.25,
+    "listed_dm_read": 56.25
+  }
+}

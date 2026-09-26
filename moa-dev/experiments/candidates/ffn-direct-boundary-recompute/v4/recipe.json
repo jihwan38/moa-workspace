@@ -1,0 +1,42 @@
+{
+  "id": "FFN-DIRECT-BOUNDARY-RECOMPUTE",
+  "variant": "v4",
+  "starting_commit": "0a4417c076eff78ba885b0f142c66c81e9bc9b4f",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "First-row partial-boundary correctness probe; not a performance comparison",
+  "source_origin": {
+    "direct_producer": "moa-dev/experiments/candidates/fp4-native-boundary/v7c/probe.rs",
+    "materialized_arithmetic": "baseline-e104:src/device/shared/mlp.rs",
+    "oracle": "moa-dev/experiments/candidates/fp4-native-boundary/v7c/boundary_probe.rs"
+  },
+  "fixed_layout": "l=7680*c+30*s+r; original full Projection2/Row30/block240 direct producer; fallback projection0/r0/all512slices",
+  "first_gate": "Exact all-row two-projection oracle; materialized reload control; reject shifted corruption/no unexplained fallback expansion",
+  "extra_sources": {
+    "src/device/mlp.rs": "mlp.rs",
+    "src/device/layout.rs": "layout.rs"
+  },
+  "modes": [
+    "materialized",
+    "direct_fixed",
+    "hybrid"
+  ],
+  "expected_nonpassing_modes": [],
+  "whole_ffn_control": "baseline/e104.json",
+  "added_work": "Corrected producer adds56.25MiB packed DM copy and removes duplicated/out-of-range HBM reads. Hybrid additionally adds0.9375MiB FP4 reread,1.875MiB FP8 write,0.46875MiB F32 partial plus merge/reloads. All diagnostic-only.",
+  "original_source_hashes": {
+    "probe.rs": "1ac776ec65c34e3672508d8a2ccbc96e2163e9cc5d2f4a2364350f43d23edc9f",
+    "boundary_probe.rs": "f1aaa1e8b8ecfce458474d97600e17e6c1324d566e3bd3c7ed22ddb09f1609ae",
+    "mlp.rs": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0",
+    "layout.rs": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68",
+    "lib.rs": "b09ce20765b3eef8ef4eb26d29db468584a980476d54bf3c0a4cd4b7d4a4161f"
+  },
+  "source_repair": "v2/v3 emitted joint HBM descriptors each read58,982,400B rather than29,491,200B; max offset29,548,800 exceeds input by57,600B. Root authorized compact HBM DM loads and exact raw Main copies into joint buffer. Compare direct_fixed without fallback against hybrid using same corrected input producer. Original fused image is preserved/compiled but excluded from execution because its source range is invalid.",
+  "host_only_repair": "v2 hybrid exact compile passed. Host decode error diagnostic accidentally retained three unused formatting arguments; remove them. probe.rs is byte-identical to v2, not a new kernel design.",
+  "exact_kernels": [
+    "hybrid",
+    "direct_fixed",
+    "materialized"
+  ],
+  "expected_images": 5
+}

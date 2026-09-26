@@ -1,0 +1,54 @@
+{
+  "id": "E123",
+  "variant": "whole-v1",
+  "candidate_family": "D-FP4-NATIVE",
+  "starting_commit": "0a4417c076eff78ba885b0f142c66c81e9bc9b4f",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "secondary_control": "moa-dev/experiments/candidates/m03-producer-local-ffn/build-m03-native-local-v1-repro.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-e104-reviewed-v1-repro.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Whole FFN with coupled direct FP4 lookup/native up-gate and compact DMA plus joint assembly; no fallback",
+  "source_components": [
+    {
+      "source": "v4/probe.rs:direct_fixed/load_joint_compact/reduce_joint_rows",
+      "sha256": "f648e3e49b39f58aa8228c967fcb9a32f5502b17875d146682bf7826a7222a5a",
+      "hardware_evidence": "Arena105009 exact122880rows passed; isolated boundary, no speed claim"
+    },
+    {
+      "source": "v4/mlp.rs (E104)",
+      "sha256": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0",
+      "retained": "quantizer,gather/cast,GeGLU,down,global scale and public epilogue"
+    }
+  ],
+  "graph": "preRMS -> actual3termE5quantize+replicate -> compact2FP4HBMloads -> exact2rawFP4Mainjointcopies -> Projection2/Row30lookup-native block16F32partials -> perprojection5x6row blockscaleF32reduce -> existingF32gather/BF16cast -> unchangedGeGLU/down/global/postRMS/residual",
+  "prior_related": [
+    "v7c joint producer first16rows mismatch; inherited padded-DMA source-range defect",
+    "v4 compactDMA+Maincopy direct probe exactPASS; hybridalsoPASSsofallbackomitted",
+    "new materialized diagnostic control timed out; actual fullE104control remains required"
+  ],
+  "removed_work": [
+    "112.5MiB up/gate FP8 DM write",
+    "112.5MiB up/gate FP8 DM read",
+    "second projection activation TRF/restore-scale VRF reload"
+  ],
+  "added_work": [
+    "56.25MiB raw packed FP4 joint assembly DM write",
+    "56.25MiB raw packed FP4 joint assembly DM read",
+    "joint FP4 fetch reads56.25MiB replacing112.5MiB FP8 native fetch; weight decoding moves into native Main stream"
+  ],
+  "unchanged_work": [
+    "56.25MiB up/gate FP4 HBM ingress and compactDMwrite",
+    "original56.25MiB packed decode read (now raw assembly)",
+    "28.125MiB jointF32partials,blockscales/reductions,gather/BF16cast",
+    "quantization/down/activation/global/postRMS/residual"
+  ],
+  "first_stop_condition": "Source/API cause-specific repair only. All standard correctness must pass with valid E104before/candidate/originalM03/E104after. Report target gain; no parameter/fallback sweep. Root decides expanded validation."
+}

@@ -1,0 +1,88 @@
+{
+  "variant": "v1",
+  "label": "ffn-boundary-v1",
+  "recipe": {
+    "bytes": 1731,
+    "sha256": "e90663c3b6421b6842ddf5ad8776e09e42127cf80ac7c7763ede40d99e0d297a"
+  },
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "source_inputs": {
+    "Cargo.toml": {
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "rust-toolchain.toml": {
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    },
+    "src/axes.rs": {
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "Cargo.lock": {
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "src/lib.rs": {
+      "bytes": 191,
+      "sha256": "b09ce20765b3eef8ef4eb26d29db468584a980476d54bf3c0a4cd4b7d4a4161f"
+    },
+    "src/probe.rs": {
+      "bytes": 16498,
+      "sha256": "c1b2a2616c287b88b2966406ee3a045dd0c73d06c4df2815fd8f5759846f4190"
+    },
+    "src/bin/boundary_probe.rs": {
+      "bytes": 5145,
+      "sha256": "abf9e60a358a76ee7da655f8c6e553fbc97d14e1525ff200e4d83b59f0715027"
+    },
+    "src/device/mlp.rs": {
+      "bytes": 28831,
+      "sha256": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0"
+    },
+    "src/device/layout.rs": {
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    }
+  },
+  "container_inputs_verified": true,
+  "diagnostic_only": true,
+  "starting_commit": "0a4417c076eff78ba885b0f142c66c81e9bc9b4f",
+  "comparison_recipe": "baseline/e104.json",
+  "builder": {
+    "bytes": 6075,
+    "sha256": "d7f55aafa2611c59c3ad1258437a302ba3bb0f34710df84e21cf1203494f9f90"
+  },
+  "failed_exit_code": 1,
+  "failed_command": [
+    "docker",
+    "exec",
+    "--workdir",
+    "/tmp/moa-ffn-recompute/ffn-boundary-v1",
+    "-e",
+    "CARGO_NET_OFFLINE=true",
+    "-e",
+    "CARGO_TARGET_DIR=/tmp/moa-c01-probe/target",
+    "-e",
+    "FURIOSA_OPT_OUT_DIR=/tmp/moa-ffn-recompute/ffn-boundary-v1/kernels",
+    "moa2026-dev",
+    "cargo",
+    "furiosa-opt",
+    "compile",
+    "probe::hybrid",
+    "--exact",
+    "--dump-schedule",
+    "hybrid-schedule.json",
+    "--dump-graph",
+    "hybrid-graph.json",
+    "--dump-ir",
+    "hybrid-ir.bin",
+    "--dump-visa",
+    "hybrid-visa.txt"
+  ],
+  "logs": {
+    "compile.log": {
+      "bytes": 7635,
+      "sha256": "b7fe7f7f38205089c016ceb692375096614399c655e48d0ddf7fcc04ff937d3a"
+    }
+  }
+}

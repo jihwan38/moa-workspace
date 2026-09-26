@@ -1,0 +1,175 @@
+warning: type alias `Cluster` is never used
+ --> src/device/layout.rs:6:17
+  |
+6 | pub(crate) type Cluster = m![1 # 2];
+  |                 ^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `broadcast_hidden` is never used
+  --> src/device/layout.rs:11:15
+   |
+11 | pub(crate) fn broadcast_hidden(
+   |               ^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_full_heads` is never used
+  --> src/device/layout.rs:43:15
+   |
+43 | pub(crate) fn broadcast_full_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `INVSQRT2` is never used
+  --> src/device/mlp.rs:20:7
+   |
+20 | const INVSQRT2: f32 = 0.70710678118f32;
+   |       ^^^^^^^^
+
+warning: type alias `UpGateRows` is never used
+  --> src/device/mlp.rs:22:17
+   |
+22 | pub(crate) type UpGateRows = m![L / 60];
+   |                 ^^^^^^^^^^
+
+warning: type alias `UpGateRowsPaired` is never used
+  --> src/device/mlp.rs:23:17
+   |
+23 | pub(crate) type UpGateRowsPaired = m![L / 120, 1 # 2];
+   |                 ^^^^^^^^^^^^^^^^
+
+warning: type alias `UpGateCluster` is never used
+  --> src/device/mlp.rs:25:17
+   |
+25 | pub(crate) type UpGateCluster = m![Dummy2];
+   |                 ^^^^^^^^^^^^^
+
+warning: type alias `UpGateSlices` is never used
+  --> src/device/mlp.rs:26:17
+   |
+26 | pub(crate) type UpGateSlices = m![FfnSlice];
+   |                 ^^^^^^^^^^^^
+
+warning: function `project_rows_with_scale_contraction` is never used
+  --> src/device/mlp.rs:30:4
+   |
+30 | fn project_rows_with_scale_contraction(
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `project_up_and_gate` is never used
+  --> src/device/mlp.rs:75:15
+   |
+75 | pub(crate) fn project_up_and_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `cast_gathered_rows` is never used
+   --> src/device/mlp.rs:143:4
+    |
+143 | fn cast_gathered_rows(device: &mut Device, x: &DmTensor<f32, Chip, Cluster, UpGateRows, m![L % 60]>)
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `feedforward` is never used
+   --> src/device/mlp.rs:150:15
+    |
+150 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `feedforward_sharded` is never used
+   --> src/device/mlp.rs:167:15
+    |
+167 | pub(crate) fn feedforward_sharded(
+    |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `geglu` is never used
+   --> src/device/mlp.rs:224:15
+    |
+224 | pub(crate) fn geglu(
+    |               ^^^^^
+
+warning: type alias `DownEpilogueSlices` is never used
+   --> src/device/mlp.rs:343:17
+    |
+343 | pub(crate) type DownEpilogueSlices = m![1 # 32, H / 480];
+    |                 ^^^^^^^^^^^^^^^^^^
+
+warning: type alias `DownCluster` is never used
+   --> src/device/mlp.rs:344:17
+    |
+344 | pub(crate) type DownCluster = m![Dummy2];
+    |                 ^^^^^^^^^^^
+
+warning: type alias `DownRows` is never used
+   --> src/device/mlp.rs:345:17
+    |
+345 | pub(crate) type DownRows = m![H / 60 % 32, 1 # 8];
+    |                 ^^^^^^^^
+
+warning: type alias `DownRowsByColumns` is never used
+   --> src/device/mlp.rs:346:17
+    |
+346 | pub(crate) type DownRowsByColumns = m![H / 60 % 32, L / 1920];
+    |                 ^^^^^^^^^^^^^^^^^
+
+warning: function `project_down` is never used
+   --> src/device/mlp.rs:348:15
+    |
+348 | pub(crate) fn project_down(
+    |               ^^^^^^^^^^^^
+
+warning: function `project_down_sharded` is never used
+   --> src/device/mlp.rs:358:15
+    |
+358 | pub(crate) fn project_down_sharded(
+    |               ^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [1/1] probe::hybrid
+error: furiosa-opt: probe::hybrid: visa: while verifying DmaCommand
+       caused by: verification of operator failed:
+       DmaCommand
+       inner: DmaCommand: sram -> sram
+       -- assigned_pe: None --
+       src0: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst0: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src1: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)
+       dst1: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src2: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)
+       dst2: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src3: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)
+       dst3: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)
+       src4: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst4: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src5: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)
+       dst5: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src6: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)
+       dst6: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src7: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)
+       dst7: [None=225:256, SliceIndex_1=32:4194304, SliceIndex_32=2:134217728, None=1:256], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)
+       
+       name: 
+       
+       input tensors: 2
+         input T72: MappingShape[Chip: 1, Cluster: Dummy2, Slice: SliceIndex, Element: H / 16], 491520 B, f32, sram
+         source: unknown
+         input T76: MappingShape[Chip: 1, Cluster: Dummy2, Slice: SliceIndex, Element: H / 16 #{!} 14400], 29491200 B, f32, sram
+         source: unknown
+         total bytes: 29982720
+       output tensors: 1
+         output T77: MappingShape[Chip: 1, Cluster: Dummy2, Slice: SliceIndex, Element: H / 16 #{!} 14400], 29491200 B, f32, sram
+         source: unknown
+         total bytes: 29491200
+       caused by: Condition failed: `source_accessing_range_local.end as usize <= input_tensor_range`
+   --> src/probe.rs:265:24
+    |
+265 |       replacement.view().to_dm_view(&mut device.tdma,
+    |  ________________________^
+266 | |         partials.view_mut()
+267 | |             .tile::<m![Projection],1,m![Projection=1#{!}2,Row,H/16]>(0)
+268 | |             .tile::<m![Row],1,m![Projection=1#{!}2,Row=1#{!}30,H/16]>(0));
+    | |_________________________________________________________________________^
+
+    Finished 1 compiled, 3 not matching probe::hybrid
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 21 warnings emitted
