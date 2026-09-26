@@ -21,7 +21,7 @@ def digest(path):
 def descriptors(description, side, region):
     rows = []
     for number, loops, address in re.findall(rf"^{side}(\d+): \[([^\]]+)\], {region}\(([^)]+)\)$", description, re.M):
-        dimensions = [(name, int(count), int(stride)) for name, count, stride in re.findall(r"([^, ]+)=([0-9]+):([0-9]+)", loops)]
+        dimensions = [[name, int(count), int(stride)] for name, count, stride in re.findall(r"([^, ]+)=([0-9]+):([0-9]+)", loops)]
         assert len(dimensions) == len(loops.split(",")) and dimensions[-1][1] == 1
         fields = dict(re.findall(r"(\w+)=(0x[0-9A-Fa-f]+|[0-9]+)", address))
         fields = {key: int(value, 0) for key, value in fields.items()}
