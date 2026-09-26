@@ -1,5 +1,13 @@
 # Experiment ledger
 
+September27 [E124 corrected joint QKV](../../moa-dev/experiments/candidates/c08-joint-ingress/README.md)
+reproduces the exact historical E105 image and finds invalid K/V padded ingress.
+Compact loads plus exact packet copies restore basic accuracy:45 comparisons PASS.
+Arena105093 QKV129258 vs E104103390/104408 regresses24.4074% against the bracket.
+Closed without repeats/tuning/adoption. E122 remains current; historical source errors
+and this corrected but slower prototype are distinct outcomes.
+[Execution report and next decision criteria](../research/top10-execution-20260927.md).
+
 September27 [E123 corrected direct FFN](../../moa-dev/experiments/candidates/ffn-direct-boundary-recompute/README.md)
 passes60 standard comparisons in Arena105045. FFN329395 vs bracketing E104335836
 (−1.9179%) and same-job M03 331848 (−0.7392%). Closed below the5% exploration

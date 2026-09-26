@@ -12,9 +12,15 @@
 작은 이득으로 반복·확장 정확도·채택 없이 종료했다. Direct primitive 실패를 일반
 native DPE 한계로 보았던 해석은 철회하되 이 단회 결과도 일반 동치로 확대하지 않는다.
 
-E124 corrected joint QKV는 실행 준비 중이다. [C08 exact 감사](../../moa-dev/experiments/candidates/c08-joint-ingress/README.md)에서
+E124 corrected joint QKV도 종료했다. Arena105093의45비교가 모두통과했으나
+QKV129258 vs 앞뒤 E104103899로 +24.41% 회귀해 미채택했다. [C08 exact 감사](../../moa-dev/experiments/candidates/c08-joint-ingress/README.md)에서
 K/V padded destination DMA의 실제 source 범위 초과를 확인했다. 원본과 image가 같다.
 이는 과거 family의 전송 계약 수리이며 새로운 독립 architecture가 아니다.
+수정 뒤에는 정확하지만 느린 실행으로 판정할 근거가 생겼다. 추가 반복·튜닝은없다.
+
+[이번 실행 전체 결과와 다음 판단 기준](../research/top10-execution-20260927.md).
+다음 미실행 질문은 O weight 준비 지연의 DMA 순서/DM 배치 민감도다. 단독 전송
+진단을 커널 speedup으로 계산하지 않고, 유망한 배치만 완성 O 경로에서 검증한다.
 
 # 현재 구조 실험
 

@@ -1588,10 +1588,11 @@
       "category": "invalid",
       "kernel": "QKV",
       "method": "Q/K/V 통합 weight 배치와 단일 dot pipeline",
-      "note": "기본 Q/K/V9개 비교 모두 실패. 앞뒤 E104 정상. 단회 screen에서 중단하며 실패 cycles는 성능 집계에서 제외.",
+      "note": "기본 Q/K/V9개 비교 모두 실패. 앞뒤 E104 정상. 단회 screen에서 중단하며 실패 cycles는 성능 집계에서 제외. 후속 exact image 재현에서 K/V source 범위 오류를 확인했다. 수정 E124는 기본 정확도 PASS지만 회귀했다.",
       "report": "docs/experiments/e105-c08-fused.json",
       "evidence": [
-        "moa-dev/experiments/candidates/c08-fused-qkv/README.md"
+        "moa-dev/experiments/candidates/c08-fused-qkv/README.md",
+        "moa-dev/experiments/candidates/c08-joint-ingress/README.md"
       ]
     },
     {
@@ -1892,6 +1893,20 @@
       "evidence": [
         "moa-dev/experiments/candidates/ffn-direct-boundary-recompute/decision.json",
         "moa-dev/experiments/candidates/ffn-direct-boundary-recompute/independent-review.md"
+      ]
+    },
+    {
+      "id": "E124",
+      "category": "regressed",
+      "kernel": "QKV",
+      "method": "C08 K/V compact ingress와 유효 packet 복사로 joint QKV 수리",
+      "report": "docs/experiments/e124-c08-corrected-joint.json",
+      "reference": "docs/experiments/e124-c08-e104-control-before.json",
+      "reference_label": "동시 E104 before",
+      "note": "원 E105와 동일 image를 재현해 padded DMA source 범위 오류 확인 후 수리. 45비교 PASS, QKV129258 vs E104103390/104408; 앞뒤중앙103899 대비 +24.4074% 회귀. 표는before 비교다. 정확하지만 느린 이 prototype은 반복·확장검증·튜닝·채택 없이 종료; E122 유지.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c08-joint-ingress/decision.json",
+        "moa-dev/experiments/candidates/c08-joint-ingress/independent-corrected-review.md"
       ]
     }
   ]
