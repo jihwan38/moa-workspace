@@ -5,7 +5,24 @@
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 최신 진단 — 현재 리더보드 격차와 FFN weight 경로
+## 최신 작업 — E104 whole-FFN 내부 NPU 진단 완료
+
+M02와 보완 조사 기록을 main/origin의 `913f9ac`까지 통합하고 `diag/e104-weight-path`에서
+[내부 NPU profile 진단](../../moa-dev/experiments/candidates/e104-weight-path/README.md)을 실행했다.
+별도 stage 출력 대신 기존 image의 trace marker를 읽어 원래 FFN 흐름을 측정했다.
+Arena102797·동일 package 재실행102842 성공, 총78개 출력 비교 PASS다.
+Kernel 계산 task bytes는 E104와 동일하며 diagnostic host와 profile 이름만 별도 처리했다.
+
+Weight 적재는 gate약47.6–47.8k/up약48.0–48.2k/down약65.7–66.0k cycles,
+FP8 전체 저장은 각각약20–21k, native up/gate dot·부분합은각각약12k다.
+초반 큰 gate weight 전송 중 작은 입력 복제 구간이 길어지고, pre-RMS 끝부터
+activation amax 시작까지 다른 Main 연산이 없는 구간은 중앙값42.2k였다.
+입력 방송도23.4k다. 이 구간들은 겹치고 대기를 포함하므로 더해서 비용 비중을 만들지 않는다.
+
+다음 구조는 weight 공급·작은 입력 준비의 순서/배치와 FP8 전체 중간 저장을 함께 검토한다.
+M03은 아직 미구현이며, 채택 baseline은 E104다. 진단 자체를 최적화·순위 개선으로 세지 않는다.
+
+## 이전 조사 — 현재 리더보드 격차와 FFN weight 경로
 
 [코드·정적 근거·관련 대회 자료](../research/e104-bottleneck-20260926.md)를 보완했다.
 2026-09-26 18:25 KST의 공식 API 응답에서 BEEF는69팀 중52위, 5.926577×,
@@ -13,7 +30,7 @@
 FFN weight 적재→FP8 전체 DM 저장→dot 경로가 우선 병목 가설이다.
 실제 NPU에서 내부 비용을 분해한 결과는 아직 없으며 기존 정적 진단만 재검증했다.
 이번 작업은 조사·기록이며 새 compile/Arena/채택/공식 제출은 없다.
-M03은 미실행이고, 그 설계 선택에 필요한 최소 비용 진단을 먼저 수행한다.
+당시 M03은 미실행이었고 최소 비용 진단을 먼저 수행하기로 했다. 실행 결과는 위 최신 작업에 있다.
 
 ## 이전 작업 — M02 cluster K-half 소유권 검증 완료
 

@@ -1,5 +1,8 @@
 # E104 비용 진단
 
+후속 [whole-FFN 내부 NPU 진단](../../candidates/e104-weight-path/README.md)이 완료됐다.
+아래 첫 정적 분석의 후속이며, 실측·원본 trace·설계 판단은 후속 기록에 있다.
+
 작업 브랜치: `diag/e104-cost-attribution`. Main 통합 commit `f9f905b`에서 시작했다.
 비교 대상 source는 `baseline-e104` / `7f891f9c48e670fe014b2ac5bd2c92bae3bac433`다.
 **기존 정적 schedule을 source에 대응시키는 첫 분석을 완료했다. 새 compile·NPU 진단은
