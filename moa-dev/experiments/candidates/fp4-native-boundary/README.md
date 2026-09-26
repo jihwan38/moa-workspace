@@ -1,3 +1,5 @@
+**2026-09-27 후속:** [전송 계약 수정 및 E123 전체 FFN 실측](../ffn-direct-boundary-recompute/README.md). v7c에서 물려받은 joint 입력 DMA의 padding 범위 오류를 수정한 direct 경로가 독립122880행과 전체 FFN 기본 검사를 통과했다. E123 단회 이득은 동시 M03 대비0.7392%로 작아 미채택했다. 아래 합성 실패를 일반 native DPE 한계로 해석하지 않는다.
+
 # D-FP4-NATIVE — locate the first incorrect direct-decode boundary
 
 Branch `diag/fp4-native-boundary`, starting from integrated M04 record `c49300d`.

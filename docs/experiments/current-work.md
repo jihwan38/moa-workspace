@@ -7,10 +7,14 @@
 5%는탐색예산문턱이며 이미반복검증된작은이득의채택금지가아니라는예외를기록했다.
 공식제출은아직E104이며 Arena결과를공식점수로환산해주장하지않는다.
 
-병행 후속은 E123 corrected direct FFN과 E124 corrected joint QKV다.
-둘다 과거실패의 padded destination DMA를 실제extent/stride와대조해수리하는재검증이며,
-새로운독립architecture가아니다. 각후보 fullgraph/추가복사비용/원본대조군을명시하고
-전체커널기본정확도·실측통과전에는채택하지않는다.
+[E123 corrected direct FFN](../../moa-dev/experiments/candidates/ffn-direct-boundary-recompute/README.md)은
+전체 기본60비교 PASS, 단회329395cycles로 E104 앞뒤 대비−1.9179%, 동시 M03 대비−0.7392%다.
+작은 이득으로 반복·확장 정확도·채택 없이 종료했다. Direct primitive 실패를 일반
+native DPE 한계로 보았던 해석은 철회하되 이 단회 결과도 일반 동치로 확대하지 않는다.
+
+E124 corrected joint QKV는 실행 준비 중이다. [C08 exact 감사](../../moa-dev/experiments/candidates/c08-joint-ingress/README.md)에서
+K/V padded destination DMA의 실제 source 범위 초과를 확인했다. 원본과 image가 같다.
+이는 과거 family의 전송 계약 수리이며 새로운 독립 architecture가 아니다.
 
 # 현재 구조 실험
 

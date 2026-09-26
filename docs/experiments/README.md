@@ -1,5 +1,13 @@
 # Experiment ledger
 
+September27 [E123 corrected direct FFN](../../moa-dev/experiments/candidates/ffn-direct-boundary-recompute/README.md)
+passes60 standard comparisons in Arena105045. FFN329395 vs bracketing E104335836
+(−1.9179%) and same-job M03 331848 (−0.7392%). Closed below the5% exploration
+screen without repeats, extended correctness or adoption. E122 stays current.
+The corrected direct primitive passes122880 exact rows; the separately built
+materialized diagnostic times out and is not a passing control. Source/descriptor
+repairs and that failure are preserved, rather than counted as a DPE limitation.
+
 September27 **[E122 / exact M03 adopted](../../baseline/e122.json)** after six paired allocations,
 extra6 standard inputs and seven independent projection cases. FFN job-median aggregates
 336142 →331354 cycles (−1.4244%); median within-allocation ratio is−1.4846%.
