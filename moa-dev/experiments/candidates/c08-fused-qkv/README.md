@@ -1,5 +1,11 @@
 # C08 — QKV 계산 구조의 빠른 비교
 
+**2026-09-27 정정:** [원 E105 image를 재현한 DMA 감사](../c08-joint-ingress/README.md)에서
+K/V weight와 scale의 padded destination tile 전송 범위 오류를 확인했다.
+각 K/V weight는 원본의4배 byte volume을 읽고 마지막 source end가46,080B 초과한다.
+Q ingress와 세 output gather의 대응·범위는 통과했다. 아래 정확도 실패 기록은
+유효하지만 이를 공동 QKV 구조 자체의 실패로 해석하지 않는다. 수정본 E124는 별도 평가한다.
+
 출발 소스는 E104(`7f891f9c48e670fe014b2ac5bd2c92bae3bac433`)다.
 E104는 비교군이며 두 후보의 설계 제약이 아니다. 작은 개선을 장시간 조정하는 대신
 서로 다른 QKV 구조를 기본 정확도와 앞뒤 대조군으로 먼저 판별한다.

@@ -1,5 +1,9 @@
 # C08 E105 joint QKV 입력 DMA 재점검
 
+**후속 exact compile 완료:** [재현·descriptor 전수 검사](../../moa-dev/experiments/candidates/c08-joint-ingress/README.md)로
+아래 미확정 사항을 판별했다. 기존 E105와 image가 byte-identical이며 K/V weight·scale의
+source bounds 오류가 확인됐다. 아래는 재컴파일 이전 읽기 감사 기록이다.
+
 2026-09-27. **Padding이 있는 destination tile에 HBM을 직접 전송하는 의심 패턴은 확인했다. C08의 실제 DMA extent·stride·source bounds는 아직 확인하지 못했다.** 새 compile·Arena 실행·후보 수정 없이 기존 파일만 읽었다. 다른 후보에서 발견한 padding 문제를 E105의 확정 원인으로 옮기지 않는다. [기계 판독 기록](c08-joint-ingress-audit-20260927.json).
 
 [Frozen v2 source](../../moa-dev/experiments/candidates/c08-fused-qkv/evidence/69c0337482d058362ec1316125b8c4dccf1f33bb3df9dc9b5726551e91f2cadc.rs)의 `project_qkv_fused`는 Q를 2048행씩 둘로 나눠 K/V와 함께 네 matrix slot을 가진 DM에 넣는다. 286/288/290행은 각각 `QkvMatrix=2`인 Q를 `2#{!}4` destination tile의 offset0에, `QkvMatrix=1`인 K/V를 `1#{!}4` tile의 offset2/3에 `to_dm_view`한다. 294/296/298행의 channel scale도 같은 방식이다. 읽기 쉬운 [fused.rs](../../moa-dev/experiments/candidates/c08-fused-qkv/fused.rs)의 23–35행에 동일 코드가 있다. 전체 frozen source가 실제 v2 compile 입력과 byte-identical이며 빌드 manifest SHA256와 일치함을 확인했다.
