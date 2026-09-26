@@ -1,0 +1,241 @@
+{
+  "date": "2026-09-27",
+  "scope": "Read-only existing source/schedule/image inventory; no compile or Arena execution",
+  "status": "suspect_destination_tile_pattern_only; actual_descriptor_bounds_unverified",
+  "verified_sources": [
+    {
+      "path": "moa-dev/experiments/candidates/c08-fused-qkv/evidence/69c0337482d058362ec1316125b8c4dccf1f33bb3df9dc9b5726551e91f2cadc.rs",
+      "bytes": 17198,
+      "sha256": "69c0337482d058362ec1316125b8c4dccf1f33bb3df9dc9b5726551e91f2cadc"
+    },
+    {
+      "path": "moa-dev/experiments/artifacts/c08-fused-qkv/c08-fused-contiguous-v2/crate/src/device/sliding/projection.rs",
+      "bytes": 17198,
+      "sha256": "69c0337482d058362ec1316125b8c4dccf1f33bb3df9dc9b5726551e91f2cadc"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/c08-fused-qkv/fused.rs",
+      "bytes": 4873,
+      "sha256": "10c01cea56f9fbfbfface42c7bb9d4c7ad9d36e3b2b09bd09ca59c47538d2ac6"
+    }
+  ],
+  "schedule": {
+    "path": "moa-dev/experiments/artifacts/c08-fused-qkv/c08-fused-contiguous-v2/schedule.json",
+    "bytes": 95614,
+    "sha256": "e352e14a8753d03268a184d603801c6d2d074a94bd5402dd16036b420afdf495"
+  },
+  "image": {
+    "path": "moa-dev/experiments/artifacts/c08-fused-qkv/c08-fused-contiguous-v2/exact-kernel.bin",
+    "bytes": 152320,
+    "sha256": "0d3cf9807cd6ddca31c0115e569ff51edb1c577370859b5cbd54b11dc004397e"
+  },
+  "build_record": {
+    "path": "moa-dev/experiments/candidates/c08-fused-qkv/build-c08-fused-contiguous-v2-repro.json",
+    "bytes": 8425,
+    "sha256": "30fedbc1d9d153db86fde62ed3264e6d9678f4195668afbd2109c3dfc0d48119"
+  },
+  "source_pattern": {
+    "joint_weight_type": "DmTensor<f8e4m3, Chip, FusedCluster, FusedSlices, m![QkvMatrix, QkvRow % 4, H]>",
+    "Q": "source QkvMatrix=2, destination tile QkvMatrix=2 padded to4, offset0",
+    "K": "source QkvMatrix=1, destination tile QkvMatrix=1 padded to4, offset2",
+    "V": "source QkvMatrix=1, destination tile QkvMatrix=1 padded to4, offset3",
+    "scale_note": "Same destination tile pattern is used for BF16 channel scales."
+  },
+  "schedule_loads": [
+    {
+      "index": "65",
+      "history": {
+        "resourcelir": "O65"
+      },
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 2342,
+        "end": 3471
+      },
+      "input_tensors": [
+        12,
+        36
+      ],
+      "output_tensors": [
+        69
+      ],
+      "description": "--> src/device/sliding/projection.rs:294:5\n\nq.to_dm_view(&mut device.tdma, scales.view_mut().tile::<m![QkvMatrix], 2, m![QkvMatrix = 2 #{!} 4, QkvRow % 4]>(0))",
+      "util": {
+        "total_util": 0.006200177,
+        "base_util": 0.006200177,
+        "efficiency": 1.0
+      }
+    },
+    {
+      "index": "74",
+      "history": {
+        "resourcelir": "O74"
+      },
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 3471,
+        "end": 4343
+      },
+      "input_tensors": [
+        10,
+        74
+      ],
+      "output_tensors": [
+        75
+      ],
+      "description": "--> src/device/sliding/projection.rs:296:5\n\nk.to_dm_view(&mut device.tdma, scales.view_mut().tile::<m![QkvMatrix], 1, m![QkvMatrix = 1 #{!} 4, QkvRow % 4]>(2))",
+      "util": {
+        "total_util": 0.014908257,
+        "base_util": 0.014908257,
+        "efficiency": 1.0
+      }
+    },
+    {
+      "index": "90",
+      "history": {
+        "resourcelir": "O90"
+      },
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 4963,
+        "end": 5835
+      },
+      "input_tensors": [
+        8,
+        79
+      ],
+      "output_tensors": [
+        83
+      ],
+      "description": "--> src/device/sliding/projection.rs:298:5\n\nv.to_dm_view(&mut device.tdma, scales.view_mut().tile::<m![QkvMatrix], 1, m![QkvMatrix = 1 #{!} 4, QkvRow % 4]>(3))",
+      "util": {
+        "total_util": 0.014908257,
+        "base_util": 0.014908257,
+        "efficiency": 1.0
+      }
+    },
+    {
+      "index": "96",
+      "history": {
+        "resourcelir": "O96"
+      },
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 5835,
+        "end": 19347
+      },
+      "input_tensors": [
+        6,
+        70
+      ],
+      "output_tensors": [
+        85
+      ],
+      "description": "--> src/device/sliding/projection.rs:286:5\n\nq.to_dm_view(&mut device.tdma, weights.view_mut().tile::<m![QkvMatrix], 2, m![QkvMatrix = 2 #{!} 4, QkvRow % 4, H]>(0))",
+      "util": {
+        "total_util": 0.85597986,
+        "base_util": 0.85597986,
+        "efficiency": 1.0
+      }
+    },
+    {
+      "index": "120",
+      "history": {
+        "resourcelir": "O120"
+      },
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 20185,
+        "end": 46660
+      },
+      "input_tensors": [
+        4,
+        93
+      ],
+      "output_tensors": [
+        95
+      ],
+      "description": "--> src/device/sliding/projection.rs:288:5\n\nk.to_dm_view(&mut device.tdma, weights.view_mut().tile::<m![QkvMatrix], 1, m![QkvMatrix = 1 #{!} 4, QkvRow % 4, H]>(2))",
+      "util": {
+        "total_util": 0.87369215,
+        "base_util": 0.87369215,
+        "efficiency": 1.0
+      }
+    },
+    {
+      "index": "135",
+      "history": {
+        "resourcelir": "O135"
+      },
+      "tpe": "DmaLoad",
+      "contexts": [
+        "DmaEngine"
+      ],
+      "lifetime": {
+        "begin": 49312,
+        "end": 75787
+      },
+      "input_tensors": [
+        2,
+        98
+      ],
+      "output_tensors": [
+        100
+      ],
+      "description": "--> src/device/sliding/projection.rs:290:5\n\nv.to_dm_view(&mut device.tdma, weights.view_mut().tile::<m![QkvMatrix], 1, m![QkvMatrix = 1 #{!} 4, QkvRow % 4, H]>(3))",
+      "util": {
+        "total_util": 0.87369215,
+        "base_util": 0.87369215,
+        "efficiency": 1.0
+      }
+    }
+  ],
+  "searched_existing_directories": {
+    "host": [
+      "moa-dev/experiments/artifacts/c08-fused-qkv/c08-fused-contiguous-v1",
+      "moa-dev/experiments/artifacts/c08-fused-qkv/c08-fused-contiguous-v2"
+    ],
+    "docker_moa2026_dev": [
+      "/tmp/moa-c02-c03/c08-fused-contiguous-v1",
+      "/tmp/moa-c02-c03/c08-fused-contiguous-v2"
+    ]
+  },
+  "existing_artifacts": {
+    "v1": "compile failure; no schedule/graph/IR/vISA/image in inspected root",
+    "v2": "schedule and exact/image binaries preserved; graph/IR/vISA not found under inspected roots"
+  },
+  "descriptor_evidence": {
+    "source_address": null,
+    "source_extent": null,
+    "source_stride": null,
+    "source_byte_bounds": null,
+    "reason": "Schedule exposes source snippets and tensor dependencies, not lowered TDMA loop descriptors. No existing binary decoder used."
+  },
+  "not_concluded": [
+    "No read-size multiplier assigned to C08 Q/K/V or scales.",
+    "No out-of-bounds access proven.",
+    "E105 accuracy failure is not attributed to this pattern.",
+    "Another candidate family having a proved padded-tile error does not prove this lowering shares the error."
+  ],
+  "reopen_gate": [
+    "Reproduce frozen v2 in an isolated exact compile with graph/descriptor dump and original input identity.",
+    "Trace Q/K/V and scale HBM bindings to emitted source extents, strides, base offsets and final byte ranges.",
+    "Only if invalid coverage is proven, compare compact ingress plus an explicit correctly bounded placement against the original descriptor; include added DM traffic and all-weight readiness.",
+    "NPU screening is downstream of descriptor/source-bounds verification, not the next action from this read-only audit."
+  ]
+}
