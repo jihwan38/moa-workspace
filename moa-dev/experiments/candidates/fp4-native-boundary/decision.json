@@ -1,0 +1,29 @@
+{
+  "candidate": "D-FP4-NATIVE",
+  "status": "held_unresolved_correctness",
+  "branch": "diag/fp4-native-boundary",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "Composition-boundary diagnostic; not a new optimization family",
+  "adopted": false,
+  "official_submission": null,
+  "whole_ffn_performance_result": null,
+  "root_cause": "unresolved; no demonstrated SDK/hardware defect",
+  "verified_findings": [
+    "FP4 decode and single native projection including real BF16 input preparation pass stated diagnostic cases.",
+    "Two independent direct projections fail before final BF16 gather. Joint Projection2 stream reduces errors to sixteen first rows of projection0 but remains incorrect.",
+    "Restoration-scale relocation and full duplicate-projection warmup do not repair correctness.",
+    "32/36 row-prefix mappings hit a sequencer assertion; trailing-padding sketches were not built.",
+    "Later materialized debug-output control times out; no paired-control correctness pass is claimed. Older immutable materialized replay passes."
+  ],
+  "last_job": 104243,
+  "last_result": "Both returned projections produce non-finite output in all four input cases.",
+  "closure": "Hold direct fusion without more speculative padding sweeps. Preserve E104 and move to M03 producer-local whole-FFN architecture using validated materialized native up/gate.",
+  "retry_condition": "A specific supported state/layout or lifetime repair with a testable mechanism, followed by complete two-projection and full-FFN validation.",
+  "evidence": [
+    "README.md",
+    "verification.json",
+    "lowering-evidence.json",
+    "boundary-v10-results.json"
+  ]
+}

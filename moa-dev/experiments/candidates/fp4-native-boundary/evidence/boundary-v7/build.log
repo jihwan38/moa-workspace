@@ -1,0 +1,21 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/tmp/moa-fp4-boundary/boundary-v7)
+error[E0107]: method takes 6 generic arguments but 1 generic argument was supplied
+   --> src/probe.rs:141:10
+    |
+141 |         .begin_interleaved::<Projection>(w.view(),g.view())
+    |          ^^^^^^^^^^^^^^^^^   ---------- supplied 1 generic argument
+    |          |
+    |          expected 6 generic arguments
+    |
+note: method defined here, with 6 generic parameters: `I`, `D`, `Chip`, `Cluster`, `Slice`, `Element`
+   --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.8.1/src/context.rs:97:12
+    |
+ 97 |     pub fn begin_interleaved<'l, I: AxisName, D: Scalar, Chip: M, Cluster: M, Slice: M, Element: M>(
+    |            ^^^^^^^^^^^^^^^^^     -            -          ----     -------     -----     -------
+help: add missing generic arguments
+    |
+141 |         .begin_interleaved::<Projection, _, _, _, _, _>(w.view(),g.view())
+    |                                        +++++++++++++++
+
+For more information about this error, try `rustc --explain E0107`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error

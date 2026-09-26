@@ -1,0 +1,22 @@
+{
+  "id": "D-FP4-NATIVE",
+  "variant": "v5",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "Diagnostic-only three separate native-boundary images; exact E5 input and F32 raw block outputs; not an official or whole-FFN performance candidate",
+  "graph": "full FP4 weight HBM/DM -> decode-only OR materialized native dot OR fused native dot -> HBM debug outputs",
+  "question": "First incorrect boundary: lookup output vs native contraction composition",
+  "fixed_layout": "l=7680*c+30*s+r, local30x3840, native3terms, packet64, block16 F32",
+  "prior_related": [
+    "C07 direct F32/E5 oracle failures",
+    "C07 materialized oracle pass",
+    "M04 measured regression"
+  ],
+  "first_stop": "Read exact per-block errors and full decode errors; one concrete evidence-based source/layout repair before whole-projection evaluation",
+  "change": "Complete single projection: real input prep, dot/restoration, block-scale VRF, five F32 reductions, final F32 HBM rows",
+  "rationale": "v4b fused raw block outputs pass all4 cases; materialized debug-output control timed out and is not counted as a passing control. Next boundary is block-scale consumption/row reduction and its register lifetime.",
+  "extra_sources": {
+    "src/device/mlp.rs": "mlp.rs",
+    "src/device/layout.rs": "layout.rs"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "D-FP4-NATIVE",
+  "variant": "v8",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "Diagnostic-only dual complete projections with actual BF16 input preparation; F32 rows before gather/cast; not performance",
+  "graph": "actualBF16 preparation -> one TRF/scale -> two FP4 DM weight operands -> one interleaved lookup/native contraction -> ProjectionxRowxBlock F32 DM -> separate scales/reductions -> two F32 HBM outputs",
+  "question": "Does splitting the joint native DPE from VE restoration remove the first-row corruption?",
+  "fixed_layout": "l=7680*c+30*s+r, local30x3840, native3terms, packet64, block16 F32",
+  "prior_related": [
+    "C07 late-scale dual streams still failed projection oracle",
+    "C13 raw integer DM boundary avoided mixed contraction/vector corruption",
+    "v7c joint producer leaves16 first-row errors; gate all passes"
+  ],
+  "first_stop": "One joint raw-DPE/reduction path; if it passes, full original projection oracle plus whole FFN screen. Do not special-case corrupt rows or inputs.",
+  "change": "Keep joint packed buffer/one lookup-DPE producer. Commit raw F32 block partials, then apply input-scale Mul0 followed by block-scale Mul1 in existing reduction streams. No new tensor boundary or rounding; scale arithmetic order stays identical.",
+  "rationale": "v7c joint path fixes all but16 first-projection rows, exactly local row0 on slices0..7 of eachcluster. Those slices also execute activation quantization. Tests native DPE-to-VE transition after quantizer; exact compiler/hardware cause unproved.",
+  "extra_sources": {
+    "src/device/mlp.rs": "mlp.rs",
+    "src/device/layout.rs": "layout.rs"
+  },
+  "added_costs": "One extra FP32 multiply per partial in existing vector reduction; x_scale VRF live through reductions. Same partial logical bytes.",
+  "removed_work": "Removes inline VE restoration from joint DPE task; existing reduce consumes scale instead.",
+  "source_repair": null
+}

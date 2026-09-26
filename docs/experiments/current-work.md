@@ -5,6 +5,25 @@
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
+## 최신 진단 — 직접 FP4/native 경로 보류, 정확도 미해결
+
+`c49300d`까지 main/origin에 통합한 뒤 `diag/fp4-native-boundary`에서
+[원본·진단 기록](../../moa-dev/experiments/candidates/fp4-native-boundary/README.md)을 남긴다.
+현재 목표는10위권이며, 순위 상승이나 새 runtime 채택은 아직 없다.
+
+단일 native projection의 실제 입력 준비·dot·block scale·행 합산은4입력에서
+통과했다. 같은 입력 표현을 공유하는 두 projection은 최종 BF16 gather 전에
+틀렸고, 한 joint producer로 바꾸면 첫 projection의16행에만 오류가 남았다.
+입력 양자화를 수행한 slices0..7의 첫 행과 일치한다. 저수준 원인은 아직 미확정이다.
+옛 C07 실패 image도 다시 실행해 실패를 재현했고 materialized 원본은 통과했다.
+새 진단의 materialized control에는 timeout이 있어 전체 paired PASS로 세지 않는다.
+후속 v8의 scale 경계 이동도 실패했다. v9c/v9d 행 padding은 lowering assertion으로
+NPU 미실행이며, v10(job104243)의 첫 projection 전체 warmup도 두 실제 출력에
+non-finite 값을 만들었다. 이 경로는 원인 미해결 상태로 보류하고 반복 수정을 중단했다.
+새 FFN 성능 결과·채택·공식 제출은 없다. 이 진단을 최적화 가족/성능 실험으로 세지 않는다.
+다음은 미실행 M03 전체 FFN: 검증된 weight materialization을 유지하면서
+producer-local GeGLU와 L-owned down을 한 stage로 연결한다.
+
 ## 최신 작업 — M04 입력 준비·weight 타일 공급 결합, E116 종료
 
 진단 기록 `db89a50`까지 main/origin에 통합한 뒤 `opt/m04-tiled-weight-supply`에서

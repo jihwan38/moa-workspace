@@ -1,0 +1,151 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/tmp/moa-fp4-boundary/boundary-v9d)
+warning: type alias `Cluster` is never used
+ --> src/device/layout.rs:6:17
+  |
+6 | pub(crate) type Cluster = m![1 # 2];
+  |                 ^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `broadcast_hidden` is never used
+  --> src/device/layout.rs:11:15
+   |
+11 | pub(crate) fn broadcast_hidden(
+   |               ^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_full_heads` is never used
+  --> src/device/layout.rs:43:15
+   |
+43 | pub(crate) fn broadcast_full_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `INVSQRT2` is never used
+  --> src/device/mlp.rs:20:7
+   |
+20 | const INVSQRT2: f32 = 0.70710678118f32;
+   |       ^^^^^^^^
+
+warning: type alias `UpGateRows` is never used
+  --> src/device/mlp.rs:22:17
+   |
+22 | pub(crate) type UpGateRows = m![L / 60];
+   |                 ^^^^^^^^^^
+
+warning: type alias `UpGateRowsPaired` is never used
+  --> src/device/mlp.rs:23:17
+   |
+23 | pub(crate) type UpGateRowsPaired = m![L / 120, 1 # 2];
+   |                 ^^^^^^^^^^^^^^^^
+
+warning: type alias `UpGateCluster` is never used
+  --> src/device/mlp.rs:25:17
+   |
+25 | pub(crate) type UpGateCluster = m![Dummy2];
+   |                 ^^^^^^^^^^^^^
+
+warning: type alias `UpGateSlices` is never used
+  --> src/device/mlp.rs:26:17
+   |
+26 | pub(crate) type UpGateSlices = m![FfnSlice];
+   |                 ^^^^^^^^^^^^
+
+warning: function `project_rows_with_scale_contraction` is never used
+  --> src/device/mlp.rs:30:4
+   |
+30 | fn project_rows_with_scale_contraction(
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `project_up_and_gate` is never used
+  --> src/device/mlp.rs:75:15
+   |
+75 | pub(crate) fn project_up_and_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `cast_gathered_rows` is never used
+   --> src/device/mlp.rs:143:4
+    |
+143 | fn cast_gathered_rows(device: &mut Device, x: &DmTensor<f32, Chip, Cluster, UpGateRows, m![L % 60]>)
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `feedforward` is never used
+   --> src/device/mlp.rs:150:15
+    |
+150 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `feedforward_sharded` is never used
+   --> src/device/mlp.rs:167:15
+    |
+167 | pub(crate) fn feedforward_sharded(
+    |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `geglu` is never used
+   --> src/device/mlp.rs:224:15
+    |
+224 | pub(crate) fn geglu(
+    |               ^^^^^
+
+warning: type alias `DownEpilogueSlices` is never used
+   --> src/device/mlp.rs:343:17
+    |
+343 | pub(crate) type DownEpilogueSlices = m![1 # 32, H / 480];
+    |                 ^^^^^^^^^^^^^^^^^^
+
+warning: type alias `DownCluster` is never used
+   --> src/device/mlp.rs:344:17
+    |
+344 | pub(crate) type DownCluster = m![Dummy2];
+    |                 ^^^^^^^^^^^
+
+warning: type alias `DownRows` is never used
+   --> src/device/mlp.rs:345:17
+    |
+345 | pub(crate) type DownRows = m![H / 60 % 32, 1 # 8];
+    |                 ^^^^^^^^
+
+warning: type alias `DownRowsByColumns` is never used
+   --> src/device/mlp.rs:346:17
+    |
+346 | pub(crate) type DownRowsByColumns = m![H / 60 % 32, L / 1920];
+    |                 ^^^^^^^^^^^^^^^^^
+
+warning: function `project_down` is never used
+   --> src/device/mlp.rs:348:15
+    |
+348 | pub(crate) fn project_down(
+    |               ^^^^^^^^^^^^
+
+warning: function `project_down_sharded` is never used
+   --> src/device/mlp.rs:358:15
+    |
+358 | pub(crate) fn project_down_sharded(
+    |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: `furiosa-opt-gemma4` (lib) generated 21 warnings
+warning: unused import: `Term`
+ --> src/bin/boundary_probe.rs:2:60
+  |
+2 | use furiosa_opt_gemma4::{Chip, axes::{H, L}, probe::{self, Term}};
+  |                                                            ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling furiosa_opt_gemma4::probe::decode
+   Compiling furiosa_opt_gemma4::probe::materialized
+   Compiling furiosa_opt_gemma4::probe::fused
+
+thread '<unnamed>' (1103259) panicked at crates/furiosa-opt/npu-mapping-impl/src/sequencer/smapping.rs:619:9:
+stride must divide the size
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+fatal runtime error: Rust cannot catch foreign exceptions, aborting
+warning: `furiosa-opt-gemma4` (bin "boundary_probe") generated 1 warning (run `cargo fix --bin "boundary_probe" -p furiosa-opt-gemma4` to apply 1 suggestion)
+error: could not compile `furiosa-opt-gemma4` (bin "boundary_probe"); 1 warning emitted
+
+Caused by:
+  process didn't exit successfully: `/home/moa/.cargo/bin/furiosa-opt-driver /home/moa/.rustup/toolchains/nightly-2026-05-01-x86_64-unknown-linux-gnu/bin/rustc --crate-name boundary_probe --edition=2024 src/bin/boundary_probe.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no --warn=unexpected_cfgs --check-cfg 'cfg(backend, values("npu"))' --check-cfg 'cfg(furiosa_opt)' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=92ce9e566810f44a -C extra-filename=-7e3789ba39c8f9d6 --out-dir /tmp/moa-c01-probe/target/release/deps -C strip=symbols -L dependency=/tmp/moa-c01-probe/target/release/deps --extern furiosa_opt_gemma4=/tmp/moa-c01-probe/target/release/deps/libfuriosa_opt_gemma4-038d36cfb0a4776b.rlib --extern furiosa_opt_std=/tmp/moa-c01-probe/target/release/deps/libfuriosa_opt_std-e760e209c5f3181e.rlib --extern image=/tmp/moa-c01-probe/target/release/deps/libimage-84b8129c999275fc.rlib --extern llm_tokenizer=/tmp/moa-c01-probe/target/release/deps/libllm_tokenizer-55f75addabf2653e.rlib --extern memmap2=/tmp/moa-c01-probe/target/release/deps/libmemmap2-a512bea7bd125371.rlib --extern num_traits=/tmp/moa-c01-probe/target/release/deps/libnum_traits-f5eeb52204c13a26.rlib --extern rand=/tmp/moa-c01-probe/target/release/deps/librand-d3ae127fd110c30e.rlib --extern safetensors=/tmp/moa-c01-probe/target/release/deps/libsafetensors-0436f370e22e8165.rlib --extern serde=/tmp/moa-c01-probe/target/release/deps/libserde-45d2ab68a777a0fe.rlib --extern serde_json=/tmp/moa-c01-probe/target/release/deps/libserde_json-eec59e528f74270b.rlib --extern tokio=/tmp/moa-c01-probe/target/release/deps/libtokio-bfcd3eb219523d9c.rlib --extern tracing=/tmp/moa-c01-probe/target/release/deps/libtracing-dfc1ed83147abd71.rlib '--cfg=backend="npu"' -Zmir-opt-level=0 -Zalways-encode-mir -L native=/tmp/moa-c01-probe/target/release/build/furiosa-mapping-c3dbb8a59cd69674/out/furiosa-mapping-impl-target/x86_64-unknown-linux-gnu/release -L native=/tmp/moa-c01-probe/target/release/build/furiosa-opt-lower-fa09685655322c81/out/furiosa-opt-lower-impl-target/x86_64-unknown-linux-gnu/release -L native=/tmp/moa-c01-probe/target/release/build/blake3-639ed3ac1821e9d0/out -L native=/tmp/moa-c01-probe/target/release/build/blake3-639ed3ac1821e9d0/out -L native=/tmp/moa-c01-probe/target/release/build/ring-75ff7c936cffe8f4/out -L native=/tmp/moa-c01-probe/target/release/build/esaxx-rs-120fe33051495b7f/out -L native=/tmp/moa-c01-probe/target/release/build/onig_sys-a5c95dd5a01ef697/out` (signal: 6, SIGABRT: process abort signal)

@@ -1,0 +1,25 @@
+{
+  "id": "D-FP4-NATIVE",
+  "variant": "v7c",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "Diagnostic-only dual complete projections with actual BF16 input preparation; F32 rows before gather/cast; not performance",
+  "graph": "actualBF16 preparation -> one TRF/scale -> two FP4 DM weight operands -> one interleaved lookup/native contraction -> ProjectionxRowxBlock F32 DM -> separate scales/reductions -> two F32 HBM outputs",
+  "question": "Does one joint table/native contraction stream remove the dual-stream correctness failure?",
+  "fixed_layout": "l=7680*c+30*s+r, local30x3840, native3terms, packet64, block16 F32",
+  "prior_related": [
+    "C07 direct F32/E5 oracle failures",
+    "C07 materialized oracle pass",
+    "M04 measured regression"
+  ],
+  "first_stop": "Compile one joint producer; source mapping repairs only if concrete. If accurate, return to original C07 six-case oracle and whole FFN for cost comparison.",
+  "change": "One Projection-axis packed DM tensor filled by two public HBM operands; one native lookup/dot producer, separate scale/reduction.",
+  "rationale": "v6 two separate native projection streams returned wrong mostly-zero rows, while v5 single projection passes. One table/native producer removes the dual fetch-table setup/lifetime boundary; exact low-level cause remains unproved.",
+  "extra_sources": {
+    "src/device/mlp.rs": "mlp.rs",
+    "src/device/layout.rs": "layout.rs"
+  },
+  "added_costs": "Both full packed matrices must be ready before joint stream; loses overlap of first dot with second weight DMA. Partial lifetime doubles; no extra public weight prepacking.",
+  "removed_work": "Two lookup/native stream setup instances become one; FP8 full weight DM boundary still absent. Not a measured speedup.",
+  "source_repair": "v7b interleaved API lowering uses internal interleave axis inconsistent with declared Projection contraction. Use two HBM-to-tiled-DM transfers into one Projection-axis packed buffer, then ordinary begin/fetch. No extra DM-to-DM copy or host prepacking."
+}

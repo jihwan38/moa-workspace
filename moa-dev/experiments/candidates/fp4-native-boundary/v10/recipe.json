@@ -1,0 +1,25 @@
+{
+  "id": "D-FP4-NATIVE",
+  "variant": "v10",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "Causal diagnostic only: one extra full duplicate projection before the two real projections; deliberately includes extra work and is not a performance/adoption candidate.",
+  "graph": "actualBF16 preparation -> one TRF/scale -> two FP4 DM weight operands -> one interleaved lookup/native contraction -> ProjectionxRowxBlock F32 DM -> separate scales/reductions -> two F32 HBM outputs",
+  "question": "Does consuming one complete duplicate projection eliminate first-row errors in all following real outputs?",
+  "fixed_layout": "l=7680*c+30*s+r, local30x3840, native3terms, packet64, block16 F32",
+  "prior_related": [
+    "C07 direct F32/E5 oracle failures",
+    "C07 materialized oracle pass",
+    "M04 measured regression"
+  ],
+  "first_stop": "One causal hardware probe. If later real projections pass, the failure is first-consumption sensitive; choose a supported minimal initialization/quantizer-state redesign, not unbounded row-shape sweeps.",
+  "change": "v7c joint stream extends Projection2 toProjection3: [duplicate up, realup, realgate]. Only realup/realgate outputs are read. All public input values and arithmetic unchanged.",
+  "rationale": "Row-prefix32 and36 mappings both hit an unresolved sequencer stride assertion. Use already supported whole30-row Projection-axis layout to separate first native consumption from row-padding support. This does not justify full-projection warmup in the submitted kernel.",
+  "extra_sources": {
+    "src/device/mlp.rs": "mlp.rs",
+    "src/device/layout.rs": "layout.rs"
+  },
+  "added_costs": "One extra full FP4 up HBM load28.125MiB and one extra native projection/partial output. No performance claim.",
+  "removed_work": "None beyondv7c; extra work deliberately tests first consumption.",
+  "source_repair": null
+}

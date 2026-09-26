@@ -1,0 +1,41 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/tmp/moa-fp4-boundary/boundary-v4)
+error[E0308]: mismatched types
+   --> src/probe.rs:15:72
+    |
+ 15 |     let (x, scale) = crate::device::mlp::prepare_ffn_fp8_split(device, &x);
+    |                      -----------------------------------------         ^^ expected `Padding<Broadcast<1>, ..., Top>`, found `furiosa_opt_std::prelude::Broadcast<1>`
+    |                      |
+    |                      arguments to this function are incorrect
+    |
+    = note: expected reference `&furiosa_opt_std::prelude::DmTensor<_, _, _, furiosa_opt_std::prelude::Padding<furiosa_opt_std::prelude::Broadcast<_>, furiosa_opt_std::prelude::Broadcast<256>, Top>, _>`
+               found reference `&furiosa_opt_std::prelude::DmTensor<_, _, _, furiosa_opt_std::prelude::Broadcast<_>, _>`
+note: function defined here
+   --> src/device/mlp.rs:469:15
+    |
+469 | pub(crate) fn prepare_ffn_fp8_split(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+470 |     device: &mut Device,
+471 |     x: &DmTensor<bf16, Chip, m![2], Slice, m![H]>,
+    |     ---------------------------------------------
+
+error[E0308]: mismatched types
+   --> src/probe.rs:55:72
+    |
+ 55 |     let (x, scale) = crate::device::mlp::prepare_ffn_fp8_split(device, &x);
+    |                      -----------------------------------------         ^^ expected `Padding<Broadcast<1>, ..., Top>`, found `furiosa_opt_std::prelude::Broadcast<1>`
+    |                      |
+    |                      arguments to this function are incorrect
+    |
+    = note: expected reference `&furiosa_opt_std::prelude::DmTensor<_, _, _, furiosa_opt_std::prelude::Padding<furiosa_opt_std::prelude::Broadcast<_>, furiosa_opt_std::prelude::Broadcast<256>, Top>, _>`
+               found reference `&furiosa_opt_std::prelude::DmTensor<_, _, _, furiosa_opt_std::prelude::Broadcast<_>, _>`
+note: function defined here
+   --> src/device/mlp.rs:469:15
+    |
+469 | pub(crate) fn prepare_ffn_fp8_split(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+470 |     device: &mut Device,
+471 |     x: &DmTensor<bf16, Chip, m![2], Slice, m![H]>,
+    |     ---------------------------------------------
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors

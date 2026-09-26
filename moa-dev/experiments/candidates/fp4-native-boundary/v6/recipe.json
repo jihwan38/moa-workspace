@@ -1,0 +1,22 @@
+{
+  "id": "D-FP4-NATIVE",
+  "variant": "v6",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "Diagnostic-only dual complete projections with actual BF16 input preparation; F32 rows before gather/cast; not performance",
+  "graph": "actual BF16 -> shared E5 TRF/scale -> two distinct packed FP4 weights -> two projections -> separate F32 HBM rows",
+  "question": "Does composing two native projection streams with shared registers introduce corruption before final gather/BF16 conversion?",
+  "fixed_layout": "l=7680*c+30*s+r, local30x3840, native3terms, packet64, block16 F32",
+  "prior_related": [
+    "C07 direct F32/E5 oracle failures",
+    "C07 materialized oracle pass",
+    "M04 measured regression"
+  ],
+  "first_stop": "One paired dual-projection diagnostic. If fused fails, inspect register reuse/combined producer design; if it passes, test only the remaining original gather/cast or original input difference.",
+  "change": "v5 projection helper called twice with distinct full matrices and a shared TRF/scale, no gathered BF16 output",
+  "rationale": "v5 direct complete single projection passes61440 values; old dual gathered-BF16 projection still fails. Separate register reuse/composition from final gather/cast.",
+  "extra_sources": {
+    "src/device/mlp.rs": "mlp.rs",
+    "src/device/layout.rs": "layout.rs"
+  }
+}

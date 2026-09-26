@@ -1,0 +1,153 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/tmp/moa-fp4-boundary/boundary-v7b)
+warning: type alias `Cluster` is never used
+ --> src/device/layout.rs:6:17
+  |
+6 | pub(crate) type Cluster = m![1 # 2];
+  |                 ^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `broadcast_hidden` is never used
+  --> src/device/layout.rs:11:15
+   |
+11 | pub(crate) fn broadcast_hidden(
+   |               ^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_full_heads` is never used
+  --> src/device/layout.rs:43:15
+   |
+43 | pub(crate) fn broadcast_full_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `INVSQRT2` is never used
+  --> src/device/mlp.rs:20:7
+   |
+20 | const INVSQRT2: f32 = 0.70710678118f32;
+   |       ^^^^^^^^
+
+warning: type alias `UpGateRows` is never used
+  --> src/device/mlp.rs:22:17
+   |
+22 | pub(crate) type UpGateRows = m![L / 60];
+   |                 ^^^^^^^^^^
+
+warning: type alias `UpGateRowsPaired` is never used
+  --> src/device/mlp.rs:23:17
+   |
+23 | pub(crate) type UpGateRowsPaired = m![L / 120, 1 # 2];
+   |                 ^^^^^^^^^^^^^^^^
+
+warning: type alias `UpGateCluster` is never used
+  --> src/device/mlp.rs:25:17
+   |
+25 | pub(crate) type UpGateCluster = m![Dummy2];
+   |                 ^^^^^^^^^^^^^
+
+warning: type alias `UpGateSlices` is never used
+  --> src/device/mlp.rs:26:17
+   |
+26 | pub(crate) type UpGateSlices = m![FfnSlice];
+   |                 ^^^^^^^^^^^^
+
+warning: function `project_rows_with_scale_contraction` is never used
+  --> src/device/mlp.rs:30:4
+   |
+30 | fn project_rows_with_scale_contraction(
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `project_up_and_gate` is never used
+  --> src/device/mlp.rs:75:15
+   |
+75 | pub(crate) fn project_up_and_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `cast_gathered_rows` is never used
+   --> src/device/mlp.rs:143:4
+    |
+143 | fn cast_gathered_rows(device: &mut Device, x: &DmTensor<f32, Chip, Cluster, UpGateRows, m![L % 60]>)
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `feedforward` is never used
+   --> src/device/mlp.rs:150:15
+    |
+150 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `feedforward_sharded` is never used
+   --> src/device/mlp.rs:167:15
+    |
+167 | pub(crate) fn feedforward_sharded(
+    |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `geglu` is never used
+   --> src/device/mlp.rs:224:15
+    |
+224 | pub(crate) fn geglu(
+    |               ^^^^^
+
+warning: type alias `DownEpilogueSlices` is never used
+   --> src/device/mlp.rs:343:17
+    |
+343 | pub(crate) type DownEpilogueSlices = m![1 # 32, H / 480];
+    |                 ^^^^^^^^^^^^^^^^^^
+
+warning: type alias `DownCluster` is never used
+   --> src/device/mlp.rs:344:17
+    |
+344 | pub(crate) type DownCluster = m![Dummy2];
+    |                 ^^^^^^^^^^^
+
+warning: type alias `DownRows` is never used
+   --> src/device/mlp.rs:345:17
+    |
+345 | pub(crate) type DownRows = m![H / 60 % 32, 1 # 8];
+    |                 ^^^^^^^^
+
+warning: type alias `DownRowsByColumns` is never used
+   --> src/device/mlp.rs:346:17
+    |
+346 | pub(crate) type DownRowsByColumns = m![H / 60 % 32, L / 1920];
+    |                 ^^^^^^^^^^^^^^^^^
+
+warning: function `project_down` is never used
+   --> src/device/mlp.rs:348:15
+    |
+348 | pub(crate) fn project_down(
+    |               ^^^^^^^^^^^^
+
+warning: function `project_down_sharded` is never used
+   --> src/device/mlp.rs:358:15
+    |
+358 | pub(crate) fn project_down_sharded(
+    |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: `furiosa-opt-gemma4` (lib) generated 21 warnings
+warning: unused import: `Term`
+ --> src/bin/boundary_probe.rs:2:60
+  |
+2 | use furiosa_opt_gemma4::{Chip, axes::{H, L}, probe::{self, Term}};
+  |                                                            ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling furiosa_opt_gemma4::probe::decode
+   Compiling furiosa_opt_gemma4::probe::materialized
+   Compiling furiosa_opt_gemma4::probe::fused
+error: furiosa-opt: furiosa_opt_gemma4::probe::fused: visa: while lowering TensorUnit
+       caused by: contraction: input does not match pipeline
+       caused by: kernel-declared input shape does not match the shape the pipeline delivers.
+         declared: [ Chip: [] | Cluster: [Dummy2_1=2] | InSlice: [Projection_1=2, Row_1=30, H_1=3840] ] (1)
+         pipeline: [ Chip: [] | Cluster: [Dummy2_1=2] | InSlice: [interleave_1=2, Row_1=30, H_1=3840] ] (32)
+   --> src/probe.rs:153:42
+    |
+153 |         .commit_trim::<m![H / 16 % 4]>().commit();
+    |                                          ^^^^^^^^
+
+warning: `furiosa-opt-gemma4` (bin "boundary_probe") generated 1 warning
+error: could not compile `furiosa-opt-gemma4` (bin "boundary_probe") due to 1 previous error; 1 warning emitted

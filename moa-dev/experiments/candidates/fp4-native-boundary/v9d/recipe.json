@@ -1,0 +1,25 @@
+{
+  "id": "D-FP4-NATIVE",
+  "variant": "v9d",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "Diagnostic-only dual complete projections with actual BF16 input preparation; F32 rows before gather/cast; not performance",
+  "graph": "actualBF16 preparation -> one TRF/scale -> two FP4 DM weight operands -> one interleaved lookup/native contraction -> ProjectionxRowxBlock F32 DM -> separate scales/reductions -> two F32 HBM outputs",
+  "question": "Does consuming a general leading duplicate row separate first-iteration corruption from padded-stride effects?",
+  "fixed_layout": "l=7680*c+30*s+r, local30x3840, native3terms, packet64, block16 F32",
+  "prior_related": [
+    "v7c joint native16 first-row mismatches",
+    "old QKV native-pair first-row/slices0..7 errors",
+    "v8 changed vector composition fails"
+  ],
+  "first_stop": "Compare leading and trailing padding under same oracle. If only leading passes, test original six-case projection oracle and complete kernel; do not infer exact undocumented hardware state.",
+  "change": "36 physical rows,30 real rows starting6, six initialized duplicate rows; same6-row reductions now divide physical pitch36.",
+  "rationale": "v7c fails local row0 only on quantizer slices0..7; v8 separate-vector restoration makes results worse. Test first contraction iteration against an equal-stride/equal-work trailing-pad control, without patching specific output positions.",
+  "extra_sources": {
+    "src/device/mlp.rs": "mlp.rs",
+    "src/device/layout.rs": "layout.rs"
+  },
+  "added_costs": "Six duplicate rows per30 real rows (+20% dot/partial work), two additional HBM row-group transfers and11.25MiB additional FP4 payload. Diagnostic only until whole-kernel cost measurement.",
+  "removed_work": "No further removed work beyondv7c joint direct lookup/native path; this is correctness repair evidence, not an optimization claim.",
+  "source_repair": "v9c reached sequencer stride-must-divide-size panic. Align physical row count and first valid row to the existing6-row scale/reduce tile:36 total,6 leading or trailing; retains equal-work control."
+}
