@@ -1,0 +1,3379 @@
+{
+  "schema_version": 1,
+  "scope": "read-only existing O experiment/source/descriptor audit; no compile or Arena",
+  "head": "48bea3dea8d3b98b4f66a15981c30646d40ddfd0",
+  "baseline_current": {
+    "recipe": "baseline/e122.json"
+  },
+  "comparisons": [
+    {
+      "id": "E2-O",
+      "method": "FP8 weight lookup+contraction fusion",
+      "report": "docs/experiments/e2-fp8-fusion.json",
+      "reference_report": "docs/experiments/baseline-rngd.json",
+      "median": 334457,
+      "reference_medians": [
+        404222
+      ],
+      "reference_comparison": 404222,
+      "change_percent": -17.259080406311377,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회 개선. 현재 O2도 lookup을 dot에 연결."
+    },
+    {
+      "id": "E3-rows",
+      "method": "256-row slices",
+      "report": "docs/experiments/e3-output-256rows.json",
+      "reference_report": "docs/experiments/e2-fp8-fusion.json",
+      "median": 195210,
+      "reference_medians": [
+        334457
+      ],
+      "reference_comparison": 334457,
+      "change_percent": -41.633752619918255,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회 큰 개선."
+    },
+    {
+      "id": "E3-direct",
+      "method": "direct HBM replication",
+      "report": "docs/experiments/e3-direct-hbm.json",
+      "reference_report": "docs/experiments/e3-output-256rows.json",
+      "median": 143976,
+      "reference_medians": [
+        195210
+      ],
+      "reference_comparison": 195210,
+      "change_percent": -26.245581681266327,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회 개선; 이후 배치 변경 전의 기록."
+    },
+    {
+      "id": "E1-hier-O",
+      "method": "hierarchical input replication",
+      "report": "docs/experiments/e1-hierarchical-16.json",
+      "reference_report": "docs/experiments/e1-qkv-hbm-relay.json",
+      "median": 116132,
+      "reference_medians": [
+        145998
+      ],
+      "reference_comparison": 145998,
+      "change_percent": -20.45644460883026,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회 개선; HBM relay package의 O와 비교."
+    },
+    {
+      "id": "E8-O",
+      "method": "두 cluster output",
+      "report": "docs/experiments/e8-blockscale-o2-ring32.json",
+      "reference_report": "docs/experiments/e7-qkv-two-clusters.json",
+      "median": 76147,
+      "reference_medians": [
+        112661
+      ],
+      "reference_comparison": 112661,
+      "change_percent": -32.41050585384472,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회 큰 개선; 현재 O1의 두 cluster 경로."
+    },
+    {
+      "id": "E9-O",
+      "method": "parallel residual",
+      "report": "docs/experiments/e9-upgate2-norm32-parallel-residual.json",
+      "reference_report": "docs/experiments/e8-blockscale-o2-ring32.json",
+      "median": 69651,
+      "reference_medians": [
+        76147
+      ],
+      "reference_comparison": 76147,
+      "change_percent": -8.530867926510567,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회 개선; 이후 O3의 분할 epilogue로 확장."
+    },
+    {
+      "id": "E14-O",
+      "method": "8-column split",
+      "report": "docs/experiments/e14-headnorm-output-columns.json",
+      "reference_report": "docs/experiments/e12-ffn-blockscale-bf16-reuse.json",
+      "median": 65694,
+      "reference_medians": [
+        68945
+      ],
+      "reference_comparison": 68945,
+      "change_percent": -4.715352817463192,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회 개선. 현재는 O1의 16-column 배치."
+    },
+    {
+      "id": "E24",
+      "method": "native FP8 hi/lo 입력 dot",
+      "report": "docs/experiments/e24-native-output-safe-qkv-ffn.json",
+      "reference_report": "docs/experiments/e18-best-repeats.json",
+      "median": 59027,
+      "reference_medians": [
+        65662
+      ],
+      "reference_comparison": 65662,
+      "change_percent": -10.104779019828825,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회+추가 입력 PASS였지만 입력 근사의 정확도 제한이 있음. 현재 O2가 대체."
+    },
+    {
+      "id": "E26",
+      "method": "8-slice scale/RMS/residual",
+      "report": "docs/experiments/e26-output-parallel-epilogue.json",
+      "reference_report": "docs/experiments/e24-native-output-safe-qkv-ffn.json",
+      "median": 52579,
+      "reference_medians": [
+        59027
+      ],
+      "reference_comparison": 59027,
+      "change_percent": -10.923814525556097,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회+추가 입력 PASS. 현재 O3의 배치 계열; 입력 근사는 E53이 대체."
+    },
+    {
+      "id": "E29-O",
+      "method": "direct packed FP8 input",
+      "report": "docs/experiments/e29-qkv-input-control-repeats.json",
+      "reference_report": "docs/experiments/e27-qk-pair-v-two-dot.json",
+      "median": 49228,
+      "reference_medians": [
+        52543
+      ],
+      "reference_comparison": 52543,
+      "change_percent": -6.309118246008028,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "당시 3회 반복 checkpoint. 현재 O2는 BF16 입력을 유지."
+    },
+    {
+      "id": "E31",
+      "method": "Switch-gather RMS",
+      "report": "docs/experiments/e31-rms-repeats.json",
+      "reference_report": "docs/experiments/e29-qkv-input-control-repeats.json",
+      "median": 45355,
+      "reference_medians": [
+        49228
+      ],
+      "reference_comparison": 49228,
+      "change_percent": -7.867473795400992,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "3회 반복에서 이전 O보다 감소. 현재 R1이 계승하나 당시 O 입력 근사는 E53이 대체."
+    },
+    {
+      "id": "E34",
+      "method": "row2 interleave",
+      "report": "docs/experiments/e34-output-row2-combined.json",
+      "reference_report": "docs/experiments/e31-rms-repeats.json",
+      "median": 47308,
+      "reference_medians": [
+        45355
+      ],
+      "reference_comparison": 45355,
+      "change_percent": 4.306030206151479,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회 회귀; 미채택."
+    },
+    {
+      "id": "E47",
+      "method": "16-column split",
+      "report": "docs/experiments/e47-output-sixteen-columns-repeats.json",
+      "reference_report": "docs/experiments/e37-combined-repeats.json",
+      "median": 44588,
+      "reference_medians": [
+        45748
+      ],
+      "reference_comparison": 45748,
+      "change_percent": -2.5356299728949927,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "당시 3회 성능 개선과 추가 입력 PASS. 이후 O 경계 검사 실패; E53 BF16 경로가 대체."
+    },
+    {
+      "id": "E53",
+      "method": "BF16 activation과 scale 전 F32 보존",
+      "report": "docs/experiments/e53-bf16-output-repeats.json",
+      "reference_report": "docs/experiments/e47-output-sixteen-columns-repeats.json",
+      "median": 50882,
+      "reference_medians": [
+        44588
+      ],
+      "reference_comparison": 44588,
+      "change_percent": 14.115905624831804,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "E47 O 경계 실패를 수정. 이 O image는 E55에도 사용; 당시 QKV 제한은 E54에서 별도 수정."
+    },
+    {
+      "id": "E64",
+      "method": "column-major 적재 후 DM 재배치",
+      "report": "docs/experiments/e64-output-column-major-screen.json",
+      "reference_report": "docs/experiments/e55-memory-layout-control-repeats.json",
+      "median": 128411,
+      "reference_medians": [
+        51445
+      ],
+      "reference_comparison": 51445,
+      "change_percent": 149.60831956458352,
+      "comparison_scope": "historical report median, not randomized contemporary pair",
+      "note": "단회 큰 회귀. 필요한 재배치 비용 포함; 미채택."
+    },
+    {
+      "id": "E111",
+      "method": "C12-B: two-stage vector-free Main dot + Sub F32 sum + separate Main packing",
+      "report": "docs/experiments/e111-c12-output-main-sub.json",
+      "reference_report": "docs/experiments/c12-pipeline-screen-e104-before.json",
+      "median": 51862,
+      "reference_medians": [
+        50555,
+        50680
+      ],
+      "reference_comparison": 50617.5,
+      "change_percent": 2.458635847286028,
+      "comparison_scope": "bracketing controls in one allocation",
+      "note": "Basic NPU PASS; O51862 vs E10450555/50680, observed +2.46%. Single screen with overlapping samples; no qualifying gain, no adoption/official submission. Full-v1 compiler failure repaired without declaring Sub unsupported."
+    },
+    {
+      "id": "E112",
+      "method": "M01: column-major ingress/direct BF16 dot + compact F32 partial DMA remap",
+      "report": "docs/experiments/e112-m01-partial-dma.json",
+      "reference_report": "docs/experiments/m01-remap-screen-e104-before.json",
+      "median": 55608,
+      "reference_medians": [
+        51007,
+        51274
+      ],
+      "reference_comparison": 51140.5,
+      "change_percent": 8.735737820318533,
+      "comparison_scope": "bracketing controls in one allocation",
+      "note": "Whole O compile/basic NPU PASS; O55608 vs E10451007/51274, +8.74%. One allocation, two transport alternatives in one M01 family; no adoption/official submission."
+    },
+    {
+      "id": "E113",
+      "method": "M01: column-major ingress/direct BF16 dot + compact F32 partial Switch remap",
+      "report": "docs/experiments/e113-m01-partial-switch.json",
+      "reference_report": "docs/experiments/m01-remap-screen-e104-before.json",
+      "median": 60677,
+      "reference_medians": [
+        51007,
+        51274
+      ],
+      "reference_comparison": 51140.5,
+      "change_percent": 18.647647168095727,
+      "comparison_scope": "bracketing controls in one allocation",
+      "note": "Whole O compile/basic NPU PASS; O60677 vs E10451007/51274, +18.65%. One allocation, two transport alternatives in one M01 family; no adoption/official submission."
+    },
+    {
+      "id": "E114",
+      "method": "M02: K-half clusters, global H interleave, full-H padded gather/compact and F32 cluster sum",
+      "report": "docs/experiments/e114-m02-full-h-gather.json",
+      "reference_report": "docs/experiments/m02-khalf-screen-e104-before.json",
+      "median": 78981,
+      "reference_medians": [
+        51010,
+        50901
+      ],
+      "reference_comparison": 50955.5,
+      "change_percent": 54.99995093758279,
+      "comparison_scope": "bracketing controls in one allocation",
+      "note": "Whole O compile/basic NPU PASS; O78981 vs E10451010/50901, +55.00%. One allocation, two complete mappings of one M02 family. v4 static ordering reverses on NPU. No adoption/official submission."
+    },
+    {
+      "id": "E115",
+      "method": "M02: K-half clusters, H480-grouped32-way interleave and direct padded partial gather",
+      "report": "docs/experiments/e115-m02-grouped-interleave.json",
+      "reference_report": "docs/experiments/m02-khalf-screen-e104-before.json",
+      "median": 89203,
+      "reference_medians": [
+        51010,
+        50901
+      ],
+      "reference_comparison": 50955.5,
+      "change_percent": 75.06059208525086,
+      "comparison_scope": "bracketing controls in one allocation",
+      "note": "Whole O compile/basic NPU PASS; O89203 vs E10451010/50901, +75.06%. One allocation, two complete mappings of one M02 family. v4 static ordering reverses on NPU. No adoption/official submission."
+    }
+  ],
+  "reports": {
+    "docs/experiments/baseline-rngd.json": {
+      "report_sha256": "2977e95756bc16142873dcfd7a7f1f8f809d0ff68ff8658015eb2d54a332f85c",
+      "median": 404222,
+      "runs": [
+        {
+          "job_id": 69783,
+          "batch_stage": null,
+          "log": "moa-dev/logs/baseline-original-job-69783.log",
+          "log_sha256": "dec49832637c1413b8eab2f04c6b0ecbf772a91f59f0850a2adf59973a821d40",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 404373,
+          "o_cycles": [
+            404373,
+            402874,
+            404457
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 69913,
+          "batch_stage": null,
+          "log": "moa-dev/logs/baseline-original-job-69913.log",
+          "log_sha256": "8f62cea727b5edd02ab19251e515f51ac975e36aaf7d9b763fb4b3f6fd52f35a",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 404222,
+          "o_cycles": [
+            403881,
+            404222,
+            405214
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 69931,
+          "batch_stage": null,
+          "log": "moa-dev/logs/baseline-original-job-69931.log",
+          "log_sha256": "a44e3513d8dcf0bfff1cb1adf92c984522c816ee408c96cb9e029448500e6b91",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 403700,
+          "o_cycles": [
+            403899,
+            403700,
+            403518
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/c12-pipeline-screen-e104-after.json": {
+      "report_sha256": "6e9ca6bceb4770fdd6ba6049760d365725b54be449eae441d575deb145ac76e5",
+      "median": 50680,
+      "runs": [
+        {
+          "job_id": 79329,
+          "batch_stage": "control_after",
+          "log": "moa-dev/logs/c12-pipeline-screen-79329.log",
+          "log_sha256": "e2e817f1ec21c7413eadf5cba8e3885f2678a3c91eb1d04ab4558906a9baf5cc",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 50680,
+          "o_cycles": [
+            52736,
+            50093,
+            50680
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/c12-pipeline-screen-e104-before.json": {
+      "report_sha256": "d0648df0b921bd6c97ab189aabb90d17e94b19291ddc057f10887f6a32e65805",
+      "median": 50555,
+      "runs": [
+        {
+          "job_id": 79329,
+          "batch_stage": "control_before",
+          "log": "moa-dev/logs/c12-pipeline-screen-79329.log",
+          "log_sha256": "e2e817f1ec21c7413eadf5cba8e3885f2678a3c91eb1d04ab4558906a9baf5cc",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 50555,
+          "o_cycles": [
+            52187,
+            50501,
+            50555
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/e1-hierarchical-16.json": {
+      "report_sha256": "5de570290274d1f55bd6ca47b66f8b354a1ed21f3d6b8b5f0860c22ddbfbebb0",
+      "median": 116132,
+      "runs": [
+        {
+          "job_id": 70055,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e1-hierarchical-16-job-70055.log",
+          "log_sha256": "a888ce6f1dfeaf6fcf28aad843993f7eb30d39c20ad1fe998d842ca7aade2371",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 116132,
+          "o_cycles": [
+            116731,
+            116132,
+            116119
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e1-qkv-hbm-relay.json": {
+      "report_sha256": "9b5d274d38df27b25e43e3d2b61b2abad4b4e9c396b2b471c8d4e987552fd3ce",
+      "median": 145998,
+      "runs": [
+        {
+          "job_id": 70039,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e1-qkv-hbm-relay-job-70039.log",
+          "log_sha256": "b566dab89ff3f350c479483f201d6e0e07d3447dbb54063f858b32e0f94f082c",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 145998,
+          "o_cycles": [
+            142706,
+            145998,
+            153241
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e111-c12-output-main-sub.json": {
+      "report_sha256": "ed35afeae8759c4161eddbecd4ab22a5e0e336bf22be38935838f5a523793e02",
+      "median": 51862,
+      "runs": [
+        {
+          "job_id": 79329,
+          "batch_stage": "candidate_0",
+          "log": "moa-dev/logs/c12-pipeline-screen-79329.log",
+          "log_sha256": "e2e817f1ec21c7413eadf5cba8e3885f2678a3c91eb1d04ab4558906a9baf5cc",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 51862,
+          "o_cycles": [
+            53826,
+            49594,
+            51862
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/e112-m01-partial-dma.json": {
+      "report_sha256": "66c2f10e80259e03633bd6fb8639e4ab099a9523855217ee4071f6c9d6f3d293",
+      "median": 55608,
+      "runs": [
+        {
+          "job_id": 95636,
+          "batch_stage": "candidate_0",
+          "log": "moa-dev/logs/m01-remap-screen-95636.log",
+          "log_sha256": "314096a69b82ff233f803d5aaa91910cc4d5d33260344e518b96ea1867980e93",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 55608,
+          "o_cycles": [
+            57957,
+            55119,
+            55608
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/e113-m01-partial-switch.json": {
+      "report_sha256": "8752f52cf06388ea71edb18194feda0a1523c5e7f0f40c361586418293360eef",
+      "median": 60677,
+      "runs": [
+        {
+          "job_id": 95636,
+          "batch_stage": "candidate_1",
+          "log": "moa-dev/logs/m01-remap-screen-95636.log",
+          "log_sha256": "314096a69b82ff233f803d5aaa91910cc4d5d33260344e518b96ea1867980e93",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 60677,
+          "o_cycles": [
+            62586,
+            60677,
+            60228
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/e114-m02-full-h-gather.json": {
+      "report_sha256": "6367e5453e38375a2bede1422f28b08f540934ef617d3f46ef469d5b9d37dc2c",
+      "median": 78981,
+      "runs": [
+        {
+          "job_id": 95914,
+          "batch_stage": "candidate_0",
+          "log": "moa-dev/logs/m02-khalf-screen-95914.log",
+          "log_sha256": "d24ad29b74301923861eaabd008f00bc044abff3fbec41e2e815a05a4fcc5549",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 78981,
+          "o_cycles": [
+            80336,
+            78646,
+            78981
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/e115-m02-grouped-interleave.json": {
+      "report_sha256": "9249c800d96f54e9a220eeb72166cb75e6db3ac58e4811595a0e2f5b23fe704a",
+      "median": 89203,
+      "runs": [
+        {
+          "job_id": 95914,
+          "batch_stage": "candidate_1",
+          "log": "moa-dev/logs/m02-khalf-screen-95914.log",
+          "log_sha256": "d24ad29b74301923861eaabd008f00bc044abff3fbec41e2e815a05a4fcc5549",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 89203,
+          "o_cycles": [
+            91381,
+            89174,
+            89203
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/e12-ffn-blockscale-bf16-reuse.json": {
+      "report_sha256": "e6b5c35a45c5354e5990d0ef5e19dc2fd56c84d1464d45cdbe037b1401513c90",
+      "median": 68945,
+      "runs": [
+        {
+          "job_id": 70157,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e12-ffn-blockscale-bf16-reuse-job-70157.log",
+          "log_sha256": "20f9655e03d980be007820cd51aea0469e4955b49babcd73c7d18d52f365c51a",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 68945,
+          "o_cycles": [
+            71459,
+            68668,
+            68945
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e14-headnorm-output-columns.json": {
+      "report_sha256": "cafa38a7f763eb4ea7a0713dc0944aa725907fb809bf29ce4866869b07de8b21",
+      "median": 65694,
+      "runs": [
+        {
+          "job_id": 70174,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e14-headnorm-output-columns-job-70174.log",
+          "log_sha256": "9641b79806630fe5fe2a6121df3e031858fcf3d081582a771b7cc816ce223665",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 65694,
+          "o_cycles": [
+            67603,
+            65170,
+            65694
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e18-best-repeats.json": {
+      "report_sha256": "18bba6ed0e8d03b327f80c757ca6250cda68c7be4d39b6c252d762de8c7ab7c5",
+      "median": 65662,
+      "runs": [
+        {
+          "job_id": 70248,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e18-best-repeats-job-70248.log",
+          "log_sha256": "105a4d6483a99d69f37afb867ae70538536f392117be1afcf2149af0134563ee",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 65139,
+          "o_cycles": [
+            67843,
+            65139,
+            65002
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70271,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e18-best-repeats-job-70271.log",
+          "log_sha256": "dd335a21dacb2478e64d29e75de6f4ef54d57d2e8c9b9fa9594f18f378ceec2f",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 65662,
+          "o_cycles": [
+            67917,
+            65136,
+            65662
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70285,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e18-best-repeats-job-70285.log",
+          "log_sha256": "fac78224c5c7714fe79060a892678ce5f05c26b6026dfe5573f3704945671517",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 65919,
+          "o_cycles": [
+            68661,
+            65248,
+            65919
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e2-fp8-fusion.json": {
+      "report_sha256": "0c6133a0807252ba061c85c2724b1f644133f5fdc577b12fdabd2cb3237e5f4b",
+      "median": 334457,
+      "runs": [
+        {
+          "job_id": 70009,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e2-fp8-fusion-job-70009.log",
+          "log_sha256": "5149cdc539c42a3ec6cad13c0ef9c2c6cb9bf0f71fae835a99df2e52d313bc9c",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 334457,
+          "o_cycles": [
+            338286,
+            334359,
+            334457
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e24-native-output-safe-qkv-ffn.json": {
+      "report_sha256": "7e3ae46ca32227a07c478e14a80916ba61f5d04d489db3702d962a680ef227c4",
+      "median": 59027,
+      "runs": [
+        {
+          "job_id": 70339,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e24-native-output-safe-qkv-ffn-job-70339.log",
+          "log_sha256": "2531ce5a00375165b55b0b9cd6865152231c833577d7ed2c30ad514787456c6f",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 59027,
+          "o_cycles": [
+            60489,
+            58636,
+            59027
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e26-output-parallel-epilogue.json": {
+      "report_sha256": "6f318d50e7b329cf3eec25557c5b528ff49fe41e1d252fc2788602432344f9fd",
+      "median": 52579,
+      "runs": [
+        {
+          "job_id": 70361,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e26-output-parallel-epilogue-job-70361.log",
+          "log_sha256": "f4b09ffc70450cc753c9e2bcb125b5f69df30aaba313c45c6255ea13fd05ce64",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 52579,
+          "o_cycles": [
+            55358,
+            51939,
+            52579
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e27-qk-pair-v-two-dot.json": {
+      "report_sha256": "e623c52e0182eb46498972f465707ebecce3006da831d112de8f5ccd6112ff31",
+      "median": 52543,
+      "runs": [
+        {
+          "job_id": 70382,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e27-qk-pair-v-two-dot-job-70382.log",
+          "log_sha256": "31326f34f64da9364f0ef257efdcf3a55bcff308d98b7f86274fb086a34d1925",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 52543,
+          "o_cycles": [
+            54747,
+            52151,
+            52543
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e29-qkv-input-control-repeats.json": {
+      "report_sha256": "e44b5098fd3e8f1de4ad8d85312e34408b4e1366fb212dfebc5f18a0bb1fff7e",
+      "median": 49228,
+      "runs": [
+        {
+          "job_id": 70428,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e29-qkv-input-control-repeats-job-70428.log",
+          "log_sha256": "a1f367c86b95c8715007b9fed077d80599ba15c864c4aebb2f95f2fbb19bb8ad",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 49352,
+          "o_cycles": [
+            52803,
+            49352,
+            49085
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70482,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e29-qkv-input-control-repeats-job-70482.log",
+          "log_sha256": "bc74aa4fd7885d7c7138a6c34fa58f221b73552f1037b631c5d0709699ee8162",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 49228,
+          "o_cycles": [
+            52725,
+            48616,
+            49228
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70493,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e29-qkv-input-control-repeats-job-70493.log",
+          "log_sha256": "33eab985f0b9525bfcca0156d4470ef9d4ddf8d1737a73d0ccffdf11af64a9e1",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 48624,
+          "o_cycles": [
+            53101,
+            48624,
+            48494
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e3-direct-hbm.json": {
+      "report_sha256": "cde7043a8b13bd78eac23d168d1234a77f860152aecd3eda176498101cbfa26b",
+      "median": 143976,
+      "runs": [
+        {
+          "job_id": 70022,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e3-direct-hbm-job-70022.log",
+          "log_sha256": "539f271308b87f59c13d75414f8f786b416d866d6589c409875483ee34514c24",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 143976,
+          "o_cycles": [
+            143976,
+            152649,
+            142824
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e3-output-256rows.json": {
+      "report_sha256": "a47107ba5731b67009ce84ed65d0580ab2826f7471b4053c8e261766a66a9865",
+      "median": 195210,
+      "runs": [
+        {
+          "job_id": 70014,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e3-output-256rows-job-70014.log",
+          "log_sha256": "9bbab675dbc28514e7484e99a06abe41487c512fc1faf8c153691a205c936683",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 195210,
+          "o_cycles": [
+            195324,
+            195210,
+            195060
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e31-rms-repeats.json": {
+      "report_sha256": "0aff8ee39dcddb78c6920dc7b4efe543fb2f96fcb63b76765447453c53f9a71d",
+      "median": 45355,
+      "runs": [
+        {
+          "job_id": 70441,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e31-rms-repeats-job-70441.log",
+          "log_sha256": "22159674f00e6ac4d715be06c27a75b8bbb3208542f59629b42deb89fd5e30fe",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 45355,
+          "o_cycles": [
+            49553,
+            45141,
+            45355
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70459,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e31-rms-repeats-job-70459.log",
+          "log_sha256": "b65a71a5c53aac7c6e4e76544062b8cedfb8975610e6c2b7a0bf2a617ea371ea",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 45992,
+          "o_cycles": [
+            48450,
+            45992,
+            45084
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70465,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e31-rms-repeats-job-70465.log",
+          "log_sha256": "9c534c67a20aeaa0a9c99e7adf4dae6e6cc168d6f60729231b3a36e145334bfa",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 45101,
+          "o_cycles": [
+            49473,
+            45101,
+            45065
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e34-output-row2-combined.json": {
+      "report_sha256": "54b29a3e2356e0d6561d5f34b3f853c557849be2a013ce4dca5b35b6eef64ba4",
+      "median": 47308,
+      "runs": [
+        {
+          "job_id": 70472,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e34-output-row2-combined-job-70472.log",
+          "log_sha256": "407bdc547f92bcd029f7cd974979c2dc1f13febe4b585fd7fad15eb56f8abe3a",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 47308,
+          "o_cycles": [
+            50453,
+            46999,
+            47308
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e37-combined-repeats.json": {
+      "report_sha256": "cf5c8cbc5f062be3bfebbfce1087daf8bf70b26f6f4888e859193c486c836bdb",
+      "median": 45748,
+      "runs": [
+        {
+          "job_id": 70519,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e37-combined-repeats-job-70519.log",
+          "log_sha256": "56a47b19374b7f36a24671830f82ee59ea08c6cc9027a1f609b4285c7e2fa11c",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 45796,
+          "o_cycles": [
+            49642,
+            45159,
+            45796
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70528,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e37-combined-repeats-job-70528.log",
+          "log_sha256": "5e8e99aac62ec98d70c2df3b508c7950ac287c94659d31fac59f9ff4ddefa32c",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 45748,
+          "o_cycles": [
+            49635,
+            45247,
+            45748
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70541,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e37-combined-repeats-job-70541.log",
+          "log_sha256": "30ccabe0e347bbef0cc832d7785887bdd824bc3f6da8c1fbca8b518a6511b074",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 45214,
+          "o_cycles": [
+            49544,
+            45214,
+            45106
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e47-output-sixteen-columns-repeats.json": {
+      "report_sha256": "2788af7df38c8f99664478f10fc9b5b0c65f938f271391d4596fbce1a308239a",
+      "median": 44588,
+      "runs": [
+        {
+          "job_id": 70664,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e47-output-sixteen-columns-repeats-job-70664.log",
+          "log_sha256": "d0699a06ae33eeec663771f6ec73f8b3e6c25cec4679762779d6da1a748687a3",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 44309,
+          "o_cycles": [
+            49067,
+            43476,
+            44309
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70681,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e47-output-sixteen-columns-repeats-job-70681.log",
+          "log_sha256": "2407fa65ceda1a25abaadaee09f4c887cf2b6ad65ddff98e7ea67bf1bd05e309",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 44663,
+          "o_cycles": [
+            49415,
+            44212,
+            44663
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70688,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e47-output-sixteen-columns-repeats-job-70688.log",
+          "log_sha256": "dae040efa018bbc121b646bf0e394946f729c4fcc3f5109d43a37ee9422054f0",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 44588,
+          "o_cycles": [
+            48419,
+            44080,
+            44588
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e53-bf16-output-repeats.json": {
+      "report_sha256": "56414923975442387918a7189c9d3a99c50f47ac4cbbcc48368b4fb6ebc07136",
+      "median": 50882,
+      "runs": [
+        {
+          "job_id": 70806,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e53-bf16-output-repeats-job-70806.log",
+          "log_sha256": "04a2e2c3c8c107188c3df3bb9df6a789f6c70874cf4ca51523a87f45230b2640",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 50882,
+          "o_cycles": [
+            53284,
+            50882,
+            50855
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70818,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e53-bf16-output-repeats-job-70818.log",
+          "log_sha256": "e98d8acb1af286662ce57efdae5dacb6846a3be1e879ba21fe273242b86992f4",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 51261,
+          "o_cycles": [
+            52920,
+            50146,
+            51261
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 70827,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e53-bf16-output-repeats-job-70827.log",
+          "log_sha256": "51aafe4b7931384423a9e477aa3f2a3ca4fbbc9c83dbea2839beb61e3396ae7a",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 50623,
+          "o_cycles": [
+            52917,
+            49906,
+            50623
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e55-memory-layout-control-repeats.json": {
+      "report_sha256": "5e811aa355c1ff923428627c618e48fc609c2b8f5b47d9aea3bd558d4095f69d",
+      "median": 51445,
+      "runs": [
+        {
+          "job_id": 72092,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e55-memory-layout-control-repeats-job-72092.log",
+          "log_sha256": "ce2e2db3a85e87298108057772d9f23854e4fbc86413c85bc5dea0707aa3a1e0",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 51445,
+          "o_cycles": [
+            52902,
+            50624,
+            51445
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 72126,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e55-memory-layout-control-repeats-job-72126.log",
+          "log_sha256": "919f8df373954c738a653b7e1476df05aad76230482da99bdfa564d6bc1eedd9",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 50674,
+          "o_cycles": [
+            52162,
+            50318,
+            50674
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        },
+        {
+          "job_id": 72127,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e55-memory-layout-control-repeats-job-72127.log",
+          "log_sha256": "b7c515d96b0e4d76a4a69fdc9e4c5c3faf815c5bd2e48747e61bf0de329b43d9",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 51557,
+          "o_cycles": [
+            52906,
+            50406,
+            51557
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/e64-output-column-major-screen.json": {
+      "report_sha256": "c945cfbc497b1630c20cc5858247efe2973a726714cb3d6f855d55c7076ae3a2",
+      "median": 128411,
+      "runs": [
+        {
+          "job_id": 72135,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e64-output-column-major-job-72135.log",
+          "log_sha256": "227116b161a362524bcc4db33a479451ebcfc8d36bb38b4491080e985042ae88",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 128411,
+          "o_cycles": [
+            129899,
+            127651,
+            128411
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/e7-qkv-two-clusters.json": {
+      "report_sha256": "ebb6af20a6e690cff4e47ff20457d6487838d42b34bd4b9047c0de56efff5014",
+      "median": 112661,
+      "runs": [
+        {
+          "job_id": 70074,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e7-qkv-two-clusters-job-70074.log",
+          "log_sha256": "2270e8a8f4574fe62422c0214e9759299d43c17e982cc51ffe93518f7d96a68d",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 112661,
+          "o_cycles": [
+            114230,
+            112661,
+            112326
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e8-blockscale-o2-ring32.json": {
+      "report_sha256": "f1339f9f682b45a11da938eadb91dc3d8b51434abe981f2ed76d65099ad2182b",
+      "median": 76147,
+      "runs": [
+        {
+          "job_id": 70107,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e8-blockscale-o2-ring32-job-70107.log",
+          "log_sha256": "06ed8b0d464ed2f613b68f00aa7244600abdc30c8cd32ab32d470c011d4bd13f",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 76147,
+          "o_cycles": [
+            78264,
+            75748,
+            76147
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/e9-upgate2-norm32-parallel-residual.json": {
+      "report_sha256": "767cf51c868b9e88c6302328443cc5d17fb51274b228cd5eba77c6370ce54a13",
+      "median": 69651,
+      "runs": [
+        {
+          "job_id": 70118,
+          "batch_stage": null,
+          "log": "moa-dev/logs/e9-upgate2-norm32-parallel-residual-job-70118.log",
+          "log_sha256": "a17715ab4905a676fb39e05d31bbad53bc3dcfe14b452a9ddc0bfeaa4b933ff9",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 69651,
+          "o_cycles": [
+            70343,
+            68730,
+            69651
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": {
+        "verified": false,
+        "note": "The caller must finish the build before capture. Existing binary and current source were copied independently; timestamps do not prove they match."
+      }
+    },
+    "docs/experiments/m01-remap-screen-e104-after.json": {
+      "report_sha256": "d42a5a2717982063921c89e84ed8b13f3b78ba677800b6b5db393bc7492ac539",
+      "median": 51274,
+      "runs": [
+        {
+          "job_id": 95636,
+          "batch_stage": "control_after",
+          "log": "moa-dev/logs/m01-remap-screen-95636.log",
+          "log_sha256": "314096a69b82ff233f803d5aaa91910cc4d5d33260344e518b96ea1867980e93",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 51274,
+          "o_cycles": [
+            52488,
+            50274,
+            51274
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/m01-remap-screen-e104-before.json": {
+      "report_sha256": "7007a0829277cef3a24b4417e6241eadce96a2d9a60dabc0ad9a4c7fdeab68e7",
+      "median": 51007,
+      "runs": [
+        {
+          "job_id": 95636,
+          "batch_stage": "control_before",
+          "log": "moa-dev/logs/m01-remap-screen-95636.log",
+          "log_sha256": "314096a69b82ff233f803d5aaa91910cc4d5d33260344e518b96ea1867980e93",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 51007,
+          "o_cycles": [
+            52304,
+            50224,
+            51007
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/m02-khalf-screen-e104-after.json": {
+      "report_sha256": "cb3e3aeaf9824b34a8dfb22c594af01e3616312e9f9b76a50395a45a68196778",
+      "median": 50901,
+      "runs": [
+        {
+          "job_id": 95914,
+          "batch_stage": "control_after",
+          "log": "moa-dev/logs/m02-khalf-screen-95914.log",
+          "log_sha256": "d24ad29b74301923861eaabd008f00bc044abff3fbec41e2e815a05a4fcc5549",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 50901,
+          "o_cycles": [
+            52510,
+            50576,
+            50901
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    },
+    "docs/experiments/m02-khalf-screen-e104-before.json": {
+      "report_sha256": "8eb10b41d9623b6d495fda925aac3cb368301d1533b0163aee95a7893dfb21ef",
+      "median": 51010,
+      "runs": [
+        {
+          "job_id": 95914,
+          "batch_stage": "control_before",
+          "log": "moa-dev/logs/m02-khalf-screen-95914.log",
+          "log_sha256": "d24ad29b74301923861eaabd008f00bc044abff3fbec41e2e815a05a4fcc5549",
+          "log_hash_verified": true,
+          "raw_stage_o_median_verified": true,
+          "o_median": 51010,
+          "o_cycles": [
+            52781,
+            50567,
+            51010
+          ],
+          "o_comparisons_passed": 3,
+          "o_correctness": "passed",
+          "total_pass_lines_in_stage": 15,
+          "total_fail_lines_in_stage": 0
+        }
+      ],
+      "provenance_source_binary_relationship": null
+    }
+  },
+  "row_interleave_descriptor_audit": [
+    {
+      "variant": "o-row-control",
+      "graph": "moa-dev/experiments/artifacts/output-row-interleave-schedules/o-row-control-graph.json",
+      "graph_sha256": "1be9881be49075900831e605697bd5283d12f44c4b6e111f1ae3ce1b64100290",
+      "graph_node": "17",
+      "operator_name": "DmaCommand#O24",
+      "inputs": [
+        28
+      ],
+      "outputs": [
+        29
+      ],
+      "row_interleave": 1,
+      "descriptors": [
+        {
+          "index": 0,
+          "src_dimensions": [
+            [
+              "H_1",
+              60,
+              4096
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              245760
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x0)",
+          "dst_dimensions": [
+            [
+              "H_1",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 1,
+          "src_dimensions": [
+            [
+              "H_1",
+              60,
+              4096
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              245760
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x1E0000)",
+          "dst_dimensions": [
+            [
+              "H_1",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 2,
+          "src_dimensions": [
+            [
+              "H_1",
+              60,
+              4096
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              245760
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x3C0000)",
+          "dst_dimensions": [
+            [
+              "H_1",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 3,
+          "src_dimensions": [
+            [
+              "H_1",
+              60,
+              4096
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              245760
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x5A0000)",
+          "dst_dimensions": [
+            [
+              "H_1",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 4,
+          "src_dimensions": [
+            [
+              "H_1",
+              60,
+              4096
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              245760
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x780000)",
+          "dst_dimensions": [
+            [
+              "H_1",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 5,
+          "src_dimensions": [
+            [
+              "H_1",
+              60,
+              4096
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              245760
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x960000)",
+          "dst_dimensions": [
+            [
+              "H_1",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 6,
+          "src_dimensions": [
+            [
+              "H_1",
+              60,
+              4096
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              245760
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0xB40000)",
+          "dst_dimensions": [
+            [
+              "H_1",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 7,
+          "src_dimensions": [
+            [
+              "H_1",
+              60,
+              4096
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              245760
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0xD20000)",
+          "dst_dimensions": [
+            [
+              "H_1",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_60",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)"
+        }
+      ],
+      "packet_bytes": 256,
+      "distinct_source_packets": 61440,
+      "source_range_exclusive": [
+        0,
+        15728640
+      ],
+      "distinct_destination_packets": 61440,
+      "destination_slices": 512,
+      "destination_per_slice_range_exclusive": [
+        0,
+        30720
+      ],
+      "mapping_errors": 0,
+      "status": "PASS",
+      "coverage": "Every emitted 256B packet enumerated; all input bytes once, expected H/K producer mapping and all local DM packets once. Does not model transfer order, HBM bank/controller scheduling, physical transaction volume or NPU performance; consumer correctness remains logical source proof/limited NPU."
+    },
+    {
+      "variant": "o-row-two",
+      "graph": "moa-dev/experiments/artifacts/output-row-interleave-schedules/o-row-two-graph.json",
+      "graph_sha256": "e77c5236e83e00712ce1e0f7ab24e06d351540afafea064db2c1fb9bb8f81086",
+      "graph_node": "17",
+      "operator_name": "DmaCommand#O24",
+      "inputs": [
+        28
+      ],
+      "outputs": [
+        29
+      ],
+      "row_interleave": 2,
+      "descriptors": [
+        {
+          "index": 0,
+          "src_dimensions": [
+            [
+              "H_2",
+              60,
+              8192
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              491520
+            ],
+            [
+              "H_1",
+              2,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x0)",
+          "dst_dimensions": [
+            [
+              "H_2",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              67108864
+            ],
+            [
+              "H_1",
+              2,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 1,
+          "src_dimensions": [
+            [
+              "H_2",
+              60,
+              8192
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              491520
+            ],
+            [
+              "H_1",
+              2,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x1E0000)",
+          "dst_dimensions": [
+            [
+              "H_2",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              67108864
+            ],
+            [
+              "H_1",
+              2,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 2,
+          "src_dimensions": [
+            [
+              "H_2",
+              60,
+              8192
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              491520
+            ],
+            [
+              "H_1",
+              2,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x3C0000)",
+          "dst_dimensions": [
+            [
+              "H_2",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              67108864
+            ],
+            [
+              "H_1",
+              2,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 3,
+          "src_dimensions": [
+            [
+              "H_2",
+              60,
+              8192
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              491520
+            ],
+            [
+              "H_1",
+              2,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x5A0000)",
+          "dst_dimensions": [
+            [
+              "H_2",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              67108864
+            ],
+            [
+              "H_1",
+              2,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 4,
+          "src_dimensions": [
+            [
+              "H_2",
+              60,
+              8192
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              491520
+            ],
+            [
+              "H_1",
+              2,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x780000)",
+          "dst_dimensions": [
+            [
+              "H_2",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              67108864
+            ],
+            [
+              "H_1",
+              2,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 5,
+          "src_dimensions": [
+            [
+              "H_2",
+              60,
+              8192
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              491520
+            ],
+            [
+              "H_1",
+              2,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x960000)",
+          "dst_dimensions": [
+            [
+              "H_2",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              67108864
+            ],
+            [
+              "H_1",
+              2,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 6,
+          "src_dimensions": [
+            [
+              "H_2",
+              60,
+              8192
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              491520
+            ],
+            [
+              "H_1",
+              2,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0xB40000)",
+          "dst_dimensions": [
+            [
+              "H_2",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              67108864
+            ],
+            [
+              "H_1",
+              2,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 7,
+          "src_dimensions": [
+            [
+              "H_2",
+              60,
+              8192
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              491520
+            ],
+            [
+              "H_1",
+              2,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0xD20000)",
+          "dst_dimensions": [
+            [
+              "H_2",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_120",
+              2,
+              67108864
+            ],
+            [
+              "H_1",
+              2,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)"
+        }
+      ],
+      "packet_bytes": 256,
+      "distinct_source_packets": 61440,
+      "source_range_exclusive": [
+        0,
+        15728640
+      ],
+      "distinct_destination_packets": 61440,
+      "destination_slices": 512,
+      "destination_per_slice_range_exclusive": [
+        0,
+        30720
+      ],
+      "mapping_errors": 0,
+      "status": "PASS",
+      "coverage": "Every emitted 256B packet enumerated; all input bytes once, expected H/K producer mapping and all local DM packets once. Does not model transfer order, HBM bank/controller scheduling, physical transaction volume or NPU performance; consumer correctness remains logical source proof/limited NPU."
+    },
+    {
+      "variant": "o-row-four",
+      "graph": "moa-dev/experiments/artifacts/output-row-interleave-schedules/o-row-four-graph.json",
+      "graph_sha256": "c4ebeb3ab5a1b144f4af62ab6fa67d24313b61f7038d0168079d85443e027569",
+      "graph_node": "17",
+      "operator_name": "DmaCommand#O24",
+      "inputs": [
+        28
+      ],
+      "outputs": [
+        29
+      ],
+      "row_interleave": 4,
+      "descriptors": [
+        {
+          "index": 0,
+          "src_dimensions": [
+            [
+              "H_4",
+              60,
+              16384
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x0)",
+          "dst_dimensions": [
+            [
+              "H_4",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 1,
+          "src_dimensions": [
+            [
+              "H_4",
+              60,
+              16384
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x1E0000)",
+          "dst_dimensions": [
+            [
+              "H_4",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 2,
+          "src_dimensions": [
+            [
+              "H_4",
+              60,
+              16384
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x3C0000)",
+          "dst_dimensions": [
+            [
+              "H_4",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 3,
+          "src_dimensions": [
+            [
+              "H_4",
+              60,
+              16384
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x5A0000)",
+          "dst_dimensions": [
+            [
+              "H_4",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 4,
+          "src_dimensions": [
+            [
+              "H_4",
+              60,
+              16384
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x780000)",
+          "dst_dimensions": [
+            [
+              "H_4",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 5,
+          "src_dimensions": [
+            [
+              "H_4",
+              60,
+              16384
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0x960000)",
+          "dst_dimensions": [
+            [
+              "H_4",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 6,
+          "src_dimensions": [
+            [
+              "H_4",
+              60,
+              16384
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0xB40000)",
+          "dst_dimensions": [
+            [
+              "H_4",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)"
+        },
+        {
+          "index": 7,
+          "src_dimensions": [
+            [
+              "H_4",
+              60,
+              16384
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              4096
+            ],
+            [
+              "Qs_512",
+              8,
+              512
+            ],
+            [
+              "H_240",
+              2,
+              983040
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "src_base": "Dram(chip=0, in_chip=0xD20000)",
+          "dst_dimensions": [
+            [
+              "H_4",
+              60,
+              512
+            ],
+            [
+              "Qs_256",
+              2,
+              256
+            ],
+            [
+              "H_1",
+              4,
+              33554432
+            ],
+            [
+              "Qs_512",
+              8,
+              4194304
+            ],
+            [
+              "H_240",
+              2,
+              134217728
+            ],
+            [
+              "Qs_1",
+              1,
+              256
+            ]
+          ],
+          "dst_base": "Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)"
+        }
+      ],
+      "packet_bytes": 256,
+      "distinct_source_packets": 61440,
+      "source_range_exclusive": [
+        0,
+        15728640
+      ],
+      "distinct_destination_packets": 61440,
+      "destination_slices": 512,
+      "destination_per_slice_range_exclusive": [
+        0,
+        30720
+      ],
+      "mapping_errors": 0,
+      "status": "PASS",
+      "coverage": "Every emitted 256B packet enumerated; all input bytes once, expected H/K producer mapping and all local DM packets once. Does not model transfer order, HBM bank/controller scheduling, physical transaction volume or NPU performance; consumer correctness remains logical source proof/limited NPU."
+    }
+  ],
+  "proposed_pair4_logical_geometry": {
+    "name": "pair-preserving four-way H ingress",
+    "classification": "unexecuted exact mapping; reopening an existing row-interleave family",
+    "h": "1920*c+480*g+8*t+2*r+j",
+    "slice": "64*g+16*r+q",
+    "ranges": {
+      "c": 2,
+      "g": 4,
+      "r": 4,
+      "q": 16,
+      "t": 60,
+      "j": 2
+    },
+    "valid_weight_bytes_per_slice": 30720,
+    "k_shards": 16,
+    "f32_result_bytes": 15360,
+    "logical_contiguous_gather_units": {
+      "control": {
+        "count": 32,
+        "bytes_each": 480
+      },
+      "candidate": {
+        "count": 1920,
+        "bytes_each": 8
+      },
+      "unit_count_ratio": 60
+    },
+    "logical_row_coverage": 3840,
+    "logical_pair_destination_coverage": 1920,
+    "scope_limit": "Python logical geometry only; no candidate source/compile/descriptor, support, bounds in emitted graph or NPU result. Eight-byte units are predicted source/destination contiguous units, not measured HBM/TDMA transactions."
+  },
+  "source_provenance_checks": {
+    "m01_verify_check": "PASS; 4 frozen sources, 3840 row reduction tags, 5 builds and stored Arena/package verification",
+    "m02_verify_check": "PASS; 4 frozen sources, 2 ownership maps, 6 builds, 4 Arena stages/60 comparisons"
+  },
+  "calculated_costs": {
+    "weight_payload_bytes": 15728640,
+    "e104_tile_bytes": 30720,
+    "old_8col_tile_bytes": 30720,
+    "old_4col_sweep_tile_bytes": 30720,
+    "old_2col_sweep_and_m02_tile_bytes": 30720,
+    "m01_compact_partial_bytes": 245760,
+    "m01_additional_valid_dm_edges_dma": 983040,
+    "m01_additional_valid_dm_edges_switch": 491520,
+    "m02_padded_partial_bytes": 61440,
+    "m02_valid_partial_bytes": 30720,
+    "m02_activation_replica_bytes": 2097152,
+    "e104_activation_replica_bytes": 262144,
+    "c09_static_percent": 0.7085428980505792,
+    "scale_fusion_static_percent": 0.56536583575022,
+    "m02_v4_vs_v3_static_percent": -13.447197498195818,
+    "m02_v4_vs_v3_npu_percent": 12.94235322419317
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "scope": "Read-only arithmetic on existing evidence. No new compile, Arena run, or speedup claim.",
+  "inputs": [
+    {
+      "path": "moa-dev/experiments/candidates/e104-qkv-output-profile/profile-analysis.json",
+      "sha256": "8dc0534e7f11aa0d39e798cc95bebe0f7a7ac9f77d9ba456f331d4f3d2d94821"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/c09-output-pipeline/static-screen.json",
+      "sha256": "0a80d02bc19f6c535cfce2d582cedadb3da98f2c54a157f7f546aa2c71e8ae86"
+    }
+  ],
+  "two_stage_assumptions": [
+    "Exactly two equal row stages; each costs half the observed whole weight interval and dot/reduction interval.",
+    "Same total ingress throughput despite concurrent Main consumption; no extra startup, copies, table preparation, or register/resource waits.",
+    "Input and a reusable lookup table are ready at their original observed times. Public SDK table reuse is NOT established.",
+    "The final gather/scale/RMS/residual and wrapper are excluded, not presumed faster.",
+    "This is a conditional sensitivity model, not a hardware lower bound or a prediction for C09."
+  ],
+  "observations": [
+    {
+      "job": 104914,
+      "run": 0,
+      "cluster": 0,
+      "weight_interval": 26532,
+      "dot_reduce_interval": 12013,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6006.5
+    },
+    {
+      "job": 104914,
+      "run": 0,
+      "cluster": 1,
+      "weight_interval": 26338,
+      "dot_reduce_interval": 12025,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6012.5
+    },
+    {
+      "job": 104914,
+      "run": 1,
+      "cluster": 0,
+      "weight_interval": 26998,
+      "dot_reduce_interval": 12015,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6007.5
+    },
+    {
+      "job": 104914,
+      "run": 1,
+      "cluster": 1,
+      "weight_interval": 26464,
+      "dot_reduce_interval": 12021,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6010.5
+    },
+    {
+      "job": 104914,
+      "run": 2,
+      "cluster": 0,
+      "weight_interval": 27102,
+      "dot_reduce_interval": 12005,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6002.5
+    },
+    {
+      "job": 104914,
+      "run": 2,
+      "cluster": 1,
+      "weight_interval": 26708,
+      "dot_reduce_interval": 12021,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6010.5
+    },
+    {
+      "job": 104933,
+      "run": 0,
+      "cluster": 0,
+      "weight_interval": 26764,
+      "dot_reduce_interval": 12013,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6006.5
+    },
+    {
+      "job": 104933,
+      "run": 0,
+      "cluster": 1,
+      "weight_interval": 26238,
+      "dot_reduce_interval": 12023,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6011.5
+    },
+    {
+      "job": 104933,
+      "run": 1,
+      "cluster": 0,
+      "weight_interval": 26872,
+      "dot_reduce_interval": 12011,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6005.5
+    },
+    {
+      "job": 104933,
+      "run": 1,
+      "cluster": 1,
+      "weight_interval": 26430,
+      "dot_reduce_interval": 12017,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6008.5
+    },
+    {
+      "job": 104933,
+      "run": 2,
+      "cluster": 0,
+      "weight_interval": 27610,
+      "dot_reduce_interval": 12005,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6002.5
+    },
+    {
+      "job": 104933,
+      "run": 2,
+      "cluster": 1,
+      "weight_interval": 27616,
+      "dot_reduce_interval": 12013,
+      "weight_end_to_dot_begin": 2,
+      "conditional_two_stage_saving": 6006.5
+    }
+  ],
+  "medians": {
+    "weight_interval": 26736.0,
+    "dot_reduce_interval": 12014.0,
+    "weight_end_to_dot_begin": 2.0,
+    "conditional_two_stage_saving": 6007.0
+  },
+  "c09_static": {
+    "control_makespan": 27239,
+    "candidate_makespan": 27432,
+    "overlap": 1825,
+    "control_weight_interval": 13383,
+    "control_dot_reduce_interval": 5063,
+    "scope": "Compiler estimates; C09 has no NPU result. Ratios against trace durations are not a calibration model."
+  },
+  "logical_accounting": {
+    "weight_hbm_bytes": 15728640,
+    "weight_dm_bytes_per_slice": 30720,
+    "unique_input_hbm_bytes": 8192,
+    "input_dm_replica_bytes": 262144,
+    "complete_f32_output_bytes": 15360,
+    "minimum_pair_for_8byte_f32_commit": 2,
+    "candidate_extra_weight_materialization_bytes": 0,
+    "scope": "Payload/representation accounting, not measured bus traffic. Candidate zero extra weight materialization is a design requirement, not an emitted-graph result."
+  }
+}

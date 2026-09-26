@@ -1,3 +1,12 @@
+# 2026-09-27 O weight ingress 연구 완료
+
+[O 전송·배치 종합 분석](../research/o-weight-ingress-20260927.md)을 추가했다.
+현재 O와 동일한 image의 graph로 15 MiB의 정확한 source coverage와 DMN 교대를 확인했다.
+첫 진단 후보는 행쌍 보존 4-way ingress + 기존 16K F32 합산 + 직접 H480 gather다.
+현재 gather 32×480B가 예상 1920×8B로 분할되는 비용까지 전체 경로에서 비교해야 한다.
+C09는 정적 +0.71% 후 NPU 미실행이므로 최초 하드웨어 진단의 가치가 남아 있다.
+이번에는 새 compile/Arena/runtime 변경·공식 제출이 없다. 채택본은 아래 E122다.
+
 # 2026-09-27 E122 채택 및 전송 계약 재검증
 
 현재 runtime은 **E122 / `baseline-e122` / `c3553ab`**다. M03 원본을 그대로 채택했다.
@@ -22,12 +31,12 @@ K/V padded destination DMA의 실제 source 범위 초과를 확인했다. 원�
 다음 미실행 질문은 O weight 준비 지연의 DMA 순서/DM 배치 민감도다. 단독 전송
 진단을 커널 speedup으로 계산하지 않고, 유망한 배치만 완성 O 경로에서 검증한다.
 
-# 현재 구조 실험
+# 이전 구조 실험 기록 — 아래의 현재/미실행은 당시 상태
 
 작업 폴더: `/home/jihwan38/moa-workspace`. Private GitHub: `jihwan38/moa-workspace`.
 최신 조사: `research/rngd-dataflow-20260925` / 시작 commit `f125ca6`.
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
-채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
+당시 채택 runtime: E104. 최신 채택본은 문서 상단 및 [baseline/current.json](../../baseline/current.json)의 E122다.
 
 ## 최신 감사 — 10위권 격차와 누적 실험 재평가, 2026-09-27
 
