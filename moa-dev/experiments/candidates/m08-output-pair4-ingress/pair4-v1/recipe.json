@@ -1,0 +1,64 @@
+{
+  "id": "M08",
+  "base_commit": "c3553ab87046fb4d59c10149a82517f8440bba27",
+  "comparison_recipe": "baseline/e122.json",
+  "source_reference_build": "moa-dev/experiments/candidates/m03-producer-local-ffn/build-m03-native-local-v1-repro.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "decoder_feedforward"
+  ],
+  "target_kernel": "sliding_attention_output",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "scope": "Local producer/consumer layout replacement; reopens historical O row-interleave family, not a new architecture family.",
+  "record_parent": "63a5c6dae0faf8dc77a166d743b9873d22bda45d",
+  "prior_related": [
+    "E24 row2/row4 kept weight static interval and added BF16 restore Switch; no standalone NPU",
+    "E34 row2 plus old epilogue NPU +4.31%",
+    "E64 whole weight repack +149.61%",
+    "M01 partial remap +8.74%/+18.65%",
+    "M02 cluster K-half +55.00%/+75.06%"
+  ],
+  "graph": "HBM original FP8 -> pair-preserving4wayH DM -> Main inline BF16 lookup/dot with unchanged BF16 x TRF -> F32 contiguous16K sum -> two-F328B commit -> direct canonical H480x8 gather -> existing F32 channel scale -> first BF16 -> RMS/residual/store",
+  "layout": {
+    "h": "1920*c+480*g+8*t+2*r+j",
+    "slice": "64*g+16*r+q",
+    "k": "256*q+u",
+    "ranges": {
+      "c": 2,
+      "g": 4,
+      "r": 4,
+      "t": 60,
+      "j": 2,
+      "q": 16,
+      "u": 256
+    }
+  },
+  "unchanged_costs": [
+    "15728640 FP8 weight bytes,30720B per slice",
+    "262144 logical BF16 activation replica bytes;512B/slice TRF",
+    "one lookup/dot stream and16K stream reduction",
+    "15360B F32 gather payload",
+    "scale/RMS/residual numerical boundaries"
+  ],
+  "removed_costs": [
+    "No removed stage relative to E122; only ingress and gather address order change",
+    "Avoid historical BF16 restore Switch and whole weight repack by direct F32 gather"
+  ],
+  "new_costs": [
+    "Expected final gather contiguous packets32x480B ->1920x8B; no claim equal DMA service cost",
+    "Altered HBM source loop strides, allocation/queue timing may change"
+  ],
+  "lifetimes": {
+    "weight": "FP8 DM through complete dot",
+    "x": "BF16 TRF throughout one dot",
+    "result": "F32 row owners until canonical gather completes",
+    "scale": "F32 VRF through existing channel-scale operation"
+  },
+  "diagnostic_question": "Does changed ingress ordering reduce weight-ready delay in the complete O while preserving exact bytes, and does final F32 gather consume the benefit?",
+  "diagnostic_design": "Reuse full O engine markers to observe weight and gather in the real concurrent context; avoid a new artificial roundtrip if the markers are sufficient. E122 whole controls bracket info/trace stages and unchanged official candidate host.",
+  "stop_condition": "First verify actual descriptor coverage/source bounds/destination/K mapping and F32 reduce/scale boundary. Repair identified supported source alignment/type errors concretely, preserving failures. Run bounded full O screen/profile if feasible. Close measured regression or <5% target gain without tile sweeps; promising gain gets independent repeats and expanded correctness.",
+  "adopted": false,
+  "hardware_status": "not_run"
+}

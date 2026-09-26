@@ -1,5 +1,11 @@
 # Experiment ledger
 
+September28 [E125 / M08 O pair-four ingress](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/README.md)
+passes exact descriptor checks and57 basic comparisons in Arena105767, but whole O
+58095 vs E12251418/50906 regresses13.55% against the bracket. Separate trace shows
+no weight-interval reduction (26769→27190) and larger F32 gather (1201→8222).
+Closed without tuning/repeats/adoption. E122 remains current; original three inputs only.
+
 September27 [E124 corrected joint QKV](../../moa-dev/experiments/candidates/c08-joint-ingress/README.md)
 reproduces the exact historical E105 image and finds invalid K/V padded ingress.
 Compact loads plus exact packet copies restore basic accuracy:45 comparisons PASS.

@@ -1,0 +1,29 @@
+{
+  "origin_commit": "c3553ab87046fb4d59c10149a82517f8440bba27",
+  "origin_path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+  "origin_sha256": "380e57d6502e26086bd6d933ce762f4ad5de18587d52a8ef4aac7fa87e3b9c9f",
+  "candidate_path": "/tmp/moa-o-pair4-projection-v1.rs",
+  "candidate_sha256": "ae4f6aba8e50dcb6e3118a5a9b25ba105e4dd63a9087148bd716f568232d78bd",
+  "only_project_output_and_output_columns_alias_changed": true,
+  "mapping": "h=1920*c+480*g+8*t+2*r+j; slice=64*g+16*r+q; K=256*q+u",
+  "logical_weight_coverage": {
+    "packets": 61440,
+    "packet_bytes": 256,
+    "total_bytes": 15728640,
+    "unique": true,
+    "bounded": true,
+    "slices": 512,
+    "bytes_per_slice": 30720
+  },
+  "f32_gather": {
+    "output_rows": 3840,
+    "logical_bytes": 15360,
+    "proposed_contiguous_pair_bytes": 8,
+    "source_pair_byte": "8*t",
+    "destination_pair_byte": "32*t+8*r",
+    "aligned_8B": true,
+    "proposed_pair_packets": 1920
+  },
+  "precision_contract": "BF16 activation and FP8-to-BF16 lookup; same K256 dot then contiguous16-column F32 sum; unchanged F32 channel scale then BF16 cast; external RMS/residual unchanged",
+  "verification_scope": "Python coordinate/scope assertions and manual SDK type review only. No Rust typecheck, compile, host or NPU execution performed."
+}

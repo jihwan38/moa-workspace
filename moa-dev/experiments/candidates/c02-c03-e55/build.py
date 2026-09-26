@@ -37,7 +37,7 @@ def run(args, log=None):
 
 def build(variant, extra=False, label=None, edges=False, *, target_kernel=None,
           changed_sources=None, compile_only=False, expected_images=None,
-          expected_source_inputs=None):
+          expected_source_inputs=None, dump_graph=False):
     label = label or variant + ("-edges" if edges else "-extra" if extra else "")
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", label):
         raise SystemExit("Use a simple alphanumeric/hyphen/underscore label")
@@ -105,8 +105,12 @@ def build(variant, extra=False, label=None, edges=False, *, target_kernel=None,
               "source_inputs_verified_in_container": True, "adopted": False, "target_kernel": target_kernel, "changed_sources": list(changed.values())}
     try:
         print(f"{label}: compiling exact {target_kernel}", flush=True)
-        run(env + ["cargo", "furiosa-opt", "compile", "ops::" + target_kernel,
-                   "--exact", "--dump-schedule", "schedule.json"], out / "compile.log")
+        compile_command = env + ["cargo", "furiosa-opt", "compile", "ops::" + target_kernel,
+                                 "--exact", "--dump-schedule", "schedule.json"]
+        if dump_graph:
+            compile_command += ["--dump-graph", "graph.json"]
+        record["compile_command"] = compile_command
+        run(compile_command, out / "compile.log")
         record["exact_compile_exit_code"] = 0
         image_dir = container + "/kernels/furiosa-opt-gemma4"
         run(["docker", "cp", f"moa2026-dev:{container}/schedule.json", str(out / "schedule.json")])
@@ -116,6 +120,9 @@ def build(variant, extra=False, label=None, edges=False, *, target_kernel=None,
         record["static_cycles"] = max(op["lifetime"]["end"] for op in schedule["instructions"])
         record["schedule"] = digest((out / "schedule.json").read_bytes())
         record["exact_image"] = digest((out / "exact-kernel.bin").read_bytes())
+        if dump_graph:
+            run(["docker", "cp", f"moa2026-dev:{container}/graph.json", str(out / "graph.json")])
+            record["graph"] = digest((out / "graph.json").read_bytes())
         if compile_only:
             record["compile_only"] = True
             print(f"{label}: static {record['static_cycles']}; compile-only gate complete", flush=True)

@@ -1,0 +1,4840 @@
+{
+  "status": "analyzed",
+  "label": "m08-pair4-v1",
+  "scope": "O-only diagnostic trace comparison plus separate standard-host complete-O summary (PROFILE=info)",
+  "sources": {
+    "compile_record": {
+      "path": "moa-dev/experiments/candidates/m08-output-pair4-ingress/build-m08-pair4-v1-repro.json",
+      "bytes": 17361,
+      "sha256": "733dee4af08fb8ab68def497e19914260589ba29ded236bd7f6d859fa4df322a"
+    },
+    "control_build": {
+      "path": "moa-dev/experiments/candidates/e104-qkv-output-profile/build-profile-v1.json",
+      "bytes": 18922,
+      "sha256": "d86ae4926bfc977db557fb8832d7d6c7ad6ef4256f4ef6acb44e038e64528a14"
+    },
+    "candidate_schedule": {
+      "path": "moa-dev/experiments/candidates/m08-output-pair4-ingress/evidence/m08-pair4-v1/schedule.json",
+      "bytes": 20835,
+      "sha256": "93e95c18a159ebd62d291b20ce976a29c98fc415c85a090097086c9d9e26bcf7"
+    },
+    "control_schedule": {
+      "path": "moa-dev/experiments/candidates/e104-qkv-output-profile/evidence/profile-v1/sliding_attention_output.json",
+      "bytes": 20636,
+      "sha256": "0892c22c587d52873e82c9f7380e1f000154b471fb4fce5eb5e8c63382125084"
+    },
+    "shared_e104_analyzer": {
+      "path": "moa-dev/experiments/candidates/e104-qkv-output-profile/analyze.py",
+      "bytes": 21415,
+      "sha256": "b3171276618ccb6c290600a32b784cf08d10e927e96ca77f4b051823bb55f568"
+    },
+    "analyzer": {
+      "path": "moa-dev/experiments/candidates/m08-output-pair4-ingress/analyze_profile.py",
+      "bytes": 17449,
+      "sha256": "7f70793542c25b78df7540d224ee7df5f600d6d166fc1d0f67bb05b204323165"
+    },
+    "package_record": {
+      "path": "moa-dev/experiments/candidates/m08-output-pair4-ingress/package-m08-pair4-v1.json",
+      "bytes": 24131,
+      "sha256": "967b269745d0443d0da88c45082d9a887a0edb0a89c67ba0d0ea64a1ca7ef6f0"
+    }
+  },
+  "mapping_method": "Complete ordered native marker-kind / scheduled operation-kind correspondence, all22 operations in every run/cluster, weight/table/TRF\u2192dot and dot\u2192reshape\u2192gather\u2192scale lineage checks.",
+  "limitations": [
+    "Marker intervals can include dependency and queue waits; they are not HBM bandwidth or DM-bank counters.",
+    "Every event subtraction stays within one launch and one cluster's Task clock. Across launches only relative windows or durations are compared.",
+    "Overlapping durations and their medians are never summed into predicted savings.",
+    "Compiler cycles have no fixed conversion to hardware cycles. Diagnostic hosts/profile modes differ from the whole benchmark host.",
+    "All three runs and both clusters are retained. Six observations are not six independent benchmark allocations.",
+    "Whole-kernel summary is separate from profile windows; neither is an official competition score."
+  ],
+  "jobs": {
+    "105767": {
+      "source_result": {
+        "path": "moa-dev/experiments/candidates/m08-output-pair4-ingress/e125-m08-pair4-screen-job-105767-results.json",
+        "bytes": 142305,
+        "sha256": "773b1783d13d3d0a10e8005c7d81e50ce2c6a4d9cd185392ee85ad0e730dd081"
+      },
+      "sides": {
+        "control": {
+          "profile_cycles": {
+            "median": 51115,
+            "values": [
+              53261,
+              50549,
+              51115
+            ]
+          },
+          "task_marker_max_clusters_matches_reported_cycles": true,
+          "observations": [
+            {
+              "job": 105767,
+              "side": "control",
+              "run": 0,
+              "cluster": 0,
+              "task_cycles": 53261,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 26504,
+                "input_ready_from_task": 10803,
+                "input_ready_to_dot_begin": 20727,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 21189,
+                "dot_begin_from_task": 31530,
+                "dot_and_16slice_reduce_interval": 12023,
+                "dot_end_to_task_end_tail": 9708,
+                "f32_head_gather_interval": 1171,
+                "f32_head_gather_end_to_scale_begin": 2090,
+                "scale_begin_to_task_end": 6445,
+                "rms_begin_to_rms_end": 3796,
+                "output_store_end_to_task_end": 7,
+                "residual_vrf_ready_to_residual_add": 14596,
+                "weight_begin_from_task": 5024,
+                "weight_end_from_task": 31528,
+                "dot_end_from_task": 43553,
+                "gather_begin_from_task": 43555,
+                "gather_end_from_task": 44726,
+                "channel_scale_begin_from_task": 46816
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 98,
+                  "end_from_task": 2058,
+                  "duration": 1960
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 4962,
+                  "end_from_task": 10341,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 5016,
+                  "end_from_task": 6652,
+                  "duration": 1636
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 5024,
+                  "end_from_task": 31528,
+                  "duration": 26504
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 10343,
+                  "end_from_task": 10803,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 31530,
+                  "end_from_task": 43553,
+                  "duration": 12023
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 31834,
+                  "end_from_task": 33643,
+                  "duration": 1809
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 33645,
+                  "end_from_task": 34688,
+                  "duration": 1043
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 33651,
+                  "end_from_task": 34966,
+                  "duration": 1315
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 34968,
+                  "end_from_task": 35988,
+                  "duration": 1020
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 34974,
+                  "end_from_task": 36238,
+                  "duration": 1264
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 36240,
+                  "end_from_task": 36971,
+                  "duration": 731
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 43555,
+                  "end_from_task": 44726,
+                  "duration": 1171
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 46816,
+                  "end_from_task": 47769,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 47770,
+                  "end_from_task": 48810,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 48811,
+                  "end_from_task": 49233,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 49234,
+                  "end_from_task": 49611,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 49612,
+                  "end_from_task": 50254,
+                  "duration": 642
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 50256,
+                  "end_from_task": 50599,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 50600,
+                  "end_from_task": 51566,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 51567,
+                  "end_from_task": 52395,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 52396,
+                  "end_from_task": 53254,
+                  "duration": 858
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 504,
+                  "end_from_task": 43554
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 44728,
+                  "end_from_task": 46815
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 53256,
+                  "end_from_task": 53258
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 53261
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "control",
+              "run": 0,
+              "cluster": 1,
+              "task_cycles": 52752,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 26706,
+                "input_ready_from_task": 10883,
+                "input_ready_to_dot_begin": 20929,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 21391,
+                "dot_begin_from_task": 31812,
+                "dot_and_16slice_reduce_interval": 12025,
+                "dot_end_to_task_end_tail": 8915,
+                "f32_head_gather_interval": 1231,
+                "f32_head_gather_end_to_scale_begin": 6,
+                "scale_begin_to_task_end": 7676,
+                "rms_begin_to_rms_end": 3556,
+                "output_store_end_to_task_end": 2174,
+                "residual_vrf_ready_to_residual_add": 13546,
+                "weight_begin_from_task": 5104,
+                "weight_end_from_task": 31810,
+                "dot_end_from_task": 43837,
+                "gather_begin_from_task": 43839,
+                "gather_end_from_task": 45070,
+                "channel_scale_begin_from_task": 45076
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 96,
+                  "end_from_task": 2300,
+                  "duration": 2204
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 5043,
+                  "end_from_task": 10421,
+                  "duration": 5378
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 5096,
+                  "end_from_task": 6994,
+                  "duration": 1898
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 5104,
+                  "end_from_task": 31810,
+                  "duration": 26706
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 10423,
+                  "end_from_task": 10883,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 31812,
+                  "end_from_task": 43837,
+                  "duration": 12025
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 32106,
+                  "end_from_task": 32289,
+                  "duration": 183
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 32840,
+                  "end_from_task": 34298,
+                  "duration": 1458
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 32855,
+                  "end_from_task": 33049,
+                  "duration": 194
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 34300,
+                  "end_from_task": 35316,
+                  "duration": 1016
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 34312,
+                  "end_from_task": 34476,
+                  "duration": 164
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 35318,
+                  "end_from_task": 36041,
+                  "duration": 723
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 43839,
+                  "end_from_task": 45070,
+                  "duration": 1231
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 45076,
+                  "end_from_task": 46029,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 46030,
+                  "end_from_task": 47070,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 47071,
+                  "end_from_task": 47493,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 47494,
+                  "end_from_task": 47871,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 47872,
+                  "end_from_task": 48034,
+                  "duration": 162
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 48276,
+                  "end_from_task": 48619,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 48620,
+                  "end_from_task": 49586,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 49587,
+                  "end_from_task": 50415,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 50416,
+                  "end_from_task": 50578,
+                  "duration": 162
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 502,
+                  "end_from_task": 43838
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 45072,
+                  "end_from_task": 45075
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 50580,
+                  "end_from_task": 52749
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 52752
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "control",
+              "run": 1,
+              "cluster": 0,
+              "task_cycles": 50549,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 27044,
+                "input_ready_from_task": 7901,
+                "input_ready_to_dot_begin": 21267,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 21729,
+                "dot_begin_from_task": 29168,
+                "dot_and_16slice_reduce_interval": 12015,
+                "dot_end_to_task_end_tail": 9366,
+                "f32_head_gather_interval": 1171,
+                "f32_head_gather_end_to_scale_begin": 1748,
+                "scale_begin_to_task_end": 6445,
+                "rms_begin_to_rms_end": 3796,
+                "output_store_end_to_task_end": 7,
+                "residual_vrf_ready_to_residual_add": 13700,
+                "weight_begin_from_task": 2122,
+                "weight_end_from_task": 29166,
+                "dot_end_from_task": 41183,
+                "gather_begin_from_task": 41185,
+                "gather_end_from_task": 42356,
+                "channel_scale_begin_from_task": 44104
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 98,
+                  "end_from_task": 2058,
+                  "duration": 1960
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 2060,
+                  "end_from_task": 7439,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 2114,
+                  "end_from_task": 3798,
+                  "duration": 1684
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 2122,
+                  "end_from_task": 29166,
+                  "duration": 27044
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 7441,
+                  "end_from_task": 7901,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 29168,
+                  "end_from_task": 41183,
+                  "duration": 12015
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 29472,
+                  "end_from_task": 31420,
+                  "duration": 1948
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 31422,
+                  "end_from_task": 32430,
+                  "duration": 1008
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 31428,
+                  "end_from_task": 32670,
+                  "duration": 1242
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 32672,
+                  "end_from_task": 33706,
+                  "duration": 1034
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 32678,
+                  "end_from_task": 34430,
+                  "duration": 1752
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 34432,
+                  "end_from_task": 35155,
+                  "duration": 723
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 41185,
+                  "end_from_task": 42356,
+                  "duration": 1171
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 44104,
+                  "end_from_task": 45057,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 45058,
+                  "end_from_task": 46098,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 46099,
+                  "end_from_task": 46521,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 46522,
+                  "end_from_task": 46899,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 46900,
+                  "end_from_task": 47542,
+                  "duration": 642
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 47544,
+                  "end_from_task": 47887,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 47888,
+                  "end_from_task": 48854,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 48855,
+                  "end_from_task": 49683,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 49684,
+                  "end_from_task": 50542,
+                  "duration": 858
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 504,
+                  "end_from_task": 41184
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 42358,
+                  "end_from_task": 44103
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 50544,
+                  "end_from_task": 50546
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 50549
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "control",
+              "run": 1,
+              "cluster": 1,
+              "task_cycles": 50037,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 26502,
+                "input_ready_from_task": 7888,
+                "input_ready_to_dot_begin": 20725,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 21187,
+                "dot_begin_from_task": 28613,
+                "dot_and_16slice_reduce_interval": 12021,
+                "dot_end_to_task_end_tail": 9403,
+                "f32_head_gather_interval": 1233,
+                "f32_head_gather_end_to_scale_begin": 28,
+                "scale_begin_to_task_end": 8140,
+                "rms_begin_to_rms_end": 3556,
+                "output_store_end_to_task_end": 2636,
+                "residual_vrf_ready_to_residual_add": 13512,
+                "weight_begin_from_task": 2109,
+                "weight_end_from_task": 28611,
+                "dot_end_from_task": 40634,
+                "gather_begin_from_task": 40636,
+                "gather_end_from_task": 41869,
+                "channel_scale_begin_from_task": 41897
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 97,
+                  "end_from_task": 2045,
+                  "duration": 1948
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 2047,
+                  "end_from_task": 7426,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 2101,
+                  "end_from_task": 3965,
+                  "duration": 1864
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 2109,
+                  "end_from_task": 28611,
+                  "duration": 26502
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 7428,
+                  "end_from_task": 7888,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 28613,
+                  "end_from_task": 40634,
+                  "duration": 12021
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 28909,
+                  "end_from_task": 29088,
+                  "duration": 179
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 29663,
+                  "end_from_task": 31171,
+                  "duration": 1508
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 29678,
+                  "end_from_task": 29876,
+                  "duration": 198
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 31173,
+                  "end_from_task": 32177,
+                  "duration": 1004
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 31185,
+                  "end_from_task": 31347,
+                  "duration": 162
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 32179,
+                  "end_from_task": 32896,
+                  "duration": 717
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 40636,
+                  "end_from_task": 41869,
+                  "duration": 1233
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 41897,
+                  "end_from_task": 42850,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 42851,
+                  "end_from_task": 43891,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 43892,
+                  "end_from_task": 44314,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 44315,
+                  "end_from_task": 44692,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 44693,
+                  "end_from_task": 44855,
+                  "duration": 162
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 45097,
+                  "end_from_task": 45440,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 45441,
+                  "end_from_task": 46407,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 46408,
+                  "end_from_task": 47236,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 47237,
+                  "end_from_task": 47401,
+                  "duration": 164
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 503,
+                  "end_from_task": 40635
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 41871,
+                  "end_from_task": 41896
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 47403,
+                  "end_from_task": 50034
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 50037
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "control",
+              "run": 2,
+              "cluster": 0,
+              "task_cycles": 51115,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 26832,
+                "input_ready_from_task": 8551,
+                "input_ready_to_dot_begin": 21055,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 21517,
+                "dot_begin_from_task": 29606,
+                "dot_and_16slice_reduce_interval": 12013,
+                "dot_end_to_task_end_tail": 9496,
+                "f32_head_gather_interval": 1171,
+                "f32_head_gather_end_to_scale_begin": 1876,
+                "scale_begin_to_task_end": 6447,
+                "rms_begin_to_rms_end": 3796,
+                "output_store_end_to_task_end": 7,
+                "residual_vrf_ready_to_residual_add": 14216,
+                "weight_begin_from_task": 2772,
+                "weight_end_from_task": 29604,
+                "dot_end_from_task": 41619,
+                "gather_begin_from_task": 41621,
+                "gather_end_from_task": 42792,
+                "channel_scale_begin_from_task": 44668
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 98,
+                  "end_from_task": 2708,
+                  "duration": 2610
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 2710,
+                  "end_from_task": 8089,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 2764,
+                  "end_from_task": 4400,
+                  "duration": 1636
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 2772,
+                  "end_from_task": 29604,
+                  "duration": 26832
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 8091,
+                  "end_from_task": 8551,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 29606,
+                  "end_from_task": 41619,
+                  "duration": 12013
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 29914,
+                  "end_from_task": 31932,
+                  "duration": 2018
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 31934,
+                  "end_from_task": 32952,
+                  "duration": 1018
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 31940,
+                  "end_from_task": 33258,
+                  "duration": 1318
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 33260,
+                  "end_from_task": 34296,
+                  "duration": 1036
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 33266,
+                  "end_from_task": 34460,
+                  "duration": 1194
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 34462,
+                  "end_from_task": 35203,
+                  "duration": 741
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 41621,
+                  "end_from_task": 42792,
+                  "duration": 1171
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 44668,
+                  "end_from_task": 45621,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 45622,
+                  "end_from_task": 46662,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 46663,
+                  "end_from_task": 47085,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 47086,
+                  "end_from_task": 47463,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 47464,
+                  "end_from_task": 48106,
+                  "duration": 642
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 48108,
+                  "end_from_task": 48451,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 48452,
+                  "end_from_task": 49418,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 49419,
+                  "end_from_task": 50247,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 50248,
+                  "end_from_task": 51108,
+                  "duration": 860
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 504,
+                  "end_from_task": 41620
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 42794,
+                  "end_from_task": 44667
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 51110,
+                  "end_from_task": 51112
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 51115
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "control",
+              "run": 2,
+              "cluster": 1,
+              "task_cycles": 50262,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 26852,
+                "input_ready_from_task": 7883,
+                "input_ready_to_dot_begin": 21075,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 21537,
+                "dot_begin_from_task": 28958,
+                "dot_and_16slice_reduce_interval": 12017,
+                "dot_end_to_task_end_tail": 9287,
+                "f32_head_gather_interval": 1231,
+                "f32_head_gather_end_to_scale_begin": 6,
+                "scale_begin_to_task_end": 8048,
+                "rms_begin_to_rms_end": 3556,
+                "output_store_end_to_task_end": 2546,
+                "residual_vrf_ready_to_residual_add": 13486,
+                "weight_begin_from_task": 2104,
+                "weight_end_from_task": 28956,
+                "dot_end_from_task": 40975,
+                "gather_begin_from_task": 40977,
+                "gather_end_from_task": 42208,
+                "channel_scale_begin_from_task": 42214
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 96,
+                  "end_from_task": 2040,
+                  "duration": 1944
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 2042,
+                  "end_from_task": 7421,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 2096,
+                  "end_from_task": 3720,
+                  "duration": 1624
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 2104,
+                  "end_from_task": 28956,
+                  "duration": 26852
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 7423,
+                  "end_from_task": 7883,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 28958,
+                  "end_from_task": 40975,
+                  "duration": 12017
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 29254,
+                  "end_from_task": 29485,
+                  "duration": 231
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 29980,
+                  "end_from_task": 31470,
+                  "duration": 1490
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 29995,
+                  "end_from_task": 30189,
+                  "duration": 194
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 31472,
+                  "end_from_task": 32500,
+                  "duration": 1028
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 31484,
+                  "end_from_task": 31646,
+                  "duration": 162
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 32502,
+                  "end_from_task": 33239,
+                  "duration": 737
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 40977,
+                  "end_from_task": 42208,
+                  "duration": 1231
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 42214,
+                  "end_from_task": 43167,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 43168,
+                  "end_from_task": 44208,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 44209,
+                  "end_from_task": 44631,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 44632,
+                  "end_from_task": 45009,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 45010,
+                  "end_from_task": 45174,
+                  "duration": 164
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 45414,
+                  "end_from_task": 45757,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 45758,
+                  "end_from_task": 46724,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 46725,
+                  "end_from_task": 47553,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 47554,
+                  "end_from_task": 47716,
+                  "duration": 162
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 502,
+                  "end_from_task": 40976
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 42210,
+                  "end_from_task": 42213
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 47718,
+                  "end_from_task": 50259
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 50262
+                }
+              ]
+            }
+          ],
+          "window_summary": {
+            "weight_interval": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 26769.0,
+                "range": [
+                  26502,
+                  27044
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 26832,
+                  "range": [
+                    26504,
+                    27044
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 26706,
+                  "range": [
+                    26502,
+                    26852
+                  ]
+                }
+              }
+            },
+            "input_ready_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 8226.0,
+                "range": [
+                  7883,
+                  10883
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 8551,
+                  "range": [
+                    7901,
+                    10803
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 7888,
+                  "range": [
+                    7883,
+                    10883
+                  ]
+                }
+              }
+            },
+            "input_ready_to_dot_begin": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 20992.0,
+                "range": [
+                  20725,
+                  21267
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 21055,
+                  "range": [
+                    20727,
+                    21267
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 20929,
+                  "range": [
+                    20725,
+                    21075
+                  ]
+                }
+              }
+            },
+            "weight_end_to_dot_begin": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 2.0,
+                "range": [
+                  2,
+                  2
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 2,
+                  "range": [
+                    2,
+                    2
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 2,
+                  "range": [
+                    2,
+                    2
+                  ]
+                }
+              }
+            },
+            "table_ready_to_dot_begin": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 21454.0,
+                "range": [
+                  21187,
+                  21729
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 21517,
+                  "range": [
+                    21189,
+                    21729
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 21391,
+                  "range": [
+                    21187,
+                    21537
+                  ]
+                }
+              }
+            },
+            "dot_begin_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 29387.0,
+                "range": [
+                  28613,
+                  31812
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 29606,
+                  "range": [
+                    29168,
+                    31530
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 28958,
+                  "range": [
+                    28613,
+                    31812
+                  ]
+                }
+              }
+            },
+            "dot_and_16slice_reduce_interval": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 12019.0,
+                "range": [
+                  12013,
+                  12025
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 12015,
+                  "range": [
+                    12013,
+                    12023
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 12021,
+                  "range": [
+                    12017,
+                    12025
+                  ]
+                }
+              }
+            },
+            "dot_end_to_task_end_tail": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 9384.5,
+                "range": [
+                  8915,
+                  9708
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 9496,
+                  "range": [
+                    9366,
+                    9708
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 9287,
+                  "range": [
+                    8915,
+                    9403
+                  ]
+                }
+              }
+            },
+            "f32_head_gather_interval": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 1201.0,
+                "range": [
+                  1171,
+                  1233
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 1171,
+                  "range": [
+                    1171,
+                    1171
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 1231,
+                  "range": [
+                    1231,
+                    1233
+                  ]
+                }
+              }
+            },
+            "f32_head_gather_end_to_scale_begin": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 888.0,
+                "range": [
+                  6,
+                  2090
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 1876,
+                  "range": [
+                    1748,
+                    2090
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 6,
+                  "range": [
+                    6,
+                    28
+                  ]
+                }
+              }
+            },
+            "scale_begin_to_task_end": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 7061.5,
+                "range": [
+                  6445,
+                  8140
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 6445,
+                  "range": [
+                    6445,
+                    6447
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 8048,
+                  "range": [
+                    7676,
+                    8140
+                  ]
+                }
+              }
+            },
+            "rms_begin_to_rms_end": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 3676.0,
+                "range": [
+                  3556,
+                  3796
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 3796,
+                  "range": [
+                    3796,
+                    3796
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 3556,
+                  "range": [
+                    3556,
+                    3556
+                  ]
+                }
+              }
+            },
+            "output_store_end_to_task_end": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 1090.5,
+                "range": [
+                  7,
+                  2636
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 7,
+                  "range": [
+                    7,
+                    7
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 2546,
+                  "range": [
+                    2174,
+                    2636
+                  ]
+                }
+              }
+            },
+            "residual_vrf_ready_to_residual_add": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 13623.0,
+                "range": [
+                  13486,
+                  14596
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 14216,
+                  "range": [
+                    13700,
+                    14596
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 13512,
+                  "range": [
+                    13486,
+                    13546
+                  ]
+                }
+              }
+            },
+            "weight_begin_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 2447.0,
+                "range": [
+                  2104,
+                  5104
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 2772,
+                  "range": [
+                    2122,
+                    5024
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 2109,
+                  "range": [
+                    2104,
+                    5104
+                  ]
+                }
+              }
+            },
+            "weight_end_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 29385.0,
+                "range": [
+                  28611,
+                  31810
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 29604,
+                  "range": [
+                    29166,
+                    31528
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 28956,
+                  "range": [
+                    28611,
+                    31810
+                  ]
+                }
+              }
+            },
+            "dot_end_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 41401.0,
+                "range": [
+                  40634,
+                  43837
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 41619,
+                  "range": [
+                    41183,
+                    43553
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 40975,
+                  "range": [
+                    40634,
+                    43837
+                  ]
+                }
+              }
+            },
+            "gather_begin_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 41403.0,
+                "range": [
+                  40636,
+                  43839
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 41621,
+                  "range": [
+                    41185,
+                    43555
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 40977,
+                  "range": [
+                    40636,
+                    43839
+                  ]
+                }
+              }
+            },
+            "gather_end_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 42574.0,
+                "range": [
+                  41869,
+                  45070
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 42792,
+                  "range": [
+                    42356,
+                    44726
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 42208,
+                  "range": [
+                    41869,
+                    45070
+                  ]
+                }
+              }
+            },
+            "channel_scale_begin_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 44386.0,
+                "range": [
+                  41897,
+                  46816
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 44668,
+                  "range": [
+                    44104,
+                    46816
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 42214,
+                  "range": [
+                    41897,
+                    45076
+                  ]
+                }
+              }
+            }
+          },
+          "task_cycle_summary": {
+            "count": 6,
+            "median": 50832.0,
+            "range": [
+              50037,
+              53261
+            ]
+          },
+          "profile_info_cycles": {
+            "median": 51455,
+            "values": [
+              53112,
+              50636,
+              51455
+            ]
+          }
+        },
+        "candidate": {
+          "profile_cycles": {
+            "median": 58707,
+            "values": [
+              61663,
+              58707,
+              58449
+            ]
+          },
+          "task_marker_max_clusters_matches_reported_cycles": true,
+          "observations": [
+            {
+              "job": 105767,
+              "side": "candidate",
+              "run": 0,
+              "cluster": 0,
+              "task_cycles": 61663,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 28478,
+                "input_ready_from_task": 10779,
+                "input_ready_to_dot_begin": 22701,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 23163,
+                "dot_begin_from_task": 33480,
+                "dot_and_16slice_reduce_interval": 12013,
+                "dot_end_to_task_end_tail": 16170,
+                "f32_head_gather_interval": 7735,
+                "f32_head_gather_end_to_scale_begin": 1986,
+                "scale_begin_to_task_end": 6447,
+                "rms_begin_to_rms_end": 3796,
+                "output_store_end_to_task_end": 7,
+                "residual_vrf_ready_to_residual_add": 21074,
+                "weight_begin_from_task": 5000,
+                "weight_end_from_task": 33478,
+                "dot_end_from_task": 45493,
+                "gather_begin_from_task": 45495,
+                "gather_end_from_task": 53230,
+                "channel_scale_begin_from_task": 55216
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 98,
+                  "end_from_task": 2050,
+                  "duration": 1952
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 4938,
+                  "end_from_task": 10317,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 4992,
+                  "end_from_task": 7274,
+                  "duration": 2282
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 5000,
+                  "end_from_task": 33478,
+                  "duration": 28478
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 10319,
+                  "end_from_task": 10779,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 33480,
+                  "end_from_task": 45493,
+                  "duration": 12013
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 33784,
+                  "end_from_task": 35730,
+                  "duration": 1946
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 35732,
+                  "end_from_task": 36754,
+                  "duration": 1022
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 35738,
+                  "end_from_task": 36944,
+                  "duration": 1206
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 36946,
+                  "end_from_task": 37958,
+                  "duration": 1012
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 36952,
+                  "end_from_task": 38168,
+                  "duration": 1216
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 38170,
+                  "end_from_task": 38893,
+                  "duration": 723
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 45495,
+                  "end_from_task": 53230,
+                  "duration": 7735
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 55216,
+                  "end_from_task": 56169,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 56170,
+                  "end_from_task": 57210,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 57211,
+                  "end_from_task": 57633,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 57634,
+                  "end_from_task": 58011,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 58012,
+                  "end_from_task": 58654,
+                  "duration": 642
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 58656,
+                  "end_from_task": 58999,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 59000,
+                  "end_from_task": 59966,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 59967,
+                  "end_from_task": 60795,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 60796,
+                  "end_from_task": 61656,
+                  "duration": 860
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 504,
+                  "end_from_task": 45494
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 53232,
+                  "end_from_task": 55215
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 61658,
+                  "end_from_task": 61660
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 61663
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "candidate",
+              "run": 0,
+              "cluster": 1,
+              "task_cycles": 61588,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 26704,
+                "input_ready_from_task": 10905,
+                "input_ready_to_dot_begin": 20927,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 21389,
+                "dot_begin_from_task": 31832,
+                "dot_and_16slice_reduce_interval": 12023,
+                "dot_end_to_task_end_tail": 17733,
+                "f32_head_gather_interval": 8165,
+                "f32_head_gather_end_to_scale_begin": 1994,
+                "scale_begin_to_task_end": 7572,
+                "rms_begin_to_rms_end": 3556,
+                "output_store_end_to_task_end": 2068,
+                "residual_vrf_ready_to_residual_add": 22438,
+                "weight_begin_from_task": 5126,
+                "weight_end_from_task": 31830,
+                "dot_end_from_task": 43855,
+                "gather_begin_from_task": 43857,
+                "gather_end_from_task": 52022,
+                "channel_scale_begin_from_task": 54016
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 96,
+                  "end_from_task": 2040,
+                  "duration": 1944
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 5065,
+                  "end_from_task": 10443,
+                  "duration": 5378
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 5118,
+                  "end_from_task": 6900,
+                  "duration": 1782
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 5126,
+                  "end_from_task": 31830,
+                  "duration": 26704
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 10445,
+                  "end_from_task": 10905,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 31832,
+                  "end_from_task": 43855,
+                  "duration": 12023
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 32126,
+                  "end_from_task": 32307,
+                  "duration": 181
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 32854,
+                  "end_from_task": 34316,
+                  "duration": 1462
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 32869,
+                  "end_from_task": 33067,
+                  "duration": 198
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 34318,
+                  "end_from_task": 35332,
+                  "duration": 1014
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 34330,
+                  "end_from_task": 34492,
+                  "duration": 162
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 35334,
+                  "end_from_task": 36089,
+                  "duration": 755
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 43857,
+                  "end_from_task": 52022,
+                  "duration": 8165
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 54016,
+                  "end_from_task": 54969,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 54970,
+                  "end_from_task": 56010,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 56011,
+                  "end_from_task": 56433,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 56434,
+                  "end_from_task": 56811,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 56812,
+                  "end_from_task": 56974,
+                  "duration": 162
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 57216,
+                  "end_from_task": 57559,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 57560,
+                  "end_from_task": 58526,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 58527,
+                  "end_from_task": 59355,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 59356,
+                  "end_from_task": 59520,
+                  "duration": 164
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 502,
+                  "end_from_task": 43856
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 52024,
+                  "end_from_task": 54015
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 59522,
+                  "end_from_task": 61585
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 61588
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "candidate",
+              "run": 1,
+              "cluster": 0,
+              "task_cycles": 58707,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 27862,
+                "input_ready_from_task": 7895,
+                "input_ready_to_dot_begin": 22085,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 22547,
+                "dot_begin_from_task": 29980,
+                "dot_and_16slice_reduce_interval": 12007,
+                "dot_end_to_task_end_tail": 16720,
+                "f32_head_gather_interval": 8535,
+                "f32_head_gather_end_to_scale_begin": 1736,
+                "scale_begin_to_task_end": 6447,
+                "rms_begin_to_rms_end": 3796,
+                "output_store_end_to_task_end": 7,
+                "residual_vrf_ready_to_residual_add": 21486,
+                "weight_begin_from_task": 2116,
+                "weight_end_from_task": 29978,
+                "dot_end_from_task": 41987,
+                "gather_begin_from_task": 41989,
+                "gather_end_from_task": 50524,
+                "channel_scale_begin_from_task": 52260
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 100,
+                  "end_from_task": 2052,
+                  "duration": 1952
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 2054,
+                  "end_from_task": 7433,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 2108,
+                  "end_from_task": 4078,
+                  "duration": 1970
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 2116,
+                  "end_from_task": 29978,
+                  "duration": 27862
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 7435,
+                  "end_from_task": 7895,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 29980,
+                  "end_from_task": 41987,
+                  "duration": 12007
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 30288,
+                  "end_from_task": 32254,
+                  "duration": 1966
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 32256,
+                  "end_from_task": 33290,
+                  "duration": 1034
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 32262,
+                  "end_from_task": 33532,
+                  "duration": 1270
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 33534,
+                  "end_from_task": 34578,
+                  "duration": 1044
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 33540,
+                  "end_from_task": 34788,
+                  "duration": 1248
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 34790,
+                  "end_from_task": 35525,
+                  "duration": 735
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 41989,
+                  "end_from_task": 50524,
+                  "duration": 8535
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 52260,
+                  "end_from_task": 53213,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 53214,
+                  "end_from_task": 54254,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 54255,
+                  "end_from_task": 54677,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 54678,
+                  "end_from_task": 55055,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 55056,
+                  "end_from_task": 55698,
+                  "duration": 642
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 55700,
+                  "end_from_task": 56043,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 56044,
+                  "end_from_task": 57010,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 57011,
+                  "end_from_task": 57839,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 57840,
+                  "end_from_task": 58700,
+                  "duration": 860
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 506,
+                  "end_from_task": 41988
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 50526,
+                  "end_from_task": 52259
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 58702,
+                  "end_from_task": 58704
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 58707
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "candidate",
+              "run": 1,
+              "cluster": 1,
+              "task_cycles": 57646,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 26738,
+                "input_ready_from_task": 7881,
+                "input_ready_to_dot_begin": 20961,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 21423,
+                "dot_begin_from_task": 28842,
+                "dot_and_16slice_reduce_interval": 12021,
+                "dot_end_to_task_end_tail": 16783,
+                "f32_head_gather_interval": 7833,
+                "f32_head_gather_end_to_scale_begin": 1774,
+                "scale_begin_to_task_end": 7174,
+                "rms_begin_to_rms_end": 3556,
+                "output_store_end_to_task_end": 1672,
+                "residual_vrf_ready_to_residual_add": 21918,
+                "weight_begin_from_task": 2102,
+                "weight_end_from_task": 28840,
+                "dot_end_from_task": 40863,
+                "gather_begin_from_task": 40865,
+                "gather_end_from_task": 48698,
+                "channel_scale_begin_from_task": 50472
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 96,
+                  "end_from_task": 2038,
+                  "duration": 1942
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 2040,
+                  "end_from_task": 7419,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 2094,
+                  "end_from_task": 4054,
+                  "duration": 1960
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 2102,
+                  "end_from_task": 28840,
+                  "duration": 26738
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 7421,
+                  "end_from_task": 7881,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 28842,
+                  "end_from_task": 40863,
+                  "duration": 12021
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 29138,
+                  "end_from_task": 29359,
+                  "duration": 221
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 29866,
+                  "end_from_task": 31280,
+                  "duration": 1414
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 29881,
+                  "end_from_task": 30079,
+                  "duration": 198
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 31282,
+                  "end_from_task": 32298,
+                  "duration": 1016
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 31294,
+                  "end_from_task": 31458,
+                  "duration": 164
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 32300,
+                  "end_from_task": 33065,
+                  "duration": 765
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 40865,
+                  "end_from_task": 48698,
+                  "duration": 7833
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 50472,
+                  "end_from_task": 51425,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 51426,
+                  "end_from_task": 52466,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 52467,
+                  "end_from_task": 52889,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 52890,
+                  "end_from_task": 53267,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 53268,
+                  "end_from_task": 53432,
+                  "duration": 164
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 53672,
+                  "end_from_task": 54015,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 54016,
+                  "end_from_task": 54982,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 54983,
+                  "end_from_task": 55811,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 55812,
+                  "end_from_task": 55974,
+                  "duration": 162
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 502,
+                  "end_from_task": 40864
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 48700,
+                  "end_from_task": 50471
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 55976,
+                  "end_from_task": 57643
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 57646
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "candidate",
+              "run": 2,
+              "cluster": 0,
+              "task_cycles": 58449,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 27642,
+                "input_ready_from_task": 7895,
+                "input_ready_to_dot_begin": 21865,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 22327,
+                "dot_begin_from_task": 29760,
+                "dot_and_16slice_reduce_interval": 12007,
+                "dot_end_to_task_end_tail": 16682,
+                "f32_head_gather_interval": 8497,
+                "f32_head_gather_end_to_scale_begin": 1736,
+                "scale_begin_to_task_end": 6447,
+                "rms_begin_to_rms_end": 3796,
+                "output_store_end_to_task_end": 7,
+                "residual_vrf_ready_to_residual_add": 21500,
+                "weight_begin_from_task": 2116,
+                "weight_end_from_task": 29758,
+                "dot_end_from_task": 41767,
+                "gather_begin_from_task": 41769,
+                "gather_end_from_task": 50266,
+                "channel_scale_begin_from_task": 52002
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 100,
+                  "end_from_task": 2052,
+                  "duration": 1952
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 2054,
+                  "end_from_task": 7433,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 2108,
+                  "end_from_task": 3742,
+                  "duration": 1634
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 2116,
+                  "end_from_task": 29758,
+                  "duration": 27642
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 7435,
+                  "end_from_task": 7895,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 29760,
+                  "end_from_task": 41767,
+                  "duration": 12007
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 30064,
+                  "end_from_task": 32042,
+                  "duration": 1978
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 32044,
+                  "end_from_task": 33064,
+                  "duration": 1020
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 32050,
+                  "end_from_task": 33244,
+                  "duration": 1194
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 33246,
+                  "end_from_task": 34278,
+                  "duration": 1032
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 33252,
+                  "end_from_task": 34526,
+                  "duration": 1274
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 34528,
+                  "end_from_task": 35253,
+                  "duration": 725
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 41769,
+                  "end_from_task": 50266,
+                  "duration": 8497
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 52002,
+                  "end_from_task": 52955,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 52956,
+                  "end_from_task": 53996,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 53997,
+                  "end_from_task": 54419,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 54420,
+                  "end_from_task": 54797,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 54798,
+                  "end_from_task": 55440,
+                  "duration": 642
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 55442,
+                  "end_from_task": 55785,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 55786,
+                  "end_from_task": 56752,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 56753,
+                  "end_from_task": 57581,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 57582,
+                  "end_from_task": 58442,
+                  "duration": 860
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 506,
+                  "end_from_task": 41768
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 50268,
+                  "end_from_task": 52001
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 58444,
+                  "end_from_task": 58446
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 58449
+                }
+              ]
+            },
+            {
+              "job": 105767,
+              "side": "candidate",
+              "run": 2,
+              "cluster": 1,
+              "task_cycles": 58154,
+              "observed_engine_count": 22,
+              "windows": {
+                "weight_interval": 26580,
+                "input_ready_from_task": 7881,
+                "input_ready_to_dot_begin": 20803,
+                "weight_end_to_dot_begin": 2,
+                "table_ready_to_dot_begin": 21265,
+                "dot_begin_from_task": 28684,
+                "dot_and_16slice_reduce_interval": 12009,
+                "dot_end_to_task_end_tail": 17461,
+                "f32_head_gather_interval": 8279,
+                "f32_head_gather_end_to_scale_begin": 1732,
+                "scale_begin_to_task_end": 7448,
+                "rms_begin_to_rms_end": 3556,
+                "output_store_end_to_task_end": 1946,
+                "residual_vrf_ready_to_residual_add": 22294,
+                "weight_begin_from_task": 2102,
+                "weight_end_from_task": 28682,
+                "dot_end_from_task": 40693,
+                "gather_begin_from_task": 40695,
+                "gather_end_from_task": 48974,
+                "channel_scale_begin_from_task": 50706
+              },
+              "dot_latest_local_prerequisite": "weight",
+              "operations": [
+                {
+                  "schedule_index": "4",
+                  "marker_label": "004",
+                  "kind": "DMA",
+                  "begin_from_task": 96,
+                  "end_from_task": 2038,
+                  "duration": 1942
+                },
+                {
+                  "schedule_index": "13",
+                  "marker_label": "0000000000000008",
+                  "kind": "Renegade::StoTab",
+                  "begin_from_task": 2040,
+                  "end_from_task": 7419,
+                  "duration": 5379
+                },
+                {
+                  "schedule_index": "14",
+                  "marker_label": "00c",
+                  "kind": "DMA",
+                  "begin_from_task": 2094,
+                  "end_from_task": 3974,
+                  "duration": 1880
+                },
+                {
+                  "schedule_index": "16",
+                  "marker_label": "010",
+                  "kind": "DMA",
+                  "begin_from_task": 2102,
+                  "end_from_task": 28682,
+                  "duration": 26580
+                },
+                {
+                  "schedule_index": "21",
+                  "marker_label": "0000000000000012",
+                  "kind": "Renegade::StoTrf",
+                  "begin_from_task": 7421,
+                  "end_from_task": 7881,
+                  "duration": 460
+                },
+                {
+                  "schedule_index": "26",
+                  "marker_label": "0000000000000014",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 28684,
+                  "end_from_task": 40693,
+                  "duration": 12009
+                },
+                {
+                  "schedule_index": "28",
+                  "marker_label": "018",
+                  "kind": "DMA",
+                  "begin_from_task": 28978,
+                  "end_from_task": 29203,
+                  "duration": 225
+                },
+                {
+                  "schedule_index": "32",
+                  "marker_label": "000000000000001a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 29706,
+                  "end_from_task": 31150,
+                  "duration": 1444
+                },
+                {
+                  "schedule_index": "33",
+                  "marker_label": "01e",
+                  "kind": "DMA",
+                  "begin_from_task": 29721,
+                  "end_from_task": 29919,
+                  "duration": 198
+                },
+                {
+                  "schedule_index": "39",
+                  "marker_label": "0000000000000020",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 31152,
+                  "end_from_task": 32180,
+                  "duration": 1028
+                },
+                {
+                  "schedule_index": "40",
+                  "marker_label": "024",
+                  "kind": "DMA",
+                  "begin_from_task": 31164,
+                  "end_from_task": 31326,
+                  "duration": 162
+                },
+                {
+                  "schedule_index": "46",
+                  "marker_label": "0000000000000026",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 32182,
+                  "end_from_task": 32923,
+                  "duration": 741
+                },
+                {
+                  "schedule_index": "54",
+                  "marker_label": "028",
+                  "kind": "DMA",
+                  "begin_from_task": 40695,
+                  "end_from_task": 48974,
+                  "duration": 8279
+                },
+                {
+                  "schedule_index": "62",
+                  "marker_label": "000000000000002c",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 50706,
+                  "end_from_task": 51659,
+                  "duration": 953
+                },
+                {
+                  "schedule_index": "67",
+                  "marker_label": "000000000000002e",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 51660,
+                  "end_from_task": 52700,
+                  "duration": 1040
+                },
+                {
+                  "schedule_index": "72",
+                  "marker_label": "0000000000000030",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 52701,
+                  "end_from_task": 53123,
+                  "duration": 422
+                },
+                {
+                  "schedule_index": "77",
+                  "marker_label": "0000000000000032",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 53124,
+                  "end_from_task": 53501,
+                  "duration": 377
+                },
+                {
+                  "schedule_index": "80",
+                  "marker_label": "034",
+                  "kind": "DMA",
+                  "begin_from_task": 53502,
+                  "end_from_task": 53664,
+                  "duration": 162
+                },
+                {
+                  "schedule_index": "84",
+                  "marker_label": "0000000000000036",
+                  "kind": "Renegade::StoVrf",
+                  "begin_from_task": 53906,
+                  "end_from_task": 54249,
+                  "duration": 343
+                },
+                {
+                  "schedule_index": "88",
+                  "marker_label": "0000000000000038",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 54250,
+                  "end_from_task": 55216,
+                  "duration": 966
+                },
+                {
+                  "schedule_index": "93",
+                  "marker_label": "000000000000003a",
+                  "kind": "Renegade::TuExec",
+                  "begin_from_task": 55217,
+                  "end_from_task": 56045,
+                  "duration": 828
+                },
+                {
+                  "schedule_index": "96",
+                  "marker_label": "03e",
+                  "kind": "DMA",
+                  "begin_from_task": 56046,
+                  "end_from_task": 56208,
+                  "duration": 162
+                }
+              ],
+              "unassigned_wrappers": [
+                {
+                  "label": "0000006",
+                  "kind": "Cluster",
+                  "begin_from_task": 502,
+                  "end_from_task": 40694
+                },
+                {
+                  "label": "000002a",
+                  "kind": "Cluster",
+                  "begin_from_task": 48976,
+                  "end_from_task": 50705
+                },
+                {
+                  "label": "0000042",
+                  "kind": "Cluster",
+                  "begin_from_task": 56210,
+                  "end_from_task": 58151
+                },
+                {
+                  "label": "0000",
+                  "kind": "Task",
+                  "begin_from_task": 0,
+                  "end_from_task": 58154
+                }
+              ]
+            }
+          ],
+          "window_summary": {
+            "weight_interval": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 27190.0,
+                "range": [
+                  26580,
+                  28478
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 27862,
+                  "range": [
+                    27642,
+                    28478
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 26704,
+                  "range": [
+                    26580,
+                    26738
+                  ]
+                }
+              }
+            },
+            "input_ready_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 7895.0,
+                "range": [
+                  7881,
+                  10905
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 7895,
+                  "range": [
+                    7895,
+                    10779
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 7881,
+                  "range": [
+                    7881,
+                    10905
+                  ]
+                }
+              }
+            },
+            "input_ready_to_dot_begin": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 21413.0,
+                "range": [
+                  20803,
+                  22701
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 22085,
+                  "range": [
+                    21865,
+                    22701
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 20927,
+                  "range": [
+                    20803,
+                    20961
+                  ]
+                }
+              }
+            },
+            "weight_end_to_dot_begin": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 2.0,
+                "range": [
+                  2,
+                  2
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 2,
+                  "range": [
+                    2,
+                    2
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 2,
+                  "range": [
+                    2,
+                    2
+                  ]
+                }
+              }
+            },
+            "table_ready_to_dot_begin": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 21875.0,
+                "range": [
+                  21265,
+                  23163
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 22547,
+                  "range": [
+                    22327,
+                    23163
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 21389,
+                  "range": [
+                    21265,
+                    21423
+                  ]
+                }
+              }
+            },
+            "dot_begin_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 29870.0,
+                "range": [
+                  28684,
+                  33480
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 29980,
+                  "range": [
+                    29760,
+                    33480
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 28842,
+                  "range": [
+                    28684,
+                    31832
+                  ]
+                }
+              }
+            },
+            "dot_and_16slice_reduce_interval": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 12011.0,
+                "range": [
+                  12007,
+                  12023
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 12007,
+                  "range": [
+                    12007,
+                    12013
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 12021,
+                  "range": [
+                    12009,
+                    12023
+                  ]
+                }
+              }
+            },
+            "dot_end_to_task_end_tail": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 16751.5,
+                "range": [
+                  16170,
+                  17733
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 16682,
+                  "range": [
+                    16170,
+                    16720
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 17461,
+                  "range": [
+                    16783,
+                    17733
+                  ]
+                }
+              }
+            },
+            "f32_head_gather_interval": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 8222.0,
+                "range": [
+                  7735,
+                  8535
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 8497,
+                  "range": [
+                    7735,
+                    8535
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 8165,
+                  "range": [
+                    7833,
+                    8279
+                  ]
+                }
+              }
+            },
+            "f32_head_gather_end_to_scale_begin": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 1755.0,
+                "range": [
+                  1732,
+                  1994
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 1736,
+                  "range": [
+                    1736,
+                    1986
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 1774,
+                  "range": [
+                    1732,
+                    1994
+                  ]
+                }
+              }
+            },
+            "scale_begin_to_task_end": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 6810.5,
+                "range": [
+                  6447,
+                  7572
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 6447,
+                  "range": [
+                    6447,
+                    6447
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 7448,
+                  "range": [
+                    7174,
+                    7572
+                  ]
+                }
+              }
+            },
+            "rms_begin_to_rms_end": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 3676.0,
+                "range": [
+                  3556,
+                  3796
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 3796,
+                  "range": [
+                    3796,
+                    3796
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 3556,
+                  "range": [
+                    3556,
+                    3556
+                  ]
+                }
+              }
+            },
+            "output_store_end_to_task_end": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 839.5,
+                "range": [
+                  7,
+                  2068
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 7,
+                  "range": [
+                    7,
+                    7
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 1946,
+                  "range": [
+                    1672,
+                    2068
+                  ]
+                }
+              }
+            },
+            "residual_vrf_ready_to_residual_add": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 21709.0,
+                "range": [
+                  21074,
+                  22438
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 21486,
+                  "range": [
+                    21074,
+                    21500
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 22294,
+                  "range": [
+                    21918,
+                    22438
+                  ]
+                }
+              }
+            },
+            "weight_begin_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 2116.0,
+                "range": [
+                  2102,
+                  5126
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 2116,
+                  "range": [
+                    2116,
+                    5000
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 2102,
+                  "range": [
+                    2102,
+                    5126
+                  ]
+                }
+              }
+            },
+            "weight_end_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 29868.0,
+                "range": [
+                  28682,
+                  33478
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 29978,
+                  "range": [
+                    29758,
+                    33478
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 28840,
+                  "range": [
+                    28682,
+                    31830
+                  ]
+                }
+              }
+            },
+            "dot_end_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 41877.0,
+                "range": [
+                  40693,
+                  45493
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 41987,
+                  "range": [
+                    41767,
+                    45493
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 40863,
+                  "range": [
+                    40693,
+                    43855
+                  ]
+                }
+              }
+            },
+            "gather_begin_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 41879.0,
+                "range": [
+                  40695,
+                  45495
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 41989,
+                  "range": [
+                    41769,
+                    45495
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 40865,
+                  "range": [
+                    40695,
+                    43857
+                  ]
+                }
+              }
+            },
+            "gather_end_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 50395.0,
+                "range": [
+                  48698,
+                  53230
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 50524,
+                  "range": [
+                    50266,
+                    53230
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 48974,
+                  "range": [
+                    48698,
+                    52022
+                  ]
+                }
+              }
+            },
+            "channel_scale_begin_from_task": {
+              "all_run_clusters": {
+                "count": 6,
+                "median": 52131.0,
+                "range": [
+                  50472,
+                  55216
+                ]
+              },
+              "by_cluster": {
+                "0": {
+                  "count": 3,
+                  "median": 52260,
+                  "range": [
+                    52002,
+                    55216
+                  ]
+                },
+                "1": {
+                  "count": 3,
+                  "median": 50706,
+                  "range": [
+                    50472,
+                    54016
+                  ]
+                }
+              }
+            }
+          },
+          "task_cycle_summary": {
+            "count": 6,
+            "median": 58578.0,
+            "range": [
+              57646,
+              61663
+            ]
+          },
+          "profile_info_cycles": {
+            "median": 57670,
+            "values": [
+              60552,
+              57281,
+              57670
+            ]
+          }
+        }
+      },
+      "profile_comparison": {
+        "scope": "Candidate-minus-control relative-window differences from separate launches at the same run/cluster index; no shared absolute clock is assumed.",
+        "run_cluster_differences": [
+          {
+            "run": 0,
+            "cluster": 0,
+            "task_cycles_delta": 8402,
+            "window_deltas": {
+              "weight_interval": 1974,
+              "input_ready_from_task": -24,
+              "input_ready_to_dot_begin": 1974,
+              "weight_end_to_dot_begin": 0,
+              "table_ready_to_dot_begin": 1974,
+              "dot_begin_from_task": 1950,
+              "dot_and_16slice_reduce_interval": -10,
+              "dot_end_to_task_end_tail": 6462,
+              "f32_head_gather_interval": 6564,
+              "f32_head_gather_end_to_scale_begin": -104,
+              "scale_begin_to_task_end": 2,
+              "rms_begin_to_rms_end": 0,
+              "output_store_end_to_task_end": 0,
+              "residual_vrf_ready_to_residual_add": 6478,
+              "weight_begin_from_task": -24,
+              "weight_end_from_task": 1950,
+              "dot_end_from_task": 1940,
+              "gather_begin_from_task": 1940,
+              "gather_end_from_task": 8504,
+              "channel_scale_begin_from_task": 8400
+            }
+          },
+          {
+            "run": 0,
+            "cluster": 1,
+            "task_cycles_delta": 8836,
+            "window_deltas": {
+              "weight_interval": -2,
+              "input_ready_from_task": 22,
+              "input_ready_to_dot_begin": -2,
+              "weight_end_to_dot_begin": 0,
+              "table_ready_to_dot_begin": -2,
+              "dot_begin_from_task": 20,
+              "dot_and_16slice_reduce_interval": -2,
+              "dot_end_to_task_end_tail": 8818,
+              "f32_head_gather_interval": 6934,
+              "f32_head_gather_end_to_scale_begin": 1988,
+              "scale_begin_to_task_end": -104,
+              "rms_begin_to_rms_end": 0,
+              "output_store_end_to_task_end": -106,
+              "residual_vrf_ready_to_residual_add": 8892,
+              "weight_begin_from_task": 22,
+              "weight_end_from_task": 20,
+              "dot_end_from_task": 18,
+              "gather_begin_from_task": 18,
+              "gather_end_from_task": 6952,
+              "channel_scale_begin_from_task": 8940
+            }
+          },
+          {
+            "run": 1,
+            "cluster": 0,
+            "task_cycles_delta": 8158,
+            "window_deltas": {
+              "weight_interval": 818,
+              "input_ready_from_task": -6,
+              "input_ready_to_dot_begin": 818,
+              "weight_end_to_dot_begin": 0,
+              "table_ready_to_dot_begin": 818,
+              "dot_begin_from_task": 812,
+              "dot_and_16slice_reduce_interval": -8,
+              "dot_end_to_task_end_tail": 7354,
+              "f32_head_gather_interval": 7364,
+              "f32_head_gather_end_to_scale_begin": -12,
+              "scale_begin_to_task_end": 2,
+              "rms_begin_to_rms_end": 0,
+              "output_store_end_to_task_end": 0,
+              "residual_vrf_ready_to_residual_add": 7786,
+              "weight_begin_from_task": -6,
+              "weight_end_from_task": 812,
+              "dot_end_from_task": 804,
+              "gather_begin_from_task": 804,
+              "gather_end_from_task": 8168,
+              "channel_scale_begin_from_task": 8156
+            }
+          },
+          {
+            "run": 1,
+            "cluster": 1,
+            "task_cycles_delta": 7609,
+            "window_deltas": {
+              "weight_interval": 236,
+              "input_ready_from_task": -7,
+              "input_ready_to_dot_begin": 236,
+              "weight_end_to_dot_begin": 0,
+              "table_ready_to_dot_begin": 236,
+              "dot_begin_from_task": 229,
+              "dot_and_16slice_reduce_interval": 0,
+              "dot_end_to_task_end_tail": 7380,
+              "f32_head_gather_interval": 6600,
+              "f32_head_gather_end_to_scale_begin": 1746,
+              "scale_begin_to_task_end": -966,
+              "rms_begin_to_rms_end": 0,
+              "output_store_end_to_task_end": -964,
+              "residual_vrf_ready_to_residual_add": 8406,
+              "weight_begin_from_task": -7,
+              "weight_end_from_task": 229,
+              "dot_end_from_task": 229,
+              "gather_begin_from_task": 229,
+              "gather_end_from_task": 6829,
+              "channel_scale_begin_from_task": 8575
+            }
+          },
+          {
+            "run": 2,
+            "cluster": 0,
+            "task_cycles_delta": 7334,
+            "window_deltas": {
+              "weight_interval": 810,
+              "input_ready_from_task": -656,
+              "input_ready_to_dot_begin": 810,
+              "weight_end_to_dot_begin": 0,
+              "table_ready_to_dot_begin": 810,
+              "dot_begin_from_task": 154,
+              "dot_and_16slice_reduce_interval": -6,
+              "dot_end_to_task_end_tail": 7186,
+              "f32_head_gather_interval": 7326,
+              "f32_head_gather_end_to_scale_begin": -140,
+              "scale_begin_to_task_end": 0,
+              "rms_begin_to_rms_end": 0,
+              "output_store_end_to_task_end": 0,
+              "residual_vrf_ready_to_residual_add": 7284,
+              "weight_begin_from_task": -656,
+              "weight_end_from_task": 154,
+              "dot_end_from_task": 148,
+              "gather_begin_from_task": 148,
+              "gather_end_from_task": 7474,
+              "channel_scale_begin_from_task": 7334
+            }
+          },
+          {
+            "run": 2,
+            "cluster": 1,
+            "task_cycles_delta": 7892,
+            "window_deltas": {
+              "weight_interval": -272,
+              "input_ready_from_task": -2,
+              "input_ready_to_dot_begin": -272,
+              "weight_end_to_dot_begin": 0,
+              "table_ready_to_dot_begin": -272,
+              "dot_begin_from_task": -274,
+              "dot_and_16slice_reduce_interval": -8,
+              "dot_end_to_task_end_tail": 8174,
+              "f32_head_gather_interval": 7048,
+              "f32_head_gather_end_to_scale_begin": 1726,
+              "scale_begin_to_task_end": -600,
+              "rms_begin_to_rms_end": 0,
+              "output_store_end_to_task_end": -600,
+              "residual_vrf_ready_to_residual_add": 8808,
+              "weight_begin_from_task": -2,
+              "weight_end_from_task": -274,
+              "dot_end_from_task": -282,
+              "gather_begin_from_task": -282,
+              "gather_end_from_task": 6766,
+              "channel_scale_begin_from_task": 8492
+            }
+          }
+        ],
+        "task_cycle_delta_summary": {
+          "count": 6,
+          "median": 8025.0,
+          "range": [
+            7334,
+            8836
+          ]
+        },
+        "window_delta_summary": {
+          "weight_interval": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 523.0,
+              "range": [
+                -272,
+                1974
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 818,
+                "range": [
+                  810,
+                  1974
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": -2,
+                "range": [
+                  -272,
+                  236
+                ]
+              }
+            }
+          },
+          "input_ready_from_task": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": -6.5,
+              "range": [
+                -656,
+                22
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": -24,
+                "range": [
+                  -656,
+                  -6
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": -2,
+                "range": [
+                  -7,
+                  22
+                ]
+              }
+            }
+          },
+          "input_ready_to_dot_begin": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 523.0,
+              "range": [
+                -272,
+                1974
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 818,
+                "range": [
+                  810,
+                  1974
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": -2,
+                "range": [
+                  -272,
+                  236
+                ]
+              }
+            }
+          },
+          "weight_end_to_dot_begin": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 0.0,
+              "range": [
+                0,
+                0
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 0,
+                "range": [
+                  0,
+                  0
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 0,
+                "range": [
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "table_ready_to_dot_begin": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 523.0,
+              "range": [
+                -272,
+                1974
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 818,
+                "range": [
+                  810,
+                  1974
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": -2,
+                "range": [
+                  -272,
+                  236
+                ]
+              }
+            }
+          },
+          "dot_begin_from_task": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 191.5,
+              "range": [
+                -274,
+                1950
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 812,
+                "range": [
+                  154,
+                  1950
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 20,
+                "range": [
+                  -274,
+                  229
+                ]
+              }
+            }
+          },
+          "dot_and_16slice_reduce_interval": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": -7.0,
+              "range": [
+                -10,
+                0
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": -8,
+                "range": [
+                  -10,
+                  -6
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": -2,
+                "range": [
+                  -8,
+                  0
+                ]
+              }
+            }
+          },
+          "dot_end_to_task_end_tail": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 7367.0,
+              "range": [
+                6462,
+                8818
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 7186,
+                "range": [
+                  6462,
+                  7354
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 8174,
+                "range": [
+                  7380,
+                  8818
+                ]
+              }
+            }
+          },
+          "f32_head_gather_interval": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 6991.0,
+              "range": [
+                6564,
+                7364
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 7326,
+                "range": [
+                  6564,
+                  7364
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 6934,
+                "range": [
+                  6600,
+                  7048
+                ]
+              }
+            }
+          },
+          "f32_head_gather_end_to_scale_begin": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 857.0,
+              "range": [
+                -140,
+                1988
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": -104,
+                "range": [
+                  -140,
+                  -12
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 1746,
+                "range": [
+                  1726,
+                  1988
+                ]
+              }
+            }
+          },
+          "scale_begin_to_task_end": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": -52.0,
+              "range": [
+                -966,
+                2
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 2,
+                "range": [
+                  0,
+                  2
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": -600,
+                "range": [
+                  -966,
+                  -104
+                ]
+              }
+            }
+          },
+          "rms_begin_to_rms_end": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 0.0,
+              "range": [
+                0,
+                0
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 0,
+                "range": [
+                  0,
+                  0
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 0,
+                "range": [
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "output_store_end_to_task_end": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": -53.0,
+              "range": [
+                -964,
+                0
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 0,
+                "range": [
+                  0,
+                  0
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": -600,
+                "range": [
+                  -964,
+                  -106
+                ]
+              }
+            }
+          },
+          "residual_vrf_ready_to_residual_add": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 8096.0,
+              "range": [
+                6478,
+                8892
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 7284,
+                "range": [
+                  6478,
+                  7786
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 8808,
+                "range": [
+                  8406,
+                  8892
+                ]
+              }
+            }
+          },
+          "weight_begin_from_task": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": -6.5,
+              "range": [
+                -656,
+                22
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": -24,
+                "range": [
+                  -656,
+                  -6
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": -2,
+                "range": [
+                  -7,
+                  22
+                ]
+              }
+            }
+          },
+          "weight_end_from_task": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 191.5,
+              "range": [
+                -274,
+                1950
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 812,
+                "range": [
+                  154,
+                  1950
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 20,
+                "range": [
+                  -274,
+                  229
+                ]
+              }
+            }
+          },
+          "dot_end_from_task": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 188.5,
+              "range": [
+                -282,
+                1940
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 804,
+                "range": [
+                  148,
+                  1940
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 18,
+                "range": [
+                  -282,
+                  229
+                ]
+              }
+            }
+          },
+          "gather_begin_from_task": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 188.5,
+              "range": [
+                -282,
+                1940
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 804,
+                "range": [
+                  148,
+                  1940
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 18,
+                "range": [
+                  -282,
+                  229
+                ]
+              }
+            }
+          },
+          "gather_end_from_task": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 7213.0,
+              "range": [
+                6766,
+                8504
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 8168,
+                "range": [
+                  7474,
+                  8504
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 6829,
+                "range": [
+                  6766,
+                  6952
+                ]
+              }
+            }
+          },
+          "channel_scale_begin_from_task": {
+            "all_run_clusters": {
+              "count": 6,
+              "median": 8446.0,
+              "range": [
+                7334,
+                8940
+              ]
+            },
+            "by_cluster": {
+              "0": {
+                "count": 3,
+                "median": 8156,
+                "range": [
+                  7334,
+                  8400
+                ]
+              },
+              "1": {
+                "count": 3,
+                "median": 8575,
+                "range": [
+                  8492,
+                  8940
+                ]
+              }
+            }
+          }
+        }
+      },
+      "whole_o_summary": {
+        "stages": {
+          "control_before": {
+            "correctness": "passed",
+            "median_cycles": 51418,
+            "cycles_by_run": [
+              52866,
+              50919,
+              51418
+            ],
+            "output_comparisons_passed": 3
+          },
+          "candidate_whole": {
+            "correctness": "passed",
+            "median_cycles": 58095,
+            "cycles_by_run": [
+              59796,
+              57378,
+              58095
+            ],
+            "output_comparisons_passed": 3
+          },
+          "control_after": {
+            "correctness": "passed",
+            "median_cycles": 50906,
+            "cycles_by_run": [
+              52568,
+              50546,
+              50906
+            ],
+            "output_comparisons_passed": 3
+          }
+        },
+        "control_bracket_median_cycles": 51162.0,
+        "candidate_minus_control_cycles": 6933.0,
+        "candidate_over_control_ratio": 1.1355107306203822,
+        "candidate_change_percent": 13.55107306203822,
+        "scope": "Standard benchmark host complete O (PROFILE=info); three inputs in one job, not an official score or repeated validation."
+      }
+    }
+  }
+}

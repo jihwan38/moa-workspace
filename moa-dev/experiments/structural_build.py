@@ -102,7 +102,7 @@ def resolve_plan(candidate, variant, extra=False):
     return here, config, plan
 
 
-def build(candidate, variant, label, package=False, extra=False):
+def build(candidate, variant, label, package=False, extra=False, dump_graph=False):
     here, config, plan = resolve_plan(candidate, variant, extra)
     spec = importlib.util.spec_from_file_location("structural_common", here.parent / "c02-c03-e55/build.py")
     common = importlib.util.module_from_spec(spec)
@@ -122,7 +122,7 @@ def build(candidate, variant, label, package=False, extra=False):
         common.build(variant, extra=extra, label=label, target_kernel=config["target_kernel"],
                      changed_sources=config["changed_sources"], compile_only=not package,
                      expected_images=plan["expected_unchanged_images"],
-                     expected_source_inputs=expected_inputs)
+                     expected_source_inputs=expected_inputs, dump_graph=dump_graph)
     finally:
         if record_path.exists():
             record = json.loads(record_path.read_text())
@@ -150,6 +150,11 @@ def build(candidate, variant, label, package=False, extra=False):
                 dest = evidence / name
                 shutil.copyfile(out / name, dest)
                 record["frozen_files"][name] = str(dest.relative_to(ROOT))
+            if dump_graph and "graph" in record:
+                for name in ("graph.json", "schedule.json"):
+                    dest = evidence / name
+                    shutil.copyfile(out / name, dest)
+                    record["frozen_files"][name] = str(dest.relative_to(ROOT))
             record_path.write_text(json.dumps(record, indent=2) + "\n")
 
 
@@ -161,10 +166,11 @@ if __name__ == "__main__":
     parser.add_argument("--plan", action="store_true", help="Resolve and show source/control selection without compiling")
     parser.add_argument("--package", action="store_true", help="Also build the host after the feasibility gate")
     parser.add_argument("--extra", action="store_true", help="Validate run3..8 with a host-only harness change; timing is diagnostic")
+    parser.add_argument("--dump-graph", action="store_true", help="Preserve exact DMA descriptors and schedule for the feasibility gate")
     args = parser.parse_args()
     if args.plan:
         print(json.dumps(resolve_plan(args.candidate, args.variant, args.extra)[2], indent=2))
     else:
         if not args.label:
             parser.error("--label is required for a build")
-        build(args.candidate, args.variant, args.label, args.package, args.extra)
+        build(args.candidate, args.variant, args.label, args.package, args.extra, args.dump_graph)

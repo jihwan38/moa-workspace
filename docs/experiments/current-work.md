@@ -1,3 +1,14 @@
+# 2026-09-28 E125 / M08 O row-pair4 종료
+
+[M08](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/README.md)는
+actual DMA coverage·BF16/F32 경계 검사와57개 기본 비교를 통과했지만,
+Arena105767 전체 O58095 vs E122 before51418/after50906으로 **+13.55% 회귀**했다.
+Trace에서 weight26769→27190으로 단축이 없고 F32 gather1201→8222로 증가했다.
+같은15360B gather의32×480B→1920×8B 분할 비용을 전체 경로에서 확인했다.
+추가 sweep 없이 종료; live E122 유지, 공식 제출 없음. 기록을 main에 통합한 뒤
+다음 질문은 동결 C09 two-stage의 **최초 NPU 진단**이다. 정적+0.71%만으로
+종료했던 prototype의 실제 overlap/whole O를 확인하며 새 architecture로 세지 않는다.
+
 # 2026-09-27 O weight ingress 연구 완료
 
 [O 전송·배치 종합 분석](../research/o-weight-ingress-20260927.md)을 추가했다.
