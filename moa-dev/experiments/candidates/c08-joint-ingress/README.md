@@ -62,3 +62,35 @@ python3 moa-dev/experiments/candidates/c08-joint-ingress/analyze.py --check
 
 분석 검증은 기존 결과를 덮어쓰지 않는다. 원본 v2 재현과 descriptor 판별의 첫 gate는
 완료했으며, 수정 source/host/NPU 실행은 이 진단 commit에 포함하지 않는다.
+
+## E124 후속 수리 — 기본 정확도 회복, +24.41% 회귀로 종료
+
+진단 뒤 승인된 [전체 경로와 비용 계획](E124-plan.md)에 따라 K/V weight·scale만
+compact HBM read → raw Sub packet copy로 수정했다. `corrected-v1`은 scale Collect가
+8B여서 one-flit32B 제약에 걸렸다. 이 시도를 보존하고 `corrected-v2`는 scale Collect를
+4#16 BF16으로 padding한 뒤 commit에서4개만 남겼다. 이후 산술·public ops·RMS·RoPE는
+frozen C08과 byte-identical이고 O/FFN image는 frozen E104와 같다.
+
+[수정 descriptor 분석](descriptor-analysis-corrected-v2.json)은 여섯 HBM input의
+bounds·중복 없는 coverage·목적 slice/row, 네 copy의 유효 extent와 slot offset,
+세 output gather의 byte 대응을 모두 검증한다. K/V weight는 slice당15,360B,
+scale은8B만 복사한다. Lookup 준비와 입력 TRF는 각각 한 개다.
+Compiler makespan은63,744이며 E10451,293보다 길다.
+
+[Arena105093](e124-c08-corrected-v2-results.json): **E104103,390 → E124129,258 →
+E104104,408 cycles**. 앞뒤 중앙값103,899 대비 **+24.41%**다. 실제 업로드 archive와
+보존 package hash를 대조했고, 모든45비교와 후보 QKV9비교가 PASS다.
+후보 세 run은129,131–130,251이며 두 대조 process의 모든 run은102,958–109,534다.
+단일 allocation·기본3입력이며 확대 정확도나 보편적 성능 경계로 해석하지 않는다.
+
+E105의 transfer 결함을 고쳐 기본 정확도를 회복했으나, 이 수정 prototype은 미채택이다.
+추가 DM copy, 모든 weight를 기다리는 통합 dot, Q head를 먼저 처리할 기회의 감소는
+구조상 비용이다. 후보 내부 trace가 없으므로 +24.41%를 그 비용별 cycles로 분해하지 않는다.
+반복·추가 입력·tile sweep·채택·공식 제출 없이 종료했다. [최종 판정](decision.json),
+[E124 원장](../../../../docs/experiments/e124-c08-corrected-joint.json).
+
+```bash
+python3 moa-dev/experiments/candidates/c08-joint-ingress/analyze_corrected.py corrected-v2 --check
+python3 moa-dev/experiments/candidates/c08-joint-ingress/results.py --check
+python3 moa-dev/experiments/candidates/c08-joint-ingress/verify.py
+```

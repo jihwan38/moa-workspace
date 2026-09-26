@@ -1,0 +1,28 @@
+{
+  "id": "E124",
+  "status": "rejected_measured_regression",
+  "adopted": false,
+  "source_origin": "Frozen C08 v2 joint QKV with only corrected compact K/V ingress and exact packet copies",
+  "comparison": "Frozen E104, independently selected from the source recipe; O/FFN images unchanged from E104",
+  "job": 105093,
+  "independent_allocations": 1,
+  "correctness_comparisons_passed": 45,
+  "candidate_qkv_output_comparisons_passed": 9,
+  "qkv_control_before": 103390,
+  "qkv_candidate": 129258,
+  "qkv_control_after": 104408,
+  "qkv_change_percent_vs_bracketing_median": 24.407357144919594,
+  "candidate_cycles_by_run": [
+    130251,
+    129131,
+    129258
+  ],
+  "compile_attempts": {
+    "corrected-v1": "Rejected 8-byte BF16 Collect packet; frozen before repair",
+    "corrected-v2": "Collect padded to one 32-byte flit, commit trims to four BF16 elements; full compile and NPU basic accuracy PASS"
+  },
+  "descriptor_gate": "All six HBM input sources have exact unique bounds/coverage and intended destination row ownership; four raw copies and three output gathers verified",
+  "structural_costs": "One shared lookup preparation/TRF, but K/V ingress adds compact DM read/write copies and the single joint dot waits for all weights/scales. These costs and lost early-head overlap are structural observations, not a measured cycle breakdown.",
+  "interpretation": "E105's invalid ingress was repaired and basic QKV accuracy recovered. This corrected prototype is slower than contemporary controls; neither the original failure nor this one screen proves all joint QKV architectures impossible.",
+  "stop": "No repeats, extra-input screen, tile tuning, adoption or official submission; concrete transfer repair and one authorized full-kernel screen are complete"
+}
