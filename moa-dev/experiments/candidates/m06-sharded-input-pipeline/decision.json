@@ -1,0 +1,57 @@
+{
+  "candidate": "M06",
+  "experiments": [
+    "E119",
+    "E120"
+  ],
+  "status": "held_unresolved_runtime_timeout",
+  "branch": "opt/m06-sharded-input-pipeline",
+  "integrated_parent": "83d09dd",
+  "source_base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "scope": "Historical sharded-RMS/direct-packing transport recombined with E5 three-term preparation and M03 ownership; not five independent architectures",
+  "adopted": false,
+  "official_submission": null,
+  "source_variants": 5,
+  "builds": {
+    "failed_sfr_lowering": [
+      "v1",
+      "v2",
+      "v3"
+    ],
+    "complete_compile_and_host": [
+      "v4",
+      "v5"
+    ],
+    "isolating_compile_change": "v3->v4 moves packed low-term cast/add from Sub to Main; exact backend cause remains unproved"
+  },
+  "arena": {
+    "v4": {
+      "job": 104566,
+      "ffn_status": "device timeout before first output comparison",
+      "valid_ffn_performance": false,
+      "report": "docs/experiments/e119-m06-sharded-packed-invalid.json"
+    },
+    "v5": {
+      "job": 104588,
+      "ffn_status": "device timeout before first output comparison",
+      "valid_ffn_performance": false,
+      "report": "docs/experiments/e120-m06-sharded-dma-invalid.json"
+    },
+    "controls": "E104 before, original M03 companion and E104 after pass all45 basic comparisons in each job; changed candidate QKV/O pass12 unchanged comparisons in each. Candidate FFN checks=0."
+  },
+  "interpretation": [
+    "Compile failure was repaired for v4, so this is not a compile-only dismissal.",
+    "Restoring separate hi/lo/third buffers and packing DMA in v5 does not repair runtime. Direct packing alone cannot be identified as the timeout cause.",
+    "Observed failure occurs in candidate FFN; contemporaneous reference processes work. No device-wide or SDK-wide incompatibility is demonstrated.",
+    "Static earlier activation preparation is not a valid speedup or accuracy claim.",
+    "M03 up/gate/GeGLU/down source remains identical; new preRMS/quantizer interaction and graph lowering/lifetimes are unresolved."
+  ],
+  "closure": "Hold both M06 implementations after bounded runtime isolation. No further source/layout/engine sweeps. E104 remains live, and M03 remains only a modest positive combination option.",
+  "retry_condition": "Specific new evidence localizing the failure boundary and a supported producer/consumer repair, not the same full graph with arbitrary parameter changes.",
+  "next_design_constraints": [
+    "Do not treat amax-only timing or static input readiness as end-to-end savings.",
+    "New performance candidates must address remaining large weight transfer/materialization or contraction costs, with each added boundary counted.",
+    "Audit HBM ingress chunking separately from FP8/DPE tile sizes before deciding a new candidate; M04 changed all three together. This is a follow-up hypothesis, not a validated untried architecture or promised gain."
+  ]
+}

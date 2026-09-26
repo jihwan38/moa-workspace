@@ -5,6 +5,21 @@
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
+## 최신 작업 — M06 실행 timeout으로 보류, E119/E120
+
+M05 기록 `83d09dd`까지 main/origin에 통합하고 `opt/m06-sharded-input-pipeline`에서
+[M06](../../moa-dev/experiments/candidates/m06-sharded-input-pipeline/README.md)를 구현했다.
+예전 E53 FFN sharded RMS와 QKV/O 직접 packing의 전송 방식을 현재 native3항 입력과
+M03 구조에 결합했다. pre-RMS gather/입력 재분배/scale 재분배/3항 packing DMA를
+제거하는 경로다. 과거 방법을 새 독립 아키텍처로 세지 않는다.
+v1/v2/v3은 SFR lowering에서 실패했다. Packed lo의 cast/add를 Sub→Main으로
+옮긴 v4와 별도 term buffer·packing DMA를 복구한 v5는 전체 compile·host build PASS다.
+그러나 Arena104566/104588에서 두 후보 모두 첫 FFN 출력 비교 전에 device timeout.
+같은 작업의 E104 before/M03/E104 after는 각각45비교 PASS여서 접속 실패가 아니다.
+Direct packing만이 원인이라는 증거도 없다. 원인 미확정으로 보류하며 추가 변형은 중단했다.
+[실패 E119](e119-m06-sharded-packed-invalid.json) · [실패 E120](e120-m06-sharded-dma-invalid.json).
+유효 FFN 성능·정확도·채택·공식 제출 없음. 실행 source는E104다.
+
 ## 최신 작업 — M05 입력 준비·M03 조합, E118 개선 미확인으로 종료
 
 M03 기록 `db7cbf4`까지 main/origin에 통합한 뒤 `opt/m05-local-activation-ready`에서

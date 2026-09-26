@@ -1,0 +1,55 @@
+{
+  "id": "M06",
+  "base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs",
+    "ops.rs": "src/ops.rs"
+  },
+  "integrated_parent": "83d09ddf146a820db86586c19a3805aca52a9a20",
+  "scope": "M06 sharded RMS/quantizer handoff with separate term buffers; diagnostic architecture variant, not direct-packed optimization",
+  "source_components": [
+    {
+      "commit": "83d09ddf146a820db86586c19a3805aca52a9a20",
+      "path": "moa-dev/experiments/candidates/m05-local-activation-ready/local-prepare-v1/mlp.rs",
+      "sha256": "6f261e366b2fa50f7dc22e2dd7091f38b7dfcd9dbba437b9a7565874dfe48d1a"
+    },
+    {
+      "commit": "83d09ddf146a820db86586c19a3805aca52a9a20",
+      "path": "moa-dev/experiments/candidates/ffn-sharded-input-rms-e53/ops.rs",
+      "sha256": "ac46cb8167eb9f62243fb4b2c7f51571b67187793a8c939bb4f812ba9c888d15"
+    },
+    {
+      "commit": "83d09ddf146a820db86586c19a3805aca52a9a20",
+      "path": "moa-dev/experiments/candidates/qkv-fp8-direct-packed-quant/projection.rs",
+      "sha256": "86c2760e1d592279a2679377d7082483c727b61f5b08dd039bdaf0b7a4a5b3e1"
+    }
+  ],
+  "graph": "residual -> H480 shards -> existing inter-slice preRMS with BF16 local output -> local absolute maxima -> eight-slice global max -> per-shard same restoration scale -> three E5 terms computed in separate DM, then three DMA copies to packed DM -> leader distribution/ring32/TRF -> unchanged M03 native upgate/localGeGLU/L-owned-down/F32-cluster-sum/epilogue",
+  "prior_related": [
+    "E53 FFN sharded preRMS compiled but had a static regression while feeding replicated BF16 up/gate; no native quantization consumer or NPU run.",
+    "QKV/O direct-packed two-term quantizers compiled; those approximate parent kernels had independent numerical limitations. No inherited correctness.",
+    "M05 moved amax earlier but complete input broadcast later; hardware+1.08% versus M03.",
+    "M03 ownership basic PASS, modest gain; E104 remains adopted."
+  ],
+  "material_difference": "New native quantizer consumes RMS shards directly and commits all three terms into final packed views. Removes initial gather, activation repartition, scale redistribution and three packing DMA copies; full weight streams remain.",
+  "removed_work": [
+    "preRMS whole-H Switch gather",
+    "raw activation repartition for quantization",
+    "global scale redistribution before quantizer VRF"
+  ],
+  "added_work": [
+    "global maximum reduction of eight local amax values",
+    "Main scalar broadcast to eight quantizer slices",
+    "Three term packing DMA copies and separate term buffers restored versus v4"
+  ],
+  "numerical_contract": "Same public inputs/tolerances and BF16 normalized boundary; input three-term arithmetic and scale floor retained. PreRMS ClipAdd->FpAdd and fused sqrt path require fresh NPU validation; no bit-exact claim. Global max argument assumes finite input values as in the workload.",
+  "mapping": "cluster0 slices0..7 H480 normalized shards; canonical scalar Max/scale and explicit ring8 scale broadcast. Each hi/lo/third DM is480B per slice; three disjoint480B DMA writes form local3x480 packed input.",
+  "stop_condition": "Compile and one full unchanged NPU screen with E104/M03. No further shape/context variants if timeout or correctness issue repeats. A regression or <5% gain closes without tuning.",
+  "adopted": false,
+  "hardware_status": "not_run",
+  "source_repair": "Restore the proven M05 separate hi/lo/third DM producers, Sub sum and three DMA writes into packed terms. Keep M06 sharded preRMS, local amax/global Max and Main scalar broadcast. Separates mutable packed read/write/lifetime coupling from the sharded normalization/quantization graph.",
+  "prior_variant": "v4 full compile passes after Sub->Main sum change, but Arena104566 decoder_feedforward hits device time limit before any FFN output comparison. No speed result.",
+  "gate_exception": "One bounded runtime isolation with the known three-term producer/consumer boundary. New buffers/three DMA copies are included in performance and explicitly reduce the scope of boundary removal. If still unresolved, hold without further variants."
+}

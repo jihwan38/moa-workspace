@@ -1,5 +1,11 @@
 # Experiment ledger
 
+September26–27 [M06 / E119–E120](../../moa-dev/experiments/candidates/m06-sharded-input-pipeline/README.md)
+connects pre-RMS H480 shards to native input preparation. Three lowering failures
+were repaired to executable v4; v4 direct packing and v5 separate-buffer packing
+both time out on NPU before the first FFN output comparison. E104/M03 controls
+pass in both jobs. Held unresolved; no valid FFN performance, adoption or submission.
+
 September26 [M05 / E118](../../moa-dev/experiments/candidates/m05-local-activation-ready/README.md)
 combines M03 ownership with only M04 input preparation, excluding tiled weights.
 Arena104458 passes60 basic comparisons: FFN335317 versus E104335775/337758

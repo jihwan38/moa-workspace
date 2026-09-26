@@ -1,0 +1,57 @@
+{
+  "id": "M06",
+  "base_commit": "9e2058ec0947498d7cb693fbe98e7b5f0b5c9ea7",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs",
+    "ops.rs": "src/ops.rs"
+  },
+  "integrated_parent": "83d09ddf146a820db86586c19a3805aca52a9a20",
+  "scope": "Coupled pre-RMS/quantizer/packing dataflow replacement on M03 FFN ownership; historical sharded-RMS/direct-packed transport recombination, not a new independent whole-FFN family",
+  "source_components": [
+    {
+      "commit": "83d09ddf146a820db86586c19a3805aca52a9a20",
+      "path": "moa-dev/experiments/candidates/m05-local-activation-ready/local-prepare-v1/mlp.rs",
+      "sha256": "6f261e366b2fa50f7dc22e2dd7091f38b7dfcd9dbba437b9a7565874dfe48d1a"
+    },
+    {
+      "commit": "83d09ddf146a820db86586c19a3805aca52a9a20",
+      "path": "moa-dev/experiments/candidates/ffn-sharded-input-rms-e53/ops.rs",
+      "sha256": "ac46cb8167eb9f62243fb4b2c7f51571b67187793a8c939bb4f812ba9c888d15"
+    },
+    {
+      "commit": "83d09ddf146a820db86586c19a3805aca52a9a20",
+      "path": "moa-dev/experiments/candidates/qkv-fp8-direct-packed-quant/projection.rs",
+      "sha256": "86c2760e1d592279a2679377d7082483c727b61f5b08dd039bdaf0b7a4a5b3e1"
+    }
+  ],
+  "graph": "residual -> H480 shards -> existing inter-slice preRMS with BF16 local output -> local absolute maxima -> eight-slice global max -> per-shard same restoration scale -> three E5 terms written directly to packed DM -> leader distribution/ring32/TRF -> unchanged M03 native upgate/localGeGLU/L-owned-down/F32-cluster-sum/epilogue",
+  "prior_related": [
+    "E53 FFN sharded preRMS compiled but had a static regression while feeding replicated BF16 up/gate; no native quantization consumer or NPU run.",
+    "QKV/O direct-packed two-term quantizers compiled; those approximate parent kernels had independent numerical limitations. No inherited correctness.",
+    "M05 moved amax earlier but complete input broadcast later; hardware+1.08% versus M03.",
+    "M03 ownership basic PASS, modest gain; E104 remains adopted."
+  ],
+  "material_difference": "New native quantizer consumes RMS shards directly and commits all three terms into final packed views. Removes initial gather, activation repartition, scale redistribution and three packing DMA copies; full weight streams remain.",
+  "removed_work": [
+    "preRMS whole-H Switch gather",
+    "raw activation repartition for quantization",
+    "global scale redistribution before quantizer VRF",
+    "three term-to-packed DMA copies"
+  ],
+  "added_work": [
+    "global maximum all-reduction of eight local amax values",
+    "direct packed tile lifetime/dependency coupling",
+    "different preRMS EPS/Sqrt engine composition from existing normalize_sharded_inter_slice",
+    "One explicit eight-slice scalar Main broadcast replacing replicated Max output"
+  ],
+  "numerical_contract": "Same public inputs/tolerances and BF16 normalized boundary; input three-term arithmetic and scale floor retained. PreRMS ClipAdd->FpAdd and fused sqrt path require fresh NPU validation; no bit-exact claim. Global max argument assumes finite input values as in the workload.",
+  "mapping": "PreRMS and term quantizers stay on H480 slices0..7. Global Max and scale live on slice0; explicit ring8 copies to quantizer slices. Three direct480B commits fill packed terms. No replica-selection reshape.",
+  "stop_condition": "One bounded lowering-context repair; retain all dataflow changes and inspect result before further action. No unexplained shape/parameter sweep.",
+  "adopted": false,
+  "hardware_status": "not_run",
+  "source_repair": "Replace new replicated-output Max/scale-selection composition with the canonical scalar Max used by historical QKV quantizers, followed by explicit Main ring8 scale broadcast. Removes the unused seven-replica scale-selection reshape; no quantization/term packing DMA restored.",
+  "prior_variant": "v1 and v2 both fail SFR key lookup. Changing only the Max/VE floor boundary did not repair lowering.",
+  "gate_exception": "One further supported ownership repair: reuse known scalar-reducer output and explicit producer/consumer broadcast rather than assume replicated Max+selection support. Not a shape sweep. If unresolved, isolate the remaining direct-packed consumer composition before attributing the failure to SDK support."
+}
