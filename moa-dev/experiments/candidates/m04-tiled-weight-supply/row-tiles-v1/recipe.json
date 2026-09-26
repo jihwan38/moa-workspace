@@ -1,0 +1,36 @@
+{
+  "id": "M04",
+  "variant": "row-tiles-v1",
+  "base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/c07-native-scale-dpe/build-c07-e104-reviewed-v1-repro.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Coupled FFN operand-supply redesign: producer-local quantization and tiled HBM/FP8/partial flow in up, gate and down; arithmetic and row/column ownership retained",
+  "prior_related": [
+    "E56 unresolved tiled BF16 failure",
+    "E73 repeated BF16 tile lookup regression",
+    "C07 direct lookup/native-DPE numerical failures",
+    "C15 split-H transfer regression",
+    "D-E104-WEIGHT jobs 102797 and 102842"
+  ],
+  "removed_assumptions": [
+    "Replicate normalized BF16 input to two clusters before amax/quantization",
+    "Whole weight projection DMA completion before FP8 conversion",
+    "Whole FP8 projection completion before first dot"
+  ],
+  "retained_methods": [
+    "C07 three E5M2 input terms, separate up/gate TRF reloads, FP8 DM boundary",
+    "C05 F32 block partials",
+    "E104 full-H up/gate rows and eight-column down",
+    "Unchanged GeGLU and FFN epilogue"
+  ],
+  "first_stop_condition": "Compile whole graph; concrete source errors may be repaired with frozen evidence. Inspect actual tiled transfer/decode/dot order; run complete NPU screen. Close regression or <5% FFN gain without polishing; repeat and expand accuracy only for promising gain.",
+  "adopted": false
+}

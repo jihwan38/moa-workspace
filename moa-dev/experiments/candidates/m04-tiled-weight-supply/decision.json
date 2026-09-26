@@ -1,0 +1,98 @@
+{
+  "candidate": "M04",
+  "experiment": "E116",
+  "variant": "row-tiles-v1",
+  "status": "closed_measured_regression",
+  "branch": "opt/m04-tiled-weight-supply",
+  "integrated_parent": "db89a50",
+  "source_base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "comparison_recipe": "baseline/e104.json",
+  "adopted": false,
+  "official_submission": null,
+  "scope": "Coupled FFN operand-supply redesign across up/gate/down; same row/column ownership, arithmetic representation and GeGLU/epilogue",
+  "graph_changes": [
+    "Quantize normalized BF16 activation on its producing cluster before cross-cluster broadcast",
+    "Five independent HBM/FP8/F32-partial row tiles per projection, with tile-level dot and reduction"
+  ],
+  "prior_related": [
+    "E56",
+    "E73",
+    "C07 direct fusion and E104 materialized native",
+    "C15 split-H",
+    "E104 weight-path diagnostics102797/102842"
+  ],
+  "builds": {
+    "source_variants": 1,
+    "exact_compiles": 2,
+    "host_packages": 1,
+    "source_corrections": 0,
+    "byte_identical_recompile": true
+  },
+  "arena": {
+    "job_id": 103108,
+    "independent_allocations": 1,
+    "total_comparisons_passed": 45,
+    "candidate_comparisons_passed": 15,
+    "candidate_ffn_inputs": 3,
+    "candidate_ffn_elements": 11520,
+    "e104_before_cycles": 334906,
+    "candidate_cycles": 381507,
+    "e104_after_cycles": 336369,
+    "bracketing_control_median_cycles": 335637.5,
+    "change_percent": {
+      "vs_before": 13.914650678100715,
+      "vs_after": 13.419191423704335,
+      "vs_bracketing_median": 13.6663811403672
+    },
+    "report": "docs/experiments/e116-m04-tiled-weight-supply.json"
+  },
+  "static": {
+    "before_makespan": 157045,
+    "candidate_makespan": 165192,
+    "change_percent": 5.187685058422753,
+    "dma_instruction_counts": [
+      35,
+      74
+    ],
+    "fp8_producer_and_dot_counts": [
+      3,
+      15
+    ],
+    "fp8_peak_live_allocated_bytes": [
+      58982400,
+      23592960
+    ],
+    "fp8_total_logical_write_bytes_each": 176947200,
+    "pre_rms_to_amax_gap": [
+      23250,
+      0
+    ],
+    "pre_rms_end": [
+      7511,
+      13942
+    ],
+    "amax_begin": [
+      30761,
+      13942
+    ],
+    "limits": "Static intervals/allocations, not measured NPU traffic or stall attribution; sums overlap."
+  },
+  "interpretation": [
+    "The lowered path expresses earlier activation amax and tile-level consumption; it is not a mere parameter label change.",
+    "Whole-kernel hardware regression exceeds the 5% screen cutoff, so no tile sweep or extended validation.",
+    "More weight/scale DMA commands, lookup/dot setup and unchanged total FP8 materialization are liabilities; exact hardware attribution was not separately profiled.",
+    "No isolated A-only/B-only jobs: neither component is individually disproven and improvements cannot be summed.",
+    "Source helper calls reload TRF expressions, but the compiler shares one up/gate input TRF allocation; source order is not hardware scheduling enforcement."
+  ],
+  "closure": "Keep E104; preserve failed-performance prototype and evidence. No further tuning or official submission.",
+  "retry_condition": "Change a concrete added-cost mechanism (repeated setup, transfers or FP8 storage) and revalidate arithmetic, rather than sweeping tile size.",
+  "unimplemented_prior_candidate": "M03 producer-local GeGLU/down ownership",
+  "evidence": [
+    "README.md",
+    "row-tiles-v1/recipe.json",
+    "plan-v1.json",
+    "static-analysis.json",
+    "verification.json",
+    "evidence/arena-103108.log"
+  ]
+}

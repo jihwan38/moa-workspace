@@ -5,7 +5,28 @@
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 최신 작업 — E104 whole-FFN 내부 NPU 진단 완료
+## 최신 작업 — M04 입력 준비·weight 타일 공급 결합, E116 종료
+
+진단 기록 `db89a50`까지 main/origin에 통합한 뒤 `opt/m04-tiled-weight-supply`에서
+[M04 전체 경로](../../moa-dev/experiments/candidates/m04-tiled-weight-supply/README.md)를 구현했다.
+입력 amax/3항 quantization을 원래 cluster에서 먼저 수행하고 완성된 표현을 복제한다.
+Up/gate는6행, down은12행씩 HBM 적재→FP8 DM→dot→F32 partial→scale/reduce로 연결했다.
+한 파일의 완성 경로 조합이며 기존 row/column 소유권·GeGLU·공개 입력 계약은 유지한다.
+M03의 producer-local GeGLU/down 구조를 구현한 것으로 세지 않는다.
+
+**첫 source compile·기본 NPU 정확도 PASS, FFN은 13.67% 느려 미채택**했다.
+Arena 103108: E104 334906 → M04 381507 → E104 336369 cycles. 총45비교 PASS이며
+후보 FFN은3입력/11520출력을 검사했다. [E116](e116-m04-tiled-weight-supply.json).
+확장 정확도·독립 반복·공식 제출은 없고, 채택 runtime은 **E104 유지**다.
+
+정적 graph에서 pre-RMS→amax gap은23250→0이지만 pre-RMS 자체는 더 늦어졌다.
+스케줄상 FP8 텐서의 최대 동시 크기는56.25→22.5MiB로 감소했고 전체 FP8 저장량은 그대로다.
+DMA 명령35→74, dot3→15, 정적 전체157045→165192다. 실제 NPU 내부 stall 비용을
+이 수치로 환산하지 않는다. [판정·해시·원본 로그](../../moa-dev/experiments/candidates/m04-tiled-weight-supply/decision.json)를 남기고,
+회귀 prototype의 tile sweep 없이 종료한다. 두 변경 각각이 나쁘다는 판정은 아니다.
+M03은 아직 미구현이며 후속 재시도는 반복 setup/전송/저장 비용을 바꾸는 구체적 근거가 필요하다.
+
+## 이전 작업 — E104 whole-FFN 내부 NPU 진단 완료
 
 M02와 보완 조사 기록을 main/origin의 `913f9ac`까지 통합하고 `diag/e104-weight-path`에서
 [내부 NPU profile 진단](../../moa-dev/experiments/candidates/e104-weight-path/README.md)을 실행했다.

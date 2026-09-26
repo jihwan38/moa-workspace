@@ -1,5 +1,13 @@
 # Experiment ledger
 
+September26 [M04 / E116](../../moa-dev/experiments/candidates/m04-tiled-weight-supply/README.md)
+couples producer-local input preparation with tiled HBM/FP8/partial supply in
+up/gate/down. Full compile and45 basic comparisons pass in Arena103108, but FFN
+is381507 versus E104334906/336369 cycles (**+13.67%** versus the bracketing median).
+FP8 peak allocation falls in the compiler graph while DMA/task counts increase.
+This prototype is closed without a tile sweep; no adoption or official submission.
+E104 remains current. Source, schedule, package hashes and raw logs are preserved.
+
 September 23 structural screens are closed: [C09](../../moa-dev/experiments/candidates/c09-output-pipeline/README.md)
 compiles with real row-stage DMA/dot overlap but static O makespan rises 27239→27432 (+0.71%).
 [C11](../../moa-dev/experiments/candidates/c11-ffn-partial-vrf/README.md) successfully stores computed
