@@ -1,5 +1,9 @@
 # C09 — O의 두 행 구간 전송·계산 pipeline
 
+2026-09-27 후속: [동결본의 최초 NPU 검사](../c09-output-first-npu/README.md)에서 같은 exact image로
+57비교 PASS, 동시 E122 대비 단회 O−2.496%를 관측했다. 5% 탐색 기준 아래여서
+추가 튜닝·반복·채택 없이 보존했다. 아래는 최초 정적 종료 당시의 기록이다.
+
 **컴파일 성공, 정적 일정 +0.71%로 종료. 채택하지 않는다.** 후보 compile 1회와
 E104 control compile 1회만 수행했다. Arena 정확도·성능은 측정하지 않았다.
 [판정](decision.json) · [정적 근거](static-screen.json) · [사전 가설](candidate.json).

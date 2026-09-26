@@ -1,0 +1,47 @@
+{
+  "id": "E126",
+  "candidate": "C09-first-NPU",
+  "status": "closed_below_exploration_screen",
+  "adopted": false,
+  "source_base_commit": "c3553ab87046fb4d59c10149a82517f8440bba27",
+  "comparison_recipe": "baseline/e122.json",
+  "job": 105820,
+  "independent_allocations": 1,
+  "scope": "First NPU diagnostic of the unchanged frozen C09 local two-stage dataflow; not a new architecture or tile variant.",
+  "candidate_whole_o": 49923,
+  "control_whole_o": [
+    51237,
+    51165
+  ],
+  "bracketing_median": 51201.0,
+  "change_percent": -2.4960449991211164,
+  "candidate_cycles_by_run": [
+    50813,
+    48496,
+    49923
+  ],
+  "total_comparisons_passed": 57,
+  "official_whole_comparisons_passed": 45,
+  "diagnostic_o_comparisons_passed": 12,
+  "candidate_distinct_inputs": 3,
+  "compile_attempts": 1,
+  "static": {
+    "control": 27239,
+    "candidate": 27432,
+    "weight_control": 13383,
+    "weight_stage0": 6966,
+    "weight_stage1": 6966,
+    "dot_control": 5063,
+    "dot_stage0": 2663,
+    "dot_stage1": 2663,
+    "stage1_weight_stage0_dot_overlap": 1825,
+    "gather_control": 470,
+    "gather_candidate": 470
+  },
+  "descriptor_gate": "Exact one-pass15MiB weight coverage across two compact60-row loads, BF16 input q ownership, disjoint F32 commits,32x480B gather,16K F32 sum and scale-before-BF16 verified.",
+  "changed_cost": "Original120 rows per slice split into two60-row weight/dot streams; repeated lookup setup and smaller dot launches included. Canonical F32 gather preserved.",
+  "diagnostic_choice": "Full O existing engine markers preserve concurrent conditions; no artificial isolated roundtrip or free preprocessing.",
+  "profile_analysis": "moa-dev/experiments/candidates/c09-output-first-npu/profile-analysis-c09-first-npu-v1.json",
+  "official_submission": false,
+  "next_gate": "No parameter sweep, extra-input campaign or adoption for this prototype; preserve measured result and current E122."
+}

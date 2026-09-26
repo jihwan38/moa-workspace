@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "valid": true,
+  "runs": [
+    {
+      "job": {
+        "id": 105820,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-e126-c09-first-npu-screen",
+        "status": "SUCCEEDED",
+        "created_at": "2026-09-26T19:08:31Z",
+        "started_at": "2026-09-26T19:08:40Z",
+        "finished_at": "2026-09-26T19:09:09Z",
+        "duration_sec": 28.216353912,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log": "moa-dev/experiments/candidates/c09-output-first-npu/evidence/arena-105820.log",
+      "package_files": {
+        "run.sh": {
+          "bytes": 2541,
+          "sha256": "4b00998b1985c96013aabba35eead77e36de3c517b2a695dfda284a0c0a8b920"
+        },
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "job.yaml": {
+          "bytes": 91,
+          "sha256": "5b7dea0993ee90d84e4a63836dc9d2152229f19f33a9c2c2e71bf281e36e10cc"
+        },
+        "control_probe": {
+          "bytes": 3704792,
+          "sha256": "ec52d00ecf841864c34dbd6f6bd0c9de8671e2280e8ccf260b3ed348fda43349"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "candidate_test_runtime": {
+          "bytes": 3699264,
+          "sha256": "39ee7a56ccdfaf8a5d28b464fabd5c29adff06c72ca4335fc0d981f47878dc1c"
+        },
+        "control_test_runtime": {
+          "bytes": 3689792,
+          "sha256": "af64ce53da4f4c36860d6245087d00e6cc2da4155c3a001f08ccf19d5449bdcc"
+        },
+        "candidate_probe": {
+          "bytes": 3732696,
+          "sha256": "4f635801d1eeff297bd71ad4d0234c997c764500ebfd3c175f46240ab94d514a"
+        }
+      },
+      "valid": true,
+      "log_sha256": "7981fa803fb8f114b9f18220b5301c7271ef24e3060f799185cc8f3218dae06c",
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 104078,
+          "cycles_by_run": [
+            110100,
+            104078,
+            103066
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 49923,
+          "cycles_by_run": [
+            50813,
+            48496,
+            49923
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 332251,
+          "cycles_by_run": [
+            335477,
+            332251,
+            330609
+          ],
+          "output_comparisons_passed": 3
+        }
+      },
+      "comparisons_passed": 15,
+      "batch_stage": "candidate_whole",
+      "executed_host": "candidate_test_runtime",
+      "benchmark_files": {
+        "test_runtime": "candidate_test_runtime",
+        "fixtures.safetensors": "fixtures.safetensors",
+        "remote_entrypoint.sh": "remote_entrypoint.sh"
+      }
+    }
+  ],
+  "independent_arena_jobs": 1,
+  "method": "Official original three-input hosts in one allocation; E122 before and after. Diagnostic info/trace timings excluded from this report.",
+  "aggregate": {
+    "sliding_project_qkv": {
+      "median_cycles": 104078,
+      "job_medians": [
+        104078
+      ]
+    },
+    "sliding_attention_output": {
+      "median_cycles": 49923,
+      "job_medians": [
+        49923
+      ]
+    },
+    "decoder_feedforward": {
+      "median_cycles": 332251,
+      "job_medians": [
+        332251
+      ]
+    }
+  },
+  "candidate_build": "moa-dev/experiments/candidates/c09-output-first-npu/build-c09-first-npu-v1-repro.json",
+  "candidate_package": "moa-dev/experiments/candidates/c09-output-first-npu/package-c09-first-npu-v1.json",
+  "reference": "docs/experiments/e126-c09-e122-before.json",
+  "control_after_report": "docs/experiments/e126-c09-e122-after.json",
+  "change_percent_vs_bracketing_median": -2.4960449991211164,
+  "adopted": false,
+  "accuracy_scope": "Three original inputs only. Nine candidate O comparisons across info/trace/whole reuse the same three inputs; no expanded-input validation yet."
+}

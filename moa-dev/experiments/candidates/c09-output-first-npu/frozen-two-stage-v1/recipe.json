@@ -1,0 +1,37 @@
+{
+  "id": "C09-first-NPU",
+  "base_commit": "c3553ab87046fb4d59c10149a82517f8440bba27",
+  "comparison_recipe": "baseline/e122.json",
+  "source_reference_build": "moa-dev/experiments/candidates/m03-producer-local-ffn/build-m03-native-local-v1-repro.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "decoder_feedforward"
+  ],
+  "target_kernel": "sliding_attention_output",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "record_parent": "617aaef4f28790fac12de6efc6068b6d49199580",
+  "source_snapshot": "moa-dev/experiments/candidates/c09-output-pipeline/two-stage-v1/projection.rs",
+  "original_build": "moa-dev/experiments/candidates/c09-output-pipeline/build-c09-two-stage-v1-repro.json",
+  "scope": "First hardware diagnostic of unchanged frozen C09 two-stage local dataflow replacement; not a new architecture or parameter variant.",
+  "graph": "Original FP8 HBM weight -> two compact60x256 per-slice FP8 DM allocations -> shared BF16 x TRF -> per-stage inline BF16 lookup/dot and K16 F32 sum -> disjoint60-row F32 commits -> original32x480B F32 gather -> F32 channel scale -> first BF16 -> post-RMS/residual/store",
+  "layout": "c in2,g in16,q in16,t in60,stage in2: h=1920*c+120*g+60*stage+t; slice=16*g+q; k=256*q+u",
+  "lifetimes": {
+    "weight": "Two distinct15360B/slice FP8 DM allocations consumed by separate Main streams. Overlap checked from emitted graph, not assumed from API order.",
+    "x": "BF16 TRF512B/slice shared by both dots; unchanged logical replication",
+    "partials": "F32 K16 reduced60-row stage writes into disjoint halves of common120-row result; both ready before canonical gather"
+  },
+  "removed_cost": "Whole120-row weight completion dependency before the first dot becomes60-row stage readiness. Original weight bytes/arithmetic and epilogue remain.",
+  "added_costs": [
+    "Two weight DMA streams instead of one",
+    "Repeated lookup setup and smaller dot launches",
+    "Disjoint F32 commit boundaries; no added full gather or free preprocessing"
+  ],
+  "prior": "Original C09 static27432 vs27239 (+0.71%), overlap1825 compilercycles; no prior NPU. C12 Main/Sub overlap0 and M08 gatherfragmentation regression do not answer frozen C09 hardware behavior.",
+  "diagnostic_question": "Does second-half weight DMA overlap first-half dot on hardware, does it advance first dot, and does complete O improve after repeated setup and launch costs?",
+  "gate": "Recompile frozen source under E122 and require exact original C09 O image. Audit both HBM source ranges and destination compact tile contract, gather and F32 boundaries. Then one full-O marker diagnostic with bracketing E122 standard hosts.",
+  "stop_condition": "Close measured loss or less than5% target improvement without tile sweeps. A >=5% screen requires independent repeat and expanded correctness before adoption. Preserve source/API repair evidence if bounds are wrong.",
+  "adopted": false,
+  "official_submission": false
+}

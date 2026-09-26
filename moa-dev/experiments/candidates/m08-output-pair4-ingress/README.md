@@ -2,7 +2,7 @@
 
 2026-09-27. Branch `opt/m08-output-pair4-ingress`, parent `63a5c6d`.
 Source는 E122 `c3553ab`, performance control은 별도로 `baseline/e122.json`이다.
-[사전 연구](../../../../../docs/research/o-weight-ingress-20260927.md)의 첫 후보를 실행한다.
+[사전 연구](../../../../docs/research/o-weight-ingress-20260927.md)의 첫 후보를 실행한다.
 기존 row-interleave family의 local producer/consumer replacement이며 새 architecture로 세지 않는다.
 
 전체 graph·소유권·수명·추가 비용·선행 실패·종료 기준은 [recipe](pair4-v1/recipe.json)에 기록했다.
@@ -61,5 +61,6 @@ python3 moa-dev/experiments/candidates/m08-output-pair4-ingress/analyze_profile.
 python3 moa-dev/experiments/candidates/m08-output-pair4-ingress/results.py e125-m08-pair4-screen 105767 --check
 ```
 
-다음은 연구의 별도 질문인 동결 C09 two-stage의 최초 NPU 진단이다. 이 결과를
-C09의 weight 완료 dependency 분할이나 row-interleave 전체 family의 기각으로 확대하지 않는다.
+후속으로 [동결 C09 two-stage의 최초 NPU](../c09-output-first-npu/README.md)를 완료했다.
+그 단회 −2.496% 결과는 별도 보존한다. M08 결과를 C09의 weight 완료 dependency
+분할이나 row-interleave 전체 family의 기각으로 확대하지 않는다.

@@ -1,6 +1,13 @@
 # Experiment ledger
 
-September28 [E125 / M08 O pair-four ingress](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/README.md)
+September27 [E126 / frozen C09 first NPU](../../moa-dev/experiments/candidates/c09-output-first-npu/README.md)
+reproduces the historical exact image and passes57 comparisons in Arena105820.
+Whole O49923 vs E12251237/51165 improves2.496% against the bracket in one allocation.
+Actual dot0/weight1 overlap is7392.5 cycles; the static finaldot/gather gap does not recur.
+Closed below5% exploration gate without tuning/repeats/expanded validation/adoption.
+E122 remains current. [Combined O execution findings](../research/o-weight-ingress-execution-20260927.md).
+
+September27 [E125 / M08 O pair-four ingress](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/README.md)
 passes exact descriptor checks and57 basic comparisons in Arena105767, but whole O
 58095 vs E12251418/50906 regresses13.55% against the bracket. Separate trace shows
 no weight-interval reduction (26769→27190) and larger F32 gather (1201→8222).
