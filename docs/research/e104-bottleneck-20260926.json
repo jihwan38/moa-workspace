@@ -1,0 +1,205 @@
+{
+  "scope": "Existing official leaderboard, source and compiler schedule review; no new compile or NPU diagnostic.",
+  "date": "2026-09-26",
+  "record_parent_commit": "a46baa4c98981ff229f07fd56f21db8d61825703",
+  "runtime_recipe": "baseline/e104.json",
+  "leaderboard": {
+    "page_url": "https://micro2026-moa.github.io/leaderboard.html",
+    "api_url": "https://micro2026-api.duckdns.org:7777/api/leaderboard",
+    "snapshot_path": "docs/experiments/leaderboard-20260926-092533Z.json",
+    "snapshot_sha256": "4bd9f425c20373703f81bf43f692d13cd83d75fd8072b4bfa5c16cf44ff9bd65",
+    "capture_file_mtime_utc": "2026-09-26T09:25:33+00:00",
+    "timestamp_basis": "mtime of original response file written immediately after fetching; not API event time",
+    "team_count": 69,
+    "beef": {
+      "rank": 52,
+      "teamName": "BEEF",
+      "submissionId": "2026-09-22-13-11-42-210-6ee0120a",
+      "submissionCode": "6ee0120a",
+      "qkvCycles": 104091,
+      "attentionCycles": 51565,
+      "ffnCycles": 335987,
+      "cycles": {
+        "ops::sliding_project_qkv": 104091,
+        "ops::sliding_attention_output": 51565,
+        "ops::decoder_feedforward": 335987
+      },
+      "score": 5.926577056826218,
+      "skeleton": "0.8.1"
+    },
+    "third": {
+      "rank": 3,
+      "teamName": "EoM",
+      "submissionId": "2026-09-26-06-07-29-059-57afb94a",
+      "submissionCode": "57afb94a",
+      "qkvCycles": 66611,
+      "attentionCycles": 36234,
+      "ffnCycles": 196435,
+      "cycles": {
+        "ops::sliding_project_qkv": 66611,
+        "ops::sliding_attention_output": 36234,
+        "ops::decoder_feedforward": 196435
+      },
+      "score": 9.251392913360942,
+      "skeleton": "0.8.1"
+    },
+    "comparisons": {
+      "qkv": {
+        "beef_cycles": 104091,
+        "third_cycles": 66611,
+        "required_reduction_percent": 36.00695545244065,
+        "beef_over_third_cycles": 1.5626698293074717
+      },
+      "output": {
+        "beef_cycles": 51565,
+        "third_cycles": 36234,
+        "required_reduction_percent": 29.73140696208668,
+        "beef_over_third_cycles": 1.423110890324005
+      },
+      "ffn": {
+        "beef_cycles": 335987,
+        "third_cycles": 196435,
+        "required_reduction_percent": 41.53494033995363,
+        "beef_over_third_cycles": 1.7104232952376104
+      }
+    },
+    "third_over_beef_score": 1.5610010339282112,
+    "ffn_share_of_three_kernel_cycles": 0.6833962855161164,
+    "hypothetical_score_only_ffn_matches_third": 7.087696889687168
+  },
+  "logical_accounting": {
+    "H": 3840,
+    "L": 15360,
+    "projection_count": 3,
+    "scale_block_size": 16,
+    "quantities": {
+      "packed_fp4_weight": {
+        "bytes": 88473600,
+        "MiB": 84.375
+      },
+      "fp8_block_scale": {
+        "bytes": 11059200,
+        "MiB": 10.546875
+      },
+      "fp8_materialized_weight": {
+        "bytes": 176947200,
+        "MiB": 168.75
+      },
+      "f32_block_partial": {
+        "bytes": 44236800,
+        "MiB": 42.1875
+      }
+    },
+    "limitations": "Logical payload across three projections, not measured bus traffic or simultaneous live DM; excludes padding and repeated transactions."
+  },
+  "static_evidence": {
+    "audit_path": "moa-dev/experiments/diagnostics/e104-cost-attribution/static-audit.json",
+    "audit_sha256": "0a7175a983410cc5069f106844255bb641643f5b075a38c386ca3b9f1b0b7245",
+    "mlp_source_sha256": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0",
+    "makespan": 157045,
+    "main_dma_overlap": 70771,
+    "up_path_nodes": [
+      {
+        "index": "274",
+        "engine": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "begin": 47853,
+        "end": 72465,
+        "duration": 24612,
+        "source_location": "src/device/shared/mlp.rs:91:9",
+        "source_function": "project_up_and_gate",
+        "input_tensors": [
+          4
+        ],
+        "output_tensors": [
+          161
+        ],
+        "operation": "up_weight_packed.to_dm(&mut device.tdma)"
+      },
+      {
+        "index": "359",
+        "engine": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "begin": 72471,
+        "end": 81734,
+        "duration": 9263,
+        "source_location": "src/device/shared/mlp.rs:92:96",
+        "source_function": "project_up_and_gate",
+        "input_tensors": [
+          161,
+          143
+        ],
+        "output_tensors": [
+          191
+        ],
+        "operation": "device.main\n.begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()\n.fetch_table_lookup::<f8e5m2>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit()"
+      },
+      {
+        "index": "391",
+        "engine": "Main",
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "begin": 81737,
+        "end": 87421,
+        "duration": 5684,
+        "source_location": "src/device/shared/mlp.rs:40:90",
+        "source_function": "project_rows_with_scale_contraction",
+        "input_tensors": [
+          191,
+          164,
+          148
+        ],
+        "output_tensors": [
+          205
+        ],
+        "operation": "device\n.main.begin(weights.view())\n.fetch::<m![FfnRow], m![H]>()\n.collect::<m![FfnRow, H / 32], m![H % 32]>()\n.contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)\n.contract_packet::<m![H / 16 % 4]>()\n.contract_time::<m![FfnRow, H / 64]>()\n.contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![H / 16 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)\n.vector_widen_pad::<m![H / 16 % 4 # 8]>()\n.vector_final()\n.commit_trim::<m![H / 16 % 4]>()\n.commit()"
+      }
+    ]
+  },
+  "diagnosis": {
+    "kernel_priority": "ffn",
+    "leading_internal_hypothesis": "Weight supply/preparation, including HBM-to-DM loading, full FP8 DM materialization and later consumption. Activation distribution and scale/partial paths remain competing costs.",
+    "hardware_bottleneck_attribution_measured": false,
+    "known_prior_failure": "C07 direct unpack-to-DPE candidates failed some separate projection diagnostics; E102/E104 materialized variants passed. Internal root cause not established.",
+    "prior_failure_record": "moa-dev/experiments/candidates/c07-native-scale-dpe/decision.json",
+    "no_claims": [
+      "No inferred hardware stall fractions from static intervals.",
+      "No measured proof that dequantization alone is the largest internal bottleneck.",
+      "No claim that removing materialization can close the leaderboard gap.",
+      "No inference about another team implementation from its score."
+    ]
+  },
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/gpu-mode/reference-kernels/main/problems/nvidia/nvfp4_gemv/task.yml",
+      "kind": "organizer task specification",
+      "use": "FP4 GEMV, block scale and evaluation contract"
+    },
+    {
+      "url": "https://amandeepsp.github.io/blog/nvfp4-blackwell-gemv/",
+      "kind": "firsthand participant writeup",
+      "use": "Own failed experiments and delayed profiling; not its secondhand winner descriptions"
+    },
+    {
+      "url": "https://github.com/IST-DASLab/marlin",
+      "kind": "authors implementation and design",
+      "use": "Coupled load/dequant/compute layout design; GPU-specific and offline preparation constraints"
+    },
+    {
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/moving-tensors/memory-performance.html",
+      "kind": "official SDK documentation",
+      "use": "Alignment, access order, banks and shared memory resources"
+    },
+    {
+      "url": "https://developer.furiosa.ai/furiosa-opt/book/scheduling/diagnosis.html",
+      "kind": "official SDK documentation",
+      "use": "Dependencies versus resource waits; static versus device throughput"
+    }
+  ]
+}

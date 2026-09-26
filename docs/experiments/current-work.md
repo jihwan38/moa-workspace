@@ -2,9 +2,20 @@
 
 작업 폴더: `/home/jihwan38/moa-workspace`. Private GitHub: `jihwan38/moa-workspace`.
 최신 조사: `research/rngd-dataflow-20260925` / 시작 commit `f125ca6`.
+보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
 채택 runtime: [baseline/current.json](../../baseline/current.json)의 E104.
 
-## 최신 작업 — M02 cluster K-half 소유권 검증 완료
+## 최신 진단 — 현재 리더보드 격차와 FFN weight 경로
+
+[코드·정적 근거·관련 대회 자료](../research/e104-bottleneck-20260926.md)를 보완했다.
+2026-09-26 18:25 KST의 공식 API 응답에서 BEEF는69팀 중52위, 5.926577×,
+3위는9.251393×다. 해당3위 cycle까지 QKV36.01%, O29.73%, FFN41.53% 감소가 필요하다.
+FFN weight 적재→FP8 전체 DM 저장→dot 경로가 우선 병목 가설이다.
+실제 NPU에서 내부 비용을 분해한 결과는 아직 없으며 기존 정적 진단만 재검증했다.
+이번 작업은 조사·기록이며 새 compile/Arena/채택/공식 제출은 없다.
+M03은 미실행이고, 그 설계 선택에 필요한 최소 비용 진단을 먼저 수행한다.
+
+## 이전 작업 — M02 cluster K-half 소유권 검증 완료
 
 M01의 `ecdeaca`까지 main/origin에 fast-forward 통합하고 `opt/m02-cluster-k`에서
 전체 O 경로를 새로 구현했다. [M02 설계·수정·실측](../../moa-dev/experiments/candidates/m02-cluster-k/README.md).
