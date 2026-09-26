@@ -1,0 +1,14 @@
+{
+  "id": "C09-adoption-pre-RMS-boundary-v1",
+  "classification": "Correctness diagnostic for frozen C09; not an optimization or performance comparison",
+  "starting_commit": "6375af4",
+  "original_source": "moa-dev/experiments/candidates/c09-output-first-npu/frozen-two-stage-v1/projection.rs",
+  "projection_sha256": "5692369dd5b8f6ddbeecdfaa9289a9683fae18798b920a71775362f306560fe6",
+  "prior_related": ["output-boundary-probe-e47", "output-bf16-activation-e47 E53 validation", "C09 first NPU E126"],
+  "changed_boundary": "New wrapper calls unchanged project_output including F32 channel scale and BF16 cast, then writes BF16 H3840 to HBM before RMS/residual",
+  "precision": "Compare every output bit to independent F64 dyadic oracle with BF16 RNE; signed zeros equivalent. No RMS tolerance masking.",
+  "cases": ["signed_zero", "isolated_k255", "isolated_k256", "isolated_k4095", "multi_k_boundaries", "stage_row_boundaries", "tiny_correlated_cancellation", "scale_before_bf16"],
+  "first_stop": "Any source identity mismatch, compile error, checksum failure, incomplete case or numeric mismatch prevents validation PASS. Concrete source/API repairs preserve prior attempt.",
+  "performance_scope": "Excluded; diagnostic image differs from whole C09 and has a new HBM output boundary.",
+  "target_dir": "/tmp/moa-c09-validation-probe/target"
+}

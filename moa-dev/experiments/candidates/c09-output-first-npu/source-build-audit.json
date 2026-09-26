@@ -1,0 +1,77 @@
+{
+  "candidate": "E127",
+  "adopted_source_candidate": "C09 frozen-two-stage-v1",
+  "source_origin": "c3553ab87046fb4d59c10149a82517f8440bba27",
+  "performance_control": "baseline/e122.json",
+  "measured_build": "moa-dev/experiments/candidates/c09-output-first-npu/measured-build-c09-adoption.json",
+  "measured_build_digest": {
+    "path": "moa-dev/experiments/candidates/c09-output-first-npu/measured-build-c09-adoption.json",
+    "bytes": 21402,
+    "sha256": "d8d9061b019ad0273af74ffb2dd45000f7489dc23a645057213ee25a21d1580d"
+  },
+  "original_compile_record": {
+    "path": "moa-dev/experiments/candidates/c09-output-first-npu/build-c09-first-npu-v1-repro.json",
+    "bytes": 17397,
+    "sha256": "6bf8efdb476663d259f6f77d0b8d31bb0ad223c43dad5885c0f9c21223c42bac"
+  },
+  "original_package_record": {
+    "path": "moa-dev/experiments/candidates/c09-output-first-npu/package-c09-first-npu-v1.json",
+    "bytes": 24177,
+    "sha256": "b4d8855d67b467e72427bf32853cab84b890c76e472a1c625befd4b61347ac82"
+  },
+  "compile_inputs": 46,
+  "live_compile_inputs_match_frozen_build": true,
+  "changed_runtime_files": [
+    "src/device/sliding/projection.rs"
+  ],
+  "public_device_entrypoints_unchanged": true,
+  "qkv_ffn_images_unchanged": true,
+  "basic_and_extra_images_identical": true,
+  "images": {
+    "sliding_project_qkv": {
+      "bytes": 168960,
+      "sha256": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e",
+      "host_occurrences": 1
+    },
+    "sliding_attention_output": {
+      "bytes": 80640,
+      "sha256": "fe90ed758c27fe40a11e78ff5132e7b98152fc8cd79208d49c22053672859495",
+      "host_occurrences": 1
+    },
+    "decoder_feedforward": {
+      "bytes": 260096,
+      "sha256": "16914f7736e5eb919c053cca3a82f02784380a5d0f983b9d77c0d98db7f070d2",
+      "host_occurrences": 1
+    }
+  },
+  "compatibility_image_files": {
+    "sliding_project_qkv": {
+      "path": "moa-dev/experiments/artifacts/c09-output-first-npu/c09-first-npu-v1/kernels/furiosa_opt_gemma4::ops::sliding_project_qkv.bin",
+      "bytes": 168960,
+      "sha256": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e"
+    },
+    "sliding_attention_output": {
+      "path": "moa-dev/experiments/artifacts/c09-output-first-npu/c09-first-npu-v1/kernels/furiosa_opt_gemma4::ops::sliding_attention_output.bin",
+      "bytes": 80640,
+      "sha256": "fe90ed758c27fe40a11e78ff5132e7b98152fc8cd79208d49c22053672859495"
+    },
+    "decoder_feedforward": {
+      "path": "moa-dev/experiments/artifacts/c09-output-first-npu/c09-first-npu-v1/kernels/furiosa_opt_gemma4::ops::decoder_feedforward.bin",
+      "bytes": 260096,
+      "sha256": "16914f7736e5eb919c053cca3a82f02784380a5d0f983b9d77c0d98db7f070d2"
+    }
+  },
+  "validation": [
+    "docs/experiments/e127-c09-adoption-performance.json",
+    "docs/experiments/e127-c09-e122-paired-control.json",
+    "docs/experiments/e127-c09-extra-correctness.json",
+    "docs/experiments/e127-c09-probe-correctness.json"
+  ],
+  "verification": "moa-dev/experiments/candidates/c09-output-first-npu/validation/verification.json",
+  "descriptor_verification": "moa-dev/experiments/candidates/c09-output-first-npu/descriptor-analysis-c09-first-npu-v1.json",
+  "median_paired_o_delta_percent": -3.8255132686721427,
+  "adoption_policy": "An unchanged implementation with a reproducible positive gain may be adopted after bounded correctness/provenance validation. The5% exploration cutoff is not a minimum adoption gain.",
+  "full_model_tested": false,
+  "official_submission": false,
+  "scope": "Exact frozen C09 staged sliding O combined with unchanged E122 QKV/M03 FFN. Three ordinary-input allocations, six additional standard inputs and separate projection-boundary diagnostics; no all-input/full-model equivalence claim."
+}

@@ -171,28 +171,43 @@ pub(crate) fn project_output(
         .fetch::<m![Qs / 16 % 16], m![Qs % 16]>()
         .collect::<m![Qs / 16 % 16], m![Qs % 16]>()
         .to_trf();
-    let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H % 1920, Qs]> = unsafe { weight.view().reshape() };
-    let weight: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120, Qs % 256]> = weight.to_dm(&mut device.tdma);
-    // Native FP8 weight values are exactly representable in BF16. Fuse the
-    // supported lookup with one BF16 dot, retaining the FP32 column sum.
-    let result: DmTensor<f32, Chip, OutputCluster, OutputRows, m![H % 120]> = device
-        .main.begin(weight.view())
-        .fetch::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()
-        .fetch_table_lookup::<bf16>()
-        .collect::<m![H % 120, Qs / 16 % 16], m![Qs % 16]>()
-        .contract_outer::<m![H % 120, Qs / 32 % 8], m![Qs % 32], _, _, _>(&x_trf)
-        .contract_packet::<m![1]>()
-        .contract_time::<m![H % 120]>()
-        .contract_lane::<m![H % 120], m![1 # 8]>(LaneMode::Interleaved)
-        .vector_init()
-        .vector_inter_slice_reduce::<OutputRows, m![H % 120]>(InterSliceReduceOpF32::Add)
-        .vector_final()
-        .transpose::<m![H / 2 % 60], m![H % 2 # 8]>()
-        .commit_trim::<m![H % 2]>()
-        .commit();
+    let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H / 120 % 16, H % 120, Qs]> = unsafe { weight.view().reshape() };
+    // Distinct DM allocations expose the second DMA while the first row half computes.
+    let first: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120 = 60, Qs % 256]> =
+        weight.tile::<m![H % 120], 60, m![Dummy2, H / 120 % 16, H % 120 = 60 # 120, Qs]>(0)
+            .to_dm(&mut device.tdma);
+    let second: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120 = 60, Qs % 256]> =
+        weight.tile::<m![H % 120], 60, m![Dummy2, H / 120 % 16, H % 120 = 60 # 120, Qs]>(60)
+            .to_dm(&mut device.tdma);
+    let mut result: DmTensor<f32, Chip, OutputCluster, OutputRows, m![H % 120]> = DmTensor::new();
+    project_output_stage(device, &x_trf, &first, &mut result, 0);
+    project_output_stage(device, &x_trf, &second, &mut result, 60);
     let result: DmTensor<f32, Chip, m![H / 1920], OutputRows, m![H % 120]> = unsafe { result.reshape() };
     let result: DmTensor<f32, Chip, Cluster, OutputEpilogueSlices, m![H % 480]> = result.to_dm(&mut device.tdma);
     apply_output_channel_scale_f32(device, &result, weight_scale)
+}
+
+fn project_output_stage(
+    device: &mut Device,
+    x: &TrfTensor<bf16, Chip, OutputCluster, OutputColumns, m![1], m![Qs % 256]>,
+    weight: &DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120 = 60, Qs % 256]>,
+    output: &mut DmTensor<f32, Chip, OutputCluster, m![H / 120 % 16, 1 # 16], m![H % 120]>,
+    offset: usize,
+) {
+    device.main.begin(weight.view())
+        .fetch::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()
+        .fetch_table_lookup::<bf16>()
+        .collect::<m![H % 120 = 60, Qs / 16 % 16], m![Qs % 16]>()
+        .contract_outer::<m![H % 120 = 60, Qs / 32 % 8], m![Qs % 32], _, _, _>(x)
+        .contract_packet::<m![1]>()
+        .contract_time::<m![H % 120 = 60]>()
+        .contract_lane::<m![H % 120 = 60], m![1 # 8]>(LaneMode::Interleaved)
+        .vector_init()
+        .vector_inter_slice_reduce::<m![H / 120 % 16, 1 # 16], m![H % 120 = 60]>(InterSliceReduceOpF32::Add)
+        .vector_final()
+        .transpose::<m![H % 120 = 60 / 2], m![H % 120 = 60 % 2 # 8]>()
+        .commit_trim::<m![H % 120 = 60 % 2]>()
+        .commit_view(output.view_mut().tile::<m![H % 120], 60, m![H % 120 = 60 #{!} 120]>(offset));
 }
 
 pub(crate) type OutputEpilogueSlices = m![1 # 32, H / 480];

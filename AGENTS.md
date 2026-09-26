@@ -130,6 +130,13 @@
   cutoff, not a significance or promotion rule. Record concrete reasons for an
   exception. Maintain correctness and contemporary-control requirements before
   adoption, and distinguish Arena experiments from official submissions.
+- The user clarified that a positive gain below 5% can still be worth adopting.
+  Closing parameter exploration must not automatically cancel bounded adoption
+  validation. Keep the candidate frozen, verify the gain with contemporary
+  independent controls and correctness checks for its changed boundaries, and
+  adopt it if those checks support the gain. Use 5% to limit further tuning, not
+  as a minimum acceptable runtime improvement. Recovered small gains and the
+  search for large architectural improvements can proceed separately.
 - Apply measured percentage screens to NPU results. Static schedules can justify
   a budget-based early stop for a specific prototype, but are not a calibrated
   NPU performance oracle; small static differences do not establish a hardware
