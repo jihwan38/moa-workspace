@@ -7,7 +7,7 @@
       "category": "improved",
       "kernel": "FFN",
       "method": "E74 F32 partials + 8열 Main ring32 입력 방송",
-      "note": "동시기 E74 대비 -4.56%, 독립 3 job(s); 기본 비교 모두 PASS. 당시 채택; 현재는 E122. 기본45·추가30·projection 출력138240 PASS. E55/E74를 탐색 제약으로 삼지 않음.",
+      "note": "동시기 E74 대비 -4.56%, 독립 3 job(s); 기본 비교 모두 PASS. 당시 채택; 현재는 E127. 기본45·추가30·projection 출력138240 PASS. E55/E74를 탐색 제약으로 삼지 않음.",
       "evidence": [
         "moa-dev/experiments/candidates/c04-down-transfer/README.md"
       ],
@@ -1875,7 +1875,7 @@
       "report": "docs/experiments/e122-m03-adoption-validation.json",
       "reference": "docs/experiments/e122-m03-e104-paired-control.json",
       "reference_label": "6allocation E104 앞뒤 paired controls",
-      "note": "현재 채택. 동일 stage binary/fixture/runner의6allocation에서 매번개선; paired비율중앙값 −1.4846%, 표는각집계중앙값비율 −1.4244%. 기본90·추가30비교와7-case projection241920출력 PASS. QKV/O image변경없음. 공식제출아님.",
+      "note": "당시 채택; 현재 E127이 FFN을 그대로 승계. 동일 stage binary/fixture/runner의6allocation에서 매번개선; paired비율중앙값 −1.4846%, 표는각집계중앙값비율 −1.4244%. 기본90·추가30비교와7-case projection241920출력 PASS. QKV/O image변경없음. 공식제출아님.",
       "evidence": [
         "moa-dev/experiments/candidates/m03-producer-local-ffn/validation/README.md",
         "moa-dev/experiments/candidates/m03-producer-local-ffn/source-build-audit.json"
@@ -1933,12 +1933,27 @@
       "report": "docs/experiments/e126-c09-first-npu.json",
       "reference": "docs/experiments/e126-c09-e122-before.json",
       "reference_label": "동시 E122 before",
-      "note": "Original C09 exact image. Arena105820 57 comparisons PASS on original3 inputs; O49923 vs E12251237/51165, bracketing51201 −2.4960%. Table compares before. Trace overlap7392.5, firstdot earlier but supply envelope longer; static finaldot/gather gap not reproduced. Closed below5% exploration gate; no tuning/repeat/adoption, E122 current.",
+      "note": "Original C09 exact image. Arena105820 57 comparisons PASS on original3 inputs; O49923 vs E12251237/51165, bracketing51201 −2.4960%. Table compares before. Trace overlap7392.5, firstdot earlier but supply envelope longer; static finaldot/gather gap not reproduced. Closed below5% exploration gate; no tuning/repeat/adoption, E122 current. Initial closure is superseded by E127 bounded validation and adoption of the unchanged C09.",
       "evidence": [
         "moa-dev/experiments/candidates/c09-output-first-npu/README.md",
         "moa-dev/experiments/candidates/c09-output-first-npu/decision.json",
         "moa-dev/experiments/candidates/c09-output-first-npu/profile-analysis-c09-first-npu-v1.json",
         "moa-dev/experiments/candidates/c09-output-first-npu/independent-review.md"
+      ]
+    },
+    {
+      "id": "E127",
+      "category": "improved",
+      "kernel": "O",
+      "method": "동결 C09 두60행 weight/dot stage의 반복·경계 검증 후 채택",
+      "report": "docs/experiments/e127-c09-adoption-performance.json",
+      "reference": "docs/experiments/e127-c09-e122-paired-control.json",
+      "reference_label": "3allocation E122 앞뒤 paired controls",
+      "note": "현재 채택. 세 독립 allocation에서 모두 개선; paired 변화율 중앙값−3.8255%, 표는 job 중앙값 집계 비율−3.9303%. 후보 기본45·추가30비교(9 distinct inputs), 별도8-case pre-RMS30720출력 PASS. E122 QKV/FFN image동일. E126 원결정 보존,5%는 추가 튜닝 예산이며 채택 최소치가 아님. 공식제출아님.",
+      "evidence": [
+        "moa-dev/experiments/candidates/c09-output-first-npu/validation/README.md",
+        "moa-dev/experiments/candidates/c09-output-first-npu/source-build-audit.json",
+        "moa-dev/experiments/candidates/c09-output-first-npu/validation/verification.json"
       ]
     }
   ]

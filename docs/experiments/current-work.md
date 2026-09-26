@@ -1,4 +1,22 @@
-# 2026-09-27 E126 / frozen C09 최초 NPU 완료
+# 2026-09-27 E127 / 동결 C09 채택
+
+현재 runtime은 **E127 / `baseline-e127`**다. E122의 QKV/FFN image를 유지하고,
+O에 원본 C09의 두 stage 공급을 그대로 채택했다. [채택 구성](../../baseline/e127.json) ·
+[성능·확장 정확도 검증](../../moa-dev/experiments/candidates/c09-output-first-npu/validation/README.md).
+
+E126과 새 독립2allocation의 paired O 변화율은 **−2.4960% / −3.8255% / −3.9303%**,
+중앙값은 **−3.8255%**다. 실제 stage host/fixture/runner가 동일하며,
+표준 candidate45비교와 추가6입력30비교가 모두 PASS했다. 표준 입력은 반복을 제외하면
+커널별9개다. 별도 pre-RMS projection probe8case/30720출력도 PASS했다.
+Probe는 별도 diagnostic image이며 표준 성능 집계에는 포함하지 않는다.
+
+**E126의 초기 종료·미채택 판단은 E127 후속 검증과 채택으로 대체됐다.**
+5%는 추가 parameter tuning의 예산 기준이며, 작은 이득의 제한적 채택 검증을 금지하거나
+runtime 채택의 최소 개선율을 뜻하지 않는다. Source/layout/tile을 더 조정하지 않고
+기존 구현의 개선을 검증해 회수했다. 큰 구조 개선 탐색은 별개이며 새 공식 제출은 없다.
+아래 기록의 runtime/미실행/종료 상태는 각 실험 당시를 가리킨다.
+
+# 2026-09-27 E126 / frozen C09 최초 NPU 완료 — 당시 기록
 
 [C09 최초 NPU](../../moa-dev/experiments/candidates/c09-output-first-npu/README.md)는
 과거 exact image를 재현하고57비교 PASS. Arena105820 전체 O49923 vs E122
@@ -59,7 +77,7 @@ K/V padded destination DMA의 실제 source 범위 초과를 확인했다. 원�
 작업 폴더: `/home/jihwan38/moa-workspace`. Private GitHub: `jihwan38/moa-workspace`.
 최신 조사: `research/rngd-dataflow-20260925` / 시작 commit `f125ca6`.
 보완 조사: 2026-09-26 / `opt/m02-cluster-k`의 `a46baa4` 이후.
-당시 채택 runtime: E104. 최신 채택본은 문서 상단 및 [baseline/current.json](../../baseline/current.json)의 E122다.
+당시 채택 runtime: E104. 최신 채택본은 문서 상단 및 [baseline/current.json](../../baseline/current.json)의 E127이다.
 
 ## 최신 감사 — 10위권 격차와 누적 실험 재평가, 2026-09-27
 

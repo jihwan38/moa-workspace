@@ -1,8 +1,13 @@
 # O weight ingress — 연구 후보의 NPU 실행 결과, 2026-09-27
 
-**M08 행 배치는 느려졌고, 동결 C09의 두 stage 공급은 단회2.50% 빨라졌다.**
-두 후보의 전송 계약과 기본 정확도를 확인했지만, 10위권 격차를 메울 큰 개선은 얻지 못했다.
-Live runtime은 E122로 유지한다. 두 후보 모두 추가 튜닝·채택·공식 제출은 하지 않았다.
+**M08 행 배치는 회귀했고, 동결 C09는 후속 검증 뒤 E127로 채택했다.**
+C09의 paired O 개선율은 세 allocation에서2.4960% / 3.8255% / 3.9303%, 중앙값3.8255%다.
+E122의 QKV/FFN image를 유지하고 원본 C09 O image를 그대로 채택했다.
+[채택 구성](../../baseline/e127.json) · [후속 성능·정확도 검증](../../moa-dev/experiments/candidates/c09-output-first-npu/validation/README.md).
+10위권 격차를 메울 큰 개선이라는 주장은 하지 않는다. 추가 tile tuning과 공식 제출은 없다.
+
+**E126의 초기 탐색 종료·미채택 판단은 E127로 대체됐다.** 5%는 추가 tuning 예산 기준이며
+작은 개선의 채택 최소값이 아니다. E126 원본 측정과 당시 decision은 그대로 보존한다.
 
 [이전 문헌·구현 종합 분석](o-weight-ingress-20260927.md)의 두 우선 질문을 실제 실행했다.
 M08 기록을 main/origin `617aaef`에 통합한 뒤 별도 branch에서 C09 최초 NPU를 진행했다.
@@ -12,11 +17,16 @@ C09는 새 tile 변형이 아니라 기존 동결 source와 **같은 exact O ima
 | 후보 / Arena job | E122 O before | 후보 O | E122 O after | 앞뒤 중앙값 대비 | 판정 |
 |---|---:|---:|---:|---:|---|
 | [M08 / E125 / 105767](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/README.md) | 51418 | 58095 | 50906 | **+13.551%** | 회귀 종료 |
-| [동결 C09 / E126 / 105820](../../moa-dev/experiments/candidates/c09-output-first-npu/README.md) | 51237 | 49923 | 51165 | **−2.496%** | 작은 positive option으로 보존, 탐색 종료 |
+| [동결 C09 / E126 / 105820](../../moa-dev/experiments/candidates/c09-output-first-npu/README.md) | 51237 | 49923 | 51165 | **−2.496%** | 초기 종료; E127 검증에 포함 |
+| [동결 C09 / E127 / 105902](../../moa-dev/experiments/candidates/c09-output-first-npu/validation/README.md) | 50903 | 48835 | 50652 | **−3.8255%** | 독립 clean 반복 PASS |
+| [동결 C09 / E127 / 105909](../../moa-dev/experiments/candidates/c09-output-first-npu/validation/README.md) | 51653 | 49180 | 50731 | **−3.9303%** | 독립 clean 반복 PASS, E127 채택 |
 
-각각 한 allocation, 원본3입력이다. 각 job의7stage에서57개 출력 비교가 통과했다.
-Control을 포함한57개의 반복 비교가 서로 다른57개 입력이라는 뜻은 아니다.
-표는 표준 전체 host의 O cycles이며, 별도 diagnostic info/trace 수치는 섞지 않았다.
+E125/E126은 각각 한 allocation과 원본3입력이며7stage/57비교를 통과했다.
+E127의 새 두 allocation은 trace 없이 E122→C09→E122의3stage/각45비교를 실행했다.
+C09의 세 allocation에서 candidate 표준 비교45개, 추가6표준입력 비교30개가 모두 PASS했다.
+반복을 제외하면 커널별9개 표준 입력이며, 별도 probe8case/30720출력도 PASS했다.
+Probe는 F32 channel scale 후 BF16/pre-RMS 경계를 보는 diagnostic image다.
+표는 표준 전체 host의 O cycles이며, diagnostic info/trace·extra/probe timing은 섞지 않았다.
 Actual upload tar·host/device image·원본 로그·입력/runner 해시까지 검증했다.
 
 ## M08: HBM 주소 간격을 줄인 효과보다 gather 분할 비용이 컸다
@@ -35,7 +45,7 @@ Dot+reduce는12019→12011로 거의 같고, F32 gather는**1201→8222**로 늘
 다음 배치가 있다면 weight·dot·F32 결과 소유권·scale/RMS·최종 store까지 함께 정의해야 한다.
 이번처럼 weight 이득 자체가 관측되지 않은 배치에서 gather만 미세 조정하는 우선순위는 낮다.
 
-## C09: 첫 dot 지연은 줄였지만 전체 이득은 작았다
+## C09: E126 trace는 첫 dot 지연 감소와 stage 비용을 함께 보였다
 
 각 slice의120행 weight를60행씩 별도 compact FP8 DM에 읽고, 동일한 BF16 x TRF를
 두 dot에서 재사용했다. 두 F32 commit은 동일 result의 서로 겹치지 않는60행 영역이며,
@@ -66,14 +76,16 @@ Dot+reduce는12019→12011로 거의 같고, F32 gather는**1201→8222**로 늘
 
 따라서 staging이 표현되지 않거나 overlap이 전혀 안 된다는 가설은 이 prototype에 맞지 않는다.
 실제로 첫 dot은 앞당겨지고 overlap도 생겼다. 다만 두 stage의 공급 envelope와 반복 준비/
-작은 작업/동시실행 비용을 모두 지불하면 전체 이득은2.50%에 그친다.
+작은 작업/동시실행 비용을 모두 지불한 E126의 단회 전체 이득은2.50%였다.
+후속 E127의 표준 host 반복에서도 개선이 재현됐으며, trace를 다시 실행한 것은 아니다.
 정적+0.71%를 하드웨어 회귀로 보았던 판정도 사용할 수 없다. 기존 정적 종료 기록은
 그대로 두고, 이번 최초 NPU 결과를 별도로 연결했다.
 
 ## 다음 설계의 조건
 
-이번 실행의 기본5% 기준은 탐색 예산 조건이다. C09는 작은 이득의 조합 선택지로 보존하되
-독립 반복·확장 정확도가 없으므로 채택하지 않는다. 과거 결과나 단회57 PASS를 채택 검증으로 전용하지 않는다.
+기본5% 기준은 추가 탐색 예산 조건이다. 이를 작은 이득의 채택 검증까지 막는 기준으로
+적용한 E126의 초기 판단을 수정했다. 동결 source를 유지한 독립 반복·추가 표준입력·경계
+검증을 별도로 완료해 E127로 채택했다. 단회57 PASS만으로 채택한 것이 아니다.
 
 다음 주력은 **weight 완료 dependency를 분할하되, stage 경계의 새 비용을 줄이는 완성 경로**다.
 구체적으로는 C09의 다음 weight 시작 전 공백, 길어진 weight 공급 envelope,
@@ -88,8 +100,8 @@ Dot+reduce는12019→12011로 거의 같고, F32 gather는**1201→8222**로 늘
 입력·합산·scale 수치 경계를 유지하면서 **최초 dot 시각과 전체 종료 시각을 함께** 평가해야 한다.
 
 M08과 C09는 local dataflow 검사다. 이를 전체-projection architecture를 광범위하게 탐색했다거나
-랭커 수준의 구조가 확보됐다는 근거로 세지 않는다. 이번 단계의 성과는 두 병목 가설을
-실제 hardware evidence로 좁히고, 다음 후보가 반드시 제거해야 할 비용을 특정한 것이다.
+랭커 수준의 구조가 확보됐다는 근거로 세지 않는다. 이번 단계에서는 두 병목 가설을
+실제 hardware evidence로 좁히고, 검증된 작은 이득을 채택하면서 다음 후보가 바꿔야 할 비용을 특정했다.
 
 재검증은 두 후보 README의 descriptor/profile/results `--check`, 독립 package 검토,
 `python3 moa-dev/experiment_index.py --check --check-live`에 연결된다.

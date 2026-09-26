@@ -1,11 +1,23 @@
 # Experiment ledger
 
+September27 **[E127 / frozen C09 adopted](../../baseline/e127.json)** supersedes E126's initial
+closure without adoption. The exact C09 O image is retained; QKV/FFN images remain E122.
+Three paired allocations105820/105902/105909 improve O by **2.4960% / 3.8255% / 3.9303%**,
+with median paired change **−3.8255%**. Aggregate job medians are51192→49180 cycles (−3.9303%).
+All45 candidate standard comparisons and30 extra comparisons pass: nine distinct standard
+input configurations per kernel, with the original three reused across performance jobs.
+A separate eight-case pre-RMS projection probe passes30,720 outputs. Its diagnostic image and
+extra-input timings are excluded from standard performance. [Validation](../../moa-dev/experiments/candidates/c09-output-first-npu/validation/README.md).
+The5% threshold limits additional parameter exploration; it is not a minimum adoption gain.
+No tile tuning or official submission. Older entries retain the decisions and runtime state
+at their original dates; **E126's initial closure is superseded by E127**.
+
 September27 [E126 / frozen C09 first NPU](../../moa-dev/experiments/candidates/c09-output-first-npu/README.md)
 reproduces the historical exact image and passes57 comparisons in Arena105820.
 Whole O49923 vs E12251237/51165 improves2.496% against the bracket in one allocation.
 Actual dot0/weight1 overlap is7392.5 cycles; the static finaldot/gather gap does not recur.
-Closed below5% exploration gate without tuning/repeats/expanded validation/adoption.
-E122 remains current. [Combined O execution findings](../research/o-weight-ingress-execution-20260927.md).
+Initially closed below5% exploration gate without tuning/repeats/expanded validation/adoption.
+E122 remained current at that screen; E127 above supersedes the adoption decision. [Combined O execution findings](../research/o-weight-ingress-execution-20260927.md).
 
 September27 [E125 / M08 O pair-four ingress](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/README.md)
 passes exact descriptor checks and57 basic comparisons in Arena105767, but whole O

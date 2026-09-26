@@ -1,27 +1,33 @@
-# 현재 baseline: E122
+# 현재 baseline: E127
 
-현재 실행 소스는 **E122 / `baseline-e122` / `c3553ab`**다. 검증된 M03를 그대로
-채택했다. E104 native up/gate를 유지하면서 각 cluster가 L7680의 소유권을
-GeGLU와 down까지 유지한다. Down은 네 column의 F32 합 뒤 두 cluster의 H partial을
-F32로 합산하고 처음 BF16으로 변환한다. QKV/O image는 E104와 같다.
+현재 실행 소스는 **E127 / `baseline-e127` / `09cf22f`**다. E122의 QKV와 M03 FFN을
+그대로 유지하고, 검증된 동결 C09의 두60행 weight/dot stage를 O에 채택했다.
+같은 BF16 activation을 재사용하며 두 F32 결과를 기존 gather로 연결하고 channel scale
+뒤 처음 BF16으로 변환한다. 변경된 compile input은 `sliding/projection.rs` 하나다.
 
-동일 stage binary/fixture/runner의6개 allocation에서 모두 빨랐다. FFN 집계 중앙값은
-**336142 → 331354 cycles (−1.4244%)**, allocation별 앞뒤 E104 대비 비율의 중앙값은
-**−1.4846%**다. 과거5개 동반 측정과 새 단독 비교1개를 합쳤으며, 전체 batch 순서가
-6회 동일했다는 뜻은 아니다. 기본90개 비교, 추가6입력의30개 비교, 별도7-case
-projection241920개 출력을 통과했다. [검증과 범위](../moa-dev/experiments/candidates/m03-producer-local-ffn/validation/README.md).
-입력 FP8 표현은 근사이며 모델 전체·모든 입력의 동치를 주장하지 않는다.
-이전 E104/E79/E74/E55는 고정 비교군으로 보존한다.
+세 독립 allocation에서 O가 앞뒤 E122 대비 **2.4960%, 3.8255%, 3.9303% 감소**했다.
+Allocation별 변화율 중앙값은 **−3.8255%**다. 별도 job 중앙값 집계는51192→49180 cycles
+(−3.9303%)다. 비교 stage의 binary/fixture/runner는 같지만 전체 batch 순서는 다르다.
+기본45·추가30개 비교(서로 다른 표준 입력9개), 별도8-case pre-RMS 출력30720개가
+통과했다. [검증 자료와 범위](../moa-dev/experiments/candidates/c09-output-first-npu/validation/README.md).
+작은 개선도 반복·정확도 검증 뒤 채택한다. 5%는 추가 튜닝 예산 기준이다.
 
-**E122는 아직 공식 제출하지 않았다.** 기존 E104의 [공식 제출 `6ee0120a`](../docs/experiments/e104-official-submit-20260922.json)은
-**5.9266×**, QKV104091 / O51565 / FFN335987, 기본15개 비교 PASS로 완료됐다.
-[리더보드 snapshot](../docs/experiments/leaderboard-e104-20260922.json)은60팀 중41위로
-E79와 같은 순위다. 작은 개선의 추가 조정보다 새로운 실행 구조를 우선 탐색한다.
+E122가 채택한 M03의 FFN 검증은 그대로 승계한다. 당시6allocation의 paired 변화율
+중앙값은−1.4846%였으며, 현재 O 개선율과 합산해 전체 모델 개선으로 주장하지 않는다.
+모든 입력·모델 전체의 동치를 검증한 것은 아니며, FFN 입력 FP8 표현은 근사다.
+이전 E122/E104/E79/E74/E55는 고정 비교군으로 보존한다.
+
+**E127은 아직 공식 제출하지 않았다.** 기존 E104의
+[공식 제출 `6ee0120a`](../docs/experiments/e104-official-submit-20260922.json)은
+5.9266×, QKV104091 / O51565 / FFN335987, 기본15개 비교 PASS로 완료됐다.
+[제출 당시 리더보드 snapshot](../docs/experiments/leaderboard-e104-20260922.json)은
+60팀 중41위다. Arena의 O 개선은 공식 점수나 현재 순위를 뜻하지 않는다.
 
 | 찾는 내용 | 파일 |
 |---|---|
 | 현재 적용한 16개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
-| 현재 구성표와 기준 commit | [e122.json](e122.json) |
+| 현재 구성표와 기준 commit | [e127.json](e127.json) |
+| 이전 E122 구성표 | [e122.json](e122.json) |
 | 이전 E104 구성표 | [e104.json](e104.json) |
 | 이전 E79 구성표 | [e79.json](e79.json) |
 | 이전 E74 구성표와 고정 비교군 | [e74.json](e74.json) |
@@ -52,14 +58,14 @@ QKV → attention → O → `self.mlp` 순서로 실행한다. `Decode::full`도
 | 진입점 | 현재 데이터 흐름과 방법 ID |
 |---|---|
 | `sliding_project_qkv` | BF16 x → 분할 RMS **Q1** → 2-cluster ring32 복제 **Q2** → 8-way 행 배치 **Q3** → BF16 입력·weight lookup dot **Q4** → F32 channel scale fusion **Q5** → head RMS/RoPE **Q6** → Q 출력·지정 K/V cache 슬롯 쓰기 |
-| `sliding_attention_output` | BF16 attention 결과 → 2-cluster/16-column dot **O1** → F32 합산·channel scale 뒤 BF16 **O2** → H480×8 post-RMS·residual **O3/R1** → residual HBM 갱신 |
+| `sliding_attention_output` | BF16 attention 결과 → 2-cluster/16-column의 두60행 weight/dot stage **O1** → F32 합산·channel scale 뒤 BF16 **O2** → H480×8 post-RMS·residual **O3/R1** → residual HBM 갱신 |
 | `decoder_feedforward` | residual·pre-RMS → E5M2 세 항 입력 **F6** → 2-cluster/30행 native up/gate **F1/F2** → F32 scale·합산 **F3/F4** → cluster-local120행 GeGLU → L-half 내부 ring32·4-column down **F1** → 두 H partial의 F32 합 **F3** → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
 
 QKV/O는 [sliding/projection.rs](../furiosa-opt-gemma4-12B/src/device/sliding/projection.rs),
 FFN은 [shared/mlp.rs](../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)가 중심이다.
 공유 RMS를 바꾸는 실험은 두 호출 경로와 각각의 image를 확인한다.
 
-**이하 문단은 E79/E104의 역사적 설계 기록이다.** E122는 down의 L ownership과 cluster 합산 경로를 바꿨다. 현재 구현은 [methods.md](methods.md)의 F1–F6을 따른다.
+**이하 문단은 E79/E104의 역사적 설계 기록이다.** E122는 down의 L ownership과 cluster 합산 경로를 바꿨다. E127은 O의 두 stage 공급을 추가했다. 현재 구현은 [methods.md](methods.md)를 따른다.
 
 E79 FFN은 전체 BF16 weight를 DM에 저장하지 않는다. FP8 DM은 유지하고 lookup의
 BF16 출력을 DPE로 바로 보내16원소별 F32 dot을 저장한다. 이후 별도 VE에서 scale과 합산을
@@ -105,7 +111,9 @@ E55 당시 자료와 E57–E72의 각 동시기 대조는 그대로 남긴다. �
 4. source diff와 실제 compile 입력을 고정한다. 최소 compile과 schedule에서 가설이
    성립하지 않으면 그 상태로 닫고 다음 후보로 간다. 유망한 후보만 정확한 image의
    package로 기본 정확도·성능 screen을 수행한다. 채택할 후보의 반복 측정은 동일
-   package 최소 3회를 기본으로 하며, 산술·배치 변경에 맞는 경계 검사를 추가한다.
+   benchmark stage payload(binary/fixture/runner)의 독립 allocation 최소3회를 기본으로
+   하며, 바깥 batch 순서 차이를 기록하고 산술·배치 변경에 맞는 경계 검사를 추가한다.
+   5% 미만이면 추가 튜닝을 제한하되 재현되는 작은 이득의 채택 검증은 진행할 수 있다.
    결과가 겹치면 개선 미확인으로 유지한다. Compile-only 종료와 단회 중단은 별도
    상태로 남긴다. [짧은 판별 기준](../docs/research/structural-candidates-20260923.md)을 따른다.
 5. 채택 전에는 **조합 전체**의 정확도와 성능을 다시 확인한다. 단독 PASS를 조합 PASS로,
