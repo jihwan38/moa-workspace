@@ -1,0 +1,52 @@
+{
+  "id": "E128",
+  "base_commit": "09cf22fcb54349cf5984640d815ade3c4478b3e8",
+  "actual_start_commit": "57e6a5b318b47e89912beda47cea19250f21f687",
+  "comparison_recipe": "baseline/e127.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/c09-output-first-npu/measured-build-c09-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Local dataflow replacement: materialized E5M2 native dot -> two scales -> F32 H reduction in a single Main stream. Not a whole FFN redesign.",
+  "source_components": [
+    "E127 complete kernel and M03 cluster-local ownership",
+    "E73 scale-resident fusion idea; no repeated FP8-to-BF16 lookup"
+  ],
+  "prior_related": [
+    "E73 measured +10.24% with repeated BF16 lookup",
+    "C11 static +3.55%, no NPU; partial-to-VRF handoff and 30 native starts",
+    "E127 native materialization with separate DM partials"
+  ],
+  "full_graph": "preRMS -> actual3termE5 preparation/broadcast -> compactFP4HBM/DM -> fullE5M2DM -> perprojection xTRF/xscaleVRF reload -> 5 sixrow nativeDPE/Mul0xscale/Mul1blockscale/F32Hreduce streams -> existing F32 local compact/BF16 -> M03 GeGLU/down -> F32cluster sum -> unchanged epilogue",
+  "placement": {
+    "weight": "Existing compact FP4 HBM/DM and full E5M2 DM, each cluster owns L half",
+    "activation": "Existing 3termE5 TRF plus 32B xscale VRF, reloaded per projection",
+    "block_scale": "FP8 DM -> Sub F32 VRF, six rows x240x4 =5760B per slice",
+    "partial": "No block partial tensor in DM/VRF; F32 stream through two MULs and H reduce",
+    "output": "F32 Row30 DM destination via disjoint sixrow tiles, paired 8B commits; existing BF16 cast after120row local gather"
+  },
+  "costs": {
+    "removed_partial_write_bytes": 29491200,
+    "removed_partial_read_bytes": 29491200,
+    "native_starts_before": 2,
+    "native_starts_after": 10,
+    "separate_scale_reduce_before": 10,
+    "separate_scale_reduce_after": 0,
+    "retained": "HBM weights/scales,112.5MiB upgate FP8 write/read,quantizer,broadcast,down",
+    "added_risks": "Smaller dot setup, scale-ready dependency, shared VE occupancy and two VRF operand indexing"
+  },
+  "first_gate": "Compile exact full FFN; prove partial DM/VRF absence and 10 fused native streams, actual weight/scale/output coverage. Repair understood API/layout bugs with frozen attempts, no arbitrary tile sweep.",
+  "correctness_gate": "Actual quantizer, distinct up/gate block scales, sixrow/cluster/block boundaries and cancellation/zero; standard whole FFN before performance claim.",
+  "decisions": {
+    "adoption": "Unvalidated; positive screen proceeds to bounded independent repeats and expanded correctness even below5%.",
+    "further_tuning": "No tile sweep; fixed sixrow scale mapping.5% only limits further tuning, not adoption.",
+    "major_research": "Test partial storage removal; projection-cluster ownership for weight materialization remains separate larger research."
+  },
+  "adopted": false,
+  "hardware_status": "not_run"
+}

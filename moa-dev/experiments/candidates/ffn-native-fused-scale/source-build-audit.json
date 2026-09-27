@@ -1,0 +1,78 @@
+{
+  "candidate": "E128",
+  "adopted_source_candidate": "six-row-v1",
+  "source_origin": "09cf22fcb54349cf5984640d815ade3c4478b3e8",
+  "adopted_source_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "performance_control": "baseline/e127.json",
+  "measured_build": "moa-dev/experiments/candidates/ffn-native-fused-scale/measured-build-e128-adoption.json",
+  "measured_build_digest": {
+    "path": "moa-dev/experiments/candidates/ffn-native-fused-scale/measured-build-e128-adoption.json",
+    "bytes": 21209,
+    "sha256": "b3381af12b293b1cee1e562bd90be41ad9d5748c3921e726c324c202221470eb"
+  },
+  "original_compile_record": {
+    "path": "moa-dev/experiments/candidates/ffn-native-fused-scale/build-e128-six-row-v1-repro.json",
+    "bytes": 17323,
+    "sha256": "6f6efca5ff84fab3222b743a256c2226479b9f25f399f06b96b376046edb1a6e"
+  },
+  "original_package_record": {
+    "path": "moa-dev/experiments/candidates/ffn-native-fused-scale/package-e128-six-row-v1.json",
+    "bytes": 20834,
+    "sha256": "8189d03798f30b8691c492eb43cfc8bf341053778c7ed4c6819cad289381a3cb"
+  },
+  "compile_inputs": 46,
+  "live_compile_inputs_match_frozen_build": true,
+  "changed_runtime_files": [
+    "src/device/shared/mlp.rs"
+  ],
+  "public_device_entrypoints_unchanged": true,
+  "qkv_o_images_unchanged": true,
+  "basic_and_extra_images_identical": true,
+  "images": {
+    "sliding_project_qkv": {
+      "bytes": 168960,
+      "sha256": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e",
+      "host_occurrences": 1
+    },
+    "sliding_attention_output": {
+      "bytes": 80640,
+      "sha256": "fe90ed758c27fe40a11e78ff5132e7b98152fc8cd79208d49c22053672859495",
+      "host_occurrences": 1
+    },
+    "decoder_feedforward": {
+      "bytes": 253440,
+      "sha256": "55765033b5ed046b868886dcd1aa4c6e15607910ba5e6015f1dda122235a75f3",
+      "host_occurrences": 1
+    }
+  },
+  "compatibility_image_files": {
+    "sliding_project_qkv": {
+      "path": "moa-dev/experiments/artifacts/ffn-native-fused-scale/e128-six-row-v1/standard-kernels/furiosa_opt_gemma4::ops::sliding_project_qkv.bin",
+      "bytes": 168960,
+      "sha256": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e"
+    },
+    "sliding_attention_output": {
+      "path": "moa-dev/experiments/artifacts/ffn-native-fused-scale/e128-six-row-v1/standard-kernels/furiosa_opt_gemma4::ops::sliding_attention_output.bin",
+      "bytes": 80640,
+      "sha256": "fe90ed758c27fe40a11e78ff5132e7b98152fc8cd79208d49c22053672859495"
+    },
+    "decoder_feedforward": {
+      "path": "moa-dev/experiments/artifacts/ffn-native-fused-scale/e128-six-row-v1/standard-kernels/furiosa_opt_gemma4::ops::decoder_feedforward.bin",
+      "bytes": 253440,
+      "sha256": "55765033b5ed046b868886dcd1aa4c6e15607910ba5e6015f1dda122235a75f3"
+    }
+  },
+  "validation": [
+    "docs/experiments/e128-adoption-performance.json",
+    "docs/experiments/e128-e127-paired-control.json",
+    "docs/experiments/e128-extra-correctness.json",
+    "docs/experiments/e128-probe-correctness.json"
+  ],
+  "verification": "moa-dev/experiments/candidates/ffn-native-fused-scale/validation/final-verification.json",
+  "descriptor_verification": "moa-dev/experiments/candidates/ffn-native-fused-scale/graph-verification.json",
+  "median_paired_ffn_delta_percent": -0.6568870525494597,
+  "adoption_policy": "Three byte-identical benchmark stage allocations improved against both contemporary E127 controls, plus same-image extra6 and actual-quantizer projection-boundary checks. Gain below5% does not bar adoption. No parameter sweep.",
+  "full_model_tested": false,
+  "official_submission": false,
+  "scope": "E127 QKV/O and M03 ownership/down retained; sixrow native up/gate dot, input scale, block scale and F32 reduction fused without block partial DM. Selected standard and dyadic cases; no general BF16 exactness claim."
+}

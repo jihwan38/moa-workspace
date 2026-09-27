@@ -1,5 +1,13 @@
 # Experiment ledger
 
+September27 **[E128 native FFN dot/scale/reduce fusion adopted](../../baseline/e128.json)**.
+Actual graph removes28.125MiB up/gate partial writes and reads each, with native starts2→10.
+Three allocations108339/108342/108343 improve whole FFN against both E127 brackets:
+−0.7879% / −0.6569% / −0.5564%, paired median−0.6569%. Candidate45 standard comparisons,
+extra6/30 comparisons and8-case245760 projection outputs PASS. QKV/O images unchanged.
+Static +0.486% is recorded separately from measured improvement. Frozen implementation adopted;
+no tile sweep or official submission. [Evidence and limits](../../moa-dev/experiments/candidates/ffn-native-fused-scale/README.md).
+
 September27 **E127 official submission `bc21122c` completed and published on the leaderboard**.
 All15 basic comparisons pass; QKV103186 / O49155 / FFN330948 cycles. Score is
 **6.0699449×**, +2.4191% versus the previous official E1045.9265771×.

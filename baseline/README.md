@@ -1,35 +1,30 @@
-# 현재 baseline: E127
+# 현재 baseline: E128
 
-현재 실행 소스는 **E127 / `baseline-e127` / `09cf22f`**다. E122의 QKV와 M03 FFN을
-그대로 유지하고, 검증된 동결 C09의 두60행 weight/dot stage를 O에 채택했다.
-같은 BF16 activation을 재사용하며 두 F32 결과를 기존 gather로 연결하고 channel scale
-뒤 처음 BF16으로 변환한다. 변경된 compile input은 `sliding/projection.rs` 하나다.
+현재 실행 소스는 **E128 / `baseline-e128` / `cc82b9c`**다. E127의 QKV/O와 M03 FFN 소유권을
+유지하며, up/gate의6행 native dot→입력 scale→block scale→F32 H 합산을 한 Main stream으로 연결했다.
+큰 F32 block partial DM 쓰기·읽기를 각각28.125MiB 제거하고 최종 행 결과만 저장한다.
+Native dot 시작은2→10으로 늘며 전체 FP8 weight 저장·입력 준비·down은 유지한다.
+변경된 compile input은 `shared/mlp.rs` 하나다.
 
-세 독립 allocation에서 O가 앞뒤 E122 대비 **2.4960%, 3.8255%, 3.9303% 감소**했다.
-Allocation별 변화율 중앙값은 **−3.8255%**다. 별도 job 중앙값 집계는51192→49180 cycles
-(−3.9303%)다. 비교 stage의 binary/fixture/runner는 같지만 전체 batch 순서는 다르다.
-기본45·추가30개 비교(서로 다른 표준 입력9개), 별도8-case pre-RMS 출력30720개가
-통과했다. [검증 자료와 범위](../moa-dev/experiments/candidates/c09-output-first-npu/validation/README.md).
-작은 개선도 반복·정확도 검증 뒤 채택한다. 5%는 추가 튜닝 예산 기준이다.
+세 독립 allocation에서 FFN이 앞뒤 E127 대비 **0.7879%, 0.6569%, 0.5564% 감소**했다.
+Paired 변화율 중앙값은 **−0.6569%**, 집계 cycles는331335.5→329159다.
+동일 candidate stage의 기본45개 비교와 추가6입력30개 비교가 PASS했고,
+별도 실제 quantizer 경계 probe의8case/245760개 up/gate 출력도 PASS했다.
+표준 입력은 반복을 제외하면 커널별9개이며 전체 모델·일반 BF16 동치를 검증한 것은 아니다.
+[실험·검증](../moa-dev/experiments/candidates/ffn-native-fused-scale/README.md).
+작은 재현 이득은 채택하고 tile tuning은 중단했다. 더 큰 연구 대상은 FP8 weight 저장과 joint packed 복사다.
 
-E122가 채택한 M03의 FFN 검증은 그대로 승계한다. 당시6allocation의 paired 변화율
-중앙값은−1.4846%였으며, 현재 O 개선율과 합산해 전체 모델 개선으로 주장하지 않는다.
-모든 입력·모델 전체의 동치를 검증한 것은 아니며, FFN 입력 FP8 표현은 근사다.
-이전 E122/E104/E79/E74/E55는 고정 비교군으로 보존한다.
-
-**E127 공식 제출 `bc21122c` 완료.** 2026-09-27 05:03 KST 채점 완료 후
-[리더보드 응답](../docs/experiments/leaderboard-e127-20260927.json)에서 **69팀 중53위,
-6.0699449×**를 확인했다. 제출 직전 E104의5.9265771× 대비 **+2.4191%**이며 순위는53위로 같다.
-공식 cycles는 QKV103186 / O49155 / FFN330948, 기본15개 비교 모두 PASS다.
-[제출 소스·서버 로그·점수 재계산](../docs/experiments/e127-official-submit-20260927.json).
-QKV image는 변경하지 않았으므로 별도 제출 간 QKV 변동을 최적화 효과로 해석하지 않는다.
-공개 리더보드는 참고 순위이며 최종 순위는 주최 측 재평가로 정해진다.
-이전 [E104 공식 제출](../docs/experiments/e104-official-submit-20260922.json)은 역사 기록으로 보존한다.
+**E128 공식 제출은 아직 하지 않았다.** 최근 공식 제출은 E127 `bc21122c`이며,
+2026-09-27 05:03 KST 확인값은53/69위,6.0699449×다.
+[공식 기록](../docs/experiments/e127-official-submit-20260927.json).
+E128 Arena 반복 결과를 새 공식 점수나 순위로 환산하지 않는다.
+E127/E122/E104/E79/E74/E55의 source tag·성능·실패 기록은 보존한다.
 
 | 찾는 내용 | 파일 |
 |---|---|
 | 현재 적용한 16개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
-| 현재 구성표와 기준 commit | [e127.json](e127.json) |
+| 현재 구성표와 기준 commit | [e128.json](e128.json) |
+| 이전 E127 구성표 | [e127.json](e127.json) |
 | 이전 E122 구성표 | [e122.json](e122.json) |
 | 이전 E104 구성표 | [e104.json](e104.json) |
 | 이전 E79 구성표 | [e79.json](e79.json) |
@@ -62,13 +57,13 @@ QKV → attention → O → `self.mlp` 순서로 실행한다. `Decode::full`도
 |---|---|
 | `sliding_project_qkv` | BF16 x → 분할 RMS **Q1** → 2-cluster ring32 복제 **Q2** → 8-way 행 배치 **Q3** → BF16 입력·weight lookup dot **Q4** → F32 channel scale fusion **Q5** → head RMS/RoPE **Q6** → Q 출력·지정 K/V cache 슬롯 쓰기 |
 | `sliding_attention_output` | BF16 attention 결과 → 2-cluster/16-column의 두60행 weight/dot stage **O1** → F32 합산·channel scale 뒤 BF16 **O2** → H480×8 post-RMS·residual **O3/R1** → residual HBM 갱신 |
-| `decoder_feedforward` | residual·pre-RMS → E5M2 세 항 입력 **F6** → 2-cluster/30행 native up/gate **F1/F2** → F32 scale·합산 **F3/F4** → cluster-local120행 GeGLU → L-half 내부 ring32·4-column down **F1** → 두 H partial의 F32 합 **F3** → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
+| `decoder_feedforward` | residual·pre-RMS → E5M2 세 항 입력 **F6** → 2-cluster/6행 native up/gate·F32 scale·합산 **F1/F2/F3/F4** → cluster-local120행 GeGLU → L-half 내부 ring32·4-column down **F1** → 두 H partial의 F32 합 **F3** → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
 
 QKV/O는 [sliding/projection.rs](../furiosa-opt-gemma4-12B/src/device/sliding/projection.rs),
 FFN은 [shared/mlp.rs](../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)가 중심이다.
 공유 RMS를 바꾸는 실험은 두 호출 경로와 각각의 image를 확인한다.
 
-**이하 문단은 E79/E104의 역사적 설계 기록이다.** E122는 down의 L ownership과 cluster 합산 경로를 바꿨다. E127은 O의 두 stage 공급을 추가했다. 현재 구현은 [methods.md](methods.md)를 따른다.
+**이하 문단은 E79/E104의 역사적 설계 기록이다.** E122는 down의 L ownership과 cluster 합산 경로를 바꿨다. E127은 O의 두 stage 공급을, E128은 native up/gate scale·합산 fusion을 추가했다. 현재 구현은 [methods.md](methods.md)를 따른다.
 
 E79 FFN은 전체 BF16 weight를 DM에 저장하지 않는다. FP8 DM은 유지하고 lookup의
 BF16 출력을 DPE로 바로 보내16원소별 F32 dot을 저장한다. 이후 별도 VE에서 scale과 합산을

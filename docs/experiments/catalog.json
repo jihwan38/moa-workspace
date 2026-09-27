@@ -1949,11 +1949,27 @@
       "report": "docs/experiments/e127-c09-adoption-performance.json",
       "reference": "docs/experiments/e127-c09-e122-paired-control.json",
       "reference_label": "3allocation E122 앞뒤 paired controls",
-      "note": "현재 채택. 세 독립 allocation에서 모두 개선; paired 변화율 중앙값−3.8255%, 표는 job 중앙값 집계 비율−3.9303%. 후보 기본45·추가30비교(9 distinct inputs), 별도8-case pre-RMS30720출력 PASS. E122 QKV/FFN image동일. E126 원결정 보존,5%는 추가 튜닝 예산이며 채택 최소치가 아님. 공식제출아님.",
+      "note": "당시 채택; 현재 E128이 O를 그대로 승계. 세 독립 allocation에서 모두 개선; paired 변화율 중앙값−3.8255%, 표는 job 중앙값 집계 비율−3.9303%. 후보 기본45·추가30비교(9 distinct inputs), 별도8-case pre-RMS30720출력 PASS. E122 QKV/FFN image동일. E126 원결정 보존,5%는 추가 튜닝 예산이며 채택 최소치가 아님. 공식제출아님.",
       "evidence": [
         "moa-dev/experiments/candidates/c09-output-first-npu/validation/README.md",
         "moa-dev/experiments/candidates/c09-output-first-npu/source-build-audit.json",
         "moa-dev/experiments/candidates/c09-output-first-npu/validation/verification.json"
+      ]
+    },
+    {
+      "id": "E128",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "Native6행 dot→두 scale 곱→F32 H 합산으로 up/gate partial DM 제거",
+      "report": "docs/experiments/e128-adoption-performance.json",
+      "reference": "docs/experiments/e128-e127-paired-control.json",
+      "reference_label": "3allocation E127 앞뒤 paired controls",
+      "note": "현재 채택.3alloc모두양쪽control보다빠름;paired중앙−0.6569%,331335.5→329159cycles. 후보기본45·추가30비교(9distinctstandardinputs),별도8-case245760출력PASS. 실제partial write/read각28.125MiB제거, native2→10;static+0.486%와실측구분. QKV/O image동일. 추가튜닝·공식제출없음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/README.md",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/decision.json",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/source-build-audit.json",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/graph-verification.json"
       ]
     }
   ]

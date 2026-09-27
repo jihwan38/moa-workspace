@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "label": "E128 control_after",
+  "valid": true,
+  "runs": [
+    {
+      "job": {
+        "id": 108339,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-e128-six-row-screen",
+        "status": "SUCCEEDED",
+        "created_at": "2026-09-27T04:54:44Z",
+        "started_at": "2026-09-27T04:54:44Z",
+        "finished_at": "2026-09-27T04:55:04Z",
+        "duration_sec": 20.005184226,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log": "moa-dev/experiments/candidates/ffn-native-fused-scale/evidence/arena-108339.log",
+      "log_sha256": "483c7d7826d0b7e04c7446183ca005361b89589fb8c4826d52543ab9106ff8f0",
+      "valid": true,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 104514,
+          "cycles_by_run": [
+            109198,
+            102970,
+            104514
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 49569,
+          "cycles_by_run": [
+            51566,
+            48419,
+            49569
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 332020,
+          "cycles_by_run": [
+            335525,
+            330833,
+            332020
+          ],
+          "output_comparisons_passed": 3
+        }
+      },
+      "comparisons_passed": 15,
+      "package_files": {
+        "run.sh": {
+          "bytes": 1353,
+          "sha256": "93e19ff73167afe8d617e0d2ebea0d04b45d87152ac2373e8be202179a56574c"
+        },
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "job.yaml": {
+          "bytes": 85,
+          "sha256": "db7ca60afd76cbdc300cc5c2ff5be68562745bae9e6664537dfc7d78fc8494ab"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "candidate_test_runtime": {
+          "bytes": 3692608,
+          "sha256": "68d6c44edc3fe0bb682af9c2b0d7a2cc2f7d55a7edd89b6b0dff202ca69cedd5"
+        },
+        "control_test_runtime": {
+          "bytes": 3699264,
+          "sha256": "39ee7a56ccdfaf8a5d28b464fabd5c29adff06c72ca4335fc0d981f47878dc1c"
+        }
+      },
+      "benchmark_files": {
+        "test_runtime": "control_test_runtime",
+        "fixtures.safetensors": "fixtures.safetensors",
+        "remote_entrypoint.sh": "remote_entrypoint.sh"
+      },
+      "normalized_stage_files": {
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "test_runtime": {
+          "bytes": 3699264,
+          "sha256": "39ee7a56ccdfaf8a5d28b464fabd5c29adff06c72ca4335fc0d981f47878dc1c"
+        }
+      },
+      "batch_stage": "control_after",
+      "executed_host": "control_test_runtime",
+      "source_batch_report": {
+        "path": "moa-dev/experiments/candidates/ffn-native-fused-scale/e128-six-row-screen-job-108339-results.json",
+        "bytes": 5321,
+        "sha256": "f2e53fdc49c1ab95a2f198d2c00fbe919b9226206ed5dfa69a5190b1e0771d91"
+      },
+      "uploaded_archive": {
+        "path": "moa-dev/experiments/artifacts/ffn-native-fused-scale/job-108339.tar",
+        "bytes": 7602688,
+        "sha256": "8a4f3f43b66342cd11463dc73048e253cec97f9334880b8c8a7fd19e864d2682"
+      },
+      "uploaded_archive_verified": true
+    }
+  ],
+  "independent_arena_jobs": 1,
+  "method": "One allocation, three serial original three-input benchmark hosts: actual E127 before -> candidate whole FFN -> actual E127 after. PROFILE=info; no diagnostic host. Before/after and inputs are not independent allocations.",
+  "aggregate": {
+    "sliding_project_qkv": {
+      "median_cycles": 104514,
+      "job_medians": [
+        104514
+      ]
+    },
+    "sliding_attention_output": {
+      "median_cycles": 49569,
+      "job_medians": [
+        49569
+      ]
+    },
+    "decoder_feedforward": {
+      "median_cycles": 332020,
+      "job_medians": [
+        332020
+      ]
+    }
+  }
+}

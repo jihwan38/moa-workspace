@@ -69,6 +69,13 @@
   M03/C09 adoption recovers modest gains; it does not establish a large redesign.
   Follow `baseline/current.json` and the latest `docs/experiments/current-work.md`
   evidence when these provisional priorities become stale.
+- E128 subsequently adopted native up/gate dot/scale/F32-reduction fusion after
+  three positive allocations, extra6 and a boundary oracle. Its up/gate block
+  partial DM is now absent; down partials and full FP8 weight materialization
+  remain. The modest gain is recovered, and six-row tile tuning stops. The next
+  larger FFN question is projection/cluster ownership that removes FP8 weight
+  materialization without E123's joint packed assembly; public transfer support
+  and direct-decode correctness remain feasibility questions, not proven fixes.
 - Classify the scope before implementation: parameter tuning, local dataflow
   replacement, or whole-projection/FFN architecture redesign. C09 row staging
   and C11 partial VRF are local dataflow replacements; do not count them as

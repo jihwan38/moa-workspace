@@ -1,3 +1,17 @@
+# 2026-09-27 E128 native FFN dot/scale/reduce 채택 완료
+
+현재 runtime은 **E128 / `baseline-e128` / `cc82b9c`**다.
+[실험](../../moa-dev/experiments/candidates/ffn-native-fused-scale/README.md) · [구성표](../../baseline/e128.json).
+`opt/ffn-native-fused-scale`, 실제 시작 `57e6a5b`, source·별도 성능 control E127.
+고정6행 native dot→Mul0(input scale)→Mul1(block scale)→F32 H 합산으로
+up/gate partial DM28.125MiB write/read가 실제 graph에서 제거됐다. Native 시작은2→10이다.
+정적155190 vs154440(+0.486%)와 달리 NPU3allocation은 FFN−0.7879/−0.6569/−0.5564%,
+paired중앙−0.6569%다. 후보기본45·추가30비교(9 distinct standard inputs),
+별도8case245760 projection출력 PASS. QKV/O image는E127과동일하다.
+Positive를동결해검증후채택했으며 tile sweep은없다. 이번큰저장삭제의실측효과는작았다.
+추가튜닝은중단하고 FP8 weight 저장/joint packed복사를없앨ownership구조는별도연구로남긴다.
+새공식제출없음;공식순위는아래E127기록이다. 검증host의checksumAPI·출력경로수리로그도보존했다.
+
 # 2026-09-27 E127 이후 큰 중간 저장 제거 shortlist
 
 [현재 코드·과거 실패·SDK를 대조한 후보 분석](../research/e127-large-cost-shortlist-20260927.md)을 추가했다.

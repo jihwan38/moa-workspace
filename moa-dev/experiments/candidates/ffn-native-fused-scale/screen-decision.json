@@ -1,0 +1,68 @@
+{
+  "id": "E128",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "09cf22fcb54349cf5984640d815ade3c4478b3e8",
+  "comparison_recipe": "baseline/e127.json",
+  "candidate_build_label": "e128-six-row-v1",
+  "job": 108339,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_ffn_cycles": 329451,
+  "control_before_ffn_cycles": 332115,
+  "control_after_ffn_cycles": 332020,
+  "bracketing_median": 332067.5,
+  "change_percent": -0.7879422105445455,
+  "candidate_cycles_by_run": [
+    333090,
+    329451,
+    328344
+  ],
+  "static_candidate_cycles": 155190,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/ffn-native-fused-scale/graph-verification.json",
+      "bytes": 12091,
+      "sha256": "683a00dcdb4de3bf9e697e0d3d52e147aa2e2018d14d2da3f42290042c1e11ea"
+    },
+    "verifier": {
+      "path": "moa-dev/experiments/candidates/ffn-native-fused-scale/verify_graph.py",
+      "bytes": 16108,
+      "sha256": "063d1035887dbe4c839545f4b02e8e6eadf3b2e45de9967befb22b1d03959a4a"
+    },
+    "rechecked": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/ffn-native-fused-scale/e128-six-row-screen-job-108339-results.json",
+    "bytes": 5321,
+    "sha256": "f2e53fdc49c1ab95a2f198d2c00fbe919b9226206ed5dfa69a5190b1e0771d91"
+  },
+  "removed_partial_write_bytes": 29491200,
+  "removed_partial_read_bytes": 29491200,
+  "native_starts_before": 2,
+  "native_starts_after": 10,
+  "scope": "One local dataflow replacement, not a whole FFN redesign. Bytes are logical descriptor work, not measured bus traffic or additive latency.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "native/two-scale/F32-reduction numerical-boundary probe"
+      ]
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Did removing28.125MiB F32 partial write/read outweigh2->10 native starts, scale readiness and shared VE costs? This prototype does not decide all fused-reduction architectures."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

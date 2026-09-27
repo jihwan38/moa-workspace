@@ -6,26 +6,24 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
-[현재 baseline 구성](baseline/README.md)에서 E122에 적용한 16개 구성요소의 코드·설정·의존 관계를
+[현재 baseline 구성](baseline/README.md)에서 E128에 적용한 16개 구성요소의 코드·설정·의존 관계를
 확인할 수 있다. [성능별 실험 분류](docs/experiments/optimization-results.md)는 빨라진 후보,
 차이 미확인, 회귀, 정확도 실패를 비교 기준과 함께 정리한다.
 새 조합은 [추가·제거·변경 기록 양식](docs/experiments/combination-template.md)을 사용한다.
 
-현재 실행 소스는 **E122 / `baseline-e122` / `c3553ab`**다.
-[M03의 확장 검증](moa-dev/experiments/candidates/m03-producer-local-ffn/validation/README.md)을
-완료하고 cluster-local GeGLU·L-owned down을 채택했다. E104 대비6개 allocation의
-paired 비율 중앙값은 FFN−1.4846%이며, 집계 중앙값 비율은336142→331354(−1.4244%)다.
-기본90·추가30비교와7-case projection241920출력 PASS. QKV/O image는 그대로다.
+현재 실행 소스는 **E128 / `baseline-e128` / `cc82b9c`**다.
+[Native FFN dot·scale·합산 결합](moa-dev/experiments/candidates/ffn-native-fused-scale/README.md)을
+검증해 채택했다. Up/gate F32 부분합 DM 쓰기·읽기를 각각28.125MiB 제거했고,
+E127 대비 독립3allocation의 FFN 감소율 중앙값은 **0.6569%**다.
+기본45·추가30비교와8-case projection245760출력 PASS. E127 QKV/O image는 유지한다.
 
-[9월 27일 실행 결과](docs/research/top10-execution-20260927.md)는 QKV/O 내부 실측,
-과거 direct FFN·공동 QKV의 padded DMA 전송 계약 재검증을 포함한다. 수정 E123은
-동시 M03보다 단회0.7392% 빠르지만 소폭 이득으로 미채택, 수정 E124는 정확도 통과 후
-QKV24.41% 회귀로 종료했다. 10위권에 필요한 큰 폭의 개선은 아직 확보하지 못했다.
-[현재 작업·다음 진단](docs/experiments/current-work.md)과 [작업 규칙](AGENTS.md)을 먼저 확인한다.
+작은 재현 이득은 회수하고 타일 튜닝은 중단했다. 더 큰 연구 대상은 FP8 weight 전체 저장과
+joint packed 복사를 함께 없앨 cluster 소유권 구조다. 아직 전송 계약·direct 정확도 검증이 필요하다.
+[현재 작업](docs/experiments/current-work.md)과 [작업 규칙](AGENTS.md)을 먼저 확인한다.
 
-공식 제출은 아직 E104다. [9월 22일 채점 기록](docs/experiments/e104-official-submit-20260922.json)은
-5.9266×이며 현재 리더보드 조회 결과가 아니다. E122의 Arena 이득을 공식점수로 바꾸어
-보고하지 않는다. 아래는 과거 채택·실험 이력이다.
+E128은 공식 미제출이다. 최근 공식 제출 [E127 `bc21122c`](docs/experiments/e127-official-submit-20260927.json)는
+2026-09-27 05:03 KST 확인 당시6.0699449×,53/69위다. E128의 Arena 이득을 공식점수로
+환산하지 않는다. 아래는 과거 채택·실험 이력이다.
 
 이전 **E104 / `baseline-e104` / `7f891f9`**는
 [C07](moa-dev/experiments/candidates/c07-native-scale-dpe/README.md)의 materialized native

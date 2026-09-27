@@ -1,0 +1,190 @@
+{
+  "job": {
+    "id": 108342,
+    "owner": "jihwan38",
+    "mine": true,
+    "name": "beef-e128-six-row-repeat-a",
+    "status": "SUCCEEDED",
+    "created_at": "2026-09-27T04:55:44Z",
+    "started_at": "2026-09-27T04:55:44Z",
+    "finished_at": "2026-09-27T04:56:04Z",
+    "duration_sec": 19.959930951,
+    "exit_code": 0,
+    "device_id": null
+  },
+  "log": "moa-dev/experiments/candidates/ffn-native-fused-scale/evidence/arena-108342.log",
+  "log_digest": {
+    "bytes": 7374,
+    "sha256": "33a4d23266a44082832634e7dfbfcec2b309751e95850d7cd050a01fcd85c6aa"
+  },
+  "build_record": {
+    "path": "moa-dev/experiments/candidates/ffn-native-fused-scale/e128-six-row-repeat-a-build.json",
+    "bytes": 12128,
+    "sha256": "51cf89b3ca9607a33220bc4c1ae3d09c0da293d05b99fb8fe1d7a6d3d6aaa8e4"
+  },
+  "method": "One allocation, three serial original three-input benchmark hosts: actual E127 before -> candidate whole FFN -> actual E127 after. PROFILE=info; no diagnostic host. Before/after and inputs are not independent allocations.",
+  "stages": {
+    "control_before": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 103741,
+          "cycles_by_run": [
+            108264,
+            102953,
+            103741
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 49461,
+          "cycles_by_run": [
+            51338,
+            48293,
+            49461
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 331449,
+          "cycles_by_run": [
+            333521,
+            331017,
+            331449
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    },
+    "candidate_whole": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 104018,
+          "cycles_by_run": [
+            109696,
+            104018,
+            103491
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 49456,
+          "cycles_by_run": [
+            52371,
+            49456,
+            49318
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 329159,
+          "cycles_by_run": [
+            334250,
+            329159,
+            328458
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    },
+    "control_after": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 104082,
+          "cycles_by_run": [
+            109820,
+            103744,
+            104082
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 48744,
+          "cycles_by_run": [
+            51400,
+            48178,
+            48744
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 331222,
+          "cycles_by_run": [
+            334557,
+            329651,
+            331222
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    }
+  },
+  "completed_stage_names": [
+    "control_before",
+    "candidate_whole",
+    "control_after"
+  ],
+  "stage_sequence_matches": true,
+  "screen_complete": true,
+  "actual_upload_matches": true,
+  "valid": true,
+  "package_files": {
+    "run.sh": {
+      "bytes": 1353,
+      "sha256": "93e19ff73167afe8d617e0d2ebea0d04b45d87152ac2373e8be202179a56574c"
+    },
+    "fixtures.safetensors": {
+      "bytes": 202632,
+      "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+    },
+    "job.yaml": {
+      "bytes": 87,
+      "sha256": "8110400fc32971b6ee408020306a95feca468d00f8fefbc8341dbc9c79ebafc9"
+    },
+    "remote_entrypoint.sh": {
+      "bytes": 965,
+      "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+    },
+    "candidate_test_runtime": {
+      "bytes": 3692608,
+      "sha256": "68d6c44edc3fe0bb682af9c2b0d7a2cc2f7d55a7edd89b6b0dff202ca69cedd5"
+    },
+    "control_test_runtime": {
+      "bytes": 3699264,
+      "sha256": "39ee7a56ccdfaf8a5d28b464fabd5c29adff06c72ca4335fc0d981f47878dc1c"
+    }
+  },
+  "archive": {
+    "path": "moa-dev/experiments/artifacts/ffn-native-fused-scale/job-108342.tar",
+    "bytes": 7602688,
+    "sha256": "b576baa08b86fa637c51d41417aff5fee99fa14a93e40faa62dc3a2028de3833"
+  },
+  "correctness_passes": 45,
+  "whole_ffn_comparison": {
+    "control_before": 331449,
+    "candidate": 329159,
+    "control_after": 331222,
+    "bracketing_median": 331335.5,
+    "candidate_change_percent": -0.6568870525494597
+  }
+}
