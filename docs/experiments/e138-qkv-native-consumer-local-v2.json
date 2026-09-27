@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "label": "E138 candidate_whole",
+  "valid": true,
+  "runs": [
+    {
+      "job": {
+        "id": 111314,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-e138-native-v2-screen",
+        "status": "SUCCEEDED",
+        "created_at": "2026-09-27T11:46:09Z",
+        "started_at": "2026-09-27T11:46:31Z",
+        "finished_at": "2026-09-27T11:46:51Z",
+        "duration_sec": 19.843603148,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log": "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/arena-111314.log",
+      "log_sha256": "6fb5b7c9d56c2f3fa46f20d55f2c760fe4304d626ed1e28fcb532135b53d4613",
+      "valid": true,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 108007,
+          "cycles_by_run": [
+            115528,
+            107438,
+            108007
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 42258,
+          "cycles_by_run": [
+            45645,
+            41639,
+            42258
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 316211,
+          "cycles_by_run": [
+            318627,
+            315978,
+            316211
+          ],
+          "output_comparisons_passed": 3
+        }
+      },
+      "comparisons_passed": 15,
+      "package_files": {
+        "run.sh": {
+          "bytes": 1353,
+          "sha256": "93e19ff73167afe8d617e0d2ebea0d04b45d87152ac2373e8be202179a56574c"
+        },
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "job.yaml": {
+          "bytes": 87,
+          "sha256": "d0976e286fadb97ef1f2964e6a8aafe6ba8328f79f16e59ec79a2cd02dc66564"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "candidate_test_runtime": {
+          "bytes": 3802944,
+          "sha256": "6d3f65cdd4fe360d9dfb6f37f9531dcb874122d2373d282c75e0537c25e43cbb"
+        },
+        "control_test_runtime": {
+          "bytes": 3766080,
+          "sha256": "dae2e682a849c90dcbbc3f0bbec27b940c27b9271b845f24a7188be73b88176b"
+        }
+      },
+      "benchmark_files": {
+        "test_runtime": "candidate_test_runtime",
+        "fixtures.safetensors": "fixtures.safetensors",
+        "remote_entrypoint.sh": "remote_entrypoint.sh"
+      },
+      "normalized_stage_files": {
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "test_runtime": {
+          "bytes": 3802944,
+          "sha256": "6d3f65cdd4fe360d9dfb6f37f9531dcb874122d2373d282c75e0537c25e43cbb"
+        }
+      },
+      "batch_stage": "candidate_whole",
+      "executed_host": "candidate_test_runtime",
+      "source_batch_report": {
+        "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/e138-native-v2-screen-job-111314-results.json",
+        "bytes": 5333,
+        "sha256": "e8b4375d76a98b66efa94ab8b273d79a9bc2e4c244a8fb31714465691704a0ab"
+      },
+      "uploaded_archive": {
+        "path": "moa-dev/experiments/artifacts/qkv-native-consumer-local/job-111314.tar",
+        "bytes": 7779328,
+        "sha256": "26bef568b176d2bf9bd45b9d8f8ab2a41cb8737066e0ee63a8dd056e1cc7bd9e"
+      },
+      "uploaded_archive_verified": true
+    }
+  ],
+  "independent_arena_jobs": 1,
+  "method": "One allocation, three serial original three-input benchmark hosts: actual E137 before -> candidate whole QKV -> actual E137 after. PROFILE=info; no diagnostic host. Before/after and inputs are not independent allocations.",
+  "aggregate": {
+    "sliding_project_qkv": {
+      "median_cycles": 108007,
+      "job_medians": [
+        108007
+      ]
+    },
+    "sliding_attention_output": {
+      "median_cycles": 42258,
+      "job_medians": [
+        42258
+      ]
+    },
+    "decoder_feedforward": {
+      "median_cycles": 316211,
+      "job_medians": [
+        316211
+      ]
+    }
+  },
+  "candidate_build": "moa-dev/experiments/candidates/qkv-native-consumer-local/build-e138-native-v2-repro.json",
+  "candidate_package": "moa-dev/experiments/candidates/qkv-native-consumer-local/package-e138-native-v2.json",
+  "reference": "docs/experiments/e138-qkv-native-consumer-local-v2-e137-before.json",
+  "control_after_report": "docs/experiments/e138-qkv-native-consumer-local-v2-e137-after.json",
+  "target_kernel": "sliding_project_qkv",
+  "change_percent_vs_bracketing_median": 4.1041359434789815,
+  "adopted": false,
+  "official_submission": false,
+  "unchanged_kernel_timing_note": "O/FFN images are unchanged E137; their observed timing variation is not an optimization.",
+  "accuracy_scope": "Original three distinct standard inputs; candidate15 comparisons include9 Q/K/V outputs. Separate root-owned raw9 and full2 cancellation/cache suites establish their own finite scope; results are not inherited here."
+}

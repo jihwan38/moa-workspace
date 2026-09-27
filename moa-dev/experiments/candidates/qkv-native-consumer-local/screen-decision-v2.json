@@ -1,0 +1,58 @@
+{
+  "id": "E138",
+  "status": "screen_no_net_gain",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "334a7059a82252a310436c6d7e02f8ba577e7f51",
+  "comparison_recipe": "baseline/e137.json",
+  "candidate_build_label": "e138-native-v2",
+  "job": 111314,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_qkv_cycles": 108007,
+  "control_before_qkv_cycles": 103603,
+  "control_after_qkv_cycles": 103895,
+  "bracketing_median": 103749.0,
+  "change_percent": 4.1041359434789815,
+  "candidate_cycles_by_run": [
+    115528,
+    107438,
+    108007
+  ],
+  "static_candidate_cycles": 53436,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/graph-verification-e138-native-v2.json",
+      "bytes": 5606,
+      "sha256": "2a38afa8fe20974463f9652a5610a831a5ea188d7a6daa3f17613df42b380efe"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/e138-native-v2-screen-job-111314-results.json",
+    "bytes": 5333,
+    "sha256": "e8b4375d76a98b66efa94ab8b273d79a9bc2e4c244a8fb31714465691704a0ab"
+  },
+  "added_raw_f32_write_bytes": 32768,
+  "added_raw_f32_valid_read_bytes": 32768,
+  "extra_scale_consumer_tasks": 3,
+  "scope": "Complete native E4 activation-resident QKV with ring32 BF16 seed replication and consumer-local H960 quantization, shared Term4TRF, weightstream and fused Term/K4 F32 sums. All real preparation, typed input/output gathers, channel-scale pass and unchanged head/cache tail included. No internal NPU attribution from this whole screen.",
+  "decisions": {
+    "adoption": {
+      "status": "not_promoted_from_this_screen",
+      "reason": "This single allocation did not show a net gain. Preserve it; root decides whether a concrete unresolved variance or implementation issue justifies another check.",
+      "remaining_checks": []
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does consumer-local quantization or strided H960 weight ingress delay native/head completion? Static cost observations do not establish the limiting hardware interval; any recovery diagnosis needs a supported concrete repair question."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "id": "E138",
+  "variant": "native-v2",
+  "source_recipe": "baseline-e137 / 334a7059a82252a310436c6d7e02f8ba577e7f51",
+  "comparison_recipe": "baseline/e137.json",
+  "actual_start_commit": "d6e6c62e6ae80c9b39b192c4a318a0230e79ee20",
+  "status": "measured_routing_repair_no_net_gain",
+  "adopted": false,
+  "official_submission": false,
+  "whole_job": 111314,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "qkv_control_before": 103603,
+  "qkv_candidate": 108007,
+  "qkv_control_after": 103895,
+  "bracketing_median": 103749,
+  "change_percent": 4.1041359434789815,
+  "build": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/build-e138-native-v2-repro.json",
+    "bytes": 17782,
+    "sha256": "654b0fc7926a8adb6f5a00bf477f7cf4a72bf386184e3f04a0a1784db97ecfda"
+  },
+  "package": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/package-e138-native-v2.json",
+    "bytes": 20750,
+    "sha256": "94dbaf351d6c3ed16f2a3ed4815bd981f58c0df3cbcfff6190d3bed03f062ab0"
+  },
+  "graph_gate": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/graph-verification-e138-native-v2.json",
+    "bytes": 5606,
+    "sha256": "2a38afa8fe20974463f9652a5610a831a5ea188d7a6daa3f17613df42b380efe"
+  },
+  "result": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/e138-native-v2-screen-job-111314-results.json",
+    "bytes": 5333,
+    "sha256": "e8b4375d76a98b66efa94ab8b273d79a9bc2e4c244a8fb31714465691704a0ab"
+  },
+  "selection": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/repair-selection-native-v2.json",
+    "bytes": 890,
+    "sha256": "b69c8cbd47702d78f3f1f5c89c305ceca2b8e2a872805378f9d1eaceb8499e80"
+  },
+  "compiled_cost_followup": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2-compiled-cost-followup.json",
+    "bytes": 1212,
+    "sha256": "9d3f9180bd498b15e884f7158908899b76c5ad03b2684342ea73db8005ec568f"
+  },
+  "decisions": {
+    "adoption": "Do not promote this frozen prototype: its complete QKV remained slower than contemporary E137 controls. Live kernel and baseline stay E137.",
+    "further_tuning": "Stop this selected input-routing repair. No K/row/term sweep, extra performance allocation or adoption-only boundary NPU requested.",
+    "major_research": "Native four-term QKV is not globally exhausted. V1 trace showed later Q/K native readiness tracking weight completion, but v2 has no internal trace and this result cannot attribute its residual regression. Reopening requires a supported complete-path mechanism addressing measured work/dependencies; not another source-order or parameter guess."
+  },
+  "observations": [
+    "V1 111168 regressed12.900619%, and its later frozen readiness profile111237 regressed12.888549%. V2 111314 regressed4.104136%. These are independent allocations with different contemporary controls, not a same-allocation v1-v2 causal timing experiment.",
+    "The actual v2 whole image includes 120KiB typed BF16 seed DMA, 120KiB valid Switch read, 960KiB Switch output and emitted16KiB bitmap configuration HBM. Four-term local quantization,1.875MiB terms/TRF, original30MiB weights and downstream heads remain. Logical counts are not measured bus traffic.",
+    "The v2 source and independent graph gates preserve arithmetic after input redistribution, H960 ownership, native Term/K4 reduction, common/channel scale order and shared register lifetimes. O/FFN images remain exact E137.",
+    "V1 raw9/full2 production boundary tests are preserved separately; they were not rerun for v2 and are not claimed as v2 hardware evidence. The v2 standard three inputs passed all15 candidate output comparisons."
+  ],
+  "pending_root_owned_boundary_suite_v2": "Source-only preparation by root; no v2 boundary build or NPU required by this losing screen."
+}

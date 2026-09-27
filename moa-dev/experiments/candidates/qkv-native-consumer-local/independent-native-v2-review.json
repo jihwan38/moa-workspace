@@ -1,0 +1,332 @@
+{
+  "passed": true,
+  "scope": "Actual changed seed DMA, emitted Switch bitmap, wire-order relabel, inherited core shape/description, source identity and shared-register lifetime review. No NPU arithmetic/liveness/performance guarantee.",
+  "inputdigests": {
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/projection.rs": {
+      "bytes": 39754,
+      "sha256": "0eb9a25fad91d75a22c1f9ecf17da2bfc018b684c2c9a95bd1098dd4db5c9262"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/ops.rs": {
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v2/graph.json": {
+      "bytes": 251272,
+      "sha256": "cf734d5fc620f222f77fea2cce31333f45f627133e1cda3571becc9c63f68f72"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v2/schedule.json": {
+      "bytes": 129823,
+      "sha256": "efb4e0f9ef8011a865dffc7b445cbc394f4b185959776df245df05f62244f650"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v1/projection.rs": {
+      "bytes": 39064,
+      "sha256": "8c098626c1f5d7ecec66d000251aec33d19c971e84390abdb535194bf8d97a2f"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v1/ops.rs": {
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v1/graph.json": {
+      "bytes": 241191,
+      "sha256": "0164f1571c22046d687fb1378021659e34d596349f588ed8e95d707856151436"
+    }
+  },
+  "seed": {
+    "actual_packets": 128,
+    "packet_bytes": 960,
+    "initialized_anchor_slices": 64,
+    "logical_payload_bytes": 122880,
+    "destination": "same cluster, slice32*a+q, local byte960*j, q<4,j<2; source slice2*q+j local0"
+  },
+  "broadcast": {
+    "bitmap_entries": 256,
+    "formula": "dst32*a+4*b+q reads source32*a+q in same cluster",
+    "type": "BF16, no conversion",
+    "each_consumer_elements": 960,
+    "destination_payload_bytes": 983040,
+    "config_hbm_dma_bytes": 16384
+  },
+  "relabel": "32*a+4*b+q ==4*g+q, g=8*a+b; full allocation, same K shard/wire order",
+  "inherited_v1_graph_core_ops_exact_descriptions_and_shapes": [
+    {
+      "v1": "RenegadeCommand#O9",
+      "v2": [
+        "RenegadeCommand#O12"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O10",
+      "v2": [
+        "RenegadeCommand#O13"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O11",
+      "v2": [
+        "RenegadeCommand#O14"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O12",
+      "v2": [
+        "DmaCommand#O15"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O67",
+      "v2": [
+        "RenegadeCommand#O70"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O70",
+      "v2": [
+        "DmaCommand#O73"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O71",
+      "v2": [
+        "DmaCommand#O74"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O72",
+      "v2": [
+        "RenegadeCommand#O75"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O73",
+      "v2": [
+        "RenegadeCommand#O76"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O75",
+      "v2": [
+        "DmaCommand#O78"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O76",
+      "v2": [
+        "RenegadeCommand#O79"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O80",
+      "v2": [
+        "DmaCommand#O83"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O84",
+      "v2": [
+        "DmaCommand#O87"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O86",
+      "v2": [
+        "RenegadeCommand#O89"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O88",
+      "v2": [
+        "DmaCommand#O91",
+        "DmaCommand#O104"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O89",
+      "v2": [
+        "RenegadeCommand#O105",
+        "RenegadeCommand#O92"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O93",
+      "v2": [
+        "DmaCommand#O96",
+        "DmaCommand#O109"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O97",
+      "v2": [
+        "DmaCommand#O100",
+        "DmaCommand#O113"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O99",
+      "v2": [
+        "RenegadeCommand#O102",
+        "RenegadeCommand#O115"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O101",
+      "v2": [
+        "DmaCommand#O91",
+        "DmaCommand#O104"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O102",
+      "v2": [
+        "RenegadeCommand#O105",
+        "RenegadeCommand#O92"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O106",
+      "v2": [
+        "DmaCommand#O96",
+        "DmaCommand#O109"
+      ]
+    },
+    {
+      "v1": "DmaCommand#O110",
+      "v2": [
+        "DmaCommand#O100",
+        "DmaCommand#O113"
+      ]
+    },
+    {
+      "v1": "RenegadeCommand#O112",
+      "v2": [
+        "RenegadeCommand#O102",
+        "RenegadeCommand#O115"
+      ]
+    }
+  ],
+  "schedule_register_lifetimes": [
+    {
+      "index": "260",
+      "lifetime": {
+        "begin": 23479,
+        "end": 24253
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "139",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 22736,
+            "end": 46135,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Lane: QkvTerm, Element: H % 960]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "123",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 18245,
+            "end": 46135,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1540096,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "index": "273",
+      "lifetime": {
+        "begin": 33737,
+        "end": 34991
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "139",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 22736,
+            "end": 46135,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Lane: QkvTerm, Element: H % 960]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "123",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 18245,
+            "end": 46135,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1540096,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "index": "405",
+      "lifetime": {
+        "begin": 45361,
+        "end": 46135
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "139",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 22736,
+            "end": 46135,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Lane: QkvTerm, Element: H % 960]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "123",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 18245,
+            "end": 46135,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1540096,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    }
+  ],
+  "remaining_scope": "Whole and numerical boundary must bind v2 image; prior v1 PASS does not prove v2 runtime."
+}
