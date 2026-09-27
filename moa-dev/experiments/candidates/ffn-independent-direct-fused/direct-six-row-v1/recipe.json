@@ -1,0 +1,45 @@
+{
+  "id": "E135",
+  "variant": "direct-six-row-v1",
+  "actual_start_commit": "1643c6e",
+  "base_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "comparison_recipe": "baseline/e134.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/measured-build-e134-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Complete independent compact FP4 producer -> direct six-row lookup/native/scale/reduce up and gate, retaining E134 weighted native down. Reopens direct family with changed consumer composition, without joint assembly; not a tile sweep.",
+  "prior_related": [
+    "E103 independent direct30-row native -> F32 block partial then scale failed projection oracle broadly; final descriptors not preserved, cause unresolved. E135 retains no up/gate block partial and changes table/native composition to ten six-row fused streams.",
+    "v7c joint-view first-row issue had actual oversized descriptor/OOB; independent compact public HBM reshape here has no Projection padded view. E123 corrected joint copy passed but added work.",
+    "E131 joint direct fused whole regressed; this candidate removes packed/scale joint assembly and keeps validated E134 down.",
+    "E129 cluster ownership failed target lowering; no cluster_tile or begin_interleaved used here."
+  ],
+  "full_graph": "preRMS -> unchanged 3-term E5 input prepare/broadcast -> compact independent up and gate FP4 HBM to DM plus separate FP8 blockscale DM -> five six-row Main FP4 lookupE5/native block16 F32 per projection -> input scale then block scale -> F32 H reduce -> F32 30row DM/local120 gather/BF16 -> unchanged GeGLU -> E134 weighted3term E5 activation -> direct native down with coefficient restoration before F32Term sum -> original down F32 partial, blockscale/reductions/residual/postRMS/store",
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "removed_upgate_fp8_dm_write_bytes": 117964800,
+    "removed_upgate_fp8_dm_read_bytes": 117964800,
+    "retained_upgate_packed_hbm_bytes": 58982400,
+    "retained_upgate_packed_dm_read_bytes": 58982400,
+    "retained_upgate_scale_hbm_bytes": 7372800,
+    "added_lookup_preparations": 8,
+    "native_streams_unchanged": 10,
+    "joint_weight_or_scale_assembly_bytes": 0,
+    "caveat": "Ten lookup setups and table/TRF/VRF lifetimes may add serialization; logical bytes do not predict time."
+  },
+  "numerical_contract": "Original E134 preRMS/input quantization and whole downstream unchanged. FP4 lookup is exact E5; preserve native block16 F32 sum, input-scale Mul0 then block-scale Mul1, F32 H reduction and BF16 boundary. Independent originalBF16 projection oracle required; no general BF16/input correctness inherited.",
+  "first_gate": "Whole exact compile then compact FP4 weight/scales public last bounds and six-row source offsets, output8B commits, ten native/lookups, TRF/VRF binding/lifetimes; preserve failures.",
+  "decisions": {
+    "adoption": "Unvalidated; any positive whole screen enters frozen 3 allocation plus extra6 and projection-oracle validation, no5% floor.",
+    "further_tuning": "No tile/stage sweep. Negative first screen stops unless a specific measured mechanism selects supported repair.",
+    "major_research": "Test removal of full up/gate FP8 DM handoff without E131 joint copies, complete cost includes E134 weighted down."
+  },
+  "adopted": false,
+  "hardware_status": "not_run"
+}
