@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope": "Finite native-v3 O correctness only; no performance, arbitrary-input, all-PRNG-seeds or end-to-end model claim. Adoption also requires independent contemporary performance and standard extra-input checks owned separately.",
+  "source_build_label": "e137-native-v3",
+  "source_projection": {
+    "path": "moa-dev/experiments/candidates/o-native-activation-resident/native-v3/projection.rs",
+    "bytes": 26464,
+    "sha256": "c89ba9d54baa5b5841426d7bccc6318cd088fa6d60fedc59c88aaf63c768c5be"
+  },
+  "same_oracle_fixture_as_native_v2": true,
+  "pre_rms": {
+    "job": 110561,
+    "cases": 9,
+    "outputs": 34560,
+    "criterion": "Exact BF16 bits, signed zero equivalent, nonfinite rejected. Original stored BF16/E4 F64 mathematical truth with exact F32-representability assertions.",
+    "source_full_file_unchanged": true,
+    "result": {
+      "path": "moa-dev/experiments/candidates/o-native-activation-resident/validation/oracle-results-v3.json",
+      "bytes": 6128,
+      "sha256": "fdbb761509ca44366c745c8b4e2fbea622cb03bc25abe52f71277e0b8fc188ca"
+    },
+    "recheck": "python3 moa-dev/experiments/candidates/o-native-activation-resident/validation/oracle_v3.py --check"
+  },
+  "whole_o": {
+    "job": 110569,
+    "cases": 1,
+    "legacy_case": 7,
+    "outputs": 3840,
+    "criterion": "Original public atol0.05 + rtol0.01*abs(expected), nonfinite rejected. Includes production RMSNorm/residual.",
+    "expected": 0.609375,
+    "exact_f32": 3840,
+    "whole_exact_image": {
+      "name": "furiosa-opt-gemma4/furiosa_opt_gemma4::ops::sliding_attention_output.bin",
+      "bytes": 122880,
+      "sha256": "4dde46bfbff2b07c0870f5baf8d5a857b2b0fb7176816f9b0eb417260a671cb4",
+      "host_occurrences": 1,
+      "matches_whole_exact": true
+    },
+    "result": {
+      "path": "moa-dev/experiments/candidates/o-native-activation-resident/validation/stress-results-v3.json",
+      "bytes": 2927,
+      "sha256": "8b681b29980a71815c61188c514cca7383b8fa1da5851dfa9e235041feea29e7"
+    },
+    "recheck": "python3 moa-dev/experiments/candidates/o-native-activation-resident/validation/full_stress_v3.py --check"
+  },
+  "actual_upload_matches": true,
+  "original_v2_evidence": {
+    "path": "moa-dev/experiments/candidates/o-native-activation-resident/validation/verification-summary.json",
+    "bytes": 2397,
+    "sha256": "3c08498c0e6eca6ff6c94cc271817959ff9fdb308cf0a41e552c3da7c675e141"
+  },
+  "qkv_cache_edges": "Not run: QKV/FFN production images unchanged from actual E134, verified separately by package-e137-native-v3.json; no inherited E136 tests.",
+  "official_submission": false
+}

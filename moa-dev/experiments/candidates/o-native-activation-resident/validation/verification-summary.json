@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope": "Finite E137 O correctness only; no performance, arbitrary-input, all-PRNG-seeds or end-to-end model claim.",
+  "source_build_label": "e137-native-v2",
+  "pre_rms": {
+    "job": 110458,
+    "cases": 9,
+    "outputs": 34560,
+    "criterion": "Exact BF16 bits, signed zero equivalent, nonfinite rejected. Original BF16/E4 F64 mathematical truth with exact F32-representability assertions.",
+    "source_full_file_unchanged": true,
+    "result": {
+      "path": "moa-dev/experiments/candidates/o-native-activation-resident/validation/oracle-results-v2.json",
+      "bytes": 6125,
+      "sha256": "32bc75acd2c08a08867b0a06ebe0276d708305f9d5f54dcf6972077fcd73353b"
+    },
+    "recheck": "python3 moa-dev/experiments/candidates/o-native-activation-resident/validation/oracle_v2.py --check"
+  },
+  "whole_o": {
+    "job": 110465,
+    "cases": 1,
+    "legacy_case": 7,
+    "outputs": 3840,
+    "criterion": "Original public atol0.05 + rtol0.01*abs(expected), nonfinite rejected. Includes production RMSNorm/residual.",
+    "expected": 0.609375,
+    "exact_f32": 3840,
+    "whole_exact_image": {
+      "name": "furiosa-opt-gemma4/furiosa_opt_gemma4::ops::sliding_attention_output.bin",
+      "bytes": 125696,
+      "sha256": "8fa498425cf270cfe70158781d75b031c1b42e544b102263e680613e105c58e5",
+      "host_occurrences": 1,
+      "matches_whole_exact": true
+    },
+    "result": {
+      "path": "moa-dev/experiments/candidates/o-native-activation-resident/validation/stress-results-v1.json",
+      "bytes": 2924,
+      "sha256": "36dfa06a4f511bc294588ab078d4386a21f332b272db4fe026998b3ed6367284"
+    },
+    "recheck": "python3 moa-dev/experiments/candidates/o-native-activation-resident/validation/full_stress.py --check"
+  },
+  "input_v1_failure": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/o-native-activation-resident/validation/oracle-build-v1.json",
+      "bytes": 16851,
+      "sha256": "05909781564d8a1bc7521517379bfc5dc8b76016b4c571a6ade17a9a9ff4dfac"
+    },
+    "classification": "Test fixture scaled-F32 exactness assertion before compile/NPU. Kernel unaffected; only case8 channel scales repaired to powers of two in v2."
+  },
+  "actual_upload_matches": true,
+  "qkv_cache_edges": "Not run: QKV and FFN production images verified byte-identical to E134 in standard package; no inheritance of unadopted E136 validation."
+}

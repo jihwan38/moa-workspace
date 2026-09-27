@@ -1,0 +1,65 @@
+{
+  "id": "E137",
+  "variant": "native-v2",
+  "status": "measured_regression_recovery_profile_authorized",
+  "adopted": false,
+  "official_submission": false,
+  "actual_start_commit": "5c94b51dfd4e6149e6680c93b428da7577c0edeb",
+  "source_base_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "comparison_recipe": "baseline/e134.json",
+  "job": 110453,
+  "measurement": {
+    "control_before": 49037,
+    "candidate": 56163,
+    "control_after": 49447,
+    "bracketing_median": 49242.0,
+    "candidate_change_percent": 14.05507493603022
+  },
+  "correctness": {
+    "standard_comparisons_passed": 45,
+    "candidate_standard_comparisons_passed": 15,
+    "candidate_distinct_standard_inputs": 3,
+    "projection_oracle": "validation/oracle-results-v2.json",
+    "projection_cases": 9,
+    "projection_bf16_values": 34560,
+    "exact_bits_with_signed_zero_equivalence": true,
+    "legacy_full_public_case7_status": "PASS",
+    "scope": "Finite reference checks; separate projection diagnostic image is not the public whole O image or a performance result.",
+    "legacy_full_public_case7_job": 110465,
+    "legacy_full_public_case7_exact_outputs": 3840,
+    "validation_summary": "validation/verification-summary.json"
+  },
+  "static": {
+    "time4_v1_cycles": 33950,
+    "lane4_v2_cycles": 33532,
+    "control_cycles": 27432,
+    "native_stage_v1_cycles": 1377,
+    "native_stage_v2_cycles": 893,
+    "scope": "Compiler intervals only; not additive hardware savings or measured stall attribution."
+  },
+  "decisions": {
+    "adoption": {
+      "status": "do_not_promote_this_measured_prototype",
+      "reason": "Whole O is slower than both contemporary E134 controls. No live changes or performance repetition."
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "No factors/row-stage/tile sweep. A bounded internal-cost diagnostic would need an explicit implementable repair question and root authorization.",
+      "recovery_diagnostic": "Root authorized one frozen E134/E137v2 internal profile; no production edits or new performance repetitions. Test whether global amax and packed-term replication delay native readiness and next-weight issue; possible consumer-local quant repair only after measured evidence."
+    },
+    "major_research": {
+      "status": "preserve_native_precision_and_coupled_cost_repair_questions",
+      "reason": "Original-weight native E4 and fused Term/K16 reduction work in tested standard and projection cases. No internal NPU trace identifies which quantization/globalamax/replication/weight dependency limits completion. This single prototype does not exhaust native O or prove a particular added task is the physical cause."
+    }
+  },
+  "evidence": [
+    "build-e137-native-v1-repro.json",
+    "build-e137-native-v2-repro.json",
+    "graph-verification-e137-native-v2.json",
+    "independent-native-v2-review.json",
+    "package-e137-native-v2.json",
+    "e137-native-screen-job-110453-results.json",
+    "validation/oracle-results-v2.json",
+    "validation/verification-summary.json"
+  ]
+}

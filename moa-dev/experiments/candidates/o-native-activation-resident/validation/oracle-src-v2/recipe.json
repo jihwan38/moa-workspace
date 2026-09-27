@@ -1,0 +1,13 @@
+{
+  "id": "E137-production-output-boundary-v1",
+  "status": "prepared_not_built",
+  "source_contract": "Bind entire exact compiled E137 production projection.rs and all original crate sources; add only lib module and diagnostic wrapper/host. Wrapper invokes actual project_output, including quantizer/nativeTerm restore/K16/global inputscale/channel scale and first BF16.",
+  "cases": 9,
+  "outputs": 34560,
+  "truth": "Original stored BF16 x and decoded original E4 weight F64 dot plus stored BF16 channel scale, then BF16 RNE. Never E4-transformed oracle. Exactness asserts selected dot/scaled values only; not all intermediate reduction orders.",
+  "prior_cases": "C09 preRMS eight cases, retained unchanged",
+  "new_case": "global-amax anchor onlyK0/1, tiny nextBF16above2^-22 elsewhere; fourth term active; signedweight parity varies row/cluster",
+  "scope": "Finite targeted cases, not arbitrary BF16/end-to-end/model proof. Whole O stress and standard acceptance separate.",
+  "kernel_source_binding": "Set by build record after production exact freeze",
+  "performance_excluded": true
+}

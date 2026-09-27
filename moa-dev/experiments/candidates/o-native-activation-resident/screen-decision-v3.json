@@ -1,0 +1,63 @@
+{
+  "id": "E137",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "comparison_recipe": "baseline/e134.json",
+  "candidate_build_label": "e137-native-v3",
+  "job": 110558,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_o_cycles": 42526,
+  "control_before_o_cycles": 49585,
+  "control_after_o_cycles": 49485,
+  "bracketing_median": 49535.0,
+  "change_percent": -14.14959119814273,
+  "candidate_cycles_by_run": [
+    45709,
+    42526,
+    42391
+  ],
+  "static_candidate_cycles": 25112,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/o-native-activation-resident/graph-verification-e137-native-v3.json",
+      "bytes": 4416,
+      "sha256": "86a1c514a19e9cfcafcebcfbf59491c5e77bf3a59f26409dbe5df16583126351"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/o-native-activation-resident/e137-native-v3-screen-job-110558-results.json",
+    "bytes": 5334,
+    "sha256": "f0839c37beedaba4ac439a066f6a8ad3d224dc3a4da938a302860cf2d69c6651"
+  },
+  "added_raw_f32_write_bytes": 0,
+  "added_raw_f32_valid_read_bytes": 0,
+  "extra_scale_consumer_tasks": 0,
+  "validation_scope": "See separate validation/ records; no historical native result inherited.",
+  "scope": "Complete native E4 activation-resident O with weighted four spatial terms, fused Term/K16 F32 reduction, and common scale after canonical gather. All quantization, replication, TRF/coefficient loads and final public operations included; no internal NPU attribution collected.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "original BF16 projection-before-RMS oracle plus full-public cancellation case"
+      ]
+    },
+    "further_tuning": {
+      "status": "defer_until_validation_and_cost_review",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Which actual quantization/globalmax/replication/weight dependency limits the whole path, and is there a supported coupled repair? Do not infer attribution from static intervals or close the native family universally."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

@@ -1,0 +1,18 @@
+O_SUITE_BEGIN cases=1 legacy_case=7 atol=0.05 rtol=0.01 diagnostic=true official_performance=false host_only=false
+INPUT_CHECK case=7 tensor=x bytes=8192 checksum=d528b000 status=PASS
+INPUT_CHECK case=7 tensor=post_attn_rms_weight bytes=7680 checksum=d7c00000 status=PASS
+INPUT_CHECK case=7 tensor=o_weight_scale bytes=7680 checksum=daa00000 status=PASS
+INPUT_CHECK case=7 tensor=residual bytes=7680 checksum=d7c00000 status=PASS
+INPUT_CHECK case=7 tensor=o_weight bytes=15728640 checksum=d778f000 status=PASS
+O_LAUNCH_BEGIN case=7 name=correlated_cancellation_in_distribution_support
+O_BOUNDARY_SAMPLE case=7 row=0 got_bf16=3f1c want_bf16=3f1c
+O_BOUNDARY_SAMPLE case=7 row=119 got_bf16=3f1c want_bf16=3f1c
+O_BOUNDARY_SAMPLE case=7 row=120 got_bf16=3f1c want_bf16=3f1c
+O_BOUNDARY_SAMPLE case=7 row=239 got_bf16=3f1c want_bf16=3f1c
+O_BOUNDARY_SAMPLE case=7 row=240 got_bf16=3f1c want_bf16=3f1c
+O_BOUNDARY_SAMPLE case=7 row=1919 got_bf16=3f1c want_bf16=3f1c
+O_BOUNDARY_SAMPLE case=7 row=1920 got_bf16=3f1c want_bf16=3f1c
+O_BOUNDARY_SAMPLE case=7 row=3839 got_bf16=3f1c want_bf16=3f1c
+O_GROUP_FAILURES case=7 rows_per_group=120 counts=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+O_RESULT case=7 name=correlated_cancellation_in_distribution_support checked=3840 failures=0 nonfinite=0 exact_f32=3840 max_abs_finite=0.000000000e0 mean_abs_finite=0.000000000e0 status=PASS
+O_SUITE_RESULT completed=1 planned=1 total_failed_values=0 status=PASS

@@ -1,0 +1,431 @@
+{
+  "passed": true,
+  "scope": "Independent source and actual descriptor/mapping/order review. No NPU arithmetic or performance claim; hidden SFR and runtime SRAM bank arbitration are not established.",
+  "inputdigests": {
+    "moa-dev/experiments/candidates/o-native-activation-resident/native-v3/projection.rs": {
+      "bytes": 26464,
+      "sha256": "c89ba9d54baa5b5841426d7bccc6318cd088fa6d60fedc59c88aaf63c768c5be"
+    },
+    "moa-dev/experiments/candidates/o-native-activation-resident/evidence/e137-native-v3/graph.json": {
+      "bytes": 133558,
+      "sha256": "8b8b22adbf21afa5a6d30037d5600da6ed4a0520ba43d36d968b395425f2a347"
+    },
+    "moa-dev/experiments/candidates/o-native-activation-resident/evidence/e137-native-v3/schedule.json": {
+      "bytes": 75427,
+      "sha256": "77efd28781ffdb69f74c18d7a1d83c8b157de1d8d71cadec6292ea3b4fbc70c0"
+    }
+  },
+  "quantization": {
+    "groups": 32,
+    "valid_shards_per_group": 16,
+    "logical_global_k_per_group": 4096,
+    "hbm_extent_bytes": 8192,
+    "hbm_replicated_payload_bytes": 262144,
+    "input_packets": 1024,
+    "global_max_ratio": 16,
+    "group_own_scale_destinations": 512,
+    "scale_equality_basis": "Each c,g receives identical finite BF16 x[256q+u]; identical absmax/floor/Max/exponent mask/pow2 gives bit-identical scalar."
+  },
+  "reshapes": {
+    "scale": {
+      "name": "LowLevelReshape#O61",
+      "old": {
+        "Chip": {
+          "Broadcast": {
+            "size": 1
+          }
+        },
+        "Cluster": {
+          "Broadcast": {
+            "size": 2
+          }
+        },
+        "Partitioning": {
+          "Pair": {
+            "left": {
+              "Modulo": {
+                "inner": {
+                  "Stride": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "H",
+                        "size": 3840
+                      }
+                    },
+                    "stride": 120
+                  }
+                },
+                "modulo": 16
+              }
+            },
+            "right": {
+              "Padding": {
+                "inner": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "padding": 16,
+                "kind": "Top"
+              }
+            }
+          }
+        },
+        "InSlice": {
+          "Padding": {
+            "inner": {
+              "Broadcast": {
+                "size": 1
+              }
+            },
+            "padding": 8,
+            "kind": "Top"
+          }
+        }
+      },
+      "new": {
+        "Chip": {
+          "Broadcast": {
+            "size": 1
+          }
+        },
+        "Cluster": {
+          "Broadcast": {
+            "size": 2
+          }
+        },
+        "Partitioning": {
+          "Pair": {
+            "left": {
+              "Broadcast": {
+                "size": 16
+              }
+            },
+            "right": {
+              "Padding": {
+                "inner": {
+                  "Broadcast": {
+                    "size": 1
+                  }
+                },
+                "padding": 16,
+                "kind": "Top"
+              }
+            }
+          }
+        },
+        "InSlice": {
+          "Padding": {
+            "inner": {
+              "Broadcast": {
+                "size": 1
+              }
+            },
+            "padding": 8,
+            "kind": "Top"
+          }
+        }
+      },
+      "physical_bytes": 16384,
+      "valid_slice_q": 0
+    },
+    "packed": {
+      "name": "LowLevelReshape#O62",
+      "old": {
+        "Chip": {
+          "Broadcast": {
+            "size": 1
+          }
+        },
+        "Cluster": {
+          "Broadcast": {
+            "size": 2
+          }
+        },
+        "Partitioning": {
+          "Pair": {
+            "left": {
+              "Modulo": {
+                "inner": {
+                  "Stride": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "H",
+                        "size": 3840
+                      }
+                    },
+                    "stride": 120
+                  }
+                },
+                "modulo": 16
+              }
+            },
+            "right": {
+              "Stride": {
+                "inner": {
+                  "Symbol": {
+                    "symbol": "Qs",
+                    "size": 4096
+                  }
+                },
+                "stride": 256
+              }
+            }
+          }
+        },
+        "InSlice": {
+          "Pair": {
+            "left": {
+              "Symbol": {
+                "symbol": "OutputTerm",
+                "size": 4
+              }
+            },
+            "right": {
+              "Modulo": {
+                "inner": {
+                  "Symbol": {
+                    "symbol": "Qs",
+                    "size": 4096
+                  }
+                },
+                "modulo": 256
+              }
+            }
+          }
+        }
+      },
+      "new": {
+        "Chip": {
+          "Broadcast": {
+            "size": 1
+          }
+        },
+        "Cluster": {
+          "Symbol": {
+            "symbol": "Dummy2",
+            "size": 2
+          }
+        },
+        "Partitioning": {
+          "Pair": {
+            "left": {
+              "Modulo": {
+                "inner": {
+                  "Stride": {
+                    "inner": {
+                      "Symbol": {
+                        "symbol": "H",
+                        "size": 3840
+                      }
+                    },
+                    "stride": 120
+                  }
+                },
+                "modulo": 16
+              }
+            },
+            "right": {
+              "Stride": {
+                "inner": {
+                  "Symbol": {
+                    "symbol": "Qs",
+                    "size": 4096
+                  }
+                },
+                "stride": 256
+              }
+            }
+          }
+        },
+        "InSlice": {
+          "Pair": {
+            "left": {
+              "Symbol": {
+                "symbol": "OutputTerm",
+                "size": 4
+              }
+            },
+            "right": {
+              "Modulo": {
+                "inner": {
+                  "Symbol": {
+                    "symbol": "Qs",
+                    "size": 4096
+                  }
+                },
+                "modulo": 256
+              }
+            }
+          }
+        }
+      },
+      "bytes": 524288
+    },
+    "packed_512kib_dma_absent": true
+  },
+  "coefficients": {
+    "ordered_graph_printed_constants": [
+      [
+        0,
+        1.0
+      ],
+      [
+        1,
+        0.0625
+      ],
+      [
+        2,
+        2.3841858e-07
+      ],
+      [
+        3,
+        7.450581e-09
+      ]
+    ],
+    "source_groups": 32,
+    "packed_source_bytes_per_group": 16,
+    "sub_commit_bytes": 8,
+    "commits_per_group": 2,
+    "broadcast_destinations": 512,
+    "vrf_bytes_per_slice": 32
+  },
+  "weight_ingress": {
+    "coverage": {
+      "packet_count": 61440,
+      "bytes": 15728640,
+      "bounds": [
+        0,
+        15728640
+      ],
+      "no_gaps_or_overlaps": true
+    },
+    "stages": [
+      {
+        "dma": "DmaCommand#O70",
+        "row_start": 0,
+        "packets": 30720,
+        "packet_bytes": 256
+      },
+      {
+        "dma": "DmaCommand#O73",
+        "row_start": 60,
+        "packets": 30720,
+        "packet_bytes": 256
+      }
+    ]
+  },
+  "native_stages": [
+    {
+      "name": "RenegadeCommand#O78",
+      "inputs": [
+        75,
+        70,
+        71,
+        81
+      ],
+      "outputs": [
+        82
+      ]
+    },
+    {
+      "name": "RenegadeCommand#O83",
+      "inputs": [
+        78,
+        70,
+        71,
+        86
+      ],
+      "outputs": [
+        87
+      ]
+    }
+  ],
+  "order": "normalized coefficient Mul -> packet Term ReduceAccTree -> K16 GReduceAdd -> F32 pair commit/gather -> common s Mul0 -> channel scale Mul1 -> first BF16",
+  "canonical_scale_source": "initialized cluster0 group0 q0 -> canonical cluster0 slices0..7, eight32B copies",
+  "native_and_epilogue_source_suffix_identical_to_v2": true,
+  "schedule_register_lifetimes": [
+    {
+      "index": "169",
+      "lifetime": {
+        "begin": 13828,
+        "end": 14721
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "82",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 13437,
+            "end": 17887,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Lane: OutputTerm, Element: Qs % 256]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "67",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 10530,
+            "end": 17887,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 540672,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Element: OutputTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "index": "178",
+      "lifetime": {
+        "begin": 16994,
+        "end": 17887
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "82",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 13437,
+            "end": 17887,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Lane: OutputTerm, Element: Qs % 256]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "67",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 10530,
+            "end": 17887,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 540672,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Element: OutputTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    }
+  ]
+}
