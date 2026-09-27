@@ -1,0 +1,68 @@
+{
+  "id": "E142",
+  "variant": "full30-v1",
+  "actual_start_commit": "21d6618e8880ea25f6fb65ac2f2f2e0a51625677",
+  "base_commit": "c56b737c25e3d9c19472209fa97355b3a2852a08",
+  "comparison_recipe": "baseline/e140.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/down-native-consumer-local/measured-build-e140-copy-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Recovery of historical E103 direct30/F32partial family with corrected E141 producers/current weighted down. Complete source composition, not a new architecture or row sweep.",
+  "prior_related": [
+    "E103 exactfull30partial helper compiled but old projectionoracle had true mismatches and then timeout. Itsunsafe upcopiesexist but finalgraph/vISA missing; causeunresolved; no correctness inherited.",
+    "E135bothwhole/probe timedout; E141only3boundedcopyfix restores45wholecomparisons and245760projectionoutputs, but wholeFFN+3.151638%.",
+    "D-E141 job111627 validates57comparisons and137/151actualmarkers: firstnative15434earlier,lastnative10888later,GeGLU10810later. Tablewindowunion66420.5 is not savings; directMain lookup/native/scale internalservice not separatelymeasured.",
+    "E142 exchanges repeatedlookup/native preparation for originalF32partial materialization; changingrowcountaloneisnotthenewhypothesis."
+  ],
+  "full_graph": "Same E141 preRMS/quant/three480Bcopies/broadcast -> independentpackedup/gateFP4DM andblockscaleDM -> one full30lookup/native perprojection, block16F32dotandTermsum -> F32Mul0xscale -> F32[Row30,Kblock240]DM -> five6rowF32fetch+blockscaleMul0+Hreduce -> existingF32rows/gather/BF16 -> unchangedGeGLU/weightednativeDown/fulltail",
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "baseline_for_cost_delta": "E141",
+    "lookup_native_streams_before": 10,
+    "lookup_native_streams_after": 2,
+    "scale_vrf_tiles_before_after": 10,
+    "main_streams_before": 10,
+    "main_streams_after": 12,
+    "new_separate_scale_reduce_streams": 10,
+    "new_partial_write_bytes": 29491200,
+    "new_partial_read_bytes": 29491200,
+    "partial_bytes_per_slice_per_projection": 28800,
+    "partial_dtype": "F32",
+    "full_decoded_upgate_weight_dm_write_read": "stillabsent; E140materialization112.5MiBeachnotanE141\u2192E142additionalremoval",
+    "unchanged": [
+      "compactweight/scaleHBM",
+      "perprojectionTRF/xscaleVRFreload",
+      "inputquantizer/boundedcopies/broadcast",
+      "F32rowgather/GeGLU",
+      "weightednativeDownandretaineddownpartials"
+    ],
+    "dependencies": "Full30partialproducercompletion beforefivescale/reduce passes; overlapandschedulerresourcecost mustbemeasuredwhole."
+  },
+  "numerical_contract": "Same nativeblock16/TermF32sum then xscaleMul0, F32DMstore/reload(noBF16cast), separateblockscaleMul0 thenH F32reduce. Semantically((dot*xscale)*blockscale)asE141fusedMul1. Newactualoracle required; original public tolerance andfinite8caseBF16truth unchanged.",
+  "first_gate": "Exactwhole source46binding; full30packed/scale publicbounds;1800x16Bpartialcommit per slice; five6x240disjoint F32reads/scaleindices and8Browpairs; 2directnative/TRFxscaleVRF andallwholelifetimes;prefix480copies/bitmap; actualE140bracket45comparison andsame245760projectionoracle.",
+  "decisions": {
+    "adoption": "Unvalidated. Positivewholefreezesimplementationfor3independentallocations+extra6+sameproductionoracle/fullFFNstress; no5percentminimum.",
+    "further_tuning": "No parametersweep. Wrongoutputs require actualdescriptors/firstrowevidence andspecificsource-supportedrepair.",
+    "major_research": "Profile-selected recoveryofhistoricaldirect30partial composition, notglobaldirectfamily verdict orclaimof54kcycle savings."
+  },
+  "adopted": false,
+  "hardware_status": "not_run",
+  "mlp_source_origin": {
+    "path": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/direct-six-row-copy-v1/mlp.rs",
+    "sha256": "17414e1f320c82aea5cbb556a69bae3d2546488d2f7369dfdb4c2045e48ca83a",
+    "bytes": 37888
+  },
+  "helper_origin": {
+    "path": "moa-dev/experiments/candidates/c07-native-scale-dpe/evidence/e19939d8ad38c19ab811fdd3cd0ada9e16c9ae0fb934ff896ecee313287f3967.rs",
+    "sha256": "e19939d8ad38c19ab811fdd3cd0ada9e16c9ae0fb934ff896ecee313287f3967",
+    "symbol": "project_rows_with_scale_contraction",
+    "change": "Only old helper comments corrected; executable statements reused unchanged."
+  },
+  "only_mlp_change": "E141 helper project_rows_with_scale_contraction replaced with actual E103 full30nativeF32partial/five6row scale reduction. All outside-helper E141 bytes unchanged including480B copies and down."
+}

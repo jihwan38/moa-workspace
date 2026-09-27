@@ -1,0 +1,71 @@
+{
+  "status": "prepared_only_not_built_not_tested",
+  "family": "Recovery of previously failed direct30/F32partial family; not a new architecture or row sweep",
+  "source_origin": {
+    "path": "/home/jihwan38/moa-workspace/moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/direct-six-row-copy-v1/mlp.rs",
+    "bytes": 37888,
+    "sha256": "17414e1f320c82aea5cbb556a69bae3d2546488d2f7369dfdb4c2045e48ca83a"
+  },
+  "helper_origin": {
+    "path": "/home/jihwan38/moa-workspace/moa-dev/experiments/candidates/c07-native-scale-dpe/evidence/e19939d8ad38c19ab811fdd3cd0ada9e16c9ae0fb934ff896ecee313287f3967.rs",
+    "bytes": 28253,
+    "sha256": "e19939d8ad38c19ab811fdd3cd0ada9e16c9ae0fb934ff896ecee313287f3967"
+  },
+  "prepared_source": {
+    "path": "/tmp/moa-e142-preparation/mlp.rs",
+    "bytes": 38466,
+    "sha256": "6ebb74ca9e651e4b09e161206829e6ca6de3fd05d5a06e67b97627f6b2cd455c"
+  },
+  "only_changed_symbol": "project_rows_with_scale_contraction",
+  "outside_helper_byte_identical": true,
+  "original_helper_only_comment_correction": "Old comment claimed BF16 block rounding; actual tensor and commit are F32. No executable E103 helper statement changed.",
+  "arithmetic": "native block16 and Term sum -> Mul0 xscale -> F32 DM commit/reload -> standalone Mul0 blockscale -> F32 Hreduce -> original F32row/gather -> BF16. Same semantic multiplication order as E141, whose second multiply was Mul1 in a fused stream.",
+  "buffer": {
+    "dtype": "F32",
+    "chip": "Chip",
+    "cluster_owner": "Dummy2",
+    "slice_owner": "FfnSlice256",
+    "elements": [
+      "FfnRow30",
+      "H/16=240"
+    ],
+    "row_stride_bytes": 960,
+    "bytes_per_slice": 28800,
+    "bytes_per_projection": 14745600,
+    "both_projections_write_bytes": 29491200,
+    "both_projections_read_bytes": 29491200,
+    "both_projections_MiB_each_direction": 28.125,
+    "commit_packet_bytes": 16,
+    "commit_packets_per_slice": 1800,
+    "six_row_window_elements": 1440,
+    "six_row_window_bytes": 5760,
+    "six_row_byte_offsets": [
+      0,
+      5760,
+      11520,
+      17280,
+      23040
+    ],
+    "last_window_end": 28800
+  },
+  "operation_change": {
+    "lookup_native_streams_before": 10,
+    "lookup_native_streams_after": 2,
+    "new_separate_blockscale_reduce_main_streams": 10,
+    "main_streams_before": 10,
+    "main_streams_after": 12,
+    "scale_vrf_tiles": 10,
+    "scale_vrf_bytes_per_slice": 5760
+  },
+  "preserved": [
+    "E141 exact480Bupcopies",
+    "independentcompactweight/scaleHBM",
+    "perprojectionTRF/xscaleVRFreload",
+    "M03localF32gather",
+    "GeGLU",
+    "E134weightednativeDown",
+    "allpublictails/QKV/O"
+  ],
+  "prior_failure": "ActualE103 projection mismatches and later timeout are preserved; unsafe oldcopies exist but no actual finaldescriptor/vISA toproveoldvictim orcause. No correctness inheritance.",
+  "selection_gate": "Await same-image E140/E141 profile evidence that lookup/native/table readiness lies on limiting path and this trade addresses it; no compile authorized yet."
+}

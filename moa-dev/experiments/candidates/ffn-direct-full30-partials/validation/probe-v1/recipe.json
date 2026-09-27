@@ -1,0 +1,90 @@
+{
+  "candidate": "ffn-direct-full30-partials",
+  "kind": "correctness_only_pre_geglu_projection_diagnostic",
+  "status": "prepared_not_built",
+  "source_contract": "Root-selected frozen candidate mlp.rs full-file byte-identical prefix; wrapper calls actual prepare_ffn_fp8_split and project_up_and_gate. No performance claim.",
+  "prior_reuse": "Byte-identical E141 eight-case production up/gate wrapper, input generator, F64/BF16 oracle, CPU quantizer audit and E135_ log markers. No prior correctness inherited into the new full30 partial consumer.",
+  "cases": [
+    {
+      "case": 0,
+      "name": "all_fp4_row_identity_distinct_scales"
+    },
+    {
+      "case": 1,
+      "name": "sparse_block_identity"
+    },
+    {
+      "case": 2,
+      "name": "block_cancellation_before_bf16"
+    },
+    {
+      "case": 3,
+      "name": "zero_with_all_fp4"
+    },
+    {
+      "case": 4,
+      "name": "mixed_tiny_2p22"
+    },
+    {
+      "case": 5,
+      "name": "mixed_tiny_2p23"
+    },
+    {
+      "case": 6,
+      "name": "block16_native64_last_column_boundaries"
+    },
+    {
+      "case": 7,
+      "name": "large_amax_row6_cluster_scale_identity"
+    }
+  ],
+  "case_count": 8,
+  "output_elements": 245760,
+  "projection_output_elements": 15360,
+  "projections": [
+    "up",
+    "gate"
+  ],
+  "comparison": "BF16 bitwise except signed zero equivalence; all nonfinite output rejected; NaN initialized destination",
+  "input_boundary_scope": {
+    "row": [
+      0,
+      5,
+      6,
+      11,
+      12,
+      17,
+      18,
+      23,
+      24,
+      29,
+      30,
+      7679,
+      7680,
+      15359
+    ],
+    "k": [
+      0,
+      15,
+      16,
+      31,
+      32,
+      63,
+      64,
+      3838,
+      3839
+    ],
+    "scale": "Different up/gate block scales in cases0/1/3/6/7; per-six-row and cluster changes in6/7; runtime x_scale from actual quantizer"
+  },
+  "numerical_limit": "The eight finite dyadic inputs are targeted cases, not general BF16 or full-model equivalence. Existing native three-term approximation remains. Final/block F32 exactness assertions alone do not prove every alternate intermediate order exact.",
+  "target_directory": "/tmp/moa-c09-validation-probe/target",
+  "scope_exclusions": [
+    "down/GeGLU/RMS not changed here; tested separately by whole FFN",
+    "diagnostic timings excluded from performance comparison"
+  ],
+  "decision_policy": "No tuning/adoption threshold in probe. Any failure preserves evidence and requires a specific supported repair or diagnosis; root owns overall performance/adoption decision.",
+  "source_build": "build-e142-full30-v1-repro.json",
+  "production_source": "full30-v1/mlp.rs",
+  "production_source_sha256": "6ebb74ca9e651e4b09e161206829e6ca6de3fd05d5a06e67b97627f6b2cd455c",
+  "first_gate": "Whole source manifest and historical fixture checksum identity; actual3copy bounds and full30F32 partial output/scale/gather mapping; then unchanged8case245760-output NPU oracle."
+}
