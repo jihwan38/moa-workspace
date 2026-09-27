@@ -1,0 +1,97 @@
+{
+  "id": "D-E141",
+  "status": "completed_one_frozen_diagnostic",
+  "valid": true,
+  "job": 111627,
+  "source_control": "baseline/e140.json",
+  "candidate": "E141 direct-six-row-copy-v1",
+  "correctness_passes": 57,
+  "marker_count": {
+    "control": 137,
+    "candidate": 151
+  },
+  "whole": {
+    "control_before": 313898,
+    "candidate": 325748,
+    "control_after": 313736,
+    "bracketing_median": 313817.0,
+    "candidate_change_percent": 3.8018972840859533,
+    "scope": "One allocation; official full-three-kernel hosts only. Diagnostic timings are not promotion measurements."
+  },
+  "instrumentation": {
+    "control_info": {
+      "median": 312372,
+      "values": [
+        320793,
+        312372,
+        312363
+      ]
+    },
+    "control_trace": {
+      "median": 314603,
+      "values": [
+        321494,
+        314586,
+        314603
+      ]
+    },
+    "candidate_info": {
+      "median": 322684,
+      "values": [
+        331577,
+        322618,
+        322684
+      ]
+    },
+    "candidate_trace": {
+      "median": 324846,
+      "values": [
+        332668,
+        324235,
+        324846
+      ]
+    }
+  },
+  "landmark_median_changes": {
+    "gate_native_first": {
+      "begin_from_task": -15434.0,
+      "end_from_task": -12815.0,
+      "duration": 2205.0
+    },
+    "up_native_last": {
+      "begin_from_task": 9079.0,
+      "end_from_task": 10888.0,
+      "duration": 1810.0
+    },
+    "geglu_output": {
+      "begin_from_task": 10552.0,
+      "end_from_task": 10810.0,
+      "duration": 147.0
+    },
+    "down_native": {
+      "begin_from_task": 9647.5,
+      "end_from_task": 9650.5,
+      "duration": -1.0
+    },
+    "output_store": {
+      "begin_from_task": 10801.5,
+      "end_from_task": 10802.5,
+      "duration": 1.0
+    }
+  },
+  "interpretation": [
+    "E141 begins the first gate native15434cycles earlier but completes the last up native10888cycles later. The observed GeGLU completion is10810cycles later; the unchanged down suffix starts later too.",
+    "Gate table preparation is completed before its consumers and does not explain the gate internal gaps as a direct readiness wait. The first up native begins1cycle after its table completes, whereas following up stages usually begin1cycle after their block-scale VRF producer completes.",
+    "E141 direct fused Main intervals include lookup/native/scale/reduction and are materially longer. Up tables overlap the preceding native; simultaneous cost or resource contention is a hypothesis, not an identified physical cause.",
+    "Table interval unions66420.5 versus12320cycles include waiting/overlap and are not a54000cycle savings forecast. Native interval unions likewise are descriptive, not additive savings.",
+    "Historical E139 actually ran up then gate, verified from its originalschedule120/153 and307/385 descriptions. E140 and E141 actualschedule now run gate then up. Historical labels are correct; no historical record correction is required."
+  ],
+  "decisions": {
+    "adoption": "E141 remains unadopted: contemporary whole comparison regresses3.801897% in this diagnostic allocation, consistent with prior3.151638% screen. Its245760-output arithmetic oracle passed.",
+    "further_tuning": "Stop this frozen ten-stream prototype and this diagnostic. No more NPU/profile/tile/precision tuning.",
+    "major_research": "Root selects a separately named E142 coupled full30-row direct lookup/native projection plus F32 block-partial and separate scale/reduction candidate. This reduces ten lookup/table contexts to two while adding28.125MiB logical partial DM write and read each, plus separate scale/reduction Main work. It needs fresh complete-path bounds, original oracle, whole performance and current E140 controls. Selection is a testable hypothesis, not a promised gain."
+  },
+  "prior_failure_scope": "E103 historical oracle failures have insufficient preserved descriptors to assign this copy defect. Do not inherit either its accuracy failure or E141 finite correctness into a new consumer representation.",
+  "adopted": false,
+  "official_submission": false
+}

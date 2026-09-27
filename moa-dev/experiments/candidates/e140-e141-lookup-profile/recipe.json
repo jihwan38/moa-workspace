@@ -1,0 +1,19 @@
+{
+  "id": "D-E141",
+  "kind": "one_allocation_frozen_whole_ffn_readiness_diagnostic",
+  "actual_start_commit": "e44cceb43079e1302da0b134da5a5190966af496",
+  "performance_control": "baseline/e140.json",
+  "candidate_source": "../ffn-independent-direct-copy-repair/direct-six-row-copy-v1/mlp.rs",
+  "candidate_build": "../ffn-independent-direct-copy-repair/build-e141-direct-six-row-copy-v1-repro.json",
+  "question": "Does repeated lookup/table preparation or weight/input readiness delay E141's ten direct fused native streams relative to E140's two decoded-weight preparations and ten native streams, and where does the whole FFN completion difference appear?",
+  "method": "E139 names-only image labels and unchanged diagnostic host transform; E131 seven-stage paired runner. Original measured images and source/graph/schedule reused. Two logging hosts may invoke SDK compilation but all three resulting device images must byte-match originals. Instruction, constant, address, marker, I/O and stack bytes cannot change.",
+  "stages": ["E140 whole before", "E140 diagnostic info", "E140 diagnostic trace", "E141 diagnostic info", "E141 diagnostic trace", "E141 whole", "E140 whole after"],
+  "first_stop": "Reject diagnostic execution if actual marker kinds/order or embedded-image identity differs; preserve the failure. Source classification fixes are allowed only with actual metadata evidence. No kernel source/layout changes.",
+  "measurements": ["table and scale Sub task readiness for each native", "raw/decoded weight and input TRF completion", "native envelopes and intervening gaps", "pre-RMS/GeGLU/down/output completion", "plain whole versus diagnostic info/trace effect"],
+  "interpretation": "All intervals use the same run/cluster Task clock. Marker durations include waits, not isolated service time. Report overlaps and completion windows without summing overlapping intervals as predicted savings.",
+  "selection": "Only measured readiness evidence can support reconsidering two large direct projection streams with F32 block-partial storage and separate scale/reduction. That trade reintroduces partial read/write and separate Main scale work, requires fresh bounds and numeric gates, and is not selected automatically. E103 historical errors lack enough descriptors to assign this same copy defect.",
+  "source_arithmetic_changes": false,
+  "official_submission": false,
+  "adopted": false,
+  "further_tuning": "No staging/tile/precision sweep. One frozen diagnostic only."
+}
