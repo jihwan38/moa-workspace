@@ -1,0 +1,52 @@
+{
+  "id": "E130",
+  "base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "actual_start_commit": "ff7b9df0b6560663a74a66f232619684ef6efdb5",
+  "comparison_recipe": "baseline/e128.json",
+  "target_kernel": "sliding_project_qkv",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs",
+    "rmsnorm.rs": "src/device/sliding/rmsnorm.rs",
+    "rope.rs": "src/device/sliding/rope.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-native-fused-scale/measured-build-e128-adoption.json",
+  "unchanged_kernels": [
+    "sliding_attention_output",
+    "decoder_feedforward"
+  ],
+  "scope": "Complete QKV producer/consumer scheduling redesign with existing row/cluster ownership; no head arithmetic approximation or input-format change.",
+  "full_graph": "Existing preRMS and fullH BF16 ring32 broadcast -> separate Q and shared KV BF16 TRF; independent FP8 HBM weights -> inline lookup/fullH BF16 DPE on Main -> compact F32raw DM -> Sub channelScale -> firstBF16 -> Sub rowSwitch -> existing head typed gather -> Sub head RMS/RoPE -> original Q HBM and K/V cache stores.",
+  "removed_constraints": [
+    "Q/K/V dot no longer uses Main VE for channel scale or ordinary BF16 cast",
+    "All head arithmetic and row/RoPE switches execute on Sub; Main reserved for input preprocessing/broadcast and projection DPE"
+  ],
+  "retained_costs": [
+    "30MiB FP8 HBM and inline lookup work",
+    "two BF16 activation TRFs",
+    "original row ownership and head DMA gathers",
+    "head/RoPE arithmetic and public stores"
+  ],
+  "added_costs": {
+    "f32_raw_valid_write_bytes": 32768,
+    "f32_raw_valid_read_bytes": 32768,
+    "extra_scale_consumer_tasks": 3,
+    "risks": "Sub table/TRF/VRF readiness and head work contend; shared VE/transpose/DM arbitration, longer raw lifetimes and source-order-independent scheduling."
+  },
+  "numerical_contract": "Original fullH BF16 dot F32 accumulation -> F32 channel scale -> firstBF16; original head sum/div/EPS/sqrt/gamma/cast and RoPE multiply/add/BF16 boundaries unchanged.",
+  "prior_related": [
+    "E55 scale-before-BF16 correctness; do not reintroduce E53 earlycast",
+    "C03 retained head gathers and old Main consumers (+1.56% NPU)",
+    "C08/E124 joint all-weight barrier and compactcopy (+24.41% NPU), not used",
+    "SharedTRF static+2.474%; two originalTRFs retained",
+    "C12 O Main/Sub split failed overlap because weight readiness; require actual overlap here"
+  ],
+  "first_gate": "Exact full QKV compile; graph proves3Main DPE without VectorEngine/cast, compactF32spills total32768B,3Subscale beforeBF16,Subhead consumers; schedule reports actual MainDPE/SubVE intersection and complete makespan. An API/lowering error is not a hardware performance result.",
+  "decisions": {
+    "adoption": "Unvalidated. Positive full-kernel screen qualifies for independent repeats, extra inputs and boundary probes even below5%.",
+    "further_tuning": "No tile sweep. First assess whether resource separation and overlap exist; fix supported API/layout errors with preserved attempts.",
+    "major_research": "Test a different producer/consumer resource assignment including all handoff costs; no projection ownership/table reuse claim."
+  },
+  "adopted": false,
+  "hardware_status": "not_run",
+  "source_repair": "v1 F32transpose4row exceeds native max_in_rows2; use supported2row8Bcompact commits. No arithmetic/layout ownership change; valid F32spill bytes unchanged."
+}

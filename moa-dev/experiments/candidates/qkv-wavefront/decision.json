@@ -1,0 +1,65 @@
+{
+  "id": "E130",
+  "variant": "sub-consumer-v2",
+  "status": "measured_regression",
+  "adopted": false,
+  "official_submission": false,
+  "comparison_recipe": "baseline/e128.json",
+  "job": 109339,
+  "source_start_commit": "ff7b9df0b6560663a74a66f232619684ef6efdb5",
+  "source_recipe": "sub-consumer-v2/recipe.json",
+  "classification": "Complete QKV Main/Sub producer-consumer reassignment with inherited row/cluster ownership. V1 source API packet error was repaired; v2 is a valid complete measured prototype.",
+  "measurement": {
+    "control_before": 104736,
+    "candidate": 119470,
+    "control_after": 104976,
+    "bracketing_median": 104856.0,
+    "candidate_change_percent": 13.93720912489509
+  },
+  "correctness": {
+    "comparisons_passed": 45,
+    "candidate_comparisons_passed": 15,
+    "candidate_qkv_outputs_compared": 9,
+    "distinct_candidate_inputs": 3,
+    "scope": "Original standard host only; no extra6 or independent boundary oracle was run because the measured candidate is slower."
+  },
+  "static": {
+    "candidate_cycles": 57034,
+    "control_cycles": 51293,
+    "candidate_change_percent": 11.192560388357077,
+    "main_dpe_sub_ve_overlap_cycles": 268,
+    "scope": "Static schedule only; not measured stall fractions or an additive hardware speedup."
+  },
+  "costs": {
+    "raw_f32_valid_write_bytes": 32768,
+    "raw_f32_valid_read_bytes": 32768,
+    "sub_fetch_packet_sum_bytes": 65536,
+    "trailing_ignored_padding_read_bytes_per_slice": 4,
+    "extra_scale_consumer_tasks": 3,
+    "interpretation": "Packet count is descriptor work, not measured bus traffic. All original weight ingress/lookup and two activation TRFs remain."
+  },
+  "decisions": {
+    "adoption": {
+      "status": "do_not_adopt_this_frozen_prototype",
+      "reason": "119470 cycles is slower than both contemporary controls104736/104976; current E128 remains. This is a measured loss, not a below5% positive discarded."
+    },
+    "further_tuning": {
+      "status": "stop",
+      "reason": "No tile or context sweep. Resource separation compiled and basic correctness passed, but the full-path screen regressed13.9372%; no unresolved implementation error currently warrants another allocation."
+    },
+    "major_research": {
+      "status": "preserve_other_QKV_architecture_options",
+      "reason": "Moving the entire head path to Sub did not remove limiting complete-path work. Reopen only with a concrete reduction in table/weight readiness or ownership/gather costs; this one prototype does not reject all Main/Sub or projection-ownership designs. No trace was collected, so the precise hardware stall cause is unresolved."
+    }
+  },
+  "evidence": [
+    "build-qkv-wavefront-sub-v1-repro.json",
+    "build-qkv-wavefront-sub-v2-repro.json",
+    "graph-verification-qkv-wavefront-sub-v2.json",
+    "package-qkv-wavefront-sub-v2.json",
+    "e130-qkv-wavefront-screen-job-109339-results.json",
+    "screen-decision.json",
+    "evidence/arena-109339.log"
+  ],
+  "review": "Root approved non-adoption and tuning stop after receiving the complete45PASS screen and paired controls; no additional NPU authorized or run."
+}

@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "label": "E130 candidate_whole",
+  "valid": true,
+  "runs": [
+    {
+      "job": {
+        "id": 109339,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-e130-qkv-wavefront-screen",
+        "status": "SUCCEEDED",
+        "created_at": "2026-09-27T07:07:48Z",
+        "started_at": "2026-09-27T07:08:07Z",
+        "finished_at": "2026-09-27T07:08:27Z",
+        "duration_sec": 19.918638128,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log": "moa-dev/experiments/candidates/qkv-wavefront/evidence/arena-109339.log",
+      "log_sha256": "3ace6f1f5716d66bad535217bddda482af95569b5aaa37652d4d70c3a48f595f",
+      "valid": true,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 119470,
+          "cycles_by_run": [
+            123263,
+            118692,
+            119470
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 49911,
+          "cycles_by_run": [
+            51062,
+            48056,
+            49911
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 327707,
+          "cycles_by_run": [
+            332916,
+            327707,
+            326899
+          ],
+          "output_comparisons_passed": 3
+        }
+      },
+      "comparisons_passed": 15,
+      "package_files": {
+        "run.sh": {
+          "bytes": 1353,
+          "sha256": "93e19ff73167afe8d617e0d2ebea0d04b45d87152ac2373e8be202179a56574c"
+        },
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "job.yaml": {
+          "bytes": 91,
+          "sha256": "bd1980ba605446bbb3ae3d11b69c0eb4049358c764346df392c3fd2635ca70f8"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "candidate_test_runtime": {
+          "bytes": 3710272,
+          "sha256": "624d8de2ed79792fc1bd30f809c9bdb4431ab134fafd0a58deaaf8b6ecd3d0b4"
+        },
+        "control_test_runtime": {
+          "bytes": 3692608,
+          "sha256": "68d6c44edc3fe0bb682af9c2b0d7a2cc2f7d55a7edd89b6b0dff202ca69cedd5"
+        }
+      },
+      "benchmark_files": {
+        "test_runtime": "candidate_test_runtime",
+        "fixtures.safetensors": "fixtures.safetensors",
+        "remote_entrypoint.sh": "remote_entrypoint.sh"
+      },
+      "normalized_stage_files": {
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "test_runtime": {
+          "bytes": 3710272,
+          "sha256": "624d8de2ed79792fc1bd30f809c9bdb4431ab134fafd0a58deaaf8b6ecd3d0b4"
+        }
+      },
+      "batch_stage": "candidate_whole",
+      "executed_host": "candidate_test_runtime",
+      "source_batch_report": {
+        "path": "moa-dev/experiments/candidates/qkv-wavefront/e130-qkv-wavefront-screen-job-109339-results.json",
+        "bytes": 5304,
+        "sha256": "16a378b26a148fd77b0e2d86b6a0dc9a0df09f91a58f44bc2cd6d8a9497d2ba2"
+      },
+      "uploaded_archive": {
+        "path": "moa-dev/experiments/artifacts/qkv-wavefront/job-109339.tar",
+        "bytes": 7613440,
+        "sha256": "f384958fa569cb0badd3350d6a440d0fd8c0a0ee97dd7d9d8d006f537ffa4b11"
+      },
+      "uploaded_archive_verified": true
+    }
+  ],
+  "independent_arena_jobs": 1,
+  "method": "One allocation, three serial original three-input benchmark hosts: actual E128 before -> candidate whole QKV -> actual E128 after. PROFILE=info; no diagnostic host. Before/after and inputs are not independent allocations.",
+  "aggregate": {
+    "sliding_project_qkv": {
+      "median_cycles": 119470,
+      "job_medians": [
+        119470
+      ]
+    },
+    "sliding_attention_output": {
+      "median_cycles": 49911,
+      "job_medians": [
+        49911
+      ]
+    },
+    "decoder_feedforward": {
+      "median_cycles": 327707,
+      "job_medians": [
+        327707
+      ]
+    }
+  },
+  "candidate_build": "moa-dev/experiments/candidates/qkv-wavefront/build-qkv-wavefront-sub-v2-repro.json",
+  "candidate_package": "moa-dev/experiments/candidates/qkv-wavefront/package-qkv-wavefront-sub-v2.json",
+  "reference": "docs/experiments/e130-qkv-wavefront-e128-before.json",
+  "control_after_report": "docs/experiments/e130-qkv-wavefront-e128-after.json",
+  "target_kernel": "sliding_project_qkv",
+  "change_percent_vs_bracketing_median": 13.93720912489509,
+  "adopted": false,
+  "official_submission": false,
+  "unchanged_kernel_timing_note": "O/FFN images are unchanged E128; their observed timing variation is not an optimization.",
+  "accuracy_scope": "Original three distinct inputs; candidate15 comparisons include9 Q/K/V outputs. Repeats, extra inputs and numerical-boundary probe are separate requirements."
+}
