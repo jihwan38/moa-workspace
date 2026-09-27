@@ -1,3 +1,25 @@
+# 2026-09-27 E140 복사 범위 수정 채택·E135 직접 weight 경로 복구 선택
+
+현재 runtime은 **E140 / baseline-e140 / c56b737**이다. E137에서 up/gate 입력의
+세 term 복사만 수정했다. 실제1440B를 전송하던 descriptor를 각각480B Sub stream으로
+바꿔 source overread와 packed destination 초과 쓰기를 없앴다. QKV/O image와
+FFN 산술은 동일하다. [채택 결정](../../moa-dev/experiments/candidates/down-native-consumer-local/adoption-decision.json).
+
+3개 독립 Arena의 paired 변화율은 -0.2101/-0.1847/-0.0568%로 사실상 중립이다.
+표준9입력과 실제 전체 FFN 정밀 사례3840출력이 통과했다. 큰 속도 개선으로 주장하지 않는다.
+별도 local-down v4는 오답, 같은 복사를 수리한 v5는45 PASS지만3.0981% 회귀하여 미채택이다.
+Raw-down9사례 PASS는 수정된 upstream을 지나지 않았으므로 전체 검증으로 세지 않았다.
+
+E135의 whole/oracle timeout 이미지 둘 다 이 초과 쓰기가 통신 제어용 bitmap을 덮는
+것을 확인했다. [독립 감사](../../moa-dev/experiments/candidates/ffn-independent-direct-fused/e140-bitmap-audit.md).
+다음 E141은 frozen E135의 독립 FP4→6행 fused up/gate에 이 복사 세 곳만 수리한다.
+112.5MiB 논리 FP8 write/read 제거의 전체 이득을 lookup 준비 증가까지 포함해 다시 측정한다.
+이 수정이 timeout의 유일한 원인인지는 아직 미확인이다.
+
+공식 제출은 아직 E137 **46/69위·6.4427554×**다. 최신 조회에서30위는7.8965272×로
+상승했다. 세 커널을 같은 비율로 줄이는 산술 기준18.41%가 더 필요하며,
+E140 수정만으로 순위가 달라졌다고 주장하지 않는다. 아래는 당시 작업 기록이다.
+
 # 2026-09-27 E138 입력 전달 수정까지 미채택·E140 FFN 실측 준비
 
 Runtime/control은 E137이다. E138 whole111168은45비교 PASS였지만

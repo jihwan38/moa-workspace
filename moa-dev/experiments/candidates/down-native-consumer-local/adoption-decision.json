@@ -1,0 +1,26 @@
+{
+  "candidate": "E140",
+  "variant": "control-copy-fix",
+  "adopted": true,
+  "adopted_source_commit": "c56b737c25e3d9c19472209fa97355b3a2852a08",
+  "adoption": {
+    "decision": "adopt memory correctness repair",
+    "evidence": "moa-dev/experiments/candidates/down-native-consumer-local/control-adoption/final-verification.json",
+    "performance": "effectively neutral; median paired -0.184711724%, no statistical significance claim",
+    "scope": "9 standard inputs and3840 exact complete FFN outputs; QKV/O images unchanged"
+  },
+  "tuning": {
+    "decision": "stop",
+    "reason": "Memory contract repaired; tiny cycle changes do not justify copy parameter search."
+  },
+  "major_research": {
+    "decision": "E135 exact three-copy repair only",
+    "reason": "Both previous timeouts follow concrete overwrite of live ring32 custom_snoop_bitmap; repair execution-control corruption before judging direct-decoded weight architecture.",
+    "evidence": "moa-dev/experiments/candidates/ffn-independent-direct-fused/e140-bitmap-audit.json"
+  },
+  "local_down": {
+    "adopted": false,
+    "reason": "local-v5 whole+3.098140% versus E137"
+  },
+  "official_submission": false
+}

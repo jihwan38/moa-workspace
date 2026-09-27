@@ -168,6 +168,22 @@
   do not add the overlapping gate-gather/down-weight envelope to it or treat
   this repair as a complete30th-place solution. Runtime remains E137 until a
   new complete path passes performance and changed-boundary adoption checks.
+- E140 local-down v4 passed its isolated raw-down oracle but failed whole FFN.
+  Actual upstream up-term descriptors copied1440B from480B sources and exceeded
+  the packed destination; local-v4 overwrote the live down global scale. Three
+  explicit480B Sub copies recovered local-v5 correctness, but whole FFN regressed
+  3.0981%, so that local-down combination is not adopted. Copy-only E137 is adopted
+  as E140 after three independent allocations, nine standard inputs and3840 exact
+  complete-FFN regression outputs. Performance is effectively neutral; median
+  paired -0.1847% is not a claimed breakthrough. Check actual source/destination
+  byte extents and live neighbors for sliced/padded copies; logical view shapes
+  and isolated helper correctness do not establish whole-memory correctness.
+  The same legacy overrun overlaps a live ring32 custom_snoop_bitmap in BOTH
+  E135's whole and production-oracle images. This is a concrete source repair
+  justification for E141: frozen E135 plus exactly these three bounded copies,
+  with E140 as independently declared contemporary performance control. Keep
+  original timeouts, distinguish verified overwrite from unproved sole cause,
+  and recheck actual whole/production oracle before judging the direct family.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or
