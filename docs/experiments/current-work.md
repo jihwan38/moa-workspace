@@ -1,3 +1,12 @@
+# 2026-09-27 E129 projection-owned FFN: target lowering 제약 확인
+
+[전체 source·실패 근거](../../moa-dev/experiments/candidates/ffn-projection-clusters/README.md):
+cluster0 up/cluster1 gate를 한 direct producer로 묶는 전체 FFN을 구현했으나,
+설치 compiler가 공개 `cluster_tile`의 Cluster IndexStep을 지원하지 않아 첫 ingress에서 실패했다.
+NPU 정확도·성능 미평가이며 느린 구조로 판정하지 않는다. E128 runtime은 유지한다.
+별도 E131은 E123 joint assembly 비용을 명시하고 direct native fusion·M03 consumer를 조합한다.
+QKV E130은 별도 worktree에서 Main F32 dot/Sub consumer 전체 경로를 실측 준비 중이다.
+
 # 2026-09-27 E128 native FFN dot/scale/reduce 채택 완료
 
 현재 runtime은 **E128 / `baseline-e128` / `cc82b9c`**다.

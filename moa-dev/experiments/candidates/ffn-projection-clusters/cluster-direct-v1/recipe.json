@@ -1,0 +1,65 @@
+{
+  "id": "E129",
+  "base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "actual_start_commit": "ff7b9df0b6560663a74a66f232619684ef6efdb5",
+  "comparison_recipe": "baseline/e128.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-native-fused-scale/measured-build-e128-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Whole up/gate execution and consumer-ownership redesign in a complete FFN: each physical cluster owns a different projection and all L rows; compact direct FP4 decode/native/scale/reduction, then real BF16 redistribution to M03 GeGLU/down.",
+  "prior_related": [
+    "E103 two sequential direct projections + TRF reload failed targeted correctness; this candidate uses one both-cluster producer per row tile with separate physical projection ownership. No claim this fixes the prior failure until measured.",
+    "v7b begin_interleaved failed private axis lowering; this candidate has no interleaved Element axis or stream rename.",
+    "E123 corrected joint direct passed basic whole FFN but paid raw packed Main assembly; this candidate directly writes separate HBM sources into physical cluster destinations, no raw assembly.",
+    "E128 ten six-row fused native/scale/reduce streams passed expanded correctness with materialized E5M2; direct lookup accuracy/resource lifetime must be validated anew."
+  ],
+  "full_graph": "preRMS -> actual3term E5M2 quantizer/broadcast -> cluster0 compact up FP4 and block scales / cluster1 compact gate FP4 and block scales -> one shared xTRF/xscaleVRF load -> ten six-row direct FP4lookup/E5M2native/Mul0xscale/Mul1blockscale/F32Hreduce streams across both clusters -> F32 Row60 DM -> aligned BF16 Row60 -> actual perprojection source-cluster TDMA to Lhalf/LocalRows -> unchanged GeGLU/global scales -> unchanged M03 local down -> F32 cluster sum -> unchanged FFN epilogue",
+  "placement": {
+    "weight": "HBM up/gate public L,H compact sources. Physical cluster p owns projection p; slice s owns l=60*s+r. Compact FP4 DM115200B/slice, all60rows retained for10tile consumers. No FP8 weight intermediate or joint packed assembly.",
+    "block_scale": "Same physical ownership, FP8 DM14400B/slice; six-row F32 scale VRF5760B perstream.",
+    "activation": "Existing quantized input replicated to both clusters; one E5M2TRF load and32B F32restoration-scaleVRF across10Main streams.",
+    "partial": "F32 blocks remain in stream through two scales/Hreduce. Only six final rows commit in paired8B stores to Row60F32DM.",
+    "output": "Physical projectioncluster Row60F32->Row60BF16 in8Bcommits, then sourcecluster selection+L-axis TDMA to cluster=L/7680, slice=4*(L/120%64), element=L%120. Final zero-copy relabel matches existing Dummy2/TileL consumers."
+  },
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "removed_upgate_fp8_write_bytes": 117964800,
+    "removed_upgate_fp8_read_bytes": 117964800,
+    "retained_upgate_packed_hbm_and_dm_read_bytes": 58982400,
+    "retained_upgate_block_scale_hbm_bytes": 7372800,
+    "avoided_e123_joint_assembly_write_bytes": 58982400,
+    "avoided_e123_joint_assembly_read_bytes": 58982400,
+    "e123_avoidance_not_additive_against_e128": true,
+    "native_starts_before": 10,
+    "native_starts_after": 10,
+    "fp4_lookup_streams_before": 2,
+    "fp4_lookup_streams_after": 10,
+    "block_scale_sub_passes_before": 10,
+    "block_scale_sub_passes_after": 10,
+    "removed_e128_f32_local_gather_payload_bytes": 122880,
+    "new_bf16_output_redistribution_payload_bytes": 61440,
+    "f32_row_output_logical_bytes": 122880,
+    "packed_dm_bytes_per_slice_before_oneprojection": 57600,
+    "packed_dm_bytes_per_slice_after_bothclusterproducer": 115200,
+    "added_risks": "Repeated lookup/table setup, direct lookup/native correctness, both HBM inputs and scale views ready before shared consumer, extended xTRF/scaleVRF lifetime, mutable cluster-write dependencies, output routing/packet fragmentation/cross-cluster transfer and changed overlap. Payload reduction is not predicted cycles.",
+    "x_trf_scale_load_pairs_before_source": 2,
+    "x_trf_scale_load_pairs_before_emitted": 1,
+    "x_trf_scale_load_pairs_after_source": 1,
+    "x_trf_scale_load_pairs_after_emitted": "verify graph; expected1, no new savings claimed over E128 actual1"
+  },
+  "first_gate": "Build full FFN. Inspect actual ingress descriptor source coverage and destination cluster masks, no FP8 up/gate materialization or packed Main assembly, ten direct fused streams, output source-cluster/Lhalf transfers and8B commit alignment. Repair understood source/API contract errors with preserved attempts instead of arbitrary abandonment. Continue to complete-kernel NPU screen with exact E128 controls when contract passes.",
+  "correctness_gate": "Basic wholeFFN then actual-quantizer up/gate oracle with distinct scales, physical projection/cluster mapping, sixrow and60row/7680 boundaries, K15/16/63/64/3839, allFP4codes,zero/cancellation/smallvalues. Preserve ((dot*xscale)*blockscale) and existing firstBF16/globalGeGLUscale positions. E128 or E123 validation does not transfer automatically.",
+  "decisions": {
+    "adoption": "Not validated. Any positive whole screen triggers bounded contemporary repeats and expanded boundary checks even under5%.",
+    "further_tuning": "No row-size sweep. Fix concrete source or transfer issues; resource/overlap evidence determines whether a coherent correction is warranted.",
+    "major_research": "Evaluate projection-owned clusters as a complete alternative to Lhalf producer ownership; target decoded weight storage and joint-copy removal, not another six-row local-tile experiment."
+  },
+  "adopted": false,
+  "hardware_status": "not_run"
+}

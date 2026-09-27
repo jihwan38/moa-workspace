@@ -1,0 +1,24 @@
+{
+  "id": "E129",
+  "candidate": "ffn-projection-clusters",
+  "status": "compile_lowering_blocked",
+  "variant": "cluster-direct-v1",
+  "build": "build-e129-clusters-v1-repro.json",
+  "reason": "Public cluster_tile API accepted by Rust but installed compiler rejects a Cluster IndexStep: tiling a non-in-slice axis is not lowered yet.",
+  "npu_evaluated": false,
+  "adoption": {
+    "decision": "not_adoptable",
+    "reason": "No executable image produced; numerical and performance results absent."
+  },
+  "further_tuning": {
+    "decision": "stop_current_prototype",
+    "reason": "No supported zero-copy cluster1 destination/alias expression found; no blind padding retries."
+  },
+  "major_research": {
+    "decision": "pursue_separate_complete_combination",
+    "candidate": "ffn-joint-direct-fused",
+    "reason": "E123 supported joint direct FP4 assembly plus native scale/reduction fusion and M03 consumer ownership. This retains assembly cost and does not validate no-copy projection-owned placement."
+  },
+  "runtime": "E128 unchanged",
+  "official_submission": false
+}
