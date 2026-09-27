@@ -1,0 +1,175 @@
+{
+  "passed": true,
+  "inputdigests": {
+    "source": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/validation/probe-evidence-v1/production-mlp.rs",
+      "bytes": 37888,
+      "sha256": "17414e1f320c82aea5cbb556a69bae3d2546488d2f7369dfdb4c2045e48ca83a"
+    },
+    "frozen_production": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/direct-six-row-copy-v1/mlp.rs",
+      "bytes": 37888,
+      "sha256": "17414e1f320c82aea5cbb556a69bae3d2546488d2f7369dfdb4c2045e48ca83a"
+    },
+    "graph": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/validation/probe-evidence-v1/graph.json",
+      "bytes": 229008,
+      "sha256": "664c76a6c707366ba4155f83c5441b3773f31b541b45e213a87b7c016b75eb28"
+    },
+    "schedule": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/validation/probe-evidence-v1/schedule.json",
+      "bytes": 114980,
+      "sha256": "ff9fb8f3c664312b48e6e5874dac3422813b1256bce74746b548f8aca483af05"
+    },
+    "exact_image": {
+      "path": "moa-dev/experiments/artifacts/ffn-independent-direct-copy-repair/e141-direct-probe-v1/kernels/furiosa-opt-gemma4/furiosa_opt_gemma4::stream_probe::upgate.bin",
+      "bytes": 180224,
+      "sha256": "5b7b01e5765d535f705997a07c6c37abb80a177f32dd7640c3710c03f3166dc0"
+    },
+    "checker": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/independent-audit.py",
+      "bytes": 16082,
+      "sha256": "a612a8155be722b013ff87b9d6968ef040acb08e75c65e27a8a89635fef9628e"
+    }
+  },
+  "prefix_copy_and_bitmap": {
+    "copies": [
+      {
+        "operator": "RenegadeCommand#O20",
+        "term": 0,
+        "read_bytes": 480,
+        "write_bytes": 480,
+        "packet_count": 15,
+        "packet_bytes": 32,
+        "root": 23,
+        "root_base_per_slice": 0,
+        "logical_write_bounds": [
+          0,
+          480
+        ],
+        "physical_write_bounds": [
+          0,
+          480
+        ]
+      },
+      {
+        "operator": "RenegadeCommand#O25",
+        "term": 1,
+        "read_bytes": 480,
+        "write_bytes": 480,
+        "packet_count": 15,
+        "packet_bytes": 32,
+        "root": 23,
+        "root_base_per_slice": 0,
+        "logical_write_bounds": [
+          480,
+          960
+        ],
+        "physical_write_bounds": [
+          480,
+          960
+        ]
+      },
+      {
+        "operator": "RenegadeCommand#O30",
+        "term": 2,
+        "read_bytes": 480,
+        "write_bytes": 480,
+        "packet_count": 15,
+        "packet_bytes": 32,
+        "root": 23,
+        "root_base_per_slice": 0,
+        "logical_write_bounds": [
+          960,
+          1440
+        ],
+        "physical_write_bounds": [
+          960,
+          1440
+        ]
+      }
+    ],
+    "bitmap": {
+      "graph_tensor": 41,
+      "graph_consumer": "RenegadeCommand#O34",
+      "physical_bounds_per_slice": [
+        16896,
+        16928
+      ],
+      "schedule_tensor": {
+        "name": "",
+        "index": "15",
+        "buffer_type": "Sram",
+        "lifetime": {
+          "begin": 1550,
+          "end": 30351,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 8650752,
+        "size": 16384,
+        "physical_pages": [
+          0
+        ],
+        "shape": "",
+        "fingerprint": null
+      },
+      "load": {
+        "index": "16",
+        "history": {
+          "resourcelir": "O16"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 1550,
+          "end": 2269
+        },
+        "input_tensors": [
+          16
+        ],
+        "output_tensors": [
+          15
+        ],
+        "description": "",
+        "util": {
+          "total_util": 0.018080669,
+          "base_util": 0.018080669,
+          "efficiency": 1.0
+        }
+      },
+      "consumer": {
+        "index": "189",
+        "history": {
+          "resourcelir": "O189"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 18568,
+          "end": 30351
+        },
+        "input_tensors": [
+          102,
+          15
+        ],
+        "output_tensors": [
+          104
+        ],
+        "description": "--> src/device/mlp.rs:581:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      "embedded_pattern_found": true,
+      "repaired_writes_overlap": false
+    }
+  },
+  "scope": "Actual repaired production prefix, three compact480B writes, disjoint1440B term assembly, live ring32 control bitmap outside write bounds. No oracle arithmetic or runtime success inferred before NPU."
+}
