@@ -1,4 +1,4 @@
-// M03: C14-B ownership with one L stage, materialized native up/gate and F32 cluster reduction.
+// E128: native dot/scale/reduce fusion with E127 M03 ownership and materialized weights.
 use furiosa_opt_std::prelude::*;
 
 use crate::Chip;
@@ -41,36 +41,25 @@ fn project_rows_with_scale_contraction(
     scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]>,
     output: &mut DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow]>,
 ) {
-    // Keep F32 block dots through scale/reduction; no BF16 block rounding.
-    // The following VE passes multiply block scales and reduce the block axis.
-    let partials: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> = device
-        .main.begin(weights.view())
-        .fetch::<m![FfnRow], m![H]>()
-        .collect::<m![FfnRow, H / 32], m![H % 32]>()
-        .contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)
-        .contract_packet::<m![H / 16 % 4]>()
-        .contract_time::<m![FfnRow, H / 64]>()
-        .contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)
-        .vector_init()
-        .vector_intra_slice_tag(TagMode::Zero)
-        .vector_narrow_trim::<m![H / 16 % 4]>()
-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)
-        .vector_widen_pad::<m![H / 16 % 4 # 8]>()
-        .vector_final()
-        .commit_trim::<m![H / 16 % 4]>()
-        .commit();
+    // E128: keep block dots in the native stream; only the six final rows reach DM.
+    // Preserve ((dot * input_scale) * block_scale), followed by F32 H reduction.
     static_passes!(i, [0, 1, 2, 3, 4], {
         let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 6, H / 16]> = device.sub
             .begin(scales.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H / 16]>(6 * i))
             .fetch::<m![FfnRow = 6], m![H / 16]>().fetch_cast::<f32>()
             .collect::<m![FfnRow = 6, H / 16 / 8], m![H / 16 % 8]>().to_vrf();
         device.main
-            .begin(partials.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H / 16]>(6 * i))
-            .fetch::<m![FfnRow = 6, H / 16 / 8], m![H / 16 % 8]>()
-            .collect::<m![FfnRow = 6, H / 16 / 8], m![H / 16 % 8]>()
+            .begin(weights.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H]>(6 * i))
+            .fetch::<m![FfnRow = 6], m![H]>()
+            .collect::<m![FfnRow = 6, H / 32], m![H % 32]>()
+            .contract_outer::<m![FfnRow = 6, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)
+            .contract_packet::<m![H / 16 % 4]>()
+            .contract_time::<m![FfnRow = 6, H / 64]>()
+            .contract_lane::<m![FfnRow = 6, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)
             .vector_init().vector_intra_slice_tag(TagMode::Zero)
-            .vector_narrow_split::<m![FfnRow = 6, H / 16 / 4], m![H / 16 % 4]>()
-            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
+            .vector_narrow_trim::<m![H / 16 % 4]>()
+            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)
+            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &scale_vrf)
             .vector_intra_slice_reduce::<H, m![FfnRow = 6], m![1 # 4]>(IntraSliceReduceOpF32::Add)
             .vector_widen_pad::<m![1 # 8]>().vector_final()
             .transpose::<m![FfnRow = 6 / 2], m![FfnRow = 6 % 2 # 8]>().commit_trim::<m![FfnRow = 6 % 2]>()
