@@ -1,3 +1,28 @@
+# 2026-09-27 E142 채택 완료·공식 제출 준비
+
+현재 runtime은 **E142 / baseline-e142 / b3fe0ab**다. E141의 six-row helper만
+실제 E103 full30 direct native→F32 block partial→6행 blockscale/H reduction으로
+교체했다. 안전한 입력 복사·M03 gather/GeGLU·E134 weighted down 및 QKV/O는 유지한다.
+[구성표](../../baseline/e142.json) · [채택 결정](../../moa-dev/experiments/candidates/ffn-direct-full30-partials/adoption-decision.json).
+
+| Arena | E140 앞뒤 중앙 | E142 FFN | 감소율 |
+|---|---:|---:|---:|
+|111706|313534|302889|3.3952%|
+|111719|314887.5|301615|4.2150%|
+|111721|314166.5|302796|3.6193%|
+
+3개 독립 allocation의 paired 감소율 중앙값 **3.6193%**다. 같은 소스·package로 반복했고
+추가6입력111737까지 표준9입력, 원8사례 actual up/gate oracle111704의245760 exact,
+actual whole FFN111736의3840 exact 출력을 검증했다. 46개 compile input에서
+`shared/mlp.rs`만 변경됐고 QKV/O image는 E140과 같다.
+[최종 검증](../../moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/final-verification.json).
+
+전체 FP8 weight112.5MiB write/read를 각각 없앴지만 F32 partial28.125MiB write/read가
+각각 추가된다. E141 대비 lookup/native10→2와 별도scale/reduce10개 비용까지 포함한
+완전한 경로의 이득이다. 이번 조합을 채택하고 추가 row/stage/term 튜닝은 종료한다.
+이 개선만으로30위 도달을 주장하지 않으며, 공식 제출 결과는 별도 기록한다.
+아래는 앞선 실험 당시 기록이다.
+
 # 2026-09-27 D-E141 계측 완료·E142 full30 부분합 조합 선택
 
 현재 채택/공식 runtime은 E140이다. 계측111627은57비교와 실제137/151개 operation

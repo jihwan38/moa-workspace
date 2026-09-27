@@ -1,34 +1,33 @@
-# 현재 baseline: E140
+# 현재 baseline: E142
 
-현재 실행 소스는 **E140 / `baseline-e140` / `c56b737`**다. E137에서
-`prepare_ffn_fp8_split`의 hi/lo/third 복사 세 곳만 수정했다. 기존 descriptor는
-480B source에서1440B를 읽고 packed destination도 넘었다. 이제 명시적인 Sub stream이
-각각480B를 offset0/480/960에 기록한다. 실제 descriptor와 할당 범위를 대조했다.
+현재 실행 소스는 **E142 / `baseline-e142` / `b3fe0ab`**다. Up/gate packed FP4를
+projection당 full30-row native stream 하나로 직접 소비한다. Dot에 input scale을
+곱한 F32 block partial을 저장하고, 별도6행 consumer가 block scale과 H 합산을 수행한다.
+E140의 안전한480B 입력 복사와 weighted native down, QKV/O를 유지한다.
 
-세 독립 Arena에서 FFN 변화율은 **-0.2101%, -0.1847%, -0.0568%**였다.
-속도는 사실상 중립으로 해석하며, 채택 이유는 확인된 메모리 오류의 제거다.
-기본·추가6을 합친 표준9입력과 원래 전체 FFN 정밀 사례3840 exact 출력이 통과했다.
-전체46개 compile input은 실측 빌드와 일치하며 수정 파일은 `shared/mlp.rs` 하나다.
-QKV/O 이미지는 E137과 같다. FFN의 양자화 산술·native down도 동일하다.
-[채택 결정](../moa-dev/experiments/candidates/down-native-consumer-local/adoption-decision.json) ·
-[최종 검증](../moa-dev/experiments/candidates/down-native-consumer-local/control-adoption/final-verification.json).
-유한 입력 검사이며 임의 입력·전체 모델 정확성 증명은 아니다.
+전체 decoded FP8 weight 저장/읽기112.5MiB를 각각 없앴고, 대신 F32 block partial
+28.125MiB 저장/읽기를 각각 추가했다. E141의 반복 lookup10→2, Main 전체10→12라는
+비용 교환까지 포함한 전체 FFN 실측이다. 논리 byte 차이를 지연 절감량으로 환산하지 않는다.
 
-소비자 로컬 down 후보는 이 복사를 고친 뒤 정확도는 통과했지만 전체 FFN이3.0981% 느려
-채택하지 않았다. 현재 up/gate의 전체 FP8 weight 중간 저장은 유지된다. 앞서 E137에서
-채택한 소비자 로컬4항 E4 native O는 그대로이며 당시 O 감소율 중앙값은12.2978%였다.
+E140 앞뒤 대조를 둔3개 독립 allocation에서 FFN이 **3.3952%,4.2150%,3.6193% 감소**했다.
+Paired 감소율 중앙값은 **3.6193%**다. 표준9입력, 실제 up/gate 원8사례245760 exact BF16,
+원래 전체 FFN 정밀 사례3840 exact 출력이 통과했다. source46/실측image/업로드를 대조했다.
+[채택 결정](../moa-dev/experiments/candidates/ffn-direct-full30-partials/adoption-decision.json) ·
+[최종 검증](../moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/final-verification.json).
+유한 입력 검증이며 임의 입력·전체 모델 정확성 증명은 아니다. 추가 파라미터 튜닝은 종료한다.
 
-공식 제출 **E140 / `47a9240e`**은15비교를 통과했고 **6.471733× / 46/69위**다.
-QKV102409 / O43055 / FFN314108cycles이다. 이전 E137 대비 점수는0.4498% 높지만,
-변하지 않은 QKV의 실행 변동이 크게 기여하므로 이를 복사 수정의 속도 효과로 세지 않는다.
-[공식 기록](../docs/experiments/e140-official-submit-20260927.json) ·
-[리더보드](../docs/experiments/leaderboard-e140-20260927.json) ·
+E135와E103의 실패 기록을 보존했다. E141은 세 복사를 고쳐 timeout을 복구했지만3.15% 느렸다.
+동일 이미지 계측 후 E103의 full30 helper를 수정된 E141 입력/현재 후단과 조합한 E142를 채택한다.
+이 결과로 과거 E103 오답의 유일한 원인을 단정하지 않는다.
+
+공식 최고점은 아직 **E140 / `47a9240e` / 6.471733× / 46위**다. E142 공식 제출을 준비한다.
 [진행 현황](../docs/experiments/current-work.md).
 
 | 찾는 내용 | 파일 |
 |---|---|
 | 현재 적용한 17개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
-| 현재 구성표와 기준 commit | [e140.json](e140.json) |
+| 현재 구성표와 기준 commit | [e142.json](e142.json) |
+| 이전 E140 구성표 | [e140.json](e140.json) |
 | 이전 E137 구성표 | [e137.json](e137.json) |
 | 이전 E134 구성표 | [e134.json](e134.json) |
 | 이전 E128 구성표 | [e128.json](e128.json) |

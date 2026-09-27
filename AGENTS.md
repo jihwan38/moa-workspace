@@ -204,6 +204,18 @@
   This revisits an existing combination after a source repair and measured cost
   evidence, not a new architecture or a proven speedup. Validate new actual
   partial bounds, original projection oracle and contemporary whole performance.
+- E142 subsequently adopted that full30 direct/F32-partial combination after
+  three independent whole FFN improvements3.3952/4.2150/3.6193percent (paired
+  median3.6193), nine standard inputs,245760 exact first-BF16 projection outputs
+  and3840 exact complete-FFN regression outputs. QKV/O images stay E140. All
+  up/gate FP8 weight materialization is now absent; new up/gate F32 block partials
+  and retained down partials remain. Stop this parameter series. This recovers
+  a historical helper in a corrected/current surrounding path; it does not prove
+  the sole cause of E103's old errors or general exactness of native arithmetic.
+  Keep the added28.125MiB partial write/read each and separate scale tasks in
+  future cost comparisons. Reassess QKV/O and remaining FFN readiness using the
+  adopted image before selecting further major work; FFN3.62percent alone is
+  insufficient for the current30th-place geometric-mean gap.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or
