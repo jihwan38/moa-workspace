@@ -1,0 +1,58 @@
+{
+  "id": "E133",
+  "base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "actual_start_commit": "0f601fe4d7491426f4af791823966e135829ce9e",
+  "comparison_recipe": "baseline/e128.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-native-fused-scale/measured-build-e128-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Whole-FFN combination replacing down projection operand representation and input preparation; E128 up/gate/GeGLU/epilogue preserved. No weight assembly or offline prepacking.",
+  "prior_related": [
+    "C07 E93/E95 full native E4 two-term down positive basic screens; incomplete targeted correctness, different 3840-wide ownership. Not demonstrated down failures.",
+    "E128 up/gate E5 three-term quantizer and native fusion selected-case validated; down input distribution and extra quantization are not covered.",
+    "E131 direct up/gate joint assembly variants regressed; this single down projection has no joint packed/scale assembly.",
+    "E133 v1 source/graph frozen; no NPU because term-assembly descriptor failed bounds gate."
+  ],
+  "full_graph": "E128 preRMS/upgate/GeGLU -> compact BF16 TileL7680 per Dummy2 cluster -> independent amax/scale -> sixteen 480-value chunks per cluster, three same-scale E5 residual terms -> compact terms -> quarter1920 ring32 replication -> E5 TRF3x1920 and cluster scaleVRF -> unchanged compact FP4 HBM/DM and FP8 blockscale HBM/DM -> one direct FP4 lookupE5 native stream with F32 term sum then input-scale restore -> existing F32 H60x120 block partial DM -> existing five12row blockscale/F32localKsum -> fourcolumn F32sum -> crosscluster F32sum -> existing BF16/global/residual/RMS/epilogue",
+  "placement": {
+    "weight": "H3840xL15360 FP4 public rowmajor, same M03 clusterLhalf/localK1920 compact DM; no extra weight copy",
+    "activation": "Independent cluster7680 compact BF16 amax;16 chunks x480; E5 DM[term3,local480] then term3x1920 per DownColumns slice, 5760B TRF",
+    "input_scale": "s=2^(floor(log2(max(amax,2^-112)))-14), one scalar percluster; same scale for all three terms;32B padded scalar VRF/slice",
+    "quantizer_vrf": "480F32=1920B each hi/sum term, plus scalar; emitted lifetimes audited",
+    "partial": "Retain F32[H60,localKblock120] per slice; restore input scale before write; five12row scaleVRF5760B and original reductions remain"
+  },
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "removed_down_fp8_weight_write_bytes": 58982400,
+    "removed_down_fp8_weight_read_bytes": 58982400,
+    "retained_down_f32_partial_write_bytes": 14745600,
+    "retained_down_f32_partial_read_bytes": 14745600,
+    "old_replicated_activation_bytes": 1966080,
+    "new_replicated_activation_bytes": 2949120,
+    "added": "Cluster-local amax/scale; three E5 quantization passes and hi/lo sum VRF work; term assembly and redistribution; three-term DPE input; scale restore before partial store. No latency predicted from bytes.",
+    "removed": "Full down E4M3 weight DM materialization and later E4-to-BF16 table lookup. Packed HBM/DM source retained.",
+    "term_assembly": "Three explicit Sub copies,480B x16 live slices x2clusters perterm=46080 logical bytes total per read/write; no large weight assembly. This replaces unsafe expanded DMA descriptors."
+  },
+  "numerical_contract": {
+    "term_formula": "u=F32(x/s); hi=E5RNE(u);lo=E5RNE(F32(u-hi));third=E5RNE(F32(u-F32(hi+lo))); one common s, no per-term exponent factors",
+    "not_general_bf16_exact": "At clusteramax128, x=2^-24 maps to all-zero E5 terms. Three residual terms do not extend the smallest subnormal. Accuracy must be tested anew against original BF16 truth.",
+    "preserved": "No BF16 down block partial; native F32 term sum -> F32 inputscale -> existing F32 blockscale -> localcolumn/cluster sums -> existing BF16 boundary."
+  },
+  "first_gate": "Exact completeFFN compile; actual HBM/DM bounds, cluster scale ownership, three-term/quarter TRF mapping, no decoded-down weight DM, partial order, register lifetimes, unchanged public source provenance. Understood source/API errors may be repaired in new frozen attempts; no tile sweep.",
+  "correctness_gate": "Contemporary E128 before/candidate/after whole standard45 comparisons. Positive screen: freeze then two independent repeats, extra6 and actual down-helper oracle with original BF16 truth, cluster scales, L16/1920/7680 boundaries, tiny/cancellation/zero. No inherited down correctness from upgate probes.",
+  "decisions": {
+    "adoption": "Unvalidated; any positive whole screen enters bounded adoption validation, including gain below5%. Root makes final adoption decision.",
+    "further_tuning": "No parameter sweep. Negative screen stops; report a specific mechanism question if profiling is justified.",
+    "major_research": "Test complete native-down conversion/transfer/compute cost with no large joint-weight assembly; no ranking promise."
+  },
+  "adopted": false,
+  "hardware_status": "not_run",
+  "variant": "down-e5-v2",
+  "source_repair": "v1 exactcompile passed but actual new down term DMA copied 1440B from each480B compact source into a padded term view. Replace exactly those three copies with Sub32Bpacket x15=480B commit_view; same term offsets0/480/960, axes, arithmetic, input and output."
+}

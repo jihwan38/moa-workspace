@@ -1,0 +1,429 @@
+{
+  "label": "e133-down-oracle-v1",
+  "diagnostic_only": true,
+  "performance_excluded": true,
+  "official_submission": false,
+  "valid": true,
+  "source_build_path": "moa-dev/experiments/candidates/ffn-native-down-e5/build-e133-down-e5-v2-repro.json",
+  "source_build_snapshot": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/source-build-at-probe.json",
+    "bytes": 17298,
+    "sha256": "7b01fba585f34e8675d71bdea06a45661fd78e369d8290733924a2b0ae8b49fe"
+  },
+  "source_base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "production_source": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-e5-v2/mlp.rs",
+    "bytes": 35861,
+    "sha256": "c3ae74b55b306742b69b438bf2ea603409a0644c55f9004d7fe01665c656a5d3"
+  },
+  "production_mlp_prefix": {
+    "bytes": 35861,
+    "sha256": "c3ae74b55b306742b69b438bf2ea603409a0644c55f9004d7fe01665c656a5d3"
+  },
+  "production_source_full_file_byte_identical_prefix": true,
+  "diagnostic_append": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/probe_module.rs",
+    "bytes": 755,
+    "sha256": "5574620b006caeef9326d8962f20817c1ade5502bfc6810b9348b983f5bc86ad"
+  },
+  "source_inputs": {
+    "src/lib.rs": {
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "src/stream_probe.rs": {
+      "bytes": 373,
+      "sha256": "5ac89cc41ba4e0cce5e1937da68a73587448b2a66409c65995614f7f1be03951"
+    },
+    "src/device/mlp.rs": {
+      "bytes": 36616,
+      "sha256": "35350d47f38855b16db0c5f37805ccf41acc61fff5555471cd3e9972da287baf"
+    },
+    "src/bin/probe_stream.rs": {
+      "bytes": 8095,
+      "sha256": "b16e5e89150bb38c6d1c8315c2c2221a68975f96ed0875743a1c3ca0d27ce19f"
+    },
+    "src/axes.rs": {
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "src/device/layout.rs": {
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    },
+    "Cargo.toml": {
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "Cargo.lock": {
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "rust-toolchain.toml": {
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    }
+  },
+  "recipe": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/recipe.json",
+    "bytes": 1492,
+    "sha256": "ce7db67f2645d2c706b4cacedafd1b2f8e6951112e03c37f50341d061f7fc7c3"
+  },
+  "builder": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/builder-at-compile.py",
+    "bytes": 14718,
+    "sha256": "e8997f52a0354f0cdc45e4d924ba97961f9fe0438f6b7d65d2374e71e299e800"
+  },
+  "target_dir": "/tmp/moa-m03-validation-probe/target",
+  "commands": [
+    [
+      "docker",
+      "exec",
+      "moa2026-dev",
+      "mkdir",
+      "-p",
+      "/tmp/moa-e133-down-oracle/e133-down-oracle-v1"
+    ],
+    [
+      "docker",
+      "cp",
+      "/home/jihwan38/moa-native-down-e5/moa-dev/experiments/artifacts/ffn-native-down-e5/e133-down-oracle-v1/crate/.",
+      "moa2026-dev:/tmp/moa-e133-down-oracle/e133-down-oracle-v1"
+    ],
+    [
+      "docker",
+      "exec",
+      "--workdir",
+      "/tmp/moa-e133-down-oracle/e133-down-oracle-v1",
+      "-e",
+      "CARGO_HOME=/home/moa/.cargo",
+      "-e",
+      "CARGO_NET_OFFLINE=true",
+      "-e",
+      "CARGO_TARGET_DIR=/tmp/moa-m03-validation-probe/target",
+      "-e",
+      "FURIOSA_OPT_OUT_DIR=/tmp/moa-e133-down-oracle/e133-down-oracle-v1/kernels",
+      "moa2026-dev",
+      "cargo",
+      "furiosa-opt",
+      "compile",
+      "stream_probe::down",
+      "--exact",
+      "--dump-schedule",
+      "schedule.json",
+      "--dump-graph",
+      "graph.json"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e133-down-oracle/e133-down-oracle-v1/kernels",
+      "/home/jihwan38/moa-native-down-e5/moa-dev/experiments/artifacts/ffn-native-down-e5/e133-down-oracle-v1/exact-kernels"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e133-down-oracle/e133-down-oracle-v1/schedule.json",
+      "/home/jihwan38/moa-native-down-e5/moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/schedule.json"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e133-down-oracle/e133-down-oracle-v1/graph.json",
+      "/home/jihwan38/moa-native-down-e5/moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/graph.json"
+    ],
+    [
+      "docker",
+      "exec",
+      "--workdir",
+      "/tmp/moa-e133-down-oracle/e133-down-oracle-v1",
+      "-e",
+      "CARGO_HOME=/home/moa/.cargo",
+      "-e",
+      "CARGO_NET_OFFLINE=true",
+      "-e",
+      "CARGO_TARGET_DIR=/tmp/moa-m03-validation-probe/target",
+      "-e",
+      "FURIOSA_OPT_OUT_DIR=/tmp/moa-e133-down-oracle/e133-down-oracle-v1/kernels",
+      "moa2026-dev",
+      "cargo",
+      "furiosa-opt",
+      "build",
+      "--release",
+      "--locked",
+      "--bin",
+      "probe_stream"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-m03-validation-probe/target/release/probe_stream",
+      "/home/jihwan38/moa-native-down-e5/moa-dev/experiments/artifacts/ffn-native-down-e5/e133-down-oracle-v1/package/probe_stream"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e133-down-oracle/e133-down-oracle-v1/kernels",
+      "/home/jihwan38/moa-native-down-e5/moa-dev/experiments/artifacts/ffn-native-down-e5/e133-down-oracle-v1/kernels"
+    ],
+    [
+      "docker",
+      "cp",
+      "/home/jihwan38/moa-native-down-e5/moa-dev/experiments/artifacts/ffn-native-down-e5/e133-down-oracle-v1/package",
+      "moa2026-dev:/tmp/moa-e133-down-oracle/e133-down-oracle-v1/package"
+    ],
+    [
+      "docker",
+      "exec",
+      "moa2026-dev",
+      "/tmp/moa-e133-down-oracle/e133-down-oracle-v1/package/probe_stream",
+      "--oracle-only"
+    ]
+  ],
+  "scope": "Actual candidate down preparation/project_down_tile/finish_down from synthetic original BF16 L input; seven exact mapping/algebra cases and one separately quantified adversarial underflow case. Not public full-FFN acceptance; no proven post-GeGLU reachability.",
+  "container_source_verified": true,
+  "exact_compile_exit_code": 0,
+  "exact_image": {
+    "path": "moa-dev/experiments/artifacts/ffn-native-down-e5/e133-down-oracle-v1/exact-kernels/furiosa-opt-gemma4/furiosa_opt_gemma4::stream_probe::down.bin",
+    "bytes": 112640,
+    "sha256": "75c5d91e624abdfd92c84c2865238b661dc55ce263e703a734c50c9a660c137d"
+  },
+  "host_build_exit_code": 0,
+  "image": {
+    "name": "furiosa-opt-gemma4/furiosa_opt_gemma4::stream_probe::down.bin",
+    "bytes": 112640,
+    "sha256": "75c5d91e624abdfd92c84c2865238b661dc55ce263e703a734c50c9a660c137d",
+    "host_occurrences": 1
+  },
+  "package_files": {
+    "run.sh": {
+      "bytes": 81,
+      "sha256": "edbc96ffbbd3db6a3cf6878d933d99046b93171c2b6f728530dada8da7597a06"
+    },
+    "probe_stream": {
+      "bytes": 2211440,
+      "sha256": "2fce5c14214d4a4370116f0c6a22d83bda564ffd53e95c67ef5df2e900cf0a5a"
+    }
+  },
+  "oracle": {
+    "input_checksums": [
+      [
+        "0",
+        "92bb6642e35a8c6b"
+      ],
+      [
+        "1",
+        "d50da36ea9350319"
+      ],
+      [
+        "2",
+        "a6c95efcde16c725"
+      ],
+      [
+        "3",
+        "e0b857388ddf8325"
+      ],
+      [
+        "4",
+        "a2a02b4cab750a51"
+      ],
+      [
+        "5",
+        "7ddaa07709a454a5"
+      ],
+      [
+        "6",
+        "84571343e50dd925"
+      ],
+      [
+        "7",
+        "fc9e8d2bc0a09e51"
+      ]
+    ],
+    "projection_checksums": [
+      [
+        "0",
+        "ffff",
+        "aedef1f7a2fea325",
+        "782715417bc02325",
+        "2558ccae4ec6e697"
+      ],
+      [
+        "1",
+        "ff",
+        "b2fb63d802010fc0",
+        "782715417bc02325",
+        "0f81cd08a350e736"
+      ],
+      [
+        "2",
+        "56",
+        "37ba7463ae7aa325",
+        "cb358a15a62c2325",
+        "ce285ce9867b0d25"
+      ],
+      [
+        "3",
+        "ffff",
+        "aedef1f7a2fea325",
+        "782715417bc02325",
+        "282e145144b17b25"
+      ],
+      [
+        "4",
+        "81",
+        "3474dd4062762325",
+        "019beb0a7a542325",
+        "83e2f4c7bac8c725"
+      ],
+      [
+        "5",
+        "81",
+        "3474dd4062762325",
+        "cb358a15a62c2325",
+        "37020484332b8325"
+      ],
+      [
+        "6",
+        "56",
+        "37ba7463ae7aa325",
+        "cb358a15a62c2325",
+        "ce285ce9867b0d25"
+      ],
+      [
+        "7",
+        "ff",
+        "17f854c9d754689b",
+        "782715417bc02325",
+        "ff500c1ea9d440c4"
+      ]
+    ],
+    "case_count": 8,
+    "projection_count": 8
+  },
+  "oracle_exit_code": 0,
+  "evidence": {
+    "schedule.json": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/schedule.json",
+      "bytes": 67624,
+      "sha256": "fb0e41f1476ef183f13c15f9dbd96e20ced8ba2c25d9613421514c0be0af6f15"
+    },
+    "host-build.log": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/host-build.log",
+      "bytes": 3051,
+      "sha256": "576c358ae7bc55adef4311320132ca76b313c37e285fdbd168c512ff60600e56"
+    },
+    "compile.log": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/compile.log",
+      "bytes": 2853,
+      "sha256": "f164f306abf9a39427d6afbd8d5fa6fdf732150da8184b277e0224be7b2e2e7c"
+    },
+    "builder-at-compile.py": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/builder-at-compile.py",
+      "bytes": 14718,
+      "sha256": "e8997f52a0354f0cdc45e4d924ba97961f9fe0438f6b7d65d2374e71e299e800"
+    },
+    "production-mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/production-mlp.rs",
+      "bytes": 35861,
+      "sha256": "c3ae74b55b306742b69b438bf2ea603409a0644c55f9004d7fe01665c656a5d3"
+    },
+    "source-build-at-probe.json": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/source-build-at-probe.json",
+      "bytes": 17298,
+      "sha256": "7b01fba585f34e8675d71bdea06a45661fd78e369d8290733924a2b0ae8b49fe"
+    },
+    "graph.json": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/graph.json",
+      "bytes": 139095,
+      "sha256": "d6d87844412d0eb3d610f828d1d7ff2fc8ca1b8f07204ec9296fc402fa34e0c3"
+    },
+    "oracle-only.log": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/oracle-only.log",
+      "bytes": 1528,
+      "sha256": "128f57ba093ab701c5a3e2f07a9adc5f360085467a228aea2dccd8d3f94671ef"
+    },
+    "crate/Cargo.lock": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/crate/Cargo.lock",
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "crate/rust-toolchain.toml": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/crate/rust-toolchain.toml",
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    },
+    "crate/Cargo.toml": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/crate/Cargo.toml",
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "crate/src/lib.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/crate/src/lib.rs",
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "crate/src/stream_probe.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/crate/src/stream_probe.rs",
+      "bytes": 373,
+      "sha256": "5ac89cc41ba4e0cce5e1937da68a73587448b2a66409c65995614f7f1be03951"
+    },
+    "crate/src/axes.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/crate/src/axes.rs",
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "crate/src/device/layout.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/crate/src/device/layout.rs",
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    },
+    "crate/src/device/mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/crate/src/device/mlp.rs",
+      "bytes": 36616,
+      "sha256": "35350d47f38855b16db0c5f37805ccf41acc61fff5555471cd3e9972da287baf"
+    },
+    "crate/src/bin/probe_stream.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/evidence/crate/src/bin/probe_stream.rs",
+      "bytes": 8095,
+      "sha256": "b16e5e89150bb38c6d1c8315c2c2221a68975f96ed0875743a1c3ca0d27ce19f"
+    }
+  },
+  "probe_sources": {
+    "probe_lib.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/probe_lib.rs",
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "probe_stream.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/probe_stream.rs",
+      "bytes": 8095,
+      "sha256": "b16e5e89150bb38c6d1c8315c2c2221a68975f96ed0875743a1c3ca0d27ce19f"
+    },
+    "probe.py": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/probe.py",
+      "bytes": 14718,
+      "sha256": "e8997f52a0354f0cdc45e4d924ba97961f9fe0438f6b7d65d2374e71e299e800"
+    },
+    "stream_probe.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/stream_probe.rs",
+      "bytes": 373,
+      "sha256": "5ac89cc41ba4e0cce5e1937da68a73587448b2a66409c65995614f7f1be03951"
+    },
+    "README.md": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/README.md",
+      "bytes": 3469,
+      "sha256": "dadc71ce4bd06a5dccb7532dabf61dc34c39fe50292a0fd92317c858b486d49d"
+    },
+    "recipe.json": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/recipe.json",
+      "bytes": 1492,
+      "sha256": "ce7db67f2645d2c706b4cacedafd1b2f8e6951112e03c37f50341d061f7fc7c3"
+    },
+    "probe_module.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/probe_module.rs",
+      "bytes": 755,
+      "sha256": "5574620b006caeef9326d8962f20817c1ade5502bfc6810b9348b983f5bc86ad"
+    }
+  }
+}

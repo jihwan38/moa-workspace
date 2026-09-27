@@ -1,0 +1,19 @@
+{
+  "label": "e133-down-oracle-v1",
+  "source_build": "build-e133-down-e5-v2-repro.json",
+  "production_source": "down-e5-v2/mlp.rs",
+  "production_source_sha256": "c3ae74b55b306742b69b438bf2ea603409a0644c55f9004d7fe01665c656a5d3",
+  "diagnostic_only": true,
+  "performance_excluded": true,
+  "status": "prepared_not_compiled_not_run",
+  "case_count": 8,
+  "mapping_case_count": 7,
+  "adversarial_cases": [
+    4
+  ],
+  "reference": "Original BF16 activation, mathematical FP4 code values and original FP8 blockscales. F64 reference with exact F32 block/column/cluster intermediate assertions on the generated dyadic inputs. Never an E5-transformed reference.",
+  "mapping_acceptance": "Exact BF16 for seven exactly representable cases; also print the unchanged standard host compare with atol0.01/rtol0.01. This is a targeted internal mapping/algebra gate, not the public end-to-end acceptance.",
+  "adversarial_acceptance": "Quantify case4 E5 underflow error under same numerical tolerance for diagnosis, but raw-down tolerance failure does not by itself reject public FFN correctness/adoption. It requires a reachable full-FFN case with unchanged original acceptance.",
+  "public_contract": "Original test_kernels.rs and fixture/atol/rtol are unchanged. Synthetic BF16 down inputs are not claimed proven reachable post-GeGLU. Full standard/extra6 checks remain required.",
+  "build_permission": "Do not compile or submit before a positive contemporary whole screen and parent approval."
+}

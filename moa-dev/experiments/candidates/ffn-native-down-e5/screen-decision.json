@@ -1,0 +1,71 @@
+{
+  "id": "E133",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "comparison_recipe": "baseline/e128.json",
+  "candidate_build_label": "e133-down-e5-v2",
+  "job": 109740,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_ffn_cycles": 316668,
+  "control_before_ffn_cycles": 329391,
+  "control_after_ffn_cycles": 329143,
+  "bracketing_median": 329267.0,
+  "change_percent": -3.8263779850394974,
+  "candidate_cycles_by_run": [
+    322394,
+    315809,
+    316668
+  ],
+  "static_candidate_cycles": 153072,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/graph-verification-e133-down-e5-v2.json",
+      "bytes": 73814,
+      "sha256": "798882128711bdd4bd44b3b964089051120a08f9369a34adc5d18e202bf89f0a"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-e5/e133-down-e5-screen-job-109740-results.json",
+    "bytes": 5309,
+    "sha256": "c8c179984b81e4af7340b096c88e2ee01d72c512508811b1bf2905f6ac3d3cd2"
+  },
+  "recipe_costs": {
+    "logical_not_bus_telemetry": true,
+    "removed_down_fp8_weight_write_bytes": 58982400,
+    "removed_down_fp8_weight_read_bytes": 58982400,
+    "retained_down_f32_partial_write_bytes": 14745600,
+    "retained_down_f32_partial_read_bytes": 14745600,
+    "old_replicated_activation_bytes": 1966080,
+    "new_replicated_activation_bytes": 2949120,
+    "added": "Cluster-local amax/scale; three E5 quantization passes and hi/lo sum VRF work; term assembly and redistribution; three-term DPE input; scale restore before partial store. No latency predicted from bytes.",
+    "removed": "Full down E4M3 weight DM materialization and later E4-to-BF16 table lookup. Packed HBM/DM source retained.",
+    "term_assembly": "Three explicit Sub copies,480B x16 live slices x2clusters perterm=46080 logical bytes total per read/write; no large weight assembly. This replaces unsafe expanded DMA descriptors."
+  },
+  "scope": "Complete post-GeGLU E5/native down, including actual quantization/broadcast and F32 block partials/reduction, with original E128 up/gate and final epilogue. Logical payloads are not measured bus traffic or additive latency.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "actual post-GeGLU E5 quantizer, distinct cluster scales, block16 F32 partials/reduction, row/cluster boundaries and cancellation oracle"
+      ]
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does complete E5/native down shorten the post-GeGLU path after paying spatial quantization, scale preservation, term broadcast, direct FP4 lookup, native block16 partials and F32 scale/reduction? Keep this whole-path result separate from arithmetic feasibility and scheduling-repair questions."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}
