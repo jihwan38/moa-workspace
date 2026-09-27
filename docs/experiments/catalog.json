@@ -2052,12 +2052,29 @@
       "report": "docs/experiments/e133-adoption-performance.json",
       "reference": "docs/experiments/e133-e128-paired-control.json",
       "reference_label": "3allocation E128 앞뒤 paired controls",
-      "note": "성능은3회모두개선, paired감소율중앙3.8264%(표의aggregate비율3.6734%). 후보기본45·추가30비교(9distinctstandardinputs),7mapping26880출력exactPASS. 별도극소값case3840rawdown출력50%손실; 범위안fullFFN CPU구성도허용오차초과를예측하나공개seed/NPUwhole실패는미관측. 채택보류·동일scale튜닝중단. 잔차scale와native복원을함께바꾸는수리대상으로보존; 느린가족으로폐쇄하지않음. E128유지/공식제출없음.",
+      "note": "성능은3회모두개선, paired감소율중앙3.8264%(표의aggregate비율3.6734%). 후보기본45·추가30비교(9distinctstandardinputs),7mapping26880출력exactPASS. 별도극소값case3840rawdown출력50%손실; 범위안fullFFN CPU구성도허용오차초과를예측하나공개seed/NPUwhole실패는미관측. 채택보류·동일scale튜닝중단. 잔차scale와native복원을함께바꾸는수리대상으로보존; 느린가족으로폐쇄하지않음. E128유지/공식제출없음. 후속E134 same-input fullFFN NPU109965에서E1331920개 tolerance failure가 확인됐고 E128/E134는3840exactPASS. 이후E134로수리·채택.",
       "evidence": [
         "moa-dev/experiments/candidates/ffn-native-down-e5/README.md",
         "moa-dev/experiments/candidates/ffn-native-down-e5/decision.json",
         "moa-dev/experiments/candidates/ffn-native-down-e5/numerical-scope-review.md",
-        "moa-dev/experiments/candidates/ffn-native-down-e5/validation/final-verification.json"
+        "moa-dev/experiments/candidates/ffn-native-down-e5/validation/final-verification.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/verification.json"
+      ]
+    },
+    {
+      "id": "E134",
+      "category": "improved",
+      "kernel": "FFN",
+      "method": "Weighted E5 hi/lo16/third256 + direct FP4 native down + F32 term restoration",
+      "report": "docs/experiments/e134-adoption-performance.json",
+      "reference": "docs/experiments/e134-e128-paired-control.json",
+      "reference_label": "3allocation E128 앞뒤 paired controls",
+      "note": "전체FFN 3회 -4.4947/-4.4518/-4.0041%, paired중앙 -4.451846%; 추가준비/통신/복원비용포함. 표준9입력·실제down9case34560exact·전체FFN stress3840exactPASS, 이전E1331920오류재현후수리. 46source와실측image바인딩후채택. Downdecodedweight DM각56.25MiB제거; downF32partials각14.0625MiB유지. 전BF16/전체모델보장아님. 추가튜닝중단; 신규독립family로세지않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/README.md",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/adoption-decision.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/validation/adoption-verification.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/verification.json"
       ]
     }
   ]

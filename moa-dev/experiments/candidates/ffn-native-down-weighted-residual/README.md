@@ -1,3 +1,7 @@
+> 채택 완료: **E134 / baseline-e134 / 4f8fe7f**. [현재 구성](../../../../baseline/e134.json),
+> [후속 채택 결정](adoption-decision.json), [채택 소스 검증](validation/adoption-verification.json).
+> 아래 frozen validation의 pending 표시는 root 채택 전 상태이며 원본을 보존한다.
+
 # E134 weighted-residual native down
 
 Frozen `weighted-v3` improves whole FFN against contemporary E128 in all three independent allocations. Paired median change is **−4.451846%**, with candidate314266 versus paired control328908.5 aggregate cycles. All135 standard-stage comparisons pass; they reuse three distinct standard inputs. Extra6 job109976 passes30 comparisons with identical device images, giving nine distinct standard inputs.

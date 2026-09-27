@@ -1,0 +1,107 @@
+{
+  "candidate": "E134",
+  "status": "adopted_for_current_kernel_contract",
+  "adopted": true,
+  "source_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "decision": "Three contemporaneously controlled allocations show a net whole-FFN gain after all quantization, coefficient and transfer costs. Same production images pass the original standard tolerance, extra6 and the constructed full-FFN regression. The actual down helper passes nine targeted BF16 reference cases. Adopt frozen weighted-v3; stop parameter tuning.",
+  "unchanged_contract": {
+    "entrypoint": "ops::decoder_feedforward",
+    "reference": "Unmodified official Torch FFN reference for standard and constructed whole-kernel comparisons",
+    "atol": 0.01,
+    "rtol": 0.01,
+    "preprocessing_included": true,
+    "benchmark_host_or_input_specialization": false
+  },
+  "performance": [
+    {
+      "job_id": 109952,
+      "screen_label": "e134-weighted-screen",
+      "candidate_ffn_cycles": 314224,
+      "control_before_ffn_cycles": 329532,
+      "control_after_ffn_cycles": 328492,
+      "bracketing_control_ffn_cycles": 329012.0,
+      "ratio": 0.9550533111254301,
+      "delta_percent": -4.494668887456987
+    },
+    {
+      "job_id": 109962,
+      "screen_label": "e134-weighted-repeat-a",
+      "candidate_ffn_cycles": 314266,
+      "control_before_ffn_cycles": 328568,
+      "control_after_ffn_cycles": 329249,
+      "bracketing_control_ffn_cycles": 328908.5,
+      "ratio": 0.9554815396987308,
+      "delta_percent": -4.451846030126916
+    },
+    {
+      "job_id": 109973,
+      "screen_label": "e134-weighted-repeat-b",
+      "candidate_ffn_cycles": 315179,
+      "control_before_ffn_cycles": 329022,
+      "control_after_ffn_cycles": 327629,
+      "bracketing_control_ffn_cycles": 328325.5,
+      "ratio": 0.9599589431829084,
+      "delta_percent": -4.004105681709158
+    }
+  ],
+  "numerical_evidence_scope": {
+    "standard_distinct_inputs": 9,
+    "standard_input_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "standard_candidate_output_comparisons": 45,
+    "extra_output_comparisons": 30,
+    "standard_performance_independent_allocations": 3,
+    "median_paired_ffn_delta_percent": -4.451846030126916,
+    "down_oracle_job": 109958,
+    "mapping_cases_exact_bf16": 9,
+    "mapping_output_elements": 34560,
+    "observed_prior_e133_case4_repaired": {
+      "expected": 1.40625,
+      "e134_actual": 1.40625,
+      "e133_historical_actual": 0.703125,
+      "outputs": 3840
+    },
+    "known_cpu_construction_down_case8": {
+      "expected": 0.1650390625,
+      "e134_actual": 0.1650390625,
+      "outputs": 3840
+    },
+    "constructed_public_whole_ffn": {
+      "job": 109965,
+      "input_count": 1,
+      "input_scope": "Constructed within public generator component ranges, not an observed PRNG seed",
+      "expected_bf16": 0.404296875,
+      "e134_exact_outputs": 3840,
+      "e128_exact_outputs": 3840,
+      "prior_e133_tolerance_failures": 1920,
+      "result": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/e134-full-ffn-stress-results.json",
+      "verification": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/verification.json"
+    },
+    "remaining_representation_limit": {
+      "cpu_model": "RNE normalized finite BF16-derived F32 values; see numerical-bound.json for enumeration/domain",
+      "max_normalized_abs_error": "2^-25",
+      "activation_unit_bound": "s * 2^-25",
+      "scope": "Not a projected or normalized FFN output-error bound; not a native arithmetic/underflow proof or guarantee for arbitrary input."
+    },
+    "acceptance_boundary": "Unchanged public whole-FFN acceptance after down global scale, residual, RMS and layer scale; exact raw-down checks are additional selected mapping/precision diagnostics.",
+    "no_claims": [
+      "General BF16 exact decomposition",
+      "Arbitrary legal FFN inputs correct",
+      "End-to-end model inference correctness",
+      "Official grading/submission result"
+    ]
+  },
+  "preserved_component_evidence": "Historical E128 up/gate and QKV/O evidence applies to unchanged components only. Weighted down uses E134-specific validation.",
+  "remaining_limit": "Weighted E5 representation is approximate. Finite tests and normalized CPU error bound do not prove correctness for every input or end-to-end model inference.",
+  "full_model_tested": false,
+  "official_submission_at_adoption": false
+}

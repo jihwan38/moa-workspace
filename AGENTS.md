@@ -105,11 +105,22 @@
   down mapping cases passed, but an adversarial tiny-value case lost 50% of the
   raw down output. A separate CPU construction places a potential final-FFN
   tolerance failure within the generator's component value ranges; it is not an
-  observed PRNG seed or NPU full-FFN failure. Preserve this positive prototype and
-  numerical limit separately. Do not discard native down as a slow family or
-  promote it as generally accurate because the standard cases pass. A supported
-  repair must change residual representation and native term restoration together;
-  changing only the third term's quantization scale invalidates the current sum.
+  observed PRNG seed. The later E134 same-input full-FFN NPU comparison reproduced
+  1920 E133 tolerance failures and passed all3840 outputs on E128 and E134. Preserve
+  the earlier CPU-only records at their original evidence scope. Do not discard
+  native down as a slow family or promote it as generally accurate because the
+  standard cases pass. Residual representation and native term restoration must
+  change together; changing only quantization invalidates an unweighted sum.
+- E134 adopted weighted native down after three positive allocations (paired
+  FFN median -4.451846%), nine standard inputs, nine actual-down reference cases,
+  and the full-FFN regression above. Its hi/lo16/third256 terms use coefficients
+  [s,s/16,s/256] before F32 term reduction. Full decoded down-weight DM is now
+  absent; up/gate FP8 materialization and down F32 block partials remain. This is
+  a precision repair and adoption of the E133 family, not a new architecture.
+  Stop this parameter series. The finite validation and normalized CPU error
+  bound do not establish arbitrary-input or end-to-end model correctness.
+  Use the E134 source and measured complete path when choosing new bottleneck
+  experiments; do not continue using E128 BF16-down profiles as current facts.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

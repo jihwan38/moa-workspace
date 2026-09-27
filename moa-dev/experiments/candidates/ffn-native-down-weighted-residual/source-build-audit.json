@@ -1,0 +1,91 @@
+{
+  "candidate": "E134",
+  "adopted_source_candidate": "weighted-v3",
+  "actual_start_commit": "543a947b60ff71b0453d0b8c1af266dd54596dfd",
+  "source_origin": "E133 down-e5-v2 snapshot on E128 cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "adopted_source_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "performance_control": "baseline/e128.json",
+  "measured_build": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/measured-build-e134-adoption.json",
+  "measured_build_digest": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/measured-build-e134-adoption.json",
+    "bytes": 21487,
+    "sha256": "54cc6de19e690530e7a207a0bbdbf595687f13c72b551bd0e637d58a6a8bcf91"
+  },
+  "original_compile_record": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/build-e134-weighted-v3-repro.json",
+    "bytes": 17413,
+    "sha256": "1315d9b86555b4cfb1a41fbc000d87b7b31367aa823c1d91e149c9970fe6a0d8"
+  },
+  "original_package_record": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/package-e134-weighted-v3.json",
+    "bytes": 20826,
+    "sha256": "99c4993b585ce35e8391cc69e512bf1d8badd87677a50e46cd578faafe888d8f"
+  },
+  "source_binding": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/source-build-binding.json",
+    "bytes": 13588,
+    "sha256": "cdd2a9bb964b7795ea1ec59c5ec6d5e1c4903b8251f41d78d7f30b0a24d70ea0"
+  },
+  "compile_inputs": 46,
+  "live_compile_inputs_match_frozen_build": true,
+  "changed_runtime_files": [
+    "src/device/shared/mlp.rs"
+  ],
+  "public_device_entrypoints_unchanged": true,
+  "qkv_o_images_unchanged": true,
+  "basic_and_extra_images_identical": true,
+  "images": {
+    "sliding_project_qkv": {
+      "bytes": 168960,
+      "sha256": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e",
+      "host_occurrences": 1
+    },
+    "sliding_attention_output": {
+      "bytes": 80640,
+      "sha256": "fe90ed758c27fe40a11e78ff5132e7b98152fc8cd79208d49c22053672859495",
+      "host_occurrences": 1
+    },
+    "decoder_feedforward": {
+      "bytes": 284672,
+      "sha256": "cdc1dad55db2dfcf8001f9463fdbf58545d96e965ba3645d9d2016a9f8c73866",
+      "host_occurrences": 1
+    }
+  },
+  "compatibility_image_files": {
+    "sliding_project_qkv": {
+      "path": "moa-dev/experiments/artifacts/ffn-native-down-weighted-residual/e134-weighted-v3/kernels/furiosa_opt_gemma4::ops::sliding_project_qkv.bin",
+      "bytes": 168960,
+      "sha256": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e"
+    },
+    "sliding_attention_output": {
+      "path": "moa-dev/experiments/artifacts/ffn-native-down-weighted-residual/e134-weighted-v3/kernels/furiosa_opt_gemma4::ops::sliding_attention_output.bin",
+      "bytes": 80640,
+      "sha256": "fe90ed758c27fe40a11e78ff5132e7b98152fc8cd79208d49c22053672859495"
+    },
+    "decoder_feedforward": {
+      "path": "moa-dev/experiments/artifacts/ffn-native-down-weighted-residual/e134-weighted-v3/kernels/furiosa_opt_gemma4::ops::decoder_feedforward.bin",
+      "bytes": 284672,
+      "sha256": "cdc1dad55db2dfcf8001f9463fdbf58545d96e965ba3645d9d2016a9f8c73866"
+    }
+  },
+  "validation": [
+    "docs/experiments/e134-adoption-performance.json",
+    "docs/experiments/e134-e128-paired-control.json",
+    "docs/experiments/e134-extra-correctness.json",
+    "docs/experiments/e134-probe-correctness.json",
+    "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/e134-full-ffn-stress-results.json",
+    "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/verification.json"
+  ],
+  "verification": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/validation/adoption-verification.json",
+  "pre_adoption_verification": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/validation/final-verification.json",
+    "bytes": 5391,
+    "sha256": "22f482f0cea84636f9600857d6e770b1e58ebdc71d0204b3b7838ef2db0eb66e"
+  },
+  "descriptor_verification": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/graph-verification-e134-weighted-v3.json",
+  "median_paired_ffn_delta_percent": -4.451846030126916,
+  "adoption_policy": "Reproducible whole-kernel gain with original tolerance and targeted precision validation; gain below5% does not bar adoption. No parameter sweep.",
+  "full_model_tested": false,
+  "official_submission": false,
+  "scope": "Adopted weighted-v3. QKV/O, native up/gate and down epilogue preserve E128. Down uses actual cluster-local post-GeGLU BF16 inputs, weighted E5 [hi,lo16,third256], and direct FP4-to-E5 native DPE; coefficients [s,s/16,s/256] restore each F32 term before term reduction and the existing F32 block partials. Three independent standard allocations and extra6 cover nine distinct selected standard inputs. Nine targeted down cases (34560 outputs) pass exact BF16, including the observed E133 tiny-value failure. One constructed public full-FFN input also passes all3840 outputs exactly on E134 and E128, while the prior E133 prototype fails1920. No arbitrary-input, general BF16-exactness, full-model/end-to-end inference or official-grading claim."
+}

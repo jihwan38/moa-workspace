@@ -6,33 +6,26 @@
 상위권을 목표로 한 조사 근거, 재현 가능한 기준 측정, 실험 순서는
 [최적화 실행 계획](docs/OPTIMIZATION_PLAN.md)에 정리한다.
 
-[현재 baseline 구성](baseline/README.md)에서 E128에 적용한 16개 구성요소의 코드·설정·의존 관계를
+[현재 baseline 구성](baseline/README.md)에서 E134에 적용한 16개 구성요소의 코드·설정·의존 관계를
 확인할 수 있다. [성능별 실험 분류](docs/experiments/optimization-results.md)는 빨라진 후보,
 차이 미확인, 회귀, 정확도 실패를 비교 기준과 함께 정리한다.
 새 조합은 [추가·제거·변경 기록 양식](docs/experiments/combination-template.md)을 사용한다.
 
-현재 실행 소스는 **E128 / `baseline-e128` / `cc82b9c`**다.
-[Native FFN dot·scale·합산 결합](moa-dev/experiments/candidates/ffn-native-fused-scale/README.md)을
-검증해 채택했다. Up/gate F32 부분합 DM 쓰기·읽기를 각각28.125MiB 제거했고,
-E127 대비 독립3allocation의 FFN 감소율 중앙값은 **0.6569%**다.
-기본45·추가30비교와8-case projection245760출력 PASS. E127 QKV/O image는 유지한다.
+현재 실행 소스는 **E134 / `baseline-e134` / `4f8fe7f`**다.
+[Weighted native down](moa-dev/experiments/candidates/ffn-native-down-weighted-residual/README.md)을
+검증해 채택했다. Down의 전체 FP8 weight DM 쓰기·읽기를 각각56.25MiB 제거했고,
+양자화·방송·정밀도 복원 비용을 포함한 전체 FFN이 E128 대비 독립3회 모두 빨라졌다.
+Paired 감소율 중앙값은 **4.4518%**다. QKV/O image는 유지한다.
 
-E129–E131에서는 큰 저장과 실행 구조를 바꾸는 경로를 검증했다.
-Projection별 cluster 직접 배치는 target lowering 미지원으로 막혔고,
-Main/Sub QKV는13.94%, joint direct FFN 두 변형은15.17%/6.21% 회귀해 미채택했다.
-[실측·정확도 범위](moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md)와
-[native down 다음 후보 감사](docs/research/e131-native-down-next-20260927.md)를 남겼다.
-E131 후속 내부 계측과 [E132 O](moa-dev/experiments/candidates/o-owned-k4/README.md)는
-작은 gather보다 input/weight 공급 순서가 중요한 지연임을 확인했다. E132는 회귀했고
-source 생성 순서 변경도 같은 바이너리여서 채택하지 않았다.
-[E133 native down](moa-dev/experiments/candidates/ffn-native-down-e5/README.md)은 세 번 모두
-FFN이 빨라졌고 paired 감소율 중앙값3.8264%지만, 작은 값 소실과 별도 CPU 전체경로 반례 때문에
-채택을 보류했다. 표준9입력·7mapping 사례 통과와 수치 한계를 분리해 보존했다.
-[현재 작업](docs/experiments/current-work.md)과 [작업 규칙](AGENTS.md)을 먼저 확인한다.
+초기 E133은 빨랐지만 작은 값 소실로 채택을 보류했다. E134는 잔차 저장과 native 합산의
+배율을 함께 바꿨다. 표준9입력·실제down9case34560출력이 통과했고, 동일입력 전체FFN 반례에서
+E133의1920개 허용오차 실패를 재현한 반면 E128/E134는3840개 모두 정답과 일치했다.
+유한한 검증이며 임의BF16/전체모델 정확성 보장은 아니다. 실패한prototype과수리근거를보존한다.
 
-E128은 공식 미제출이다. 최근 공식 제출 [E127 `bc21122c`](docs/experiments/e127-official-submit-20260927.json)는
-2026-09-27 05:03 KST 확인 당시6.0699449×,53/69위다. E128의 Arena 이득을 공식점수로
-환산하지 않는다. 아래는 과거 채택·실험 이력이다.
+E129–E132의 lowering실패와 실측회귀도 [성능별 분류](docs/experiments/optimization-results.md)에 남겼다.
+[현재 작업](docs/experiments/current-work.md)과 [작업 규칙](AGENTS.md)에 채택·튜닝·연구 결정을 구분한다.
+E134의 공식 제출·순위는 완료 후 별도 기록하며, Arena 이득을 공식점수로 취급하지 않는다.
+아래는 과거 채택·실험 이력이다.
 
 이전 **E104 / `baseline-e104` / `7f891f9`**는
 [C07](moa-dev/experiments/candidates/c07-native-scale-dpe/README.md)의 materialized native

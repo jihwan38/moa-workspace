@@ -1,3 +1,28 @@
+# 2026-09-27 E134 weighted native down 채택 완료
+
+현재 runtime은 **E134 / `baseline-e134` / `4f8fe7f`**다.
+[채택 구성](../../baseline/e134.json) · [실험·검증](../../moa-dev/experiments/candidates/ffn-native-down-weighted-residual/README.md).
+`opt/ffn-native-down-weighted-residual`, 실제 시작543a947; source는 미채택 E133v2,
+성능 control은 E128이다. 같은 native-down 가족의 정밀도 수리이며 독립 아키텍처로 세지 않는다.
+
+E5 hi/lo×16/third×256과 native F32 계수[s,s/16,s/256]·term 합산을 함께 바꿨다.
+Down FP8 weight materialization의 논리적 DM 쓰기·읽기를 각각56.25MiB 제거했다.
+추가 양자화·3항 방송·96B 계수·native→VE·F32 합산 비용을 포함한 전체 FFN이
+독립3allocation에서 **−4.4947/−4.4518/−4.0041%**, paired중앙 **−4.4518%**였다.
+중앙 candidate314266 / contemporary control328908.5cycles다. QKV/O image는 E128과 같다.
+
+표준9입력, 별도 실제 down9case34560출력이 통과했다. 같은 공개 full-FFN image를 쓴
+구성 반례109965에서는 E128/E134가3840개 모두 BF16 정답과 일치했고 E133은1920개가
+원래허용오차를 벗어났다. 정답은 공식 PyTorch dense MLP/RMS로 계산했으며 입력13개 hash도
+독립 대조했다. 구성 반례는 generator성분 범위 안의 상관 입력이지 관측된PRNGseed가 아니다.
+전BF16 정확성·전입력 허용오차·전체 모델 검증을 주장하지 않는다.
+
+v1/v2 SFR backend 실패와 v3 Main 계수경로 수리, 원본 source/build/image/upload/log는 보존했다.
+5%미만이라는 이유로 버리지 않고 정밀도 보완 후 채택했다. 추가 파라미터 탐색은 종료한다.
+채택 결정·튜닝 종료·큰 구조 연구를 별도로 기록했다. 큰 순위 개선은 QKV/O를 포함한
+전체 실행경로 연구가 더 필요하며, E134 하나로20위/10위 진입을 약속하지 않는다.
+공식 제출 결과는 완료 후 이 문서 상단에 별도 기록한다. 아래는 각 작업 당시의 상태다.
+
 # 2026-09-27 E131 회복 가능성: 전체 NPU 내부 계측 완료
 
 `diag/e131-cost-recovery`, 시작 `8ee5615`. Runtime과 성능 대조군은 E128이다.
