@@ -1,0 +1,1 @@
+Prepared eight-case pre-RMS oracle; not yet executed. Only a positive whole screen authorizes this bounded adoption validation. Production projection.rs is included byte-identically; diagnostic-only HBM boundary is excluded from performance. Uses the separately assigned m03 target, sequentially after standard host packaging.

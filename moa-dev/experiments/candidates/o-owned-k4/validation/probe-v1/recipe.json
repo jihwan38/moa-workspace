@@ -1,0 +1,27 @@
+{
+  "id": "E132-pre-RMS-boundary-v1",
+  "classification": "Prepared correctness diagnostic for frozen E132; execute only if whole screen is positive.",
+  "starting_commit": "8ee561558faedaf68e42c080a515f28e3b82ddb5",
+  "original_source": "moa-dev/experiments/candidates/o-owned-k4/two-stage-v2/projection.rs",
+  "projection_sha256": "f5307f64ef132767b15fba151762439746390aebdf02ddf1bff3be6e6e81daac",
+  "prior_related": [
+    "output-boundary-probe-e47",
+    "output-bf16-activation-e47 E53 validation",
+    "C09 first NPU E126"
+  ],
+  "changed_boundary": "Exact full production projection.rs calls project_output including F32scale/BF16; wrapper returns before RMS. Rows14/15/16/17/28/29, cluster1919/1920 and K1023/1024/4095.",
+  "precision": "Compare every output bit to independent F64 dyadic oracle with BF16 RNE; signed zeros equivalent. No RMS tolerance masking.",
+  "cases": [
+    "signed_zero",
+    "isolated_k1023",
+    "isolated_k1024",
+    "isolated_k4095",
+    "multi_k_boundaries",
+    "stage_row_boundaries",
+    "tiny_correlated_cancellation",
+    "scale_before_bf16"
+  ],
+  "first_stop": "Any source identity mismatch, compile error, checksum failure, incomplete case or numeric mismatch prevents validation PASS. Concrete source/API repairs preserve prior attempt.",
+  "performance_scope": "Excluded; diagnostic image differs from whole C09 and has a new HBM output boundary.",
+  "target_dir": "/tmp/moa-m03-validation-probe/target"
+}

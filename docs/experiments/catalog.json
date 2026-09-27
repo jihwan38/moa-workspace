@@ -2026,6 +2026,23 @@
         "moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md",
         "moa-dev/experiments/candidates/ffn-joint-direct-fused/decision.json"
       ]
+    },
+    {
+      "id": "E132",
+      "category": "regressed",
+      "kernel": "O",
+      "method": "K4×row30 + C09 16/14행 staging + compact F32 canonical gather",
+      "report": "docs/experiments/e132-o-owned-k4.json",
+      "reference": "docs/experiments/e132-o-owned-k4-e128-before.json",
+      "reference_label": "동시 E128 before",
+      "note": "원래 static-only K4의 BF16 scalar compaction을 제거한 전체 조합. V1 H축 표현 오류를 독립 OutputRow로 수리. V2 Arena109654 45PASS:55052 vs E12848583/49216, bracket 대비 +12.5819%; 진단 allocation109683 57PASS의 whole도 +15.7718%. Trace에서 gather 증가는147cycles이나 first-weight marker 시작은5295.5cycles 늦고 inputTRF issue가 W0보다 앞섬. V3 source-let 순서 수리는 exactimage byte동일/issue불변이라 NPU 미실행. 미채택·K/stage sweep중단, 준비8case oracle미실행. 대기포함marker만으로 HBM포화/물리원인 단정하지 않으며 K4전체family 불가능을 의미하지 않음. 표는 첫 allocation before 비교.",
+      "evidence": [
+        "moa-dev/experiments/candidates/o-owned-k4/README.md",
+        "moa-dev/experiments/candidates/o-owned-k4/decision.json",
+        "moa-dev/experiments/candidates/o-owned-k4/profile-analysis.json",
+        "moa-dev/experiments/candidates/o-owned-k4/v3-issue-order-gate.json",
+        "moa-dev/experiments/candidates/o-owned-k4/verification.json"
+      ]
     }
   ]
 }
