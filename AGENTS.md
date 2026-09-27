@@ -121,6 +121,21 @@
   bound do not establish arbitrary-input or end-to-end model correctness.
   Use the E134 source and measured complete path when choosing new bottleneck
   experiments; do not continue using E128 BF16-down profiles as current facts.
+- E135 independent compact FP4 -> six-row fused up/gate passed descriptor and
+  register checks but both whole FFN and the production projection oracle timed
+  out on their first launch. No candidate output or valid FFN timing exists.
+  Preserve this as unresolved runtime liveness, not arithmetic or performance
+  failure of every independent-decode design. Packet-count parity (225 versus
+  450 units of 256B) alone does not change the documented 128B bank phase and
+  does not justify padding retries. E136 original-E4 weight-resident QKV passed
+  three standard and two cancellation inputs but regressed 11.9973% against
+  contemporary E134 controls. Its precision success does not validate its cost
+  structure. The next selected O combination keeps small activation terms in
+  TRF, streams original weights, preserves C09 ingress staging, and fuses term
+  and K16 reduction before global input-scale restoration. It must include real
+  four-term quantization, global amax, replication, TRF and coefficient costs.
+  This is a precision/dataflow repair of the native-O family, not another newly
+  invented family, and requires its own whole-kernel and boundary results.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

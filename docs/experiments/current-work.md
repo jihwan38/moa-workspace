@@ -1,24 +1,29 @@
-# 2026-09-27 E135/E136: 큰 비용 제거 경로 NPU 검증 중
+# 2026-09-27 E135/E136 검증 완료, E137 native O 선택
 
 Runtime/control은 E134를 유지한다. [전체 경로 선택](../research/top30-paths-20260927.md),
 [문헌·설치 SDK 대조](../research/top30-literature-20260927.md),
-[30위 격차 조회](../research/top30-leaderboard-20260927.json)를 먼저 동결했다.
-현재51위에서 당시30위 점수까지는 각 커널 동률 개선 가정으로 약20.98% 시간 감소가 필요하다.
+[30위 격차](../research/top30-leaderboard-20260927.json)를 기준으로 큰 비용을 바꾸는 두 경로를
+실제 구현·NPU 검사했다. 이번 두 후보에서 새 성능 이득은 확보하지 못했다.
 
-- **E135 / `opt/ffn-independent-direct-fused`**: 각각 compact FP4에서 기존6행 fused
-  dot/scale/H-reduction을 직접 구동한다. Up/gate FP8 저장을 없애되 joint packed/scale
-  assembly는 만들지 않는다. Exact compile와 실제 descriptor/register gate는 통과했다.
-  Whole110314와 production up/gate oracle110316 모두 첫 실행 timeout(code4)이다.
-  Whole의 E134 앞뒤 control은 정상 완료했다. 수치 오답이나 실측 성능 회귀로 분류하지 않는다.
-  지원되는 구체 수리가 있는지 조사 중이며 임의 padding/행수 sweep은 하지 않는다.
-- **E136 / `opt/qkv-native-weight-resident`**: 원본 E4 weight를 Sub→TRF에 두고
-  실제 activation을 weighted E4 네 항으로 바꾸어 stream한다. Canonical 출력 행 소유권으로
-  기존 row/scale Switch도 제거한다. Exact whole compile는 통과했으며, 추가 양자화·전파와
-  weight TRF 적재·F32 row handoff를 포함한 NPU 비교 및 원래 허용오차 검사를 진행한다.
-  O weight-resident의 Row15 반복읽기 비용 때문에 QKV를 먼저 선택했다.
+- [E135](../../moa-dev/experiments/candidates/ffn-independent-direct-fused/README.md)는 각각
+  compact FP4에서6행 fused dot/scale/H-reduction을 직접 구동하여 up/gate FP8 저장과
+  joint assembly를 피했다. Exact/descriptor/register 검사는 통과했으나 whole110314와
+  production up/gate oracle110316 모두 첫 launch timeout(code4)이다. E134 control은
+  정상 완료했다. 출력·FFN cycles가 없어 오답/성능회귀를 판정할 수 없다. 원인은 미해결이며
+  packet수225대450 parity만으로 bank수리를 정당화하지 않는다. 채택보류·행수/padding튜닝중단.
+- [E136](../../moa-dev/experiments/candidates/qkv-native-weight-resident/README.md)는 원본 E4
+  weight Sub→TRF와4항 activation stream, canonical 출력행을 결합했다. Whole110367
+  45PASS였지만 QKV116321 vs E134102925/104796, bracket대비 **+11.9973%**였다.
+  실제 fullQKV 상쇄2case는16384출력과8380416 비대상cache 모두PASS다. 정밀도 수리는
+  검사범위에서 유효하지만 추가 weightTRF/양자화/전파를 포함한 성능은 회귀했다. 미채택·튜닝중단.
 
-두 후보 모두 결과 확정 전이며 채택/공식 제출하지 않았다. 컴파일 추정치나 논리 바이트
-감소를 큰 속도 개선으로 부르지 않는다. 양의 실측 결과는5% 미만이어도 별도 채택 검증한다.
+다음은 [E137 O activation-resident 선택](../research/e137-native-o-selection-20260927.md)이다.
+작은4항 activation을 TRF에 두고 원본 E4 weight를 Main으로 흘리며 C09두60행 ingress를
+유지한다. Global amax/실제4항 quantization/복제/coeff를 포함하고 Term→K16 합산을 fuse한
+뒤 기존 F32 channel-scale pass에서 공통scale을 복원한다. E136의 큰 weightTRF 적재와
+O weight-resident의 Row15 반복읽기를 피하는 조합이다. E47 native O의 정밀도·중간저장
+수리이지 독립 새family나 개선 보장이 아니다. 실제 source/control은E134를 별도로 명시한다.
+양의 whole실측은5%미만이어도 source를 동결해 제한된 반복·추가입력·원래O경계 검증으로 진행한다.
 
 # 2026-09-27 18:04 KST E134 공식 제출·순위 반영 완료
 

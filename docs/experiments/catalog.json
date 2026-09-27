@@ -2090,6 +2090,21 @@
         "moa-dev/experiments/candidates/ffn-independent-direct-fused/decision.json",
         "moa-dev/experiments/candidates/ffn-independent-direct-fused/verification.json"
       ]
+    },
+    {
+      "id": "E136",
+      "category": "regressed",
+      "kernel": "QKV",
+      "method": "Original E4 weight Sub→TRF + weighted E4 four-term activation stream + canonical output rows",
+      "report": "docs/experiments/e136-qkv-native-weight-resident.json",
+      "reference": "docs/experiments/e136-qkv-native-weight-resident-e134-before.json",
+      "reference_label": "동시 E134 before",
+      "note": "Whole110367 45PASS:116321 vs E134102925/104796, bracket103860.5대비+11.9973%(표는before비교). 과거상쇄2case fullQKV110365의16384출력/8380416 untouchedcache PASS. Native4항정밀도는검사범위에서통과했지만30MiBweightTRF·4항quant/broadcast/F32handoff포함전체경로회귀. 채택/추가튜닝중단; activationresident/nativeO가족의성능판정아님.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-native-weight-resident/README.md",
+        "moa-dev/experiments/candidates/qkv-native-weight-resident/screen-decision.json",
+        "moa-dev/experiments/candidates/qkv-native-weight-resident/boundary-suite/result-110365.json"
+      ]
     }
   ]
 }
