@@ -1,0 +1,172 @@
+{
+  "status": "axis_name_workaround_blocked_by_public_identifier_contract",
+  "question_answer": "The literal lowercase axis cannot pass public AxisName::NAME evaluation in SDK0.8.1, so this attempt did not reach or repair the earlier contraction mismatch.",
+  "inputdigests": {
+    "recipe": {
+      "path": "moa-dev/experiments/candidates/e131-interleave-name-probe/recipe.json",
+      "bytes": 3898,
+      "sha256": "64cb1020ba3fb046c2421c941bef336ec049a58725611a113891d91db0bb2731"
+    },
+    "build_record": {
+      "path": "moa-dev/experiments/candidates/e131-interleave-name-probe/build-interleave-name-v1.json",
+      "bytes": 2677,
+      "sha256": "4256a26b7ed3bd7cd635260026938e543c3fec11fd504003446811b5a358c8d5"
+    },
+    "compile_log": {
+      "path": "moa-dev/experiments/candidates/e131-interleave-name-probe/evidence/interleave-name-v1/compile.log",
+      "bytes": 5065,
+      "sha256": "c601aa998553b2ebd37326b79a8d49b539c3d81231b8c188f21887a04278698e"
+    },
+    "source_diff": {
+      "path": "moa-dev/experiments/candidates/e131-interleave-name-probe/source.diff",
+      "bytes": 3962,
+      "sha256": "aafd55c7b4487be0342403a4f625b4c4bf3ab4d8c5c20dd877c10dc8a40f48a9"
+    },
+    "historical_build_record": {
+      "path": "moa-dev/experiments/candidates/fp4-native-boundary/build-boundary-v7b.json",
+      "bytes": 2136,
+      "sha256": "6e78118b755e622dddc18b1dcd895c1b77cba6b3ac66e3acc841aa1a13ca9295"
+    },
+    "historical_failure": {
+      "path": "moa-dev/experiments/candidates/fp4-native-boundary/evidence/boundary-v7b/build.log",
+      "bytes": 5058,
+      "sha256": "d09b32929c639a3f1be941f6dc531d6f20b5eb99c7b1199f485e814a00935afc"
+    }
+  },
+  "source_transform_checks": [
+    {
+      "path": "Cargo.toml",
+      "unchanged": true,
+      "matches_exact_authorized_transform": true,
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "unchanged": true,
+      "matches_exact_authorized_transform": true,
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    },
+    {
+      "path": "src/axes.rs",
+      "unchanged": true,
+      "matches_exact_authorized_transform": true,
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    {
+      "path": "Cargo.lock",
+      "unchanged": true,
+      "matches_exact_authorized_transform": true,
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    {
+      "path": "src/lib.rs",
+      "unchanged": true,
+      "matches_exact_authorized_transform": true,
+      "bytes": 191,
+      "sha256": "b09ce20765b3eef8ef4eb26d29db468584a980476d54bf3c0a4cd4b7d4a4161f"
+    },
+    {
+      "path": "src/probe.rs",
+      "unchanged": false,
+      "matches_exact_authorized_transform": true,
+      "bytes": 10425,
+      "sha256": "9fd2ccc936ffea41c5e2c9f01a56cb90119df4296458cf49f685363f4afa5f56"
+    },
+    {
+      "path": "src/bin/boundary_probe.rs",
+      "unchanged": true,
+      "matches_exact_authorized_transform": true,
+      "bytes": 4940,
+      "sha256": "f1aaa1e8b8ecfce458474d97600e17e6c1324d566e3bd3c7ed22ddb09f1609ae"
+    },
+    {
+      "path": "src/device/mlp.rs",
+      "unchanged": true,
+      "matches_exact_authorized_transform": true,
+      "bytes": 28831,
+      "sha256": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0"
+    },
+    {
+      "path": "src/device/layout.rs",
+      "unchanged": true,
+      "matches_exact_authorized_transform": true,
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    }
+  ],
+  "observed": {
+    "compile_count": 1,
+    "exact_entry": "probe::fused",
+    "exit_code": 1,
+    "stage": "MIR AxisName::NAME constant evaluation",
+    "error": "Ident must start with an uppercase ASCII letter",
+    "historical_failure": "v7b target contraction declared Projection_1=2 versus pipeline interleave_1=2",
+    "graph_emitted": false,
+    "image_emitted": false,
+    "host_builds": 0,
+    "npu_runs": 0
+  },
+  "sdk_sources": [
+    {
+      "container": "moa2026-dev",
+      "path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-mapping-types-0.8.1/src/lib.rs",
+      "bytes": 62269,
+      "sha256": "147cd39cd824b15eb7b5c9dfb0039700ca2bb13a41053c7e6f450e30db902edc",
+      "excerpts": [
+        {
+          "line_start": 29,
+          "line_end": 61,
+          "text": "/// Axis identifiers.\n#[primitive(mapping::Ident)]\n#[repr(C)]\n// SAFETY: &'static str is not formally ABI-stable, but its layout (*const u8, usize)\n// is de facto stable across all Rust versions and extremely unlikely to change.\n#[derive(StableAbi, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]\n#[sabi(unsafe_opaque_fields)]\npub struct Ident(&'static str);\n\n#[expect(missing_docs)]\nimpl Ident {\n    /// Creates a new identifier.\n    ///\n    /// The identifier must start with an uppercase ASCII letter and contain\n    /// only ASCII alphanumeric characters, underscores.\n    pub const fn new(s: &'static str) -> Self {\n        let b = s.as_bytes();\n        assert!(!b.is_empty(), \"Ident must not be empty\");\n        assert!(\n            b[0].is_ascii_uppercase(),\n            \"Ident must start with an uppercase ASCII letter\"\n        );\n        let mut i = 1;\n        while i < b.len() {\n            assert!(\n                b[i].is_ascii_alphanumeric() || b[i] == b'_',\n                \"Ident must contain only ASCII alphanumeric or underscore characters\"\n            );\n            i += 1;\n        }\n        Self(s)\n    }\n"
+        },
+        {
+          "line_start": 113,
+          "line_end": 138,
+          "text": "impl<'de> serde::Deserialize<'de> for Ident {\n    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {\n        let s: String = serde::Deserialize::deserialize(deserializer)?;\n        Ident::try_from(s.as_str()).map_err(|e| serde::de::Error::custom(format!(\"invalid Ident: {e}\")))\n    }\n}\n\nimpl serde_lite::Deserialize for Ident {\n    fn deserialize(val: &serde_lite::Intermediate) -> Result<Self, serde_lite::Error> {\n        let s: String = serde_lite::Deserialize::deserialize(val)?;\n        Ident::try_from(s.as_str()).map_err(|e| serde_lite::Error::custom(format!(\"invalid Ident: {e}\")))\n    }\n}\n\nimpl<'a> TryFrom<&'a str> for Ident {\n    type Error = &'a str;\n\n    fn try_from(value: &'a str) -> std::result::Result<Self, Self::Error> {\n        use lasso::ThreadedRodeo;\n        use std::sync::LazyLock;\n        static INTERNER: LazyLock<ThreadedRodeo> = LazyLock::new(ThreadedRodeo::new);\n\n        let key = INTERNER.get_or_intern(value);\n        let interned: &'static str = INTERNER.resolve(&key);\n        std::panic::catch_unwind(|| Self::new(interned)).map_err(|_| value)\n    }"
+        }
+      ]
+    },
+    {
+      "container": "moa2026-dev",
+      "path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.8.1/src/context.rs",
+      "bytes": 3295,
+      "sha256": "775a00a8ecbb4360b4605c1c93618ed71bd72747b68a627ab86e10398a74e8c4",
+      "excerpts": [
+        {
+          "line_start": 95,
+          "line_end": 114,
+          "text": "    /// Begin a tensor unit operation in this context with interleaved tensors.\n    #[primitive(TuContext::begin_interleaved)]\n    pub fn begin_interleaved<'l, I: AxisName, D: Scalar, Chip: M, Cluster: M, Slice: M, Element: M>(\n        &'l mut self,\n        lhs: DmTensorView<'l, D, Chip, Cluster, Slice, Element>,\n        rhs: DmTensorView<'l, D, Chip, Cluster, Slice, Element>,\n    ) -> BeginTensor<'l, { T }, D, Chip, Cluster, Slice, Symbol<I>, Element> {\n        let mut output = Tensor::<D, m![{ Chip }, { Cluster }, { Slice }, { Symbol<I> }, { Element }]>::zeroed();\n\n        for (i, input) in [lhs, rhs].into_iter().enumerate() {\n            output\n                .view_mut()\n                .tile_derived::<Symbol<I>, 1>(i)\n                .transpose(input.inner, false);\n        }\n\n        BeginTensor::new(self, output)\n    }\n}"
+        }
+      ]
+    },
+    {
+      "container": "moa2026-dev",
+      "path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-mapping-macro-0.8.1/src/lib.rs",
+      "bytes": 5442,
+      "sha256": "4168caeae59206e3e1f0dfb5d0deedc0b34a3e523f249b4f97c85852fac7c83d",
+      "excerpts": [
+        {
+          "line_start": 98,
+          "line_end": 112,
+          "text": "    let items = decls.iter().map(|d| {\n        let name = &d.name;\n        let size = &d.size;\n        quote! {\n            #[allow(non_camel_case_types)]\n            #[derive(Debug, Clone)]\n            pub struct #name;\n            impl AxisName for #name {\n                const NAME: Ident = Ident::new(::core::stringify!(#name));\n                const SIZE: usize = #size;\n            }\n        }\n    });\n    quote! { #(#items)* }.into()\n}"
+        }
+      ]
+    }
+  ],
+  "inference_limits": [
+    "Public std begin_interleaved<I> uses Symbol<I>; public installed crates do not expose the NPU primitive implementation that produced lowercase interleave. Backend hardcoding is not source-confirmed.",
+    "The source macro allows lowercase Rust type identifiers, but Ident::new independently rejects lowercase mapping identifiers. Earlier feasibility review overlooked this second validation.",
+    "Private Ident representation manipulation and SDK patching are outside this diagnostic and were not attempted.",
+    "An uppercase Interleave axis would not match the observed lowercase literal. No unsupported shape or padding sweep was performed.",
+    "No emitted graph exists, so no successful two-source fetch, bounds/order, numerical or whole-E131 no-copy feasibility claim follows."
+  ],
+  "decision": {
+    "adoption": "not applicable; no runtime candidate or performance evidence",
+    "further_tuning": "stop this literal-name workaround under public SDK0.8.1; source unchanged after the single attempt",
+    "research_priority": "Architecture remains open; a new supported lowering/API mechanism or SDK correction is required before retrying this begin_interleaved naming path."
+  },
+  "released_target": "/tmp/moa-c01-upgate/target"
+}

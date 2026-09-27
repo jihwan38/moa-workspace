@@ -1,0 +1,60 @@
+--- frozen-v7b/src/probe.rs
++++ axis-name-v1/src/probe.rs
+@@ -1,6 +1,6 @@
+ use furiosa_opt_std::prelude::*;
+ use crate::{Chip, axes::{H, L, Dummy2}};
+-axes![Term = 3, Row = 30, SliceIndex = 256, Projection = 2];
++axes![Term = 3, Row = 30, SliceIndex = 256, interleave = 2];
+ type Clusters = m![Dummy2];
+ type Slices = m![SliceIndex];
+ 
+@@ -85,7 +85,7 @@
+ 
+ fn reduce_joint_rows(
+     device: &mut Device,
+-    partials: DmTensorView<'_, f32, Chip, Clusters, Slices, m![Projection = 1 # 2, Row, H / 16]>,
++    partials: DmTensorView<'_, f32, Chip, Clusters, Slices, m![interleave = 1 # 2, Row, H / 16]>,
+     bs: &HbmTensor<f8e4m3, Chip, m![L,H/16]>,
+ ) -> DmTensor<f32, Chip, Clusters, Slices, m![Row]> {
+     let bs: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, SliceIndex, Row, H / 16]> = unsafe { bs.view().reshape() };
+@@ -96,7 +96,7 @@
+             .begin(bs.view().tile::<m![Row], 6, m![Row = 6 # 30, H / 16]>(6*$i))
+             .fetch::<m![Row = 6], m![H / 16]>().fetch_cast::<f32>()
+             .collect::<m![Row = 6, H / 16 / 8], m![H / 16 % 8]>().to_vrf();
+-        device.main.begin(partials.tile::<m![Row], 6, m![Projection = 1 # 2, Row = 6 # 30, H / 16]>(6*$i))
++        device.main.begin(partials.tile::<m![Row], 6, m![interleave = 1 # 2, Row = 6 # 30, H / 16]>(6*$i))
+             .fetch::<m![Row = 6, H / 16 / 8], m![H / 16 % 8]>()
+             .collect::<m![Row = 6, H / 16 / 8], m![H / 16 % 8]>()
+             .vector_init().vector_intra_slice_tag(TagMode::Zero)
+@@ -137,22 +137,22 @@
+     let w: DmTensor<f4e2m1, Chip, Clusters, Slices, m![Row,H]> = w.to_dm(&mut device.tdma);
+     let g: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, SliceIndex, Row, H]> = unsafe { g.view().reshape() };
+     let g: DmTensor<f4e2m1, Chip, Clusters, Slices, m![Row,H]> = g.to_dm(&mut device.tdma);
+-    let partials: DmTensor<f32, Chip, Clusters, Slices, m![Projection, Row, H/16]> = device.main
+-        .begin_interleaved::<Projection, _, _, _, _, _>(w.view(),g.view())
+-        .fetch::<m![Projection, Row],m![H]>()
++    let partials: DmTensor<f32, Chip, Clusters, Slices, m![interleave, Row, H/16]> = device.main
++        .begin_interleaved::<interleave, _, _, _, _, _>(w.view(),g.view())
++        .fetch::<m![interleave, Row],m![H]>()
+         .fetch_table_lookup::<f8e5m2>()
+-        .collect::<m![Projection, Row, H / 32], m![H % 32]>()
+-        .contract_outer::<m![Projection, Row, H / 64, Term],m![H % 64],_,_,_>(&x)
++        .collect::<m![interleave, Row, H / 32], m![H % 32]>()
++        .contract_outer::<m![interleave, Row, H / 64, Term],m![H % 64],_,_,_>(&x)
+         .contract_packet::<m![H / 16 % 4]>()
+-        .contract_time::<m![Projection, Row, H / 64]>()
+-        .contract_lane::<m![Projection, Row, H / 64],m![H / 16 % 4 # 8]>(LaneMode::Sequential)
++        .contract_time::<m![interleave, Row, H / 64]>()
++        .contract_lane::<m![interleave, Row, H / 64],m![H / 16 % 4 # 8]>(LaneMode::Sequential)
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+         .vector_narrow_trim::<m![H / 16 % 4]>()
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&scale)
+         .vector_widen_pad::<m![H / 16 % 4 # 8]>().vector_final()
+         .commit_trim::<m![H / 16 % 4]>().commit();
+-    let up = reduce_joint_rows(device,partials.view().tile::<m![Projection],1,m![Projection=1#2,Row,H/16]>(0),bs);
+-    let gate = reduce_joint_rows(device,partials.view().tile::<m![Projection],1,m![Projection=1#2,Row,H/16]>(1),gs);
++    let up = reduce_joint_rows(device,partials.view().tile::<m![interleave],1,m![interleave=1#2,Row,H/16]>(0),bs);
++    let gate = reduce_joint_rows(device,partials.view().tile::<m![interleave],1,m![interleave=1#2,Row,H/16]>(1),gs);
+     let up: DmTensor<f32, Chip, m![L / 7680], m![L / 30 % 256], m![L % 30]> = unsafe { up.reshape() };
+     let gate: DmTensor<f32, Chip, m![L / 7680], m![L / 30 % 256], m![L % 30]> = unsafe { gate.reshape() };
+     up.view().to_hbm_view(&mut device.tdma, y.view_mut());

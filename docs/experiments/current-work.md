@@ -1,3 +1,42 @@
+# 2026-09-27 E131 회복 가능성: 전체 NPU 내부 계측 완료
+
+`diag/e131-cost-recovery`, 시작 `8ee5615`. Runtime과 성능 대조군은 E128이다.
+동결 E128/E131v2의 원본 image와 같은 입력을 사용해 packed/scale 복사,
+입력/table 준비, native/fused 계산, gather와 down 진입의 실제 의존 순서를 비교한다.
+원본 비계측 host를 별도로 대조하며 진단 name 변경은 kernel code/constants를 바꾸지 않는다.
+[Arena109609의57비교가 PASS](../../moa-dev/experiments/candidates/e131-cost-recovery-profile/README.md).
+표준 전체 FFN은 E128328539/329639 대비 E131349566으로+6.2223%이며 기존 회귀가 재현됐다.
+진단 trace의 각 cluster Task 상대 시각 중앙값은 다음과 같다.
+
+| 경계 | E128 | E131v2 |
+|---|---:|---:|
+| 입력 HBM 시작 |2478|104492.5|
+| pre-RMS 완료 |16040|115391|
+| 첫 native 시작 |123889.5|185874.5|
+| GeGLU 완료 |231075.5|248867.5|
+| down BF16 dot 시작 |260566.5|282359.5|
+
+E131의 모든6관측에서 up-scale HBM 완료8cycles 뒤 입력 HBM이 시작했다.
+반대로 E128의 up gather에는 큰 down weight 전송과 겹치는 긴 대기가 있어 E131이 일부를 회수한다.
+따라서 최초입력+102k/첫dot+62k/최종store+22k를 합산하거나 각각 제거 가능량으로 취급하지 않는다.
+단순 packed 복사 두 개의 비용보다 input/weight 공급과 후속 소비 순서가 중요한 연구 질문이다.
+이는 이번 실행 순서의 관측이며 필수 수학적 의존성·특정 bank 원인을 증명하지 않는다.
+
+[공개 interleave 축 이름 수리 진단](../../moa-dev/experiments/candidates/e131-interleave-name-probe/README.md)은
+동일shape의 이름 변경만 exact compile했다. SDK가 lowercase Ident를 거부해 실패했으며,
+기존 native contraction의 내부 interleave 축 불일치는 미해결이다. Image/NPU 결과는 없다.
+
+E131v2의 이전 단회 screen에서는 E128 동률까지20,392.5cycles의 순절감이 필요했다.
+이는 candidate 시간의5.8453%이며 회수 가능한 overhead를 측정한 값은 아니다.
+행수 튜닝은 종료하되, 실제 지연과 이를 바꿀 지원되는 전체 경로가 확인되면 구조 변경을 재개한다.
+O의 K4×30행/C09 두 stage16·14행/F32 직접 gather 조합은 별도
+`opt/o-owned-k4` worktree에서 E132로 구현했다. 기존 H 축의 local tile 표현을
+독립 OutputRow 축으로 수리한 v2가 exact/descriptor gate를 통과했고 Arena109654 평가 대기 중이다.
+이는 과거 K4의 BF16 scalar compaction 비용을 제거하고 C09 공급을 조합한 재개이며
+새 독립 원리 또는 입증된 큰 개선으로 세지 않는다. Native-down의 공개 API/shape 계약도 검토했다.
+Down 단독 순위 약속은 없다.
+[최신 점수 목표·재개 기준](../research/e131-recovery-rank-analysis-20260927.json).
+
 # 2026-09-27 E129–E131 큰 구조 실행: 신규 채택 없음
 
 현재 runtime은 **E128 / baseline-e128** 그대로다. 공식 재제출은 없었다.

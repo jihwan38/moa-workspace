@@ -1,0 +1,79 @@
+{
+  "id": "E131-RECOVERY-API-INTERLEAVE",
+  "label": "interleave-name-v1",
+  "scope": "Axis-name-only API feasibility diagnostic, not a new performance family",
+  "actual_start_commit": "8ee561558faedaf68e42c080a515f28e3b82ddb5",
+  "actual_branch": "diag/e131-cost-recovery",
+  "source_base_commit": "7f891f9c48e670fe014b2ac5bd2c92bae3bac433",
+  "source_origin": {
+    "path": "moa-dev/experiments/candidates/fp4-native-boundary/build-boundary-v7b.json",
+    "bytes": 2136,
+    "sha256": "6e78118b755e622dddc18b1dcd895c1b77cba6b3ac66e3acc841aa1a13ca9295"
+  },
+  "prior_recipe": {
+    "path": "moa-dev/experiments/candidates/fp4-native-boundary/v7b/recipe.json",
+    "bytes": 1999,
+    "sha256": "defdb48ec8d218560c41426565e23af9d36c439e1fc3b6e870245685844abe67"
+  },
+  "prior_failure": {
+    "path": "moa-dev/experiments/candidates/fp4-native-boundary/evidence/boundary-v7b/build.log",
+    "bytes": 5058,
+    "sha256": "d09b32929c639a3f1be941f6dc531d6f20b5eb99c7b1199f485e814a00935afc"
+  },
+  "performance_control": "baseline/e128.json (context only; no performance comparison authorized)",
+  "question": "Does naming the public I axis interleave remove the declared Projection_1 versus pipeline interleave_1 exact-lowering mismatch?",
+  "change": "All complete Projection tokens in frozen src/probe.rs become interleave; declaration and mappings/index operations change together. No alias.",
+  "replacement_occurrences": 14,
+  "unchanged": "All other source/build inputs, dimensions, arithmetic, compact HBM loads, scale/reduction order and outputs remain byte-identical.",
+  "full_graph": "BF16 preparation -> E5 3-term TRF/input scale -> two compact FP4 DM inputs -> begin_interleaved lookup/native -> F32 block partial -> separate block-scale/reductions -> F32 outputs",
+  "first_stop": "Preserve exact compile outcome. On success inspect descriptors and order; no host build or NPU. A different compiler error is not the original mismatch.",
+  "decisions": {
+    "adoption": "not applicable; diagnostic only",
+    "further_tuning": "no padding/shape sweep",
+    "research_priority": "API feasibility for avoiding E131 packed/scale assembly, pending full-path design and NPU evidence"
+  },
+  "expected_source_inputs": {
+    "Cargo.lock": {
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "Cargo.toml": {
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "rust-toolchain.toml": {
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    },
+    "src/axes.rs": {
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "src/bin/boundary_probe.rs": {
+      "bytes": 4940,
+      "sha256": "f1aaa1e8b8ecfce458474d97600e17e6c1324d566e3bd3c7ed22ddb09f1609ae"
+    },
+    "src/device/layout.rs": {
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    },
+    "src/device/mlp.rs": {
+      "bytes": 28831,
+      "sha256": "7ca9293bb1c05dbf7a16f4f1180419374e7b582c723486d27321c6c700fa30f0"
+    },
+    "src/lib.rs": {
+      "bytes": 191,
+      "sha256": "b09ce20765b3eef8ef4eb26d29db468584a980476d54bf3c0a4cd4b7d4a4161f"
+    },
+    "src/probe.rs": {
+      "bytes": 10425,
+      "sha256": "9fd2ccc936ffea41c5e2c9f01a56cb90119df4296458cf49f685363f4afa5f56"
+    }
+  },
+  "source_diff": {
+    "path": "moa-dev/experiments/candidates/e131-interleave-name-probe/source.diff",
+    "bytes": 3962,
+    "sha256": "aafd55c7b4487be0342403a4f625b4c4bf3ab4d8c5c20dd877c10dc8a40f48a9"
+  },
+  "sdk_evidence": "Installed std0.8.1 context.rs:96-113 preserves generic I in Symbol<I>; mapping-macro lib.rs:105-106 stringifies axis name. NPU primitive implementation is not in public crates; literal-name cause remains a hypothesis."
+}

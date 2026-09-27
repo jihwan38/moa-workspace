@@ -86,6 +86,15 @@
   validated, not demonstrated down failures. A post-GeGLU E5/native-down proposal
   must include actual quantization/broadcast and F32 partial/reduction costs and
   establish accuracy anew; it is an open question, not a proven next optimization.
+- The E131 recovery follow-up separates a rejected implementation from an
+  exhausted architecture. When substantial work was removed but the added
+  dependencies have not been measured, use one bounded whole-path diagnostic
+  if its result can select an implementable repair. For E131, compare frozen
+  E128/E131v2 internal NPU spans before choosing a new copy/setup/ownership
+  combination. Do not treat the end of row-size tuning as a ban on such repairs,
+  or treat a profiled interval as fully reclaimable time. Native down remains
+  a parallel hypothesis; its ranking value depends on whole-FFN improvement and
+  accompanying QKV/O gains, not on the amount of logical storage removed.
 - Classify the scope before implementation: parameter tuning, local dataflow
   replacement, or whole-projection/FFN architecture redesign. C09 row staging
   and C11 partial VRF are local dataflow replacements; do not count them as
