@@ -1,0 +1,364 @@
+{
+  "passed": true,
+  "scope": "Independent emitted descriptor/source/mapping/order and scheduled lifetime review only. No NPU arithmetic, latency, hidden SFR readidx or runtime bank-arbitration guarantee.",
+  "inputdigests": {
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v1/projection.rs": {
+      "bytes": 39064,
+      "sha256": "8c098626c1f5d7ecec66d000251aec33d19c971e84390abdb535194bf8d97a2f"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v1/ops.rs": {
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v1/graph.json": {
+      "bytes": 241191,
+      "sha256": "0164f1571c22046d687fb1378021659e34d596349f588ed8e95d707856151436"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v1/schedule.json": {
+      "bytes": 127960,
+      "sha256": "dd7770265f63701a0495a2da113819ce70e6d824e315fdc6c0de268b7f493ccf"
+    }
+  },
+  "input": {
+    "actual_packets": 1024,
+    "packet_bytes": 960,
+    "destination_payload_bytes": 983040,
+    "same_global_input_groups": 128,
+    "logical_bf16_h_per_group": 3840,
+    "coordinate": "slice=4*g+q; dstbyte=j*960; srcslice=2*q+j, srcbyte=0",
+    "global_max_ratio": 4,
+    "scale_destinations": 512,
+    "scale_equality_basis": "Each group receives identical complete finite BF16 H3840; same absmax/floor/max/exponentmask/power2 scale. Not independent perK scale."
+  },
+  "coefficients": {
+    "ordered_graph_printed_constants": [
+      [
+        0,
+        1.0
+      ],
+      [
+        1,
+        0.0625
+      ],
+      [
+        2,
+        2.3841858e-07
+      ],
+      [
+        3,
+        7.450581e-09
+      ]
+    ],
+    "copies": 512,
+    "compact_bytes": 16,
+    "vrf_bytes_per_slice": 32
+  },
+  "reshapes": {
+    "scale_group64_named_to_anonymous_only": true,
+    "packed_cluster_only": true,
+    "packed_payload_bytes": 1966080,
+    "no_packed_redistribution": "LowLevelReshape62to87 immediately feeds StoTrf72"
+  },
+  "canonical_scale": {
+    "source_cluster": 0,
+    "initialized_source_q0_slices": [
+      0,
+      4
+    ],
+    "destination_head_slices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "packet_bytes": 32
+  },
+  "weight_ingress": [
+    {
+      "projection": "Q",
+      "dma": "DmaCommand#O75",
+      "coverage": {
+        "packet_count": 16384,
+        "bytes": 15728640,
+        "bounds": [
+          0,
+          15728640
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "packet_bytes": 960
+    },
+    {
+      "projection": "K",
+      "dma": "DmaCommand#O88",
+      "coverage": {
+        "packet_count": 8192,
+        "bytes": 7864320,
+        "bounds": [
+          0,
+          7864320
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "packet_bytes": 960
+    },
+    {
+      "projection": "V",
+      "dma": "DmaCommand#O101",
+      "coverage": {
+        "packet_count": 8192,
+        "bytes": 7864320,
+        "bounds": [
+          0,
+          7864320
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "packet_bytes": 960
+    }
+  ],
+  "raw_gathers": [
+    {
+      "projection": "Q",
+      "gather": "DmaCommand#O80",
+      "source": {
+        "packet_count": 128,
+        "bytes": 16384,
+        "bounds": [
+          0,
+          16384
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "destination": {
+        "packet_count": 128,
+        "bytes": 16384,
+        "bounds": [
+          0,
+          16384
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "packet_bytes": 128
+    },
+    {
+      "projection": "K",
+      "gather": "DmaCommand#O93",
+      "source": {
+        "packet_count": 128,
+        "bytes": 8192,
+        "bounds": [
+          0,
+          8192
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "destination": {
+        "packet_count": 128,
+        "bytes": 8192,
+        "bounds": [
+          0,
+          8192
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "packet_bytes": 64
+    },
+    {
+      "projection": "V",
+      "gather": "DmaCommand#O106",
+      "source": {
+        "packet_count": 128,
+        "bytes": 8192,
+        "bounds": [
+          0,
+          8192
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "destination": {
+        "packet_count": 128,
+        "bytes": 8192,
+        "bounds": [
+          0,
+          8192
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "packet_bytes": 64
+    }
+  ],
+  "channel_scales": [
+    {
+      "projection": "Q",
+      "channel_scale": {
+        "packet_count": 32,
+        "bytes": 8192,
+        "bounds": [
+          0,
+          8192
+        ],
+        "no_gaps_or_overlaps": true
+      }
+    },
+    {
+      "projection": "K",
+      "channel_scale": {
+        "packet_count": 16,
+        "bytes": 4096,
+        "bounds": [
+          0,
+          4096
+        ],
+        "no_gaps_or_overlaps": true
+      }
+    },
+    {
+      "projection": "V",
+      "channel_scale": {
+        "packet_count": 16,
+        "bytes": 4096,
+        "bounds": [
+          0,
+          4096
+        ],
+        "no_gaps_or_overlaps": true
+      }
+    }
+  ],
+  "order": "native normalized coefficient Mul -> packet Term reduce -> K4 reduce -> F32 pair commit/canonical gather -> common scale Mul0 -> channel Mul1 -> first BF16",
+  "schedule_register_lifetimes": [
+    {
+      "index": "243",
+      "lifetime": {
+        "begin": 31595,
+        "end": 32369
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "133",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 30852,
+            "end": 55528,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Lane: QkvTerm, Element: H % 960]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "124",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 28425,
+            "end": 55528,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2064384,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "index": "258",
+      "lifetime": {
+        "begin": 43232,
+        "end": 44486
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "133",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 30852,
+            "end": 55528,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Lane: QkvTerm, Element: H % 960]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "124",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 28425,
+            "end": 55528,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2064384,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "index": "396",
+      "lifetime": {
+        "begin": 54754,
+        "end": 55528
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "133",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 30852,
+            "end": 55528,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Lane: QkvTerm, Element: H % 960]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "124",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 28425,
+            "end": 55528,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2064384,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Source and emitted graph lower the fixed four factors; actual native precision and whole head RMS/RoPE must pass separate NPU checks.",
+    "The q0 valid masks and semantic relabel proof assume finite inputs and source globalamax contract.",
+    "Scheduled register lifetime containment does not establish all hidden hardware hazards."
+  ]
+}

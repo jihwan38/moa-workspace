@@ -1,0 +1,84 @@
+{
+  "id": "E138",
+  "variant": "native-v1",
+  "base_commit": "334a7059a82252a310436c6d7e02f8ba577e7f51",
+  "actual_start_commit": "d6e6c62e6ae80c9b39b192c4a318a0230e79ee20",
+  "comparison_recipe": "baseline/e137.json",
+  "target_kernel": "sliding_project_qkv",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs",
+    "ops.rs": "src/ops.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/o-native-activation-resident/measured-build-e137-adoption.json",
+  "unchanged_kernels": [
+    "sliding_attention_output",
+    "decoder_feedforward"
+  ],
+  "scope": "Whole QKV ownership/representation replacement. Weighted four-E4 family and E137 consumer-local preparation; not a term/row/column parameter sweep.",
+  "prior_related": [
+    "E47 approximate two-E4 native QKV was inaccurate on tiny cancellation; no inherited precision claim. Fixed weighted four-term CPU audit plus new production boundary suite required.",
+    "E136 native weight-resident QKV passed standard/cancellation but regressed11.9973%; new input-resident consumer K4 ownership avoids its weightTRF and full-H terms. These removals are versus E136, not actual E137.",
+    "Current E137 QKV is BF16 activationTRF + E4lookup weightstream, fused channel scale, inverse-scale/row Switch. It has no full weightTRF.",
+    "C10 lookupBF16->MainTRF target rejection and E55 directSubSwitch->TRF bitmap failure are not used; typed input DM then plain Sub E4TRF is used.",
+    "C15 FP4 H960 blockscale60B alignment/source error does not directly apply to native E4 QKV channel scales; source rows3840B/K960 packet fragmentation remains a cost risk.",
+    "E137 successful packetTerm4 coeffMul->ReduceAccTree->K16 establishes primitive support only; QKV K4 rowmapping and preRMS range require new exact/NPU validation."
+  ],
+  "full_graph": "Public BF16 H -> unchanged preRMS H480 shards -> typed consumer input DM H960 shards per128(c,g) groups -> localamax/K4Max/floor/exponent pow2common scale -> four E4 cumulative-F32 residual quantizer -> shared Term4/H960 activationTRF and32BcoeffVRF -> original rowmajor Q/K/V E4 HBM tocompact perconsumerDM -> nativeLaneTerm4/K64packets -> F32coeffMul/packetTermReduce/K4Sum ->2F32 8Bcommits -> typedcanonical F32 head gather -> common inputscale thenchannel scale -> firstBF16 -> unchanged headRMS/RoPE/cache writes",
+  "coordinates": {
+    "input": "c<2,g<64,q<4,u<960: destination slice4g+q has x[960q+u], independently of c/g. Every group receives the identical actual preRMS H3840; K4Max gives identical common scale.",
+    "query": "row=2048c+32g+r (r<32), k=960q+u. HBM fullwire reshape[Dummy2,Group64,Qrow32,H], DM[Dummy2]/[Group64,H/960]/[Qrow32,H%960].",
+    "kv": "row=1024c+16g+r (r<16), samek; sourcefullwire reshape[Dummy2,Group64,KVrow16,H]. Shared TRF Cluster/Slice types match allthree nativeconsumers exactly.",
+    "reduce": "Term4 packets reduced aftercoefficientMul; K4sum preservesg and initializesq0 only. Each2F32 rowcommit8B. Queryraw has32rows128B perq0,KV16rows64B.",
+    "head": "Fullrawallocation Q->ClusterNs/4,Slice[Ns%4,Gs,Ds/32,1#4],ElementDs%32; KV->ClusterNs/4,Slice[Ns%4,Ds/16,1#4],ElementDs%16. Samewireorder andq0validmask; typedDMA gathers toCluster1#2,Slice[1#32,Ns],ElementGsDs/Q orDs/KV.",
+    "common_scale": "All128 finite producer groups equal. Fullscaleallocation[m2]/[Group64,1#4] relabel[64,1#4] preserves256physical slices/q0mask; typedDMA suppliescanonical8head scalars32B. No shrink/mask promotion orcluster_tile."
+  },
+  "registers": {
+    "activation_trf": "Four lanes xH960 E4=3840B/slice, shared acrossQ/K/V. Actual scheduler lifetime andreadindex required.",
+    "quant_vrf": "Each cumulative F32sum960*4=3840B; common32B. Even twosums overlapnominally7712B<8192; actualaddresses/lifetimes mustprove.",
+    "native_coeff": "Packed16B ->collect padded32B VRF; directconsecutive termlane coefficient index.",
+    "channel": "Canonical Q512 F32scale2048B,KV256F32scale1024B pluscommon32B; sharednativecoeff32B stillmaylive. Lifetimeverifiedfromactualschedule, capacitiesnotguarantee."
+  },
+  "costs": {
+    "logical_not_measured_bus": true,
+    "weight_hbm_unchanged_bytes": 31457280,
+    "baseline_fullH_BF16_replication_bytes": 3932160,
+    "consumer_BF16_bytes": 983040,
+    "fourterm_local_E4_bytes": 1966080,
+    "two_F32_sum_allocations_bytes_each": 1966080,
+    "max_and_four_quant_BF16_read_bytes": 4915200,
+    "native_activation_TRF_logical_load_bytes": 1966080,
+    "F32output_write_bytes": 32768,
+    "F32output_gather_read_bytes": 32768,
+    "F32output_gather_write_bytes": 32768,
+    "F32scale_pass_read_bytes": 32768,
+    "removed_from_actual_E137": "FullH BF16ringreplication, threeE4->BF16lookup/table preparations, twoBF16activationTRFloads, threeinversescaleSwitches andthreeBF16rowSwitches. Original30MiBweightHBM remains.",
+    "added": "Real quantization/amax/K4max/scalebroadcast/twoF32cumulative sums/coeffcreation+pack+replicate+load; local4termDM/TRF; threeK4 reductions; compactF32commit/gather andseparate common/channel pass. Existing baselinechannel scale isalreadyfused; separation isaddedcost.",
+    "risks": "960B weightchunks of3840Bsource rows can increase DMA packets/waits. Gather/quant/TRF lifetimes mayserialize threeprojections. No performance prediction from logicalbytes/staticduration."
+  },
+  "numerical_contract": {
+    "factors": [
+      1,
+      16,
+      4194304,
+      134217728
+    ],
+    "coefficients": [
+      1,
+      0.0625,
+      2.384185791015625e-07,
+      7.450580596923828e-09
+    ],
+    "reference_audit": "moa-dev/experiments/candidates/qkv-native-weight-resident/numerical",
+    "residual": "u=F32(x/s); ti=E4(F32(F32(u-F32cumulative restored prior terms)*factor_i)); nativeF32termdots weighted inF32,packetTermsum,K4sum,thencommons,channelweightscale,firstBF16.",
+    "scope": "Fourtermnormalized pointwisebound isnot arbitrarycancellation/head/fullmodelproof. Original publictolerances/inputs unchanged. Actual native order andQKVwhole validation mandatory."
+  },
+  "first_gate": "ExactwholeQKV then originalweightsourcecoverage anddestinationrow/K coords, all128inputgroupcoverage, globalK4max/scales, nativeTermK4F32order/8Bcommits/canonicalhead coordinates andactualTRF/VRFlifetimes. SourceAPI/axis/alignmenterrors get concretecause repair withfailedvariantlogs retained.",
+  "correctness_gate": "Early E137 before/candidate/after original3inputwhole. Root rebindsoriginal fullQKV2cancellation/cacheinputs toactualnewimage. Positivefreeze ->3independentalloc+extra6 andfiniteboundaryvalidation.",
+  "decisions": {
+    "adoption": "Pendingfullmeasuredgainandaccuracy; positivebelow5%stillboundedvalidation.",
+    "tuning": "No factor/column/stage sweep; repairconcrete source/cost mechanism only.",
+    "research": "CurrentwholeQKV nativeconsumer-ownershipcompare; negativeprototype doesnotexhaustfamily."
+  },
+  "adopted": false,
+  "hardware_status": "not_run"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "E138",
+  "variant": "native-v1",
+  "status": "whole_correctness_passed_regression_pending_cost_repair_selection",
+  "actual_start_commit": "d6e6c62e6ae80c9b39b192c4a318a0230e79ee20",
+  "source_base_commit": "334a7059a82252a310436c6d7e02f8ba577e7f51",
+  "comparison_recipe": "baseline/e137.json",
+  "whole_screen_job": 111168,
+  "whole_qkv": {
+    "candidate_qkv_cycles": 117376,
+    "control_before_qkv_cycles": 104068,
+    "control_after_qkv_cycles": 103860,
+    "bracketing_median": 103964.0,
+    "change_percent": 12.900619445192563
+  },
+  "standard_comparisons_passed": 45,
+  "candidate_distinct_standard_inputs": 3,
+  "actual_upload_matches": true,
+  "source_frozen": true,
+  "adopted": false,
+  "official_submission": false,
+  "decisions": {
+    "adoption": "Not promoted: one complete measurement is12.900619% slower. Separate raw/full boundary evidence remains root-owned and cannot convert a performance loss into gain.",
+    "further_tuning": "Stop arbitrary K/row/term sweep. Consider one measured dependency diagnosis only if it selects the supported preparation repair below. No recovery source implementation or NPU authorized by this record.",
+    "major_research": "Preserve working activation-resident/native K4 representation and all source evidence. One slower combination does not exhaust native QKV; actual readiness attribution is still absent."
+  },
+  "observed_compiler_intervals": {
+    "consumer_input_typed_dm": 12328,
+    "q_weight_ingress": 15950,
+    "each_kv_weight_ingress": 8250,
+    "scope": "Static schedule intervals only. Not physical stall attribution, guaranteed overlap or additive savings."
+  },
+  "bounded_diagnostic_question": "Does the typed H480->all512consumer H960 input DMA or quantizer completion hold native readiness after weights are ready, or do fragmented original-weight/H960 ingress and unchanged head tails set completion? Same-image whole-QKV original controls/info/trace can select a concrete next cost repair.",
+  "conditional_supported_repair": {
+    "condition": "Only if actual input distribution is a limiting readiness edge.",
+    "mechanism": "Typed BF16 seed DM [Dummy256/32,1#8,H/960] -> Main CustomBroadcast ring32 to[Dummy256/32,8,H/960] -> fullallocation QkvGroup64/H960 relabel -> identical consumer-local quantizer/native/head path.",
+    "logical_typed_input_before_bytes": 983040,
+    "logical_seed_bytes": 122880,
+    "added_switch_logical_read_bytes": 122880,
+    "added_switch_logical_write_bytes": 983040,
+    "preserved": "K4 weight layout,128 common-H3840 scales, four fixed terms,512slice localquant andTRF, channel/BF16/head/cache.",
+    "support": "E134 broadcast_down_quantized hassame4column ring32 shape withE5; currentE137 QKVcontrol hasBF16Custom32. Their exactcombination stillrequiresactualcompile/descriptor/NPU.",
+    "scope": "Not a predictedgain. It trades typedDMA bytes for actualMainSwitch work and extraDMwrite; sourceorder alone isnotadependency repair."
+  },
+  "boundary_suite": "Root writes actual production raw9/full2 records under boundary-suite/.",
+  "remaining_unknowns": [
+    "No internal NPU intervals for this newimage yet.",
+    "Changed K4/Termaccumulation andpreRMS numerical range require root raw/full suite; standard3 alone notgeneralproof."
+  ]
+}

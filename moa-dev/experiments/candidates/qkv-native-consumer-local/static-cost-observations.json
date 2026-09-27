@@ -1,0 +1,275 @@
+{
+  "scope": "Compiler intervals and source identities only. No runtime attribution or additive predicted savings.",
+  "schedule": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v1/schedule.json",
+    "bytes": 127960,
+    "sha256": "dd7770265f63701a0495a2da113819ce70e6d824e315fdc6c0de268b7f493ccf"
+  },
+  "static_cycles": 62829,
+  "operations": [
+    {
+      "index": "64",
+      "tpe": "DmaLoad",
+      "lifetime": {
+        "begin": 2443,
+        "end": 10693
+      },
+      "description": "--> src/device/sliding/projection.rs:268:89\n\nweight.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        13
+      ],
+      "output_tensors": [
+        63
+      ]
+    },
+    {
+      "index": "100",
+      "tpe": "DmaStos",
+      "lifetime": {
+        "begin": 10693,
+        "end": 23021
+      },
+      "description": "--> src/device/sliding/projection.rs:197:67\n\nx.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        81
+      ],
+      "output_tensors": [
+        83
+      ]
+    },
+    {
+      "index": "108",
+      "tpe": "DmaLoad",
+      "lifetime": {
+        "begin": 23021,
+        "end": 23511
+      },
+      "description": "--> src/device/sliding/projection.rs:290:78\n\nweight_scale.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        23
+      ],
+      "output_tensors": [
+        85
+      ]
+    },
+    {
+      "index": "113",
+      "tpe": "DmaLoad",
+      "lifetime": {
+        "begin": 23511,
+        "end": 24046
+      },
+      "description": "--> src/device/sliding/projection.rs:243:82\n\nweight_scale.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        17
+      ],
+      "output_tensors": [
+        87
+      ]
+    },
+    {
+      "index": "135",
+      "tpe": "DmaStos",
+      "lifetime": {
+        "begin": 24246,
+        "end": 24809
+      },
+      "description": "--> src/device/sliding/projection.rs:56:74\n\nscale.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        89
+      ],
+      "output_tensors": [
+        93
+      ]
+    },
+    {
+      "index": "191",
+      "tpe": "DmaStos",
+      "lifetime": {
+        "begin": 26719,
+        "end": 27282
+      },
+      "description": "--> src/device/sliding/projection.rs:178:52\n\ncoefficients.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        114
+      ],
+      "output_tensors": [
+        116
+      ]
+    },
+    {
+      "index": "200",
+      "tpe": "DmaLoad",
+      "lifetime": {
+        "begin": 27282,
+        "end": 43232
+      },
+      "description": "--> src/device/sliding/projection.rs:221:92\n\nweight.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        0
+      ],
+      "output_tensors": [
+        121
+      ]
+    },
+    {
+      "index": "239",
+      "tpe": "Sub",
+      "lifetime": {
+        "begin": 30852,
+        "end": 31595
+      },
+      "description": "--> src/device/sliding/projection.rs:199:92\n\ndevice.sub\n.begin(packed.view()).fetch::<m![QkvTerm, H / 32 % 30], m![H % 32]>()\n.collect::<m![QkvTerm, H / 32 % 30], m![H % 32]>().to_trf()",
+      "input_tensors": [
+        132
+      ],
+      "output_tensors": [
+        133
+      ]
+    },
+    {
+      "index": "243",
+      "tpe": "Main",
+      "lifetime": {
+        "begin": 31595,
+        "end": 32369
+      },
+      "description": "--> src/device/sliding/projection.rs:269:71\n\ndevice.main\n.begin(weight.view()).fetch::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()\n.collect::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()\n.contract_outer::<m![QkvKvRow, H / 64 % 15], m![H % 64], _, _, _>(x)\n.contract_packet::<m![1]>().contract_time::<m![QkvKvRow]>()\n.contract_lane::<m![QkvKvRow], m![QkvTerm # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![QkvTerm]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)\n.vector_intra_slice_reduce::<QkvTerm, m![QkvKvRow], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<QkvRows, m![QkvKvRow]>(InterSliceReduceOpF32::Add)\n.vector_final().transpose::<m![QkvKvRow / 2], m![QkvKvRow % 2 # 8]>()\n.commit_trim::<m![QkvKvRow % 2]>().commit()",
+      "input_tensors": [
+        63,
+        133,
+        124
+      ],
+      "output_tensors": [
+        134
+      ]
+    },
+    {
+      "index": "258",
+      "tpe": "Main",
+      "lifetime": {
+        "begin": 43232,
+        "end": 44486
+      },
+      "description": "--> src/device/sliding/projection.rs:222:74\n\ndevice.main\n.begin(weight.view()).fetch::<m![QkvQueryRow, H / 32 % 30], m![H % 32]>()\n.collect::<m![QkvQueryRow, H / 32 % 30], m![H % 32]>()\n.contract_outer::<m![QkvQueryRow, H / 64 % 15], m![H % 64], _, _, _>(x)\n.contract_packet::<m![1]>().contract_time::<m![QkvQueryRow]>()\n.contract_lane::<m![QkvQueryRow], m![QkvTerm # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![QkvTerm]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)\n.vector_intra_slice_reduce::<QkvTerm, m![QkvQueryRow], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<QkvRows, m![QkvQueryRow]>(InterSliceReduceOpF32::Add)\n.vector_final().transpose::<m![QkvQueryRow / 2], m![QkvQueryRow % 2 # 8]>()\n.commit_trim::<m![QkvQueryRow % 2]>().commit()",
+      "input_tensors": [
+        121,
+        133,
+        124
+      ],
+      "output_tensors": [
+        137
+      ]
+    },
+    {
+      "index": "262",
+      "tpe": "DmaStos",
+      "lifetime": {
+        "begin": 43311,
+        "end": 43815
+      },
+      "description": "--> src/device/sliding/projection.rs:286:68\n\nraw.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        136,
+        56
+      ],
+      "output_tensors": [
+        138
+      ]
+    },
+    {
+      "index": "272",
+      "tpe": "DmaStos",
+      "lifetime": {
+        "begin": 44177,
+        "end": 44485
+      },
+      "description": "--> src/device/sliding/projection.rs:178:14\n\nshared_scale.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        91
+      ],
+      "output_tensors": [
+        142
+      ]
+    },
+    {
+      "index": "283",
+      "tpe": "DmaStos",
+      "lifetime": {
+        "begin": 44504,
+        "end": 45008
+      },
+      "description": "--> src/device/sliding/projection.rs:239:72\n\nraw.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        144,
+        72
+      ],
+      "output_tensors": [
+        145
+      ]
+    },
+    {
+      "index": "314",
+      "tpe": "DmaLoad",
+      "lifetime": {
+        "begin": 46504,
+        "end": 54754
+      },
+      "description": "--> src/device/sliding/projection.rs:268:89\n\nweight.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        6
+      ],
+      "output_tensors": [
+        155
+      ]
+    },
+    {
+      "index": "396",
+      "tpe": "Main",
+      "lifetime": {
+        "begin": 54754,
+        "end": 55528
+      },
+      "description": "--> src/device/sliding/projection.rs:269:71\n\ndevice.main\n.begin(weight.view()).fetch::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()\n.collect::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()\n.contract_outer::<m![QkvKvRow, H / 64 % 15], m![H % 64], _, _, _>(x)\n.contract_packet::<m![1]>().contract_time::<m![QkvKvRow]>()\n.contract_lane::<m![QkvKvRow], m![QkvTerm # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![QkvTerm]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)\n.vector_intra_slice_reduce::<QkvTerm, m![QkvKvRow], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<QkvRows, m![QkvKvRow]>(InterSliceReduceOpF32::Add)\n.vector_final().transpose::<m![QkvKvRow / 2], m![QkvKvRow % 2 # 8]>()\n.commit_trim::<m![QkvKvRow % 2]>().commit()",
+      "input_tensors": [
+        155,
+        133,
+        124
+      ],
+      "output_tensors": [
+        176
+      ]
+    },
+    {
+      "index": "397",
+      "tpe": "DmaLoad",
+      "lifetime": {
+        "begin": 54754,
+        "end": 55244
+      },
+      "description": "--> src/device/sliding/projection.rs:290:78\n\nweight_scale.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        19
+      ],
+      "output_tensors": [
+        177
+      ]
+    },
+    {
+      "index": "405",
+      "tpe": "DmaStos",
+      "lifetime": {
+        "begin": 55528,
+        "end": 56032
+      },
+      "description": "--> src/device/sliding/projection.rs:286:68\n\nraw.to_dm(&mut device.tdma)",
+      "input_tensors": [
+        179,
+        78
+      ],
+      "output_tensors": [
+        180
+      ]
+    }
+  ]
+}
