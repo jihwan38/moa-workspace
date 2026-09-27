@@ -1,0 +1,159 @@
+{
+  "label": "e134-weighted-v1-down-feasibility",
+  "diagnostic_only": true,
+  "host_built": false,
+  "npu_submitted": false,
+  "whole_graph_gate_required": true,
+  "production_source": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/weighted-v1/mlp.rs",
+    "bytes": 38015,
+    "sha256": "5d21375e267f99cb6b73ab8feb8f7cac0632ffeedce26aeb4308d73613cc2d0b"
+  },
+  "source_build": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/build-e134-weighted-v1-repro.json",
+    "bytes": 17265,
+    "sha256": "fa2a781b67a188b17dc9daacbcff03a022d5fb1495610bdcac7c266dd903ec15"
+  },
+  "recipe": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/recipe.json",
+    "bytes": 1863,
+    "sha256": "fbe0ce2f361cca41befe74fc2662c2ae178061b7e074a3944e8bd94c43fb8cf7"
+  },
+  "source_inputs": {
+    "src/lib.rs": {
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "src/stream_probe.rs": {
+      "bytes": 373,
+      "sha256": "5ac89cc41ba4e0cce5e1937da68a73587448b2a66409c65995614f7f1be03951"
+    },
+    "src/device/mlp.rs": {
+      "bytes": 38770,
+      "sha256": "7e79bb1859d3fb87119c76bb64a054ee667badf34cdab7afa75b4debdbfbc448"
+    },
+    "src/bin/probe_stream.rs": {
+      "bytes": 8084,
+      "sha256": "4dae8dfa4207bbe721472f9fb497dd7555167f517c46ed5fabf88ea618d3bd8f"
+    },
+    "src/axes.rs": {
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "src/device/layout.rs": {
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    },
+    "Cargo.toml": {
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "Cargo.lock": {
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "rust-toolchain.toml": {
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    }
+  },
+  "target_dir": "/tmp/moa-m03-validation-probe/target",
+  "commands": [
+    [
+      "docker",
+      "exec",
+      "--workdir",
+      "/tmp/moa-e134-down-feasibility",
+      "-e",
+      "CARGO_HOME=/home/moa/.cargo",
+      "-e",
+      "CARGO_NET_OFFLINE=true",
+      "-e",
+      "CARGO_TARGET_DIR=/tmp/moa-m03-validation-probe/target",
+      "-e",
+      "FURIOSA_OPT_OUT_DIR=/tmp/moa-e134-down-feasibility/kernels",
+      "moa2026-dev",
+      "cargo",
+      "furiosa-opt",
+      "compile",
+      "stream_probe::down",
+      "--exact",
+      "--dump-schedule",
+      "schedule.json",
+      "--dump-graph",
+      "graph.json"
+    ]
+  ],
+  "source_full_file_byte_identical_prefix": true,
+  "scope": "Exact-only standalone feasibility; does not waive failed whole-kernel graph/LIR gate or establish arithmetic/performance.",
+  "container_sources_verified": true,
+  "exact_compile_exit_code": 1,
+  "status": "exact_compile_failed",
+  "evidence": {
+    "schedule.json": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/schedule.json",
+      "bytes": 77664,
+      "sha256": "1c8f8eeb38b07a4a0e678eceb3b51e039d361e5bab9adbade3ca633968a4bd04"
+    },
+    "compile.log": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/compile.log",
+      "bytes": 3352,
+      "sha256": "4d8697c1fa28e2e66459e6073ca6b297e000e909bea58daf924997188dc87199"
+    },
+    "builder-at-compile.py": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/builder-at-compile.py",
+      "bytes": 4653,
+      "sha256": "e0dda6b80e65b34a58aaf51f827490c073c3fc41055eb2dbfcbd6e5d8bdb66ac"
+    },
+    "graph.json": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/graph.json",
+      "bytes": 154136,
+      "sha256": "db9ddc3cb2b7455efc5053ed4901fb669ceedd8970cd41c07217507be54388ca"
+    },
+    "crate/Cargo.lock": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/crate/Cargo.lock",
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "crate/rust-toolchain.toml": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/crate/rust-toolchain.toml",
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    },
+    "crate/Cargo.toml": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/crate/Cargo.toml",
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "crate/src/lib.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/crate/src/lib.rs",
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "crate/src/stream_probe.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/crate/src/stream_probe.rs",
+      "bytes": 373,
+      "sha256": "5ac89cc41ba4e0cce5e1937da68a73587448b2a66409c65995614f7f1be03951"
+    },
+    "crate/src/axes.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/crate/src/axes.rs",
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "crate/src/device/layout.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/crate/src/device/layout.rs",
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    },
+    "crate/src/device/mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/crate/src/device/mlp.rs",
+      "bytes": 38770,
+      "sha256": "7e79bb1859d3fb87119c76bb64a054ee667badf34cdab7afa75b4debdbfbc448"
+    },
+    "crate/src/bin/probe_stream.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/feasibility/crate/src/bin/probe_stream.rs",
+      "bytes": 8084,
+      "sha256": "4dae8dfa4207bbe721472f9fb497dd7555167f517c46ed5fabf88ea618d3bd8f"
+    }
+  }
+}

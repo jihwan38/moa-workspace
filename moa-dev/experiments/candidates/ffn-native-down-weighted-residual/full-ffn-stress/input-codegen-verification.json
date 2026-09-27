@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "valid": true,
+  "cpu_only": true,
+  "npu_executed": false,
+  "source_files": {
+    "full_ffn_stress.rs": {
+      "path": "full_ffn_stress.rs",
+      "bytes": 4724,
+      "sha256": "62e0eda54880c7adc412fe06c783f269544bfe4bc601c8f16280bb2d1b720052"
+    },
+    "reference.json": {
+      "path": "reference.json",
+      "bytes": 6925,
+      "sha256": "2f3195602bc8ec87aca9ae14243fbb1d8b426b16aefcb3234eceee5f3b778019"
+    },
+    "expected-bf16.bin": {
+      "path": "expected-bf16.bin",
+      "bytes": 7680,
+      "sha256": "d2930beb2df2274c5b316865d4563e4babe550c1ef930cf2bbcd02cca79f3a74"
+    },
+    "fnv64.c": {
+      "path": "fnv64.c",
+      "bytes": 247,
+      "sha256": "6218ab9a61f15903a3bbd400b0ac66a4e0ed8a638100f47cae5c0ff091db8a7e"
+    },
+    "verify_input_codegen.py": {
+      "path": "verify_input_codegen.py",
+      "bytes": 6851,
+      "sha256": "632dba6d3246ec7f520c443a610e09a16e4b9004101a6a49e6c60eea709d5ce4"
+    }
+  },
+  "tensor_byte_checks": {
+    "residual": {
+      "bytes": 7680,
+      "sha256": "38d4647106b72e340d44f2e8c8f68c78d4be951acf3a6c510ada6f4717f102b2",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "pre_ff_rms_weight": {
+      "bytes": 7680,
+      "sha256": "38d4647106b72e340d44f2e8c8f68c78d4be951acf3a6c510ada6f4717f102b2",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "post_ff_rms_weight": {
+      "bytes": 7680,
+      "sha256": "38d4647106b72e340d44f2e8c8f68c78d4be951acf3a6c510ada6f4717f102b2",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "up_weight_packed": {
+      "bytes": 29491200,
+      "sha256": "71c48c3b71b614b5b08c411e304d9fec7a282ebd580ca3d4a5ce85d6b9884199",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "gate_weight_packed": {
+      "bytes": 29491200,
+      "sha256": "838756bd9e3e5d321f2948776038a9b57adbdb2e9fbab116fde1712678106d1d",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "down_weight_packed": {
+      "bytes": 29491200,
+      "sha256": "6ec1db080cbf8ff2f5154b43cf2f8468c856dd5dac2d69dd5f09d7d2f92c3336",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "up_weight_scale": {
+      "bytes": 3686400,
+      "sha256": "0842ce06bfbf41c84a561ee4bfdffc48c0156b3ac6a5ae60574ed7cff5e78ec7",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "gate_weight_scale": {
+      "bytes": 3686400,
+      "sha256": "0842ce06bfbf41c84a561ee4bfdffc48c0156b3ac6a5ae60574ed7cff5e78ec7",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "down_weight_scale": {
+      "bytes": 3686400,
+      "sha256": "1653d98d39c4127d8ffa50e5b416614bfe2192886238e074ef7849d518922edd",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "up_global_scale": {
+      "bytes": 4,
+      "sha256": "e696a8ec6b7f294aa56059125664931f12997987bb52fffefc209d35492adc3c",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "gate_global_scale": {
+      "bytes": 4,
+      "sha256": "e696a8ec6b7f294aa56059125664931f12997987bb52fffefc209d35492adc3c",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "down_global_scale": {
+      "bytes": 4,
+      "sha256": "e696a8ec6b7f294aa56059125664931f12997987bb52fffefc209d35492adc3c",
+      "matches_actual_torch_reference_bytes": true
+    },
+    "layer_scalar": {
+      "bytes": 16,
+      "sha256": "89b6d029755de6d70c03e4c7530e905b8302186a6e0328e7d77d6d6958d5e7a2",
+      "matches_actual_torch_reference_bytes": true
+    }
+  },
+  "original_tensor_count": 13,
+  "all_reconstructed_inputs_match_torch_reference": true,
+  "expected_host_fnv64": {
+    "up": "7cc5b3df0410900d",
+    "gate": "3845ea07dc062539",
+    "down": "96568eed1d9a2325",
+    "local": "a60bacb398262325",
+    "expected": "5b64d68f7e4b5d25"
+  },
+  "expected_host_input_line": "FULL_STRESS_INPUT up=7cc5b3df0410900d gate=3845ea07dc062539 down=96568eed1d9a2325 local=a60bacb398262325 expected=5b64d68f7e4b5d25",
+  "actual_prepared_host_logs": {
+    "e128": {
+      "path": "evidence/e128/prepare.log",
+      "bytes": 152,
+      "sha256": "649b2abcd92860e34314be96bd266f71c153152fc3e0f7f9213963be0bfa8c05",
+      "matches_independent_torch_bound_fnv": true,
+      "input_line": "FULL_STRESS_INPUT up=7cc5b3df0410900d gate=3845ea07dc062539 down=96568eed1d9a2325 local=a60bacb398262325 expected=5b64d68f7e4b5d25"
+    },
+    "e133": {
+      "path": "evidence/e133/prepare.log",
+      "bytes": 152,
+      "sha256": "649b2abcd92860e34314be96bd266f71c153152fc3e0f7f9213963be0bfa8c05",
+      "matches_independent_torch_bound_fnv": true,
+      "input_line": "FULL_STRESS_INPUT up=7cc5b3df0410900d gate=3845ea07dc062539 down=96568eed1d9a2325 local=a60bacb398262325 expected=5b64d68f7e4b5d25"
+    },
+    "e134": {
+      "path": "evidence/e134/prepare.log",
+      "bytes": 152,
+      "sha256": "649b2abcd92860e34314be96bd266f71c153152fc3e0f7f9213963be0bfa8c05",
+      "matches_independent_torch_bound_fnv": true,
+      "input_line": "FULL_STRESS_INPUT up=7cc5b3df0410900d gate=3845ea07dc062539 down=96568eed1d9a2325 local=a60bacb398262325 expected=5b64d68f7e4b5d25"
+    }
+  },
+  "actual_prepare_checksums_all_match": true,
+  "acceptance": {
+    "atol": 0.01,
+    "rtol": 0.01,
+    "all_output_elements": 3840,
+    "nonfinite_rejected": true,
+    "expected_from_actual_official_torch": true,
+    "process_exit_alone_is_acceptance": false,
+    "note": "The executable prints diagnostics without failing the E133 process; run.py separately requires control and repair acceptance. These are additional full-FFN stress inputs, not official PRNG inputs."
+  },
+  "observation_limits": "Packed up/gate/down, decoded local-scale F32 bytes and expected are printed by the actual host and can be compared with this expected line. Remaining constant tensors are validated by frozen source review and independent reconstruction; the host does not print their runtime hashes.",
+  "method": "Independent stdlib packed-byte constructor for the frozen Rust expressions, SHA256 equality with actual dense official Torch generator inputs, and CPU C FNV1a equality with the Rust printed-checksum algorithm."
+}

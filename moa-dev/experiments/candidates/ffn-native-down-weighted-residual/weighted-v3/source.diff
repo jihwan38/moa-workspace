@@ -1,0 +1,29 @@
+--- weighted-v2/mlp.rs
++++ weighted-v3/mlp.rs
+@@ -386,7 +386,7 @@
+     // Per-cluster coefficients [s, s/16, s/256] restore weighted native terms.
+     // Explicit 32B commits avoid typed DMA expansion into padded term views.
+     let mut term_scales: DmTensor<f32, Chip, UpGateCluster, Slice, m![FfnTerm, 1 # 8]> = DmTensor::new();
+-    device.sub.begin(scale.view())
++    device.main.begin(scale.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+         .vector_narrow_trim::<m![1 # 4]>()
+@@ -394,7 +394,7 @@
+         .vector_widen_pad::<m![1 # 8]>().vector_final()
+         .commit_trim::<m![1 # 8]>()
+         .commit_view(term_scales.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, 1 # 8]>(0));
+-    device.sub.begin(scale.view())
++    device.main.begin(scale.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+         .vector_narrow_trim::<m![1 # 4]>()
+@@ -402,7 +402,7 @@
+         .vector_widen_pad::<m![1 # 8]>().vector_final()
+         .commit_trim::<m![1 # 8]>()
+         .commit_view(term_scales.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, 1 # 8]>(1));
+-    device.sub.begin(scale.view())
++    device.main.begin(scale.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+         .vector_narrow_trim::<m![1 # 4]>()

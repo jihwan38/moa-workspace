@@ -1,0 +1,110 @@
+warning: type alias `Replicated` is never used
+ --> src/device/layout.rs:9:17
+  |
+9 | pub(crate) type Replicated = m![Dummy256];
+  |                 ^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `broadcast_hidden` is never used
+  --> src/device/layout.rs:11:15
+   |
+11 | pub(crate) fn broadcast_hidden(
+   |               ^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_full_heads` is never used
+  --> src/device/layout.rs:43:15
+   |
+43 | pub(crate) fn broadcast_full_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `INVSQRT2` is never used
+  --> src/device/mlp.rs:21:7
+   |
+21 | const INVSQRT2: f32 = 0.70710678118f32;
+   |       ^^^^^^^^
+
+warning: type alias `UpGateSlices` is never used
+  --> src/device/mlp.rs:32:17
+   |
+32 | pub(crate) type UpGateSlices = m![FfnSlice];
+   |                 ^^^^^^^^^^^^
+
+warning: function `project_rows_with_scale_contraction` is never used
+  --> src/device/mlp.rs:36:4
+   |
+36 | fn project_rows_with_scale_contraction(
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `project_up_and_gate` is never used
+  --> src/device/mlp.rs:70:15
+   |
+70 | pub(crate) fn project_up_and_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `cast_gathered_rows` is never used
+   --> src/device/mlp.rs:139:4
+    |
+139 | fn cast_gathered_rows(device: &mut Device, x: &DmTensor<f32, Chip, UpGateCluster, LocalRows, m![TileL % 120]>)
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_geglu_scale` is never used
+   --> src/device/mlp.rs:146:4
+    |
+146 | fn broadcast_geglu_scale(
+    |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `geglu` is never used
+   --> src/device/mlp.rs:169:15
+    |
+169 | pub(crate) fn geglu(
+    |               ^^^^^
+
+warning: function `feedforward` is never used
+   --> src/device/mlp.rs:506:15
+    |
+506 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `feedforward_sharded` is never used
+   --> src/device/mlp.rs:523:15
+    |
+523 | pub(crate) fn feedforward_sharded(
+    |               ^^^^^^^^^^^^^^^^^^^
+
+warning: type alias `FfnQuantSlices` is never used
+   --> src/device/mlp.rs:581:6
+    |
+581 | type FfnQuantSlices = m![1 # 32, H / 480];
+    |      ^^^^^^^^^^^^^^
+
+warning: function `broadcast_ffn_quantized` is never used
+   --> src/device/mlp.rs:583:4
+    |
+583 | fn broadcast_ffn_quantized(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `prepare_ffn_fp8_split` is never used
+   --> src/device/mlp.rs:598:15
+    |
+598 | pub(crate) fn prepare_ffn_fp8_split(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [1/1] stream_probe::down
+error: furiosa-opt: stream_probe::down: lir: internal compiler error: no entry found for key at crates/npu-isa/src/sfr/renegade/sfr_impl.rs:868:33
+ --> src/stream_probe.rs:3:1
+  |
+3 | #[device(chip = 1)]
+  | ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this is a bug; please report it
+  = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+    Finished 1 compiled
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 16 warnings emitted

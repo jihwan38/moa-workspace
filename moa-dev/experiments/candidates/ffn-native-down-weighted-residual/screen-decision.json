@@ -1,0 +1,72 @@
+{
+  "id": "E134",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "comparison_recipe": "baseline/e128.json",
+  "candidate_build_label": "e134-weighted-v3",
+  "job": 109952,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_ffn_cycles": 314224,
+  "control_before_ffn_cycles": 329532,
+  "control_after_ffn_cycles": 328492,
+  "bracketing_median": 329012.0,
+  "change_percent": -4.494668887456987,
+  "candidate_cycles_by_run": [
+    320241,
+    313643,
+    314224
+  ],
+  "static_candidate_cycles": 153359,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/graph-verification-e134-weighted-v3.json",
+      "bytes": 75194,
+      "sha256": "afb196eb36a3261cb7a646d002fcdf530f523fa7fa1554d0fa574a5a14fd8e8e"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/e134-weighted-screen-job-109952-results.json",
+    "bytes": 5355,
+    "sha256": "53549e2caa4cfdd712ecaf84568817824050d735e353f46b62750fd9571c64d4"
+  },
+  "recipe_costs": {
+    "logical_not_bus_telemetry": true,
+    "removed_down_fp8_weight_write_bytes": 58982400,
+    "removed_down_fp8_weight_read_bytes": 58982400,
+    "retained_down_f32_partial_write_bytes": 14745600,
+    "retained_down_f32_partial_read_bytes": 14745600,
+    "old_replicated_activation_bytes": 1966080,
+    "new_replicated_activation_bytes": 2949120,
+    "added": "Compared with E133: Mul16 in lo producer, Mul1/16 in decoded sum, Mul256 in third producer;3x32B coefficient assembly and96Bvs32B broadcast/VRF; native-to-VE three term results and pertermrestore+VEreduce instead of DPEtermsum. Full decoded-weight DM remains absent; no larger F32partial or weight assembly.",
+    "removed": "Full down E4M3 weight DM materialization and later E4-to-BF16 table lookup. Packed HBM/DM source retained.",
+    "term_assembly": "Three explicit Sub copies,480B x16 live slices x2clusters perterm=46080 logical bytes total per read/write; no large weight assembly. This replaces unsafe expanded DMA descriptors.",
+    "context_repair": "Weighted decoded sum and3scalar coefficient producer streams now Main. No removed work or speedup claimed; complete schedules/runtime must include added dependency cost."
+  },
+  "scope": "Complete weighted post-GeGLU E5/native down: residuals amplified16/256, term-specific s/s16/s256 restoration before F32 term sum, actual quantization/broadcast and retained F32 block partials, with original E128 up/gate and final epilogue. Logical payloads are not measured bus traffic or additive latency.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "actual weighted E5 residual quantizer, s/s16/s256 term restoration before F32 term reduction, all eight prior down cases including underflow and the range-based CPU construction boundary"
+      ]
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does weighted native down preserve the E133 materialization saving after paying residual amplification,96B term-scale VRF, native term-preserving output and F32 weighted term reduction? This is a coupled numerical repair, not a new tile family; judge complete FFN against E128 and validate the known underflow boundary anew."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

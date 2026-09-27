@@ -1,0 +1,29 @@
+{
+  "label": "e134-down-oracle-v1",
+  "source_build": "build-e134-weighted-v1-repro.json",
+  "production_source": "weighted-v1/mlp.rs",
+  "production_source_sha256": "5d21375e267f99cb6b73ab8feb8f7cac0632ffeedce26aeb4308d73613cc2d0b",
+  "diagnostic_only": true,
+  "performance_excluded": true,
+  "status_at_preparation": "not_compiled_not_run",
+  "case_count": 9,
+  "required_exact_cases": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "prior_e133_underflow_case": 4,
+  "cpu_construction_boundary_case": 8,
+  "reference": "Original BF16 activation, independent FP4 mathematical code values and original FP8 blockscales; F64 reference asserts exact F32 representability after every block dot/scale and column/cluster sum. No E5 transformed oracle.",
+  "acceptance": "All nine cases require exact BF16 output, signed zero equivalent, finite values and unchanged standard compare atol0.01/rtol0.01. The prior adversarial case4 has no exception in this repaired candidate.",
+  "case8": "Lhalf anchors1024/.5, remaining tiny2^-22, blockscale15. Hfirst1920 rows select only cluster0tiny withFP4=6; Hlast1920 selectcluster1tiny; anchorsweight0. RawBF16reference0.1650390625.",
+  "scope": "Tests actual new down preparation/helper/finish_down. Case8 is the raw-down boundary extracted from the CPU range-based full-FFN construction, not an NPU execution of that complete FFN or an observed PRNG seed. No generic BF16/exhaustive/model-wide guarantee.",
+  "provenance": "Exactproduction prefix preserved, wrapper appended, original compare body copied verbatim and checked against productionhost. Actual exact/host images and actual uploaded archive must match.",
+  "control_of_run": "Root authorized oracle exact+host+oneArena after new graphgate, independently of first wholeperformance because this candidate repairs a known numerical defect."
+}
