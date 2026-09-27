@@ -1,0 +1,501 @@
+{
+  "label": "e135-direct-probe-v1",
+  "diagnostic_only": true,
+  "performance_excluded": true,
+  "official_submission": false,
+  "valid": true,
+  "source_build_path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/build-e135-direct-six-row-v1-repro.json",
+  "source_build_snapshot": {
+    "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/source-build-at-probe.json",
+    "bytes": 17449,
+    "sha256": "4174e94df45bde933b75193eca5e48a85e9510247f61a24376e46115957720ce"
+  },
+  "source_base_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "production_source": {
+    "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/direct-six-row-v1/mlp.rs",
+    "bytes": 37477,
+    "sha256": "be9bb5a3cd370f11220300f41239370de25e2a8aec52081568f29c345c7fb9f0"
+  },
+  "production_mlp_prefix": {
+    "bytes": 37477,
+    "sha256": "be9bb5a3cd370f11220300f41239370de25e2a8aec52081568f29c345c7fb9f0"
+  },
+  "production_source_full_file_byte_identical_prefix": true,
+  "diagnostic_append": {
+    "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/probe_module.rs",
+    "bytes": 1522,
+    "sha256": "a1c8d13681b779d8669a76b84b2af5820649e3c1a1be4e5f5c1d55b8a22fb534"
+  },
+  "source_inputs": {
+    "src/lib.rs": {
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "src/stream_probe.rs": {
+      "bytes": 604,
+      "sha256": "aee1971324a9d863d0855c54d721c0213dbcc4d9b4efa52a12ef9d8cecc8dc95"
+    },
+    "src/device/mlp.rs": {
+      "bytes": 38999,
+      "sha256": "ffd901bdecf0bc8143ceea498b9813a4dd4f4fe00e7459d3d62f618db275c6f1"
+    },
+    "src/bin/probe_stream.rs": {
+      "bytes": 7642,
+      "sha256": "14b86cb0078cd0146879a0d4fa39a4091eec9977c5730404773c300dc53f40d1"
+    },
+    "src/axes.rs": {
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "src/device/layout.rs": {
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    },
+    "Cargo.toml": {
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "Cargo.lock": {
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "rust-toolchain.toml": {
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    }
+  },
+  "recipe": {
+    "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/recipe.json",
+    "bytes": 2684,
+    "sha256": "ce334dc369062fae1c0eee7a76bde23cf60cdf06137db7ac38b66f3cf54ccad7"
+  },
+  "builder": {
+    "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/builder-at-compile.py",
+    "bytes": 13626,
+    "sha256": "1df1215524fb1d64054b97c20224cee099160b8f0f7191b6755d714df250a7a9"
+  },
+  "target_dir": "/tmp/moa-m03-validation-probe/target",
+  "commands": [
+    [
+      "/usr/bin/python3",
+      "/home/jihwan38/moa-independent-direct-fused/moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/quantizer_audit.py",
+      "--out",
+      "/home/jihwan38/moa-independent-direct-fused/moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/e135-direct-probe-v1-quantizer-audit.json"
+    ],
+    [
+      "docker",
+      "exec",
+      "moa2026-dev",
+      "mkdir",
+      "-p",
+      "/tmp/moa-e135-validation-probe/e135-direct-probe-v1"
+    ],
+    [
+      "docker",
+      "cp",
+      "/home/jihwan38/moa-independent-direct-fused/moa-dev/experiments/artifacts/ffn-independent-direct-fused/e135-direct-probe-v1/crate/.",
+      "moa2026-dev:/tmp/moa-e135-validation-probe/e135-direct-probe-v1"
+    ],
+    [
+      "docker",
+      "exec",
+      "--workdir",
+      "/tmp/moa-e135-validation-probe/e135-direct-probe-v1",
+      "-e",
+      "CARGO_HOME=/home/moa/.cargo",
+      "-e",
+      "CARGO_NET_OFFLINE=true",
+      "-e",
+      "CARGO_TARGET_DIR=/tmp/moa-m03-validation-probe/target",
+      "-e",
+      "FURIOSA_OPT_OUT_DIR=/tmp/moa-e135-validation-probe/e135-direct-probe-v1/kernels",
+      "moa2026-dev",
+      "cargo",
+      "furiosa-opt",
+      "compile",
+      "stream_probe::upgate",
+      "--exact",
+      "--dump-schedule",
+      "schedule.json",
+      "--dump-graph",
+      "graph.json"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e135-validation-probe/e135-direct-probe-v1/schedule.json",
+      "/home/jihwan38/moa-independent-direct-fused/moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/schedule.json"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e135-validation-probe/e135-direct-probe-v1/graph.json",
+      "/home/jihwan38/moa-independent-direct-fused/moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/graph.json"
+    ],
+    [
+      "docker",
+      "exec",
+      "--workdir",
+      "/tmp/moa-e135-validation-probe/e135-direct-probe-v1",
+      "-e",
+      "CARGO_HOME=/home/moa/.cargo",
+      "-e",
+      "CARGO_NET_OFFLINE=true",
+      "-e",
+      "CARGO_TARGET_DIR=/tmp/moa-m03-validation-probe/target",
+      "-e",
+      "FURIOSA_OPT_OUT_DIR=/tmp/moa-e135-validation-probe/e135-direct-probe-v1/kernels",
+      "moa2026-dev",
+      "cargo",
+      "furiosa-opt",
+      "build",
+      "--release",
+      "--locked",
+      "--bin",
+      "probe_stream"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-m03-validation-probe/target/release/probe_stream",
+      "/home/jihwan38/moa-independent-direct-fused/moa-dev/experiments/artifacts/ffn-independent-direct-fused/e135-direct-probe-v1/package/probe_stream"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e135-validation-probe/e135-direct-probe-v1/kernels",
+      "/home/jihwan38/moa-independent-direct-fused/moa-dev/experiments/artifacts/ffn-independent-direct-fused/e135-direct-probe-v1/kernels"
+    ],
+    [
+      "docker",
+      "cp",
+      "/home/jihwan38/moa-independent-direct-fused/moa-dev/experiments/artifacts/ffn-independent-direct-fused/e135-direct-probe-v1/package",
+      "moa2026-dev:/tmp/moa-e135-validation-probe/e135-direct-probe-v1/package"
+    ],
+    [
+      "docker",
+      "exec",
+      "moa2026-dev",
+      "/tmp/moa-e135-validation-probe/e135-direct-probe-v1/package/probe_stream",
+      "--oracle-only"
+    ]
+  ],
+  "scope": "Actual quantizer and frozen up/gate body, first BF16 row outputs before GeGLU; separate diagnostic image. 8 finite dyadic cases, not general BF16 or full-model equivalence.",
+  "quantizer_audit": {
+    "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/e135-direct-probe-v1-quantizer-audit.json",
+    "bytes": 13547,
+    "sha256": "ebc01f10f85d7453eaf810e4aabc322c2a54a10891679f4053a31ea9c7570d2c"
+  },
+  "container_source_verified": true,
+  "exact_compile_exit_code": 0,
+  "host_build_exit_code": 0,
+  "image": {
+    "name": "furiosa-opt-gemma4/furiosa_opt_gemma4::stream_probe::upgate.bin",
+    "bytes": 175360,
+    "sha256": "c7a8aefefef0fabbc64631a33a570abededf0c2c900e092e2d5e7e229174135e",
+    "host_occurrences": 1
+  },
+  "package_files": {
+    "run.sh": {
+      "bytes": 81,
+      "sha256": "edbc96ffbbd3db6a3cf6878d933d99046b93171c2b6f728530dada8da7597a06"
+    },
+    "probe_stream": {
+      "bytes": 2287968,
+      "sha256": "a4a84586d1b987eb530812aa2c02820a162c3a84cf7b292a49ccf43fed3fe49d"
+    }
+  },
+  "oracle": {
+    "input_checksums": [
+      [
+        "0",
+        "64b8d764c784f0bc"
+      ],
+      [
+        "1",
+        "64b8d764c784f0bc"
+      ],
+      [
+        "2",
+        "edd4e68a14cb4c25"
+      ],
+      [
+        "3",
+        "282e145144b17b25"
+      ],
+      [
+        "4",
+        "9e81a3dd51ed2b1d"
+      ],
+      [
+        "5",
+        "99001dcadbd1506d"
+      ],
+      [
+        "6",
+        "03a2936583af803c"
+      ],
+      [
+        "7",
+        "ec1fd4cb3204387e"
+      ]
+    ],
+    "projection_checksums": [
+      [
+        "0",
+        "0",
+        "ffff",
+        "5fe3a9558c26a325",
+        "fa79e4e31ac02325",
+        "25fd3412220752d8"
+      ],
+      [
+        "0",
+        "1",
+        "ffff",
+        "6cbb91f690eca325",
+        "c09aa3a500c02325",
+        "939ded89032e71cb"
+      ],
+      [
+        "1",
+        "0",
+        "5",
+        "00d65aed608ddb25",
+        "fa79e4e31ac02325",
+        "4a70cf11b706d93d"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "9f64600458174b25",
+        "c09aa3a500c02325",
+        "b7ea81a7f544d987"
+      ],
+      [
+        "2",
+        "0",
+        "56",
+        "b71ef1aceefaa325",
+        "cb358a15a62c2325",
+        "76b53a5943271b25"
+      ],
+      [
+        "2",
+        "1",
+        "56",
+        "8a108bc621faa325",
+        "cb358a15a62c2325",
+        "85a755ca9632db25"
+      ],
+      [
+        "3",
+        "0",
+        "ffff",
+        "5fe3a9558c26a325",
+        "fa79e4e31ac02325",
+        "e0b857388ddf8325"
+      ],
+      [
+        "3",
+        "1",
+        "ffff",
+        "6cbb91f690eca325",
+        "c09aa3a500c02325",
+        "e0b857388ddf8325"
+      ],
+      [
+        "4",
+        "0",
+        "56",
+        "b71ef1aceefaa325",
+        "cb358a15a62c2325",
+        "bee5398a75ff0b25"
+      ],
+      [
+        "4",
+        "1",
+        "56",
+        "8a108bc621faa325",
+        "cb358a15a62c2325",
+        "b9fb606a5ebadb25"
+      ],
+      [
+        "5",
+        "0",
+        "56",
+        "b71ef1aceefaa325",
+        "cb358a15a62c2325",
+        "36347d031299eb25"
+      ],
+      [
+        "5",
+        "1",
+        "56",
+        "8a108bc621faa325",
+        "cb358a15a62c2325",
+        "d3d3513eefa11b25"
+      ],
+      [
+        "6",
+        "0",
+        "feff",
+        "968154a706cabbf6",
+        "d57604f33dc02325",
+        "a6d8331ef8a36510"
+      ],
+      [
+        "6",
+        "1",
+        "feff",
+        "b5f29fe164fb4623",
+        "22406a6e19c02325",
+        "6273c2d6cd6a6afa"
+      ],
+      [
+        "7",
+        "0",
+        "ffff",
+        "5fe3a9558c26a325",
+        "d57604f33dc02325",
+        "e236131165266596"
+      ],
+      [
+        "7",
+        "1",
+        "ffff",
+        "6cbb91f690eca325",
+        "22406a6e19c02325",
+        "059b903d33aedc36"
+      ]
+    ],
+    "case_count": 8,
+    "projection_count": 16
+  },
+  "oracle_exit_code": 0,
+  "evidence": {
+    "quantizer-audit.log": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/quantizer-audit.log",
+      "bytes": 13547,
+      "sha256": "ebc01f10f85d7453eaf810e4aabc322c2a54a10891679f4053a31ea9c7570d2c"
+    },
+    "schedule.json": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/schedule.json",
+      "bytes": 114286,
+      "sha256": "43dcb289c03585d35ac00b5340a19387468b5b3374e2a4c1179105329a8c756a"
+    },
+    "host-build.log": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/host-build.log",
+      "bytes": 3125,
+      "sha256": "6426af05d09bfb7f124a20963233209b610145804af5f49795233309c789766d"
+    },
+    "compile.log": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/compile.log",
+      "bytes": 2921,
+      "sha256": "a752ce9692c714238e36827c31a8ddf7cf6337b4be23ddc295f48b2b00fbd057"
+    },
+    "builder-at-compile.py": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/builder-at-compile.py",
+      "bytes": 13626,
+      "sha256": "1df1215524fb1d64054b97c20224cee099160b8f0f7191b6755d714df250a7a9"
+    },
+    "production-mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/production-mlp.rs",
+      "bytes": 37477,
+      "sha256": "be9bb5a3cd370f11220300f41239370de25e2a8aec52081568f29c345c7fb9f0"
+    },
+    "source-build-at-probe.json": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/source-build-at-probe.json",
+      "bytes": 17449,
+      "sha256": "4174e94df45bde933b75193eca5e48a85e9510247f61a24376e46115957720ce"
+    },
+    "graph.json": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/graph.json",
+      "bytes": 228164,
+      "sha256": "f1efbb580720bbe26ec57f702e4b95c4900830ec5ce48ed283c3e795a68c5979"
+    },
+    "oracle-only.log": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/oracle-only.log",
+      "bytes": 2626,
+      "sha256": "e4974ff4576a3a994065d7b2b0a3b061ac7d11df9590e9e1d57cfc0d22ba6608"
+    },
+    "crate/Cargo.lock": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/crate/Cargo.lock",
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "crate/rust-toolchain.toml": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/crate/rust-toolchain.toml",
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    },
+    "crate/Cargo.toml": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/crate/Cargo.toml",
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "crate/src/lib.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/crate/src/lib.rs",
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "crate/src/stream_probe.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/crate/src/stream_probe.rs",
+      "bytes": 604,
+      "sha256": "aee1971324a9d863d0855c54d721c0213dbcc4d9b4efa52a12ef9d8cecc8dc95"
+    },
+    "crate/src/axes.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/crate/src/axes.rs",
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "crate/src/device/layout.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/crate/src/device/layout.rs",
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    },
+    "crate/src/device/mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/crate/src/device/mlp.rs",
+      "bytes": 38999,
+      "sha256": "ffd901bdecf0bc8143ceea498b9813a4dd4f4fe00e7459d3d62f618db275c6f1"
+    },
+    "crate/src/bin/probe_stream.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/crate/src/bin/probe_stream.rs",
+      "bytes": 7642,
+      "sha256": "14b86cb0078cd0146879a0d4fa39a4091eec9977c5730404773c300dc53f40d1"
+    }
+  },
+  "probe_sources": {
+    "probe_lib.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/probe_lib.rs",
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "probe_stream.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/probe_stream.rs",
+      "bytes": 7642,
+      "sha256": "14b86cb0078cd0146879a0d4fa39a4091eec9977c5730404773c300dc53f40d1"
+    },
+    "quantizer_audit.py": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/quantizer_audit.py",
+      "bytes": 2388,
+      "sha256": "3955d58fe4abfaa35d2370e6de6187b77d983d5d7a3d82d698634d501f919e26"
+    },
+    "stream_probe.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/stream_probe.rs",
+      "bytes": 604,
+      "sha256": "aee1971324a9d863d0855c54d721c0213dbcc4d9b4efa52a12ef9d8cecc8dc95"
+    },
+    "recipe.json": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/recipe.json",
+      "bytes": 2684,
+      "sha256": "ce334dc369062fae1c0eee7a76bde23cf60cdf06137db7ac38b66f3cf54ccad7"
+    },
+    "probe_module.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/probe_module.rs",
+      "bytes": 1522,
+      "sha256": "a1c8d13681b779d8669a76b84b2af5820649e3c1a1be4e5f5c1d55b8a22fb534"
+    }
+  }
+}

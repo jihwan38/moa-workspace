@@ -1,0 +1,112 @@
+{
+  "id": "E135",
+  "status": "prototype_runtime_liveness_unresolved",
+  "adopted": false,
+  "official_submission": false,
+  "actual_start_commit": "1643c6e3834a5739f4778fea9125cb20eb659dd8",
+  "source_base_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "comparison_recipe": "baseline/e134.json",
+  "variant": "direct-six-row-v1",
+  "source": {
+    "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/direct-six-row-v1/mlp.rs",
+    "bytes": 37477,
+    "sha256": "be9bb5a3cd370f11220300f41239370de25e2a8aec52081568f29c345c7fb9f0"
+  },
+  "static_cycles": 158934,
+  "whole": {
+    "job": 110314,
+    "candidate_first_ffn_launch_timeout_code": 4,
+    "candidate_ffn_comparisons": 0,
+    "candidate_ffn_cycles": null,
+    "candidate_unchanged_qkv_o_passes": 12,
+    "control_passes": 30,
+    "control_before_ffn_cycles": 314468,
+    "control_after_ffn_cycles": 314588
+  },
+  "oracle": {
+    "job": 110316,
+    "build": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-build-v1.json",
+      "bytes": 16750,
+      "sha256": "684ef4c5714192dc3cadc859dc2f9b62e1918fcd191ed206bf81de0ab2f35fbd"
+    },
+    "results": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-results-v1.json",
+      "bytes": 1830,
+      "sha256": "30d58efdbbf37505375538e5b91f2d8e6b9a222bd293f324e12a065a3b8dcb2e"
+    },
+    "log": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/arena-110316.log",
+      "bytes": 596,
+      "sha256": "00d05c693df4bfe90e1c4f388a1f18eb49fa985ac564ca47d5d863a431929733"
+    },
+    "archive": {
+      "path": "moa-dev/experiments/artifacts/ffn-independent-direct-fused/e135-direct-probe-v1/job-110316.tar",
+      "bytes": 2291712,
+      "sha256": "84fed56a9436c69559865bb5b5303ed5334924bb2db229df81563f73401a1a6e"
+    },
+    "upload_verified": true,
+    "first_case": 0,
+    "launch_timeout_code": 4,
+    "arithmetic_outputs_checked": 0,
+    "planned_cases": 8,
+    "planned_outputs": 245760,
+    "cpu_oracle_and_quantizer_only_passed": true,
+    "actual_production_prefix_verified": true
+  },
+  "candidate_change_percent": null,
+  "candidate_ffn_cycles": null,
+  "performance_verdict": "Unavailable: no candidate FFN output or cycle count was produced. Timeout is not a measured regression or arithmetic mismatch.",
+  "accuracy_verdict": "Not established: whole FFN and pre-GeGLU projection both time out before first output. The graph/CPU/provenance gates passed at their stated scope only.",
+  "three_decisions": {
+    "adoption": {
+      "status": "blocked_by_runtime_liveness",
+      "reason": "Both whole and changed-boundary executions cannot complete. No correctness/performance adoption evidence; E134 remains control."
+    },
+    "further_tuning": {
+      "status": "stop",
+      "reason": "No specific supported repair selected. No padding/context/row-count sweep, extra6, or performance repeats after these failures. This is independent of a5% threshold."
+    },
+    "major_research": {
+      "status": "independent_direct_family_unresolved",
+      "reason": "Removing up/gate FP8 materialization remains a question. This complete prototype failed forward progress; no family-wide impossibility or speed verdict. Reopen only with an identified failing transfer/consumer contract and supported repair, or failure-progress evidence that can select one."
+    }
+  },
+  "diagnosis": {
+    "localized_scope": "Diagnostic excludes preRMS,GeGLU,weighted down and final epilogue yet also fails, so down suffix is not necessary for this failure; earliest internal blocked task remains unknown.",
+    "checked": "Compact HBM bounds, six-row indices, scale/order, F32 row-pair/gather, register bindings/lifetimes and full source/image/archive hashes verified.",
+    "not_proven": [
+      "bank starvation",
+      "SDK or compiler defect",
+      "arithmetic mismatch",
+      "physical alias lifetime error",
+      "DMA/LUT overlap as the unique cause"
+    ],
+    "odd225_hypothesis": {
+      "packed_per_slice_bytes": 57600,
+      "packed_256B_packets": 225,
+      "six_row_tile_bytes": 11520,
+      "six_row_256B_packets": 45,
+      "joint_or_materialized_per_slice_bytes": 115200,
+      "joint_or_materialized_256B_packets": 450,
+      "all_bytes_mod128": 0,
+      "conclusion": "Odd count alone does not change128B bank phase or demonstrate consecutive-bank starvation; no supported padding repair follows."
+    },
+    "overlap_counterevidence": "Failed whole first native overlaps another projection FP4 DMA; failed probe first native overlaps table work. Passing E131 whole compositions also overlap native and table/DMA work, so overlap alone does not select serialization as a repair.",
+    "profile_limit": "Installed public SDK Trace::wait resolves spans only after collect().await? succeeds; a simple caught timeout or names-only trace replay does not expose partial records. No extra profile job executed."
+  },
+  "evidence": {
+    "verification": "verification.json",
+    "whole_results": "e135-direct-six-row-screen-job-110314-results.json",
+    "probe_results": "validation/probe-results-v1.json",
+    "descriptor_gate": "graph-verification-e135-direct-six-row-v1.json",
+    "mechanism_note": "runtime-analysis.md",
+    "independent_liveness_review": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/independent-liveness-review.json",
+      "bytes": 144872,
+      "sha256": "a48274346f2aa6e47e031eb2e6661d82115f87f015e03891f8fbff4e3c3d48eb"
+    }
+  },
+  "old_attempts_preserved": true,
+  "next_source_variant_created": false
+}
