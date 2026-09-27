@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "scope": "Source-grounded scalar CPU model of one component-wise in-range full-FFN construction, not a replay of the public PRNG or an NPU fixture.",
+  "analysis_reproduced": true,
+  "npu_executed": false,
+  "actual_public_prng_seed_found": false,
+  "public_grading_failure_demonstrated": false,
+  "arbitrary_bf16_accuracy_proven": false,
+  "source_inputs": [
+    {
+      "path": "furiosa-opt-gemma4-12B/README.md",
+      "git_revision": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+      "bytes": 8358,
+      "sha256": "b2df96421f4a8eed21aae0befc2e7cea33b8f9e7a761bbd5c7c8b0e8460aa012"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/src/bin/test_kernels.rs",
+      "git_revision": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+      "bytes": 33104,
+      "sha256": "42db4e99ae788020726d530d1cd799e647779b7b9912e593401d6981cffc7516"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+      "git_revision": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+      "bytes": 13439,
+      "sha256": "ffdab428fd4c8126b77e145b75073c907732bf0fa9ca830a123fe828e7b08888"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/src/device/shared/rmsnorm.rs",
+      "git_revision": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+      "bytes": 10957,
+      "sha256": "d962d6042c90ff51a080720e1f3c851e2375f70776b381a7048e62ccf4115ba5"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/src/device/shared/residual.rs",
+      "git_revision": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+      "bytes": 9105,
+      "sha256": "deb29e529440170c97bdd65788ab2d11907e240dba8e7a5c7a2eb68e641eac3e"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/scripts/generate_references.py",
+      "git_revision": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+      "bytes": 20247,
+      "sha256": "eb3454334609f30796be776230e324eedc1354fe81371b057dac914332fb1860"
+    },
+    {
+      "path": "furiosa-opt-gemma4-12B/scripts/reference/gemma4.py",
+      "git_revision": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+      "bytes": 13777,
+      "sha256": "0095a36a51dca34bd162a0c41aeb9fdbe1a779f91228ee398f2b655922264775"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-e5-v2/mlp.rs",
+      "git_revision": null,
+      "bytes": 35861,
+      "sha256": "c3ae74b55b306742b69b438bf2ea603409a0644c55f9004d7fe01665c656a5d3"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-oracle/results.json",
+      "git_revision": null,
+      "bytes": 5785,
+      "sha256": "f55abb84f02ca8126f50af3e9a631716945af0b672cba241cf65a0cdd16d6ccb"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/numerical_scope_analysis.py",
+      "git_revision": null,
+      "bytes": 7770,
+      "sha256": "61326692ab63d2eb673677995df3c0c72a818c7f2f61bb57cf51421722096a96"
+    }
+  ],
+  "construction": {
+    "H": 3840,
+    "L": 15360,
+    "half_L": 7680,
+    "residual": 1.0,
+    "pre_rms_weight": 1.0,
+    "post_rms_weight": 1.0,
+    "raw_global_scales": [
+      2048.0,
+      2048.0,
+      2048.0
+    ],
+    "global_reciprocal": 0.00048828125,
+    "layer_scalar": 0.375,
+    "ordinary_rows": "all L rows except 0 and 7680",
+    "ordinary": {
+      "up_raw": 1.0,
+      "gate_raw": 2.0,
+      "up": 0.00048828125,
+      "gate": 0.0009765625,
+      "public_tanh_bf16": 2.384185791015625e-07,
+      "production_erf_cpu_bf16": 2.384185791015625e-07
+    },
+    "row0": {
+      "up_raw": 65536.0,
+      "gate_raw": 65536.0,
+      "up": 32.0,
+      "gate": 32.0,
+      "public_tanh_bf16": 1024.0,
+      "production_erf_cpu_bf16": 1024.0
+    },
+    "row7680": {
+      "up_raw": 128.0,
+      "gate_raw": 16384.0,
+      "up": 0.0625,
+      "gate": 8.0,
+      "public_tanh_bf16": 0.5,
+      "production_erf_cpu_bf16": 0.5
+    },
+    "up_gate_local_scales": [
+      2.0,
+      4.0
+    ],
+    "down_local_scale": 15.0,
+    "down_rule": "h<1920: value6 at 1<=l<7680, else0; h>=1920: value6 at 7681<=l<15360, else0",
+    "fp4_values_are_format_values_not_nibble_codes": true
+  },
+  "candidate_tiny_quantization": [
+    {
+      "scale": 0.0625,
+      "normalized": 3.814697265625e-06,
+      "terms": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "restored": 0.0
+    },
+    {
+      "scale": 3.0517578125e-05,
+      "normalized": 0.0078125,
+      "terms": [
+        0.0078125,
+        0.0,
+        0.0
+      ],
+      "restored": 2.384185791015625e-07
+    }
+  ],
+  "output": {
+    "reference_raw_down": 0.16477346420288086,
+    "reference_raw_down_bf16": 0.1650390625,
+    "reference_after_global_bf16": 8.058547973632812e-05,
+    "reference": {
+      "mean_square": 6.494019544334151e-09,
+      "rms": 0.0010032417485490441,
+      "normalized": [
+        0.08056640625,
+        0.08056640625
+      ],
+      "final": [
+        0.404296875,
+        0.404296875
+      ]
+    },
+    "candidate": {
+      "mean_square": 3.2470097721670754e-09,
+      "rms": 0.0010016221785917878,
+      "normalized": [
+        0.0,
+        0.08056640625
+      ],
+      "final": [
+        0.375,
+        0.404296875
+      ]
+    },
+    "absolute_errors_by_half": [
+      0.029296875,
+      0.0
+    ],
+    "tolerances_by_half": [
+      0.014042968749999999,
+      0.014042968749999999
+    ],
+    "predicted_failing_outputs": 1920
+  },
+  "limits": [
+    "No complete PyTorch dense fixture or NPU execution was run for this construction.",
+    "Scalar BF16/F32/RNE/transcendental model does not emulate all hardware reduction or unary approximations.",
+    "All scalar values belong to generator component ranges; correlated tensors need not occur for any public seed.",
+    "This is a concrete numerical risk, not a claim that nine validated standard/extra inputs or official grading failed.",
+    "Seven mapping cases and measured raw helper case4 remain independent evidence with their original scope."
+  ],
+  "repair_hypothesis": "Preserve FfnTerm through native F32 contraction, restore differently scaled terms independently then sum. Derive a safe final-residual multiplier over the actual normalized domain; changing the quantizer alone is wrong because current contract_time sums equal-scale terms."
+}

@@ -1,0 +1,79 @@
+{
+  "id": "E133",
+  "status": "accuracy_limited_positive",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "actual_start_commit": "0f601fe4d7491426f4af791823966e135829ce9e",
+  "frozen_variant": "down-e5-v2",
+  "build_label": "e133-down-e5-v2",
+  "source_sha256": "c3ae74b55b306742b69b438bf2ea603409a0644c55f9004d7fe01665c656a5d3",
+  "performance": {
+    "jobs": [
+      109740,
+      109750,
+      109751
+    ],
+    "all_paired_ffn_improved": true,
+    "median_paired_delta_percent": -3.8263779850394974,
+    "aggregate_median_delta_percent": -3.673375027376924,
+    "candidate_ffn_cycles": 316668,
+    "paired_control_ffn_cycles": 328744
+  },
+  "standard_accuracy": {
+    "distinct_inputs": 9,
+    "base_allocation_comparisons": 135,
+    "extra6_comparisons": 30,
+    "all_passed": true
+  },
+  "boundary_accuracy": {
+    "job": 109784,
+    "exact_mapping_cases": 7,
+    "exact_mapping_outputs": 26880,
+    "adversarial_case": 4,
+    "adversarial_outputs": 3840,
+    "expected": 1.40625,
+    "actual": 0.703125,
+    "relative_loss_percent": 50,
+    "raw_tolerance_passed": false,
+    "general_adoption_ready": false,
+    "full_ffn_followup_required": true
+  },
+  "decisions": {
+    "adoption": {
+      "general_numerical_equivalence": "not established; observed adversarial underflow contradicts it",
+      "stage1": "deferred by root: in-range component-wise CPU construction predicts full-FFN tolerance failure; concrete precision repair required",
+      "owner": "root"
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "Stop parameter exploration on frozen same-scale E133. A separately recorded coupled third-residual precision repair may be evaluated; no existing positive or accuracy result transfers automatically."
+    },
+    "major_research": {
+      "status": "record_complete_native_down_result_and_numerical_boundary",
+      "reason": "This path removes full decoded-down-weight materialization while paying actual quantization/term movement/native/F32partial/reductions; bytes are not cycles. Any wider use requires its numerical contract to be assessed separately."
+    }
+  },
+  "evidence": [
+    "docs/experiments/e133-adoption-performance.json",
+    "docs/experiments/e133-e128-paired-control.json",
+    "docs/experiments/e133-extra-correctness.json",
+    "docs/experiments/e133-probe-correctness.json",
+    "moa-dev/experiments/candidates/ffn-native-down-e5/validation/final-verification.json",
+    "moa-dev/experiments/candidates/ffn-native-down-e5/numerical-scope-review.md",
+    "moa-dev/experiments/candidates/ffn-native-down-e5/numerical-scope-analysis.json"
+  ],
+  "historical_first_screen_preserved": "screen-decision.json records the one-screen decision before later validation and does not override this outcome.",
+  "numerical_scope": {
+    "evidence": "numerical-scope-analysis.json",
+    "cpu_only": true,
+    "component_wise_generator_range": true,
+    "actual_public_prng_seed": false,
+    "full_pytorch_fixture_replayed": false,
+    "full_ffn_npu_replayed": false,
+    "predicted_failing_outputs": 1920,
+    "predicted_absolute_difference": 0.029296875,
+    "public_tolerance": 0.01404296875,
+    "adoption_deferred": true
+  }
+}

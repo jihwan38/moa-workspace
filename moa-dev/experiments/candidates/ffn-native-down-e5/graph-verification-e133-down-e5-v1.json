@@ -1,0 +1,57 @@
+{
+  "passed": false,
+  "label": "e133-down-e5-v1",
+  "inputdigests": {
+    "build_record": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/build-e133-down-e5-v1-repro.json",
+      "bytes": 17298,
+      "sha256": "1aae1e82a0e84a6e4432f66b22470a88d35a3b060d26ace9b991da3d258e7418"
+    },
+    "source": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-e5-v1/mlp.rs",
+      "bytes": 35120,
+      "sha256": "9614d57eec7f3465929480f2db6c3a4955d04edb35957d7805f486371d8838ee"
+    },
+    "graph": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/evidence/e133-down-e5-v1/graph.json",
+      "bytes": 406752,
+      "sha256": "a111d421d6dbca895b991ad488ea624dfb869db3031cc372c672f884547b2e5c"
+    },
+    "schedule": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-e5/evidence/e133-down-e5-v1/schedule.json",
+      "bytes": 208504,
+      "sha256": "2937e63c9230e30489f28212b3f0cf22e78f9a3baf294af6fd41789c3d3a573c"
+    }
+  },
+  "error": "New down term DMA destination padding expands each compact480B source to1440B; cannot pass source/destination logical bounds gate.",
+  "observations": [
+    {
+      "graph_operator": 207,
+      "term_offset_bytes": 0,
+      "source_logical_bytes": 480,
+      "descriptor_read_bytes": 1440,
+      "destination_write_end": 1440,
+      "joint_logical_bytes": 1440,
+      "descriptor": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst1: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O207\nhistory: "
+    },
+    {
+      "graph_operator": 212,
+      "term_offset_bytes": 480,
+      "source_logical_bytes": 480,
+      "descriptor_read_bytes": 1440,
+      "destination_write_end": 1920,
+      "joint_logical_bytes": 1440,
+      "descriptor": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst1: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O212\nhistory: "
+    },
+    {
+      "graph_operator": 217,
+      "term_offset_bytes": 960,
+      "source_logical_bytes": 480,
+      "descriptor_read_bytes": 1440,
+      "destination_write_end": 2400,
+      "joint_logical_bytes": 1440,
+      "descriptor": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst1: [anonymdma_tail(4)_720=2:720, TileL_480=16:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O217\nhistory: "
+    }
+  ],
+  "decision": "No NPU for v1; exact480B stream-copy repair in frozen v2; existing E128 up quantizer unchanged. Bounds issue is not evidence of a prior observed NPU arithmetic failure."
+}
