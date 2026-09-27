@@ -1,3 +1,25 @@
+# 2026-09-27 E129–E131 큰 구조 실행: 신규 채택 없음
+
+현재 runtime은 **E128 / baseline-e128** 그대로다. 공식 재제출은 없었다.
+15:53 KST 조회는 BEEF53/69위6.0699449×, 10위8.8727073×다.
+[조회 원본](../research/top10-leaderboard-e128-research-20260927.json).
+
+- [E129 projection-owned FFN](../../moa-dev/experiments/candidates/ffn-projection-clusters/README.md):
+  전체 source 구현 뒤 Cluster tile의 실제 target lowering 미지원으로 compile 실패. NPU 성능 실패가 아니다.
+- [E130 Main/Sub QKV](../../moa-dev/experiments/candidates/qkv-wavefront/README.md):
+  whole10933945PASS,104856→119470cycles(+13.9372%). 미채택·추가 튜닝 중단.
+- [E131 joint direct FFN](../../moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md):
+  FP8 weight 저장 제거와 fused scale/reduction·M03 consumer를 연결한 완성 조합.
+  two-row10943045PASS/+15.1668%, four-row+tail10940845PASS/+6.2082%로 둘 다 미채택.
+  two-row 독립 oracle245760출력 PASS. four-row 분리 진단은 case0 launch timeout;
+  whole 오답으로 분류하지 않으며 검증 완료도 아니다. 추가 tile/source 수정은 종료한다.
+
+E131의 순 logical DM write/read 감소는 각49.21875MiB지만 실측은 회귀했다.
+복사·lookup·동기화 비용을 포함한 whole 결과이며 특정 stall 원인은 측정하지 않았다.
+다음 표현 변경 후보는 [native down 재검토](../research/e131-native-down-next-20260927.md)에 남긴다.
+E93/E95의 positive를 검증된 채택본 또는 down 정확도 실패로 잘못 분류하지 않는다.
+아래 기록의 현재/예정 표시는 각 작업 당시 상태다.
+
 # 2026-09-27 E129 projection-owned FFN: target lowering 제약 확인
 
 [전체 source·실패 근거](../../moa-dev/experiments/candidates/ffn-projection-clusters/README.md):

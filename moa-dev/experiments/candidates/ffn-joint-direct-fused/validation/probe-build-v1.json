@@ -1,0 +1,506 @@
+{
+  "label": "e131-joint-probe-v1",
+  "diagnostic_only": true,
+  "performance_excluded": true,
+  "official_submission": false,
+  "valid": true,
+  "source_build_path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/build-e131-joint-two-row-v1-repro.json",
+  "source_build_snapshot": {
+    "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/source-build-at-probe.json",
+    "bytes": 17386,
+    "sha256": "eeeb44a8b6f3ab09aa5b3c315f7a7cf9fa25a1e66f4df6ad9c6406f04f33e18c"
+  },
+  "source_base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "production_source": {
+    "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/joint-two-row-v1/mlp.rs",
+    "bytes": 29325,
+    "sha256": "ed7fb16a04f6c85e0fc19d0dd9876459945224c8dac92baa2dc7ad342d764072"
+  },
+  "production_mlp_prefix": {
+    "bytes": 29325,
+    "sha256": "ed7fb16a04f6c85e0fc19d0dd9876459945224c8dac92baa2dc7ad342d764072"
+  },
+  "production_source_full_file_byte_identical_prefix": true,
+  "diagnostic_append": {
+    "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/probe_module.rs",
+    "bytes": 1522,
+    "sha256": "a1c8d13681b779d8669a76b84b2af5820649e3c1a1be4e5f5c1d55b8a22fb534"
+  },
+  "source_inputs": {
+    "src/lib.rs": {
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "src/stream_probe.rs": {
+      "bytes": 604,
+      "sha256": "aee1971324a9d863d0855c54d721c0213dbcc4d9b4efa52a12ef9d8cecc8dc95"
+    },
+    "src/device/mlp.rs": {
+      "bytes": 30847,
+      "sha256": "3037d679f3485349006fb3a5f8689a7ab87ee5b36986d76ff4072ff38bbe1156"
+    },
+    "src/bin/probe_stream.rs": {
+      "bytes": 7642,
+      "sha256": "7d1fe5ac0a193ab0709b1e27f5bd002652bcc334d22c447c615863fed2a96b37"
+    },
+    "src/axes.rs": {
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "src/device/layout.rs": {
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    },
+    "Cargo.toml": {
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "Cargo.lock": {
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "rust-toolchain.toml": {
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    }
+  },
+  "recipe": {
+    "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/recipe.json",
+    "bytes": 2766,
+    "sha256": "8198461f30b706c13a2728faa754284a501dadfcc47e3a4905d83ecca42bf662"
+  },
+  "builder": {
+    "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/builder-at-compile.py",
+    "bytes": 13333,
+    "sha256": "d0e5be5bcd680fd84be2f25f1b98eef0f3b6de2094f85956c197fd9c4c81a845"
+  },
+  "target_dir": "/tmp/moa-m03-validation-probe/target",
+  "commands": [
+    [
+      "/usr/bin/python3",
+      "/home/jihwan38/moa-workspace/moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/quantizer_audit.py",
+      "--out",
+      "/home/jihwan38/moa-workspace/moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/e131-joint-probe-v1-quantizer-audit.json"
+    ],
+    [
+      "docker",
+      "exec",
+      "moa2026-dev",
+      "mkdir",
+      "-p",
+      "/tmp/moa-e131-validation-probe/e131-joint-probe-v1"
+    ],
+    [
+      "docker",
+      "cp",
+      "/home/jihwan38/moa-workspace/moa-dev/experiments/artifacts/ffn-joint-direct-fused/e131-joint-probe-v1/crate/.",
+      "moa2026-dev:/tmp/moa-e131-validation-probe/e131-joint-probe-v1"
+    ],
+    [
+      "docker",
+      "exec",
+      "--workdir",
+      "/tmp/moa-e131-validation-probe/e131-joint-probe-v1",
+      "-e",
+      "CARGO_HOME=/home/moa/.cargo",
+      "-e",
+      "CARGO_NET_OFFLINE=true",
+      "-e",
+      "CARGO_TARGET_DIR=/tmp/moa-m03-validation-probe/target",
+      "-e",
+      "FURIOSA_OPT_OUT_DIR=/tmp/moa-e131-validation-probe/e131-joint-probe-v1/kernels",
+      "moa2026-dev",
+      "cargo",
+      "furiosa-opt",
+      "compile",
+      "stream_probe::upgate",
+      "--exact",
+      "--dump-schedule",
+      "schedule.json",
+      "--dump-graph",
+      "graph.json"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e131-validation-probe/e131-joint-probe-v1/schedule.json",
+      "/home/jihwan38/moa-workspace/moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/schedule.json"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e131-validation-probe/e131-joint-probe-v1/graph.json",
+      "/home/jihwan38/moa-workspace/moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/graph.json"
+    ],
+    [
+      "docker",
+      "exec",
+      "--workdir",
+      "/tmp/moa-e131-validation-probe/e131-joint-probe-v1",
+      "-e",
+      "CARGO_HOME=/home/moa/.cargo",
+      "-e",
+      "CARGO_NET_OFFLINE=true",
+      "-e",
+      "CARGO_TARGET_DIR=/tmp/moa-m03-validation-probe/target",
+      "-e",
+      "FURIOSA_OPT_OUT_DIR=/tmp/moa-e131-validation-probe/e131-joint-probe-v1/kernels",
+      "moa2026-dev",
+      "cargo",
+      "furiosa-opt",
+      "build",
+      "--release",
+      "--locked",
+      "--bin",
+      "probe_stream"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-m03-validation-probe/target/release/probe_stream",
+      "/home/jihwan38/moa-workspace/moa-dev/experiments/artifacts/ffn-joint-direct-fused/e131-joint-probe-v1/package/probe_stream"
+    ],
+    [
+      "docker",
+      "cp",
+      "moa2026-dev:/tmp/moa-e131-validation-probe/e131-joint-probe-v1/kernels",
+      "/home/jihwan38/moa-workspace/moa-dev/experiments/artifacts/ffn-joint-direct-fused/e131-joint-probe-v1/kernels"
+    ],
+    [
+      "docker",
+      "cp",
+      "/home/jihwan38/moa-workspace/moa-dev/experiments/artifacts/ffn-joint-direct-fused/e131-joint-probe-v1/package",
+      "moa2026-dev:/tmp/moa-e131-validation-probe/e131-joint-probe-v1/package"
+    ],
+    [
+      "docker",
+      "exec",
+      "moa2026-dev",
+      "/tmp/moa-e131-validation-probe/e131-joint-probe-v1/package/probe_stream",
+      "--oracle-only"
+    ]
+  ],
+  "scope": "Actual quantizer and frozen up/gate body, first BF16 row outputs before GeGLU; separate diagnostic image. 8 finite dyadic cases, not general BF16 or full-model equivalence.",
+  "quantizer_audit": {
+    "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/e131-joint-probe-v1-quantizer-audit.json",
+    "bytes": 13547,
+    "sha256": "ebc01f10f85d7453eaf810e4aabc322c2a54a10891679f4053a31ea9c7570d2c"
+  },
+  "container_source_verified": true,
+  "exact_compile_exit_code": 0,
+  "host_build_exit_code": 0,
+  "image": {
+    "name": "furiosa-opt-gemma4/furiosa_opt_gemma4::stream_probe::upgate.bin",
+    "bytes": 224768,
+    "sha256": "8fab93e8c496127013c6b66b5f3b13012994342d6814e87bed21d0ce15f8ffff",
+    "host_occurrences": 1
+  },
+  "package_files": {
+    "run.sh": {
+      "bytes": 81,
+      "sha256": "edbc96ffbbd3db6a3cf6878d933d99046b93171c2b6f728530dada8da7597a06"
+    },
+    "probe_stream": {
+      "bytes": 2337376,
+      "sha256": "84731407eb9f1dede8adc2f5be30fff988fa30eb1ab1cc4aa106e0e2205adbbf"
+    }
+  },
+  "oracle": {
+    "input_checksums": [
+      [
+        "0",
+        "64b8d764c784f0bc"
+      ],
+      [
+        "1",
+        "64b8d764c784f0bc"
+      ],
+      [
+        "2",
+        "edd4e68a14cb4c25"
+      ],
+      [
+        "3",
+        "282e145144b17b25"
+      ],
+      [
+        "4",
+        "9e81a3dd51ed2b1d"
+      ],
+      [
+        "5",
+        "99001dcadbd1506d"
+      ],
+      [
+        "6",
+        "03a2936583af803c"
+      ],
+      [
+        "7",
+        "ec1fd4cb3204387e"
+      ]
+    ],
+    "projection_checksums": [
+      [
+        "0",
+        "0",
+        "ffff",
+        "5fe3a9558c26a325",
+        "fa79e4e31ac02325",
+        "25fd3412220752d8"
+      ],
+      [
+        "0",
+        "1",
+        "ffff",
+        "6cbb91f690eca325",
+        "c09aa3a500c02325",
+        "939ded89032e71cb"
+      ],
+      [
+        "1",
+        "0",
+        "5",
+        "00d65aed608ddb25",
+        "fa79e4e31ac02325",
+        "4a70cf11b706d93d"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "9f64600458174b25",
+        "c09aa3a500c02325",
+        "b7ea81a7f544d987"
+      ],
+      [
+        "2",
+        "0",
+        "56",
+        "b71ef1aceefaa325",
+        "cb358a15a62c2325",
+        "76b53a5943271b25"
+      ],
+      [
+        "2",
+        "1",
+        "56",
+        "8a108bc621faa325",
+        "cb358a15a62c2325",
+        "85a755ca9632db25"
+      ],
+      [
+        "3",
+        "0",
+        "ffff",
+        "5fe3a9558c26a325",
+        "fa79e4e31ac02325",
+        "e0b857388ddf8325"
+      ],
+      [
+        "3",
+        "1",
+        "ffff",
+        "6cbb91f690eca325",
+        "c09aa3a500c02325",
+        "e0b857388ddf8325"
+      ],
+      [
+        "4",
+        "0",
+        "56",
+        "b71ef1aceefaa325",
+        "cb358a15a62c2325",
+        "bee5398a75ff0b25"
+      ],
+      [
+        "4",
+        "1",
+        "56",
+        "8a108bc621faa325",
+        "cb358a15a62c2325",
+        "b9fb606a5ebadb25"
+      ],
+      [
+        "5",
+        "0",
+        "56",
+        "b71ef1aceefaa325",
+        "cb358a15a62c2325",
+        "36347d031299eb25"
+      ],
+      [
+        "5",
+        "1",
+        "56",
+        "8a108bc621faa325",
+        "cb358a15a62c2325",
+        "d3d3513eefa11b25"
+      ],
+      [
+        "6",
+        "0",
+        "feff",
+        "968154a706cabbf6",
+        "d57604f33dc02325",
+        "a6d8331ef8a36510"
+      ],
+      [
+        "6",
+        "1",
+        "feff",
+        "b5f29fe164fb4623",
+        "22406a6e19c02325",
+        "6273c2d6cd6a6afa"
+      ],
+      [
+        "7",
+        "0",
+        "ffff",
+        "5fe3a9558c26a325",
+        "d57604f33dc02325",
+        "e236131165266596"
+      ],
+      [
+        "7",
+        "1",
+        "ffff",
+        "6cbb91f690eca325",
+        "22406a6e19c02325",
+        "059b903d33aedc36"
+      ]
+    ],
+    "case_count": 8,
+    "projection_count": 16
+  },
+  "oracle_exit_code": 0,
+  "evidence": {
+    "quantizer-audit.log": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/quantizer-audit.log",
+      "bytes": 13547,
+      "sha256": "ebc01f10f85d7453eaf810e4aabc322c2a54a10891679f4053a31ea9c7570d2c"
+    },
+    "schedule.json": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/schedule.json",
+      "bytes": 172452,
+      "sha256": "2d08e365e6ea0b05832dbfd0c63815f517d99493d77e77e6734b416b5e617a01"
+    },
+    "host-build.log": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/host-build.log",
+      "bytes": 2627,
+      "sha256": "88a8cef5762afd0719905e528954db7787a5af6a4659370bb226d66f0beee99c"
+    },
+    "compile.log": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/compile.log",
+      "bytes": 2424,
+      "sha256": "e167637290e7b0130a94e3ca0c9786533349b5b43b80757a4137cfd34f9b9cde"
+    },
+    "builder-at-compile.py": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/builder-at-compile.py",
+      "bytes": 13333,
+      "sha256": "d0e5be5bcd680fd84be2f25f1b98eef0f3b6de2094f85956c197fd9c4c81a845"
+    },
+    "production-mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/production-mlp.rs",
+      "bytes": 29325,
+      "sha256": "ed7fb16a04f6c85e0fc19d0dd9876459945224c8dac92baa2dc7ad342d764072"
+    },
+    "source-build-at-probe.json": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/source-build-at-probe.json",
+      "bytes": 17386,
+      "sha256": "eeeb44a8b6f3ab09aa5b3c315f7a7cf9fa25a1e66f4df6ad9c6406f04f33e18c"
+    },
+    "graph.json": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/graph.json",
+      "bytes": 330739,
+      "sha256": "a930c0318768d73d52bfc8909ed1c25e3e16fec8cb98e01276bb3746f1f0363c"
+    },
+    "oracle-only.log": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/oracle-only.log",
+      "bytes": 2626,
+      "sha256": "c91dcc5299173a9ef654328d824e78443765b1445462877f0a68e702ce9321da"
+    },
+    "crate/Cargo.lock": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/crate/Cargo.lock",
+      "bytes": 91819,
+      "sha256": "aaff8dd41f9c643dd8c9faa358b9bc780e88a42c09172c1a5d7a0726d07efe09"
+    },
+    "crate/rust-toolchain.toml": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/crate/rust-toolchain.toml",
+      "bytes": 78,
+      "sha256": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+    },
+    "crate/Cargo.toml": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/crate/Cargo.toml",
+      "bytes": 718,
+      "sha256": "bf555c73e47bf189c48623ee6fb19147eab9bba61498c2f7358df608753420f9"
+    },
+    "crate/src/lib.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/crate/src/lib.rs",
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "crate/src/stream_probe.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/crate/src/stream_probe.rs",
+      "bytes": 604,
+      "sha256": "aee1971324a9d863d0855c54d721c0213dbcc4d9b4efa52a12ef9d8cecc8dc95"
+    },
+    "crate/src/axes.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/crate/src/axes.rs",
+      "bytes": 395,
+      "sha256": "a9507011038928391bcae1068ab443a6005140f339ba803e41e0ffb07f7f843a"
+    },
+    "crate/src/device/layout.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/crate/src/device/layout.rs",
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    },
+    "crate/src/device/mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/crate/src/device/mlp.rs",
+      "bytes": 30847,
+      "sha256": "3037d679f3485349006fb3a5f8689a7ab87ee5b36986d76ff4072ff38bbe1156"
+    },
+    "crate/src/bin/probe_stream.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-evidence-v1/crate/src/bin/probe_stream.rs",
+      "bytes": 7642,
+      "sha256": "7d1fe5ac0a193ab0709b1e27f5bd002652bcc334d22c447c615863fed2a96b37"
+    }
+  },
+  "probe_sources": {
+    "probe_lib.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/probe_lib.rs",
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "probe_stream.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/probe_stream.rs",
+      "bytes": 7642,
+      "sha256": "7d1fe5ac0a193ab0709b1e27f5bd002652bcc334d22c447c615863fed2a96b37"
+    },
+    "quantizer_audit.py": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/quantizer_audit.py",
+      "bytes": 2388,
+      "sha256": "3955d58fe4abfaa35d2370e6de6187b77d983d5d7a3d82d698634d501f919e26"
+    },
+    "stream_probe.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/stream_probe.rs",
+      "bytes": 604,
+      "sha256": "aee1971324a9d863d0855c54d721c0213dbcc4d9b4efa52a12ef9d8cecc8dc95"
+    },
+    "README.md": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/README.md",
+      "bytes": 3103,
+      "sha256": "eb96a3e73af0834f5adad7e666fd61765e585ba2a35b58b89b7d0c5f1f392878"
+    },
+    "recipe.json": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/recipe.json",
+      "bytes": 2766,
+      "sha256": "8198461f30b706c13a2728faa754284a501dadfcc47e3a4905d83ecca42bf662"
+    },
+    "probe_module.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-v1/probe_module.rs",
+      "bytes": 1522,
+      "sha256": "a1c8d13681b779d8669a76b84b2af5820649e3c1a1be4e5f5c1d55b8a22fb534"
+    }
+  }
+}

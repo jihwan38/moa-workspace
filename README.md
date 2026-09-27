@@ -17,8 +17,11 @@
 E127 대비 독립3allocation의 FFN 감소율 중앙값은 **0.6569%**다.
 기본45·추가30비교와8-case projection245760출력 PASS. E127 QKV/O image는 유지한다.
 
-작은 재현 이득은 회수하고 타일 튜닝은 중단했다. 더 큰 연구 대상은 FP8 weight 전체 저장과
-joint packed 복사를 함께 없앨 cluster 소유권 구조다. 아직 전송 계약·direct 정확도 검증이 필요하다.
+E129–E131에서는 큰 저장과 실행 구조를 바꾸는 경로를 검증했다.
+Projection별 cluster 직접 배치는 target lowering 미지원으로 막혔고,
+Main/Sub QKV는13.94%, joint direct FFN 두 변형은15.17%/6.21% 회귀해 미채택했다.
+[실측·정확도 범위](moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md)와
+[native down 다음 후보 감사](docs/research/e131-native-down-next-20260927.md)를 남겼다.
 [현재 작업](docs/experiments/current-work.md)과 [작업 규칙](AGENTS.md)을 먼저 확인한다.
 
 E128은 공식 미제출이다. 최근 공식 제출 [E127 `bc21122c`](docs/experiments/e127-official-submit-20260927.json)는

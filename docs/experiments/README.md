@@ -1,5 +1,19 @@
 # Experiment ledger
 
+September27 **E129–E131 completed without a new adoption; E128 remains current**.
+[E129 projection-cluster ingress](../../moa-dev/experiments/candidates/ffn-projection-clusters/README.md)
+failed target lowering of the public Cluster tile API, with no NPU image.
+[E130 Main/Sub QKV](../../moa-dev/experiments/candidates/qkv-wavefront/README.md)
+passed45 whole comparisons but regressed13.9372% against contemporary E128 brackets.
+[E131 joint direct FFN](../../moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md)
+removed full up/gate FP8 storage with explicit packed/scale assembly and fused reduction:
+two-row v1 regressed15.1668%, four-row+tail v2 regressed6.2082%,45 whole comparisons each.
+V1 separate oracle passed245760 outputs; v2 standalone case0 launch timed out(code4),
+which is neither a passing diagnostic nor an observed whole-kernel wrong answer.
+No further tile tuning, adoption repeats, extra6 or official submission followed.
+The [next native-down review](../research/e131-native-down-next-20260927.md) distinguishes
+E93/E95 incomplete positive validation from a demonstrated down failure; its E5 proposal is unimplemented.
+
 September27 **[E128 native FFN dot/scale/reduce fusion adopted](../../baseline/e128.json)**.
 Actual graph removes28.125MiB up/gate partial writes and reads each, with native starts2→10.
 Three allocations108339/108342/108343 improve whole FFN against both E127 brackets:

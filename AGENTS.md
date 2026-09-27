@@ -76,6 +76,16 @@
   larger FFN question is projection/cluster ownership that removes FP8 weight
   materialization without E123's joint packed assembly; public transfer support
   and direct-decode correctness remain feasibility questions, not proven fixes.
+- E129–E131 subsequently checked complete paths: projection-owned cluster ingress
+  hit an explicit target-lowering limitation despite a public `cluster_tile` API;
+  QKV Main/Sub separation and joint direct-FP4 fused FFN regressed on hardware.
+  Preserve those exact boundaries: public API availability is not target support,
+  logical storage removal is not latency reduction, and a separate probe timeout
+  is not an observed arithmetic failure of a passing whole-kernel image. Stop the
+  frozen E131 row-size series. E93/E95 native-down positives remain incompletely
+  validated, not demonstrated down failures. A post-GeGLU E5/native-down proposal
+  must include actual quantization/broadcast and F32 partial/reduction costs and
+  establish accuracy anew; it is an open question, not a proven next optimization.
 - Classify the scope before implementation: parameter tuning, local dataflow
   replacement, or whole-projection/FFN architecture redesign. C09 row staging
   and C11 partial VRF are local dataflow replacements; do not count them as

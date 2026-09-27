@@ -1,0 +1,80 @@
+{
+  "id": "E131",
+  "status": "screen_no_net_gain",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "comparison_recipe": "baseline/e128.json",
+  "candidate_build_label": "e131-joint-four-row-v2",
+  "job": 109408,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_ffn_cycles": 348871,
+  "control_before_ffn_cycles": 328813,
+  "control_after_ffn_cycles": 328144,
+  "bracketing_median": 328478.5,
+  "change_percent": 6.2081688755885045,
+  "candidate_cycles_by_run": [
+    348871,
+    348066,
+    349465
+  ],
+  "static_candidate_cycles": 160609,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/graph-verification-e131-joint-four-row-v2.json",
+      "bytes": 76594,
+      "sha256": "67c5e225e06bb6e58e7f9393817c3cd2efe8c3a2241a2a6c933aab9815f28641"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/ffn-joint-direct-fused/e131-joint-four-row-screen-job-109408-results.json",
+    "bytes": 5334,
+    "sha256": "02d779f099ae8e4c4482f4d0b0ceae6aa49fb8bceb2aa62a24dc14fd8109c40d"
+  },
+  "recipe_costs": {
+    "logical_not_bus_telemetry": true,
+    "removed_e128_fp8_weight_write_bytes": 117964800,
+    "removed_e128_fp8_weight_read_bytes": 117964800,
+    "added_joint_packed_write_bytes": 58982400,
+    "added_joint_packed_native_read_bytes": 58982400,
+    "existing_packed_decode_read_becomes_raw_assembly_read_bytes": 58982400,
+    "raw_packed_main_copy_count": 2,
+    "added_joint_scale_write_bytes": 7372800,
+    "added_joint_scale_vrf_fetch_bytes": 7372800,
+    "existing_scale_vrf_read_becomes_raw_assembly_read_bytes": 7372800,
+    "raw_scale_sub_copy_count": 2,
+    "net_upgate_dm_write_removed_bytes_excluding_table_and_allocator_staging": 51609600,
+    "net_upgate_dm_read_removed_bytes_excluding_table_and_allocator_staging": 51609600,
+    "native_starts_before": 10,
+    "native_starts_after": 8,
+    "lookup_streams_before": 2,
+    "lookup_streams_after": 8,
+    "sub_scale_prep_before": 10,
+    "sub_scale_prep_after": 8,
+    "x_trf_scale_pairs_e128_emitted": 1,
+    "x_trf_scale_pairs_candidate_expected": 1,
+    "preserved": "HBM weights/scales, actualquantizer/broadcast, F32finalrow/localgather/BF16output, GeGLU/down/epilogue. E128 blockpartials alreadyabsent.",
+    "added_risks": "6 extra lookup setups versusE128; same packed and scale copies; peak7680B blockscale VRF plus32B inputscale; joint-buffer lifetime; mutable tile dependencies; row-pair transpose and tail/projection output routing; direct lookup correctness. Versusv1 removes7 lookup/native/scale setup tasks without changing logical payload. Removedpayload isnotpredictedcycles."
+  },
+  "scope": "Complete direct-FP4 joint producer, fused F32 reduction and original M03 consumers; paid packed/scale assembly remains. Logical payloads are not measured bus traffic or additive latency.",
+  "decisions": {
+    "adoption": {
+      "status": "not_promoted_from_this_screen",
+      "reason": "This single allocation did not show a net gain. Preserve it; root decides whether a concrete unresolved variance or implementation issue justifies another check.",
+      "remaining_checks": []
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does removing full FP8 materialization with joint direct-FP4 fused reduction repay packed/scale assembly and eight lookup/native setups? This measured combination does not implement projection-owned clusters."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

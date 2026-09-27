@@ -1,0 +1,66 @@
+{
+  "id": "E131",
+  "status": "completed_not_adopted",
+  "runtime": "E128 unchanged",
+  "official_submission": false,
+  "variants": [
+    {
+      "variant": "joint-two-row-v1",
+      "whole_job": 109430,
+      "whole_valid": true,
+      "comparisons_passed": 45,
+      "performance": {
+        "control_before": 328536,
+        "candidate": 378328,
+        "control_after": 328473,
+        "bracketing_median": 328504.5,
+        "candidate_change_percent": 15.166763316788657
+      },
+      "standard_distinct_inputs": 3,
+      "whole_evidence": "moa-dev/experiments/candidates/ffn-joint-direct-fused/e131-joint-two-row-screen-job-109430-results.json",
+      "probe_evidence": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-results-v1.json",
+      "probe_job": 109373,
+      "probe_valid": true,
+      "probe_result": "8 cases, 245760 outputs PASS"
+    },
+    {
+      "variant": "joint-four-row-v2",
+      "whole_job": 109408,
+      "whole_valid": true,
+      "comparisons_passed": 45,
+      "performance": {
+        "control_before": 328813,
+        "candidate": 348871,
+        "control_after": 328144,
+        "bracketing_median": 328478.5,
+        "candidate_change_percent": 6.2081688755885045
+      },
+      "standard_distinct_inputs": 3,
+      "whole_evidence": "moa-dev/experiments/candidates/ffn-joint-direct-fused/e131-joint-four-row-screen-job-109408-results.json",
+      "probe_evidence": "moa-dev/experiments/candidates/ffn-joint-direct-fused/validation/probe-results-v2.json",
+      "probe_job": 109411,
+      "probe_valid": false,
+      "probe_result": "First case0 launch timed out with code4; no output mismatch was observed before launch failure."
+    }
+  ],
+  "adoption": {
+    "decision": "reject_both_frozen_variants",
+    "reason": "Both full FFN variants regressed against their contemporary E128 brackets. v2 also has incomplete standalone validation, not a demonstrated whole-kernel arithmetic error."
+  },
+  "further_tuning": {
+    "decision": "stop",
+    "reason": "No more row/lookup-count sweep, no timeout repair series for these measured regressions. Row4+tail corrected an initial cost oversight; it was not a new architecture."
+  },
+  "major_research": {
+    "decision": "change_execution_representation_question",
+    "question": "Reassess E93/E95 positive but incompletely validated native-down combinations and the untried E5M2 post-GeGLU quantization/native-down path with its complete quantization, broadcast, scale and F32 reduction costs. QKV/O remain equally weighted score targets.",
+    "no_claim": "No new native-down implementation, validation, speedup or top10 guarantee."
+  },
+  "scope": [
+    "E129 projection-cluster design is separately blocked at target lowering. E131 retains explicit joint assembly.",
+    "Each variant has one whole-kernel allocation; these are not repeats of one binary.",
+    "Up/gate FP8 logical weight write/read112.5MiB each is removed but56.25MiB packed and7.03125MiB scale joint writes/reads are added; net49.21875MiB each is not an observed bus-traffic or latency measurement.",
+    "Actual hardware stall attribution is absent. v2 diagnostic and whole images have different schedules and allocations despite a byte-identical production source prefix.",
+    "No extra6 input expansion, adoption repeats or official submission followed the negative screens."
+  ]
+}

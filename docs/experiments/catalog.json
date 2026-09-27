@@ -1973,6 +1973,17 @@
       ]
     },
     {
+      "id": "E129",
+      "category": "static_only",
+      "kernel": "FFN",
+      "method": "Projection별 physical cluster 소유권·direct FP4 전체 FFN",
+      "note": "전체 source 구현 후 첫 cluster_tile ingress에서 target lowering 미지원으로 compile 실패. 실행 image/NPU 결과 없음; 느린 구조로 판정하지 않음. 공개 API와 실제 backend 지원을 구분. Runtime E128 유지.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-projection-clusters/README.md",
+        "moa-dev/experiments/candidates/ffn-projection-clusters/sdk-lowering-audit.md"
+      ]
+    },
+    {
       "id": "E130",
       "category": "regressed",
       "kernel": "QKV",
@@ -1986,6 +1997,34 @@
         "moa-dev/experiments/candidates/qkv-wavefront/decision.json",
         "moa-dev/experiments/candidates/qkv-wavefront/graph-verification-qkv-wavefront-sub-v2.json",
         "moa-dev/experiments/candidates/qkv-wavefront/e130-qkv-wavefront-screen-job-109339-results.json"
+      ]
+    },
+    {
+      "id": "E131-v1",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "Joint direct FP4·two-row fused scale/reduce·M03 전체 FFN",
+      "report": "docs/experiments/e131-joint-two-row-v1.json",
+      "reference": "docs/experiments/e131-joint-two-row-v1-e128-before.json",
+      "reference_label": "동시 E128 before",
+      "note": "Arena109430:45PASS,378328 vsE128328536/328473,bracket대비+15.1668%. 별도8case245760출력PASS. V2와같은조합의동결초기변형이며독립architecture아님. 미채택·추가tile중단.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md",
+        "moa-dev/experiments/candidates/ffn-joint-direct-fused/decision.json"
+      ]
+    },
+    {
+      "id": "E131",
+      "category": "regressed",
+      "kernel": "FFN",
+      "method": "Joint direct FP4·four-row+tail fused scale/reduce·M03 전체 FFN",
+      "report": "docs/experiments/e131-joint-direct-fused.json",
+      "reference": "docs/experiments/e131-joint-direct-fused-e128-before.json",
+      "reference_label": "동시 E128 before",
+      "note": "Arena109408:45PASS,348871 vsE128328813/328144,bracket대비+6.2082%. 별도oracle109411은case0launchtimeout(code4)이라확대검증완료아님/관측된오답도아님. 순logical write/read각49.21875MiB감소에도전체회귀. 미채택·추가tile중단. 표는before비교.",
+      "evidence": [
+        "moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md",
+        "moa-dev/experiments/candidates/ffn-joint-direct-fused/decision.json"
       ]
     }
   ]

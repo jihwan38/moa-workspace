@@ -1,0 +1,66 @@
+{
+  "id": "E131",
+  "base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "actual_start_commit": "5ff84a7b25e62c34cf8484ea3378abe3277220e6",
+  "comparison_recipe": "baseline/e128.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-native-fused-scale/measured-build-e128-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Complete FFN combination: E123 corrected joint compact FP4 assembly/direct native producer, E128 scale-resident fused F32 reduction, and M03 Lhalf consumers. Retains paid joint copies; does not claim projection-owned cluster implementation or new independent family.",
+  "prior_related": [
+    "E129 projection-owned cluster full source compile blocked at public cluster_tile NPU lowering; frozen separately, not counted as hardware failure or success here.",
+    "E123 corrected compact load/raw Main joint assembly passed basic fullFFN; its E104 consumer and fullF32partials differ.",
+    "E128 materialized E5M2 two-scale/Hreduce fused streams passed correctness; directFP4+joints do not inherit that validation.",
+    "E103 sequential independent direct streams failed targeted oracle; this keeps both projections in each joint producer.",
+    "v7b begin_interleaved axis lowering failure is avoided using paid explicit packed assembly."
+  ],
+  "full_graph": "unchanged preRMS/actual3termE5 preparation/broadcast -> each public compactFP4HBM load ->2 rawMain copies into projection-major jointFP4DM -> each public compactFP8scaleHBM load ->2 rawSub copies into jointFP8scaleDM -> shared xTRF/xscaleVRF ->15 joint streams (Projection2 xRow2): packedlookupE5M2/native/Mul0xscale/Mul1scale/F32Hreduce ->2F32/projection8B commit into[Projection2,Row30] ->actual P0/P1sourceoffset0/120B DMA toM03local120F32 ->existingBF16cast/GeGLU/global scales/localdown/F32cluster sum/epilogue",
+  "placement": {
+    "clusters": "Inherited M03 Dummy2=Lhalf remains throughout; no projection cluster ownership.",
+    "packed_weight": "Original compactL,H loads, then exact rawMain fill of joint[P2,Row30,H]; both56.25MiB compact source and56.25MiB joint exist as needed.",
+    "scales": "Original compactFP8loads then rawSub joint[P2,Row30,H/16]; two-row x2projectionF32VRF3840B plus32B xscale.",
+    "native": "Main direct FP4lookup feeds E5M2 native with existing3termTRF; no fullFP8intermediate and no F32blockpartialDM.",
+    "output": "Projection-majorF32[P2,Row30] with8Brow-pair commits; each120Bprojection region gathered to existingM03local120 and BF16cast."
+  },
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "removed_e128_fp8_weight_write_bytes": 117964800,
+    "removed_e128_fp8_weight_read_bytes": 117964800,
+    "added_joint_packed_write_bytes": 58982400,
+    "added_joint_packed_native_read_bytes": 58982400,
+    "existing_packed_decode_read_becomes_raw_assembly_read_bytes": 58982400,
+    "raw_packed_main_copy_count": 2,
+    "added_joint_scale_write_bytes": 7372800,
+    "added_joint_scale_vrf_fetch_bytes": 7372800,
+    "existing_scale_vrf_read_becomes_raw_assembly_read_bytes": 7372800,
+    "raw_scale_sub_copy_count": 2,
+    "net_upgate_dm_write_removed_bytes_excluding_table_and_allocator_staging": 51609600,
+    "net_upgate_dm_read_removed_bytes_excluding_table_and_allocator_staging": 51609600,
+    "native_starts_before": 10,
+    "native_starts_after": 15,
+    "lookup_streams_before": 2,
+    "lookup_streams_after": 15,
+    "sub_scale_prep_before": 10,
+    "sub_scale_prep_after": 15,
+    "x_trf_scale_pairs_e128_emitted": 1,
+    "x_trf_scale_pairs_candidate_expected": 1,
+    "preserved": "HBM weights/scales, actualquantizer/broadcast, F32finalrow/localgather/BF16output, GeGLU/down/epilogue. E128 blockpartials alreadyabsent.",
+    "added_risks": "13extra lookupsetups;5more small native andscale prep tasks; packedandscale copies; joint bufferlifetime; mutable tile dependencies; projection-major outputrouting; directlookup correctness. Removedpayload isnotpredictedcycles."
+  },
+  "fixed_shape_reason": "Row2 perprojection gives4*240*4=3840B scaleVRF and2F32=8B outputcommit. Row3 paired-output proposal was not compiled: deinterleaving would expose4B DMAoffset/packet. This is a single VRF+alignment design, not a tile sweep.",
+  "first_gate": "Compile completeFFN and inspect exact inputbounds,2compactrawMaincopies,2compactrawSubscalecopies,15jointdirectnativefusedstreams,absenceofupgateFP8/partialDM,andalignedP0/P1outputgather. Preserveattempts andrepairunderstoodAPI/layouterrors. ProceedtocontemporaryE128wholeNPUcontrolswhenvalid.",
+  "correctness_gate": "Actualquantizeranddistinctprojectionweights/scales; paired-row/projectioncommitboundaries,clusterLhalfandHblockboundaries,cancellation,zero,smallvalues; unchangedwholeFFNcriteria. Validatejointstreamarithmeticandconsumerorderanew; noE123/E128validationinheritance.",
+  "decisions": {
+    "adoption": "Unvalidated. Anypositivewholescreenqualifiesforboundedcontemporaryrepeatsandexpandedcorrectnessincludingunder5%.",
+    "further_tuning": "No tilerowsweep; onejointRow2alignmentcontract. Fixsourcebugswhenmechanismidentified; weighallpaidcopies/lookupstarts.",
+    "major_research": "Testcompletecoupled directweightandfusedreductionpath; projection-clusterownership remainsseparatelyblockedbycurrentlowering."
+  },
+  "adopted": false,
+  "hardware_status": "not_run"
+}

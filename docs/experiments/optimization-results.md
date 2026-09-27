@@ -12,7 +12,7 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 166개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
+수록: 169개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
@@ -20,12 +20,12 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 |---|---:|
 | [빨라진 기록](#improved) | 41 |
 | [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 15 |
-| [느리게 측정됨](#regressed) | 46 |
+| [느리게 측정됨](#regressed) | 48 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 9 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 2 |
 | [정확도 실패·실행 실패](#invalid) | 21 |
 | [대조군·기존 커널 조합](#control) | 10 |
-| [컴파일·정적 분석만 수행](#static_only) | 22 |
+| [컴파일·정적 분석만 수행](#static_only) | 23 |
 
 <a id="improved"></a>
 
@@ -149,6 +149,8 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E124 · C08 K/V compact ingress와 유효 packet 복사로 joint QKV 수리](e124-c08-corrected-joint.json) | QKV | [동시 E104 before](e124-c08-e104-control-before.json): 103,390 → 129,258 | +25.02% | 1 → 1 | 원 E105와 동일 image를 재현해 padded DMA source 범위 오류 확인 후 수리. 45비교 PASS, QKV129258 vs E104103390/104408; 앞뒤중앙103899 대비 +24.4074% 회귀. 표는before 비교다. 정확하지만 느린 이 prototype은 반복·확장검증·튜닝·채택 없이 종료; E122 유지. [근거1](../../moa-dev/experiments/candidates/c08-joint-ingress/decision.json), [근거2](../../moa-dev/experiments/candidates/c08-joint-ingress/independent-corrected-review.md) |
 | [E125 · M08 pair-preserving four-way O ingress with direct F32 gather](e125-m08-output-pair4.json) | O | [동시 E122 before](e125-m08-e122-before.json): 51,418 → 58,095 | +12.99% | 1 → 1 | Arena105767:57 comparisons PASS, three distinct original inputs. Whole O58095 vs E12251418/50906, bracketing51162 +13.5511%; table compares before. Weight26769→27190, gather1201→8222 in separate trace modes. Closed without sweep/repeat/adoption; E122 stays current. [근거1](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/README.md), [근거2](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/decision.json), [근거3](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/profile-analysis-m08-pair4-v1.json), [근거4](../../moa-dev/experiments/candidates/m08-output-pair4-ingress/independent-package-review.md) |
 | [E130 · Main pure F32 dot → compact DM → Sub scale/BF16 및 전체 RMS/RoPE](e130-qkv-wavefront.json) | QKV | [동시 E128 before](e130-qkv-wavefront-e128-before.json): 104,736 → 119,470 | +14.07% | 1 → 1 | Arena109339:45비교 PASS(후보3 distinct inputs). QKV119470 vs E128104736/104976; 앞뒤중앙104856 대비 +13.9372%, 표는before 비교. Main VE제거와268static-cycle SubVE중첩은 확인했으나 실제전체경로회귀. F3232KiB write/live-read와64KiB Sub packet합 추가; 정확hardware stall원인은미측정. 미채택·추가튜닝중단; E128유지. v1 4row F32transpose source오류와v2 2row8B수리 보존. 다른QKV architecture전체를폐쇄하지않음. [근거1](../../moa-dev/experiments/candidates/qkv-wavefront/README.md), [근거2](../../moa-dev/experiments/candidates/qkv-wavefront/decision.json), [근거3](../../moa-dev/experiments/candidates/qkv-wavefront/graph-verification-qkv-wavefront-sub-v2.json), [근거4](../../moa-dev/experiments/candidates/qkv-wavefront/e130-qkv-wavefront-screen-job-109339-results.json) |
+| [E131-v1 · Joint direct FP4·two-row fused scale/reduce·M03 전체 FFN](e131-joint-two-row-v1.json) | FFN | [동시 E128 before](e131-joint-two-row-v1-e128-before.json): 328,536 → 378,328 | +15.16% | 1 → 1 | Arena109430:45PASS,378328 vsE128328536/328473,bracket대비+15.1668%. 별도8case245760출력PASS. V2와같은조합의동결초기변형이며독립architecture아님. 미채택·추가tile중단. [근거1](../../moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md), [근거2](../../moa-dev/experiments/candidates/ffn-joint-direct-fused/decision.json) |
+| [E131 · Joint direct FP4·four-row+tail fused scale/reduce·M03 전체 FFN](e131-joint-direct-fused.json) | FFN | [동시 E128 before](e131-joint-direct-fused-e128-before.json): 328,813 → 348,871 | +6.10% | 1 → 1 | Arena109408:45PASS,348871 vsE128328813/328144,bracket대비+6.2082%. 별도oracle109411은case0launchtimeout(code4)이라확대검증완료아님/관측된오답도아님. 순logical write/read각49.21875MiB감소에도전체회귀. 미채택·추가tile중단. 표는before비교. [근거1](../../moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md), [근거2](../../moa-dev/experiments/candidates/ffn-joint-direct-fused/decision.json) |
 
 <a id="accuracy_limited"></a>
 
@@ -248,6 +250,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | S-C10-direct-trf · FP8 lookup→BF16 weight TRF 직접 연결 | QKV | Arena 미측정 | — | 0 | Rust frontend 뒤 StoTrf lowering 실패: renegade feature is enabled in non renegade-s config. 첫 compile에서 종료·Arena 미실행·미채택. [근거1](../../moa-dev/experiments/candidates/c10-direct-weight-trf/README.md), [근거2](../../moa-dev/experiments/candidates/c10-direct-weight-trf/decision.json) |
 | S-C14-A-l-pipeline · E74 BF16 stream + 구간별 GeGLU/down + L-owned cluster + F32 stage 합산 | FFN | Arena 미측정 | — | 0 | Whole-FFN 재설계 소스 구현, compile 3회 모두 실패. 최종 producer→down DMA에서 3840→4096 padding 변환 lowering 불가. 논리 좌표/pitch 검사 PASS, image·정적 schedule·NPU 결과 없음. 미채택. [근거1](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/README.md), [근거2](../../moa-dev/experiments/candidates/c14-ffn-l-pipeline/decision.json) |
 | S-C13-int8-ffn · E74 기반 up/gate/down INT8 두 항 · I32 radix 합산 · block activation scale | FFN | Arena 미측정 | — | 0 | 초기 v1/v2는 block reduction/DMA 정렬로 compile 실패. 사용자 지적 후 재개해 v6 compile·NPU 정확도 실패(E107), v7 수정 후 정확도 PASS·속도 회귀(E108). 초기 컴파일 기록이며 계열 전체 실패로 해석하지 않음. [근거1](../../moa-dev/experiments/candidates/c13-int8-ffn/README.md), [근거2](../../moa-dev/experiments/candidates/c13-int8-ffn/decision.json) |
+| E129 · Projection별 physical cluster 소유권·direct FP4 전체 FFN | FFN | Arena 미측정 | — | 0 | 전체 source 구현 후 첫 cluster_tile ingress에서 target lowering 미지원으로 compile 실패. 실행 image/NPU 결과 없음; 느린 구조로 판정하지 않음. 공개 API와 실제 backend 지원을 구분. Runtime E128 유지. [근거1](../../moa-dev/experiments/candidates/ffn-projection-clusters/README.md), [근거2](../../moa-dev/experiments/candidates/ffn-projection-clusters/sdk-lowering-audit.md) |
 
 ## 기록 추가
 
