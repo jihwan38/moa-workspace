@@ -1,3 +1,24 @@
+# 2026-09-27 D-E141 계측 완료·E142 full30 부분합 조합 선택
+
+현재 채택/공식 runtime은 E140이다. 계측111627은57비교와 실제137/151개 operation
+연결을 검증했다. E141의 첫 gate native는 E140보다15434cycles 빨랐지만 마지막 up
+native 종료는10888cycles 늦었고 GeGLU는10810cycles 늦었다. 별도 whole은
+313898→325748→313736으로3.8019% 회귀했다. 첫 screen3.1516%와 함께 기록한다.
+[계측·선택 근거](../../moa-dev/experiments/candidates/e140-e141-lookup-profile/README.md).
+
+Up/gate native 전체 구간은64649→91078cycles로 늘었다. Candidate up첫 native는
+lookup table 준비1cycle 뒤 시작했고 이후 table 준비는 native와 겹쳤다. Table window
+합집합66420.5cycles를 절감 가능량으로 읽지 않는다. DirectMain의 lookup/native/scale을
+내부 service time으로 분리한 결과도 아니다.
+
+E142는 이미 실제 compile되었던 E103 full30→F32 block partial→6행 scale/reduce
+helper를 수정된 E141 주변 경로와 조합한다. lookup/native10→2, 전체Main10→12이며
+28.125MiB F32 partial write/read를 각각 추가한다. Weight FP8 materialization은 계속 없다.
+프로파일이 반복 준비·소비 비용을 바꿀 근거를 제공했으며 실제 whole 개선은 미검증이다.
+기존 E103 오답은 보존하고 새 partial bounds/같은245760-output oracle/whole을 통과해야 한다.
+소스 원점은 E141+E103 helper, 비교군은 별도 E140이며 새 named branch에서 진행한다.
+아래는 완료된 앞선 기록이다.
+
 # 2026-09-27 E141 직접 FP4 경로 실행 복구·전체 FFN 회귀
 
 Runtime은 E140이다. E135 소스의 up-term 복사 세 곳만 고친 E141은

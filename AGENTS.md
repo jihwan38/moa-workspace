@@ -194,6 +194,16 @@
   truly had oracle mismatches, but also retained the unsafe prefix and has no
   preserved final descriptors. Its cause is unresolved; neither inherit success
   from E141 nor treat its failure as proof that all direct partial paths fail.
+- D-E141 paired diagnostic subsequently observed first direct native15,434cycles
+  earlier but last up native10,888cycles later, with GeGLU10,810cycles later.
+  Repeated lookup/table and direct native preparation are a concrete coupled
+  cost question; table interval unions include overlap/waits and are not savings.
+  E142 selects the historical full30 direct native/F32 block-partial helper with
+  E141's corrected prefix/current suffix. It trades ten lookup/native streams for
+  two plus ten separate scale/reduce tasks and28.125MiB partial write/read each.
+  This revisits an existing combination after a source repair and measured cost
+  evidence, not a new architecture or a proven speedup. Validate new actual
+  partial bounds, original projection oracle and contemporary whole performance.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or
