@@ -1,3 +1,33 @@
+# 2026-09-27 E137 native O 채택 완료, 공식 제출 준비
+
+현재 runtime은 **E137 / `baseline-e137` / `334a705`**다.
+[현재 구성](../../baseline/e137.json) · [최종 채택 결정](../../moa-dev/experiments/candidates/o-native-activation-resident/adoption-decision.json) · [실험·검증](../../moa-dev/experiments/candidates/o-native-activation-resident/README.md).
+실제 branch 시작5c94b51, source recipe/control은 각각E1344f8fe7f다.
+
+Frozen v2는 native dot이 짧아졌지만 입력 양자화·512KiB term 배포 이후에 소비를 시작해
+전체 O가14.0551% 느렸다. 내부 NPU 계측110511을 근거로 v3는 BF16 입력을 실제 소비 slice로
+먼저 보내고 각 rowgroup에서 같은 K4096 scale을 K16 Max로 구해4항을 직접 준비한다.
+원본입력 복제16→256KiB와 증가한 local양자화, 남은 term저장/TRF적재까지 전체 실측에 포함했다.
+
+| 독립 Arena | E134 앞/뒤 중앙 기준 | E137 O | 감소율 |
+|---|---:|---:|---:|
+|110558|49535|42526|14.1496%|
+|110573|48980.5|42957|12.2978%|
+|110584|49122|43097|12.2654%|
+
+Paired 감소율 중앙값 **12.2978%**, job중앙값 집계49,122→42,957cycles다.
+표준9입력(기본3+추가6), 실제 raw O9사례34,560exact BF16, 원래 full O case7의
+RMS/residual 포함3,840출력이 통과했다. 일반BF16·임의입력·전체모델 정확성 증명은 아니다.
+46개 compile input은 실측source/tag/live와 일치하며 변경은 `sliding/projection.rs` 하나다.
+QKV/FFN image는 E134와 byte-identical이다. 추가 parameter tuning은 종료한다.
+
+공식 제출 전 로컬 payload 검증을 진행한다. 공식점수·순위는 완료 후 별도 기록한다.
+[다음 연구 판단](../research/after-e137-priority-20260927.md): QKV의 K4×H960 activation-resident
+소비자 경로를 우선 검토하되 source/descriptor/정밀도/전체QKV비용을 새로 확인한다.
+E137의 K256 성공을 fullH3840에 그대로 대입하지 않는다. FFN local-down 준비는 현재
+native-down의 readiness 병목이 확인될 때만 선택하며 E135 timeout의 수리로 혼동하지 않는다.
+아래는 각 실험 당시 기록으로, 이전 pending/미채택 표시는 그 시점의 상태다.
+
 # 2026-09-27 E135/E136 검증 완료, E137 native O 선택
 
 Runtime/control은 E134를 유지한다. [전체 경로 선택](../research/top30-paths-20260927.md),

@@ -131,3 +131,37 @@ distribution, increases logical input HBM replication16KiB→256KiB and active
 quantizer storage, and changes the reduction scope. It does not reduce term
 count, assume input values, change tolerances or promise a gain. Actual profile
 evidence and supported mappings must select the repair before implementation.
+
+## Measured repair selection and first positive result
+
+The frozen-v2 diagnostic Arena110511 passed57 comparisons and reproduced the
+whole-kernel regression:55941 versus contemporary E13448579/48703 (+15.0079%).
+The six run/cluster observations place median first-weight completion at15051,
+quantization completion at23814.5, term distribution at23815.5–31242.5, TRF load
+completion at31835.5, and first native start at31836.5. Thus native execution
+followed activation readiness immediately even though its weight had arrived
+much earlier. The first projection span fell from9541 to2479 cycles, but its
+start moved from17112 to31836.5. These intervals include dependencies and queueing;
+they are not pure service times or additive reclaimable savings.
+
+This evidence selected frozen `native-v3`: original BF16 shards go to all512
+consumer slices, each rowgroup computes the same full K4096 maximum through a
+K16 reduction, and four terms are produced locally. The512KiB distribution DMA
+is absent; local term storage/TRF load remain. Original input replication grows
+from16KiB to256KiB and quantization runs in more slices. The exact static schedule
+is25112 cycles versus v233532 and E13427432; only whole NPU establishes the gain.
+
+Arena110558 passed45 comparisons: E13449585 → v342526 → E13449485, a14.1496%
+decrease against paired49535. The implementation was frozen for two independent
+repeats and extra6. Actual projection oracle110561 passed9 cases/34560 exact BF16
+values with the unchanged fixture; whole O110569 passed3840 exact0.609375 outputs
+including production RMS and residual. The final adoption/performance record,
+when completed, is kept with the candidate rather than overwriting v2 evidence.
+
+The general lesson is specific: faster native arithmetic can be retained when
+its newly introduced producer/distribution delay has an implementable repair.
+Fewer logical bytes alone did not select this change. Applying it to QKV is not
+automatic: O owns K256 per slice, whereas QKV's full H3840 residual creates a
+different VRF/ownership problem. Direct Sub Switch→TRF is also unresolved; the
+closest E55 implementation failed its output slice bitmap check, so generic
+frontend API availability is insufficient evidence for that next route.

@@ -136,6 +136,23 @@
   four-term quantization, global amax, replication, TRF and coefficient costs.
   This is a precision/dataflow repair of the native-O family, not another newly
   invented family, and requires its own whole-kernel and boundary results.
+- E137 subsequently recovered that native-O family with consumer-local four-term
+  quantization. Frozen v2 regressed14.0551%; one internal NPU diagnostic showed
+  its faster native stage waiting for global-max/quantization/term distribution.
+  Frozen v3 moves actual BF16 shards to all consumer rowgroups, computes the
+  same global K4096 scale via K16 Max in each group, and prepares four terms
+  locally. It removes512KiB term distribution while increasing original-input
+  replication16KiB to256KiB; local term storage and TRF loads remain. Three
+  independent whole-O allocations improved14.1496/12.2978/12.2654%, with nine
+  standard inputs, nine actual-projection cases/34560 exact BF16 outputs, and
+  the original whole-O case7/3840 outputs passing. Adopt the frozen measured
+  combination after source/image binding; stop its parameter series. Preserve
+  v2's failure and v3's added costs, not just the removed bytes. This is a
+  concrete recovered implementation, not proof that every failed architecture
+  can be repaired. O's K256 residual fits a different local representation from
+  QKV's H3840, and direct Sub Switch-to-TRF still lacks a successful lowering
+  example after E55's bitmap failure. Revalidate producer/consumer ownership
+  and whole-path costs before transferring this method to another kernel.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

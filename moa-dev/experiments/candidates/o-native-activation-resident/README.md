@@ -1,3 +1,13 @@
+# E137 adoption update
+
+Root adopted frozen native-v3 as `baseline-e137` / `334a7059a82252a310436c6d7e02f8ba577e7f51`.
+[Adoption decision](adoption-decision.json), [source audit](source-build-audit.json),
+[baseline recipe](../../../../baseline/e137.json). Three independent paired whole-O
+reductions are14.1496%,12.2978%,12.2654%; median12.2978%. Standard9 inputs,
+raw9 cases/34560 outputs and original full-O case7/3840 outputs pass. QKV/FFN
+images preserve E134. Stop parameter tuning. Official grading is recorded separately.
+The following snapshots preserve their status at creation; they are not later adoption decisions.
+
 # E137 — activation-resident native O
 
 Frozen `native-v3` reduces complete O cycles in all three contemporary E134 comparisons: **paired median −12.297751%**, aggregate medians **42,957 vs 49,122** (−12.550385%). All required finite correctness and source/package checks passed. `decision-v3.json` recommends root adoption review; this branch changes neither live kernels nor the baseline, and makes no official ranking claim.
