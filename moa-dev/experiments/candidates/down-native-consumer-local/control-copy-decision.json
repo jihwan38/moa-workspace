@@ -1,0 +1,61 @@
+{
+  "id": "E140",
+  "variant": "control-copy-fix",
+  "status": "source_memory_fix_passed_pending_root_validation",
+  "source_base_commit": "334a7059a82252a310436c6d7e02f8ba577e7f51",
+  "comparison_recipe": "baseline/e137.json",
+  "adopted": false,
+  "official_submission": false,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "job": 111461,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "ffn": {
+    "before": 315184,
+    "candidate": 314397,
+    "after": 314934,
+    "bracket": 315059,
+    "change_percent": -0.21011937446636653
+  },
+  "source_change": "Exactly three prepare_ffn_fp8_split term-copy DMAs replaced by raw Sub480B streams. Every other E137 source byte unchanged, including down.",
+  "verified": [
+    "Actual old up-term copy descriptors exceed480B sources and the1440B packed destination; valid correction is needed independently of whether this old allocation happens to pass standard inputs.",
+    "New actual O30/O35/O40 copy exactly480 initialized bytes at offsets0/480/960 and collectively cover1440B without overrun.",
+    "Original standard host source, fixture, tolerance and uploaded bytes are bound to the exact image; QKV/O unchanged E137."
+  ],
+  "limits": [
+    "One allocation with three original standard inputs; -0.210119% does not establish a statistically resolved performance gain. The primary evidence is the corrected memory contract and finite whole correctness.",
+    "Separate local-v5 job111459 reportedly passes45 and regresses3.098140%; it is a different allocation, not a direct paired local-v5/control-fix comparison. Its source change combines this same copy correction with local down.",
+    "Rawdown111393 excluded this upstream quantizer and final down global-scale consumer; its passing result could not establish the complete FFN prefix memory contract.",
+    "Do not call the identified overwrite the exhaustive sole explanation for every possible failure; source bound and observed standard recovery are the demonstrated scope."
+  ],
+  "next": "Root reviews bounded repeats/extra correctness and actual source/image binding before any adoption. No local parameter tuning.",
+  "evidence": {
+    "build-e140-control-copy-fix-repro.json": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/build-e140-control-copy-fix-repro.json",
+      "bytes": 17466,
+      "sha256": "4590356dcfd5f5d98a44ea4c6f591326bcd51c90068e2439f3016aec48782038"
+    },
+    "package-e140-control-copy-fix.json": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/package-e140-control-copy-fix.json",
+      "bytes": 20890,
+      "sha256": "7152b4508b7d80e269a33a5e31affb5645161cdf021de25367195037fc78c435"
+    },
+    "graph-verification-e140-control-copy-fix.json": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/graph-verification-e140-control-copy-fix.json",
+      "bytes": 4642,
+      "sha256": "8f5788f79a3cdd19286ea964f64e2431062731b6dae38b1fb7159387fa960d02"
+    },
+    "independent-control-copy-review.json": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/independent-control-copy-review.json",
+      "bytes": 2386,
+      "sha256": "a5bc862b308686d756b3db009e142594d9d6b06e74c32ba1dce3e3c4047b5f07"
+    },
+    "e140-control-copy-screen-job-111461-results.json": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/e140-control-copy-screen-job-111461-results.json",
+      "bytes": 5344,
+      "sha256": "635895d96d8c0cd22b7c109257bfc6a7be433fa37154b682aa2bd192715eb1ee"
+    }
+  }
+}
