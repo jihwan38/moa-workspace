@@ -18,9 +18,11 @@ QKV/O 이미지는 E137과 같다. FFN의 양자화 산술·native down도 동�
 채택하지 않았다. 현재 up/gate의 전체 FP8 weight 중간 저장은 유지된다. 앞서 E137에서
 채택한 소비자 로컬4항 E4 native O는 그대로이며 당시 O 감소율 중앙값은12.2978%였다.
 
-최근 공식 제출은 아직 **E137 / `330d5595` / 6.4427554× / 46위**다.
-E140 자체의 공식 제출·순위 개선은 없다.
-[공식 기록](../docs/experiments/e137-official-submit-20260927.json) ·
+공식 제출 **E140 / `47a9240e`**은15비교를 통과했고 **6.471733× / 46/69위**다.
+QKV102409 / O43055 / FFN314108cycles이다. 이전 E137 대비 점수는0.4498% 높지만,
+변하지 않은 QKV의 실행 변동이 크게 기여하므로 이를 복사 수정의 속도 효과로 세지 않는다.
+[공식 기록](../docs/experiments/e140-official-submit-20260927.json) ·
+[리더보드](../docs/experiments/leaderboard-e140-20260927.json) ·
 [진행 현황](../docs/experiments/current-work.md).
 
 | 찾는 내용 | 파일 |

@@ -12,7 +12,7 @@
 - 분류는 원장·반복·정확도 근거를 확인한 판단이다. 임의의 ±1% 문턱으로 자동 판정하지 않는다. 과거 채택·성능 관측과 **현재 채택**을 구별한다.
 - 컴파일 예상 cycles, 추가 입력 진단 cycles, 정확도 실패 패키지의 cycles는 성능표에 섞지 않는다. 이 표는 공식 점수·순위 또는 모델 전체 처리량이 아니다.
 
-수록: 177개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
+수록: 178개 커널별 비교/진단 항목. 시간순 원장의 E1–E75 주요 성능 실험을 커널별로 연결했다. 같은 패키지의 첫 screen과 반복은 원칙적으로 반복으로 대표하고, E50→E51처럼 판정이 달라진 경우는 함께 남긴다. S- 항목은 관련 정적 후보 일부이며 모든 scratch/probe의 전수 목록은 아니다. C08은 QKV 통합과8열 분할의 조기 screen E105/E106을 포함한다. C09/C11/C10의 최초 구조 compile screen과 종료 근거를 S- 항목으로 추가했다. C14-A의 E74 기반 전체 FFN 조합 구현과 3회 lowering 실패를 S- 항목으로 기록했다. C13의 integer primitive/CPU screen과 전체 FFN 2회 compile 실패를 별도 S- 항목으로 기록했다. C13 재개 후 실제 Arena의 v6 정확도 실패(E107)와 v7 정확도 통과·회귀(E108)를 추가했다. C14-B의 stage-local compact 수정 후 전체 NPU 통과·회귀를 E109에 기록했다.
 
 E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복에서 재현되지 않으면 미확인으로 남긴다. E38/E39처럼 자체 실험 계열의 이전 후보보다 빨라져도 채택본보다 느린 경우에는 그 비교를 함께 적는다.
 
@@ -20,7 +20,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 |---|---:|
 | [빨라진 기록](#improved) | 43 |
 | [차이가 작거나 반복에서 이득을 확인하지 못함](#inconclusive) | 15 |
-| [느리게 측정됨](#regressed) | 51 |
+| [느리게 측정됨](#regressed) | 52 |
 | [빨랐지만 후속 정확도 검사에서 제한 확인](#accuracy_limited) | 10 |
 | [속도 비용을 감수한 정확도 수정](#correctness_fix) | 3 |
 | [정확도 실패·실행 실패](#invalid) | 22 |
@@ -156,6 +156,7 @@ E59처럼 작은 감소가 실행 변동과 겹치거나 E50처럼 후속 반복
 | [E132 · K4×row30 + C09 16/14행 staging + compact F32 canonical gather](e132-o-owned-k4.json) | O | [동시 E128 before](e132-o-owned-k4-e128-before.json): 48,583 → 55,052 | +13.32% | 1 → 1 | 원래 static-only K4의 BF16 scalar compaction을 제거한 전체 조합. V1 H축 표현 오류를 독립 OutputRow로 수리. V2 Arena109654 45PASS:55052 vs E12848583/49216, bracket 대비 +12.5819%; 진단 allocation109683 57PASS의 whole도 +15.7718%. Trace에서 gather 증가는147cycles이나 first-weight marker 시작은5295.5cycles 늦고 inputTRF issue가 W0보다 앞섬. V3 source-let 순서 수리는 exactimage byte동일/issue불변이라 NPU 미실행. 미채택·K/stage sweep중단, 준비8case oracle미실행. 대기포함marker만으로 HBM포화/물리원인 단정하지 않으며 K4전체family 불가능을 의미하지 않음. 표는 첫 allocation before 비교. [근거1](../../moa-dev/experiments/candidates/o-owned-k4/README.md), [근거2](../../moa-dev/experiments/candidates/o-owned-k4/decision.json), [근거3](../../moa-dev/experiments/candidates/o-owned-k4/profile-analysis.json), [근거4](../../moa-dev/experiments/candidates/o-owned-k4/v3-issue-order-gate.json), [근거5](../../moa-dev/experiments/candidates/o-owned-k4/verification.json) |
 | [E136 · Original E4 weight Sub→TRF + weighted E4 four-term activation stream + canonical output rows](e136-qkv-native-weight-resident.json) | QKV | [동시 E134 before](e136-qkv-native-weight-resident-e134-before.json): 102,925 → 116,321 | +13.02% | 1 → 1 | Whole110367 45PASS:116321 vs E134102925/104796, bracket103860.5대비+11.9973%(표는before비교). 과거상쇄2case fullQKV110365의16384출력/8380416 untouchedcache PASS. Native4항정밀도는검사범위에서통과했지만30MiBweightTRF·4항quant/broadcast/F32handoff포함전체경로회귀. 채택/추가튜닝중단; activationresident/nativeO가족의성능판정아님. [근거1](../../moa-dev/experiments/candidates/qkv-native-weight-resident/README.md), [근거2](../../moa-dev/experiments/candidates/qkv-native-weight-resident/screen-decision.json), [근거3](../../moa-dev/experiments/candidates/qkv-native-weight-resident/boundary-suite/result-110365.json) |
 | [E137-v2 · Native E4 Term4 activation-resident O, central quantization and term distribution](e137-o-native-activation-resident.json) | O | [동시 E134 before](e137-o-native-activation-resident-e134-before.json): 49,037 → 56,163 | +14.53% | 1 → 1 | Whole110453 45PASS, bracket49242→56163(+14.0551%; 표는before비교). raw9·wholecase7 PASS. frozen profile110511로 activation readiness 지연을 확인; family 폐쇄 대신 consumer-local 수리 v3로 연결. v2 자체 미채택. [근거1](../../moa-dev/experiments/candidates/o-native-activation-resident/decision.json), [근거2](../../moa-dev/experiments/candidates/o-native-activation-resident/profile/README.md) |
+| [E141 · 독립 FP4 직접6행 결합 경로의 복사 범위 수리](../../moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/normalized/e141-independent-direct-copy-repair.json) | FFN | [E140 동시 앞](../../moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/normalized/e141-independent-direct-copy-repair-e140-before.json): 314,403 → 324,186 | +3.11% | 1 → 1 | 기존 whole/oracle timeout 복구, whole45PASS와 up/gate245760exactPASS. 앞뒤 control중앙 대비+3.151638% 회귀라 미채택. 표는 앞control 비교이며 별도 paired진단 근거로 비용 분석 후 조합 선택. [근거1](../../moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/decision.json) |
 
 <a id="accuracy_limited"></a>
 
