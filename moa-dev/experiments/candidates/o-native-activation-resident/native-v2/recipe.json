@@ -1,0 +1,70 @@
+{
+  "id": "E137",
+  "variant": "native-v2",
+  "base_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "actual_start_commit": "5c94b51dfd4e6149e6680c93b428da7577c0edeb",
+  "comparison_recipe": "baseline/e134.json",
+  "target_kernel": "sliding_attention_output",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/measured-build-e134-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "decoder_feedforward"
+  ],
+  "scope": "Whole O representation and fused reduction repair of the existing native-O family; no tile/factor sweep.",
+  "prior_related": [
+    "E47 native two-term O underflow and extra BF16 partial rounding failed cancellation; E137 uses four weighted terms and no early BF16.",
+    "E136 native weight-resident QKV worked on finite correctness checks but whole+11.9973%; E137 streams original weights and holds only K256 activation terms in TRF, no full-H broadcast.",
+    "C09/E127 two60row input staging retained; current original E4 HBM row/K ownership and F32 pair canonical gather preserved."
+  ],
+  "full_graph": "Public BF16 x4096 -> duplicated cluster2 x16 K256 shards -> localabsmax and globalK16amax -> commonpow2s -> actual4E4 cumulative-residual quantization on32shards -> typed K-preserving16row-group replication -> activationTRF Lane4=Term4/ElementK256; two originalE4 HBM compact row60,K256 stages -> directnativeMain weight stream/sharedacrossTerm4lanes -> nativeF32Termpacket4 outputs -> normalizedcoeffMul -> TermReduceAccTree -> K16interReduce -> F32rowpaircommit -> existingcanonicalH480gather -> common s Mul0 -> channel scale Mul1 -> firstBF16 -> unchangedRMS/residual/publicstores",
+  "placements": {
+    "quant": "m![2] clusters, m![1#16,Qs/256] slices,Qs%256; source32validshards,512B BF16/1024B4terms each",
+    "native": "C09 OutputCluster Dummy2,OutputColumns H/120%16,Qs/256; weightDM60x256E4=15360B/slice/stage;activationTRF4x256E4=1024B/slice;coeffVRF4validF32padded8=32B/slice",
+    "result": "F32row120/K16reducedowner, two60rowindexedwrites with2F32/8Bpackets; canonicalH480same",
+    "scale": "sameglobal s for both duplicatedinputclusters; canonicalCluster1#2 OutputEpilogueSlices1#32,H/480; postTermandK16sums then s thenchannelBF16"
+  },
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "weight_hbm_and_dm_read_bytes_unchanged": 15728640,
+    "removed": "Two FP8\u2192BF16 lookup/table paths; no BF16weightDM existed in E134. No bulkweightTRF or full-H termbroadcast is introduced.",
+    "added": "Globalamax+scale,4residualcasts+2cumulativeF32DM/VRF sums,4coefficientconstantstreams+replication,typed4termKshardreplication,twiceBF16activationTRFbytes,fourspatialE4products/F32packetTermreduce per logicaldot,commonsscalarload/Mul inexistingchannelpass.",
+    "activation_hbm_logical_shard_payload_bytes": 16384,
+    "compact_terms_before_replication_bytes": 32768,
+    "replicated_activation_before_bytes": 262144,
+    "replicated_activation_after_bytes": 524288,
+    "coefficient_vrf_aggregate_bytes": 16384,
+    "final_f32_result_and_gather_bytes_unchanged": 15360,
+    "no_extra_padded_partial_dm": true,
+    "coefficient_pack_added": "Sub scalarowners2slices read4x32B andwrite4x4B each; exactly2pair8Bcommits. New typedbroadcast16B/slice=8192B andStoVrf32B/slice; removes prior128B/slice coefficientbroadcast+VRF."
+  },
+  "numerical_contract": {
+    "factors": [
+      1,
+      16,
+      4194304,
+      134217728
+    ],
+    "normalized_coefficients": [
+      1,
+      0.0625,
+      2.384185791015625e-07,
+      7.450580596923828e-09
+    ],
+    "formula": "F32(x/s), cumulative-restored residual E4 terms; nativeF32 perterm, reciprocalfactor Mul0,Termsum thenK16sum; common s restored afterF32gather,channelF32scale,firstBF16.",
+    "cpu_evidence": "../qkv-native-weight-resident/numerical/; maxnormalizederror2^-37 exact|u|>=2^-29 onlywithin auditednormalizeddomain; no nativeaccumulation/allBF16accuracyinheritance."
+  },
+  "first_gate": "ExactcompleteOcompile; actual32validinputshards,weightcompactsourcecoverage,termKreplication,Lane4Termweights sharedwithout4xweightfetch; coefficientpack actual0,1,2,3 from32Bslotsto16Bcompact,TermReduce\u2192K16singleMain,noearlyBF16,F32pairgather,commonscanonicalscale,lineage/registercapacity. Concrete source/APIbugs receive supported repair withfailedlogs preserved.",
+  "correctness_gate": "Early E134before/candidate/after whole3standardinputs; independently actualproject_output9BF16oraclecases andsamepublicOlegacycancellationcase7. Positiveevenbelow5%->freeze3alloc+extra6+boundary beforeadoption.",
+  "decisions": {
+    "adoption": "unvalidated; anynetpositiveentersboundedvalidation",
+    "tuning": "No randomtiles/factors; negativespreserveevidenceandconcretecausequestion",
+    "research": "Compare coherentactivationresident/nativeweightstream withweightedF32TermandK16fusion versusBF16lookupwholeO"
+  },
+  "adopted": false,
+  "hardware_status": "not_run",
+  "repair_of": "native-v1 exactcompiled Time4/Lane1 (unmeasured); source/public numerical representation unchanged",
+  "repair_mechanism": "Place four activation residuals in native TRF Lane4 instead of Time4; output packetTerm4 weighted by contiguous coefficientVRF then packetReduceAccTree->K16. Public VRF reader requires consecutive packet cells, so actualSub2rowtranspose packs four128B scalar slots to16B beforebroadcast. This is ownership/contractionparallelism repair, not changing terms/factors/tile stages."
+}

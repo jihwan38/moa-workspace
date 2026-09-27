@@ -1,0 +1,59 @@
+{
+  "id": "E137",
+  "status": "screen_no_net_gain",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "comparison_recipe": "baseline/e134.json",
+  "candidate_build_label": "e137-native-v2",
+  "job": 110453,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_o_cycles": 56163,
+  "control_before_o_cycles": 49037,
+  "control_after_o_cycles": 49447,
+  "bracketing_median": 49242.0,
+  "change_percent": 14.05507493603022,
+  "candidate_cycles_by_run": [
+    60244,
+    55919,
+    56163
+  ],
+  "static_candidate_cycles": 33532,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/o-native-activation-resident/graph-verification-e137-native-v2.json",
+      "bytes": 4413,
+      "sha256": "3c18927c7f25d21f266b4fb1620ab40873fcf31bc64570632ac8c614f9821368"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/o-native-activation-resident/e137-native-screen-job-110453-results.json",
+    "bytes": 5327,
+    "sha256": "194aafa9f82f4a3863d3eb58a68cf1bd20a6ade88beacc34a4de9ec6b969519f"
+  },
+  "added_raw_f32_write_bytes": 0,
+  "added_raw_f32_valid_read_bytes": 0,
+  "extra_scale_consumer_tasks": 0,
+  "validation_scope": "See separate validation/ records; no historical native result inherited.",
+  "scope": "Complete native E4 activation-resident O with weighted four spatial terms, fused Term/K16 F32 reduction, and common scale after canonical gather. All quantization, replication, TRF/coefficient loads and final public operations included; no internal NPU attribution collected.",
+  "decisions": {
+    "adoption": {
+      "status": "not_promoted_from_this_screen",
+      "reason": "This single allocation did not show a net gain. Preserve it; root decides whether a concrete unresolved variance or implementation issue justifies another check.",
+      "remaining_checks": []
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Which actual quantization/globalmax/replication/weight dependency limits the whole path, and is there a supported coupled repair? Do not infer attribution from static intervals or close the native family universally."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

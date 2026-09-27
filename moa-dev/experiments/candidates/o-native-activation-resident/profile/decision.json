@@ -1,0 +1,33 @@
+{
+  "id": "E137-COST-RECOVERY",
+  "job": 110511,
+  "source_variant": "native-v2",
+  "verification": {
+    "path": "moa-dev/experiments/candidates/o-native-activation-resident/profile/verification.json",
+    "bytes": 18997,
+    "sha256": "86e4300643f0c127e3aeb44fc68e48b8eddf1693a3d61c27fbad6fb651a60c47"
+  },
+  "analysis": {
+    "path": "moa-dev/experiments/candidates/o-native-activation-resident/profile/profile-analysis.json",
+    "bytes": 435955,
+    "sha256": "fc018c1d9d785291696bf4c5c9e8c8f83e0bfb30cf08289cabf4d15c12e048e9"
+  },
+  "adoption": {
+    "decision": "reject_frozen_v2",
+    "reason": "Whole O +15.007915% regression on this contemporary bracketing allocation; no arithmetic failure."
+  },
+  "parameter_tuning": {
+    "decision": "stop",
+    "reason": "No rows/stages/term-count sweep."
+  },
+  "major_research": {
+    "decision": "select_consumer_local_quantization_repair",
+    "reason": "W0 ready long before native0; native0 starts1cycle after replicated-activationTRF ready. TermDMA end closely precedes W1 start. Preserve fullK4096 global scale and4terms; include duplicated input HBM/activequantDM costs."
+  },
+  "limitations": [
+    "Observed proximity of independent TDMA operations is not direct tensor dependency or hardware stall attribution.",
+    "No sums of overlapping intervals or guaranteed cycle savings.",
+    "One allocation, three inputs, two clusters; six trace observations are not independent runs."
+  ],
+  "official_submission": false
+}

@@ -1,0 +1,174 @@
+{
+  "passed": true,
+  "scope": "Independent read-only source and emitted mapping/order review; production gate owned by kernel agent. No NPU arithmetic or performance claim. Hidden native/VRF SFR indexes and runtime bank arbitration are not established.",
+  "inputdigests": {
+    "moa-dev/experiments/candidates/o-native-activation-resident/native-v2/projection.rs": {
+      "bytes": 25761,
+      "sha256": "c7f6b0f4c7c6ee4285f8a2ad72f7bbd03284e1edd14d5bd7a6bb31d27aae1d90"
+    },
+    "moa-dev/experiments/candidates/o-native-activation-resident/evidence/e137-native-v2/graph.json": {
+      "bytes": 127064,
+      "sha256": "6d789c6142638df9e6ecbbc789bd86a880774525daf8ffeaf85b323a086bdbd0"
+    },
+    "moa-dev/experiments/candidates/o-native-activation-resident/evidence/e137-native-v2/schedule.json": {
+      "bytes": 74652,
+      "sha256": "d41b9933148e0f7428a7251283dce5ee7dd1d5bee26791267654e2c53e824818"
+    }
+  },
+  "quantization": {
+    "valid_shards_per_cluster": 16,
+    "clusters_duplicated": 2,
+    "hbm_read_bytes_total": 16384,
+    "source_hbm_extent": 8192,
+    "logical_global_k": 4096,
+    "emitted_max_ratio_with_padding": 256
+  },
+  "replication": {
+    "term_packets": 2048,
+    "packet_bytes": 256,
+    "destination_k": "256*(slice%16)+u",
+    "source_slice": "slice%16",
+    "same_cluster": true,
+    "trf_lanes": 4,
+    "trf_element_k": 256,
+    "trf_bytes_per_slice": 1024
+  },
+  "coefficients": {
+    "ordered_graph_printed_constants": [
+      [
+        0,
+        1.0
+      ],
+      [
+        1,
+        0.0625
+      ],
+      [
+        2,
+        2.3841858e-07
+      ],
+      [
+        3,
+        7.450581e-09
+      ]
+    ],
+    "source_slots_bytes": 128,
+    "packed_source_bytes": 16,
+    "sub_commit_bytes": 8,
+    "commits": 2,
+    "broadcast_bytes_per_slice": 16,
+    "vrf_payload_bytes_per_slice": 32
+  },
+  "native_stages": [
+    {
+      "name": "RenegadeCommand#O77",
+      "inputs": [
+        74,
+        69,
+        70,
+        80
+      ],
+      "outputs": [
+        81
+      ]
+    },
+    {
+      "name": "RenegadeCommand#O82",
+      "inputs": [
+        77,
+        69,
+        70,
+        85
+      ],
+      "outputs": [
+        86
+      ]
+    }
+  ],
+  "order": "normalized coefficient Mul -> packet Term ReduceAccTree -> K16 GReduceAdd -> compact F32 pair commit/gather -> common s Mul0 -> channel scale Mul1 -> first BF16",
+  "canonical_scale_source": "cluster0,slice0 -> cluster0 slices0..7, eight32B copies",
+  "schedule_register_lifetimes": [
+    {
+      "index": "182",
+      "lifetime": {
+        "begin": 18836,
+        "end": 19729
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "83",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 18445,
+            "end": 26307,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Lane: OutputTerm, Element: Qs % 256]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "79",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 12656,
+            "end": 26307,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1589248,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Element: OutputTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "index": "190",
+      "lifetime": {
+        "begin": 25414,
+        "end": 26307
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "83",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 18445,
+            "end": 26307,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Lane: OutputTerm, Element: Qs % 256]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "79",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 12656,
+            "end": 26307,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1589248,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 120 % 16, Qs / 256), Element: OutputTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    }
+  ]
+}
