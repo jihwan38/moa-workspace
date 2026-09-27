@@ -1,4 +1,4 @@
-// E128: native dot/scale/reduce fusion with E127 M03 ownership and materialized weights.
+// E135: independent compact FP4 up/gate consumed directly by six-row fused native streams; E134 weighted down unchanged.
 use furiosa_opt_std::prelude::*;
 
 use crate::Chip;
@@ -37,29 +37,42 @@ fn project_rows_with_scale_contraction(
     device: &mut Device,
     x_trf: &TrfTensor<f8e5m2, Chip, UpGateCluster, UpGateSlices, m![1], m![FfnTerm, H]>,
     x_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
-    weights: &DmTensor<f8e5m2, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]>,
+    weights: &DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]>,
     scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]>,
     output: &mut DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow]>,
 ) {
-    // E128: keep block dots in the native stream; only the six final rows reach DM.
-    // Preserve ((dot * input_scale) * block_scale), followed by F32 H reduction.
+    // E142: reuse the E103 full30 direct native F32 partial path.
+    // F32 DM preserves dot*x_scale; later F32 blockscale multiplication and H reduction
+    // preserve ((dot*x_scale)*blockscale) order. There is no intermediate BF16 cast.
+    let partials: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> = device
+        .main.begin(weights.view())
+        .fetch::<m![FfnRow], m![H]>()
+        .fetch_table_lookup::<f8e5m2>()
+        .collect::<m![FfnRow, H / 32], m![H % 32]>()
+        .contract_outer::<m![FfnRow, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)
+        .contract_packet::<m![H / 16 % 4]>()
+        .contract_time::<m![FfnRow, H / 64]>()
+        .contract_lane::<m![FfnRow, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_trim::<m![H / 16 % 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)
+        .vector_widen_pad::<m![H / 16 % 4 # 8]>()
+        .vector_final()
+        .commit_trim::<m![H / 16 % 4]>()
+        .commit();
     static_passes!(i, [0, 1, 2, 3, 4], {
         let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 6, H / 16]> = device.sub
             .begin(scales.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H / 16]>(6 * i))
             .fetch::<m![FfnRow = 6], m![H / 16]>().fetch_cast::<f32>()
             .collect::<m![FfnRow = 6, H / 16 / 8], m![H / 16 % 8]>().to_vrf();
         device.main
-            .begin(weights.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H]>(6 * i))
-            .fetch::<m![FfnRow = 6], m![H]>()
-            .collect::<m![FfnRow = 6, H / 32], m![H % 32]>()
-            .contract_outer::<m![FfnRow = 6, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)
-            .contract_packet::<m![H / 16 % 4]>()
-            .contract_time::<m![FfnRow = 6, H / 64]>()
-            .contract_lane::<m![FfnRow = 6, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)
+            .begin(partials.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H / 16]>(6 * i))
+            .fetch::<m![FfnRow = 6, H / 16 / 8], m![H / 16 % 8]>()
+            .collect::<m![FfnRow = 6, H / 16 / 8], m![H / 16 % 8]>()
             .vector_init().vector_intra_slice_tag(TagMode::Zero)
-            .vector_narrow_trim::<m![H / 16 % 4]>()
-            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)
-            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &scale_vrf)
+            .vector_narrow_split::<m![FfnRow = 6, H / 16 / 4], m![H / 16 % 4]>()
+            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
             .vector_intra_slice_reduce::<H, m![FfnRow = 6], m![1 # 4]>(IntraSliceReduceOpF32::Add)
             .vector_widen_pad::<m![1 # 8]>().vector_final()
             .transpose::<m![FfnRow = 6 / 2], m![FfnRow = 6 % 2 # 8]>().commit_trim::<m![FfnRow = 6 % 2]>()
@@ -84,10 +97,6 @@ pub(crate) fn project_up_and_gate(
     let up_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnSlice, FfnRow, H]> = unsafe { up_weight_packed.view().reshape() };
     let up_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> =
         up_weight_packed.to_dm(&mut device.tdma);
-    let up_weight_packed: DmTensor<f8e5m2, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> = device.main
-        .begin(up_weight_packed.view()).fetch::<m![FfnRow], m![H]>()
-        .fetch_table_lookup::<f8e5m2>()
-        .collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit();
     let up_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnSlice, FfnRow, H / 16]> = unsafe { up_weight_scale.view().reshape() };
 
     let up_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> =
@@ -108,10 +117,6 @@ pub(crate) fn project_up_and_gate(
     let gate_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnSlice, FfnRow, H]> = unsafe { gate_weight_packed.view().reshape() };
     let gate_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> =
         gate_weight_packed.to_dm(&mut device.tdma);
-    let gate_weight_packed: DmTensor<f8e5m2, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> = device.main
-        .begin(gate_weight_packed.view()).fetch::<m![FfnRow], m![H]>()
-        .fetch_table_lookup::<f8e5m2>()
-        .collect::<m![FfnRow, H / 32], m![H % 32]>().commit_trim::<m![H % 32]>().commit();
     let gate_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnSlice, FfnRow, H / 16]> = unsafe { gate_weight_scale.view().reshape() };
 
     let gate_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> =
@@ -682,19 +687,16 @@ pub(crate) fn prepare_ffn_fp8_split(
         .cast::<f8e5m2, m![H % 8 # 32]>()
         .commit_trim::<m![H % 8]>().commit();
     let mut packed: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![FfnTerm, H % 480]> = DmTensor::new();
-    // Exact480B copy; padded destination must not enlarge the source DMA extent.
     device.sub.begin(hi.view())
         .fetch::<m![H / 32 % 15], m![H % 32]>()
         .collect::<m![H / 32 % 15], m![H % 32]>()
         .commit_trim::<m![H % 32]>()
         .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(0));
-    // Exact480B copy; padded destination must not enlarge the source DMA extent.
     device.sub.begin(lo.view())
         .fetch::<m![H / 32 % 15], m![H % 32]>()
         .collect::<m![H / 32 % 15], m![H % 32]>()
         .commit_trim::<m![H % 32]>()
         .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1));
-    // Exact480B copy; padded destination must not enlarge the source DMA extent.
     device.sub.begin(third.view())
         .fetch::<m![H / 32 % 15], m![H % 32]>()
         .collect::<m![H / 32 % 15], m![H % 32]>()
