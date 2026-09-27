@@ -1,3 +1,25 @@
+# 2026-09-27 E135/E136: 큰 비용 제거 경로 NPU 검증 중
+
+Runtime/control은 E134를 유지한다. [전체 경로 선택](../research/top30-paths-20260927.md),
+[문헌·설치 SDK 대조](../research/top30-literature-20260927.md),
+[30위 격차 조회](../research/top30-leaderboard-20260927.json)를 먼저 동결했다.
+현재51위에서 당시30위 점수까지는 각 커널 동률 개선 가정으로 약20.98% 시간 감소가 필요하다.
+
+- **E135 / `opt/ffn-independent-direct-fused`**: 각각 compact FP4에서 기존6행 fused
+  dot/scale/H-reduction을 직접 구동한다. Up/gate FP8 저장을 없애되 joint packed/scale
+  assembly는 만들지 않는다. Exact compile와 실제 descriptor/register gate는 통과했다.
+  Whole110314와 production up/gate oracle110316 모두 첫 실행 timeout(code4)이다.
+  Whole의 E134 앞뒤 control은 정상 완료했다. 수치 오답이나 실측 성능 회귀로 분류하지 않는다.
+  지원되는 구체 수리가 있는지 조사 중이며 임의 padding/행수 sweep은 하지 않는다.
+- **E136 / `opt/qkv-native-weight-resident`**: 원본 E4 weight를 Sub→TRF에 두고
+  실제 activation을 weighted E4 네 항으로 바꾸어 stream한다. Canonical 출력 행 소유권으로
+  기존 row/scale Switch도 제거한다. Exact whole compile는 통과했으며, 추가 양자화·전파와
+  weight TRF 적재·F32 row handoff를 포함한 NPU 비교 및 원래 허용오차 검사를 진행한다.
+  O weight-resident의 Row15 반복읽기 비용 때문에 QKV를 먼저 선택했다.
+
+두 후보 모두 결과 확정 전이며 채택/공식 제출하지 않았다. 컴파일 추정치나 논리 바이트
+감소를 큰 속도 개선으로 부르지 않는다. 양의 실측 결과는5% 미만이어도 별도 채택 검증한다.
+
 # 2026-09-27 18:04 KST E134 공식 제출·순위 반영 완료
 
 공식 제출 **`892178e8`**이 서버 contract/build/evaluate와 기본15비교를 통과했다.
