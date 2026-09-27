@@ -1,0 +1,60 @@
+{
+  "id": "E141",
+  "variant": "direct-six-row-copy-v1",
+  "actual_start_commit": "9427666ba1864569cec98faa1efce373f6da502b",
+  "base_commit": "c56b737c25e3d9c19472209fa97355b3a2852a08",
+  "comparison_recipe": "baseline/e140.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/down-native-consumer-local/measured-build-e140-copy-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Concrete three-copy bounds repair of frozen E135 independent direct six-row complete FFN; all other sources and performance control E140. No new tile/weight/quantization changes.",
+  "prior_related": [
+    "E135 whole+upgateoracle firstlaunch timeout; subsequent actualdescriptor audit finds3uptermcopies1440B from480B sources and live ring32 custom_snoop_bitmap overwrite inbothimages. E140 independentlyrepairs same source contract. Reopen only this exactrepair, no geometry/padding/lookupchange.",
+    "E103 independent direct30-row native -> F32 block partial then scale failed projection oracle broadly; final descriptors not preserved, cause unresolved. E135 retains no up/gate block partial and changes table/native composition to ten six-row fused streams.",
+    "v7c joint-view first-row issue had actual oversized descriptor/OOB; independent compact public HBM reshape here has no Projection padded view. E123 corrected joint copy passed but added work.",
+    "E131 joint direct fused whole regressed; this candidate removes packed/scale joint assembly and keeps validated E134 down.",
+    "E129 cluster ownership failed target lowering; no cluster_tile or begin_interleaved used here."
+  ],
+  "full_graph": "preRMS -> same 3-term E5 input quantizer -> three exact480B Sub copies -> existing broadcast -> compact independent up and gate FP4 HBM to DM plus separate FP8 blockscale DM -> five six-row Main FP4 lookupE5/native block16 F32 per projection -> input scale then block scale -> F32 H reduce -> F32 30row DM/local120 gather/BF16 -> unchanged GeGLU -> E134 weighted3term E5 activation -> direct native down with coefficient restoration before F32Term sum -> original down F32 partial, blockscale/reductions/residual/postRMS/store",
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "removed_upgate_fp8_dm_write_bytes": 117964800,
+    "removed_upgate_fp8_dm_read_bytes": 117964800,
+    "retained_upgate_packed_hbm_bytes": 58982400,
+    "retained_upgate_packed_dm_read_bytes": 58982400,
+    "retained_upgate_scale_hbm_bytes": 7372800,
+    "added_lookup_preparations": 8,
+    "native_streams_unchanged": 10,
+    "joint_weight_or_scale_assembly_bytes": 0,
+    "caveat": "Ten lookup setups and table/TRF/VRF lifetimes may add serialization; logical bytes do not predict time.",
+    "upquant_copy_fix": {
+      "old_read_write_each_bytes": 69120,
+      "new_read_write_each_bytes": 23040,
+      "active_slices": 16,
+      "streams": 3,
+      "engine_change": "three typedDMA to three exactSubstreams; fullschedulecost included"
+    }
+  },
+  "numerical_contract": "FrozenE135 directnative/scale/reduce and E140 down/input arithmetic unchanged. Copybounds repair has no new numeric transform. Original public tolerance; newactualprojection oracle withsame8originalBF16finitecases required.",
+  "first_gate": "Exactwhole source46binding; threeSub480B read/write and packedoffsets0/480/960 with no bitmapoverrun; actual independent HBM/scale, ten native sixrow streams, F32commit and VRF/TRF lifetimes; then actualE140 bracket whole and unchanged8caseprojectionoracle.",
+  "decisions": {
+    "adoption": "Unvalidated. Anypositivewhole enters frozen3allocation+extra6+actualupgate/fullFFN boundary validation, no5percentfloor.",
+    "further_tuning": "No parameter exploration. Only demonstrated source-contract repairs considered; frozenE135 tile/native arithmetic fixed.",
+    "major_research": "Re-evaluate complete independent direct-upgate family after a specific liveness hazard repair; removed112.5MiB FP8 write/read each does not promise cycles."
+  },
+  "adopted": false,
+  "hardware_status": "not_run",
+  "mlp_source_origin": {
+    "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/direct-six-row-v1/mlp.rs",
+    "sha256": "be9bb5a3cd370f11220300f41239370de25e2a8aec52081568f29c345c7fb9f0",
+    "bytes": 37477
+  },
+  "only_mlp_repair": "Replace prepare_ffn_fp8_split three compact480B-to-padded1440B typedDMAs with E140 exact480B Sub streams at offsets0/480/960. All other bytes of frozenE135MLP unchanged.",
+  "repair_evidence": "e135-bitmap-overrun-audit.json; both originalwhole110314 andoracle110316 expose invalidcopy/liveCustomBroadcast32bitmapoverlap. Actual timeoutinstruction andsolecause not proven until repaired execution."
+}

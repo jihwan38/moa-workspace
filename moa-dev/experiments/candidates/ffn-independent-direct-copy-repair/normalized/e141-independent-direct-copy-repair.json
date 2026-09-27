@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "label": "E141 candidate_whole",
+  "valid": true,
+  "runs": [
+    {
+      "job": {
+        "id": 111571,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-e141-direct-copy-screen",
+        "status": "SUCCEEDED",
+        "created_at": "2026-09-27T12:25:44Z",
+        "started_at": "2026-09-27T12:25:55Z",
+        "finished_at": "2026-09-27T12:26:15Z",
+        "duration_sec": 19.948049378,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/evidence/arena-111571.log",
+      "log_sha256": "a6eaae6e1491e4205b6243564aec450e62b56446ae6abb64c376d09110d6dae1",
+      "valid": true,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 104341,
+          "cycles_by_run": [
+            109532,
+            103173,
+            104341
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 42265,
+          "cycles_by_run": [
+            45025,
+            42027,
+            42265
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 324186,
+          "cycles_by_run": [
+            332926,
+            323464,
+            324186
+          ],
+          "output_comparisons_passed": 3
+        }
+      },
+      "comparisons_passed": 15,
+      "package_files": {
+        "run.sh": {
+          "bytes": 1353,
+          "sha256": "93e19ff73167afe8d617e0d2ebea0d04b45d87152ac2373e8be202179a56574c"
+        },
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "job.yaml": {
+          "bytes": 89,
+          "sha256": "7606af187897581a3c64507908353dee7ffabd3f064c3fcc0661aac707ce6403"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "candidate_test_runtime": {
+          "bytes": 3825216,
+          "sha256": "849969037c8f5714c32222c8f62653becbb314ad42efebd8ba6955ee3f494090"
+        },
+        "control_test_runtime": {
+          "bytes": 3765824,
+          "sha256": "3934670e6c739403257b28ed10c07fa25bc8b57851c99eba34fa9f063559caa5"
+        }
+      },
+      "benchmark_files": {
+        "test_runtime": "candidate_test_runtime",
+        "fixtures.safetensors": "fixtures.safetensors",
+        "remote_entrypoint.sh": "remote_entrypoint.sh"
+      },
+      "normalized_stage_files": {
+        "fixtures.safetensors": {
+          "bytes": 202632,
+          "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+        },
+        "remote_entrypoint.sh": {
+          "bytes": 965,
+          "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+        },
+        "test_runtime": {
+          "bytes": 3825216,
+          "sha256": "849969037c8f5714c32222c8f62653becbb314ad42efebd8ba6955ee3f494090"
+        }
+      },
+      "batch_stage": "candidate_whole",
+      "executed_host": "candidate_test_runtime",
+      "source_batch_report": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/e141-direct-copy-screen-job-111571-results.json",
+        "bytes": 5363,
+        "sha256": "c9b203d5505583339611a0072a1d2cad7222443eee58e7d337253566f7ee4cca"
+      },
+      "uploaded_archive": {
+        "path": "moa-dev/experiments/artifacts/ffn-independent-direct-copy-repair/job-111571.tar",
+        "bytes": 7801856,
+        "sha256": "2d9ec5660187459f35f02dcd170a85dd11ac6317a12d2f3c2530cd8dd237154d"
+      },
+      "uploaded_archive_verified": true
+    }
+  ],
+  "independent_arena_jobs": 1,
+  "method": "One allocation, three serial original three-input benchmark hosts: actual E140 before -> candidate whole FFN -> actual E140 after. PROFILE=info; no diagnostic host. Before/after and inputs are not independent allocations.",
+  "aggregate": {
+    "sliding_project_qkv": {
+      "median_cycles": 104341,
+      "job_medians": [
+        104341
+      ]
+    },
+    "sliding_attention_output": {
+      "median_cycles": 42265,
+      "job_medians": [
+        42265
+      ]
+    },
+    "decoder_feedforward": {
+      "median_cycles": 324186,
+      "job_medians": [
+        324186
+      ]
+    }
+  },
+  "candidate_build": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/build-e141-direct-six-row-copy-v1-repro.json",
+  "candidate_package": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/package-v2-e141-direct-six-row-copy-v1.json",
+  "reference": "docs/experiments/e141-independent-direct-copy-repair-e140-before.json",
+  "control_after_report": "docs/experiments/e141-independent-direct-copy-repair-e140-after.json",
+  "target_kernel": "decoder_feedforward",
+  "change_percent_vs_bracketing_median": 3.151638183663663,
+  "adopted": false,
+  "official_submission": false,
+  "unchanged_kernel_timing_note": "QKV/O images are unchanged E140; their observed timing variation is not an optimization.",
+  "accuracy_scope": "Original three distinct standard inputs; wholecandidate15 comparisons include3 FFN outputs. Separate actual up/gate eight-case and fullFFN precision checks establish finite scope."
+}

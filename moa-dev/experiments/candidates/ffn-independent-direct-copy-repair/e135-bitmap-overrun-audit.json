@@ -1,0 +1,462 @@
+{
+  "passed": true,
+  "meaning": "Audit assertions passed; original kernel copies violate bounds and overwrite live control bitmap. This is not a kernel correctness PASS.",
+  "whole": {
+    "inputdigests": {
+      "source": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/direct-six-row-v1/mlp.rs",
+        "bytes": 37477,
+        "sha256": "be9bb5a3cd370f11220300f41239370de25e2a8aec52081568f29c345c7fb9f0"
+      },
+      "build": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/build-e135-direct-six-row-v1-repro.json",
+        "bytes": 17449,
+        "sha256": "4174e94df45bde933b75193eca5e48a85e9510247f61a24376e46115957720ce"
+      },
+      "graph": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/evidence/e135-direct-six-row-v1/graph.json",
+        "bytes": 452744,
+        "sha256": "72f8dbc695150626d64298a732cdce39a7b7ae18084298ddd37e5abd1ec516bc"
+      },
+      "schedule": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/evidence/e135-direct-six-row-v1/schedule.json",
+        "bytes": 225864,
+        "sha256": "a467efd2dcb2cf0fdb0955da9e490d0fba2711fdf02e7e7ca89faf94db97d741"
+      },
+      "exact_image": {
+        "path": "moa-dev/experiments/artifacts/ffn-independent-direct-fused/e135-direct-six-row-v1/exact-kernel.bin",
+        "bytes": 344320,
+        "sha256": "29415a08374936d499e7757bd0afc92dc56e55699704767a13e8ce25765c56c1"
+      },
+      "raw_npu_log": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/evidence/arena-110314.log",
+        "bytes": 7191,
+        "sha256": "6724eb0b01030e2c50077ef1276a66c5859334a88c0f4e77e43c47028f2160ac"
+      }
+    },
+    "bitmap": {
+      "role": "CustomBroadcast ring32 fetch-network custom_snoop_bitmap; not numeric FP4 lookup table",
+      "graph_tensor": 58,
+      "graph_consumer": "RenegadeCommand#O44",
+      "graph_producer": "DmaCommand#O43",
+      "dram_constant_address": "Weight+45056",
+      "schedule_tensor": 35,
+      "bounds_per_slice": [
+        19200,
+        19232
+      ],
+      "lifetime": {
+        "begin": 2600,
+        "end": 56883,
+        "block_begin": 0,
+        "block_end": 0
+      },
+      "schedule_load": {
+        "index": "43",
+        "history": {
+          "resourcelir": "O43"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 2600,
+          "end": 3319
+        },
+        "input_tensors": [
+          36
+        ],
+        "output_tensors": [
+          35
+        ],
+        "description": "",
+        "util": {
+          "total_util": 0.018080669,
+          "base_util": 0.018080669,
+          "efficiency": 1.0
+        }
+      },
+      "schedule_consumer": {
+        "index": "273",
+        "history": {
+          "resourcelir": "O273"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 45100,
+          "end": 56883
+        },
+        "input_tensors": [
+          167,
+          35
+        ],
+        "output_tensors": [
+          168
+        ],
+        "description": "--> src/device/shared/mlp.rs:581:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      "embedded_constant": {
+        "bytes": 16384,
+        "sha256": "88134baea491684d336702d97db949c627dbe25c143e0d95ef81e506b4c24f57",
+        "unique_file_offset": 45103,
+        "encoding": "512 rows: each256-bit little-endian row is one-hot bit32*floor(slice/32), repeated for both clusters"
+      },
+      "producer_descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x0)\ndst0: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x800)\ndst1: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x1000)\ndst2: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x1800)\ndst3: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x2000)\ndst4: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x2800)\ndst5: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x3000)\ndst6: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x3800)\ndst7: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O43\nhistory: "
+    },
+    "copies": [
+      {
+        "operator": "DmaCommand#O30",
+        "source_initialized_bytes_per_slice": 480,
+        "actual_read_and_write_bytes_per_slice": 1440,
+        "packed_root_bounds": [
+          17664,
+          19104
+        ],
+        "term": 0,
+        "write_bounds": [
+          17664,
+          19104
+        ],
+        "schedule_index": "211",
+        "schedule_time": {
+          "begin": 15422,
+          "end": 15979
+        },
+        "bitmap_intersection": null,
+        "affected_clusters": [],
+        "affected_slices": [],
+        "raw_descriptor": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O30\nhistory: "
+      },
+      {
+        "operator": "DmaCommand#O35",
+        "source_initialized_bytes_per_slice": 480,
+        "actual_read_and_write_bytes_per_slice": 1440,
+        "packed_root_bounds": [
+          17664,
+          19104
+        ],
+        "term": 1,
+        "write_bounds": [
+          18144,
+          19584
+        ],
+        "schedule_index": "227",
+        "schedule_time": {
+          "begin": 16030,
+          "end": 16587
+        },
+        "bitmap_intersection": [
+          19200,
+          19232
+        ],
+        "affected_clusters": [
+          0,
+          1
+        ],
+        "affected_slices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "raw_descriptor": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O35\nhistory: "
+      },
+      {
+        "operator": "DmaCommand#O40",
+        "source_initialized_bytes_per_slice": 480,
+        "actual_read_and_write_bytes_per_slice": 1440,
+        "packed_root_bounds": [
+          17664,
+          19104
+        ],
+        "term": 2,
+        "write_bounds": [
+          18624,
+          20064
+        ],
+        "schedule_index": "253",
+        "schedule_time": {
+          "begin": 41199,
+          "end": 41756
+        },
+        "bitmap_intersection": [
+          19200,
+          19232
+        ],
+        "affected_clusters": [
+          0,
+          1
+        ],
+        "affected_slices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "raw_descriptor": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O40\nhistory: "
+      }
+    ],
+    "npu_observation": {
+      "job": 110314,
+      "first_launch_timeout_code": 4,
+      "no_arithmetic_outputs": true,
+      "localized_timeout_operator": null
+    }
+  },
+  "standalone_upgate_oracle": {
+    "inputdigests": {
+      "source": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-v1/probe_module.rs",
+        "bytes": 1522,
+        "sha256": "a1c8d13681b779d8669a76b84b2af5820649e3c1a1be4e5f5c1d55b8a22fb534"
+      },
+      "build": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-build-v1.json",
+        "bytes": 16750,
+        "sha256": "684ef4c5714192dc3cadc859dc2f9b62e1918fcd191ed206bf81de0ab2f35fbd"
+      },
+      "graph": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/graph.json",
+        "bytes": 228164,
+        "sha256": "f1efbb580720bbe26ec57f702e4b95c4900830ec5ce48ed283c3e795a68c5979"
+      },
+      "schedule": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/schedule.json",
+        "bytes": 114286,
+        "sha256": "43dcb289c03585d35ac00b5340a19387468b5b3374e2a4c1179105329a8c756a"
+      },
+      "exact_image": {
+        "path": "moa-dev/experiments/artifacts/ffn-independent-direct-fused/e135-direct-probe-v1/kernels/furiosa-opt-gemma4/furiosa_opt_gemma4::stream_probe::upgate.bin",
+        "bytes": 175360,
+        "sha256": "c7a8aefefef0fabbc64631a33a570abededf0c2c900e092e2d5e7e229174135e"
+      },
+      "raw_npu_log": {
+        "path": "moa-dev/experiments/candidates/ffn-independent-direct-fused/validation/probe-evidence-v1/arena-110316.log",
+        "bytes": 596,
+        "sha256": "00d05c693df4bfe90e1c4f388a1f18eb49fa985ac564ca47d5d863a431929733"
+      }
+    },
+    "bitmap": {
+      "role": "CustomBroadcast ring32 fetch-network custom_snoop_bitmap; not numeric FP4 lookup table",
+      "graph_tensor": 41,
+      "graph_consumer": "RenegadeCommand#O34",
+      "graph_producer": "DmaCommand#O33",
+      "dram_constant_address": "Weight+12288",
+      "schedule_tensor": 15,
+      "bounds_per_slice": [
+        16896,
+        16928
+      ],
+      "lifetime": {
+        "begin": 1550,
+        "end": 30722,
+        "block_begin": 0,
+        "block_end": 0
+      },
+      "schedule_load": {
+        "index": "16",
+        "history": {
+          "resourcelir": "O16"
+        },
+        "tpe": "DmaLoad",
+        "contexts": [
+          "DmaEngine"
+        ],
+        "lifetime": {
+          "begin": 1550,
+          "end": 2269
+        },
+        "input_tensors": [
+          16
+        ],
+        "output_tensors": [
+          15
+        ],
+        "description": "",
+        "util": {
+          "total_util": 0.018080669,
+          "base_util": 0.018080669,
+          "efficiency": 1.0
+        }
+      },
+      "schedule_consumer": {
+        "index": "173",
+        "history": {
+          "resourcelir": "O173"
+        },
+        "tpe": "Main",
+        "contexts": [
+          "MainContext"
+        ],
+        "lifetime": {
+          "begin": 18939,
+          "end": 30722
+        },
+        "input_tensors": [
+          100,
+          15
+        ],
+        "output_tensors": [
+          101
+        ],
+        "description": "--> src/device/mlp.rs:581:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()",
+        "util": {
+          "total_util": 0.0,
+          "base_util": 0.0,
+          "efficiency": 0.0
+        }
+      },
+      "embedded_constant": {
+        "bytes": 16384,
+        "sha256": "88134baea491684d336702d97db949c627dbe25c143e0d95ef81e506b4c24f57",
+        "unique_file_offset": 12335,
+        "encoding": "512 rows: each256-bit little-endian row is one-hot bit32*floor(slice/32), repeated for both clusters"
+      },
+      "producer_descriptor": "DmaCommand: dram -> sram\n-- assigned_pe: None --\nsrc0: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x0)\ndst0: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x800)\ndst1: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc2: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x1000)\ndst2: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc3: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x1800)\ndst3: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)\nsrc4: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x2000)\ndst4: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc5: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x2800)\ndst5: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)\nsrc6: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x3000)\ndst6: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)\nsrc7: [partitioning_1=32:32, partitioning_32=2:1024, anonymdma_tail(4)_1=1:32], Dram(chip=0, in_chip=0x3800)\ndst7: [partitioning_1=32:4194304, partitioning_32=2:134217728, anonymdma_tail(4)_1=1:32], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O33\nhistory: "
+    },
+    "copies": [
+      {
+        "operator": "DmaCommand#O20",
+        "source_initialized_bytes_per_slice": 480,
+        "actual_read_and_write_bytes_per_slice": 1440,
+        "packed_root_bounds": [
+          15360,
+          16800
+        ],
+        "term": 0,
+        "write_bounds": [
+          15360,
+          16800
+        ],
+        "schedule_index": "149",
+        "schedule_time": {
+          "begin": 13921,
+          "end": 14478
+        },
+        "bitmap_intersection": null,
+        "affected_clusters": [],
+        "affected_slices": [],
+        "raw_descriptor": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O20\nhistory: "
+      },
+      {
+        "operator": "DmaCommand#O25",
+        "source_initialized_bytes_per_slice": 480,
+        "actual_read_and_write_bytes_per_slice": 1440,
+        "packed_root_bounds": [
+          15360,
+          16800
+        ],
+        "term": 1,
+        "write_bounds": [
+          15840,
+          17280
+        ],
+        "schedule_index": "159",
+        "schedule_time": {
+          "begin": 14478,
+          "end": 15035
+        },
+        "bitmap_intersection": [
+          16896,
+          16928
+        ],
+        "affected_clusters": [
+          0,
+          1
+        ],
+        "affected_slices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "raw_descriptor": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O25\nhistory: "
+      },
+      {
+        "operator": "DmaCommand#O30",
+        "source_initialized_bytes_per_slice": 480,
+        "actual_read_and_write_bytes_per_slice": 1440,
+        "packed_root_bounds": [
+          15360,
+          16800
+        ],
+        "term": 2,
+        "write_bounds": [
+          16320,
+          17760
+        ],
+        "schedule_index": "163",
+        "schedule_time": {
+          "begin": 15035,
+          "end": 15592
+        },
+        "bitmap_intersection": [
+          16896,
+          16928
+        ],
+        "affected_clusters": [
+          0,
+          1
+        ],
+        "affected_slices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "raw_descriptor": "DmaCommand: sram -> sram\n-- assigned_pe: None --\nsrc0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst0: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)\nsrc1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\ndst1: [anonymdma_tail(4)_720=2:720, H_480=8:4194304, anonymdma_tail(4)_1=1:720], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)\n\nname: DmaCommand#O30\nhistory: "
+      }
+    ],
+    "npu_observation": {
+      "job": 110316,
+      "first_launch_timeout_code": 4,
+      "no_arithmetic_outputs": true,
+      "localized_timeout_operator": null
+    }
+  },
+  "conclusion": {
+    "same_bad_up_quantizer_copies_in_both": true,
+    "same_control_bitmap_role_corrupted_in_both": true,
+    "affected_bitmap_entries_each_image": 16,
+    "numeric_lut_instead_of_switch_bitmap": false,
+    "specific_source_hazard_supports_copy_only_rerun": true,
+    "timeout_sole_cause_proven": false,
+    "sdk_fault_proven": false
+  },
+  "minimal_next_diagnostic": "Freeze exact E135 source with only three up-quantizer copies changed to Sub480B bounded commits. Audit same bounds; run standard whole and unchanged upgate oracle. E137 O/source composition and control must be recorded explicitly; do not silently treat old E134 full source as current E137.",
+  "limitations": [
+    "No per-operator trace or corrupted SRAM capture exists; bitmap write overlap does not prove the exact hardware stall location.",
+    "The observed payload values after overread are unknown; do not infer particular bitmap bits become zero or a specific NoC failure.",
+    "No new compile/NPU was run by this audit."
+  ],
+  "helper": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/verify_graph.py",
+    "bytes": 26418,
+    "sha256": "c87e0d1d4f15cdab46b936bb2ed15f2a10ffe489e11ffddf6348ff2c24557e0a"
+  }
+}
