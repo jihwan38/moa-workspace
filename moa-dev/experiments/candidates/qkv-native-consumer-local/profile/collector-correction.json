@@ -1,0 +1,27 @@
+{
+  "scope": "Offline collector bug only; production/profile images and actual upload unchanged. No new NPU job.",
+  "job": 111237,
+  "original_parser": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/profile/screen.py",
+    "bytes": 16398,
+    "sha256": "7d14e2105eb49b0a59aebcc2d7244f67d5907b356de8eeb23d9d9920c9b69b55"
+  },
+  "corrected_collector": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/profile/collect_v2.py",
+    "bytes": 16360,
+    "sha256": "b5fb20f7ff465617f7847054d8d7907db315f885899d0516b800ca940a87140b"
+  },
+  "reproduced_error": "UnboundLocalError(\"cannot access local variable 'by_label' where it is not associated with a value\")",
+  "cause": "operations list referenced by_label before the per-run/cluster scope defined it.",
+  "repair": "Build complete ordered operation-label list outside loop; filter source-supported cluster-only absences inside each observation. Exactly one expression changed.",
+  "raw_log": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/profile/evidence/arena-111237.log",
+    "bytes": 140846,
+    "sha256": "9cc8c4e53196a174dacb437035c6ab873aedd70cc7c00a2d676cad31ffcf69c7"
+  },
+  "actual_corrected_result": {
+    "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/profile/e138-readiness-v1-job-111237-results.json",
+    "bytes": 474997,
+    "sha256": "403e3e9b702387439593c722de290c6ad8b222251d07acee9a83a05e590b604a"
+  }
+}

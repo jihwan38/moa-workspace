@@ -1,0 +1,13 @@
+{
+  "id": "E138-NATIVE-V1-READINESS",
+  "classification": "bounded diagnostic of frozen prototype, no runtime change",
+  "start_commit": "d6e6c62e6ae80c9b39b192c4a318a0230e79ee20",
+  "source_control": "baseline/e137.json",
+  "candidate_build": "e138-native-v1",
+  "question": "Does actual consumer BF16 DMA/local quant/TRF readiness delay native/head completion?",
+  "specific_possible_repair": "Replace960KiB typed consumer input DMA with120KiB BF16 seed and ring32 MainSwitch read120KiB/write960KiB; preserve QkvGroup64/local four-term quantization.",
+  "budget": "One seven-stage allocation with original three inputs,81 comparisons, both whole controls and info/trace hosts.",
+  "adoption": "not_applicable_profile",
+  "tuning": "no parameter sweeps; one supported repair only if trace selects it",
+  "major_research": "select input producer based on actual dependencies; no sum of overlapping spans"
+}

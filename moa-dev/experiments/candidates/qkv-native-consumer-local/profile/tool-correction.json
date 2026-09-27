@@ -1,0 +1,15 @@
+{
+  "scope": "Pre-NPU marker visibility metadata correction; no additional compilation or runtime change.",
+  "previous": "package-profile-v1.json",
+  "current": "package-profile-v2.json",
+  "reason": "V1 candidate cluster1 absence list omitted cos/sin DmaGather schedule158/284. Original E104 control97/107 are also RoPE gathers, not kv_offset preparation.",
+  "candidate_cluster1_absent": [
+    "158",
+    "284",
+    "424",
+    "494"
+  ],
+  "graph_evidence": "Actual DmaCommandGather O131/O135 and DmaCommandScatter O186/O193 descriptors contain only chip0 cluster0 pe0. Graph IDs and schedule IDs are separate namespaces; source/IO/descriptor matching establishes correspondence.",
+  "same_hosts_reused": true,
+  "other_classifier": "Padded QkvTerm4-to8 collect schedule213 uses actual TuExec; its full ordered image-kind match is checked."
+}
