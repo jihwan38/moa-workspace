@@ -1,0 +1,116 @@
+{
+  "passed": true,
+  "candidate": "E140",
+  "variant": "control-copy-fix",
+  "label": "e140-control-copy-fix",
+  "inputdigests": {
+    "build_record": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/build-e140-control-copy-fix-repro.json",
+      "bytes": 17466,
+      "sha256": "4590356dcfd5f5d98a44ea4c6f591326bcd51c90068e2439f3016aec48782038"
+    },
+    "graph": {
+      "path": "moa-dev/experiments/artifacts/down-native-consumer-local/e140-control-copy-fix/graph.json",
+      "bytes": 423712,
+      "sha256": "2a82bd432528429eed27fd0c80e0468c34d45efb8604ec19e87f92ebb1ee7605"
+    },
+    "schedule": {
+      "path": "moa-dev/experiments/artifacts/down-native-consumer-local/e140-control-copy-fix/schedule.json",
+      "bytes": 220239,
+      "sha256": "7c661e4f7b03caea873d8fbca357021a88a2be26ab047e657066ee46aca318ec"
+    },
+    "source": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/control-copy-fix/mlp.rs",
+      "bytes": 38676,
+      "sha256": "9ca1e995272b14983d1a03db7381ff27dde05811606693bdb2c5b09f04128b7d"
+    },
+    "independent_review": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/independent-control-copy-review.json",
+      "bytes": 2386,
+      "sha256": "a5bc862b308686d756b3db009e142594d9d6b06e74c32ba1dce3e3c4047b5f07"
+    },
+    "exact_image": {
+      "path": "moa-dev/experiments/artifacts/down-native-consumer-local/e140-control-copy-fix/exact-kernel.bin",
+      "bytes": 284416,
+      "sha256": "eff84521f4d35665a5de296cba0ec77a7d27fc9111dfee7a948cb87ba8a9d34c"
+    }
+  },
+  "verifiers": [
+    {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/verify_control_copy.py",
+      "bytes": 3702,
+      "sha256": "2b8830a9b2845c4fe485be299a86df90172b60f05855717050d053304ec958ec"
+    }
+  ],
+  "source_change": "Exactly three up equal-scale term copies; all other E137 source bytes unchanged, including weighted down.",
+  "emitted_copy_review": {
+    "passed": true,
+    "inputdigests": {
+      "source": {
+        "path": "moa-dev/experiments/candidates/down-native-consumer-local/control-copy-fix/mlp.rs",
+        "bytes": 38676,
+        "sha256": "9ca1e995272b14983d1a03db7381ff27dde05811606693bdb2c5b09f04128b7d"
+      },
+      "graph": {
+        "path": "moa-dev/experiments/candidates/down-native-consumer-local/evidence/e140-control-copy-fix/graph.json",
+        "bytes": 423712,
+        "sha256": "2a82bd432528429eed27fd0c80e0468c34d45efb8604ec19e87f92ebb1ee7605"
+      },
+      "schedule": {
+        "path": "moa-dev/experiments/candidates/down-native-consumer-local/evidence/e140-control-copy-fix/schedule.json",
+        "bytes": 220239,
+        "sha256": "7c661e4f7b03caea873d8fbca357021a88a2be26ab047e657066ee46aca318ec"
+      },
+      "build_record": {
+        "path": "moa-dev/experiments/candidates/down-native-consumer-local/build-e140-control-copy-fix-repro.json",
+        "bytes": 17466,
+        "sha256": "4590356dcfd5f5d98a44ea4c6f591326bcd51c90068e2439f3016aec48782038"
+      }
+    },
+    "only_source_change": "three up-quantizer padded typed DMAs replaced by exact Sub480B copies; all down and public arithmetic byte-identical to E137 FFN/E134weighted-v3",
+    "copies": [
+      {
+        "operator": "RenegadeCommand#O30",
+        "context": "Sub",
+        "read_bytes_per_slice": 480,
+        "commit_packets": 15,
+        "commit_packet_bytes": 32,
+        "destination_bounds_per_slice": [
+          0,
+          480
+        ],
+        "root_bytes_per_slice": 1440
+      },
+      {
+        "operator": "RenegadeCommand#O35",
+        "context": "Sub",
+        "read_bytes_per_slice": 480,
+        "commit_packets": 15,
+        "commit_packet_bytes": 32,
+        "destination_bounds_per_slice": [
+          480,
+          960
+        ],
+        "root_bytes_per_slice": 1440
+      },
+      {
+        "operator": "RenegadeCommand#O40",
+        "context": "Sub",
+        "read_bytes_per_slice": 480,
+        "commit_packets": 15,
+        "commit_packet_bytes": 32,
+        "destination_bounds_per_slice": [
+          960,
+          1440
+        ],
+        "root_bytes_per_slice": 1440
+      }
+    ],
+    "scope": "Actual emitted read/commit and indexed destination bounds. Numeric hardware and whole-kernel behavior require separate NPU validation.",
+    "limitations": [
+      "No causal numerical attribution before repaired whole result",
+      "No claim original E137 typed DMA had valid bounds merely because graded cases passed"
+    ]
+  },
+  "scope": "Source/copy-bound correctness gate. No sole-cause or hardware performance conclusion; full original standard host still required."
+}

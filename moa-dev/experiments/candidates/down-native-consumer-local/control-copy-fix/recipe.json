@@ -1,0 +1,30 @@
+{
+  "id": "E140",
+  "variant": "control-copy-fix",
+  "base_commit": "334a7059a82252a310436c6d7e02f8ba577e7f51",
+  "actual_start_commit": "e35ea350a805bae11570032a62d150252a98d494",
+  "comparison_recipe": "baseline/e137.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/o-native-activation-resident/measured-build-e137-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Control source bug fix only: E137 whole FFN with three up/gate activation term-copy DMAs replaced by exact Sub480B copies; E137 down and all arithmetic/ownership unchanged.",
+  "source_origin_sha256": "a80ebfea24f029b039ae1b5ad5323770a1d414aee2d60640265c3e1c32d84b47",
+  "prior_related": [
+    "E140 local-v4 whole failed standard FFN; actual down-only raw9 all34560 outputs passed.",
+    "Legacy prepare_ffn_fp8_split typed DMA copies emitted1440B reads from480B source allocations and destination offsets0/480/960 extending last bounds to2400B in a1440B packed tensor.",
+    "Actual E134 down already uses public Sub raw480B copy to the same padded term destination."
+  ],
+  "full_graph": "E137 unchanged preRMS -> existing global scale and sparseH480 equal-scale threeE5 quantization -> exact Sub copies480B each to packedTerm3 offsets0/480/960 -> unchanged term gather/ring32/TRF -> unchanged fused up/gate/M03GeGLU -> unchanged E137 weighted native down -> unchanged epilogue/store",
+  "added_work": "Three Sub fetch/collect/commit contexts replace three invalid typed DMAs. Each copies only480 valid bytes per live slice; exact emitted byte/offset/owner proof required. No arithmetic or precision change.",
+  "first_gate": "Exact whole compile. Three Sub source480B ranges and packed0..1440 coverage, all source changes restricted to the three copies; unchanged QKV/O host images; no unrelated K2/localdown changes.",
+  "hardware_gate": "One contemporary E137before -> control-copy-fix -> E137after whole allocation with originalthree standard inputs/tolerances. No correctness/performance claim until outputs observed.",
+  "decision_scope": "Separates legacy upstream source-memory contract defect from E140 local down change. Does not establish this defect as sole cause of local-v4 whole errors before comparative hardware result.",
+  "adopted": false,
+  "hardware_status": "not_run"
+}

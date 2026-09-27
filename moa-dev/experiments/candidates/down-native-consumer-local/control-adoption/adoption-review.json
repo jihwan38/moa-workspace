@@ -1,0 +1,68 @@
+{
+  "id": "E140",
+  "variant": "control-copy-fix",
+  "status": "validation_passed_pending_root_source_adoption",
+  "source_origin": "334a7059a82252a310436c6d7e02f8ba577e7f51",
+  "comparison_recipe": "baseline/e137.json",
+  "correctness_fix": "Three exact480B Sub copies replace three1440B typed DMAs from480B sources. Other E137 source bytes, including down, unchanged.",
+  "validation": {
+    "distinct_standard_inputs": 9,
+    "standard_input_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "candidate_standard_comparisons_passed": 75,
+    "candidate_ffn_comparisons_passed": 15,
+    "repeat_inputs_are_not_new_cases": true,
+    "extra6_job": 111494,
+    "actual_whole_ffn_stress": {
+      "job": 111488,
+      "cases": 1,
+      "outputs": 3840,
+      "exact_bf16": true,
+      "same_original_13_inputs_and_torch_reference": true,
+      "performance_excluded": true
+    },
+    "raw_down_oracle_inherited": false,
+    "scope": "Original three standard cases reused in three allocations plus six different standard cases; one constructed full-FFN precision regression. This does not prove arbitrary-input or end-to-end correctness."
+  },
+  "performance": {
+    "independent_allocations": 3,
+    "jobs": [
+      111461,
+      111475,
+      111477
+    ],
+    "paired_delta_percent": [
+      -0.21011937446636653,
+      -0.18471172402382274,
+      -0.05676334455350096
+    ],
+    "median_paired_delta_percent": -0.18471172402382274,
+    "aggregate_median_delta_percent": -0.05676334455350096,
+    "interpretation": "Neutral performance supported for a necessary memory-bound correction; no statistically resolved speedup claim."
+  },
+  "decisions": {
+    "adoption": "Evidence ready for root correctness-repair adoption review; runtime untouched here.",
+    "further_tuning": "Stop; no parameter changes or new diagnostic needed for this exact copy fix.",
+    "major_research": "Local-down architecture remains unadopted; this repairs the inherited up-prefix copy contract only."
+  },
+  "interpretation": [
+    "The repair is required by the source and destination bounds independently of the historical E137 allocation passing finite inputs.",
+    "Three contemporary allocations support neutral performance; tiny negative deltas are not a statistically resolved speedup.",
+    "Original early-screen reports remain unchanged. Their generic projection-oracle wording is superseded here: the rawdown oracle excludes the changed up prefix and is not inherited as this repair's accuracy gate. The actual whole FFN regression is used instead.",
+    "Local-v5 also fixes these copies but changes down ownership; its measured3.098140% regression is not adopted. This copy-only evidence does not adopt local-down.",
+    "Observed overwritten live scalar and successful source correction explain the observed v4/v5 distinction but are not a proof that every possible runtime or numerical issue is exhausted."
+  ],
+  "evidence": "control-adoption/final-verification.json",
+  "adopted": false,
+  "live_sources_changed": false,
+  "official_submission": false
+}
