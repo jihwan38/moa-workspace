@@ -22,6 +22,12 @@ Projection별 cluster 직접 배치는 target lowering 미지원으로 막혔고
 Main/Sub QKV는13.94%, joint direct FFN 두 변형은15.17%/6.21% 회귀해 미채택했다.
 [실측·정확도 범위](moa-dev/experiments/candidates/ffn-joint-direct-fused/README.md)와
 [native down 다음 후보 감사](docs/research/e131-native-down-next-20260927.md)를 남겼다.
+E131 후속 내부 계측과 [E132 O](moa-dev/experiments/candidates/o-owned-k4/README.md)는
+작은 gather보다 input/weight 공급 순서가 중요한 지연임을 확인했다. E132는 회귀했고
+source 생성 순서 변경도 같은 바이너리여서 채택하지 않았다.
+[E133 native down](moa-dev/experiments/candidates/ffn-native-down-e5/README.md)은 세 번 모두
+FFN이 빨라졌고 paired 감소율 중앙값3.8264%지만, 작은 값 소실과 별도 CPU 전체경로 반례 때문에
+채택을 보류했다. 표준9입력·7mapping 사례 통과와 수치 한계를 분리해 보존했다.
 [현재 작업](docs/experiments/current-work.md)과 [작업 규칙](AGENTS.md)을 먼저 확인한다.
 
 E128은 공식 미제출이다. 최근 공식 제출 [E127 `bc21122c`](docs/experiments/e127-official-submit-20260927.json)는

@@ -100,6 +100,16 @@
   and C11 partial VRF are local dataflow replacements; do not count them as
   evidence that broad architecture alternatives have been explored. C10 changes
   operand ownership/mapping, but its lowering failure is not a performance test.
+- E133 direct E5 native down subsequently improved whole FFN in three allocations
+  (paired median -3.8264%) and passed nine standard input cases. Its seven exact
+  down mapping cases passed, but an adversarial tiny-value case lost 50% of the
+  raw down output. A separate CPU construction places a potential final-FFN
+  tolerance failure within the generator's component value ranges; it is not an
+  observed PRNG seed or NPU full-FFN failure. Preserve this positive prototype and
+  numerical limit separately. Do not discard native down as a slow family or
+  promote it as generally accurate because the standard cases pass. A supported
+  repair must change residual representation and native term restoration together;
+  changing only the third term's quantization scale invalidates the current sum.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

@@ -31,9 +31,25 @@ E131v2의 이전 단회 screen에서는 E128 동률까지20,392.5cycles의 순�
 행수 튜닝은 종료하되, 실제 지연과 이를 바꿀 지원되는 전체 경로가 확인되면 구조 변경을 재개한다.
 O의 K4×30행/C09 두 stage16·14행/F32 직접 gather 조합은 별도
 `opt/o-owned-k4` worktree에서 E132로 구현했다. 기존 H 축의 local tile 표현을
-독립 OutputRow 축으로 수리한 v2가 exact/descriptor gate를 통과했고 Arena109654 평가 대기 중이다.
+독립 OutputRow 축으로 수리한 v2가 exact/descriptor gate를 통과했다. Arena109654는45PASS이나
+O가 E12848583/49216 대비55052로+12.5819% 회귀했다. 동결 profile109683도57PASS,
+whole+15.7718%로 회귀했다. 첫 weight 시작은+5295.5cycles 늦지만 gather 증가는147cycles다.
+control의 inputDMA→weightDMA→inputTRF 발행이 candidate에서는 inputDMA→inputTRF→weightDMA로 바뀐다.
+이를 수리하려는 v3의 source 생성 순서 변경은 exact image까지 v2와 동일해 NPU를 반복하지 않았다.
+해당 prototype 채택·tile tuning은 중단하고, 실제 입력/weight 발행 의존성을 바꿀 방법이 있을 때 재개한다.
 이는 과거 K4의 BF16 scalar compaction 비용을 제거하고 C09 공급을 조합한 재개이며
-새 독립 원리 또는 입증된 큰 개선으로 세지 않는다. Native-down의 공개 API/shape 계약도 검토했다.
+새 독립 원리 또는 입증된 큰 개선으로 세지 않는다.
+E133은 `opt/ffn-native-down-e5`, 진단 통합 뒤 실제 시작0f601fe, source/control E128로 구현했다.
+기존 up/gate를 유지하고 cluster별 실제 GeGLU 출력7680을 E5 세 항으로 양자화·방송한 뒤
+direct FP4→E5 native down/F32 block partial/기존 scale·합산·후단을 연결한다. Weight joint 복사는 없다.
+v1은 새 term-copy DMA가480B source를1440B로 확장해 descriptor gate에서 중단했다.
+명시적인480B Sub 복사로 고친 v2는 exact compile·실제 주소/범위/scale소유권/register gate를 통과했다.
+전체 FFN의 세 독립 allocation109740/109750/109751에서 각각−3.8264/−3.4336/−3.8376%로 개선됐다.
+후보 기본45비교와 추가6입력30비교가 통과했다. 실제 down helper의7개 mapping 사례26880출력도
+BF16 reference와 일치했다. 그러나8번째 극소값 사례는3840출력 모두1.40625→0.703125로50% 손실됐다.
+이는 raw down 진단이며 전체 FFN 실패와 같지 않다. 별도 CPU 구성에서는 생성기의 성분별 값 범위 안에서도
+최종 FFN 허용오차 초과 가능성이 확인돼 채택은 보류한다. 관측된 PRNG seed/전체 NPU 실패를 주장하지 않는다.
+성능 이득은 동결·보존하고, 작은 residual의 표현 scale과 native F32 term 복원을 함께 바꾸는 수리를 검토한다.
 Down 단독 순위 약속은 없다.
 [최신 점수 목표·재개 기준](../research/e131-recovery-rank-analysis-20260927.json).
 
