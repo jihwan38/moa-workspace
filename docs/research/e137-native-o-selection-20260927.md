@@ -84,3 +84,24 @@ screen. A positive result, including below5%, freezes source for independent
 controls, extra6 and original-reference O cancellation/mapping checks. A
 source/shape bug receives a supported mechanism-based repair; actual regression
 or an unresolved runtime failure receives its own scoped decision.
+
+## Lane4 review before the first NPU screen
+
+The original Time4/Lane1 form compiled as frozen `native-v1` (static33950);
+it has no NPU result. A supported spatial form was identified before the screen:
+TRF Lane=Term4, Element=K256, original weight stream without Term time repetition,
+native lane folder interleaves the four terms into one F32 packet. Multiply its
+four components by the normalized coefficients, then use packet
+`ReduceAccTree` followed by K16 inter-slice sum. Public lower's
+`reduce_in_packet_only_needs_one_slot` test directly supports packet4→scalar
+reduction. This avoids E47's pair-AddF resource conflict while using native lanes
+for the four terms; actual emitted mapping still needs checking.
+
+The old coefficient layout `[Term4,1#8]` cannot be read as one contiguous four-way
+operand (installed `engine/vector/operand.rs` requires broadcast or contiguous
+packet cells). Build compact16B with two adjacent8B Sub transpose/commit pairs,
+then replicate/load a padded32B VRF packet. Include that actual packing cost.
+Preserve v1 and compile a distinct v2; choose the supported complete form before
+the first NPU screen, not an in-place rewrite of measured evidence. Arithmetic
+factors and precision cases remain unchanged. Native parallelism alone is not
+a whole-O speedup claim.
