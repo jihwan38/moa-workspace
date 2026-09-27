@@ -63,3 +63,14 @@ parameter tuning is not selected. Major research remains complete QKV and FFN
 paths: this bounded repair may recover a measurable gain but is not a30th-place
 promise. Use a named `opt/down-native-consumer-local` branch and candidate
 `down-native-consumer-local`; preserve all source/build/upload/result records.
+
+Implementation selection refinement: local-v1 uses the actually lowered E138
+producer pattern to commit each E5 term directly into its final packed view,
+and reads hi/lo from those views. The dtype remains one byte; exact emitted
+1920B extents and offsets must pass the new gate. Thus the conservative separate
+raw-term plus packed-copy costs above are an avoided alternative: final local
+term writes remain2.8125MiB, but separate2.8125MiB copy reads/writes are absent.
+F32 sum/residual storage and loads remain. The first whole compile failed VRF
+allocation (a5760B/slice blockscale operand could not be allocated), before any
+executable/NPU result. Preserve that attempt and inspect the whole lifetimes;
+it is not an NPU regression or evidence that all consumer-local paths fail.
