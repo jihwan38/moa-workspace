@@ -1,0 +1,40 @@
+{
+  "status": "prepared_only_not_built",
+  "source_origin": {
+    "path": "/home/jihwan38/moa-workspace/moa-dev/experiments/candidates/ffn-independent-direct-fused/direct-six-row-v1/mlp.rs",
+    "bytes": 37477,
+    "sha256": "be9bb5a3cd370f11220300f41239370de25e2a8aec52081568f29c345c7fb9f0"
+  },
+  "bounded_copy_origin": {
+    "path": "/home/jihwan38/moa-down-native-local/moa-dev/experiments/candidates/down-native-consumer-local/control-copy-fix/mlp.rs",
+    "bytes": 38676,
+    "sha256": "9ca1e995272b14983d1a03db7381ff27dde05811606693bdb2c5b09f04128b7d"
+  },
+  "prepared_source": {
+    "path": "/tmp/moa-e141-preparation/mlp.rs",
+    "bytes": 37888,
+    "sha256": "17414e1f320c82aea5cbb556a69bae3d2546488d2f7369dfdb4c2045e48ca83a"
+  },
+  "only_changes": [
+    {
+      "term": "hi",
+      "old": "    hi.view().to_dm_view(&mut device.tdma,\n        packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(0));",
+      "new": "    device.sub.begin(hi.view())\n        .fetch::<m![H / 32 % 15], m![H % 32]>()\n        .collect::<m![H / 32 % 15], m![H % 32]>()\n        .commit_trim::<m![H % 32]>()\n        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(0));"
+    },
+    {
+      "term": "lo",
+      "old": "    lo.view().to_dm_view(&mut device.tdma,\n        packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1));",
+      "new": "    device.sub.begin(lo.view())\n        .fetch::<m![H / 32 % 15], m![H % 32]>()\n        .collect::<m![H / 32 % 15], m![H % 32]>()\n        .commit_trim::<m![H % 32]>()\n        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1));"
+    },
+    {
+      "term": "third",
+      "old": "    third.view().to_dm_view(&mut device.tdma,\n        packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2));",
+      "new": "    device.sub.begin(third.view())\n        .fetch::<m![H / 32 % 15], m![H % 32]>()\n        .collect::<m![H / 32 % 15], m![H % 32]>()\n        .commit_trim::<m![H % 32]>()\n        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2));"
+    }
+  ],
+  "source_outside_three_replacements_identical": true,
+  "arithmetic_layout_native_weights_unchanged": true,
+  "other_compile_sources": "Future adopted E140 commit and source manifest; not old E135 E134 manifest.",
+  "comparison_recipe": "baseline/e140.json (must exist and validate before compile/package)",
+  "no_build_or_npu": true
+}
