@@ -1,4 +1,16 @@
-# 2026-09-27 E142 채택 완료·공식 제출 준비
+# 2026-09-27 E142 채택·공식 제출 완료
+
+공식 제출 **e1f58b9e**가15비교를 통과했고 **6.526159×,46/70위**로 완료했다.
+QKV104474/O42694/FFN302799cycles이며 E140 대비 총점+0.841%, 순위는 그대로다.
+QKV/O image는 동일하므로 해당 실행 변동은 FFN 변경 효과로 해석하지 않는다.
+30위7.896678×까지는 총점21.00% 또는 세 커널 각각17.36% 감소가 필요한 산술 격차다.
+[공식 결과](e142-official-submit-20260927.json) · [리더보드](leaderboard-e142-20260927.json) ·
+[현재 격차](../research/e142-rank-gap-20260927.json).
+
+다음 우선순위는 [QKV 후반 weight 공급과 입력 준비의 구분](../research/after-e142-priority-20260927.md)이다.
+E138 v2의 남은4.10% 회귀를 양자화 비용으로 단정하지 않는다. 동결 이미지의 제한된
+readiness 비교가 다음 구현을 고르는 단계이며, 아직 새 계측/후보 커널은 실행하지 않았다.
+M06와 네 항 bit 구성 검토도 보존했다. 이들 검토는 새 구현의 성공 근거가 아니다.
 
 현재 runtime은 **E142 / baseline-e142 / b3fe0ab**다. E141의 six-row helper만
 실제 E103 full30 direct native→F32 block partial→6행 blockscale/H reduction으로
@@ -20,7 +32,7 @@ actual whole FFN111736의3840 exact 출력을 검증했다. 46개 compile input�
 전체 FP8 weight112.5MiB write/read를 각각 없앴지만 F32 partial28.125MiB write/read가
 각각 추가된다. E141 대비 lookup/native10→2와 별도scale/reduce10개 비용까지 포함한
 완전한 경로의 이득이다. 이번 조합을 채택하고 추가 row/stage/term 튜닝은 종료한다.
-이 개선만으로30위 도달을 주장하지 않으며, 공식 제출 결과는 별도 기록한다.
+이 개선만으로30위 도달을 주장하지 않으며, 공식 제출 결과는 위에 별도로 기록했다.
 아래는 앞선 실험 당시 기록이다.
 
 # 2026-09-27 D-E141 계측 완료·E142 full30 부분합 조합 선택

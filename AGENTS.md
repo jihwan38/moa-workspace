@@ -216,6 +216,16 @@
   future cost comparisons. Reassess QKV/O and remaining FFN readiness using the
   adopted image before selecting further major work; FFN3.62percent alone is
   insufficient for the current30th-place geometric-mean gap.
+- E142 official submission e1f58b9e subsequently passed15 comparisons and became
+  the team best at6.526159x,46/70. The current30th-place score7.896678x still needs
+  a21.00percent score increase under a frozen leaderboard. Next discriminate
+  E138-v2 QKV's remaining first-input readiness from later Q/K weight readiness
+  using its frozen actual image; v1's trace does not establish v2's bottleneck.
+  Do not assign the remaining4.10percent regression entirely to quantization.
+  Four-term bit construction still lacks byte-equivalent formulas and a legal
+  low-pass-count SDK pipeline. M06-v4 lacks the three unsafe packing DMAs, so
+  E140's repair does not justify treating both M06 timeouts as solved. See
+  docs/research/after-e142-priority-20260927.md before selecting another kernel.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or
