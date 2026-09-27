@@ -24,8 +24,10 @@ E133의1920개 허용오차 실패를 재현한 반면 E128/E134는3840개 모�
 
 E129–E132의 lowering실패와 실측회귀도 [성능별 분류](docs/experiments/optimization-results.md)에 남겼다.
 [현재 작업](docs/experiments/current-work.md)과 [작업 규칙](AGENTS.md)에 채택·튜닝·연구 결정을 구분한다.
-E134의 공식 제출·순위는 완료 후 별도 기록하며, Arena 이득을 공식점수로 취급하지 않는다.
-아래는 과거 채택·실험 이력이다.
+공식 제출 [`892178e8`](docs/experiments/e134-official-submit-20260927.json)은 기본15비교를 통과했다.
+2026-09-27 18:04 KST [리더보드](docs/experiments/leaderboard-e134-20260927.json)에서
+**6.1405524×, 51/69위**로 이전6.0699449×/53위보다 올랐다. 공식 FFN은314619cycles다.
+20위8.175122×/10위8.872707×에는 아직 큰 격차가 있다. 아래는 과거 채택·실험 이력이다.
 
 이전 **E104 / `baseline-e104` / `7f891f9`**는
 [C07](moa-dev/experiments/candidates/c07-native-scale-dpe/README.md)의 materialized native

@@ -1,3 +1,6 @@
+> 공식 제출 [`892178e8`](../../../../docs/experiments/e134-official-submit-20260927.json)도 완료:
+> FFN314619cycles, 6.1405524×, 2026-09-27 18:04 KST 51/69위. 아래 원본의 미제출 표시는 당시 상태다.
+
 > 채택 완료: **E134 / baseline-e134 / 4f8fe7f**. [현재 구성](../../../../baseline/e134.json),
 > [후속 채택 결정](adoption-decision.json), [채택 소스 검증](validation/adoption-verification.json).
 > 아래 frozen validation의 pending 표시는 root 채택 전 상태이며 원본을 보존한다.
