@@ -1,0 +1,11 @@
+--- weighted-v1/mlp.rs
++++ weighted-v2/mlp.rs
+@@ -341,7 +341,7 @@
+         .vector_widen_concat::<m![TileL / 8 % 60], m![TileL % 8]>().vector_final()
+         .cast::<f8e5m2, m![TileL % 8 # 32]>()
+         .commit_trim::<m![TileL % 8]>().commit();
+-    let sum_terms: DmTensor<f32, Chip, UpGateCluster, DownQuantSlices, m![TileL % 480]> = device.sub
++    let sum_terms: DmTensor<f32, Chip, UpGateCluster, DownQuantSlices, m![TileL % 480]> = device.main
+         .begin(lo.view()).fetch::<m![TileL / 32 % 15], m![TileL % 32]>().fetch_cast::<f32>()
+         .collect::<m![TileL / 8 % 60], m![TileL % 8]>()
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)

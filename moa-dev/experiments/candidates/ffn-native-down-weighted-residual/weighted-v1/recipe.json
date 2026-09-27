@@ -1,0 +1,63 @@
+{
+  "id": "E134",
+  "base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "actual_start_commit": "543a947b60ff71b0453d0b8c1af266dd54596dfd",
+  "comparison_recipe": "baseline/e128.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-native-fused-scale/measured-build-e128-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Coupled precision repair of E133 native-down family, not a new execution architecture. E128 whole performance control, frozen E133v2 source override, all public inputs and other kernels unchanged.",
+  "prior_related": [
+    "E133 three positive allocations paired median -3.8264%; nine standard inputs pass, seven exact mapping cases pass, raw tiny case4 loses50%. Adoption deferred due source-grounded in-range fullFFN CPU risk.",
+    "This is one coherent producer/consumer precision repair with proven normalized residual bounds, not a tile/multiplier sweep.",
+    "E133v1 padded term DMA failed; preserve v2 explicit480B Sub assembly."
+  ],
+  "full_graph": "E128 preRMS/upgate/GeGLU -> compact BF16 TileL7680 per Dummy2 cluster -> independent amax/scale -> sixteen 480-value chunks per cluster, weighted E5 terms hi, lo16, third256 -> compact terms -> quarter1920 ring32 replication -> E5 TRF3x1920 and 96B cluster-term coefficientVRF -> unchanged compact FP4 HBM/DM and FP8 blockscale HBM/DM -> one direct FP4 lookupE5 native stream with F32 individual terms then [s,s/16,s/256] restore and VE term sum -> existing F32 H60x120 block partial DM -> existing five12row blockscale/F32localKsum -> fourcolumn F32sum -> crosscluster F32sum -> existing BF16/global/residual/RMS/epilogue",
+  "placement": {
+    "weight": "H3840xL15360 FP4 public rowmajor, same M03 clusterLhalf/localK1920 compact DM; no extra weight copy",
+    "activation": "Independent cluster7680 compact BF16 amax;16 chunks x480; E5 DM[term3,local480] then term3x1920 per DownColumns slice, 5760B TRF",
+    "input_scale": "Independent cluster scalar s; [FfnTerm,1#8]96B coefficient tensor assembled with3exact32BSubcommits before broadcast; VRFreader broadcasts matchingTermcoefficient across4blocklanes.",
+    "quantizer_vrf": "480F32=1920B each hi/sum term, plus scalar; emitted lifetimes audited",
+    "partial": "Retain F32[H60,localKblock120] per slice; restore input scale before write; five12row scaleVRF5760B and original reductions remain"
+  },
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "removed_down_fp8_weight_write_bytes": 58982400,
+    "removed_down_fp8_weight_read_bytes": 58982400,
+    "retained_down_f32_partial_write_bytes": 14745600,
+    "retained_down_f32_partial_read_bytes": 14745600,
+    "old_replicated_activation_bytes": 1966080,
+    "new_replicated_activation_bytes": 2949120,
+    "added": "Compared with E133: Mul16 in lo producer, Mul1/16 in decoded sum, Mul256 in third producer;3x32B coefficient assembly and96Bvs32B broadcast/VRF; native-to-VE three term results and pertermrestore+VEreduce instead of DPEtermsum. Full decoded-weight DM remains absent; no larger F32partial or weight assembly.",
+    "removed": "Full down E4M3 weight DM materialization and later E4-to-BF16 table lookup. Packed HBM/DM source retained.",
+    "term_assembly": "Three explicit Sub copies,480B x16 live slices x2clusters perterm=46080 logical bytes total per read/write; no large weight assembly. This replaces unsafe expanded DMA descriptors."
+  },
+  "numerical_contract": {
+    "term_formula": "u=F32(x/s);hi=E5RNE(u);lo=E5RNE(F32(F32(u-hi)*16));sum=F32(hi+F32(lo/16));third=E5RNE(F32(F32(u-sum)*256)); nativeF32terms multiplied by[s,s/16,s/256] then F32VE Term sum.",
+    "bounded_evidence": "Kernel-agent exhaustive normalized 8-significand-bit BF16/F32 domain: amplified residual maxima32768, exact reconstruction for |u|>=2^-17, maximum normalized error2^-25. Independent proof artifact follows; not generalBF16exact or fullFFN tolerance proof.",
+    "reassociation": "VE Fp precedes reducer; term-specific pow2 scales include input s before F32 term addition. Power2 coefficients exact in representable range; overflow/subnormal and hardware accumulation semantics require oracle, not inferred equality.",
+    "preserved": "Actual Dummy2 cluster scales and3x1920TRF; original16B H60x120partial; five12row blockscale/localK/column/crosscluster andfinish_down unchanged."
+  },
+  "first_gate": "Exact completeFFN compile plus term-preserving native/VRFreader/reducer graph, coefficientassembly offsets0/32/64, unchanged public source bounds/output coverage/register capacity. Concrete understood source/API errors may get one recorded repair; no padding or tile sweep.",
+  "correctness_gate": "Standard E128before/candidate/after45 comparisons and actual-down weighted oracle including original failedtiny case plus CPUconstruction-related cluster/rowhalf case. Anypositive whole gain qualifies for frozen boundedvalidation; noofficial/liveadoption untilprecision and wholeperformance independently reviewed.",
+  "decisions": {
+    "adoption": "Unvalidated precision repair. Anypositive whole screen enters boundedvalidation, including below5%; root final review required.",
+    "further_tuning": "No parameter sweep. Negative screen stops; report a specific mechanism question if profiling is justified.",
+    "major_research": "Test complete native-down conversion/transfer/compute cost with no large joint-weight assembly; no ranking promise."
+  },
+  "adopted": false,
+  "hardware_status": "not_run",
+  "variant": "weighted-v1",
+  "source_repair": "E133 common-scale terms lose tiny values. Amplify lo residual16 and third256, decode lo/16 before computing third, preserve native FfnTerm, apply per-term [s,s/16,s/256] then VE F32 term sum into unchanged partial shape.",
+  "source_snapshot_origin": {
+    "path": "moa-dev/experiments/candidates/ffn-native-down-e5/down-e5-v2/mlp.rs",
+    "bytes": 35861,
+    "sha256": "c3ae74b55b306742b69b438bf2ea603409a0644c55f9004d7fe01665c656a5d3"
+  }
+}

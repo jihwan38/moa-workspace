@@ -1,0 +1,70 @@
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `feedforward` is never used
+   --> src/device/shared/mlp.rs:506:15
+    |
+506 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [1/1] ops::decoder_feedforward
+error: furiosa-opt: ops::decoder_feedforward: lir: internal compiler error: no entry found for key at crates/npu-isa/src/sfr/renegade/sfr_impl.rs:868:33
+          0: <unknown>
+          1: std::panicking::panic_with_hook
+          2: std::panicking::panic_handler::{closure#0}
+          3: std::sys::backtrace::__rust_end_short_backtrace::<std::panicking::panic_handler::{closure#0}, !>
+          4: __rustc::rust_begin_unwind
+          5: core::panicking::panic_fmt
+          6: core::option::expect_failed
+          7: <unknown>
+          8: <unknown>
+          9: <unknown>
+         10: <unknown>
+         11: <unknown>
+         12: <unknown>
+         13: <unknown>
+         14: <unknown>
+         15: <unknown>
+         16: <unknown>
+         17: <unknown>
+         18: <unknown>
+         19: <unknown>
+         20: <unknown>
+         21: <unknown>
+         22: <unknown>
+         23: <unknown>
+         24: <unknown>
+         25: rustc_interface::interface::run_compiler::<(), rustc_driver_impl::run_compiler::{closure#0}>::{closure#1}
+         26: std::sys::backtrace::__rust_begin_short_backtrace::<rustc_interface::util::run_in_thread_with_globals<rustc_interface::util::run_in_thread_pool_with_globals<rustc_interface::interface::run_compiler<(), rustc_driver_impl::run_compiler::{closure#0}>::{closure#1}, ()>::{closure#0}, ()>::{closure#0}::{closure#0}, ()>
+         27: <std::thread::lifecycle::spawn_unchecked<rustc_interface::util::run_in_thread_with_globals<rustc_interface::util::run_in_thread_pool_with_globals<rustc_interface::interface::run_compiler<(), rustc_driver_impl::run_compiler::{closure#0}>::{closure#1}, ()>::{closure#0}, ()>::{closure#0}::{closure#0}, ()>::{closure#1} as core::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}
+         28: <std::sys::thread::unix::Thread>::new::thread_start
+         29: <unknown>
+         30: clone
+       
+   --> src/ops.rs:211:1
+    |
+211 | #[device(chip = 1)]
+    | ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this is a bug; please report it
+    = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+    Finished 1 compiled, 14 not matching ops::decoder_feedforward
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 4 warnings emitted
