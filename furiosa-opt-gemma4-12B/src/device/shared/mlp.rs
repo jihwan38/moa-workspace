@@ -255,6 +255,164 @@ pub(crate) fn geglu(
         .commit()
 }
 
+// E133: quantize one compact 7680-value L half per cluster, before replication.
+// Dummy2 remains a real owner axis; the two clusters have independent scales.
+type DownQuantSlices = m![1 # 16, TileL / 480];
+
+fn broadcast_down_quantized(
+    device: &mut Device,
+    packed: &DmTensor<f8e5m2, Chip, UpGateCluster, DownQuantSlices, m![FfnTerm, TileL % 480]>,
+) -> DmTensor<f8e5m2, Chip, UpGateCluster, DownColumns, m![FfnTerm, TileL % 1920]> {
+    let x: DmTensor<f8e5m2, Chip, UpGateCluster, Slice, m![FfnTerm, TileL]> = packed.to_dm(&mut device.tdma);
+    let x: DmTensor<f8e5m2, Chip, UpGateCluster, m![Dummy256 / 32, 1 # 8, TileL / 1920], m![FfnTerm, TileL % 1920]> = x.to_dm(&mut device.tdma);
+    let x: DmTensor<f8e5m2, Chip, UpGateCluster, m![Dummy256 / 32, 8, TileL / 1920], m![FfnTerm, TileL % 1920]> = device.main
+        .begin(x.view())
+        .fetch::<m![FfnTerm], m![TileL % 1920]>()
+        .switch::<m![Dummy256 / 32, 8, TileL / 1920], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
+        .collect::<m![FfnTerm, TileL / 32 % 60], m![TileL % 32]>()
+        .commit_trim::<m![TileL % 32]>()
+        .commit();
+    unsafe { x.reshape() }
+}
+
+fn prepare_down_fp8_split(
+    device: &mut Device,
+    x: &DmTensor<bf16, Chip, UpGateCluster, Slice, m![TileL]>,
+) -> (
+    DmTensor<f8e5m2, Chip, UpGateCluster, DownColumns, m![FfnTerm, TileL % 1920]>,
+    DmTensor<f32, Chip, UpGateCluster, DownColumns, m![FfnTerm, 1 # 8]>,
+) {
+    // Amax on the canonical input avoids an expensive inter-slice reduction.
+    // i32 reinterpret makes the absolute-value mask a non-NaN immediate.
+    let amax: DmTensor<f32, Chip, UpGateCluster, Slice, m![1 # 8]> = device
+        .main.begin(x.view())
+        .fetch::<m![TileL / 16], m![TileL % 16]>().fetch_cast::<f32>()
+        .collect::<m![TileL / 8], m![TileL % 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_reinterpret::<i32>()
+        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)
+        .vector_reinterpret::<f32>()
+        .vector_narrow_split::<m![TileL / 4], m![TileL % 4]>()
+        .vector_intra_slice_reduce::<TileL, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)
+        .vector_widen_pad::<m![1 # 8]>()
+        .vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)
+        .vector_final().commit_trim::<m![1 # 8]>().commit();
+    // Exponent mask produces 2^floor(log2(amax)); floor 2^-112 guarantees
+    // scale >= 2^-126, and finite BF16 inputs imply scale <= 2^113.
+    let scale: DmTensor<f32, Chip, UpGateCluster, Slice, m![1 # 8]> = device
+        .main.begin(amax.view())
+        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_reinterpret::<i32>()
+        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)
+        .vector_reinterpret::<f32>()
+        .vector_narrow_trim::<m![1 # 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.00006103515625f32)
+        .vector_widen_pad::<m![1 # 8]>().vector_final()
+        .commit_trim::<m![1 # 8]>().commit();
+    let quant_scale: DmTensor<f32, Chip, UpGateCluster, DownQuantSlices, m![1 # 8]> = scale.to_dm(&mut device.tdma);
+    let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, DownQuantSlices, m![1 # 8]> = device
+        .sub.begin(quant_scale.view())
+        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+    let x: DmTensor<bf16, Chip, UpGateCluster, DownQuantSlices, m![TileL % 480]> = x.to_dm(&mut device.tdma);
+    let hi: DmTensor<f8e5m2, Chip, UpGateCluster, DownQuantSlices, m![TileL % 480]> = device
+        .main.begin(x.view())
+        .fetch::<m![TileL / 16 % 30], m![TileL % 16]>().fetch_cast::<f32>()
+        .collect::<m![TileL / 8 % 60], m![TileL % 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![TileL / 4 % 120], m![TileL % 4]>()
+        .vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)
+        .vector_widen_concat::<m![TileL / 8 % 60], m![TileL % 8]>().vector_final()
+        .cast::<f8e5m2, m![TileL % 8 # 32]>()
+        .commit_trim::<m![TileL % 8]>().commit();
+    let hi_vrf: VrfTensor<f32, Chip, UpGateCluster, DownQuantSlices, m![TileL % 480]> = device
+        .sub.begin(hi.view())
+        .fetch::<m![TileL / 32 % 15], m![TileL % 32]>().fetch_cast::<f32>()
+        .collect::<m![TileL / 8 % 60], m![TileL % 8]>().to_vrf();
+    let lo: DmTensor<f8e5m2, Chip, UpGateCluster, DownQuantSlices, m![TileL % 480]> = device
+        .main.begin(x.view())
+        .fetch::<m![TileL / 16 % 30], m![TileL % 16]>().fetch_cast::<f32>()
+        .collect::<m![TileL / 8 % 60], m![TileL % 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![TileL / 4 % 120], m![TileL % 4]>()
+        .vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)
+        .vector_fp_binary(FpBinaryOp::SubF, &hi_vrf)
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), 16.0f32)
+        .vector_widen_concat::<m![TileL / 8 % 60], m![TileL % 8]>().vector_final()
+        .cast::<f8e5m2, m![TileL % 8 # 32]>()
+        .commit_trim::<m![TileL % 8]>().commit();
+    let sum_terms: DmTensor<f32, Chip, UpGateCluster, DownQuantSlices, m![TileL % 480]> = device.main
+        .begin(lo.view()).fetch::<m![TileL / 32 % 15], m![TileL % 32]>().fetch_cast::<f32>()
+        .collect::<m![TileL / 8 % 60], m![TileL % 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![TileL / 4 % 120], m![TileL % 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)
+        .vector_fp_binary(FpBinaryOp::AddF, &hi_vrf)
+        .vector_widen_concat::<m![TileL / 8 % 60], m![TileL % 8]>().vector_final().commit_trim::<m![TileL % 8]>().commit();
+    let sum_vrf: VrfTensor<f32, Chip, UpGateCluster, DownQuantSlices, m![TileL % 480]> = device.sub
+        .begin(sum_terms.view()).fetch::<m![TileL / 8 % 60], m![TileL % 8]>()
+        .collect::<m![TileL / 8 % 60], m![TileL % 8]>().to_vrf();
+    let third: DmTensor<f8e5m2, Chip, UpGateCluster, DownQuantSlices, m![TileL % 480]> = device
+        .main.begin(x.view())
+        .fetch::<m![TileL / 16 % 30], m![TileL % 16]>().fetch_cast::<f32>()
+        .collect::<m![TileL / 8 % 60], m![TileL % 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![TileL / 4 % 120], m![TileL % 4]>()
+        .vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)
+        .vector_fp_binary(FpBinaryOp::SubF, &sum_vrf)
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), 256.0f32)
+        .vector_widen_concat::<m![TileL / 8 % 60], m![TileL % 8]>().vector_final()
+        .cast::<f8e5m2, m![TileL % 8 # 32]>()
+        .commit_trim::<m![TileL % 8]>().commit();
+    let mut packed: DmTensor<f8e5m2, Chip, UpGateCluster, DownQuantSlices, m![FfnTerm, TileL % 480]> = DmTensor::new();
+    // Exact 480B stream copy: typed DMA to a padded term view expands its source extent.
+    device.sub.begin(hi.view())
+        .fetch::<m![TileL / 32 % 15], m![TileL % 32]>()
+        .collect::<m![TileL / 32 % 15], m![TileL % 32]>()
+        .commit_trim::<m![TileL % 32]>()
+        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, TileL % 480]>(0));
+    // Exact 480B stream copy: typed DMA to a padded term view expands its source extent.
+    device.sub.begin(lo.view())
+        .fetch::<m![TileL / 32 % 15], m![TileL % 32]>()
+        .collect::<m![TileL / 32 % 15], m![TileL % 32]>()
+        .commit_trim::<m![TileL % 32]>()
+        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, TileL % 480]>(1));
+    // Exact 480B stream copy: typed DMA to a padded term view expands its source extent.
+    device.sub.begin(third.view())
+        .fetch::<m![TileL / 32 % 15], m![TileL % 32]>()
+        .collect::<m![TileL / 32 % 15], m![TileL % 32]>()
+        .commit_trim::<m![TileL % 32]>()
+        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, TileL % 480]>(2));
+    // Per-cluster coefficients [s, s/16, s/256] restore weighted native terms.
+    // Explicit 32B commits avoid typed DMA expansion into padded term views.
+    let mut term_scales: DmTensor<f32, Chip, UpGateCluster, Slice, m![FfnTerm, 1 # 8]> = DmTensor::new();
+    device.main.begin(scale.view())
+        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_trim::<m![1 # 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 1.0f32)
+        .vector_widen_pad::<m![1 # 8]>().vector_final()
+        .commit_trim::<m![1 # 8]>()
+        .commit_view(term_scales.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, 1 # 8]>(0));
+    device.main.begin(scale.view())
+        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_trim::<m![1 # 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)
+        .vector_widen_pad::<m![1 # 8]>().vector_final()
+        .commit_trim::<m![1 # 8]>()
+        .commit_view(term_scales.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, 1 # 8]>(1));
+    device.main.begin(scale.view())
+        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_trim::<m![1 # 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.00390625f32)
+        .vector_widen_pad::<m![1 # 8]>().vector_final()
+        .commit_trim::<m![1 # 8]>()
+        .commit_view(term_scales.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, 1 # 8]>(2));
+    (broadcast_down_quantized(device, &packed), term_scales.to_dm(&mut device.tdma))
+}
+
 fn project_down_tile(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, UpGateCluster, LocalRows, m![TileL % 120]>,
@@ -263,47 +421,41 @@ fn project_down_tile(
 ) -> DownPartial {
     // Compact only this cluster's L half; no full-L or cross-cluster gather.
     let x: DmTensor<bf16, Chip, UpGateCluster, Slice, m![TileL]> = x.to_dm(&mut device.tdma);
-    let x: DmTensor<bf16, Chip, UpGateCluster, m![Dummy256 / 32, 1 # 8, TileL / 1920], m![TileL % 1920]> = x.to_dm(&mut device.tdma);
-    let x: DmTensor<bf16, Chip, UpGateCluster, m![Dummy256 / 32, 8, TileL / 1920], m![TileL % 1920]> = device.main
+    let (x, x_scale) = prepare_down_fp8_split(device, &x);
+    let x_scale_vrf: VrfTensor<f32, Chip, UpGateCluster, DownColumns, m![FfnTerm, 1 # 8]> = device.sub
+        .begin(x_scale.view()).fetch::<m![FfnTerm], m![1 # 8]>()
+        .collect::<m![FfnTerm], m![1 # 8]>().to_vrf();
+    let x_trf: TrfTensor<f8e5m2, Chip, UpGateCluster, DownColumns, m![1], m![FfnTerm, TileL % 1920]> = device.sub
         .begin(x.view())
-        .fetch::<m![1], m![TileL % 1920]>()
-        .switch::<m![Dummy256 / 32, 8, TileL / 1920], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
-        .collect::<m![TileL / 16 % 120], m![TileL % 16]>()
-        .commit_trim::<m![TileL % 16]>()
-        .commit();
-    // s = 4*r + k: row group r=0..63 and L-quarter k=0..3.
-    let x: DmTensor<bf16, Chip, UpGateCluster, DownColumns, m![TileL % 1920]> = unsafe { x.reshape() };
-    let x_trf: TrfTensor<bf16, Chip, UpGateCluster, DownColumns, m![1], m![TileL % 1920]> = device.sub
-        .begin(x.view())
-        .fetch::<m![TileL / 16 % 120], m![TileL % 16]>()
-        .collect::<m![TileL / 16 % 120], m![TileL % 16]>()
+        .fetch::<m![FfnTerm, TileL / 32 % 60], m![TileL % 32]>()
+        .collect::<m![FfnTerm, TileL / 32 % 60], m![TileL % 32]>()
         .to_trf();
 
     // HBM remains [H,L], with contiguous L halves owned by separate clusters.
     // Packed row pitch is 7680 bytes; every local K segment is 960 bytes.
     let weight: HbmTensorView<'_, f4e2m1, Chip, m![H, Dummy2, TileL]> = unsafe { weight.view().reshape() };
     let packed: DmTensor<f4e2m1, Chip, UpGateCluster, DownColumns, m![H % 60, TileL % 1920]> = weight.to_dm(&mut device.tdma);
-    let fp8: DmTensor<f8e4m3, Chip, UpGateCluster, DownColumns, m![H % 60, TileL % 1920]> = device.main
-        .begin(packed.view())
-        .fetch::<m![H % 60], m![TileL % 1920]>()
-        .fetch_table_lookup::<f8e4m3>()
-        .collect::<m![H % 60, TileL / 32 % 60], m![TileL % 32]>()
-        .commit_trim::<m![TileL % 32]>()
-        .commit();
     let scale: HbmTensorView<'_, f8e4m3, Chip, m![H, Dummy2, TileL / 16]> = unsafe { scale.view().reshape() };
     let scales: DmTensor<f8e4m3, Chip, UpGateCluster, DownColumns, m![H % 60, TileL / 16 % 120]> = scale.to_dm(&mut device.tdma);
+    // Direct FP4 lookup feeds native E5; no full decoded-weight DM tensor.
+    // Preserve native term results, restore [s,s/16,s/256] in F32, then sum.
+    // VE Fp precedes Reduce, so input-scale restoration is per term; the existing
+    // F32 block partial shape and five block-scale/reduction streams remain.
     let partials: DmTensor<f32, Chip, UpGateCluster, DownColumns, m![H % 60, TileL / 16 % 120]> = device.main
-        .begin(fp8.view())
+        .begin(packed.view())
         .fetch::<m![H % 60], m![TileL % 1920]>()
-        .fetch_table_lookup::<bf16>()
-        .collect::<m![H % 60, TileL / 16 % 120], m![TileL % 16]>()
-        .contract_outer::<m![H % 60, TileL / 16 % 120], m![TileL % 16], _, _, _>(&x_trf)
-        .contract_packet::<m![1]>()
-        .contract_time::<m![H % 60, TileL / 16 % 120]>()
-        .contract_lane::<m![H % 60, TileL / 16 % 120], m![1 # 8]>(LaneMode::Interleaved)
-        .transpose::<m![H % 60, TileL / 32 % 60], m![TileL / 16 % 2 # 8]>()
-        .commit_trim::<m![TileL / 16 % 2]>()
-        .commit();
+        .fetch_table_lookup::<f8e5m2>()
+        .collect::<m![H % 60, TileL / 32 % 60], m![TileL % 32]>()
+        .contract_outer::<m![H % 60, TileL / 64 % 30, FfnTerm], m![TileL % 64], _, _, _>(&x_trf)
+        .contract_packet::<m![TileL / 16 % 4]>()
+        .contract_time::<m![H % 60, TileL / 64 % 30, FfnTerm]>()
+        .contract_lane::<m![H % 60, TileL / 64 % 30, FfnTerm], m![TileL / 16 % 4 # 8]>(LaneMode::Sequential)
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_trim::<m![TileL / 16 % 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &x_scale_vrf)
+        .vector_intra_slice_reduce::<FfnTerm, m![H % 60, TileL / 64 % 30], m![TileL / 16 % 4]>(IntraSliceReduceOpF32::Add)
+        .vector_widen_pad::<m![TileL / 16 % 4 # 8]>().vector_final()
+        .commit_trim::<m![TileL / 16 % 4]>().commit();
     let mut down: DmTensor<f32, Chip, UpGateCluster, DownRows, m![H % 60]> = DmTensor::new();
     static_passes!(i, [0, 1, 2, 3, 4], {
         let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, DownColumns, m![H % 60 = 12, TileL / 16 % 120]> = device.sub
