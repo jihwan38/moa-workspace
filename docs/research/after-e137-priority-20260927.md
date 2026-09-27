@@ -31,3 +31,40 @@ This changes ownership at the complete down producer/consumer boundary; it is no
 E135 should remain a separate unresolved liveness question until a specific blocked boundary/source hazard or supported repair is identified. The existing public profile wait path cannot be assumed to return partial spans on a timeout. Another padding/context/ordering retry without new evidence is not the next priority.
 
 Source evidence: `axes.rs`; `qkv-native-weight-resident/decision.json`; `qkv-bf16-broadcast-trf-e55/README.md` and frozen compile log; E137 native-v3 source/independent graph review/profile; `ffn-native-down-weighted-residual/weighted-v3/mlp.rs`; `ffn-independent-direct-fused/runtime-analysis.md`. This assessment used read-only inspection, with no new build, NPU job or ranking promise.
+
+## Follow-up review: the actual E137 comparison and experiment order
+
+The refreshed [leaderboard snapshot](e137-next-priority-leaderboard-20260927.json)
+places BEEF at46 with6.4427554× and the30th team at7.8574794×. Other scores fixed,
+QKV and FFN each20% shorter would yield only7.4761554×. With O fixed and QKV20%
+shorter, FFN must fall31.0911% to match that threshold. These are planning
+scenarios, not predicted gains of either proposed implementation.
+
+The current E137 QKV already keeps BF16 activation in TRF and streams weights
+through BF16 lookup. It has **no weight-TRF staging**. The30MiB weight-TRF removal
+and7.5→1.875MiB term payload comparison above are versus rejected E136 only.
+Against E137, the proposed K4 path targets full-H BF16 replication (3.75MiB
+logical resident DM) and lookup preparation, while adding0.9375MiB consumer BF16,
+1.875MiB local four-term DM, actual quantization/global-max, K4 F32 reduction,
+32KiB compact F32 output write/read and a separate restoration/channel-scale
+consumer. Current channel scale is already fused into the BF16 dot stream;
+separating it is an added cost, not a new fusion benefit. Quantities are logical
+payloads, not measured bus traffic or cycle savings.
+
+Recommended parallel work is one QKV feasibility prototype and one current-image
+whole-FFN diagnostic. QKV first proves real post-RMS inputs, K4/Term4 ownership,
+canonical head/cache output and unchanged arithmetic acceptance, then moves to
+an early complete QKV comparison including K/V and all tails. A positive gain
+freezes the source for adoption validation even below5%; a regression triggers
+cost diagnosis only when a concrete repair can be selected.
+
+The FFN diagnostic should retain up/gate readiness and GeGLU boundaries as well
+as the down markers listed above. Native-down input preparation is not assumed
+to explain the full FFN gap. If its delay is small or hidden behind weights,
+do not implement local quantization merely because O benefited. Choose the next
+large boundary from the whole trace. E135 direct-decode timeout still requires
+specific liveness evidence before another repair; its missing candidate cycles
+cannot be substituted for this cost measurement.
+
+This follow-up changes the research recommendation only. No candidate source,
+compile, Arena measurement, baseline or official submission was changed.
