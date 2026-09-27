@@ -1,3 +1,22 @@
+# 2026-09-27 E138 QKV 구현·E139 현재 FFN 계측 진행
+
+Runtime/control은 E137이다. [실행 선택](../research/e138-e139-execution-selection-20260927.md)에
+source recipe, 실제 추가/제거 비용과 각 gate를 기록했다. 실제 시작 commit은
+`d6e6c62e6ae80c9b39b192c4a318a0230e79ee20`이다.
+
+- `opt/qkv-native-consumer-local` / E138: K4×H960 소비자 로컬4항 E4 입력과
+  activation TRF를 Q/K/V에서 재사용하고 원본 E4 weight를 native로 계산하는 전체 경로.
+  Source와 성능 control은 각각 E137334a705/baseline/e137.json으로 명시했다.
+  현재 BF16 lookup/fullH 복제와 새 양자화/K4합산/정규출력 복원 비용을 비교한다.
+  원본 public interface·수치 허용오차·head/cache 의미를 유지하며 O/FFN image도 유지한다.
+- `diag/e137-ffn-readiness` / E139: 현재 whole FFN의 up/gate부터 native-down/후단까지
+  actual image로 한정 계측한다. 이름bytes 외 실행 code/constants/IO를 바꾸지 않는다.
+  Down activation이 정말 완료를 지연하는지 먼저 판별하고 양자화 로컬화 여부를 정한다.
+
+QKV whole positive는5%미만이어도 source동결 후3독립allocation/추가6/원래경계 검증으로
+채택판단한다. Source버그는 구체원인이 있을 때 수리하며 회귀/timeout/지원불가를 구분한다.
+새실측·채택·순위개선은 아직 없다. 아래는 앞선 완료 기록이다.
+
 # 2026-09-27 E137 공식 제출·순위 반영 완료
 
 공식 제출 **`330d5595`**이 server contract/build/evaluate와 기본15비교를 통과했다.
