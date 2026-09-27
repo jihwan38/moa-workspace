@@ -105,3 +105,29 @@ Preserve v1 and compile a distinct v2; choose the supported complete form before
 the first NPU screen, not an in-place rewrite of measured evidence. Arithmetic
 factors and precision cases remain unchanged. Native parallelism alone is not
 a whole-O speedup claim.
+
+## First hardware result and the bounded cost diagnostic
+
+Frozen Lane4 v2 completed Arena110453 with45 comparisons PASS. O took56163
+cycles against E13449037/49447 (paired49242), a14.0551% regression. Its actual
+projection oracle110458 passed34560 BF16 values exactly, including a value
+whose fourth term is nonzero; full public O/RMS/residual case7 in110465 passed
+all3840 expected values0.609375. This establishes the tested precision and
+mapping, not a performance gain.
+
+The emitted graph exposes two new costs that a specific relocation can change:
+the global-max instruction uses ratio256 despite only16 valid input shards, and
+four-term replication moves512KiB before the next weight stage. Their static
+durations2562 and5444 are not additive runtime savings. One frozen-image NPU
+diagnostic is selected to compare actual input/global-max/quantization/term-DMA,
+weight readiness, native and epilogue boundaries against E134, with plain
+whole hosts in the same allocation to check profiling effects.
+
+The conditional repair is consumer-local quantization: distribute the original
+BF16 K256 input to all output rowgroups first, compute the same global K4096
+scale separately in each identical rowgroup using K16 reduction, then produce
+the four terms directly where their TRF consumes them. It removes packed-term
+distribution, increases logical input HBM replication16KiB→256KiB and active
+quantizer storage, and changes the reduction scope. It does not reduce term
+count, assume input values, change tolerances or promise a gain. Actual profile
+evidence and supported mappings must select the repair before implementation.
