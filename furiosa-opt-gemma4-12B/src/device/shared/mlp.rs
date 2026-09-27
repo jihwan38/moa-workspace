@@ -682,11 +682,23 @@ pub(crate) fn prepare_ffn_fp8_split(
         .cast::<f8e5m2, m![H % 8 # 32]>()
         .commit_trim::<m![H % 8]>().commit();
     let mut packed: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![FfnTerm, H % 480]> = DmTensor::new();
-    hi.view().to_dm_view(&mut device.tdma,
-        packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(0));
-    lo.view().to_dm_view(&mut device.tdma,
-        packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1));
-    third.view().to_dm_view(&mut device.tdma,
-        packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2));
+    // Exact480B copy; padded destination must not enlarge the source DMA extent.
+    device.sub.begin(hi.view())
+        .fetch::<m![H / 32 % 15], m![H % 32]>()
+        .collect::<m![H / 32 % 15], m![H % 32]>()
+        .commit_trim::<m![H % 32]>()
+        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(0));
+    // Exact480B copy; padded destination must not enlarge the source DMA extent.
+    device.sub.begin(lo.view())
+        .fetch::<m![H / 32 % 15], m![H % 32]>()
+        .collect::<m![H / 32 % 15], m![H % 32]>()
+        .commit_trim::<m![H % 32]>()
+        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1));
+    // Exact480B copy; padded destination must not enlarge the source DMA extent.
+    device.sub.begin(third.view())
+        .fetch::<m![H / 32 % 15], m![H % 32]>()
+        .collect::<m![H / 32 % 15], m![H % 32]>()
+        .commit_trim::<m![H % 32]>()
+        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2));
     (broadcast_ffn_quantized(device, &packed), scale.to_dm(&mut device.tdma))
 }
