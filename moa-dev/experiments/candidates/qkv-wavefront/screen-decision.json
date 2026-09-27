@@ -1,0 +1,59 @@
+{
+  "id": "E130",
+  "status": "screen_no_net_gain",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "comparison_recipe": "baseline/e128.json",
+  "candidate_build_label": "qkv-wavefront-sub-v2",
+  "job": 109339,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_qkv_cycles": 119470,
+  "control_before_qkv_cycles": 104736,
+  "control_after_qkv_cycles": 104976,
+  "bracketing_median": 104856.0,
+  "change_percent": 13.93720912489509,
+  "candidate_cycles_by_run": [
+    123263,
+    118692,
+    119470
+  ],
+  "static_candidate_cycles": 57034,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/qkv-wavefront/graph-verification-qkv-wavefront-sub-v2.json",
+      "bytes": 6741,
+      "sha256": "d4e45d92fcbea36442108c7323eb59b41119757d7e24a26673eb4a6c9605db2d"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/qkv-wavefront/e130-qkv-wavefront-screen-job-109339-results.json",
+    "bytes": 5304,
+    "sha256": "16a378b26a148fd77b0e2d86b6a0dc9a0df09f91a58f44bc2cd6d8a9497d2ba2"
+  },
+  "added_raw_f32_write_bytes": 32768,
+  "added_raw_f32_valid_read_bytes": 32768,
+  "added_sub_fetch_packet_sum_bytes": 65536,
+  "extra_scale_consumer_tasks": 3,
+  "scope": "Complete Main/Sub producer-consumer reassignment retaining row/cluster ownership and numerical boundaries. Packet sums are not measured bus traffic or additive latency.",
+  "decisions": {
+    "adoption": {
+      "status": "not_promoted_from_this_screen",
+      "reason": "This single allocation did not show a net gain. Preserve it; root decides whether a concrete unresolved variance or implementation issue justifies another check.",
+      "remaining_checks": []
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Did pure Main F32 dots overlap enough complete Sub head work to repay raw-DM handoff and Sub table/VRF/transpose contention? This prototype does not decide all QKV ownership architectures."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

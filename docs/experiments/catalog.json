@@ -1971,6 +1971,22 @@
         "moa-dev/experiments/candidates/ffn-native-fused-scale/source-build-audit.json",
         "moa-dev/experiments/candidates/ffn-native-fused-scale/graph-verification.json"
       ]
+    },
+    {
+      "id": "E130",
+      "category": "regressed",
+      "kernel": "QKV",
+      "method": "Main pure F32 dot → compact DM → Sub scale/BF16 및 전체 RMS/RoPE",
+      "report": "docs/experiments/e130-qkv-wavefront.json",
+      "reference": "docs/experiments/e130-qkv-wavefront-e128-before.json",
+      "reference_label": "동시 E128 before",
+      "note": "Arena109339:45비교 PASS(후보3 distinct inputs). QKV119470 vs E128104736/104976; 앞뒤중앙104856 대비 +13.9372%, 표는before 비교. Main VE제거와268static-cycle SubVE중첩은 확인했으나 실제전체경로회귀. F3232KiB write/live-read와64KiB Sub packet합 추가; 정확hardware stall원인은미측정. 미채택·추가튜닝중단; E128유지. v1 4row F32transpose source오류와v2 2row8B수리 보존. 다른QKV architecture전체를폐쇄하지않음.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-wavefront/README.md",
+        "moa-dev/experiments/candidates/qkv-wavefront/decision.json",
+        "moa-dev/experiments/candidates/qkv-wavefront/graph-verification-qkv-wavefront-sub-v2.json",
+        "moa-dev/experiments/candidates/qkv-wavefront/e130-qkv-wavefront-screen-job-109339-results.json"
+      ]
     }
   ]
 }

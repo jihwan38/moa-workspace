@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "experiment": "E130",
+  "label": "qkv-wavefront-sub-v2",
+  "passed": true,
+  "inputdigests": {
+    "build_record": {
+      "path": "moa-dev/experiments/candidates/qkv-wavefront/build-qkv-wavefront-sub-v2-repro.json",
+      "bytes": 18197,
+      "sha256": "466e91d689f059bf99f4537747da4229b77c28b4ea3ab34c3c64745be5369270"
+    },
+    "graph": {
+      "path": "moa-dev/experiments/artifacts/qkv-wavefront/qkv-wavefront-sub-v2/graph.json",
+      "bytes": 199876,
+      "sha256": "501082266b38d071ee035d649697aa086ec69bb84105731979cd5daa866cc75c"
+    },
+    "schedule": {
+      "path": "moa-dev/experiments/artifacts/qkv-wavefront/qkv-wavefront-sub-v2/schedule.json",
+      "bytes": 90327,
+      "sha256": "5e05a958f3ae4b4a6f94268c2af21bf2491f6482072e088f83f5e53666efab5c"
+    },
+    "exact_image": {
+      "path": "moa-dev/experiments/artifacts/qkv-wavefront/qkv-wavefront-sub-v2/exact-kernel.bin",
+      "bytes": 186624,
+      "sha256": "6cc87899c58ad2ed73f9c1c180ae30530725b83aa75ae3adb26b0976710fd675"
+    },
+    "src/device/sliding/projection.rs": {
+      "path": "moa-dev/experiments/candidates/qkv-wavefront/sub-consumer-v2/projection.rs",
+      "bytes": 14358,
+      "sha256": "81f280d90d52e58711f542d9ca6ebe1cdf95e35eeec113255bd7d4d50f217dfc"
+    },
+    "src/device/sliding/rmsnorm.rs": {
+      "path": "moa-dev/experiments/candidates/qkv-wavefront/sub-consumer-v2/rmsnorm.rs",
+      "bytes": 6085,
+      "sha256": "414c5fdae7425263db83df1743cbea6c9ce55891097c33e1c5ba400270293a90"
+    },
+    "src/device/sliding/rope.rs": {
+      "path": "moa-dev/experiments/candidates/qkv-wavefront/sub-consumer-v2/rope.rs",
+      "bytes": 7982,
+      "sha256": "e0ccf4c7d41bf538c5b4ad17f4f7868b0c6bb19ea5ae1035017a659152f02124"
+    },
+    "recipe": {
+      "path": "moa-dev/experiments/candidates/qkv-wavefront/sub-consumer-v2/recipe.json",
+      "bytes": 3459,
+      "sha256": "214b3582ec64414eb8eea4d715e0997a86ce806a140a6aa623d1fc54a3d3a78d"
+    }
+  },
+  "verifiers": [
+    {
+      "path": "moa-dev/experiments/candidates/qkv-wavefront/verify_graph.py",
+      "bytes": 10004,
+      "sha256": "61446211b7496a1029a4bee2419ded79d2b0ee16113f8353d88aa51cfbee7425"
+    }
+  ],
+  "unchanged_public_ops_and_O_suffix": true,
+  "head_arithmetic_unchanged_except_context": true,
+  "projections": [
+    {
+      "projection": "Q",
+      "dot": "56",
+      "scale": "57",
+      "row_switch": "58",
+      "weight_input": 1,
+      "scale_input": 4,
+      "weight_dma": {
+        "packets": 61440,
+        "packet_bytes": 256,
+        "first": 0,
+        "last_exclusive": 15728640,
+        "exact_once_contiguous_source_coverage": true
+      },
+      "raw_tensor": 39,
+      "raw_schedule_tensor": "72",
+      "raw_bytes": 16384,
+      "raw_rows_per_slice": 8,
+      "commit_packet_bytes": 8,
+      "commit_offsets_per_slice": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sub_fetch_packet_bytes": 8,
+      "sub_fetch_packet_sum_bytes": 32768,
+      "valid_scalar_read_bytes": 16384,
+      "last_packet_read_per_slice": [
+        19228,
+        19236
+      ],
+      "intentional_trailing_padding_read_bytes_per_slice": 4,
+      "padding_semantics": "Only first scalar is live; #2 then #8 padding is never reduced into it; first scalar alone survives BF16 transpose/commit.",
+      "trailing_padding_overlaps_other_live_schedule_payload": false
+    },
+    {
+      "projection": "K",
+      "dot": "101",
+      "scale": "111",
+      "row_switch": "112",
+      "weight_input": 2,
+      "scale_input": 5,
+      "weight_dma": {
+        "packets": 30720,
+        "packet_bytes": 256,
+        "first": 0,
+        "last_exclusive": 7864320,
+        "exact_once_contiguous_source_coverage": true
+      },
+      "raw_tensor": 55,
+      "raw_schedule_tensor": "122",
+      "raw_bytes": 8192,
+      "raw_rows_per_slice": 4,
+      "commit_packet_bytes": 8,
+      "commit_offsets_per_slice": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "sub_fetch_packet_bytes": 8,
+      "sub_fetch_packet_sum_bytes": 16384,
+      "valid_scalar_read_bytes": 8192,
+      "last_packet_read_per_slice": [
+        21004,
+        21012
+      ],
+      "intentional_trailing_padding_read_bytes_per_slice": 4,
+      "padding_semantics": "Only first scalar is live; #2 then #8 padding is never reduced into it; first scalar alone survives BF16 transpose/commit.",
+      "trailing_padding_overlaps_other_live_schedule_payload": false
+    },
+    {
+      "projection": "V",
+      "dot": "59",
+      "scale": "80",
+      "row_switch": "81",
+      "weight_input": 3,
+      "scale_input": 6,
+      "weight_dma": {
+        "packets": 30720,
+        "packet_bytes": 256,
+        "first": 0,
+        "last_exclusive": 7864320,
+        "exact_once_contiguous_source_coverage": true
+      },
+      "raw_tensor": 69,
+      "raw_schedule_tensor": "75",
+      "raw_bytes": 8192,
+      "raw_rows_per_slice": 4,
+      "commit_packet_bytes": 8,
+      "commit_offsets_per_slice": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "sub_fetch_packet_bytes": 8,
+      "sub_fetch_packet_sum_bytes": 16384,
+      "valid_scalar_read_bytes": 8192,
+      "last_packet_read_per_slice": [
+        19724,
+        19732
+      ],
+      "intentional_trailing_padding_read_bytes_per_slice": 4,
+      "padding_semantics": "Only first scalar is live; #2 then #8 padding is never reduced into it; first scalar alone survives BF16 transpose/commit.",
+      "trailing_padding_overlaps_other_live_schedule_payload": false
+    }
+  ],
+  "added_raw_f32_write_bytes": 32768,
+  "added_raw_f32_valid_read_bytes": 32768,
+  "added_sub_fetch_packet_sum_bytes": 65536,
+  "main_dpe_schedule": [
+    {
+      "index": "121",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 23623,
+        "end": 28686
+      }
+    },
+    {
+      "index": "137",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 29398,
+        "end": 32061
+      }
+    },
+    {
+      "index": "282",
+      "contexts": [
+        "MainContext"
+      ],
+      "lifetime": {
+        "begin": 43253,
+        "end": 45916
+      }
+    }
+  ],
+  "main_dpe_sub_ve_overlap": [
+    {
+      "main": "137",
+      "sub_ve": "162",
+      "begin": 31793,
+      "end": 32061,
+      "cycles": 268
+    }
+  ],
+  "static_cycles": 57034,
+  "static_comparison": {
+    "control_cycles": 51293,
+    "candidate_change_percent": 11.192560388357077
+  },
+  "limits": [
+    "Static packet sums are not measured bus traffic.",
+    "Logical bounds deliberately exclude ignored trailing padding reads; schedule allocation/lifetime check is separate.",
+    "No numerical or NPU performance claim: original host is the next gate."
+  ]
+}
