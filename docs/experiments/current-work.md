@@ -1,3 +1,25 @@
+# 2026-09-27 E141 직접 FP4 경로 실행 복구·전체 FFN 회귀
+
+Runtime은 E140이다. E135 소스의 up-term 복사 세 곳만 고친 E141은
+전체 job111571의45비교와 원래 up/gate oracle111574의245760 exact BF16 출력을
+모두 통과했다. 두 기존 timeout 이미지와 같은 bitmap 주소 배치에서 전송 범위만
+줄였고 정상 실행이 복구됐다. 과거 timeout은 계속 원본 그대로 보존한다.
+
+전체 FFN은 E140314403 → E141324186 → E140314159cycles,
+앞뒤 중앙314281 대비 **3.151638% 회귀**다. 이 후보는 미채택, 파라미터 튜닝은 중단한다.
+[검증·원본 결과](../../moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/README.md).
+추가 full-FFN stress는 준비만 했으며 성능 회귀 후 실행하지 않았다.
+
+큰 FP8 저장112.5MiB의 논리 쓰기/읽기를 각각 없앴지만 lookup 준비는2→10회로 늘었다.
+다음은 고정 E140/E141 실제 이미지의 내부 계측 한 번이다. 반복 lookup·TRF 준비가
+완료를 지연하는지 확인하여, 기존 full30-row native→F32 block partial→별도 scale/reduce
+조합을 다시 검사할 근거가 있는지 판단한다. E103은 이 조합의 오답 기록이 있으나
+그 소스에도 같은 잘못된 복사가 있고 최종 descriptor가 없어 당시 원인은 미해결이다.
+이번 복구만으로 E103의 산술 문제까지 해결됐다고 주장하지 않는다.
+
+E140 메모리 수정 공식 제출47a9240e는 server contract를 통과했고 빌드 중이다.
+이전 공식 성과는 E13746위다. 아래는 직전 기록이다.
+
 # 2026-09-27 E140 복사 범위 수정 채택·E135 직접 weight 경로 복구 선택
 
 현재 runtime은 **E140 / baseline-e140 / c56b737**이다. E137에서 up/gate 입력의

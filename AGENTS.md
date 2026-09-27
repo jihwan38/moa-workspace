@@ -184,6 +184,16 @@
   with E140 as independently declared contemporary performance control. Keep
   original timeouts, distinguish verified overwrite from unproved sole cause,
   and recheck actual whole/production oracle before judging the direct family.
+- E141 subsequently repaired both E135 whole/oracle liveness with exactly the
+  three bounded copies: whole45 comparisons and245760 selected original-BF16
+  projection outputs pass. Actual bitmap addresses stayed unchanged. The complete
+  direct six-row FFN nevertheless regressed3.151638% against E140; do not adopt it
+  or continue tile tuning. A bounded same-image E140/E141 profile is selected to
+  identify the cost of ten lookup preparations versus two before choosing the
+  previously attempted direct30-row native/F32-block-partial combination. E103
+  truly had oracle mismatches, but also retained the unsafe prefix and has no
+  preserved final descriptors. Its cause is unresolved; neither inherit success
+  from E141 nor treat its failure as proof that all direct partial paths fail.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or
