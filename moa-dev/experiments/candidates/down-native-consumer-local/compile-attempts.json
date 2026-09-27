@@ -1,0 +1,49 @@
+{
+  "local-v1": {
+    "classification": "whole_VRF_allocation_failure_no_executable",
+    "exact_log": "evidence/e140-local-v1/compile.log",
+    "reported_request_bytes": 2949120,
+    "per_slice_for512": 5760,
+    "specific_interfering_buffer": "unproven;5760 matchesbothupgate anddownblockscale",
+    "diagnostic_rerun": {
+      "same_source": true,
+      "visa": "evidence/e140-local-v1/failure.visa.txt",
+      "log": "evidence/e140-local-v1/failure-dump.log",
+      "no_graph_schedule": true,
+      "initial_cli_error": "--dump-ir and--dump-dfg mutuallyexclusive;no compilationinthatcommand"
+    },
+    "repair": "local-v2 preservesconsumer1920;4x480local residualquant restoresvalidated1920BVRFfootprint"
+  },
+  "local-v2": {
+    "classification": "nested_partial_view_lowering_failure_no_executable",
+    "record": "build-e140-local-v2-repro.json",
+    "error": "Fetch live input axis unread, Time1/PacketTileL%1920=480#1920",
+    "scope": "Only localquantchunk axis/view expression failed. Exact nested backend cause unresolved; not arithmetic or family performance failure."
+  },
+  "local-v3": {
+    "classification": "nested_partial_view_lowering_failure_no_executable",
+    "record": "build-e140-local-v3-repro.json",
+    "error": "Fetch live input axis unread, Time1/PacketTileL%1920=480#1920",
+    "scope": "Only localquantchunk axis/view expression failed. Exact nested backend cause unresolved; not arithmetic or family performance failure."
+  },
+  "local-v4": {
+    "classification": "exact_whole_compile_pass",
+    "record": "build-e140-local-v4-repro.json",
+    "repair": "Full localinput andpacked wire-order reshapes expose outerchunks. Singleoutertile offsets4*term+i exactlyterm*1920+chunk*480. Same4x480residual budget,consumerK1920,globalK4scale,native/suffix.",
+    "static_cycles": 174106,
+    "hardware_status": "whole_accuracy_failure_all3FFN; rawdown9passed; see whole-v4-failure.json and prefix-overrun.json"
+  },
+  "local-v5": {
+    "classification": "exact_whole_compile_and_accuracy_pass_hardware_regression",
+    "record": "build-e140-local-v5-repro.json",
+    "repair_record": "source-repair-v5.json",
+    "static_cycles": 171552,
+    "job": 111459,
+    "screen_record": "e140-local-v5-screen-job-111459-results.json",
+    "comparisons_passed": 45,
+    "candidate_ffn_cycles": 325004,
+    "control_bracket": 315237.5,
+    "change_percent": 3.0981402910503997,
+    "scope": "Single contemporary allocation; no performance repeats or adoption. Three compact480B upquant assembly copies fixed; local-v4 down geometry/arithmetic unchanged."
+  }
+}

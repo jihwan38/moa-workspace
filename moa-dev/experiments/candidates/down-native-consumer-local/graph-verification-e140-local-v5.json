@@ -1,0 +1,3833 @@
+{
+  "passed": true,
+  "scope": "Frozen source, actual emitted descriptor/index/sequence and full schedule register gate. Hardware arithmetic, liveness and wholeperformance remain separate.",
+  "inputdigests": {
+    "build_record": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/build-e140-local-v5-repro.json",
+      "bytes": 17378,
+      "sha256": "6684da17045a81bcaa40bec563bb22c8bd65c9ac514c04adee4cf38d3946e1f2"
+    },
+    "graph": {
+      "path": "moa-dev/experiments/artifacts/down-native-consumer-local/e140-local-v5/graph.json",
+      "bytes": 504956,
+      "sha256": "d37778d6738d76293d5e5f131e3f1715b58badfcce91dabaa480984770fd0d31"
+    },
+    "schedule": {
+      "path": "moa-dev/experiments/artifacts/down-native-consumer-local/e140-local-v5/schedule.json",
+      "bytes": 279495,
+      "sha256": "670e711287c0e6e1a4a1f712767ced4eeacde6d17d71fea60943e10d60a40923"
+    },
+    "source": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/local-v5/mlp.rs",
+      "bytes": 38025,
+      "sha256": "4cd2405a1ff78e2375d5b50fdbb0226798d33dfdacf36afabef6dbc501d7e58c"
+    },
+    "exact_image": {
+      "path": "moa-dev/experiments/artifacts/down-native-consumer-local/e140-local-v5/exact-kernel.bin",
+      "bytes": 278016,
+      "sha256": "2dc5a8a0d6f97818385dc95d8e2dc3bd7649e8922edd753225afa20420ece67c"
+    }
+  },
+  "verifiers": [
+    {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/verify_graph_v5.py",
+      "bytes": 14061,
+      "sha256": "0ab5632d6d25137a3ec77a8f5ddb7fb70541bb09831275a4ec6a9b51b4e9874c"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/verify_graph.py",
+      "bytes": 26418,
+      "sha256": "c87e0d1d4f15cdab46b936bb2ed15f2a10ffe489e11ffddf6348ff2c24557e0a"
+    }
+  ],
+  "source_manifest_files": 46,
+  "source_changes": [
+    "src/device/shared/mlp.rs consumer-local down and three exact up-term copies"
+  ],
+  "exact_up_term_copies": [
+    {
+      "operator": "RenegadeCommand#O30",
+      "context": "Sub",
+      "read_bytes_per_slice": 480,
+      "commit_packets": 15,
+      "commit_packet_bytes": 32,
+      "destination_bounds_per_slice": [
+        0,
+        480
+      ],
+      "root_bytes_per_slice": 1440
+    },
+    {
+      "operator": "RenegadeCommand#O35",
+      "context": "Sub",
+      "read_bytes_per_slice": 480,
+      "commit_packets": 15,
+      "commit_packet_bytes": 32,
+      "destination_bounds_per_slice": [
+        480,
+        960
+      ],
+      "root_bytes_per_slice": 1440
+    },
+    {
+      "operator": "RenegadeCommand#O40",
+      "context": "Sub",
+      "read_bytes_per_slice": 480,
+      "commit_packets": 15,
+      "commit_packet_bytes": 32,
+      "destination_bounds_per_slice": [
+        960,
+        1440
+      ],
+      "root_bytes_per_slice": 1440
+    }
+  ],
+  "unchanged_source_prefix_suffix": true,
+  "unchanged_image_requirement": {
+    "declared_images": {
+      "sliding_project_qkv": "5bdab7eafec5ac0aca352101deee334180b550c87db23e33c70d008892edba9e",
+      "sliding_attention_output": "4dde46bfbff2b07c0870f5baf8d5a857b2b0fb7176816f9b0eb417260a671cb4"
+    },
+    "scope": "QKV/O sources equal E137; actual host3image equality is separately required by package gate"
+  },
+  "consumer_input": {
+    "canonical_gather_packets": 128,
+    "canonical_packet_bytes": 240,
+    "consumer_packets": 7680,
+    "consumer_packet_bytes": 256,
+    "logical_consumer_stripes": 512,
+    "logical_stripe_bytes": 3840,
+    "payload_bytes": 1966080,
+    "mapping": "samecluster sourceSlice0 byte3840q+u ->slice4g+q localbyteu;K4 spans all7680values"
+  },
+  "scale": {
+    "owner": "Dummy2cluster independent; eachHgroup uses sameclusterK4max",
+    "floor": 1.925929944387236e-34,
+    "scale_factor": 6.103515625e-05,
+    "broadcast_destinations": 512
+  },
+  "packed_writes": [
+    {
+      "index": 0,
+      "term": 0,
+      "chunk": 0,
+      "byte_bounds": [
+        0,
+        480
+      ],
+      "quantizer": "RenegadeCommand#O205"
+    },
+    {
+      "index": 1,
+      "term": 0,
+      "chunk": 1,
+      "byte_bounds": [
+        480,
+        960
+      ],
+      "quantizer": "RenegadeCommand#O233"
+    },
+    {
+      "index": 2,
+      "term": 0,
+      "chunk": 2,
+      "byte_bounds": [
+        960,
+        1440
+      ],
+      "quantizer": "RenegadeCommand#O261"
+    },
+    {
+      "index": 3,
+      "term": 0,
+      "chunk": 3,
+      "byte_bounds": [
+        1440,
+        1920
+      ],
+      "quantizer": "RenegadeCommand#O289"
+    },
+    {
+      "index": 4,
+      "term": 1,
+      "chunk": 0,
+      "byte_bounds": [
+        1920,
+        2400
+      ],
+      "quantizer": "RenegadeCommand#O215"
+    },
+    {
+      "index": 5,
+      "term": 1,
+      "chunk": 1,
+      "byte_bounds": [
+        2400,
+        2880
+      ],
+      "quantizer": "RenegadeCommand#O243"
+    },
+    {
+      "index": 6,
+      "term": 1,
+      "chunk": 2,
+      "byte_bounds": [
+        2880,
+        3360
+      ],
+      "quantizer": "RenegadeCommand#O271"
+    },
+    {
+      "index": 7,
+      "term": 1,
+      "chunk": 3,
+      "byte_bounds": [
+        3360,
+        3840
+      ],
+      "quantizer": "RenegadeCommand#O299"
+    },
+    {
+      "index": 8,
+      "term": 2,
+      "chunk": 0,
+      "byte_bounds": [
+        3840,
+        4320
+      ],
+      "quantizer": "RenegadeCommand#O226"
+    },
+    {
+      "index": 9,
+      "term": 2,
+      "chunk": 1,
+      "byte_bounds": [
+        4320,
+        4800
+      ],
+      "quantizer": "RenegadeCommand#O254"
+    },
+    {
+      "index": 10,
+      "term": 2,
+      "chunk": 2,
+      "byte_bounds": [
+        4800,
+        5280
+      ],
+      "quantizer": "RenegadeCommand#O282"
+    },
+    {
+      "index": 11,
+      "term": 2,
+      "chunk": 3,
+      "byte_bounds": [
+        5280,
+        5760
+      ],
+      "quantizer": "RenegadeCommand#O310"
+    }
+  ],
+  "packed_reads": [
+    {
+      "operator": "RenegadeCommand#O247",
+      "index": 5
+    },
+    {
+      "operator": "RenegadeCommand#O275",
+      "index": 6
+    },
+    {
+      "operator": "RenegadeCommand#O303",
+      "index": 7
+    },
+    {
+      "operator": "RenegadeCommand#O209",
+      "index": 0
+    },
+    {
+      "operator": "RenegadeCommand#O219",
+      "index": 4
+    },
+    {
+      "operator": "RenegadeCommand#O237",
+      "index": 1
+    },
+    {
+      "operator": "RenegadeCommand#O265",
+      "index": 2
+    },
+    {
+      "operator": "RenegadeCommand#O293",
+      "index": 3
+    }
+  ],
+  "coefficients": [
+    1.0,
+    0.0625,
+    0.00390625
+  ],
+  "hbm_ingress": [
+    {
+      "operator": "189",
+      "name": "DmaCommand#O56",
+      "input": 71,
+      "output": 72,
+      "type": "Float8e4m3",
+      "coverage": {
+        "packet_count": 4608,
+        "bytes": 3686400,
+        "bounds": [
+          0,
+          3686400
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "descriptors": [
+        {
+          "descriptor": 0,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 0
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            0,
+            460800
+          ]
+        },
+        {
+          "descriptor": 1,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 460800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            460800,
+            921600
+          ]
+        },
+        {
+          "descriptor": 2,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 921600
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            921600,
+            1382400
+          ]
+        },
+        {
+          "descriptor": 3,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 1382400
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            1382400,
+            1843200
+          ]
+        },
+        {
+          "descriptor": 4,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 1843200
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            1843200,
+            2304000
+          ]
+        },
+        {
+          "descriptor": 5,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 2304000
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            2304000,
+            2764800
+          ]
+        },
+        {
+          "descriptor": 6,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 2764800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            2764800,
+            3225600
+          ]
+        },
+        {
+          "descriptor": 7,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 3225600
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            3225600,
+            3686400
+          ]
+        }
+      ]
+    },
+    {
+      "operator": "138",
+      "name": "DmaCommand#O51",
+      "input": 65,
+      "output": 66,
+      "type": "Float4e2m1",
+      "coverage": {
+        "packet_count": 115200,
+        "bytes": 29491200,
+        "bounds": [
+          0,
+          29491200
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "descriptors": [
+        {
+          "descriptor": 0,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 0
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            0,
+            3686400
+          ]
+        },
+        {
+          "descriptor": 1,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 3686400
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            3686400,
+            7372800
+          ]
+        },
+        {
+          "descriptor": 2,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 7372800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            7372800,
+            11059200
+          ]
+        },
+        {
+          "descriptor": 3,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 11059200
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            11059200,
+            14745600
+          ]
+        },
+        {
+          "descriptor": 4,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 14745600
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            14745600,
+            18432000
+          ]
+        },
+        {
+          "descriptor": 5,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 18432000
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            18432000,
+            22118400
+          ]
+        },
+        {
+          "descriptor": 6,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 22118400
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            22118400,
+            25804800
+          ]
+        },
+        {
+          "descriptor": 7,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 25804800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            25804800,
+            29491200
+          ]
+        }
+      ]
+    },
+    {
+      "operator": "314",
+      "name": "DmaCommand#O335",
+      "input": 353,
+      "output": 354,
+      "type": "Float8e4m3",
+      "coverage": {
+        "packet_count": 30720,
+        "bytes": 3686400,
+        "bounds": [
+          0,
+          3686400
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "descriptors": [
+        {
+          "descriptor": 0,
+          "source": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                57600
+              ],
+              [
+                4,
+                120
+              ],
+              [
+                2,
+                460800
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 0
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                120
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            0,
+            921120
+          ]
+        },
+        {
+          "descriptor": 1,
+          "source": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                57600
+              ],
+              [
+                4,
+                120
+              ],
+              [
+                2,
+                460800
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 921600
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                120
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            921600,
+            1842720
+          ]
+        },
+        {
+          "descriptor": 2,
+          "source": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                57600
+              ],
+              [
+                4,
+                120
+              ],
+              [
+                2,
+                460800
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 1843200
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                120
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            1843200,
+            2764320
+          ]
+        },
+        {
+          "descriptor": 3,
+          "source": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                57600
+              ],
+              [
+                4,
+                120
+              ],
+              [
+                2,
+                460800
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 2764800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                120
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            2764800,
+            3685920
+          ]
+        },
+        {
+          "descriptor": 4,
+          "source": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                57600
+              ],
+              [
+                4,
+                120
+              ],
+              [
+                2,
+                460800
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 480
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                120
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            480,
+            921600
+          ]
+        },
+        {
+          "descriptor": 5,
+          "source": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                57600
+              ],
+              [
+                4,
+                120
+              ],
+              [
+                2,
+                460800
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 922080
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                120
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            922080,
+            1843200
+          ]
+        },
+        {
+          "descriptor": 6,
+          "source": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                57600
+              ],
+              [
+                4,
+                120
+              ],
+              [
+                2,
+                460800
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 1843680
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                120
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            1843680,
+            2764800
+          ]
+        },
+        {
+          "descriptor": 7,
+          "source": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                57600
+              ],
+              [
+                4,
+                120
+              ],
+              [
+                2,
+                460800
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 2765280
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                120
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                120
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            2765280,
+            3686400
+          ]
+        }
+      ]
+    },
+    {
+      "operator": "198",
+      "name": "DmaCommand#O333",
+      "input": 351,
+      "output": 352,
+      "type": "Float4e2m1",
+      "coverage": {
+        "packet_count": 30720,
+        "bytes": 29491200,
+        "bounds": [
+          0,
+          29491200
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "descriptors": [
+        {
+          "descriptor": 0,
+          "source": {
+            "dims": [
+              [
+                60,
+                7680
+              ],
+              [
+                8,
+                460800
+              ],
+              [
+                4,
+                960
+              ],
+              [
+                2,
+                3686400
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 0
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            0,
+            7368960
+          ]
+        },
+        {
+          "descriptor": 1,
+          "source": {
+            "dims": [
+              [
+                60,
+                7680
+              ],
+              [
+                8,
+                460800
+              ],
+              [
+                4,
+                960
+              ],
+              [
+                2,
+                3686400
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 7372800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            7372800,
+            14741760
+          ]
+        },
+        {
+          "descriptor": 2,
+          "source": {
+            "dims": [
+              [
+                60,
+                7680
+              ],
+              [
+                8,
+                460800
+              ],
+              [
+                4,
+                960
+              ],
+              [
+                2,
+                3686400
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 14745600
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            14745600,
+            22114560
+          ]
+        },
+        {
+          "descriptor": 3,
+          "source": {
+            "dims": [
+              [
+                60,
+                7680
+              ],
+              [
+                8,
+                460800
+              ],
+              [
+                4,
+                960
+              ],
+              [
+                2,
+                3686400
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 22118400
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            22118400,
+            29487360
+          ]
+        },
+        {
+          "descriptor": 4,
+          "source": {
+            "dims": [
+              [
+                60,
+                7680
+              ],
+              [
+                8,
+                460800
+              ],
+              [
+                4,
+                960
+              ],
+              [
+                2,
+                3686400
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 3840
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            3840,
+            7372800
+          ]
+        },
+        {
+          "descriptor": 5,
+          "source": {
+            "dims": [
+              [
+                60,
+                7680
+              ],
+              [
+                8,
+                460800
+              ],
+              [
+                4,
+                960
+              ],
+              [
+                2,
+                3686400
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 7376640
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            7376640,
+            14745600
+          ]
+        },
+        {
+          "descriptor": 6,
+          "source": {
+            "dims": [
+              [
+                60,
+                7680
+              ],
+              [
+                8,
+                460800
+              ],
+              [
+                4,
+                960
+              ],
+              [
+                2,
+                3686400
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 14749440
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            14749440,
+            22118400
+          ]
+        },
+        {
+          "descriptor": 7,
+          "source": {
+            "dims": [
+              [
+                60,
+                7680
+              ],
+              [
+                8,
+                460800
+              ],
+              [
+                4,
+                960
+              ],
+              [
+                2,
+                3686400
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 22122240
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                60,
+                960
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                960
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            22122240,
+            29491200
+          ]
+        }
+      ]
+    },
+    {
+      "operator": "92",
+      "name": "DmaCommand#O111",
+      "input": 126,
+      "output": 127,
+      "type": "Float4e2m1",
+      "coverage": {
+        "packet_count": 115200,
+        "bytes": 29491200,
+        "bounds": [
+          0,
+          29491200
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "descriptors": [
+        {
+          "descriptor": 0,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 0
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            0,
+            3686400
+          ]
+        },
+        {
+          "descriptor": 1,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 3686400
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            3686400,
+            7372800
+          ]
+        },
+        {
+          "descriptor": 2,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 7372800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            7372800,
+            11059200
+          ]
+        },
+        {
+          "descriptor": 3,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 11059200
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            11059200,
+            14745600
+          ]
+        },
+        {
+          "descriptor": 4,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 14745600
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            14745600,
+            18432000
+          ]
+        },
+        {
+          "descriptor": 5,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 18432000
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            18432000,
+            22118400
+          ]
+        },
+        {
+          "descriptor": 6,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 22118400
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            22118400,
+            25804800
+          ]
+        },
+        {
+          "descriptor": 7,
+          "source": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                57600
+              ],
+              [
+                2,
+                1843200
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 25804800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                225,
+                256
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 3686400,
+          "source_bounds": [
+            25804800,
+            29491200
+          ]
+        }
+      ]
+    },
+    {
+      "operator": "137",
+      "name": "DmaCommand#O116",
+      "input": 132,
+      "output": 133,
+      "type": "Float8e4m3",
+      "coverage": {
+        "packet_count": 4608,
+        "bytes": 3686400,
+        "bounds": [
+          0,
+          3686400
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "descriptors": [
+        {
+          "descriptor": 0,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 0
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            0,
+            460800
+          ]
+        },
+        {
+          "descriptor": 1,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 460800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            460800,
+            921600
+          ]
+        },
+        {
+          "descriptor": 2,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 921600
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            921600,
+            1382400
+          ]
+        },
+        {
+          "descriptor": 3,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 1382400
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            1382400,
+            1843200
+          ]
+        },
+        {
+          "descriptor": 4,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 1843200
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            1843200,
+            2304000
+          ]
+        },
+        {
+          "descriptor": 5,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 2304000
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            2304000,
+            2764800
+          ]
+        },
+        {
+          "descriptor": 6,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 2764800
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            2764800,
+            3225600
+          ]
+        },
+        {
+          "descriptor": 7,
+          "source": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                7200
+              ],
+              [
+                2,
+                230400
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 3225600
+            }
+          },
+          "destination": {
+            "dims": [
+              [
+                9,
+                800
+              ],
+              [
+                32,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                800
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          },
+          "bytes": 460800,
+          "source_bounds": [
+            3225600,
+            3686400
+          ]
+        }
+      ]
+    }
+  ],
+  "native_partial_elements_per_slice": 7200,
+  "vrf_schedule": {
+    "checked_buffers": 42,
+    "overlapping_live_pairs": 0,
+    "late_buffers": [
+      {
+        "name": "down_global_scale_vrf",
+        "index": "303",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 135140,
+          "end": 167603,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1032192,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "408",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 162023,
+          "end": 163211,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1245184,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scalar",
+        "index": "328",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 137902,
+          "end": 170304,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1048576,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "404",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 160835,
+          "end": 162023,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1245184,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "400",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 159647,
+          "end": 160835,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1245184,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "384",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 149597,
+          "end": 159647,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1245184,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "hi_vrf",
+        "index": "324",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 137500,
+          "end": 138904,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1097728,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: TileL % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "weight_vrf",
+        "index": "388",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 150119,
+          "end": 169562,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "hi_vrf",
+        "index": "342",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 140488,
+          "end": 141813,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2228224,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: TileL % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "sum_vrf",
+        "index": "335",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 138904,
+          "end": 139808,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 3211264,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: TileL % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "residual_vrf",
+        "index": "416",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 164399,
+          "end": 169903,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1097728,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "x_scale_vrf",
+        "index": "333",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 138503,
+          "end": 158781,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 983040,
+        "size": 49152,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (FfnTerm, 1 # 8)]",
+        "fingerprint": null
+      },
+      {
+        "name": "",
+        "index": "423",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 167603,
+          "end": 168004,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 3670016,
+        "size": 524288,
+        "physical_pages": [],
+        "shape": "",
+        "fingerprint": null
+      },
+      {
+        "name": "hi_vrf",
+        "index": "356",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 143397,
+          "end": 144722,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1097728,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: TileL % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "rms_vrf",
+        "index": "427",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 168894,
+          "end": 169562,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2080768,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "sum_vrf",
+        "index": "349",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 141813,
+          "end": 142717,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: TileL % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "hi_vrf",
+        "index": "370",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 146306,
+          "end": 147631,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2228224,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: TileL % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "sum_vrf",
+        "index": "363",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 144722,
+          "end": 145626,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 3211264,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: TileL % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "313",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 136553,
+          "end": 148535,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1081344,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "412",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 163211,
+          "end": 164399,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1245184,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "sum_vrf",
+        "index": "377",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 147631,
+          "end": 148535,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: TileL % 480]",
+        "fingerprint": null
+      }
+    ]
+  },
+  "limitations": [
+    "Inherited up-term typed DMA overrun corrected by exact Sub copies; numerical whole validation still required",
+    "v1 allocation cause is not retroactively proven by v4 successful allocation",
+    "No hiddenSFR/readidx/bank-arbitration guarantee",
+    "Full original-down and fullFFN precision validation still required"
+  ]
+}
