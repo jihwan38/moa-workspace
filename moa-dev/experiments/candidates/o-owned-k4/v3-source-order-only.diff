@@ -1,0 +1,24 @@
+--- two-stage-v2/projection.rs
++++ two-stage-v3/projection.rs
+@@ -168,16 +168,16 @@
+     type OutputRows = m![H / 30 % 64, 1 # 4];
+     // Preserve every stored BF16 activation; no amax, FP8 hi/lo, or input scale.
+     let x: DmTensor<bf16, Chip, OutputCluster, OutputColumns, m![Qs % 1024]> = x.to_dm(&mut device.tdma);
++    let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H / 30 % 64, OutputRow, Qs]> = unsafe { weight.view().reshape() };
++    // Two independently loaded stages retain C09 overlap; both row counts permit 8B F32 pairs.
++    let first: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![OutputRow = 16, Qs % 1024]> =
++        weight.tile::<m![OutputRow], 16, m![Dummy2, H / 30 % 64, OutputRow = 16 # 30, Qs]>(0)
++            .to_dm(&mut device.tdma);
+     let x_trf: TrfTensor<bf16, Chip, OutputCluster, OutputColumns, m![1], m![Qs % 1024]> = device
+         .sub.begin(x.view())
+         .fetch::<m![Qs / 16 % 64], m![Qs % 16]>()
+         .collect::<m![Qs / 16 % 64], m![Qs % 16]>()
+         .to_trf();
+-    let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H / 30 % 64, OutputRow, Qs]> = unsafe { weight.view().reshape() };
+-    // Two independently loaded stages retain C09 overlap; both row counts permit 8B F32 pairs.
+-    let first: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![OutputRow = 16, Qs % 1024]> =
+-        weight.tile::<m![OutputRow], 16, m![Dummy2, H / 30 % 64, OutputRow = 16 # 30, Qs]>(0)
+-            .to_dm(&mut device.tdma);
+     let second: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![OutputRow = 14, Qs % 1024]> =
+         weight.tile::<m![OutputRow], 14, m![Dummy2, H / 30 % 64, OutputRow = 14 # 30, Qs]>(16)
+             .to_dm(&mut device.tdma);

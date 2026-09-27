@@ -1,0 +1,521 @@
+DIAG_STAGE_BEGIN control_before
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=103518 (of 3 runs: [109900, 102387, 103518])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=48998 (of 3 runs: [51738, 48423, 48998])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=328583 (of 3 runs: [332806, 327906, 328583])
+
+
+all 3 tests passed
+remote_entrypoint.sh: all kernel tests passed
+DIAG_STAGE_EXIT control_before 0
+DIAG_STAGE_END control_before
+DIAG_STAGE_BEGIN control_info
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_attention_output
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":0,"begin":479741981,"end":479793158}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":1,"begin":161094139,"end":161146105}
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":0,"begin":1667559197,"end":1667607348}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":1,"begin":1348912664,"end":1348960465}
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":0,"begin":2842708679,"end":2842756724}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":1,"begin":2524062106,"end":2524109615}
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=48151 (of 3 runs: [51966, 48151, 48045])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT control_info 0
+DIAG_STAGE_END control_info
+DIAG_STAGE_BEGIN control_trace
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_attention_output
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"004","cluster":0,"begin":476443278,"end":476445246}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"024","cluster":0,"begin":476448898,"end":476450576}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000020","cluster":0,"begin":476448845,"end":476454223}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002a","cluster":0,"begin":476454225,"end":476454685}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"028","cluster":0,"begin":476448906,"end":476463720}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"030","cluster":0,"begin":476463729,"end":476465719}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000032","cluster":0,"begin":476465721,"end":476473238}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002c","cluster":0,"begin":476463722,"end":476473241}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"036","cluster":0,"begin":476465817,"end":476478976}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"044","cluster":0,"begin":476478985,"end":476480755}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000046","cluster":0,"begin":476480757,"end":476481836}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"04a","cluster":0,"begin":476480763,"end":476482150}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000004c","cluster":0,"begin":476482152,"end":476483168}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"050","cluster":0,"begin":476482158,"end":476483630}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000052","cluster":0,"begin":476483632,"end":476484369}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000040","cluster":0,"begin":476478978,"end":476485703}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000001e","cluster":0,"begin":476444082,"end":476485704}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"058","cluster":0,"begin":476485705,"end":476486876}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000005a","cluster":0,"begin":476486878,"end":476486880}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000005c","cluster":0,"begin":476486881,"end":476487835}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000005e","cluster":0,"begin":476487836,"end":476488876}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000060","cluster":0,"begin":476488877,"end":476489299}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000062","cluster":0,"begin":476489300,"end":476489677}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"064","cluster":0,"begin":476489678,"end":476490322}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000066","cluster":0,"begin":476490324,"end":476490667}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000068","cluster":0,"begin":476490668,"end":476491634}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000006a","cluster":0,"begin":476491635,"end":476492463}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"06e","cluster":0,"begin":476492464,"end":476493324}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000072","cluster":0,"begin":476493326,"end":476494271}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":0,"begin":476443179,"end":476494274}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"004","cluster":1,"begin":160266328,"end":160268286}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"024","cluster":1,"begin":160271946,"end":160273568}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000020","cluster":1,"begin":160271892,"end":160277273}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002a","cluster":1,"begin":160277275,"end":160277737}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"028","cluster":1,"begin":160271954,"end":160286342}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"030","cluster":1,"begin":160286351,"end":160288315}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000032","cluster":1,"begin":160288317,"end":160295898}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002c","cluster":1,"begin":160286344,"end":160295901}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"036","cluster":1,"begin":160288413,"end":160301716}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"044","cluster":1,"begin":160301725,"end":160301890}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"04a","cluster":1,"begin":160302296,"end":160302495}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000046","cluster":1,"begin":160302282,"end":160303710}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"050","cluster":1,"begin":160303737,"end":160303916}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000004c","cluster":1,"begin":160303712,"end":160304806}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000052","cluster":1,"begin":160304809,"end":160305535}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000040","cluster":1,"begin":160301718,"end":160308443}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000001e","cluster":1,"begin":160267162,"end":160308444}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"058","cluster":1,"begin":160308445,"end":160309674}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000005a","cluster":1,"begin":160309676,"end":160311717}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000005c","cluster":1,"begin":160311718,"end":160312673}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000005e","cluster":1,"begin":160312674,"end":160313716}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000060","cluster":1,"begin":160313717,"end":160314141}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000062","cluster":1,"begin":160314142,"end":160314521}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"064","cluster":1,"begin":160314522,"end":160314686}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000066","cluster":1,"begin":160314926,"end":160315271}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000068","cluster":1,"begin":160315272,"end":160316240}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000006a","cluster":1,"begin":160316241,"end":160317071}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"06e","cluster":1,"begin":160317072,"end":160317236}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000072","cluster":1,"begin":160317238,"end":160318165}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":1,"begin":160266229,"end":160318168}
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"004","cluster":0,"begin":1663326530,"end":1663328500}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"024","cluster":0,"begin":1663328820,"end":1663330458}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000020","cluster":0,"begin":1663328767,"end":1663334145}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002a","cluster":0,"begin":1663334147,"end":1663334607}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"028","cluster":0,"begin":1663328828,"end":1663343138}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"030","cluster":0,"begin":1663343147,"end":1663345151}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000032","cluster":0,"begin":1663345153,"end":1663352702}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002c","cluster":0,"begin":1663343140,"end":1663352705}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"036","cluster":0,"begin":1663345249,"end":1663358686}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"044","cluster":0,"begin":1663358695,"end":1663360479}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000046","cluster":0,"begin":1663360481,"end":1663361544}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"04a","cluster":0,"begin":1663360487,"end":1663361808}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000004c","cluster":0,"begin":1663361810,"end":1663362854}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"050","cluster":0,"begin":1663361816,"end":1663363042}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000052","cluster":0,"begin":1663363044,"end":1663363769}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000040","cluster":0,"begin":1663358688,"end":1663365411}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000001e","cluster":0,"begin":1663327074,"end":1663365412}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"058","cluster":0,"begin":1663365413,"end":1663366584}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000005a","cluster":0,"begin":1663366586,"end":1663368335}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000005c","cluster":0,"begin":1663368336,"end":1663369289}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000005e","cluster":0,"begin":1663369290,"end":1663370330}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000060","cluster":0,"begin":1663370331,"end":1663370753}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000062","cluster":0,"begin":1663370754,"end":1663371131}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"064","cluster":0,"begin":1663371132,"end":1663371776}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000066","cluster":0,"begin":1663371778,"end":1663372121}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000068","cluster":0,"begin":1663372122,"end":1663373088}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000006a","cluster":0,"begin":1663373089,"end":1663373917}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"06e","cluster":0,"begin":1663373918,"end":1663374778}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000072","cluster":0,"begin":1663374780,"end":1663374782}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":0,"begin":1663326430,"end":1663374785}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"004","cluster":1,"begin":1347151032,"end":1347152986}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"024","cluster":1,"begin":1347153366,"end":1347155628}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000020","cluster":1,"begin":1347153313,"end":1347158693}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002a","cluster":1,"begin":1347158695,"end":1347159157}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"028","cluster":1,"begin":1347153374,"end":1347168184}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"030","cluster":1,"begin":1347168193,"end":1347170155}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000032","cluster":1,"begin":1347170157,"end":1347177704}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002c","cluster":1,"begin":1347168186,"end":1347177707}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"036","cluster":1,"begin":1347170253,"end":1347183408}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"044","cluster":1,"begin":1347183417,"end":1347183582}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"04a","cluster":1,"begin":1347183996,"end":1347184195}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000046","cluster":1,"begin":1347183981,"end":1347185462}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"050","cluster":1,"begin":1347185489,"end":1347185676}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000004c","cluster":1,"begin":1347185464,"end":1347186536}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000052","cluster":1,"begin":1347186539,"end":1347187281}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000040","cluster":1,"begin":1347183410,"end":1347190127}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000001e","cluster":1,"begin":1347151596,"end":1347190128}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"058","cluster":1,"begin":1347190129,"end":1347191358}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000005a","cluster":1,"begin":1347191360,"end":1347191362}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000005c","cluster":1,"begin":1347191363,"end":1347192319}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000005e","cluster":1,"begin":1347192320,"end":1347193362}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000060","cluster":1,"begin":1347193363,"end":1347193787}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000062","cluster":1,"begin":1347193788,"end":1347194167}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"064","cluster":1,"begin":1347194168,"end":1347194332}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000066","cluster":1,"begin":1347194572,"end":1347194917}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000068","cluster":1,"begin":1347194918,"end":1347195886}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000006a","cluster":1,"begin":1347195887,"end":1347196717}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"06e","cluster":1,"begin":1347196718,"end":1347196882}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000072","cluster":1,"begin":1347196884,"end":1347199147}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":1,"begin":1347150934,"end":1347199150}
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"004","cluster":0,"begin":2805610860,"end":2805612930}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"024","cluster":0,"begin":2805613194,"end":2805614830}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000020","cluster":0,"begin":2805613141,"end":2805618519}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002a","cluster":0,"begin":2805618521,"end":2805618981}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"028","cluster":0,"begin":2805613202,"end":2805627610}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"030","cluster":0,"begin":2805627619,"end":2805629607}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000032","cluster":0,"begin":2805629609,"end":2805637144}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002c","cluster":0,"begin":2805627612,"end":2805637147}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"036","cluster":0,"begin":2805629705,"end":2805643190}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"044","cluster":0,"begin":2805643199,"end":2805644991}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000046","cluster":0,"begin":2805644993,"end":2805646054}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"04a","cluster":0,"begin":2805644999,"end":2805646344}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000004c","cluster":0,"begin":2805646346,"end":2805647400}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"050","cluster":0,"begin":2805646352,"end":2805647604}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000052","cluster":0,"begin":2805647606,"end":2805648329}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000040","cluster":0,"begin":2805643192,"end":2805649915}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000001e","cluster":0,"begin":2805611406,"end":2805649916}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"058","cluster":0,"begin":2805649917,"end":2805651088}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000005a","cluster":0,"begin":2805651090,"end":2805652753}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000005c","cluster":0,"begin":2805652754,"end":2805653707}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000005e","cluster":0,"begin":2805653708,"end":2805654748}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000060","cluster":0,"begin":2805654749,"end":2805655171}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000062","cluster":0,"begin":2805655172,"end":2805655549}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"064","cluster":0,"begin":2805655550,"end":2805656194}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000066","cluster":0,"begin":2805656196,"end":2805656539}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000068","cluster":0,"begin":2805656540,"end":2805657506}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000006a","cluster":0,"begin":2805657507,"end":2805658335}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"06e","cluster":0,"begin":2805658336,"end":2805659196}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000072","cluster":0,"begin":2805659198,"end":2805659200}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":0,"begin":2805610762,"end":2805659203}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"004","cluster":1,"begin":2489435468,"end":2489437424}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"024","cluster":1,"begin":2489437774,"end":2489439396}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000020","cluster":1,"begin":2489437721,"end":2489443101}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002a","cluster":1,"begin":2489443103,"end":2489443565}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"028","cluster":1,"begin":2489437782,"end":2489452410}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"030","cluster":1,"begin":2489452419,"end":2489454383}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000032","cluster":1,"begin":2489454385,"end":2489461944}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002c","cluster":1,"begin":2489452412,"end":2489461947}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"036","cluster":1,"begin":2489454481,"end":2489467740}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"044","cluster":1,"begin":2489467749,"end":2489467914}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"04a","cluster":1,"begin":2489468237,"end":2489468435}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000046","cluster":1,"begin":2489468221,"end":2489469738}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"050","cluster":1,"begin":2489469765,"end":2489469964}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000004c","cluster":1,"begin":2489469740,"end":2489470802}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000052","cluster":1,"begin":2489470805,"end":2489471541}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000040","cluster":1,"begin":2489467742,"end":2489474459}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000001e","cluster":1,"begin":2489436030,"end":2489474460}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"058","cluster":1,"begin":2489474461,"end":2489475690}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000005a","cluster":1,"begin":2489475692,"end":2489475694}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000005c","cluster":1,"begin":2489475695,"end":2489476651}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000005e","cluster":1,"begin":2489476652,"end":2489477694}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000060","cluster":1,"begin":2489477695,"end":2489478119}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000062","cluster":1,"begin":2489478120,"end":2489478499}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"064","cluster":1,"begin":2489478500,"end":2489478664}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000066","cluster":1,"begin":2489478904,"end":2489479249}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000068","cluster":1,"begin":2489479250,"end":2489480218}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000006a","cluster":1,"begin":2489480219,"end":2489481049}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"06e","cluster":1,"begin":2489481050,"end":2489481214}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000072","cluster":1,"begin":2489481216,"end":2489483639}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":1,"begin":2489435369,"end":2489483642}
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=48441 (of 3 runs: [51939, 48355, 48441])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT control_trace 0
+DIAG_STAGE_END control_trace
+DIAG_STAGE_BEGIN candidate_info
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_attention_output
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":0,"begin":477296526,"end":477354420}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":1,"begin":161730504,"end":161787863}
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":0,"begin":1664240862,"end":1664294622}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":1,"begin":1348674338,"end":1348728123}
+[sliding_attention_output run1     ] max|Δ|=  0.00391 (   1.09% of expected)  mean|Δ|= 0.000001  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":0,"begin":2838770740,"end":2838824300}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":1,"begin":2523204317,"end":2523257675}
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=53785 (of 3 runs: [57894, 53785, 53560])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT candidate_info 0
+DIAG_STAGE_END candidate_info
+DIAG_STAGE_BEGIN candidate_trace
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_attention_output
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"004","cluster":0,"begin":483307806,"end":483309782}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000020","cluster":0,"begin":483313351,"end":483318731}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"024","cluster":0,"begin":483313404,"end":483320320}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000026","cluster":0,"begin":483320322,"end":483321169}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"02a","cluster":0,"begin":483320356,"end":483335632}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"030","cluster":0,"begin":483335641,"end":483337623}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000032","cluster":0,"begin":483337625,"end":483345338}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002c","cluster":0,"begin":483335634,"end":483345341}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"036","cluster":0,"begin":483337721,"end":483351060}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"044","cluster":0,"begin":483351069,"end":483352923}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000046","cluster":0,"begin":483352925,"end":483353992}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"04a","cluster":0,"begin":483352931,"end":483354222}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000004c","cluster":0,"begin":483354224,"end":483355254}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"050","cluster":0,"begin":483354230,"end":483355508}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000052","cluster":0,"begin":483355510,"end":483356247}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000040","cluster":0,"begin":483351062,"end":483357223}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000001e","cluster":0,"begin":483308668,"end":483357224}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"058","cluster":0,"begin":483357225,"end":483358538}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000005a","cluster":0,"begin":483358540,"end":483358609}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000005c","cluster":0,"begin":483358610,"end":483359565}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000005e","cluster":0,"begin":483359566,"end":483360608}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000060","cluster":0,"begin":483360609,"end":483361033}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000062","cluster":0,"begin":483361034,"end":483361413}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"064","cluster":0,"begin":483361414,"end":483362056}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000066","cluster":0,"begin":483362058,"end":483362403}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000068","cluster":0,"begin":483362404,"end":483363372}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000006a","cluster":0,"begin":483363373,"end":483364203}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"06e","cluster":0,"begin":483364204,"end":483365064}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000072","cluster":0,"begin":483365066,"end":483366203}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":0,"begin":483307706,"end":483366206}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"004","cluster":1,"begin":167498704,"end":167500662}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000020","cluster":1,"begin":167504878,"end":167510257}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"024","cluster":1,"begin":167504932,"end":167511020}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000026","cluster":1,"begin":167511022,"end":167511867}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"02a","cluster":1,"begin":167511056,"end":167526378}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"030","cluster":1,"begin":167526387,"end":167528345}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000032","cluster":1,"begin":167528347,"end":167536090}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000002c","cluster":1,"begin":167526380,"end":167536093}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"036","cluster":1,"begin":167528443,"end":167542056}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"044","cluster":1,"begin":167542065,"end":167542230}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"04a","cluster":1,"begin":167542586,"end":167542781}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000046","cluster":1,"begin":167542572,"end":167544096}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"050","cluster":1,"begin":167544126,"end":167544304}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000004c","cluster":1,"begin":167544098,"end":167545176}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000052","cluster":1,"begin":167545179,"end":167545917}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000040","cluster":1,"begin":167542058,"end":167548215}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000001e","cluster":1,"begin":167499452,"end":167548216}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"058","cluster":1,"begin":167548217,"end":167549564}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000005a","cluster":1,"begin":167549566,"end":167551511}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000005c","cluster":1,"begin":167551512,"end":167552465}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000005e","cluster":1,"begin":167552466,"end":167553506}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000060","cluster":1,"begin":167553507,"end":167553929}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000062","cluster":1,"begin":167553930,"end":167554307}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"064","cluster":1,"begin":167554308,"end":167554472}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000066","cluster":1,"begin":167554716,"end":167555059}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000000000000068","cluster":1,"begin":167555060,"end":167556026}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"000000000000006a","cluster":1,"begin":167556027,"end":167556855}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"06e","cluster":1,"begin":167556856,"end":167557018}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000072","cluster":1,"begin":167557020,"end":167557862}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":0,"name":"0000","cluster":1,"begin":167498602,"end":167557865}
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"004","cluster":0,"begin":1669349944,"end":1669351916}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"024","cluster":0,"begin":1669352168,"end":1669356126}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000020","cluster":0,"begin":1669352115,"end":1669357495}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000026","cluster":0,"begin":1669357497,"end":1669358343}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"02a","cluster":0,"begin":1669357530,"end":1669372758}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"030","cluster":0,"begin":1669372767,"end":1669374759}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000032","cluster":0,"begin":1669374761,"end":1669382422}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002c","cluster":0,"begin":1669372760,"end":1669382425}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"036","cluster":0,"begin":1669374857,"end":1669388548}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"044","cluster":0,"begin":1669388557,"end":1669390399}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000046","cluster":0,"begin":1669390401,"end":1669391460}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"04a","cluster":0,"begin":1669390407,"end":1669391848}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000004c","cluster":0,"begin":1669391850,"end":1669392886}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"050","cluster":0,"begin":1669391856,"end":1669393110}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000052","cluster":0,"begin":1669393112,"end":1669393823}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000040","cluster":0,"begin":1669388550,"end":1669394709}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000001e","cluster":0,"begin":1669350482,"end":1669394710}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"058","cluster":0,"begin":1669394711,"end":1669396200}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000005a","cluster":0,"begin":1669396202,"end":1669397881}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000005c","cluster":0,"begin":1669397882,"end":1669398837}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000005e","cluster":0,"begin":1669398838,"end":1669399880}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000060","cluster":0,"begin":1669399881,"end":1669400305}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000062","cluster":0,"begin":1669400306,"end":1669400685}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"064","cluster":0,"begin":1669400686,"end":1669401328}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000066","cluster":0,"begin":1669401330,"end":1669401675}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000068","cluster":0,"begin":1669401676,"end":1669402644}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000006a","cluster":0,"begin":1669402645,"end":1669403475}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"06e","cluster":0,"begin":1669403476,"end":1669404334}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000072","cluster":0,"begin":1669404336,"end":1669404338}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":0,"begin":1669349842,"end":1669404341}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"004","cluster":1,"begin":1353542202,"end":1353544162}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"024","cluster":1,"begin":1353544490,"end":1353549402}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000020","cluster":1,"begin":1353544437,"end":1353549815}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000026","cluster":1,"begin":1353549817,"end":1353550661}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"02a","cluster":1,"begin":1353549850,"end":1353564724}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"030","cluster":1,"begin":1353564733,"end":1353566689}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000032","cluster":1,"begin":1353566691,"end":1353574360}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000002c","cluster":1,"begin":1353564726,"end":1353574363}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"036","cluster":1,"begin":1353566787,"end":1353580272}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"044","cluster":1,"begin":1353580281,"end":1353580444}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"04a","cluster":1,"begin":1353580786,"end":1353580985}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000046","cluster":1,"begin":1353580771,"end":1353582202}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"050","cluster":1,"begin":1353582231,"end":1353582425}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000004c","cluster":1,"begin":1353582204,"end":1353583282}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000052","cluster":1,"begin":1353583285,"end":1353584033}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000040","cluster":1,"begin":1353580274,"end":1353586423}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000001e","cluster":1,"begin":1353542742,"end":1353586424}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"058","cluster":1,"begin":1353586425,"end":1353588010}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000005a","cluster":1,"begin":1353588012,"end":1353588873}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000005c","cluster":1,"begin":1353588874,"end":1353589827}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000005e","cluster":1,"begin":1353589828,"end":1353590868}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000060","cluster":1,"begin":1353590869,"end":1353591291}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000062","cluster":1,"begin":1353591292,"end":1353591669}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"064","cluster":1,"begin":1353591670,"end":1353591832}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000066","cluster":1,"begin":1353592078,"end":1353592421}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000000000000068","cluster":1,"begin":1353592422,"end":1353593388}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"000000000000006a","cluster":1,"begin":1353593389,"end":1353594217}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"06e","cluster":1,"begin":1353594218,"end":1353594382}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000072","cluster":1,"begin":1353594384,"end":1353596417}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":1,"name":"0000","cluster":1,"begin":1353542101,"end":1353596420}
+[sliding_attention_output run1     ] max|Δ|=  0.00391 (   1.09% of expected)  mean|Δ|= 0.000001  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"004","cluster":0,"begin":2843023940,"end":2843025910}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"024","cluster":0,"begin":2843026200,"end":2843030270}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000020","cluster":0,"begin":2843026147,"end":2843031527}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000026","cluster":0,"begin":2843031529,"end":2843032375}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"02a","cluster":0,"begin":2843031562,"end":2843046542}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"030","cluster":0,"begin":2843046551,"end":2843048539}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000032","cluster":0,"begin":2843048541,"end":2843056194}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002c","cluster":0,"begin":2843046544,"end":2843056197}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"036","cluster":0,"begin":2843048637,"end":2843062498}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"044","cluster":0,"begin":2843062507,"end":2843064335}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000046","cluster":0,"begin":2843064337,"end":2843065400}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"04a","cluster":0,"begin":2843064343,"end":2843065702}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000004c","cluster":0,"begin":2843065704,"end":2843066748}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"050","cluster":0,"begin":2843065710,"end":2843067258}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000052","cluster":0,"begin":2843067260,"end":2843067885}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000040","cluster":0,"begin":2843062500,"end":2843068649}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000001e","cluster":0,"begin":2843024496,"end":2843068650}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"058","cluster":0,"begin":2843068651,"end":2843069944}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000005a","cluster":0,"begin":2843069946,"end":2843071639}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000005c","cluster":0,"begin":2843071640,"end":2843072595}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000005e","cluster":0,"begin":2843072596,"end":2843073638}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000060","cluster":0,"begin":2843073639,"end":2843074063}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000062","cluster":0,"begin":2843074064,"end":2843074443}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"064","cluster":0,"begin":2843074444,"end":2843075086}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000066","cluster":0,"begin":2843075088,"end":2843075433}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000068","cluster":0,"begin":2843075434,"end":2843076402}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000006a","cluster":0,"begin":2843076403,"end":2843077233}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"06e","cluster":0,"begin":2843077234,"end":2843078094}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000072","cluster":0,"begin":2843078096,"end":2843078098}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":0,"begin":2843023840,"end":2843078101}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"004","cluster":1,"begin":2527216456,"end":2527218416}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"024","cluster":1,"begin":2527218704,"end":2527223458}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000020","cluster":1,"begin":2527218651,"end":2527224029}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000026","cluster":1,"begin":2527224031,"end":2527224875}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"02a","cluster":1,"begin":2527224064,"end":2527239024}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"030","cluster":1,"begin":2527239033,"end":2527241001}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000032","cluster":1,"begin":2527241003,"end":2527248692}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000002c","cluster":1,"begin":2527239026,"end":2527248695}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"036","cluster":1,"begin":2527241099,"end":2527254664}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"044","cluster":1,"begin":2527254673,"end":2527254838}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"04a","cluster":1,"begin":2527255179,"end":2527255373}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000046","cluster":1,"begin":2527255163,"end":2527256594}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"050","cluster":1,"begin":2527256623,"end":2527256821}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000004c","cluster":1,"begin":2527256596,"end":2527257648}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000052","cluster":1,"begin":2527257651,"end":2527258419}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000040","cluster":1,"begin":2527254666,"end":2527260817}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000001e","cluster":1,"begin":2527216994,"end":2527260818}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"058","cluster":1,"begin":2527260819,"end":2527262166}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000005a","cluster":1,"begin":2527262168,"end":2527262170}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000005c","cluster":1,"begin":2527262171,"end":2527263125}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000005e","cluster":1,"begin":2527263126,"end":2527264166}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000060","cluster":1,"begin":2527264167,"end":2527264589}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000062","cluster":1,"begin":2527264590,"end":2527264967}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"064","cluster":1,"begin":2527264968,"end":2527265132}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000066","cluster":1,"begin":2527265376,"end":2527265719}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000000000000068","cluster":1,"begin":2527265720,"end":2527266686}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"000000000000006a","cluster":1,"begin":2527266687,"end":2527267515}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"06e","cluster":1,"begin":2527267516,"end":2527267678}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000072","cluster":1,"begin":2527267680,"end":2527270185}
+DIAG_SPAN {"kernel":"sliding_attention_output","run":2,"name":"0000","cluster":1,"begin":2527216355,"end":2527270188}
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=54499 (of 3 runs: [59263, 54499, 54261])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT candidate_trace 0
+DIAG_STAGE_END candidate_trace
+DIAG_STAGE_BEGIN candidate_whole
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=103878 (of 3 runs: [109128, 103878, 103240])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00391 (   1.09% of expected)  mean|Δ|= 0.000001  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=57450 (of 3 runs: [58097, 53741, 57450])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=329003 (of 3 runs: [335552, 329003, 328839])
+
+
+all 3 tests passed
+remote_entrypoint.sh: all kernel tests passed
+DIAG_STAGE_EXIT candidate_whole 0
+DIAG_STAGE_END candidate_whole
+DIAG_STAGE_BEGIN control_after
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=103762 (of 3 runs: [110744, 103762, 103110])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=50249 (of 3 runs: [51182, 48153, 50249])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=328780 (of 3 runs: [332934, 328780, 327585])
+
+
+all 3 tests passed
+remote_entrypoint.sh: all kernel tests passed
+DIAG_STAGE_EXIT control_after 0
+DIAG_STAGE_END control_after
+DIAG_SCREEN_COMPLETE

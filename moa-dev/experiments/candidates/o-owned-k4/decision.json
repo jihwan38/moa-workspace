@@ -1,0 +1,74 @@
+{
+  "id": "E132",
+  "status": "frozen_implementation_not_adopted",
+  "source_origin": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "actual_start_commit": "8ee561558faedaf68e42c080a515f28e3b82ddb5",
+  "comparison_recipe": "baseline/e128.json",
+  "adopted": false,
+  "official_submission": false,
+  "kernel": "sliding_attention_output",
+  "frozen_variant": "two-stage-v2",
+  "whole_jobs": [
+    109654,
+    109683
+  ],
+  "whole_change_percent": [
+    12.581928240575046,
+    15.771761363063863
+  ],
+  "all_comparisons_passed": 102,
+  "unique_standard_inputs": 3,
+  "scope": "45 original-host comparisons plus57 combined original-host/info/trace comparisons. Repeated launches do not expand distinctinput coverage. Prepared8case preRMS oracle unrun after negative screens.",
+  "decisions": {
+    "adoption": {
+      "status": "reject_frozen_implementation",
+      "reason": "Both contemporaneous whole O allocations regress despite correctness PASS; E128 remains control. No positive threshold rule used.",
+      "oracle": "prepared_not_run"
+    },
+    "further_tuning": {
+      "status": "stop",
+      "reason": "No K or stage sweep. One bounded source-order diagnosticv3 produced byte-identical machineimage and unchanged issueorder; no NPU rerun justified."
+    },
+    "major_research": {
+      "status": "preserve_unresolved_dependency_question",
+      "finding": "Measured firstweight marker begins later while inputDMA duration grows and inputTRF command moves before W0; gather/tail increases are small. No demonstrated public API dependency mechanism to restore earlierW0 issue.",
+      "limit": "Intervals include waits. No physical bandwidth/bank conflict attribution; K4 family not proven impossible. Future reopen requires a concrete supported producer/issue/ownership repair, not sourcelet reorder or parameter sweep."
+    }
+  },
+  "profile_medians": {
+    "input_DMA_control": 1637,
+    "input_DMA_candidate": 4833,
+    "firstweight_begin_control": 2440,
+    "firstweight_begin_candidate": 7735.5,
+    "weight_supply_envelope_control": 29973,
+    "weight_supply_envelope_candidate": 30820,
+    "lastdot_end_control": 39173,
+    "lastdot_end_candidate": 44838,
+    "gather_control": 1200,
+    "gather_candidate": 1347,
+    "tail_after_scale_control": 6921.5,
+    "tail_after_scale_candidate": 7003.5,
+    "task_control": 48398,
+    "task_candidate": 54409
+  },
+  "profile_limits": "Three standardinputs x2clusters per side. Each observation uses its clusterTask clock; aggregate median differences are not additive decomposition. Info/trace hosts distinct from wholeperformance hosts.",
+  "source_order_repair": {
+    "label": "e132-k4-v3",
+    "status": "exact_compile_passed_repair_did_not_change_image_or_issue_order",
+    "static_cycles": 28595,
+    "image_byte_identical_to_v2": true,
+    "image_bytes": 81920,
+    "image_sha256": "a5d96722468d74048fc2a90642634f15457712554a8a6b38a2a16012258f629e",
+    "hardware_run": false,
+    "reason": "Source-only construction order did not affect emitted26operation marker order; firstweight remains afterinputTRF."
+  },
+  "records": {
+    "screen": "e132-o-k4-screen-job-109654-results.json",
+    "profile": "e132-o-k4-profile-job-109683-results.json",
+    "analysis": "profile-analysis.json",
+    "timeline": "profile-input-weight-timeline.json",
+    "v3_gate": "v3-issue-order-gate.json",
+    "descriptor_gate": "graph-verification-e132-k4-v2.json",
+    "attempts": "attempts.json"
+  }
+}

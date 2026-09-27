@@ -1,0 +1,68 @@
+{
+  "id": "E132",
+  "base_commit": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "actual_start_commit": "8ee561558faedaf68e42c080a515f28e3b82ddb5",
+  "comparison_recipe": "baseline/e128.json",
+  "target_kernel": "sliding_attention_output",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-native-fused-scale/measured-build-e128-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "decoder_feedforward"
+  ],
+  "scope": "Whole O ownership/dataflow combination reopening static-only K4: full512slice K4xrow30 + C09 independently loaded stages16/14 + compact F32 pair commits and canonicalH480 gather. Not a new family or parameter sweep.",
+  "prior_related": [
+    "output-column-sweep K4 BF16 static35834 vs32842; noNPU. ExtraBF16 scalar-compaction2185 and prematureBF16 cast differ from this path.",
+    "output-bf16-eight-columns-e53 K8 F32 pair+canonicalgather static+1.88%; noNPU; actualweightpacket256B, not stripe-sized bursts.",
+    "C09/E127 two-stage60/60 adopted after controlled validation. Retain two independent weightallocations; do not discard proven overlap.",
+    "M08 cyclicrowpair remap caused fragmented8Bgather and NPUregression. Here every30rowregion is contiguous; DMAgraph must confirm.",
+    "output-fp8-four-columns used E4approximateactivation and onlyhalf live slices; not this BF16/full512slice path."
+  ],
+  "full_graph": "OriginalBF16input -> K4 replicated1024BF16 DM/TRF -> separate compactstage16/14 FP8HBMloads -> two MainFP8lookupBF16/dot/F32four-slice reductions -> pairedF32/8Bcommit into contiguous30rows -> canonicalF32H480typedgather -> originalF32channelscale/firstBF16/RMS/residual/store.",
+  "mapping": {
+    "weight": "h=1920*c+30*g+r; q=1024*k+u; slice=4*g+k; c<2,g<64,r<30,k<4,u<1024",
+    "stages": "stage0 r0..15, stage1 r16..29; all512slices live in each stage",
+    "gather": "128 contiguous30F32 regions, logically120B each -> original H480x8; emitteddescriptor remains a gate"
+  },
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "weight_hbm_bytes": 15728640,
+    "stage_weight_bytes": [
+      8388608,
+      7340032
+    ],
+    "weight_lookup_setup_count_before": 2,
+    "weight_lookup_setup_count_after": 2,
+    "activation_replicated_dm_bytes_before": 262144,
+    "activation_replicated_dm_bytes_after": 1048576,
+    "activation_trf_bytes_per_slice_before": 512,
+    "activation_trf_bytes_per_slice_after": 2048,
+    "valid_f32_output_bytes": 15360,
+    "logical_gather_regions_before": 32,
+    "logical_gather_regions_after": 128,
+    "logical_gather_region_bytes_before": 480,
+    "logical_gather_region_bytes_after": 120,
+    "reduction_slices_before": 16,
+    "reduction_slices_after": 4,
+    "not_removed": "Same15MiB weight and dot work; no claim that1024logicalstripe becomes1024B hardwareburst. No prediction of savedweighttime.",
+    "potential_mechanism": "Change complete weightDMA loop order and dot/reduction ownership while removing oldK4 scalarpack and retainingC09 two-stage overlap. NPU needed because static alone did not establish oldK4 hardware behavior."
+  },
+  "numerical_contract": "EveryBF16input retained. BF16 dot withF32 accumulation/columnsum -> F32channelscale -> firstBF16; originalRMS/residual. Kpartition changes reduction grouping and needs oracle/whole correctness anew.",
+  "first_gate": "Compile fullO; sourceunchanged QKV andepilogue; exacttwo weightcoverage disjoint union15MiB, inputTRFbounds2048B, four-wayF32sum,8Bcommits offsets0/64B,canonicalgather total15KiB withno scalarcompaction or extra weightcopy. Then contemporary before/candidate/afterNPU.",
+  "decisions": {
+    "adoption": "V2 rejected; v3 is one evidence-based source-order repair. Only a positive whole result qualifies for bounded adoption validation.",
+    "further_tuning": "One source-order tie-break experiment authorized from recorded static+NPU evidence; no K or stage sweep. Emitted order unchanged => no NPU.",
+    "major_research": "Evaluate a supported coupled ownership/ingress/consumer option in parallel with FFN recovery; no ranking promise."
+  },
+  "adopted": false,
+  "hardware_status": "not_run",
+  "source_expression_repair": "v1 H%30=16 source slicing failed target common-axis H factorization. v2 uses public independent OutputRow30 for the row axis before slicing, then consumes reshape to canonical H after the complete row result. Same K4, stages16/14 and numerical path.",
+  "source_order_diagnostic": {
+    "evidence": "Frozen profile109683 shows control inputDMA→W0DMA→inputTRF versus v2 inputDMA→inputTRF→W0DMA; candidate static inputend3931,TRFbegin3931,W0begin3934. Marker interval includes waits.",
+    "hypothesis": "Move firstweight to_dm source construction before xTRF construction to affect compiler tie-break; no public issue-order guarantee. Same K4/16+14/layout/arithmetic.",
+    "first_gate": "Compare actual emitted DMA/TRF issue order to frozenv2. If unchanged, stop withoutNPU. If W0 precedes inputTRF and all dataflow/descriptor/numeric contracts unchanged, one contemporary wholeNPU bracket.",
+    "prior_variants": "v1 independent H axis factorization failed; v2 fixed OutputRow compiled andpassed45+57 correctness butregressed12.58/15.77%. Immutable."
+  }
+}
