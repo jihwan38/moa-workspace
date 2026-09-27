@@ -1,0 +1,73 @@
+{
+  "id": "E136",
+  "variant": "native-v1",
+  "base_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "actual_start_commit": "9de90eafecde2d410fecc67e08a2b4176a24ddf7",
+  "comparison_recipe": "baseline/e134.json",
+  "target_kernel": "sliding_project_qkv",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs",
+    "ops.rs": "src/ops.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/measured-build-e134-adoption.json",
+  "unchanged_kernels": [
+    "sliding_attention_output",
+    "decoder_feedforward"
+  ],
+  "scope": "Whole QKV arithmetic/operand-ownership redesign; immutable E134 O/FFN and public inputs/correctness. Not a lane/tile parameter sweep.",
+  "prior_related": [
+    "E47/E53 native E4 two-term tiny cancellation failures require new representation and actual full QKV oracle.",
+    "qkv-lane-parallel materialized BF16 weight then SubTRF regressed statically; E136 has no decoded BF16 weight.",
+    "C10 Main lookupBF16->TRF current-target lowering failed; E136 plain E4 Sub->TRF changes that edge.",
+    "E130 Main/Sub consumer split retained BF16 lookup and regressed; E136 removes lookup, row Switch and scale Switch."
+  ],
+  "full_graph": "Public BF16 x -> unchanged preRMS in8 H480shards/cluster -> actual whole-H amax and pow2scale -> four E4 terms on16live shards with cumulative F32 reconstruction -> compact4term H assembly and ring32broadcast -> original public E4 weights HBM/compactDM -> plainSubE4 weightTRF Q8/KV4 canonicalrows -> nativeE4 activation4term stream/F32 eachterm dot -> normalizedcoeffMul andF32Termsum -> compactcanonical F32 rows -> common xscale thenchannel scale -> firstBF16 -> direct typedheadgather -> unchanged headRMS/RoPE/cache/allstores",
+  "placements": {
+    "quantizer": "2clusters x8valid H480 shards; BF16input960B, packed4x480=1920B/slice; cumulativeF32VRF1920B; maxscalarVRF32B",
+    "weight": "Q per slice30720B, K/V15360B E4 DM andTRF; Lane=canonicaloutputrow8/4, ElementH3840; noBF16weightDM",
+    "terms": "4x3840E4=15360B replicatedper512slices; sourceTF noactivationTRF",
+    "coefficient": "4x32B fixednormalized [1,1/16,2^-22,2^-27], actualproducer+DMreplication+VRF loadsincluded",
+    "raw": "Q4096+K2048+V2048 F32=32768B; canonical Q8packet32B/KV4packet16B; no scalar4Bcommit",
+    "consumer": "xscale restored afterTermsum, channel scale follows inF32, thenBF16/headgather; all downstream original"
+  },
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "weight_hbm_bytes_unchanged": 31457280,
+    "removed": "Three FP8->BF16 lookup/table-preparation paths; three BF16 row Switches and three inverse scale Switches; two activationTRF loads. No fullBF16weightDM existed incontrol.",
+    "added": "Actualfourterm quantizer plus2cumulativeF32 sum streams, four fixedcoefficient producer streams, fourterm ringbroadcast, threefullE4weightSubTRFloads,32KiB compactF32write/read andseparateF32restore/channel-scale pass. All includedinpublickernel.",
+    "replicated_activation_before_bytes": 3932160,
+    "replicated_activation_after_bytes": 7864320,
+    "weight_dm_read_before_bytes": 31457280,
+    "weight_dm_read_after_to_trf_bytes": 31457280,
+    "activation_native_dm_read_three_projections_bytes": 23592960,
+    "new_raw_f32_write_bytes": 32768,
+    "new_raw_f32_read_bytes": 32768,
+    "no_speedup_from_byte_sums": true
+  },
+  "numerical_contract": {
+    "factors": [
+      1,
+      16,
+      4194304,
+      134217728
+    ],
+    "normalized_coefficients": [
+      1,
+      0.0625,
+      2.384185791015625e-07,
+      7.450580596923828e-09
+    ],
+    "formula": "u=F32(x/s); t0=E4(u); each later ti=E4(F32(F32(u-F32 cumulative reconstructed prior terms)*factor_i)); nativeF32terms weighted by reciprocalfactor andF32sum; restore common s AFTER term sum then channel scale then firstBF16",
+    "cpu_scope": "Frozen numerical/moa-e4-fourterm-audit*; |u|<256 BF16-significandF32domain maxerror2^-37, exactfor|u|>=2^-29; not arbitraryinput/fullkernelproof. NPUrounding/order/FTZ requires actual oracle.",
+    "public_boundaries_preserved": true
+  },
+  "first_gate": "Exact wholeQKV compile then completeHBMcoverage/plainE4SubTRF/rowlaneaddresses/nativeTerm-preservingF32/coeffmapping/noearlyBF16 graphchecks; actual TRFsequencer frontend lackscompletevalidation so capacityalone isinsufficient. Concrete API/shape defects get frozen mechanism-basedrepair; noarbitrarysweep.",
+  "correctness_gate": "Original E134 before/candidate/after, root-owned actualpublicQKV boundarysuite with oldcancellationcases and newfourtermrangechecks. Anypositive completegain ->3allocations+extra6+mapping/boundary validation.",
+  "decisions": {
+    "adoption": "Notvalidated; positiveevenbelow5%entersboundedvalidation. No live/officialadoption here.",
+    "tuning": "No tile/factor sweep; derived fixedfactors. Measurednegative preservesrecord; a specificcostmechanism may justifyboundedprofile.",
+    "research": "Compare whole-native weight-resident path vscurrentlookup weightstream includingquantizationandalltransfers."
+  },
+  "adopted": false,
+  "hardware_status": "not_run"
+}

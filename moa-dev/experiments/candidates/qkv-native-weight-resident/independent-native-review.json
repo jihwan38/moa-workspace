@@ -1,0 +1,180 @@
+{
+  "passed": true,
+  "scope": "Independent read-only native weight row-lane and normalized coefficient/term sum/common-scale/channel-scale order audit. Not NPU arithmetic or performance proof; full gate owned by implementation agent. Hidden SFR indexes not printed by graph.",
+  "inputdigests": {
+    "moa-dev/experiments/candidates/qkv-native-weight-resident/native-v1/projection.rs": {
+      "sha256": "22d9db57a19ea86568ee16f822de2d39b8675bc6b79fe7d0e129acdcc7b9b7ed",
+      "bytes": 24922
+    },
+    "moa-dev/experiments/candidates/qkv-native-weight-resident/native-v1/ops.rs": {
+      "sha256": "edbb233d9f3bd806e6d71b0e462bcc79aecfc96c5678a39ca73575177e298934",
+      "bytes": 12987
+    },
+    "moa-dev/experiments/candidates/qkv-native-weight-resident/evidence/e136-native-v1/graph.json": {
+      "sha256": "3fb73529c56c768f476e9f9bcbd459e119f8cbc78852daaa45abb12ba96929d2",
+      "bytes": 250574
+    },
+    "moa-dev/experiments/candidates/qkv-native-weight-resident/evidence/e136-native-v1/schedule.json": {
+      "sha256": "3dcd96a7369308c68d489acaa4b09e9ab8dac1ff5d4fc7774390b75640399b32",
+      "bytes": 134537
+    }
+  },
+  "native_streams": [
+    {
+      "native": "RenegadeCommand#O93",
+      "weight_trf": "RenegadeCommand#O90",
+      "weight_hbm": "DmaCommand#O89",
+      "rows_per_slice": 4,
+      "weight_bytes": 7864320,
+      "postscale": "RenegadeCommand#O98",
+      "f32_raw_bytes": 8192,
+      "coefficient_bytes_per_slice": 128
+    },
+    {
+      "native": "RenegadeCommand#O77",
+      "weight_trf": "RenegadeCommand#O74",
+      "weight_hbm": "DmaCommand#O73",
+      "rows_per_slice": 8,
+      "weight_bytes": 15728640,
+      "postscale": "RenegadeCommand#O82",
+      "f32_raw_bytes": 16384,
+      "coefficient_bytes_per_slice": 128
+    },
+    {
+      "native": "RenegadeCommand#O109",
+      "weight_trf": "RenegadeCommand#O106",
+      "weight_hbm": "DmaCommand#O105",
+      "rows_per_slice": 4,
+      "weight_bytes": 7864320,
+      "postscale": "RenegadeCommand#O114",
+      "f32_raw_bytes": 8192,
+      "coefficient_bytes_per_slice": 128
+    }
+  ],
+  "schedule_separate_namespace": [
+    {
+      "schedule_index": "273",
+      "lifetime": {
+        "begin": 36548,
+        "end": 37293
+      },
+      "registers": [
+        {
+          "name": "weights",
+          "index": "92",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 10867,
+            "end": 37293,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: Ps / 4 % 256, Lane: Ps % 4, Element: H]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "103",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 13452,
+            "end": 37293,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1540096,
+          "size": 65536,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: Ps / 4 % 256, Element: (QkvTerm, 1 # 8)]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "schedule_index": "281",
+      "lifetime": {
+        "begin": 38619,
+        "end": 39364
+      },
+      "registers": [
+        {
+          "name": "weights",
+          "index": "132",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 34437,
+            "end": 39364,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 16777216,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Qs / 2048, Slice: Qs / 8 % 256, Lane: Qs % 8, Element: H]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "104",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 13731,
+            "end": 39364,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 1622016,
+          "size": 65536,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Qs / 2048, Slice: Qs / 8 % 256, Element: (QkvTerm, 1 # 8)]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "schedule_index": "414",
+      "lifetime": {
+        "begin": 49827,
+        "end": 50572
+      },
+      "registers": [
+        {
+          "name": "weights",
+          "index": "180",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 47565,
+            "end": 50572,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: Ps / 4 % 256, Lane: Ps % 4, Element: H]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "125",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 16889,
+            "end": 50572,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 3031040,
+          "size": 65536,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Ps / 1024, Slice: Ps / 4 % 256, Element: (QkvTerm, 1 # 8)]",
+          "fingerprint": null
+        }
+      ]
+    }
+  ],
+  "numerical_source_observation": "Cumulative restoration matches CPU algorithm; common scale restored after F32 term sum; residual amplification [1,16,2^22,2^27]."
+}

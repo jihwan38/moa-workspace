@@ -1,0 +1,74 @@
+{
+  "id": "E136",
+  "variant": "native-v1",
+  "status": "measured_regression",
+  "adopted": false,
+  "official_submission": false,
+  "actual_start_commit": "9de90eafecde2d410fecc67e08a2b4176a24ddf7",
+  "source_base_commit": "4f8fe7fbe263b808df1b09fc9dc061a7e44f46d4",
+  "comparison_recipe": "baseline/e134.json",
+  "job": 110367,
+  "measurement": {
+    "candidate_qkv_cycles": 116321,
+    "control_before_qkv_cycles": 102925,
+    "control_after_qkv_cycles": 104796,
+    "bracketing_median": 103860.5,
+    "change_percent": 11.997342589338578
+  },
+  "correctness": {
+    "standard_comparisons_passed": 45,
+    "candidate_standard_comparisons_passed": 15,
+    "candidate_distinct_standard_inputs": 3,
+    "boundary_job": 110365,
+    "boundary_cases": 2,
+    "boundary_output_elements": 16384,
+    "boundary_failed_outputs": 0,
+    "untouched_cache_elements": 8380416,
+    "boundary_failed_cache_elements": 0,
+    "scope": "Two deterministic QKV cancellation diagnostics outside the official QKV input-generator support; not a performance result, rank, or all-input proof.",
+    "not_bitwise_all_outputs": true,
+    "extra6_or_repeated_perf_allocations": false
+  },
+  "static": {
+    "candidate_cycles": 58200,
+    "control_cycles": 51293,
+    "scope": "Compiler schedule only; no internal NPU trace. Not measured attribution or additive savings."
+  },
+  "decisions": {
+    "adoption": {
+      "status": "do_not_adopt_this_frozen_prototype",
+      "reason": "Whole QKV is slower than both contemporary E134 controls; adopted source remains E134."
+    },
+    "further_tuning": {
+      "status": "stop_weight_resident_parameter_series",
+      "reason": "No unresolved source or numerical defect observed in the finite checks; no tile/factor/let-order sweep or extra repetition. Native weight-resident path worked but lost12% whole."
+    },
+    "major_research": {
+      "status": "retain_native_four_term_arithmetic_and_compare_different_operand_ownership",
+      "reason": "Proposed next O activation-resident Term-time design removes bulk weight-TRF staging and full-H term replication. It is a separately selected complete path; this result rejects neither native E4 nor weight-resident arithmetic universally. Internal hardware costs remain unattributed."
+    }
+  },
+  "review": "Root explicitly approved non-adoption and tuning stop after whole and boundary results; no further E136 NPU run.",
+  "evidence": [
+    "build-e136-native-v1-repro.json",
+    "graph-verification-e136-native-v1.json",
+    "independent-native-review.json",
+    "package-e136-native-v1.json",
+    "e136-native-screen-job-110367-results.json",
+    "boundary-suite/result-110365.json"
+  ],
+  "source_costs": {
+    "logical_not_bus_telemetry": true,
+    "weight_hbm_bytes_unchanged": 31457280,
+    "removed": "Three FP8->BF16 lookup/table-preparation paths; three BF16 row Switches and three inverse scale Switches; two activationTRF loads. No fullBF16weightDM existed incontrol.",
+    "added": "Actualfourterm quantizer plus2cumulativeF32 sum streams, four fixedcoefficient producer streams, fourterm ringbroadcast, threefullE4weightSubTRFloads,32KiB compactF32write/read andseparateF32restore/channel-scale pass. All includedinpublickernel.",
+    "replicated_activation_before_bytes": 3932160,
+    "replicated_activation_after_bytes": 7864320,
+    "weight_dm_read_before_bytes": 31457280,
+    "weight_dm_read_after_to_trf_bytes": 31457280,
+    "activation_native_dm_read_three_projections_bytes": 23592960,
+    "new_raw_f32_write_bytes": 32768,
+    "new_raw_f32_read_bytes": 32768,
+    "no_speedup_from_byte_sums": true
+  }
+}
