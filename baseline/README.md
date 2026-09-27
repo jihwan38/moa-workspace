@@ -1,33 +1,33 @@
-# 현재 baseline: E137
+# 현재 baseline: E140
 
-현재 실행 소스는 **E137 / `baseline-e137`**다. 원본 BF16 O 입력을 실제 소비 slice에서
-4개 weighted E4 잔차항으로 만들고, 작은 activation을 TRF에 둔 채 원본 E4 weight를
-native DPE로 흘린다. 두60행 stage, F32 Term/K16 합산, 공통 입력scale·channel scale 후
-첫 BF16 경계와 기존 RMS/residual을 함께 유지한다. QKV/FFN image는 E134와 같다.
-변경된 compile input은 `sliding/projection.rs` 하나이며 전체46개 입력을 실측 빌드와 대조했다.
+현재 실행 소스는 **E140 / `baseline-e140` / `c56b737`**다. E137에서
+`prepare_ffn_fp8_split`의 hi/lo/third 복사 세 곳만 수정했다. 기존 descriptor는
+480B source에서1440B를 읽고 packed destination도 넘었다. 이제 명시적인 Sub stream이
+각각480B를 offset0/480/960에 기록한다. 실제 descriptor와 할당 범위를 대조했다.
 
-세 독립 allocation에서 전체 O가 앞뒤 E134 대비 **14.1496%, 12.2978%, 12.2654% 감소**했다.
-Paired 감소율 중앙값은 **12.2978%**이며 job 중앙값의 집계는49,122→42,957cycles다.
-기본·추가6을 합친 서로 다른 표준9입력, 실제 O projection9case의34,560 exact BF16 출력,
-기존 상쇄 case7의 공개 whole-O/RMS/residual3,840출력을 통과했다.
-[실험·원본 검증](../moa-dev/experiments/candidates/o-native-activation-resident/README.md).
-이는 유한 입력 검증이며 임의 BF16·전체 모델 정확성 증명은 아니다.
+세 독립 Arena에서 FFN 변화율은 **-0.2101%, -0.1847%, -0.0568%**였다.
+속도는 사실상 중립으로 해석하며, 채택 이유는 확인된 메모리 오류의 제거다.
+기본·추가6을 합친 표준9입력과 원래 전체 FFN 정밀 사례3840 exact 출력이 통과했다.
+전체46개 compile input은 실측 빌드와 일치하며 수정 파일은 `shared/mlp.rs` 하나다.
+QKV/O 이미지는 E137과 같다. FFN의 양자화 산술·native down도 동일하다.
+[채택 결정](../moa-dev/experiments/candidates/down-native-consumer-local/adoption-decision.json) ·
+[최종 검증](../moa-dev/experiments/candidates/down-native-consumer-local/control-adoption/final-verification.json).
+유한 입력 검사이며 임의 입력·전체 모델 정확성 증명은 아니다.
 
-첫 native-v2는14.0551% 느렸다. 내부 NPU 계측으로 입력 양자화/배포 뒤에 native 시작이
-밀리는 경계를 확인하고 소비 위치로 양자화를 옮겼다.512KiB term 배포 DMA를 없앴지만
-원본 BF16 입력복제는16→256KiB로 늘었고 local term저장·TRF load도 남는다.
-이 추가 비용을 포함한 전체 실측으로 채택했다. 추가 파라미터 튜닝은 종료한다.
+소비자 로컬 down 후보는 이 복사를 고친 뒤 정확도는 통과했지만 전체 FFN이3.0981% 느려
+채택하지 않았다. 현재 up/gate의 전체 FP8 weight 중간 저장은 유지된다. 앞서 E137에서
+채택한 소비자 로컬4항 E4 native O는 그대로이며 당시 O 감소율 중앙값은12.2978%였다.
 
-공식 제출 [`330d5595`](../docs/experiments/e137-official-submit-20260927.json)은
-**6.4427554× / 46/69위**로 완료했다. 직전 E134 대비 점수+4.9214%,
-순위51→46위다. [리더보드 원본](../docs/experiments/leaderboard-e137-20260927.json).
-공식 O는43,026cycles다. 동일 QKV/FFN image의 실행 변동을 O최적화 효과로 세지 않는다.
-Arena 반복과 공식 점수·순위는 별도 기록이며 E134와 이전 source tag·실패 기록을 보존한다.
+최근 공식 제출은 아직 **E137 / `330d5595` / 6.4427554× / 46위**다.
+E140 자체의 공식 제출·순위 개선은 없다.
+[공식 기록](../docs/experiments/e137-official-submit-20260927.json) ·
+[진행 현황](../docs/experiments/current-work.md).
 
 | 찾는 내용 | 파일 |
 |---|---|
 | 현재 적용한 17개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
-| 현재 구성표와 기준 commit | [e137.json](e137.json) |
+| 현재 구성표와 기준 commit | [e140.json](e140.json) |
+| 이전 E137 구성표 | [e137.json](e137.json) |
 | 이전 E134 구성표 | [e134.json](e134.json) |
 | 이전 E128 구성표 | [e128.json](e128.json) |
 | 이전 E127 구성표 | [e127.json](e127.json) |
