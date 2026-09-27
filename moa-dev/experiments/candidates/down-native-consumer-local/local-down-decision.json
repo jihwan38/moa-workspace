@@ -1,0 +1,88 @@
+{
+  "id": "E140",
+  "scope": "Consumer-local down variants local-v1..v5 only; sibling E137-only prefix-copy repair is a separate variant and adoption decision within E140.",
+  "selected_measured_variant": "local-v5",
+  "adopted": false,
+  "official_submission": false,
+  "status": "measured_whole_regression_after_concrete_correctness_repair",
+  "source_base_commit": "334a7059a82252a310436c6d7e02f8ba577e7f51",
+  "actual_start_commit": "e35ea350a805bae11570032a62d150252a98d494",
+  "comparison_recipe": "baseline/e137.json",
+  "local_v4": {
+    "whole_job": 111360,
+    "candidate_ffn_failures": 3,
+    "whole_comparisons_passed": 42,
+    "performance_result_valid": false,
+    "failure_record": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/whole-v4-failure.json",
+      "bytes": 11063,
+      "sha256": "4332d12b5f0339ccea79d023590dcc757bb12dd29e04cfeb515e42bbd479c11a"
+    },
+    "same_source_dump_exact_image_identical": true,
+    "raw_down_job": 111393,
+    "raw_down_cases": 9,
+    "raw_down_bf16_outputs": 34560,
+    "raw_down_exact_pass": true,
+    "raw_oracle_excludes": "upquantizer and final global scale/RMS/residual epilogue; finite cases do not prove arbitraryinput"
+  },
+  "inherited_prefix_hazard": {
+    "evidence": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/prefix-overrun.json",
+      "bytes": 20851,
+      "sha256": "8947748b3fdf1b26bdf7ccdaca34f2c81daa1f833d573092b70ad5d7be0527ca"
+    },
+    "compact_source_bytes": 480,
+    "emitted_copy_bytes": 1440,
+    "term_destination_offsets": [
+      0,
+      480,
+      960
+    ],
+    "packed_extent": 1440,
+    "local_v4_live_down_global_scale_overwritten_descriptor": true,
+    "same_invalid_descriptors_in_e137": true,
+    "same_specific_e137_scale_victim": false,
+    "correction": "Three explicit Sub480B copies; all other v4source bytes unchanged",
+    "hardware_support": "Repair restores all three previously failing standard inputs; not a general proof of all possible consequences of original invalid copies"
+  },
+  "local_v5": {
+    "job": 111459,
+    "whole_report": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/e140-local-v5-screen-job-111459-results.json",
+      "bytes": 5334,
+      "sha256": "1ddc2e72f3a9b8903a8f37df52e43230542c7bda979f40bea5d82fa03045e65e"
+    },
+    "actual_uploaded_archive_verified": true,
+    "whole_comparisons_passed": 45,
+    "candidate_distinct_inputs": 3,
+    "candidate_ffn_cycles": 325004,
+    "e137_before": 314990,
+    "e137_after": 315485,
+    "control_bracket": 315237.5,
+    "change_percent": 3.0981402910503997,
+    "independent_allocations": 1
+  },
+  "separate_copy_only_control": {
+    "job": 111461,
+    "comparisons_passed": 45,
+    "candidate_ffn_cycles": 314397,
+    "control_bracket": 315059,
+    "change_percent": -0.21011937446636653,
+    "scope": "Separate allocation, oldE137down retained; its positive adoption validation is sibling/root-owned. Not a paired directcomparison with local-v5."
+  },
+  "decisions": {
+    "adoption": {
+      "status": "do_not_adopt_local_down_variant",
+      "reason": "Repaired complete candidate passes standard accuracy but loses3.098140% in contemporary wholeFFN screen. Copy-only repair is separate."
+    },
+    "further_tuning": {
+      "status": "stop",
+      "reason": "No row/chunk/padding sweep or additional localdownprofile selected this turn. Concrete source errors were repaired and preserved before judging performance."
+    },
+    "major_research": {
+      "status": "family_unresolved_not_globally_exhausted",
+      "reason": "This measured combination has added BF16replication/localquant/tasks. No actual internal v5profile establishes their individual limiting contribution. Reopen only with a concrete supported completepath change and cost question."
+    }
+  },
+  "remaining_scope": "No repeated performance/extra6/fullFFNstress validation for negative local-v5. Root owns independent correctness validation and any adopted prefix-copy-only variant."
+}

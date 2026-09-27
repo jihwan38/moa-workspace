@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "scope": "CPU proposed layout contract only; no candidate source, actual descriptor, compile or NPU result",
+  "source": {
+    "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+    "bytes": 38019,
+    "sha256": "a80ebfea24f029b039ae1b5ad5323770a1d414aee2d60640265c3e1c32d84b47"
+  },
+  "same_cluster_groups": 128,
+  "distinct_inputs_per_group": 7680,
+  "canonical_source": "same cluster canonical slice0, byte=2*(1920*q+u)",
+  "destination": "same cluster slice=4*g+q, byte=2*u",
+  "canonical_logical_stripes": 512,
+  "canonical_stripe_bytes": 3840,
+  "canonical_actual_packet_geometry": "not compiled; old E134 E5 logical1920B leader stripe splits2x960B",
+  "direct_geglu_valid_packet_contract": {
+    "count": 8192,
+    "bytes": 240
+  },
+  "bf16_replication_bytes": 1966080,
+  "e5_three_local_term_bytes": 2949120,
+  "largest_f32_residual_vrf_bytes_per_slice": 7680,
+  "scalar_vrf_bytes_per_slice": 32,
+  "native_term_coefficient_vrf_bytes_per_slice": 96,
+  "later_blockscale_vrf_bytes_per_slice": 5760,
+  "required_runtime_gates": [
+    "globalmax within cluster and each Hgroup over K4",
+    "no crosscluster or differentK scale substitution",
+    "source exact finite normalization arithmetic unchanged",
+    "actual fullschedule VRF allocation/lifetimes and nohiddenreload/spill assumption"
+  ]
+}

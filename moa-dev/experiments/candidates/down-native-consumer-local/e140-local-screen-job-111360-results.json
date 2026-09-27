@@ -1,0 +1,215 @@
+{
+  "job": {
+    "id": 111360,
+    "owner": "jihwan38",
+    "mine": true,
+    "name": "beef-e140-local-screen",
+    "status": "FAILED",
+    "created_at": "2026-09-27T11:53:33Z",
+    "started_at": "2026-09-27T11:55:01Z",
+    "finished_at": "2026-09-27T11:55:22Z",
+    "duration_sec": 19.936735463,
+    "exit_code": 1,
+    "device_id": null
+  },
+  "log": "moa-dev/experiments/candidates/down-native-consumer-local/evidence/arena-111360.log",
+  "log_digest": {
+    "bytes": 7401,
+    "sha256": "ffa87c76b0caab6dc2025d865417b390fc6278f0ffba9e1d272f844b633e6f60"
+  },
+  "build_record": {
+    "path": "moa-dev/experiments/candidates/down-native-consumer-local/e140-local-screen-build.json",
+    "bytes": 11969,
+    "sha256": "0f0b2028535902c7a8eab53d403a3561abef37de992297bc5d519fc9b4b4383f"
+  },
+  "method": "One allocation, three serial original three-input benchmark hosts: actual E137 before -> candidate whole FFN -> actual E137 after. PROFILE=info; no diagnostic host. Before/after and inputs are not independent allocations.",
+  "stages": {
+    "control_before": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 103394,
+          "cycles_by_run": [
+            108660,
+            103394,
+            103090
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 42863,
+          "cycles_by_run": [
+            45001,
+            42863,
+            42688
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 315531,
+          "cycles_by_run": [
+            318170,
+            314018,
+            315531
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    },
+    "candidate_whole": {
+      "valid": false,
+      "error": "AssertionError(['1'])",
+      "stage_started": true,
+      "complete": true,
+      "observed_exit_codes": [
+        "1"
+      ],
+      "observed_comparisons": [
+        {
+          "label": "sliding_project_qkv q run0",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_project_qkv k run0",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_project_qkv v run0",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_project_qkv q run1",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_project_qkv k run1",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_project_qkv v run1",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_project_qkv q run2",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_project_qkv k run2",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_project_qkv v run2",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_attention_output run0",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_attention_output run1",
+          "status": "PASS"
+        },
+        {
+          "label": "sliding_attention_output run2",
+          "status": "PASS"
+        },
+        {
+          "label": "decoder_feedforward run0",
+          "status": "FAIL"
+        },
+        {
+          "label": "decoder_feedforward run1",
+          "status": "FAIL"
+        },
+        {
+          "label": "decoder_feedforward run2",
+          "status": "FAIL"
+        }
+      ]
+    },
+    "control_after": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 104691,
+          "cycles_by_run": [
+            109792,
+            104691,
+            102816
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 43053,
+          "cycles_by_run": [
+            44695,
+            42379,
+            43053
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 314598,
+          "cycles_by_run": [
+            319063,
+            314500,
+            314598
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    }
+  },
+  "completed_stage_names": [
+    "control_before",
+    "candidate_whole",
+    "control_after"
+  ],
+  "stage_sequence_matches": true,
+  "screen_complete": true,
+  "actual_upload_matches": true,
+  "valid": false,
+  "package_files": {
+    "run.sh": {
+      "bytes": 1353,
+      "sha256": "93e19ff73167afe8d617e0d2ebea0d04b45d87152ac2373e8be202179a56574c"
+    },
+    "fixtures.safetensors": {
+      "bytes": 202632,
+      "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+    },
+    "job.yaml": {
+      "bytes": 83,
+      "sha256": "01fff1d79c37d9a0f6f3d9a9e490b7853a3dce2d71b4b148d4ee5889b26b21a0"
+    },
+    "remote_entrypoint.sh": {
+      "bytes": 965,
+      "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+    },
+    "candidate_test_runtime": {
+      "bytes": 3760960,
+      "sha256": "61b8126c40a1188e4a18ac6f1fe3dd5d97efc08dca9e78607ddd603f8f4f4a4a"
+    },
+    "control_test_runtime": {
+      "bytes": 3766080,
+      "sha256": "dae2e682a849c90dcbbc3f0bbec27b940c27b9271b845f24a7188be73b88176b"
+    }
+  },
+  "archive": {
+    "path": "moa-dev/experiments/artifacts/down-native-consumer-local/job-111360.tar",
+    "bytes": 7737344,
+    "sha256": "408a31b088cb6bb16f728abb426189f2e6264a6839270bd5a3bfd77d0825bc57"
+  }
+}

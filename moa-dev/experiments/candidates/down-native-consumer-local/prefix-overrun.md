@@ -1,0 +1,13 @@
+# E140 whole failure: inherited up-quantizer DMA violates compact source bounds
+
+`prepare_ffn_fp8_split` in frozen local-v4 `mlp.rs:667–672` copies three compact 480-byte E5 tensors into term tiles of a 1440-byte allocation. Actual graph O30/O35/O40 DMA descriptors each transfer **1440 bytes per active slice**, as two 720-byte packets. Producers O20/O22/O25 initialize exactly 480 bytes, so all three copies overread by960 bytes. Actual IndexAccess stride480, extent3, window1, scalarindices0/1/2 give destination ranges `[0,1440)`, `[480,1920)`, `[960,2400)` relative to the1440-byte packed allocation.
+
+In E140 the packed allocation is at60160B/slice. The lo and third writes therefore cover `[60640,62080)` and `[61120,62560)`. The live **down_global_scale** occupies `[61952,61984)` on cluster0,slices0..7: schedule DmaLoad218 loads it at39708..40195; Sub533 reads it at108921..109188. Lo DMA280 executes43484..44041 and third DMA290 executes44041..44598. Both descriptors overlap all32 bytes of that live scalar packet. This is an actual source-bound/descriptor/lifetime violation; dynamic IndexAccess offsets are derived from the emitted stride/index dependencies, since printed tensor addresses omit runtime pointer offsets.
+
+The E137 FFN (E134 weighted-v3 exact graph) contains the same three invalid descriptors. Its down_global_scale is at98048B/slice and does not overlap these writes. Thus unchanged source is insufficient to inherit correctness under a new whole-kernel allocation. The E140 standalone down oracle passing9cases does not test this up-quantizer or the final down_global_scale application.
+
+The smallest discriminating repair is three exact480-byte packet copies, preserving all arithmetic and down-local geometry. Compare repaired E137 and repaired E140 whole execution. Before that result, do not claim the overwrite is the experimentally established sole cause or label this an SDK fault.
+
+Reproduce the descriptor/shape/schedule comparison: `python3 moa-dev/experiments/candidates/down-native-consumer-local/prefix-overrun.py --check`. The accompanying JSON binds all source/graph/schedule/build hashes and records the raw DMA descriptions and live scalar consumer. Existing frozen v4 gate must remain as historical evidence; its source/shape scope missed this unchanged-prefix invalid DMA.
+
+The repository copy of the read-only checker uses its own repository root and adds `--check`; its calculated evidence is unchanged from the original `/tmp` review. The numerical-attribution fields in the frozen JSON describe the pre-V5 state; see `local-down-decision.json` for the later repaired result.

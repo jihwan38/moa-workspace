@@ -1,0 +1,56 @@
+{
+  "id": "E140",
+  "variant": "local-v3",
+  "base_commit": "334a7059a82252a310436c6d7e02f8ba577e7f51",
+  "actual_start_commit": "e35ea350a805bae11570032a62d150252a98d494",
+  "comparison_recipe": "baseline/e137.json",
+  "target_kernel": "decoder_feedforward",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/o-native-activation-resident/measured-build-e137-adoption.json",
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "scope": "Local producer/consumer ownership repair of adopted weighted native down; complete FFN, original inputs/tolerances.",
+  "prior_related": [
+    "E139 current FFN job111124 GeGLU-to-TRF36680cycles, native startsTRF+1; elapsed window not expectedgain.",
+    "E134 weighted native down and exact cluster scales retained.",
+    "E137/E138 consumer-local max/quant and E138 actual packed term-view direct commit/read API reused.",
+    "E133 padded typed DMA term-copy failure avoided; no term-view typedDMA.",
+    "E140local-v1 whole allocation failed requesting5760B/slice VRF; no executable. PreallocationvISA preserved; specific interferingbuffer not proven.",
+    "local-v2 sourceaxiserror: explicit480-of1920 view leftunread by TileL%480 fetch; not a capacity or architecture failure."
+  ],
+  "full_graph": "E137 unchanged preRMS/upgate/GeGLU -> retained canonical per-clusterL7680 BF16gather -> typed BF16 consumerH64xK4x1920 -> localamax1920 then groupK4Max -> same pow2 scale -> weighted hi/lo16/third256 in4x480localchunks direct packed term-viewcommits -> unchanged term3x1920TRF -> directFP4native with coefficientbeforeTermF32sum -> same F32blockpartials/fiveblockscale reductions/clusterBF16/global/RMS/residual/store",
+  "numeric_contract": "Same finite per-clusteramax/floor2^-112/2^-14scale; same three E5 RNE weighted residual stages, Main restoration/coefficientproducer and native F32 pertermrestore beforeTermsum; original public tolerance. No arbitrary BF16exact claim.",
+  "costs": {
+    "logical_not_bus_telemetry": true,
+    "canonical_bf16_gather_retained_bytes": 30720,
+    "consumer_bf16_write_bytes": 1966080,
+    "old_compact_terms_gather_removed_bytes": 46080,
+    "old_term_leader_output_removed_bytes": 368640,
+    "old_term_ring_output_removed_bytes": 2949120,
+    "local_terms_direct_write_bytes": 2949120,
+    "extra_raw_to_packed_copy_bytes": 0,
+    "direct_commit_basis": "Actual E138 producercommit to padded term-view and sameview subsequentdecode/read; E5 also1B. Verify exact1920B coverage/offsets.",
+    "f32_restored_sum_write_bytes": 3932160,
+    "each_residual_vrf_load_bytes": 3932160,
+    "native_trf_payload_retained_bytes": 2949120,
+    "per_slice_residual_vrf_bytes": 1920,
+    "quant_scalar_vrf_bytes": 32,
+    "native_term_coefficient_vrf_bytes": 96,
+    "later_blockscale_vrf_bytes": 5760,
+    "risk": "Exact whole lifetime allocation still required; source1920+5760+32+96=7808 is support for capacity repair, not proof of particular failedVRF overlap.",
+    "quantization_chunks_per_consumer": 4
+  },
+  "first_gate": "Exact wholeFFN plus typedDM1920/scaleK4/termcommitbounds and all VRF/TRF liveintervals; unchanged native suffix and publicHBM coverage.",
+  "decisions": {
+    "adoption": "pending first whole and changedboundary correctness; positive anysize freeze3alloc+extra6+actualdown/fullFFN regression",
+    "further_tuning": "no parameter sweep; concrete layout/API errors get recorded supported repairs",
+    "major_research": "Measure complete activation-preparation replacement including addedreplication/quant/DM/VRF; no31percent/30thplacepromise"
+  },
+  "adopted": false,
+  "hardware_status": "not_run",
+  "source_repair": "Retain actual fixed tile axis TileL%1920=480 through fetch/collect/VRF/math/commit, as existing H%60=12 scale tiles do. Same4x480 localcapacityrepair and all bytes/offsets/numericunchanged."
+}

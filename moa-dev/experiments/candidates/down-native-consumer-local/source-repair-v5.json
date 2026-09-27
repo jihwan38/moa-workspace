@@ -1,0 +1,31 @@
+{
+  "classification": "concrete inherited compact-source/padded-destination copy bound repair",
+  "source": {
+    "before": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/local-v4/mlp.rs",
+      "bytes": 37386,
+      "sha256": "7b0b92cafb5408028819ddb15a3c1fed7b1843b7281aefc4d4f43771a585caf5"
+    },
+    "after": {
+      "path": "moa-dev/experiments/candidates/down-native-consumer-local/local-v5/mlp.rs",
+      "bytes": 38025,
+      "sha256": "4cd2405a1ff78e2375d5b50fdbb0226798d33dfdacf36afabef6dbc501d7e58c"
+    }
+  },
+  "unchanged_local_down_and_upgate_math": true,
+  "only_three_upquant_assembly_copies_changed": true,
+  "repair_support": "E134 prepare_down_fp8_split existing exact480B Sub stream commit_view idiom",
+  "evidence": {
+    "path": "moa-dev/experiments/candidates/down-native-consumer-local/prefix-overrun.json",
+    "bytes": 20851,
+    "sha256": "8947748b3fdf1b26bdf7ccdaca34f2c81daa1f833d573092b70ad5d7be0527ca"
+  },
+  "before_whole": {
+    "path": "moa-dev/experiments/candidates/down-native-consumer-local/whole-v4-failure.json",
+    "bytes": 11063,
+    "sha256": "4332d12b5f0339ccea79d023590dcc757bb12dd29e04cfeb515e42bbd479c11a"
+  },
+  "counterexample_scope": "E137 contains the same invalid copies; different allocated address avoids identified down_global_scale victim. No claim that current public E137 inputs fail.",
+  "whole_repair_result": "pending; exact source/descriptor overwrite is established, sole numerical cause is not yet established",
+  "diff": "--- local-v4/mlp.rs\n+++ local-v5/mlp.rs\n@@ -664,11 +664,23 @@\n         .cast::<f8e5m2, m![H % 8 # 32]>()\n         .commit_trim::<m![H % 8]>().commit();\n     let mut packed: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![FfnTerm, H % 480]> = DmTensor::new();\n-    hi.view().to_dm_view(&mut device.tdma,\n-        packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(0));\n-    lo.view().to_dm_view(&mut device.tdma,\n-        packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1));\n-    third.view().to_dm_view(&mut device.tdma,\n-        packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2));\n+    // Exact 480B stream copy; padded term-view typed DMA expands to 1440B.\n+    device.sub.begin(hi.view())\n+        .fetch::<m![H / 32 % 15], m![H % 32]>()\n+        .collect::<m![H / 32 % 15], m![H % 32]>()\n+        .commit_trim::<m![H % 32]>()\n+        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(0));\n+    // Exact 480B stream copy; padded term-view typed DMA expands to 1440B.\n+    device.sub.begin(lo.view())\n+        .fetch::<m![H / 32 % 15], m![H % 32]>()\n+        .collect::<m![H / 32 % 15], m![H % 32]>()\n+        .commit_trim::<m![H % 32]>()\n+        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(1));\n+    // Exact 480B stream copy; padded term-view typed DMA expands to 1440B.\n+    device.sub.begin(third.view())\n+        .fetch::<m![H / 32 % 15], m![H % 32]>()\n+        .collect::<m![H / 32 % 15], m![H % 32]>()\n+        .commit_trim::<m![H % 32]>()\n+        .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2));\n     (broadcast_ffn_quantized(device, &packed), scale.to_dm(&mut device.tdma))\n }\n"
+}
