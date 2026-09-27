@@ -1,0 +1,126 @@
+{
+  "scope": "Read-only source/evidence review and score arithmetic; no new kernel, compilation, NPU measurement or submission.",
+  "captured_at_utc": "2026-09-27T07:34:18.856160+00:00",
+  "snapshot": "docs/research/leaderboard-e131-followup-20260927.json",
+  "snapshot_sha256": "41a86284a7852956b03cc5e88e0d1f7989f3aba697016208e4222b1950062890",
+  "score_formula": "S_new = S_official / ((1-r_QKV)*(1-r_O)*(1-r_FFN))^(1/3)",
+  "reference": {
+    "rank": 53,
+    "teamName": "BEEF",
+    "submissionId": "2026-09-26-19-57-17-982-bc21122c",
+    "submissionCode": "bc21122c",
+    "qkvCycles": 103186,
+    "attentionCycles": 49155,
+    "ffnCycles": 330948,
+    "cycles": {
+      "ops::sliding_project_qkv": 103186,
+      "ops::sliding_attention_output": 49155,
+      "ops::decoder_feedforward": 330948
+    },
+    "score": 6.069944891439935,
+    "skeleton": "0.8.1"
+  },
+  "current_runtime": "E128; official reference remains E127. Do not present Arena improvement as an official updated score.",
+  "targets": [
+    {
+      "rank": 20,
+      "team": "RTOSLab",
+      "score": 8.175121986385573,
+      "ffn_cycles_if_QKV_O_unchanged": 135466.3034335364,
+      "whole_ffn_reduction_percent_if_QKV_O_unchanged": 59.06719380883511,
+      "equal_cycle_reduction_percent_each_kernel": 25.75101751938983,
+      "cycle_reductions_to_match_this_team_percent": {
+        "qkvCycles": 24.83573352974241,
+        "attentionCycles": 18.65323975180552,
+        "ffnCycles": 33.054739717417846
+      }
+    },
+    {
+      "rank": 10,
+      "team": "SAL",
+      "score": 8.87270726705224,
+      "ffn_cycles_if_QKV_O_unchanged": 105960.87733794808,
+      "whole_ffn_reduction_percent_if_QKV_O_unchanged": 67.98262043041564,
+      "equal_cycle_reduction_percent_each_kernel": 31.588581604850585,
+      "cycle_reductions_to_match_this_team_percent": {
+        "qkvCycles": 29.288857015486602,
+        "attentionCycles": 26.113315023903983,
+        "ffnCycles": 38.71816720451551
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "cycle_reductions": {
+        "QKV": 0,
+        "O": 0,
+        "whole_FFN": 0.1
+      },
+      "score": 6.286910025343578,
+      "hypothetical_rank_with_other_snapshot_scores_fixed": 49
+    },
+    {
+      "cycle_reductions": {
+        "QKV": 0,
+        "O": 0,
+        "whole_FFN": 0.2
+      },
+      "score": 6.5386499203500055,
+      "hypothetical_rank_with_other_snapshot_scores_fixed": 46
+    },
+    {
+      "cycle_reductions": {
+        "QKV": 0,
+        "O": 0,
+        "whole_FFN": 0.3
+      },
+      "score": 6.836262568393722,
+      "hypothetical_rank_with_other_snapshot_scores_fixed": 41
+    },
+    {
+      "cycle_reductions": {
+        "QKV": 0,
+        "O": 0,
+        "whole_FFN": 0.5
+      },
+      "score": 7.647651340427024,
+      "hypothetical_rank_with_other_snapshot_scores_fixed": 35
+    },
+    {
+      "cycle_reductions": {
+        "QKV": 0.25,
+        "O": 0.25,
+        "whole_FFN": 0.35
+      },
+      "score": 8.488666152017412,
+      "hypothetical_rank_with_other_snapshot_scores_fixed": 17
+    },
+    {
+      "cycle_reductions": {
+        "QKV": 0.3,
+        "O": 0.3,
+        "whole_FFN": 0.35
+      },
+      "score": 8.888222870958211,
+      "hypothetical_rank_with_other_snapshot_scores_fixed": 10
+    }
+  ],
+  "e131_break_even": {
+    "candidate_cycles": 348871,
+    "contemporary_control_bracket": 328478.5,
+    "cycles_to_remove_for_equal": 20392.5,
+    "candidate_time_reduction_percent_for_equal": 5.845283786843847,
+    "candidate_time_reduction_percent_for_5pct_whole_gain": 10.553019597501656
+  },
+  "classification": {
+    "frozen_e131_variants": "Not adopted because both whole-kernel screens regressed. Row2/Row4+tail are one family, each measured once.",
+    "direct_fp4_family": "Not rejected. A supported changed copy/setup/dependency mechanism can justify reopening.",
+    "causal_evidence": "Actual graph/source proves introduced copies and setup counts; hardware critical-path attribution is unmeasured. No additive stage-duration savings claim.",
+    "down_priority": "Feasible research hypothesis, not a demonstrated ranking solution. Include post-GeGLU quantization, assembly/broadcast, native terms and F32 partial/reduction costs.",
+    "next_e131_diagnostic": "Compare frozen E128 and E131v2 whole-image internal NPU spans using the existing E104 profiling method: packed/scale copies, table preparations, input readiness, direct streams and final consumer readiness. Preserve code/data and verify marker correspondence; compare source controls and account for trace effects. Reopen only on a concrete implementable change supported by dependency evidence, then measure the complete kernel again.",
+    "score_strategy": "QKV/O/FFN have equal geometric-mean weight. FFN-only must reduce total FFN cycles by the target percentages, not just the down stage."
+  },
+  "validation": {
+    "all_leaderboard_rows_recomputed": 69
+  }
+}
