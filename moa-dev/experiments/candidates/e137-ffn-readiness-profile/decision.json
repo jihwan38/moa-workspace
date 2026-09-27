@@ -1,0 +1,40 @@
+{
+  "id": "E139",
+  "classification": "current-image bounded diagnostic, not optimization candidate",
+  "runtime_changed": false,
+  "official_submission": false,
+  "verification": {
+    "path": "moa-dev/experiments/candidates/e137-ffn-readiness-profile/verification.json",
+    "bytes": 10014,
+    "sha256": "d91378cc5dcc0e3cabcb8ccabf2140a13fe9e3297603336e93cd6770269ec080"
+  },
+  "summary": {
+    "path": "moa-dev/experiments/candidates/e137-ffn-readiness-profile/analysis-summary.json",
+    "bytes": 11964,
+    "sha256": "ad74ffa15e5c5b1689b721c71b4fa49a9da2c280f2a2fcfc14fa089fe5004939"
+  },
+  "adoption": {
+    "decision": "not_applicable",
+    "reason": "Only host/profile-name metadata changed; runtime remains adopted E137."
+  },
+  "parameter_tuning": {
+    "decision": "stop_diagnostic_after_one_allocation",
+    "reason": "36comparisons and full137-node mapping passed; no source parameters or arbitrary E135 repairs."
+  },
+  "major_research": {
+    "decision": "consumer_local_down_quantization_is_supported_for_root_layout_review",
+    "evidence": "Down weight/table/coefficient are ready before native; down TRF ends1cycle before native in every run/cluster. GeGLU\u2192TRF elapsed median36680cycles. Check full original L7680 percluster scale, final L1920 consumer mapping, weighted three-term restoration,7680B residual VRF plus scale/coeff lifetime and added transfer/storage work before implementation.",
+    "boundary": "36680/314470.5 is about11.7% of current FFN, a same-prefix readiness window rather than an expected gain. It is not a complete solution to the roughly31% whole-FFN reduction target. Changed scheduling can move downstream scale/TDMA work and overlap."
+  },
+  "other_material_boundaries": [
+    "Up input/TRF preparation is also on readiness path: first native follows TRF by1cycle despite decoded weights being ready49655cycles earlier.",
+    "Gate gather begins after last gate native but overlaps the long down-weight transfer; gather output becomes ready678cycles after weight end median. Its roughly37k observed envelope is not an independent37k saving or a pure bus-stall attribution.",
+    "Down retains F32 partial write/read and five scale/reduction streams; moving native earlier must account for down blockscale ingress and downstream scheduling."
+  ],
+  "forbidden_inferences": [
+    "Adding overlapping spans into a speedup",
+    "Treating marker wait-inclusive duration as pure execution/bus service time",
+    "Inferring every native-down or independent-decode family is exhausted",
+    "Claiming local-down quantization alone reaches the ranking target"
+  ]
+}
