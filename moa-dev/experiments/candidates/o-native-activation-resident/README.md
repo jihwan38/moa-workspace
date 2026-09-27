@@ -5,7 +5,7 @@ Root adopted frozen native-v3 as `baseline-e137` / `334a7059a82252a310436c6d7e02
 [baseline recipe](../../../../baseline/e137.json). Three independent paired whole-O
 reductions are14.1496%,12.2978%,12.2654%; median12.2978%. Standard9 inputs,
 raw9 cases/34560 outputs and original full-O case7/3840 outputs pass. QKV/FFN
-images preserve E134. Stop parameter tuning. Official grading is recorded separately.
+images preserve E134. Stop parameter tuning. Official grading completed as `330d5595`: score6.4427554, rank46/69; [official record](../../../../docs/experiments/e137-official-submit-20260927.json). Arena and official measurements remain separate.
 The following snapshots preserve their status at creation; they are not later adoption decisions.
 
 # E137 — activation-resident native O

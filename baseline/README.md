@@ -18,8 +18,11 @@ Paired 감소율 중앙값은 **12.2978%**이며 job 중앙값의 집계는49,12
 원본 BF16 입력복제는16→256KiB로 늘었고 local term저장·TRF load도 남는다.
 이 추가 비용을 포함한 전체 실측으로 채택했다. 추가 파라미터 튜닝은 종료한다.
 
-공식 제출 결과는 [현재 작업](../docs/experiments/current-work.md)의 최신 기록을 따른다.
-Arena 반복 결과를 공식 점수·순위로 바꾸어 적지 않는다. E134와 이전 source tag·실패 기록은 보존한다.
+공식 제출 [`330d5595`](../docs/experiments/e137-official-submit-20260927.json)은
+**6.4427554× / 46/69위**로 완료했다. 직전 E134 대비 점수+4.9214%,
+순위51→46위다. [리더보드 원본](../docs/experiments/leaderboard-e137-20260927.json).
+공식 O는43,026cycles다. 동일 QKV/FFN image의 실행 변동을 O최적화 효과로 세지 않는다.
+Arena 반복과 공식 점수·순위는 별도 기록이며 E134와 이전 source tag·실패 기록을 보존한다.
 
 | 찾는 내용 | 파일 |
 |---|---|
