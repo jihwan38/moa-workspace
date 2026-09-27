@@ -1,24 +1,27 @@
-# 2026-09-27 E138 회귀 원인 계측·E140 FFN 입력 준비 수정
+# 2026-09-27 E138 입력 전달 수정까지 미채택·E140 FFN 실측 준비
 
 Runtime/control은 E137이다. E138 whole111168은45비교 PASS였지만
 QKV104068→117376→103860으로 **12.9006% 회귀**했다.
 원래 wholeQKV 경계2사례와 raw Q/K/V9사례73728개 출력도 통과했다.
-이 버전은 미채택이며, frozen image의 한정 계측으로 입력 복제/양자화와
-weight/native/head 비용을 구분해 구체적인 routing 수정 여부를 결정한다.
-[결과](../../moa-dev/experiments/candidates/qkv-native-consumer-local/README.md).
+Names-only계측111237에서consumer입력DMA26638cycles와TRF직후native시작을
+확인하여 seed+BF16ring32 전달수정v2를실행했다. Whole111314는45PASS지만
+QKV103603→108007→103895로 **4.1041% 회귀**였다.
+개선된실험판과기존채택본대비이득을구분한다. 둘다미채택이며선택한routing수정은중단한다.
+V2추가경계도구는준비만했고compile/NPU미실행이다.
+[전체결과](../../moa-dev/experiments/candidates/qkv-native-consumer-local/README.md).
 
 E139 job111124는현재 FFN137개 operation·36비교 검증을 완료했다.
-GeGLU→downTRF36680cycles, 실제 native는모든 run/cluster에서TRF완료1cycle뒤
-시작했다. 이 시간창은wholeFFN약11.7%이며 예상절감량이 아니다.
-Gate gather/downweight의 중첩을 추가절감량으로 합하지 않는다.
+GeGLU→downTRF36680cycles, 실제native는모든run/cluster에서TRF완료1cycle뒤
+시작했다. 이시간창은wholeFFN약11.7%이며예상절감량이아니다.
+Gate gather/downweight의중첩을추가절감량으로합하지않는다.
 [현재 FFN 계측](../../moa-dev/experiments/candidates/e137-ffn-readiness-profile/README.md).
 
-[선택한 E140](../research/e140-down-local-selection-20260927.md)은 기존canonical
-BF16 gather를 유지하고K1920소비위치에서같은cluster7680scale/K4max와
-weighted3항을준비하여leader/termring을없애는경로다.
-`opt/down-native-consumer-local` 실제시작`e35ea35`, source E137334a705와
-성능control baseline/e137.json을분리했다. 늘어난BF16복제·양자화·복사·F32저장과
-7680B residual/후단VRF배치를전체compile과NPU로확인한다.
+[선택한 E140](../research/e140-down-local-selection-20260927.md)은기존canonical
+BF16gather뒤K1920소비위치에서같은cluster7680scale/K4max와weighted3항을
+준비하여leader/termring을없애는경로다. 실제시작e35ea35, sourceE137334a705와
+성능control baseline/e137.json을분리했다. 첫VRF할당실패와두부분view표현실패를
+보존하고, local-v4에서잔차준비만4×480으로나눈flatouterchunk표현이exact통과했다.
+전체실측은아직없다. 단순K2up/gate변형은C15실측회귀와중복이므로선정하지않았다.
 아직새이득·공식제출·순위변화는없다. 아래는당시작업기록이다.
 
 # 2026-09-27 E138 QKV 구현·E139 현재 FFN 계측 진행
