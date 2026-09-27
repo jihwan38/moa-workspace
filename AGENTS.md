@@ -153,6 +153,21 @@
   QKV's H3840, and direct Sub Switch-to-TRF still lacks a successful lowering
   example after E55's bitmap failure. Revalidate producer/consumer ownership
   and whole-path costs before transferring this method to another kernel.
+- E138 subsequently passed standard whole QKV, original cancellation/cache and
+  nine raw Q/K/V cases, but its K4/H960 consumer-local native path regressed
+  12.9006% against contemporary E137 controls. Correctness success does not
+  validate this cost structure. One frozen readiness diagnostic may select a
+  supported input-routing repair; no arbitrary H/tile/term sweep is selected.
+  E139 measured the actual adopted FFN: GeGLU-to-down-TRF median36680cycles,
+  followed by native1cycle later in every run/cluster. This supports E140's
+  consumer-local weighted-down preparation review. Keep canonical BF16 gather
+  before K1920 replication to avoid direct small-fragment ingress, preserve
+  same-cluster K7680 scale via K4 Max and E134 arithmetic, and include added
+  local quantization, copies, F32 residual storage and actual VRF lifetime.
+  The measured readiness window is about11.7% of FFN, not a promised saving;
+  do not add the overlapping gate-gather/down-weight envelope to it or treat
+  this repair as a complete30th-place solution. Runtime remains E137 until a
+  new complete path passes performance and changed-boundary adoption checks.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

@@ -36,7 +36,11 @@ stripes are not a promise of512 physical DMA packets.
 
 Added costs include1.875MiB BF16 consumer replication, quantization in all512
 slices, K4 Max, local residual/scale preparation, local2.8125MiB E5 term storage
-and retained TRF loads. Local F32 residual is7680B; scalar scale32B and native
+and retained TRF loads. Raw term writes2.8125MiB and packed-copy writes2.8125MiB
+are distinct, with the latter reading the same amount. Local restored-sum F32
+DM writes3.75MiB; each residual VRF load reads3.75MiB. These replicated costs
+replace tiny source-side quantization and must be included in whole timing.
+Local F32 residual is7680B; scalar scale32B and native
 term coefficients96B bring their nominal total to7808B. The later block-scale
 VRF is5760B, not96B. Existing up/gate and post-RMS VRFs must be included in the
 actual allocation/lifetime audit; nominal capacity alone proves nothing.
