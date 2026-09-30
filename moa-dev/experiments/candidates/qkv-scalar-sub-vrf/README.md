@@ -1,5 +1,9 @@
 # E147: one-pass scale and Sub scalar distribution to VRF
 
+**Adopted E147**, source/tag `fb45202` / `baseline-e147`. Three paired QKV changes are −1.162207%, −2.262397%, −0.796883%; median **−1.162207%**. Every candidate is faster than both contemporary E144 controls. Standard9, raw9/73728 exact BF16 (signed zero equivalent), full2/16384 original-tolerance outputs and8380416 untouched cache checks pass. O/FFN images remain E144. See [final independent review](adoption/independent-final-review.md) and [adoption decision](adoption-decision.json). Official submission is pending; no rank gain is claimed. Further parameter tuning stops.
+
+The following selection/preparation record predates measurement.
+
 Actual start `2bdbe9137b999176dabf510cfe517267cbea7298`, branch `opt/qkv-scalar-sub-vrf`. Source E1443586 is explicit and performance control is separately `baseline/e144.json`; no rejected E146 staged weight source is inherited.
 
 Current H960 BF16 consumer shard -> one Main exponent mask/Mul2^-7/H960 Max/Clip2^-126/K4 Max -> original leader scale DM. Sub fetch32B -> CustomBroadcast ring4 ->32B VRF at anonymous Group64,4 -> full distribution relabel to named K4 -> unchanged four-term quantizer. The original constant coefficient builders/compact16B pack -> Sub fetch16B/ring4/collect32B -> VRF, returned directly to the original three native projections. Original common-scale canonical-head DMA remains. Weight30MiB full-H ingress, native Term/K4 arithmetic, gather/first BF16/head/cache and O/FFN remain E144.

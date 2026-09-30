@@ -277,6 +277,17 @@
   original whole weight stages. Verify finite-BF16 scale equivalence, actual
   ring4 bitmap/valid masks/VRF lifetimes and full cost; D145 readiness is not a
   guaranteed saving or proof of exclusive TDMA causality.
+- E147 subsequently adopted one-Main finite-BF16 scale and Sub ring4 direct-VRF
+  scalar/coefficient supply after three paired improvements1.162207/2.262397/
+  0.796883percent (median1.162207), nine standard inputs, raw73728 exact BF16
+  values and full16384 tolerance/cache8380416 checks. All45 other source files
+  and O/FFN images match E144; no E146 staging is included. Include the new
+  shared16KiB bitmap DRAM load as well as removed24KiB scalar replication and
+  increased pointwise Mul work. CPU scale equivalence covers65280 finite BF16
+  patterns, not arbitrary NPU/model correctness. Stop this parameter series;
+  modest reproducible gains are adopted independently of5percent tuning limits.
+  E146 remains unadopted because its first gain failed to reproduce. Neither
+  the score gap nor residual weight bottlenecks are solved by this small gain.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or
