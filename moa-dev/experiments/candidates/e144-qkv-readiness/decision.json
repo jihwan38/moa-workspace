@@ -1,0 +1,106 @@
+{
+  "id": "D-E145",
+  "status": "bounded_diagnostic_complete",
+  "actual_start_commit": "08d9bb1597456c7fe7413229358d6d5077cdd7ba",
+  "source_recipe": "baseline/e144.json",
+  "performance_control_recipe": "baseline/e142.json",
+  "new_kernel_variant": false,
+  "official_submission": false,
+  "job": 136924,
+  "correctness_comparisons_passed": 81,
+  "evidence": {
+    "plan.json": {
+      "path": "moa-dev/experiments/candidates/e144-qkv-readiness/plan.json",
+      "bytes": 2084,
+      "sha256": "ab2430c8b1e1f2704a1f9c8fef881dbbb602d27c26cddeacf90d4664705bb3f1"
+    },
+    "source-image-binding.json": {
+      "path": "moa-dev/experiments/candidates/e144-qkv-readiness/source-image-binding.json",
+      "bytes": 20610,
+      "sha256": "b95c47559ff8cea1cd8d4fe9d86995e66cd056519eb020a40f4857f1a1276166"
+    },
+    "package-profile-v1.json": {
+      "path": "moa-dev/experiments/candidates/e144-qkv-readiness/package-profile-v1.json",
+      "bytes": 43365,
+      "sha256": "230e4fcdbde64f37fe7dd58556ea97ab0040e95d73ac55396c7835923f26f40f"
+    },
+    "profile-analysis.json": {
+      "path": "moa-dev/experiments/candidates/e144-qkv-readiness/profile-analysis.json",
+      "bytes": 870082,
+      "sha256": "016402b8d0f5cebd7fd3b5dc2304a69fb860794b6676dfd1e9d09148723e75ef"
+    },
+    "readiness-summary.json": {
+      "path": "moa-dev/experiments/candidates/e144-qkv-readiness/readiness-summary.json",
+      "bytes": 14121,
+      "sha256": "5dc43c9637c64d03c6b243852eb53afb1d560fa01a95fedbce9c6cf3dd7fe642"
+    },
+    "verification.json": {
+      "path": "moa-dev/experiments/candidates/e144-qkv-readiness/verification.json",
+      "bytes": 18951,
+      "sha256": "598195300b33395fd2fad18fa593b7c5c150f696b462375395506b4547dd9346"
+    },
+    "independent-review.json": {
+      "path": "moa-dev/experiments/candidates/e144-qkv-readiness/independent-review.json",
+      "bytes": 6971,
+      "sha256": "61cb1f746a96ca249800011f7148ff6f0b56eb693a25d4bf0cfdc528ba6fb40d"
+    }
+  },
+  "observations": {
+    "v_native_trf_ready_gap_all_six": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "q_native_weight_ready_gap_all_six": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "k_native_weight_ready_gap_all_six": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "pre_rms_to_trf_same_observation_median": 34300.0,
+    "scale_to_quant_vrf_same_observation_median": 9914.0,
+    "last_native_to_task_end_same_observation_median": 11128.0,
+    "quant_scale_dma_begins_while_v_weight_active": {
+      "median": -5976.0,
+      "min": -6524,
+      "max": -4243,
+      "samples": [
+        -4243,
+        -5236,
+        -5824,
+        -6128,
+        -6524,
+        -6444
+      ]
+    },
+    "scope": "Readiness/dependency observations. Marker envelopes include waits and overlap; not isolated bus utilization or freely reclaimable cycles."
+  },
+  "decisions": {
+    "adoption": {
+      "status": "current_E144_unchanged",
+      "reason": "Read-only names-only diagnostic; current E144 was already independently adopted. No new candidate adoption or official submission."
+    },
+    "further_tuning": {
+      "status": "stop_fixed_diagnostic",
+      "reason": "One authorized allocation answered the selected readiness question. No repeated profile, source reorder, tile, term or stage sweep."
+    },
+    "major_research": {
+      "status": "root_select_supported_complete_path_using_actual_readiness",
+      "selection_evidence": "First V waits activation TRF; later Q/K still wait own weight completion. Investigate actual scale transfer/VRF route or explicit weight stage producer+consumer with all added setup/assembly costs; no implementation selected by this record.",
+      "constraints": "Preserve fourterm precision, Term/K4 F32 order, firstBF16 scale, head/cache and unchanged public inputs; remeasure complete path. Removing one readiness window does not remove the other or guarantee net gain."
+    }
+  }
+}
