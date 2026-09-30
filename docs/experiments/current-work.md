@@ -1,6 +1,8 @@
-# 2026-10-01 E147 채택 완료·공식 제출 준비
+# 2026-10-01 E147 채택·공식 aabfb8c6 실행 중
 
-현재 runtime은 **E147 / `baseline-e147` / `fb45202`**다. E144 full-H weight/native/
+현재 runtime은 **E147 / `baseline-e147` / `fb45202`**다. 공식 제출 `aabfb8c6`은
+23파일 접수와 SDK0.8.1 계약 검사를 통과하고 서버 빌드 중이다.
+[공식 기록](e147-official-submit-20261001.json). E144 full-H weight/native/
 head/cache를 유지하고 scale 생산3 Main→1 Main, scalar·계수 Sub ring4→VRF를 채택했다.
 작은 복제 TDMA24KiB가 사라지는 대신 shared bitmap16KiB와 Sub 설정 비용이 포함된다.
 E144 O/FFN 이미지는 byte-identical이다.
