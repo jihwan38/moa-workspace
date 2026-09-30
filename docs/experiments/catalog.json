@@ -2191,6 +2191,35 @@
         "moa-dev/experiments/candidates/qkv-fullh-weight-switch/source-build-audit.json",
         "docs/experiments/e144-official-submit-20260930.json"
       ]
+    },
+    {
+      "id": "E146",
+      "method": "Full-H Q/K weight의 두 단계 적재·native 소비",
+      "kernel": "QKV",
+      "category": "regressed",
+      "report": "moa-dev/experiments/candidates/qkv-qk-weight-stages/adoption/e146-adoption-performance.json",
+      "reference": "moa-dev/experiments/candidates/qkv-qk-weight-stages/adoption/e146-e144-paired-control.json",
+      "reference_label": "E144 동시 앞뒤",
+      "note": "미채택. 3회 paired−1.494967/+0.710594/+0.406876%, 중앙+0.406876% 회귀로 첫 양성 미재현. 표 aggregate−0.855908%는 paired 판정을 대체하지 않음. 표준3입력 반복과 raw73728exact/full16384/cache8380416 PASS; extra6 빌드만·미실행. v1–v3 compiler실패 및 v4 상수bool tensorPhi 제거 수리 보존, row/stage튜닝중단.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-qk-weight-stages/decision.json",
+        "moa-dev/experiments/candidates/qkv-qk-weight-stages/adoption/final-no-adoption-review.json"
+      ]
+    },
+    {
+      "id": "E147",
+      "method": "한 Main scale 생산 + Sub ring4의 scalar·계수 VRF 직접 공급",
+      "kernel": "QKV",
+      "category": "improved",
+      "report": "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption/e147-adoption-performance.json",
+      "reference": "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption/e147-e144-paired-control.json",
+      "reference_label": "E144 동시 앞뒤",
+      "note": "E147 채택. 세 paired−1.162207/−2.262397/−0.796883%, 중앙−1.162207%(표 aggregate−1.446890%). 표준9입력/raw73728exact/full16384tolerance/cache8380416 PASS; finiteBF16 scaleCPU65280동일. 24KiB scalar복제대신16KiB bitmap적재·Sub비용 포함. O/FFN이미지 E144동일, 추가튜닝중단; 공식제출예정.",
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption-decision.json",
+        "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption/independent-final-review.json",
+        "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/source-build-audit.json"
+      ]
     }
   ]
 }

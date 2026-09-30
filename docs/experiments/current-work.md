@@ -1,3 +1,43 @@
+# 2026-10-01 E147 채택 완료·공식 제출 준비
+
+현재 runtime은 **E147 / `baseline-e147` / `fb45202`**다. E144 full-H weight/native/
+head/cache를 유지하고 scale 생산3 Main→1 Main, scalar·계수 Sub ring4→VRF를 채택했다.
+작은 복제 TDMA24KiB가 사라지는 대신 shared bitmap16KiB와 Sub 설정 비용이 포함된다.
+E144 O/FFN 이미지는 byte-identical이다.
+
+| Arena | E144 앞뒤 중앙 | E147 QKV | 변화 |
+|---|---:|---:|---:|
+|137097|95594|94483|−1.162207%|
+|137106|96800|94610|−2.262397%|
+|137115|95999|95234|−0.796883%|
+
+Paired 감소 중앙 **1.162207%**이며 각 후보는 앞뒤control 양쪽보다 빨랐다. 표준9입력,
+raw9의73728 exact BF16(±0동등), full2의16384 원허용오차 출력/cache8380416 및
+실제source46·image·업로드 연결 검증이 통과했다. CPU finiteBF16 scale65280개 동일성은
+이 scalar에 한정되며 arbitrary NPU/model 보장이 아니다.
+[최종 gate](../../moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption/independent-final-review.json) ·
+[채택 결정](../../moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption-decision.json).
+
+E146은 첫 양성 뒤 독립 반복이 부호를 바꿔 paired중앙+0.406876%로 미채택했다.
+양성5%미만만으로 버린 것이 아니다. E147은 같은 작은 이득이 반복되어 채택한다.
+추가파라미터튜닝은 중단한다. 공식실행·순위는 아직 대기이며 이 결과를30위권 도달로
+표현하지 않는다. 완료 후보 branch와 tag, 원시 실패/실측 기록은 보존한다. 아래는 당시 상태다.
+
+# 2026-10-01 E147 scalar 생산·Sub→VRF 직접 배포 검증 진행
+
+E146 완료 기록을 main `2bdbe9137b999176dabf510cfe517267cbea7298`에 병합한 뒤
+`opt/qkv-scalar-sub-vrf` branch를 시작했다. Source recipe는 E144 `3586c41`,
+성능 control은 별도 `baseline/e144.json`이며 미채택 E146 weight staging은 포함하지 않는다.
+`qkv-scalar-sub-vrf/scalar-v1`은 처음 exact compile을 통과했다(static48436; NPU 성능 아님).
+
+Finite BF16 exponent map/Mul→H960 Max→floor→K4 Max로 기존 세 Main scale 계산을
+하나로 합친다. Scale32B와 packed coefficient16B를 Sub ring4 방송→32B VRF로
+직접 보내며 기존 소비자 DM용 TDMA를 제거한다. 원래 head용 scale DMA와 full weight
+/native/Term/K4/firstBF16/head/cache/O/FFN은 유지한다. Main 두 시작 및 max 중간값을
+제거하지만 입력491520개의 곱셈 및 Sub Switch/bitmap 설정을 포함한 비용을 비교한다.
+CPU finite BF16 65280개 scale 식 일치와 실제 graph/register gate, 원본 전체 QKV
+대조실험을 구분한다. 아직 E147 NPU 결과/채택/공식 제출은 없다. 아래 기록은 당시 상태다.
+
 # 2026-10-01 E146 완료·미채택, scalar 공급 변경으로 진행
 
 E146 v4는 세 independent Arena137020/137025/137030에서 각각45비교를 통과했지만,

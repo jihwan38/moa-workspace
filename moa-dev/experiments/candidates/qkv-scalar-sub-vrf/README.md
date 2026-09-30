@@ -1,0 +1,15 @@
+# E147: one-pass scale and Sub scalar distribution to VRF
+
+**Adopted E147**, source/tag `fb45202` / `baseline-e147`. Three paired QKV changes are −1.162207%, −2.262397%, −0.796883%; median **−1.162207%**. Every candidate is faster than both contemporary E144 controls. Standard9, raw9/73728 exact BF16 (signed zero equivalent), full2/16384 original-tolerance outputs and8380416 untouched cache checks pass. O/FFN images remain E144. See [final independent review](adoption/independent-final-review.md) and [adoption decision](adoption-decision.json). Official submission is pending; no rank gain is claimed. Further parameter tuning stops.
+
+The following selection/preparation record predates measurement.
+
+Actual start `2bdbe9137b999176dabf510cfe517267cbea7298`, branch `opt/qkv-scalar-sub-vrf`. Source E1443586 is explicit and performance control is separately `baseline/e144.json`; no rejected E146 staged weight source is inherited.
+
+Current H960 BF16 consumer shard -> one Main exponent mask/Mul2^-7/H960 Max/Clip2^-126/K4 Max -> original leader scale DM. Sub fetch32B -> CustomBroadcast ring4 ->32B VRF at anonymous Group64,4 -> full distribution relabel to named K4 -> unchanged four-term quantizer. The original constant coefficient builders/compact16B pack -> Sub fetch16B/ring4/collect32B -> VRF, returned directly to the original three native projections. Original common-scale canonical-head DMA remains. Weight30MiB full-H ingress, native Term/K4 arithmetic, gather/first BF16/head/cache and O/FFN remain E144.
+
+Removes two Main starts and two max intermediates. Replaces scalar TDMA16KiB encoded (2KiB useful repeated values) and coefficients8KiB encoded/useful with Sub distribution. Two Sub Switch setups/bitmaps remain/add costs; VRF32B/slice remains. Pointwise Mul now runs on491520 values rather than128 scalars. Actual descriptors/bitmaps/masks/register lifetime and whole performance must be measured. D145 readiness windows include waits and are not additive savings. CPU finite-BF16 proof is separate from NPU arithmetic correctness.
+
+Adoption pending exact gate and contemporary whole screen. Positive freezes for bounded full validation regardless of5%. Tuning is one concrete composition with supported contract repairs only. Research changes scalar producer/consumer and transfer ownership, not precision or weight tiling. No compile/NPU result exists at preparation.
+
+Actual compile follow-up: scalar-v1 succeeds, static48436, standard host succeeds with original O/FFN images. The two Sub broadcasts share one new bitmap configuration DMA with16KiB encoded DRAM→SRAM payload. This added control load is separate from the removed24KiB encoded SRAM→SRAM scalar/coeff replication; it is not a cycle subtraction. A source-independent bitmap load can be scheduled differently from data-dependent scalar transfer, but whole NPU results remain required.

@@ -1,0 +1,98 @@
+--- /home/jihwan38/moa-qkv-scalar-sub-vrf/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs	2026-10-01 00:43:59.289190121 +0900
++++ /home/jihwan38/moa-qkv-scalar-sub-vrf/moa-dev/experiments/candidates/qkv-scalar-sub-vrf/scalar-v1/projection.rs	2026-10-01 00:47:05.072204537 +0900
+@@ -15,48 +15,32 @@
+     x: &DmTensor<bf16, Chip, m![2], QkvColumns, m![H % 960]>,
+ ) -> (DmTensor<f8e4m3, Chip, QkvCluster, QkvColumns, m![QkvTerm, H % 960]>,
+       DmTensor<f32, Chip, Cluster, QkvHeadSlices, m![1 # 8]>,
+-      DmTensor<f32, Chip, QkvCluster, QkvColumns, m![QkvTerm]>) {
+-    // Each (cluster,row-group) receives identical complete H3840 BF16 input.
+-    // Its four-column maximum is the same global amax in all128 groups.
+-    // Local floor commutes with max across the four valid 960-value shards.
+-    let local_amax: DmTensor<f32, Chip, m![2], QkvColumns, m![1 # 8]> = device
++      VrfTensor<f32, Chip, QkvCluster, QkvColumns, m![QkvTerm # 8]>) {
++    // Finite BF16 scale identity: the positive exponent map is monotone, so
++    // mapping before H960/K4 Max matches max(abs(x), 2^-119) then pow2/128.
++    // The floor after local Max also preserves tiny/zero/subnormal inputs.
++    let scale: DmTensor<f32, Chip, m![2], QkvRows, m![1 # 8]> = device
+         .main.begin(x.view())
+         .fetch::<m![H / 16 % 60], m![H % 16]>().fetch_cast::<f32>()
+         .collect::<m![H / 8 % 120], m![H % 8]>()
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+         .vector_reinterpret::<i32>()
+-        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)
++        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)
+         .vector_reinterpret::<f32>()
+         .vector_narrow_split::<m![H / 4 % 240], m![H % 4]>()
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0078125f32)
+         .vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)
+         .vector_widen_pad::<m![1 # 8]>()
+-        .vector_clip(ClipBinaryOpF32::Max, 1.504632769052528e-36f32)
+-        .vector_final().commit_trim::<m![1 # 8]>().commit();
+-    // Preserve QkvGroup64 row-group ownership and reduce only the four K columns.
+-    // Exactly q=0 is initialized in each group; padded q slots stay invalid.
+-    let amax: DmTensor<f32, Chip, m![2], QkvRows, m![1 # 8]> = device
+-        .main.begin(local_amax.view())
+-        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+-        .vector_init()
++        .vector_clip(ClipBinaryOpF32::Max, 1.1754943508222875e-38f32)
+         .vector_inter_slice_reduce::<QkvRows, m![1]>(InterSliceReduceOpF32::Max)
+         .vector_final().commit_trim::<m![1 # 8]>().commit();
+-    // Exponent mask produces 2^floor(log2(amax)); floor 2^-119 guarantees
+-    // scale >= 2^-126, and finite BF16 inputs imply scale <= 2^120.
+-    let scale: DmTensor<f32, Chip, m![2], QkvRows, m![1 # 8]> = device
+-        .main.begin(amax.view())
+-        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_reinterpret::<i32>()
+-        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)
+-        .vector_reinterpret::<f32>()
+-        .vector_narrow_trim::<m![1 # 4]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0078125f32)
+-        .vector_widen_pad::<m![1 # 8]>().vector_final()
+-        .commit_trim::<m![1 # 8]>().commit();
+-    let quant_scale: DmTensor<f32, Chip, m![2], QkvColumns, m![1 # 8]> = scale.to_dm(&mut device.tdma);
+-    let scale_vrf: VrfTensor<f32, Chip, m![2], QkvColumns, m![1 # 8]> = device
+-        .sub.begin(quant_scale.view())
+-        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
++    // Physical output slice4g+q receives leader4g. Name only actual copies:
++    // anonymous broadcast Slice4 -> named K4, preserving each VRF element.
++    let scale_vrf: VrfTensor<f32, Chip, m![2], m![QkvGroup, 4], m![1 # 8]> = device.sub
++        .begin(scale.view()).fetch::<m![1], m![1 # 8]>()
++        .switch::<m![QkvGroup, 4], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 4 })
++        .collect::<m![1], m![1 # 8]>().to_vrf();
++    let scale_vrf: VrfTensor<f32, Chip, m![2], QkvColumns, m![1 # 8]> = unsafe { scale_vrf.reshape() };
+     let mut packed: DmTensor<f8e4m3, Chip, m![2], QkvColumns, m![QkvTerm, H % 960]> = DmTensor::new();
+     device.main.begin(x.view())
+         .fetch::<m![H / 16 % 60], m![H % 16]>().fetch_cast::<f32>()
+@@ -167,6 +151,12 @@
+         .collect::<m![QkvTerm], m![1 # 8]>()
+         .transpose::<m![QkvTerm / 2], m![QkvTerm % 2 # 8]>()
+         .commit_trim::<m![QkvTerm % 2]>().commit();
++    // Preserve compact Term4 source fetch (16B), then collect into padded32B VRF.
++    let coefficients: VrfTensor<f32, Chip, m![2], m![QkvGroup, 4], m![QkvTerm # 8]> = device.sub
++        .begin(coefficients.view()).fetch::<m![1], m![QkvTerm]>()
++        .switch::<m![QkvGroup, 4], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 4 })
++        .collect::<m![1], m![QkvTerm # 8]>().to_vrf();
++    let coefficients: VrfTensor<f32, Chip, QkvCluster, QkvColumns, m![QkvTerm # 8]> = unsafe { coefficients.reshape() };
+     // Input DMA gives each (c,g) the identical3840 finite BF16 values x[960q+u].
+     // K4 Max/floor/exponentmask/pow2scale are deterministic, so all128 scalars
+     // are equal. Relabel only the full allocation Hgroup axis as anonymous64;
+@@ -175,7 +165,7 @@
+     // Packed data is already in the consuming row/K slices. The cluster relabel
+     // m![2] -> Dummy2 changes no physical position or byte, and makes no DMA.
+     let packed: DmTensor<f8e4m3, Chip, QkvCluster, QkvColumns, m![QkvTerm, H % 960]> = unsafe { packed.reshape() };
+-    (packed, shared_scale.to_dm(&mut device.tdma), coefficients.to_dm(&mut device.tdma))
++    (packed, shared_scale.to_dm(&mut device.tdma), coefficients)
+ }
+ 
+ // One quantizer and one activation TRF serve Q, K and V with identical owners.
+@@ -208,9 +198,6 @@
+     let x_trf: TrfTensor<f8e4m3, Chip, QkvCluster, QkvColumns, m![QkvTerm], m![H % 960]> = device.sub
+         .begin(packed.view()).fetch::<m![QkvTerm, H / 32 % 30], m![H % 32]>()
+         .collect::<m![QkvTerm, H / 32 % 30], m![H % 32]>().to_trf();
+-    let coefficients: VrfTensor<f32, Chip, QkvCluster, QkvColumns, m![QkvTerm # 8]> = device.sub
+-        .begin(coefficients.view()).fetch::<m![1], m![QkvTerm]>()
+-        .collect::<m![1], m![QkvTerm # 8]>().to_vrf();
+     let q = project_native_query(device, &x_trf, &coefficients, &scale, q_weight, q_weight_scale);
+     let k = project_native_kv(device, &x_trf, &coefficients, &scale, k_weight, k_weight_scale);
+     let v = project_native_kv(device, &x_trf, &coefficients, &scale, v_weight, v_weight_scale);

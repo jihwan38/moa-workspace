@@ -1,0 +1,45 @@
+{
+  "id": "E147",
+  "variant": "scalar-v1",
+  "base_commit": "3586c417e43f4ea3afc7df7c428d381b7dcbcc5e",
+  "comparison_recipe": "baseline/e144.json",
+  "source_reference_build": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/measured-build-e144-adoption.json",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_attention_output",
+    "decoder_feedforward"
+  ],
+  "target_kernel": "sliding_project_qkv",
+  "actual_start_commit": "2bdbe9137b999176dabf510cfe517267cbea7298",
+  "scope": "Local coupled producer/transport replacement: one-pass finite-BF16 scale and direct Sub ring4 scalar/coefficient VRF broadcast, retaining E144 original whole weight ingress and native arithmetic.",
+  "prior": [
+    "D-E145 actual scale-to-quantVRF median9914 includes waits, not guaranteed savings",
+    "E146 staged-weight mixed3 pairedmedian+0.406876%; noadoption and no staged sources inherited",
+    "E55 named Switch-to-TRF bitmap failure differs from supported anonymousVRF distribution relabel",
+    "C04 SubCustomBroadcast-to-DM-to-TRF support/regression does not establish this directVRF composition"
+  ],
+  "removed": [
+    "two Main scale-producer launches and local/global-amax DM roundtrips",
+    "quant scale TDMA 16KiB encoded32B packets (only2KiB useful scalar copies)",
+    "coefficient TDMA8KiB encoded/useful payload and replicated DM"
+  ],
+  "added": [
+    "exponent Mul0 on491520 BF16-derived F32 inputs instead of128 group scalars",
+    "two Sub CustomBroadcast setups/bitmaps and actual VRF distribution costs; 32B VRF cells remain",
+    "changed schedule/liveness; no added full residual VRF"
+  ],
+  "adoption": {
+    "decision": "pending actual gate and whole screen",
+    "positive": "freeze then bounded independent repeats, extra6 and unchanged raw9/full2 references; no5percentveto"
+  },
+  "tuning": {
+    "decision": "one coherent producer/transport prototype; no tilesweep",
+    "repair": "only concrete supported stage/mapping correction; assess complete path loss independently"
+  },
+  "major_research": {
+    "decision": "Remove scalar Main/DM completion and TDMA distribution from weight-supply issue path",
+    "limit": "Timing order is observed; direct SSA scalar\u2192Qweight dependency is absent. Whole cost decides."
+  }
+}
