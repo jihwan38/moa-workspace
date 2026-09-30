@@ -1,0 +1,71 @@
+{
+  "id": "E147",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "3586c417e43f4ea3afc7df7c428d381b7dcbcc5e",
+  "comparison_recipe": "baseline/e144.json",
+  "candidate_build_label": "e147-scalar-v1",
+  "job": 137097,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_qkv_cycles": 94483,
+  "control_before_qkv_cycles": 95606,
+  "control_after_qkv_cycles": 95582,
+  "bracketing_median": 95594.0,
+  "change_percent": -1.1622068330648383,
+  "candidate_cycles_by_run": [
+    98926,
+    94080,
+    94483
+  ],
+  "static_candidate_cycles": 48436,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/graph-verification-e147-scalar-v1.json",
+      "bytes": 1868,
+      "sha256": "b7189f308c0373be0205e4bb947809f81281363e3116ad022e1c9a72712acb98"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/e147-scalar-v1-screen-job-137097-results.json",
+    "bytes": 5297,
+    "sha256": "e9b2f2aaec458998c6cdeeb9e5fd0dbfa2ccc65cf950847b83c90819a3da4c17"
+  },
+  "weight_hbm_read_bytes": 31457280,
+  "weight_dm_write_bytes": 31457280,
+  "weight_dm_read_bytes": 31457280,
+  "weight_switch_native_streams": 3,
+  "additional_streams_vs_e144": 0,
+  "scalar_sub_broadcast_streams": 2,
+  "shared_scalar_bitmap_config_dmas": 1,
+  "added_scalar_bitmap_hbm_to_dm_bytes": 16384,
+  "removed_scalar_replication_dm_to_dm_bytes": 24576,
+  "scalar_transport_cost_scope": "Actual descriptors: one shared16KiB constant bitmap ingress feeds both Sub broadcasts; removed scale16KiB plus coefficient8KiB DM-to-DM traffic. Separate transfer types; neither byte difference nor earlier bitmap readiness is a cycle saving.",
+  "full_weight_transpose_dm_bytes": 0,
+  "cost_scope": "Logical bytes, not measured traffic or saved cycles; actual graph gate binds implementation.",
+  "scope": "One Main scale producer and Sub ring4 broadcasts supply scale/coefficients directly to VRF. Original E144 whole Q/K/V full-H weight ingress, native Term4/K4 consumers, head/cache and O/FFN remain. Includes all scalar setup, broadcast and changed lifetimes; no E146 staging or performance inheritance. CPU finite-BF16 equivalence and changed-boundary NPU checks are separate. No internal NPU attribution from this whole screen.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "original raw9 projection and full2 cancellation/cache cases on actual new source/image"
+      ]
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does one-pass scale production plus Sub ring4 scale/coefficient delivery directly to VRF shorten complete QKV, including added Switch/mask/setup and register-lifetime costs? Original whole Q/K/V weight stages remain E144; do not treat the D145 readiness interval as reclaimable latency."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}
