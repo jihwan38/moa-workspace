@@ -1,5 +1,13 @@
 # Experiment ledger
 
+September30 **[E144 native QKV with full-row ingress/Switch adopted](../../baseline/e144.json)**.
+Three contemporary E142-bracketed allocations improve whole QKV by paired median7.9907%.
+Nine standard inputs,73728 exact pre-head values,16384 whole-QKV values at original tolerances
+and8380416 untouched cache entries pass. O/FFN images remain E142. Failed v1 mapping and
+successful v2 repair remain in the named branch and merged records.
+[Current work](current-work.md) · [Evidence](../../moa-dev/experiments/candidates/qkv-fullh-weight-switch/README.md).
+Older entries below retain their original decisions and runtime states.
+
 September27 **E129–E131 completed without a new adoption; E128 remains current**.
 [E129 projection-cluster ingress](../../moa-dev/experiments/candidates/ffn-projection-clusters/README.md)
 failed target lowering of the public Cluster tile API, with no NPU image.

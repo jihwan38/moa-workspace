@@ -1,38 +1,29 @@
-# 현재 baseline: E142
+# 현재 baseline: E144
 
-현재 실행 소스는 **E142 / `baseline-e142` / `b3fe0ab`**다. Up/gate packed FP4를
-projection당 full30-row native stream 하나로 직접 소비한다. Dot에 input scale을
-곱한 F32 block partial을 저장하고, 별도6행 consumer가 block scale과 H 합산을 수행한다.
-E140의 안전한480B 입력 복사와 weighted native down, QKV/O를 유지한다.
+현재 실행 소스는 **E144 / `baseline-e144` / `3586c41`**다. QKV weight를 H3840
+행 단위로 DM에 적재하고 Main Switch에서 H960 조각을 native K4 계산 위치로 분배한다.
+입력의 weighted E4 네 항을 Q/K/V가 공유하며 F32 Term/K4 합산, canonical head gather,
+공통·channel scale 후 첫 BF16 변환, 기존 head RMS/RoPE/cache를 수행한다.
+E142의 direct FP4 full30/F32 partial FFN과 E137 계열 native O 이미지는 유지한다.
 
-전체 decoded FP8 weight 저장/읽기112.5MiB를 각각 없앴고, 대신 F32 block partial
-28.125MiB 저장/읽기를 각각 추가했다. E141의 반복 lookup10→2, Main 전체10→12라는
-비용 교환까지 포함한 전체 FFN 실측이다. 논리 byte 차이를 지연 절감량으로 환산하지 않는다.
+E142 앞뒤 대조를 둔 독립3회 QKV 감소율은 **7.4094%,8.0340%,7.9907%**, paired 중앙
+**7.9907%**다. 30MiB weight 총량은 같고 추가 Switch 및 입력 준비·gather·scale 비용을
+포함했다. 논리 byte 제거만으로 개선을 추정한 결과가 아니다.
 
-E140 앞뒤 대조를 둔3개 독립 allocation에서 FFN이 **3.3952%,4.2150%,3.6193% 감소**했다.
-Paired 감소율 중앙값은 **3.6193%**다. 표준9입력, 실제 up/gate 원8사례245760 exact BF16,
-원래 전체 FFN 정밀 사례3840 exact 출력이 통과했다. source46/실측image/업로드를 대조했다.
-[채택 결정](../moa-dev/experiments/candidates/ffn-direct-full30-partials/adoption-decision.json) ·
-[최종 검증](../moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/final-verification.json).
-유한 입력 검증이며 임의 입력·전체 모델 정확성 증명은 아니다. 추가 파라미터 튜닝은 종료한다.
+표준9입력, raw Q/K/V73,728 BF16 exact(±0 동등), 전체 QKV16,384출력 허용오차,
+비대상 cache8,380,416원소 보존 검사가 통과했다. source46과 실측 이미지를 연결했다.
+[채택 결정](../moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption-decision.json) ·
+[독립 검증](../moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json).
+유한 사례 검증이며 임의 입력이나 전체 모델 정확성을 보장하지 않는다.
 
-E135와E103의 실패 기록을 보존했다. E141은 세 복사를 고쳐 timeout을 복구했지만3.15% 느렸다.
-동일 이미지 계측 후 E103의 full30 helper를 수정된 E141 입력/현재 후단과 조합한 E142를 채택한다.
-이 결과로 과거 E103 오답의 유일한 원인을 단정하지 않는다.
-
-공식 최고점은 **E142 / `e1f58b9e` / 6.526159× / 46/70위**다.
-서버15비교를 통과했고 QKV104474/O42694/FFN302799cycles를 기록했다.
-E140 대비 총점+0.841%이며 순위는 그대로다. QKV/O image는 동일하므로 이 둘의
-실행 변동을 FFN 최적화 효과로 세지 않는다. 30위7.896678×까지는 총점21.00%가 더 필요하다.
-[공식 결과](../docs/experiments/e142-official-submit-20260927.json) ·
-[격차 계산](../docs/research/e142-rank-gap-20260927.json) ·
-[다음 우선순위](../docs/research/after-e142-priority-20260927.md) ·
-[진행 현황](../docs/experiments/current-work.md).
+공식 제출 준비 중이다. 제출 전 관측 최고점은 E142 `e1f58b9e`,6.526159×,2026-09-30
+**58/79위**다. 현재 기록은 [진행 현황](../docs/experiments/current-work.md)을 따른다.
 
 | 찾는 내용 | 파일 |
 |---|---|
 | 현재 적용한 17개 구성요소: 목적·설정·호출 위치·의존 관계 | [methods.md](methods.md) |
-| 현재 구성표와 기준 commit | [e142.json](e142.json) |
+| 현재 구성표와 기준 commit | [e144.json](e144.json) |
+| 이전 E142 구성표 | [e142.json](e142.json) |
 | 이전 E140 구성표 | [e140.json](e140.json) |
 | 이전 E137 구성표 | [e137.json](e137.json) |
 | 이전 E134 구성표 | [e134.json](e134.json) |
@@ -68,9 +59,9 @@ QKV → attention → O → `self.mlp` 순서로 실행한다. `Decode::full`도
 
 | 진입점 | 현재 데이터 흐름과 방법 ID |
 |---|---|
-| `sliding_project_qkv` | BF16 x → 분할 RMS **Q1** → 2-cluster ring32 복제 **Q2** → 8-way 행 배치 **Q3** → BF16 입력·weight lookup dot **Q4** → F32 channel scale fusion **Q5** → head RMS/RoPE **Q6** → Q 출력·지정 K/V cache 슬롯 쓰기 |
+| `sliding_project_qkv` | BF16 x → 분할 RMS **Q1** → H960 seed/ring·weighted E4 네 항 **Q2** → full-H row ingress·Main Switch **Q3** → native Term/K4 합산 **Q4** → F32 head gather·공통/channel scale·첫 BF16 **Q5** → head RMS/RoPE **Q6** → Q 출력·지정 K/V cache 슬롯 쓰기 |
 | `sliding_attention_output` | BF16 attention 결과 → consumer-local weighted E4 4항 **O4** → 2-cluster/16-column의 두60행 native stage **O1** → F32 Term/K16 합산·입력scale·channel scale 뒤 BF16 **O2** → H480×8 post-RMS·residual **O3/R1** → residual HBM 갱신 |
-| `decoder_feedforward` | residual·pre-RMS → E5M2 세 항 입력 **F6** → 2-cluster/6행 native up/gate·F32 scale·합산 **F1/F2/F3/F4** → cluster-local120행 GeGLU → weighted E5 3항·L-half 내부 ring32·direct FP4 native down **F1/F6** → 두 H partial의 F32 합 **F3** → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
+| `decoder_feedforward` | residual·pre-RMS → E5M2 세 항 입력 **F6** → 2-cluster/full30 native up/gate·F32 block partial·6행 scale/합산 **F1/F2/F3/F4** → cluster-local120행 GeGLU → weighted E5 3항·L-half 내부 ring32·direct FP4 native down **F1/F6** → 두 H partial의 F32 합 **F3** → H480×8 global scale/post-RMS/residual/layer scale **F5/R1** → residual HBM 갱신 |
 
 QKV/O는 [sliding/projection.rs](../furiosa-opt-gemma4-12B/src/device/sliding/projection.rs),
 FFN은 [shared/mlp.rs](../furiosa-opt-gemma4-12B/src/device/shared/mlp.rs)가 중심이다.

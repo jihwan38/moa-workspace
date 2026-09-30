@@ -1,0 +1,61 @@
+{
+  "candidate": "E144",
+  "adopted_source_candidate": "fullh-v2",
+  "actual_start_commit": "b840ed4228135f1f04a45819eb7e11c7362ee9ef",
+  "source_origin": "E142 other44 inputs; frozen E138native-v2 QKV projection/ops, replacing weight DM row ownership and fetch/Switch together",
+  "adopted_source_commit": "3586c417e43f4ea3afc7df7c428d381b7dcbcc5e",
+  "performance_control": "baseline/e142.json",
+  "measured_build": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/measured-build-e144-adoption.json",
+  "measured_build_digest": {
+    "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/measured-build-e144-adoption.json",
+    "bytes": 22834,
+    "sha256": "a971b32eb445a54e3e0b15569326958e1837f0003cc5dca94c0a510f234f3ae5"
+  },
+  "original_compile_record": {
+    "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/build-e144-fullh-v2-repro.json",
+    "bytes": 17748,
+    "sha256": "8c3268d30e89ddcaaf085f90c0ad784baf840a784375f5f692672502ed965ea4"
+  },
+  "original_package_record": {
+    "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/package-e144-fullh-v2.json",
+    "bytes": 20704,
+    "sha256": "bcc40653815c9106318bc83832db220b048543b9e16af0089e78e3f5a45c07c4"
+  },
+  "source_binding": {
+    "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/source-build-binding.json",
+    "bytes": 15253,
+    "sha256": "c61142e0d4401d9abeb2294aba2a12a61afe1c5e308c00ec73726fdd6ceedbfa"
+  },
+  "compile_inputs": 46,
+  "live_compile_inputs_match_frozen_build": true,
+  "changed_runtime_files": [
+    "src/device/sliding/projection.rs",
+    "src/ops.rs"
+  ],
+  "public_device_entrypoints_unchanged": true,
+  "o_ffn_images_unchanged": true,
+  "basic_and_extra_images_identical": true,
+  "images": {
+    "sliding_project_qkv": {
+      "bytes": 206592,
+      "sha256": "687f1c8df3ccf24eee1e9425a64c685148620e09c4a245d4b039231380f3bc53",
+      "host_occurrences": 1
+    },
+    "sliding_attention_output": {
+      "bytes": 122880,
+      "sha256": "4dde46bfbff2b07c0870f5baf8d5a857b2b0fb7176816f9b0eb417260a671cb4",
+      "host_occurrences": 1
+    },
+    "decoder_feedforward": {
+      "bytes": 289280,
+      "sha256": "c8185c19b42382a90658e426f7c4d07f03d46b5de582c04ac454fbb0458e82ed",
+      "host_occurrences": 1
+    }
+  },
+  "validation": {
+    "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json",
+    "bytes": 19180,
+    "sha256": "89f76ac1e77ece8dfa3778601e298c68eaaf7292e273a82ddb315f811650982f"
+  },
+  "scope": "Full-H row ingress plus Main Switch into four-term native K4 QKV, including input quantization/replication, Switch, F32 gather, scale/head/cache. Finite validation; no arbitrary-input or end-to-end model proof."
+}

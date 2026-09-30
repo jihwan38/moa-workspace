@@ -238,6 +238,18 @@
   control. Read docs/research/e144-qkv-fullh-switch-selection-20260930.md. The
   September30 public ranking is58/79 at the same E142 score; no new rank gain is
   implied by diagnostic readiness or the proposed ingress change.
+- E144 subsequently adopted full-H row ingress plus Main Switch into native K4
+  QKV after three independent paired improvements7.4094/8.0340/7.9907percent,
+  nine standard inputs,73728 exact raw-projection outputs and16384 full-QKV
+  outputs at original tolerances with8380416 untouched cache entries preserved.
+  E142 O/FFN images are byte-identical. The v1 row-order lowering failure was a
+  source contract error; v2 fixes low-two-bit row ownership before Switch. Keep
+  both attempts. Weight HBM/DM logical30MiB remains and Switch costs are included.
+  Adopt the frozen complete combination and stop parameter tuning. E143's old
+  E138-v2 readiness trace is no longer current; one fixed E144 readiness profile
+  should distinguish input/TRF, later weight, and head-gather completion before
+  the next architecture selection. Do not infer exclusive DMA causality from
+  the whole gain or claim30th place from a single-kernel improvement.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

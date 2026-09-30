@@ -1,3 +1,32 @@
+# 2026-09-30 E144 QKV 채택·공식 제출 준비
+
+현재 runtime은 **E144 / `baseline-e144` / `3586c41`**다. E142 FFN과 O 이미지는
+그대로이며, QKV는 full-H E4 행 적재와 Main Switch/native K4 분배를 함께 채택했다.
+Weight 총량30MiB는 같고 별도 weight transpose DM은 없다. 입력 네 항 준비, 추가 Switch,
+F32 gather·scale·head/cache까지 포함한 whole QKV 성능이다.
+
+| Arena | E142 앞뒤 중앙 cycles | E144 QKV cycles | 감소율 |
+|---|---:|---:|---:|
+| 136536 | 103,584 | 95,909 | 7.4094% |
+| 136554 | 104,288.5 | 95,910 | 8.0340% |
+| 136573 | 104,227.5 | 95,899 | 7.9907% |
+
+Paired 감소율 중앙 **7.9907%**. 표준 고유9입력, raw9의73,728 BF16 exact(±0 동등),
+원래 full2의16,384출력 허용오차와8,380,416개 비대상 cache 보존 검사가 통과했다.
+원래 host/참조를 바꾸지 않았고 실제 source46·이미지·업로드 tar·로그를 연결했다.
+Full2는 모든 값의 exact 일치를 뜻하지 않으며 유한 사례 검증이다.
+
+[최종 검증](../../moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json) ·
+[채택 결정](../../moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption-decision.json) ·
+[실행 기록](../../moa-dev/experiments/candidates/qkv-fullh-weight-switch/README.md).
+
+브랜치 `diag/e142-e138v2-qkv-readiness`와 `opt/qkv-fullh-weight-switch`의 완료 기록을
+main에 병합했다. 두 branch tip과 v1의 source/compile 실패를 보존했다. v2는 v1의
+Switch 출력행 순서 문제를 slice low2 row ownership으로 수정한 동일 후보다.
+추가 파라미터 튜닝은 종료한다. 다음 구조 선택은 현재 E144의 실제 입력·weight·gather
+준비 시점을 먼저 구분하며, E138-v2의 이전 내부 cycle을 현재 병목으로 단정하지 않는다.
+공식 제출은 source/payload 일치 검사 후 진행하며, 아래 이전 순위는 당시 관측이다.
+
 # 2026-09-30 D-E143 완료·E144 weight ingress/stream 분배 조합 선택
 
 D-E143136455는81비교와 실제 이미지/업로드/76·92개 operation 연결 검증을 통과했다.
