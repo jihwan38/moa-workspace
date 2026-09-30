@@ -1,4 +1,23 @@
-# E144 selection: canonical full-H weight ingress and in-stream native routing
+# E144 selection: full-H weight ingress and in-stream native routing
+
+**First exact-compile correction (2026-09-30):** fullh-v1 reached MIR verification
+but failed with `Switch OutTime mismatch: expected (QkvQueryRow % 8,
+QkvQueryRow / 8), got QkvQueryRow`. The b-major output-time inference in the
+original source-level review below was wrong for this target; public API chaining
+did not prove that ordering. The frozen v1 source/log remain unchanged.
+
+Selected source repair fullh-v2 changes ingress ownership to
+`Slice=[Group64,Row%4]`, `Element=[Row/4,H]`, with fetch
+`Time=[H/960,Row/4]`, `Packet=[H%960]`. Target output-time order then becomes
+`[Row/4,Row%4]`, which is canonical Row. Source slice `4g+b` now owns row
+`2048c+32g+4r+b` for Q (`r<8`), or `1024c+16g+4r+b` for KV (`r<4`).
+Each row still contains fullH3840, but rows within one slice have stride4;
+this is a change from v1's contiguous local rows. The repair therefore requires
+new actual ingress/Fetch/Switch/Contract checks, not just a renamed type.
+No extra transpose DM is intended. Existing native/scale/head arithmetic stays
+fixed. This records a concrete source-contract correction; fullh-v2 target
+success and hardware performance are not yet established. The following is
+the original precompile selection rationale, superseded on this ordering point.
 
 Source/SDK audit on E142 (`baseline/e142.json`, source `b3fe0ab4be2a5ece6382ae5745112722200f1b66`). At selection, no E144 compile or NPU run exists. D-E143 names-only measurement136455 completed and its records are integrated into main. This document selects one complete E144 candidate on a new named branch; it is not an adoption decision.
 

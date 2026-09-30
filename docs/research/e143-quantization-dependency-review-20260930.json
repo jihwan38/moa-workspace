@@ -1,0 +1,3016 @@
+{
+  "scope": "read-only; unselected quantizer possibilities; no implementation or performance claim",
+  "note": {
+    "path": "docs/research/e143-quantization-dependency-review-20260930.md",
+    "bytes": 10053,
+    "sha256": "8fd73b4d4fefae47f3b2b867d07581f14bfe8c512490032a6831e155003f4584"
+  },
+  "repository_inputs": {
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/projection.rs": {
+      "bytes": 39754,
+      "sha256": "0eb9a25fad91d75a22c1f9ecf17da2bfc018b684c2c9a95bd1098dd4db5c9262"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v2/graph.json": {
+      "bytes": 251272,
+      "sha256": "cf734d5fc620f222f77fea2cce31333f45f627133e1cda3571becc9c63f68f72"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v2/schedule.json": {
+      "bytes": 129823,
+      "sha256": "efb4e0f9ef8011a865dffc7b445cbc394f4b185959776df245df05f62244f650"
+    },
+    "moa-dev/experiments/candidates/c11-ffn-partial-vrf/two-row-v1/mlp.rs": {
+      "bytes": 28652,
+      "sha256": "82113f0bb4d62409f584e95626d437591428b26e8076b325b54d0ae527b7a76c"
+    },
+    "moa-dev/experiments/candidates/c11-ffn-partial-vrf/README.md": {
+      "bytes": 2748,
+      "sha256": "24373b420fdbf8fe638ab7734172c6e977541237cfa79f9c536e569fbcff2d0c"
+    },
+    "moa-dev/experiments/candidates/c08-fused-qkv/c03-columns8/projection.rs": {
+      "bytes": 17914,
+      "sha256": "6f3d3c1f0800758728969d83a3966cd9282afb80ab51e7ee7d2d252742405e80"
+    }
+  },
+  "installed_sdk": {
+    "version": "0.8.1",
+    "scope": "Public source legality, actual C11 precedent, no new exact-lowering claim",
+    "paths_relative_to": "Cargo registry source root in moa2026-dev",
+    "files": {
+      "furiosa-opt-std-0.8.1/src/engine/collect.rs": {
+        "bytes": 6733,
+        "sha256": "b5e643b7656f8b7b978714dd80c531d0d570f6464340dffecdb660695e1d5ea8"
+      },
+      "furiosa-opt-std-0.8.1/src/engine/mod.rs": {
+        "bytes": 15297,
+        "sha256": "79627b91df5d73f26843b8a1975851cca4c27260b4581a29e66434f4314791bd"
+      },
+      "furiosa-opt-std-0.8.1/src/engine/vector/tensor/vector_tensor.rs": {
+        "bytes": 73053,
+        "sha256": "bb7f04f33b3d44254735c09d90ab4d59eed8b9719430f84770f342e5c35118e1"
+      },
+      "furiosa-opt-std-0.8.1/src/engine/switch.rs": {
+        "bytes": 12554,
+        "sha256": "59312cb683400e6f75bd598ec1e8adb066be66b167adce9a9f8d0ef6568b7167"
+      },
+      "furiosa-opt-lower-0.8.1/src/verify/engine/collect.rs": {
+        "bytes": 13255,
+        "sha256": "ad986d1cfca0546c58763bc2814c92beb1035302f71af48c9b0a1baef19ccb87"
+      },
+      "furiosa-opt-lower-0.8.1/src/lowering/mod.rs": {
+        "bytes": 7215,
+        "sha256": "b2a1b9881732503ab1fd48f583de3f0b91a34b9b75128124ce9e55db2da77949"
+      }
+    }
+  },
+  "dataflow_map": {
+    "scope": "Frozen E138 native-v2 static source/schedule/graph review, not runtime attribution. Numeric namespaces are explicitly crosswalked, never equated.",
+    "inputdigests": [
+      {
+        "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v2/graph.json",
+        "bytes": 251272,
+        "sha256": "cf734d5fc620f222f77fea2cce31333f45f627133e1cda3571becc9c63f68f72"
+      },
+      {
+        "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v2/schedule.json",
+        "bytes": 129823,
+        "sha256": "efb4e0f9ef8011a865dffc7b445cbc394f4b185959776df245df05f62244f650"
+      },
+      {
+        "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/projection.rs",
+        "bytes": 39754,
+        "sha256": "0eb9a25fad91d75a22c1f9ecf17da2bfc018b684c2c9a95bd1098dd4db5c9262"
+      }
+    ],
+    "selected": [
+      {
+        "role": "pre_rms_apply",
+        "schedule_index": "103",
+        "static_lifetime": {
+          "begin": 4870,
+          "end": 5271
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          33,
+          86,
+          71
+        ],
+        "output_tensors": [
+          87
+        ],
+        "source_description": "--> src/device/shared/rmsnorm.rs:261:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()",
+        "graph_operator": "RenegadeCommand#O7",
+        "graph_inputs": [
+          17,
+          24,
+          23
+        ],
+        "graph_outputs": [
+          25
+        ]
+      },
+      {
+        "role": "bf16_seed_dma",
+        "schedule_index": "114",
+        "static_lifetime": {
+          "begin": 5451,
+          "end": 8103
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          87
+        ],
+        "output_tensors": [
+          91
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:198:90\n\nx.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O8",
+        "graph_inputs": [
+          25
+        ],
+        "graph_outputs": [
+          26
+        ]
+      },
+      {
+        "role": "ring32_bf16_broadcast",
+        "schedule_index": "126",
+        "static_lifetime": {
+          "begin": 8103,
+          "end": 10286
+        },
+        "contexts": [
+          "MainContext"
+        ],
+        "input_tensors": [
+          91,
+          72
+        ],
+        "output_tensors": [
+          93
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:199:86\n\ndevice.main\n.begin(x.view()).fetch::<m![1], m![H % 960]>()\n.switch::<m![Dummy256 / 32, 8, H / 960], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![H / 16 % 60], m![H % 16]>()\n.commit_trim::<m![H % 16]>().commit()",
+        "graph_operator": "RenegadeCommand#O10",
+        "graph_inputs": [
+          26,
+          28
+        ],
+        "graph_outputs": [
+          29
+        ]
+      },
+      {
+        "role": "local_H960_amax",
+        "schedule_index": "133",
+        "static_lifetime": {
+          "begin": 10286,
+          "end": 10807
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          95
+        ],
+        "output_tensors": [
+          96
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:22:73\n\ndevice\n.main.begin(x.view())\n.fetch::<m![H / 16 % 60], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 120], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H / 4 % 240], m![H % 4]>()\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_clip(ClipBinaryOpF32::Max, 1.504632769052528e-36f32)\n.vector_final().commit_trim::<m![1 # 8]>().commit()",
+        "graph_operator": "RenegadeCommand#O12",
+        "graph_inputs": [
+          30
+        ],
+        "graph_outputs": [
+          31
+        ]
+      },
+      {
+        "role": "K4_max",
+        "schedule_index": "138",
+        "static_lifetime": {
+          "begin": 10807,
+          "end": 11101
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          96
+        ],
+        "output_tensors": [
+          97
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:37:64\n\ndevice\n.main.begin(local_amax.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<QkvRows, m![1]>(InterSliceReduceOpF32::Max)\n.vector_final().commit_trim::<m![1 # 8]>().commit()",
+        "graph_operator": "RenegadeCommand#O13",
+        "graph_inputs": [
+          31
+        ],
+        "graph_outputs": [
+          32
+        ]
+      },
+      {
+        "role": "global_power2_scale",
+        "schedule_index": "143",
+        "static_lifetime": {
+          "begin": 11101,
+          "end": 11383
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          97
+        ],
+        "output_tensors": [
+          98
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:45:65\n\ndevice\n.main.begin(amax.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>()\n.vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)\n.vector_reinterpret::<f32>()\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0078125f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final()\n.commit_trim::<m![1 # 8]>().commit()",
+        "graph_operator": "RenegadeCommand#O14",
+        "graph_inputs": [
+          32
+        ],
+        "graph_outputs": [
+          33
+        ]
+      },
+      {
+        "role": "coefficient0_main",
+        "schedule_index": "149",
+        "static_lifetime": {
+          "begin": 11383,
+          "end": 11665
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          98,
+          48
+        ],
+        "output_tensors": [
+          100
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:139:5\n\ndevice.main.begin(scale.view()).fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero).vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0f32)\n.vector_fp_binary(FpBinaryOp::AddF, 1.0f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final().commit_trim::<m![1 # 8]>()\n.commit_view(coefficients.view_mut().tile::<m![QkvTerm], 1, m![QkvTerm = 1 #{!} 4, 1 # 8]>(0))",
+        "graph_operator": "RenegadeCommand#O53",
+        "graph_inputs": [
+          33,
+          70
+        ],
+        "graph_outputs": [
+          71
+        ]
+      },
+      {
+        "role": "coefficient1_main",
+        "schedule_index": "156",
+        "static_lifetime": {
+          "begin": 11865,
+          "end": 12147
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          98,
+          102
+        ],
+        "output_tensors": [
+          103
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:145:5\n\ndevice.main.begin(scale.view()).fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero).vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0f32)\n.vector_fp_binary(FpBinaryOp::AddF, 0.0625f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final().commit_trim::<m![1 # 8]>()\n.commit_view(coefficients.view_mut().tile::<m![QkvTerm], 1, m![QkvTerm = 1 #{!} 4, 1 # 8]>(1))",
+        "graph_operator": "RenegadeCommand#O58",
+        "graph_inputs": [
+          33,
+          75
+        ],
+        "graph_outputs": [
+          76
+        ]
+      },
+      {
+        "role": "coefficient2_main",
+        "schedule_index": "163",
+        "static_lifetime": {
+          "begin": 12347,
+          "end": 12629
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          98,
+          105
+        ],
+        "output_tensors": [
+          106
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:151:5\n\ndevice.main.begin(scale.view()).fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero).vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0f32)\n.vector_fp_binary(FpBinaryOp::AddF, 0.0000002384185791015625f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final().commit_trim::<m![1 # 8]>()\n.commit_view(coefficients.view_mut().tile::<m![QkvTerm], 1, m![QkvTerm = 1 #{!} 4, 1 # 8]>(2))",
+        "graph_operator": "RenegadeCommand#O63",
+        "graph_inputs": [
+          33,
+          80
+        ],
+        "graph_outputs": [
+          81
+        ]
+      },
+      {
+        "role": "coefficient3_main",
+        "schedule_index": "170",
+        "static_lifetime": {
+          "begin": 12829,
+          "end": 13111
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          98,
+          108
+        ],
+        "output_tensors": [
+          109
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:157:5\n\ndevice.main.begin(scale.view()).fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero).vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0f32)\n.vector_fp_binary(FpBinaryOp::AddF, 0.000000007450580596923828125f32)\n.vector_widen_pad::<m![1 # 8]>().vector_final().commit_trim::<m![1 # 8]>()\n.commit_view(coefficients.view_mut().tile::<m![QkvTerm], 1, m![QkvTerm = 1 #{!} 4, 1 # 8]>(3))",
+        "graph_operator": "RenegadeCommand#O68",
+        "graph_inputs": [
+          33,
+          85
+        ],
+        "graph_outputs": [
+          86
+        ]
+      },
+      {
+        "role": "coefficient_compact_pair_pack",
+        "schedule_index": "176",
+        "static_lifetime": {
+          "begin": 13111,
+          "end": 13390
+        },
+        "contexts": [
+          "SubContext"
+        ],
+        "input_tensors": [
+          110
+        ],
+        "output_tensors": [
+          111
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:165:74\n\ndevice.sub\n.begin(coefficients.view()).fetch::<m![QkvTerm], m![1 # 8]>()\n.collect::<m![QkvTerm], m![1 # 8]>()\n.transpose::<m![QkvTerm / 2], m![QkvTerm % 2 # 8]>()\n.commit_trim::<m![QkvTerm % 2]>().commit()",
+        "graph_operator": "RenegadeCommand#O70",
+        "graph_inputs": [
+          87
+        ],
+        "graph_outputs": [
+          89
+        ]
+      },
+      {
+        "role": "quant_scale_q0_to_K4_dma",
+        "schedule_index": "177",
+        "static_lifetime": {
+          "begin": 16353,
+          "end": 16916
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          98
+        ],
+        "output_tensors": [
+          112
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:56:74\n\nscale.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O15",
+        "graph_inputs": [
+          33
+        ],
+        "graph_outputs": [
+          34
+        ]
+      },
+      {
+        "role": "quant_scale_vrf",
+        "schedule_index": "183",
+        "static_lifetime": {
+          "begin": 16916,
+          "end": 17183
+        },
+        "contexts": [
+          "SubContext"
+        ],
+        "input_tensors": [
+          112
+        ],
+        "output_tensors": [
+          113
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:57:73\n\ndevice\n.sub.begin(quant_scale.view())\n.fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf()",
+        "graph_operator": "RenegadeCommand#O16",
+        "graph_inputs": [
+          34
+        ],
+        "graph_outputs": [
+          35
+        ]
+      },
+      {
+        "role": "coefficient_q0_to_K4_dma",
+        "schedule_index": "184",
+        "static_lifetime": {
+          "begin": 16916,
+          "end": 17479
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          111
+        ],
+        "output_tensors": [
+          114
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:178:52\n\ncoefficients.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O74",
+        "graph_inputs": [
+          89
+        ],
+        "graph_outputs": [
+          93
+        ]
+      },
+      {
+        "role": "term0_hi",
+        "schedule_index": "188",
+        "static_lifetime": {
+          "begin": 17183,
+          "end": 17704
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          95,
+          113,
+          36
+        ],
+        "output_tensors": [
+          115
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:61:5\n\ndevice.main.begin(x.view())\n.fetch::<m![H / 16 % 60], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 120], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 240], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_widen_concat::<m![H / 8 % 120], m![H % 8]>().vector_final()\n.cast::<f8e4m3, m![H % 8 # 32]>().commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![QkvTerm], 1, m![QkvTerm = 1 #{!} 4, H % 960]>(0))",
+        "graph_operator": "RenegadeCommand#O21",
+        "graph_inputs": [
+          30,
+          35,
+          38
+        ],
+        "graph_outputs": [
+          39
+        ]
+      },
+      {
+        "role": "global_scale_to_head_dma",
+        "schedule_index": "189",
+        "static_lifetime": {
+          "begin": 17479,
+          "end": 17787
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          99
+        ],
+        "output_tensors": [
+          116
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:178:14\n\nshared_scale.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O73",
+        "graph_inputs": [
+          90
+        ],
+        "graph_outputs": [
+          92
+        ]
+      },
+      {
+        "role": "hi_f32_to_sum_vrf",
+        "schedule_index": "196",
+        "static_lifetime": {
+          "begin": 17783,
+          "end": 18166
+        },
+        "contexts": [
+          "SubContext"
+        ],
+        "input_tensors": [
+          118
+        ],
+        "output_tensors": [
+          119
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:70:73\n\ndevice.sub\n.begin(packed.view().tile::<m![QkvTerm], 1, m![QkvTerm = 1 # 4, H % 960]>(0))\n.fetch::<m![H / 32 % 30], m![H % 32]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 120], m![H % 8]>().to_vrf()",
+        "graph_operator": "RenegadeCommand#O25",
+        "graph_inputs": [
+          43
+        ],
+        "graph_outputs": [
+          44
+        ]
+      },
+      {
+        "role": "term1_lo",
+        "schedule_index": "204",
+        "static_lifetime": {
+          "begin": 18245,
+          "end": 18766
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          95,
+          113,
+          119,
+          120
+        ],
+        "output_tensors": [
+          122
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:75:5\n\ndevice.main.begin(x.view())\n.fetch::<m![H / 16 % 60], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 120], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 240], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &sum_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 16.0f32)\n.vector_widen_concat::<m![H / 8 % 120], m![H % 8]>().vector_final()\n.cast::<f8e4m3, m![H % 8 # 32]>().commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![QkvTerm], 1, m![QkvTerm = 1 #{!} 4, H % 960]>(1))",
+        "graph_operator": "RenegadeCommand#O29",
+        "graph_inputs": [
+          30,
+          35,
+          44,
+          46
+        ],
+        "graph_outputs": [
+          47
+        ]
+      },
+      {
+        "role": "coefficient_vrf",
+        "schedule_index": "207",
+        "static_lifetime": {
+          "begin": 18245,
+          "end": 18510
+        },
+        "contexts": [
+          "SubContext"
+        ],
+        "input_tensors": [
+          114
+        ],
+        "output_tensors": [
+          123
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:211:87\n\ndevice.sub\n.begin(coefficients.view()).fetch::<m![1], m![QkvTerm]>()\n.collect::<m![1], m![QkvTerm # 8]>().to_vrf()",
+        "graph_operator": "RenegadeCommand#O76",
+        "graph_inputs": [
+          93
+        ],
+        "graph_outputs": [
+          95
+        ]
+      },
+      {
+        "role": "head_global_scale_vrf",
+        "schedule_index": "212",
+        "static_lifetime": {
+          "begin": 18510,
+          "end": 18777
+        },
+        "contexts": [
+          "SubContext"
+        ],
+        "input_tensors": [
+          116
+        ],
+        "output_tensors": [
+          124
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:296:78\n\ndevice.sub\n.begin(scale.view()).fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf()",
+        "graph_operator": "RenegadeCommand#O111",
+        "graph_inputs": [
+          92
+        ],
+        "graph_outputs": [
+          130
+        ]
+      },
+      {
+        "role": "sum01_main_f32_dm",
+        "schedule_index": "220",
+        "static_lifetime": {
+          "begin": 18966,
+          "end": 19487
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          127,
+          119
+        ],
+        "output_tensors": [
+          128
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:86:68\n\ndevice.main\n.begin(packed.view().tile::<m![QkvTerm], 1, m![QkvTerm = 1 # 4, H % 960]>(1))\n.fetch::<m![H / 32 % 30], m![H % 32]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 120], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 240], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)\n.vector_fp_binary(FpBinaryOp::AddF, &sum_vrf)\n.vector_widen_concat::<m![H / 8 % 120], m![H % 8]>().vector_final()\n.commit_trim::<m![H % 8]>().commit()",
+        "graph_operator": "RenegadeCommand#O33",
+        "graph_inputs": [
+          51,
+          44
+        ],
+        "graph_outputs": [
+          52
+        ]
+      },
+      {
+        "role": "sum01_f32_to_vrf",
+        "schedule_index": "226",
+        "static_lifetime": {
+          "begin": 19487,
+          "end": 20230
+        },
+        "contexts": [
+          "SubContext"
+        ],
+        "input_tensors": [
+          128
+        ],
+        "output_tensors": [
+          129
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:96:73\n\ndevice.sub\n.begin(sum.view()).fetch::<m![H / 8 % 120], m![H % 8]>()\n.collect::<m![H / 8 % 120], m![H % 8]>().to_vrf()",
+        "graph_operator": "RenegadeCommand#O34",
+        "graph_inputs": [
+          52
+        ],
+        "graph_outputs": [
+          53
+        ]
+      },
+      {
+        "role": "term2_third",
+        "schedule_index": "231",
+        "static_lifetime": {
+          "begin": 20230,
+          "end": 20751
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          95,
+          113,
+          129,
+          126
+        ],
+        "output_tensors": [
+          130
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:100:5\n\ndevice.main.begin(x.view())\n.fetch::<m![H / 16 % 60], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 120], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 240], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &sum_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 4194304.0f32)\n.vector_widen_concat::<m![H / 8 % 120], m![H % 8]>().vector_final()\n.cast::<f8e4m3, m![H % 8 # 32]>().commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![QkvTerm], 1, m![QkvTerm = 1 #{!} 4, H % 960]>(2))",
+        "graph_operator": "RenegadeCommand#O38",
+        "graph_inputs": [
+          30,
+          35,
+          53,
+          55
+        ],
+        "graph_outputs": [
+          56
+        ]
+      },
+      {
+        "role": "sum012_main_f32_dm",
+        "schedule_index": "238",
+        "static_lifetime": {
+          "begin": 20951,
+          "end": 21472
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          132,
+          129
+        ],
+        "output_tensors": [
+          133
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:111:68\n\ndevice.main\n.begin(packed.view().tile::<m![QkvTerm], 1, m![QkvTerm = 1 # 4, H % 960]>(2))\n.fetch::<m![H / 32 % 30], m![H % 32]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 120], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 240], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0000002384185791015625f32)\n.vector_fp_binary(FpBinaryOp::AddF, &sum_vrf)\n.vector_widen_concat::<m![H / 8 % 120], m![H % 8]>().vector_final()\n.commit_trim::<m![H % 8]>().commit()",
+        "graph_operator": "RenegadeCommand#O42",
+        "graph_inputs": [
+          60,
+          53
+        ],
+        "graph_outputs": [
+          61
+        ]
+      },
+      {
+        "role": "sum012_f32_to_vrf",
+        "schedule_index": "243",
+        "static_lifetime": {
+          "begin": 21472,
+          "end": 22215
+        },
+        "contexts": [
+          "SubContext"
+        ],
+        "input_tensors": [
+          133
+        ],
+        "output_tensors": [
+          135
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:121:73\n\ndevice.sub\n.begin(sum.view()).fetch::<m![H / 8 % 120], m![H % 8]>()\n.collect::<m![H / 8 % 120], m![H % 8]>().to_vrf()",
+        "graph_operator": "RenegadeCommand#O43",
+        "graph_inputs": [
+          61
+        ],
+        "graph_outputs": [
+          62
+        ]
+      },
+      {
+        "role": "term3_fourth",
+        "schedule_index": "248",
+        "static_lifetime": {
+          "begin": 22215,
+          "end": 22736
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          95,
+          113,
+          135,
+          134
+        ],
+        "output_tensors": [
+          136
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:125:5\n\ndevice.main.begin(x.view())\n.fetch::<m![H / 16 % 60], m![H % 16]>().fetch_cast::<f32>()\n.collect::<m![H / 8 % 120], m![H % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 240], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &scale_vrf)\n.vector_fp_binary(FpBinaryOp::SubF, &sum_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 134217728.0f32)\n.vector_widen_concat::<m![H / 8 % 120], m![H % 8]>().vector_final()\n.cast::<f8e4m3, m![H % 8 # 32]>().commit_trim::<m![H % 8]>()\n.commit_view(packed.view_mut().tile::<m![QkvTerm], 1, m![QkvTerm = 1 #{!} 4, H % 960]>(3))",
+        "graph_operator": "RenegadeCommand#O47",
+        "graph_inputs": [
+          30,
+          35,
+          62,
+          64
+        ],
+        "graph_outputs": [
+          65
+        ]
+      },
+      {
+        "role": "shared_term4_activation_trf",
+        "schedule_index": "255",
+        "static_lifetime": {
+          "begin": 22736,
+          "end": 23479
+        },
+        "contexts": [
+          "SubContext"
+        ],
+        "input_tensors": [
+          138
+        ],
+        "output_tensors": [
+          139
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:208:92\n\ndevice.sub\n.begin(packed.view()).fetch::<m![QkvTerm, H / 32 % 30], m![H % 32]>()\n.collect::<m![QkvTerm, H / 32 % 30], m![H % 32]>().to_trf()",
+        "graph_operator": "RenegadeCommand#O75",
+        "graph_inputs": [
+          91
+        ],
+        "graph_outputs": [
+          94
+        ]
+      },
+      {
+        "role": "V_weight_dma",
+        "schedule_index": "127",
+        "static_lifetime": {
+          "begin": 8103,
+          "end": 16353
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          24
+        ],
+        "output_tensors": [
+          94
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:277:89\n\nweight.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O104",
+        "graph_inputs": [
+          122
+        ],
+        "graph_outputs": [
+          123
+        ]
+      },
+      {
+        "role": "V_native_Term_K4_reduce",
+        "schedule_index": "260",
+        "static_lifetime": {
+          "begin": 23479,
+          "end": 24253
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          94,
+          139,
+          123
+        ],
+        "output_tensors": [
+          140
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:278:71\n\ndevice.main\n.begin(weight.view()).fetch::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()\n.collect::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()\n.contract_outer::<m![QkvKvRow, H / 64 % 15], m![H % 64], _, _, _>(x)\n.contract_packet::<m![1]>().contract_time::<m![QkvKvRow]>()\n.contract_lane::<m![QkvKvRow], m![QkvTerm # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![QkvTerm]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)\n.vector_intra_slice_reduce::<QkvTerm, m![QkvKvRow], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<QkvRows, m![QkvKvRow]>(InterSliceReduceOpF32::Add)\n.vector_final().transpose::<m![QkvKvRow / 2], m![QkvKvRow % 2 # 8]>()\n.commit_trim::<m![QkvKvRow % 2]>().commit()",
+        "graph_operator": "RenegadeCommand#O105",
+        "graph_inputs": [
+          123,
+          94,
+          95
+        ],
+        "graph_outputs": [
+          124
+        ]
+      },
+      {
+        "role": "Q_weight_dma",
+        "schedule_index": "198",
+        "static_lifetime": {
+          "begin": 17787,
+          "end": 33737
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          12
+        ],
+        "output_tensors": [
+          121
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:230:92\n\nweight.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O78",
+        "graph_inputs": [
+          96
+        ],
+        "graph_outputs": [
+          97
+        ]
+      },
+      {
+        "role": "Q_native_Term_K4_reduce",
+        "schedule_index": "273",
+        "static_lifetime": {
+          "begin": 33737,
+          "end": 34991
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          121,
+          139,
+          123
+        ],
+        "output_tensors": [
+          143
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:231:74\n\ndevice.main\n.begin(weight.view()).fetch::<m![QkvQueryRow, H / 32 % 30], m![H % 32]>()\n.collect::<m![QkvQueryRow, H / 32 % 30], m![H % 32]>()\n.contract_outer::<m![QkvQueryRow, H / 64 % 15], m![H % 64], _, _, _>(x)\n.contract_packet::<m![1]>().contract_time::<m![QkvQueryRow]>()\n.contract_lane::<m![QkvQueryRow], m![QkvTerm # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![QkvTerm]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)\n.vector_intra_slice_reduce::<QkvTerm, m![QkvQueryRow], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<QkvRows, m![QkvQueryRow]>(InterSliceReduceOpF32::Add)\n.vector_final().transpose::<m![QkvQueryRow / 2], m![QkvQueryRow % 2 # 8]>()\n.commit_trim::<m![QkvQueryRow % 2]>().commit()",
+        "graph_operator": "RenegadeCommand#O79",
+        "graph_inputs": [
+          97,
+          94,
+          95
+        ],
+        "graph_outputs": [
+          98
+        ]
+      },
+      {
+        "role": "K_weight_dma",
+        "schedule_index": "323",
+        "static_lifetime": {
+          "begin": 37111,
+          "end": 45361
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          18
+        ],
+        "output_tensors": [
+          159
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:277:89\n\nweight.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O91",
+        "graph_inputs": [
+          109
+        ],
+        "graph_outputs": [
+          110
+        ]
+      },
+      {
+        "role": "K_native_Term_K4_reduce",
+        "schedule_index": "405",
+        "static_lifetime": {
+          "begin": 45361,
+          "end": 46135
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          159,
+          139,
+          123
+        ],
+        "output_tensors": [
+          180
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:278:71\n\ndevice.main\n.begin(weight.view()).fetch::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()\n.collect::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()\n.contract_outer::<m![QkvKvRow, H / 64 % 15], m![H % 64], _, _, _>(x)\n.contract_packet::<m![1]>().contract_time::<m![QkvKvRow]>()\n.contract_lane::<m![QkvKvRow], m![QkvTerm # 8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![QkvTerm]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)\n.vector_intra_slice_reduce::<QkvTerm, m![QkvKvRow], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_inter_slice_reduce::<QkvRows, m![QkvKvRow]>(InterSliceReduceOpF32::Add)\n.vector_final().transpose::<m![QkvKvRow / 2], m![QkvKvRow % 2 # 8]>()\n.commit_trim::<m![QkvKvRow % 2]>().commit()",
+        "graph_operator": "RenegadeCommand#O92",
+        "graph_inputs": [
+          110,
+          94,
+          95
+        ],
+        "graph_outputs": [
+          111
+        ]
+      },
+      {
+        "role": "V_raw_f32_head_gather",
+        "schedule_index": "277",
+        "static_lifetime": {
+          "begin": 33816,
+          "end": 34320
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          142,
+          65
+        ],
+        "output_tensors": [
+          144
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:295:68\n\nraw.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O109",
+        "graph_inputs": [
+          125,
+          128
+        ],
+        "graph_outputs": [
+          129
+        ]
+      },
+      {
+        "role": "Q_raw_f32_head_gather",
+        "schedule_index": "292",
+        "static_lifetime": {
+          "begin": 34991,
+          "end": 35495
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          148,
+          76
+        ],
+        "output_tensors": [
+          149
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:248:72\n\nraw.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O83",
+        "graph_inputs": [
+          99,
+          102
+        ],
+        "graph_outputs": [
+          103
+        ]
+      },
+      {
+        "role": "K_raw_f32_head_gather",
+        "schedule_index": "414",
+        "static_lifetime": {
+          "begin": 46135,
+          "end": 46639
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          183,
+          84
+        ],
+        "output_tensors": [
+          184
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:295:68\n\nraw.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O96",
+        "graph_inputs": [
+          112,
+          115
+        ],
+        "graph_outputs": [
+          116
+        ]
+      },
+      {
+        "role": "V_global_then_channel_scale_BF16",
+        "schedule_index": "297",
+        "static_lifetime": {
+          "begin": 35920,
+          "end": 36265
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          146,
+          124,
+          78
+        ],
+        "output_tensors": [
+          151
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:303:5\n\ndevice.main.begin(raw.view())\n.fetch::<m![Ds / 8], m![Ds % 8]>()\n.collect::<m![Ds / 8], m![Ds % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![Ds / 4], m![Ds % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &weight_scale_vrf)\n.vector_widen_concat::<m![Ds / 8], m![Ds % 8]>()\n.vector_final().cast::<bf16, m![Ds % 8 # 16]>().commit_trim::<m![Ds % 8]>().commit()",
+        "graph_operator": "RenegadeCommand#O115",
+        "graph_inputs": [
+          126,
+          130,
+          133
+        ],
+        "graph_outputs": [
+          134
+        ]
+      },
+      {
+        "role": "Q_global_then_channel_scale_BF16",
+        "schedule_index": "340",
+        "static_lifetime": {
+          "begin": 37602,
+          "end": 38011
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          152,
+          124,
+          147
+        ],
+        "output_tensors": [
+          162
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:256:5\n\ndevice.main.begin(raw.view())\n.fetch::<m![Gs, Ds / 8], m![Ds % 8]>()\n.collect::<m![Gs, Ds / 8], m![Ds % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![Gs, Ds / 4], m![Ds % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &weight_scale_vrf)\n.vector_widen_concat::<m![Gs, Ds / 8], m![Ds % 8]>()\n.vector_final().cast::<bf16, m![Ds % 8 # 16]>().commit_trim::<m![Ds % 8]>().commit()",
+        "graph_operator": "RenegadeCommand#O89",
+        "graph_inputs": [
+          100,
+          130,
+          107
+        ],
+        "graph_outputs": [
+          108
+        ]
+      },
+      {
+        "role": "K_global_then_channel_scale_BF16",
+        "schedule_index": "436",
+        "static_lifetime": {
+          "begin": 48239,
+          "end": 48584
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          187,
+          124,
+          182
+        ],
+        "output_tensors": [
+          194
+        ],
+        "source_description": "--> src/device/sliding/projection.rs:303:5\n\ndevice.main.begin(raw.view())\n.fetch::<m![Ds / 8], m![Ds % 8]>()\n.collect::<m![Ds / 8], m![Ds % 8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![Ds / 4], m![Ds % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), &weight_scale_vrf)\n.vector_widen_concat::<m![Ds / 8], m![Ds % 8]>()\n.vector_final().cast::<bf16, m![Ds % 8 # 16]>().commit_trim::<m![Ds % 8]>().commit()",
+        "graph_operator": "RenegadeCommand#O102",
+        "graph_inputs": [
+          113,
+          130,
+          120
+        ],
+        "graph_outputs": [
+          121
+        ]
+      },
+      {
+        "role": "V_head_normalize",
+        "schedule_index": "328",
+        "static_lifetime": {
+          "begin": 37257,
+          "end": 37602
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          151,
+          158
+        ],
+        "output_tensors": [
+          160
+        ],
+        "source_description": "--> src/device/sliding/rmsnorm.rs:140:5\n\ndevice.main.begin(x.view())\n.fetch::<m![Ds / 16], m![Ds % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![Ds / 8], m![Ds % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![Ds / 4], m![Ds % 4]>()\n.vector_fp_div(&rms_vrf)\n.vector_widen_concat::<m![Ds / 8], m![Ds % 8]>()\n.vector_final()\n.cast::<bf16, m![Ds % 8 # 16]>()\n.commit_trim::<m![Ds % 8]>()\n.commit()",
+        "graph_operator": "RenegadeCommand#O131",
+        "graph_inputs": [
+          134,
+          152
+        ],
+        "graph_outputs": [
+          153
+        ]
+      },
+      {
+        "role": "Q_head_normalize",
+        "schedule_index": "359",
+        "static_lifetime": {
+          "begin": 38974,
+          "end": 39383
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          162,
+          166,
+          90
+        ],
+        "output_tensors": [
+          167
+        ],
+        "source_description": "--> src/device/sliding/rmsnorm.rs:59:5\n\ndevice.main.begin(x.view())\n.fetch::<m![Gs, Ds / 16], m![Ds % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![Gs, Ds / 8], m![Ds % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![Gs, Ds / 4], m![Ds % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![Gs, Ds / 8], m![Ds % 8]>()\n.vector_final()\n.cast::<bf16, m![Ds % 8 # 16]>()\n.commit_trim::<m![Ds % 8]>()\n.commit()",
+        "graph_operator": "RenegadeCommand#O121",
+        "graph_inputs": [
+          108,
+          138,
+          140
+        ],
+        "graph_outputs": [
+          141
+        ]
+      },
+      {
+        "role": "K_head_normalize",
+        "schedule_index": "457",
+        "static_lifetime": {
+          "begin": 49478,
+          "end": 49823
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          194,
+          199,
+          188
+        ],
+        "output_tensors": [
+          200
+        ],
+        "source_description": "--> src/device/sliding/rmsnorm.rs:119:5\n\ndevice.main.begin(x.view())\n.fetch::<m![Ds / 16], m![Ds % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![Ds / 8], m![Ds % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![Ds / 4], m![Ds % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![Ds / 8], m![Ds % 8]>()\n.vector_final()\n.cast::<bf16, m![Ds % 8 # 16]>()\n.commit_trim::<m![Ds % 8]>()\n.commit()",
+        "graph_operator": "RenegadeCommand#O127",
+        "graph_inputs": [
+          121,
+          145,
+          147
+        ],
+        "graph_outputs": [
+          148
+        ]
+      },
+      {
+        "role": "Q_rope_sum_BF16",
+        "schedule_index": "393",
+        "static_lifetime": {
+          "begin": 41359,
+          "end": 41704
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          168,
+          177
+        ],
+        "output_tensors": [
+          178
+        ],
+        "source_description": "--> src/device/sliding/rope.rs:129:84\n\ndevice\n.main\n.begin(q_cos.view())\n.fetch::<m![Gs, Ds / 8], m![Ds % 8]>()\n.collect::<m![Gs, Ds / 8], m![Ds % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &q_sin_vrf)\n.vector_final()\n.cast::<bf16, m![Ds % 8 # 16]>()\n.commit_trim::<m![Ds % 8]>()\n.commit()",
+        "graph_operator": "RenegadeCommand#O177",
+        "graph_inputs": [
+          196,
+          198
+        ],
+        "graph_outputs": [
+          199
+        ]
+      },
+      {
+        "role": "K_rope_sum_BF16",
+        "schedule_index": "494",
+        "static_lifetime": {
+          "begin": 51261,
+          "end": 51574
+        },
+        "contexts": [
+          "MainContext",
+          "VectorEngine"
+        ],
+        "input_tensors": [
+          210,
+          211
+        ],
+        "output_tensors": [
+          212
+        ],
+        "source_description": "--> src/device/sliding/rope.rs:179:80\n\ndevice\n.main\n.begin(k_cos.view())\n.fetch::<m![Ds / 8], m![Ds % 8]>()\n.collect::<m![Ds / 8], m![Ds % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &k_sin_vrf)\n.vector_final()\n.cast::<bf16, m![Ds % 8 # 16]>()\n.commit_trim::<m![Ds % 8]>()\n.commit()",
+        "graph_operator": "RenegadeCommand#O181",
+        "graph_inputs": [
+          200,
+          202
+        ],
+        "graph_outputs": [
+          203
+        ]
+      },
+      {
+        "role": "Q_head_broadcast",
+        "schedule_index": "399",
+        "static_lifetime": {
+          "begin": 41704,
+          "end": 42224
+        },
+        "contexts": [
+          "MainContext"
+        ],
+        "input_tensors": [
+          178
+        ],
+        "output_tensors": [
+          179
+        ],
+        "source_description": "--> src/device/sliding/rope.rs:192:74\n\ndevice\n.main\n.begin(result_q.view())\n.fetch::<m![1], m![Gs, Ds]>()\n.switch::<Slice, m![Ns]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![Ns, Gs, Ds / 16], m![Ds % 16]>()\n.commit_trim::<m![Ds % 16]>()\n.commit()",
+        "graph_operator": "RenegadeCommand#O182",
+        "graph_inputs": [
+          199
+        ],
+        "graph_outputs": [
+          204
+        ]
+      },
+      {
+        "role": "K_head_broadcast",
+        "schedule_index": "499",
+        "static_lifetime": {
+          "begin": 51574,
+          "end": 51966
+        },
+        "contexts": [
+          "MainContext"
+        ],
+        "input_tensors": [
+          212
+        ],
+        "output_tensors": [
+          213
+        ],
+        "source_description": "--> src/device/sliding/rope.rs:201:70\n\ndevice\n.main\n.begin(result_k.view())\n.fetch::<m![1], m![Ds]>()\n.switch::<Slice, m![Ns]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })\n.collect::<m![Ns, Ds / 16], m![Ds % 16]>()\n.commit_trim::<m![Ds % 16]>()\n.commit()",
+        "graph_operator": "RenegadeCommand#O183",
+        "graph_inputs": [
+          203
+        ],
+        "graph_outputs": [
+          205
+        ]
+      },
+      {
+        "role": "Q_output_store",
+        "schedule_index": "426",
+        "static_lifetime": {
+          "begin": 47142,
+          "end": 47583
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          179,
+          190
+        ],
+        "output_tensors": [
+          189
+        ],
+        "source_description": "--> src/ops.rs:72:5\n\nq.view().to_hbm_view(&mut device.tdma, q_out.view_mut())"
+      },
+      {
+        "role": "V_cache_layout_dma",
+        "schedule_index": "427",
+        "static_lifetime": {
+          "begin": 47583,
+          "end": 47945
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          160
+        ],
+        "output_tensors": [
+          191
+        ],
+        "source_description": "--> src/ops.rs:74:63\n\nv.to_dm(&mut device.tdma)",
+        "graph_operator": "DmaCommand#O192",
+        "graph_inputs": [
+          153
+        ],
+        "graph_outputs": [
+          214
+        ]
+      },
+      {
+        "role": "V_cache_scatter",
+        "schedule_index": "432",
+        "static_lifetime": {
+          "begin": 47945,
+          "end": 48815
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          192,
+          21,
+          0
+        ],
+        "output_tensors": [
+          193
+        ],
+        "source_description": "--> src/ops.rs:75:5\n\nv.dma_scatter::<m![1], _, _>(kv_offset, v_cache)",
+        "graph_operator": "DmaCommandScatter#O196",
+        "graph_inputs": [
+          216,
+          217,
+          218
+        ],
+        "graph_outputs": [
+          220
+        ]
+      },
+      {
+        "role": "K_cache_scatter",
+        "schedule_index": "503",
+        "static_lifetime": {
+          "begin": 51966,
+          "end": 52836
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          214,
+          16,
+          22
+        ],
+        "output_tensors": [
+          215
+        ],
+        "source_description": "--> src/ops.rs:73:5\n\nk.dma_scatter::<m![1], _, _>(kv_offset, k_cache)",
+        "graph_operator": "DmaCommandScatter#O189",
+        "graph_inputs": [
+          209,
+          210,
+          211
+        ],
+        "graph_outputs": [
+          213
+        ]
+      },
+      {
+        "role": "rope_cos_gather",
+        "schedule_index": "88",
+        "static_lifetime": {
+          "begin": 4155,
+          "end": 5089
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          14,
+          20
+        ],
+        "output_tensors": [
+          81
+        ],
+        "source_description": "--> src/device/sliding/rope.rs:20:61\n\ncos.dma_gather_scaled(rope_offset)",
+        "graph_operator": "DmaCommandGather#O134",
+        "graph_inputs": [
+          155,
+          156
+        ],
+        "graph_outputs": [
+          157
+        ]
+      },
+      {
+        "role": "rope_sin_gather",
+        "schedule_index": "293",
+        "static_lifetime": {
+          "begin": 35495,
+          "end": 36429
+        },
+        "contexts": [
+          "DmaEngine"
+        ],
+        "input_tensors": [
+          6,
+          10
+        ],
+        "output_tensors": [
+          150
+        ],
+        "source_description": "--> src/device/sliding/rope.rs:21:61\n\nsin.dma_gather_scaled(rope_offset)",
+        "graph_operator": "DmaCommandGather#O138",
+        "graph_inputs": [
+          159,
+          160
+        ],
+        "graph_outputs": [
+          161
+        ]
+      }
+    ],
+    "cluster1_absent_operations": [
+      {
+        "schedule_index": "88",
+        "graph_operator": "DmaCommandGather#O134",
+        "descriptor": "scaled=true\n\nindirect_axis_stride=512\n\n--- (chip0,cluster0,pe0) ---\n#0 sparse_info=None\n#0 indirect_proj=0+[]\n#0 TensorDmaDescriptor: SourceIndirect(index=2)\nsrc: 0+[1:256, 2:256, 1:0, 1:0, 1:0, 1:0, 1:0, 1:0]\ndst: 0+[1:256, 2:256, 1:0, 1:0, 1:0, 1:0, 1:0, 1:0]\nname: DmaCommandGather#O134\nhistory: "
+      },
+      {
+        "schedule_index": "293",
+        "graph_operator": "DmaCommandGather#O138",
+        "descriptor": "scaled=true\n\nindirect_axis_stride=512\n\n--- (chip0,cluster0,pe0) ---\n#0 sparse_info=None\n#0 indirect_proj=0+[]\n#0 TensorDmaDescriptor: SourceIndirect(index=2)\nsrc: 0+[1:256, 2:256, 1:0, 1:0, 1:0, 1:0, 1:0, 1:0]\ndst: 0+[1:256, 2:256, 1:0, 1:0, 1:0, 1:0, 1:0, 1:0]\nname: DmaCommandGather#O138\nhistory: "
+      },
+      {
+        "schedule_index": "432",
+        "graph_operator": "DmaCommandScatter#O196",
+        "descriptor": "scaled=true\n\nindirect_axis_stride=4096\n\n--- (chip0,cluster0,pe0) ---\n#0 sparse_info=None\n#0 indirect_proj=0+[]\n#0 TensorDmaDescriptor: DestinationIndirect(index=2)\nsrc: 0+[1:256, 16:256, 1:0, 1:0, 1:0, 1:0, 1:0, 1:0]\ndst: 0+[1:256, 16:256, 1:0, 1:0, 1:0, 1:0, 1:0, 1:0]\nname: DmaCommandScatter#O196\nhistory: "
+      },
+      {
+        "schedule_index": "503",
+        "graph_operator": "DmaCommandScatter#O189",
+        "descriptor": "scaled=true\n\nindirect_axis_stride=4096\n\n--- (chip0,cluster0,pe0) ---\n#0 sparse_info=None\n#0 indirect_proj=0+[]\n#0 TensorDmaDescriptor: DestinationIndirect(index=2)\nsrc: 0+[1:256, 16:256, 1:0, 1:0, 1:0, 1:0, 1:0, 1:0]\ndst: 0+[1:256, 16:256, 1:0, 1:0, 1:0, 1:0, 1:0, 1:0]\nname: DmaCommandScatter#O189\nhistory: "
+      }
+    ],
+    "quantization_window_vrf": [
+      {
+        "name": "sum_vrf",
+        "index": "135",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 21472,
+          "end": 22736,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2228224,
+        "size": 1966080,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 2, Slice: (QkvGroup, H / 960), Element: H % 960]",
+        "fingerprint": null,
+        "per_slice_reserved_interval_assuming_512_interleaved_slices": [
+          4352,
+          8192
+        ]
+      },
+      {
+        "name": "coefficients",
+        "index": "123",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 18245,
+          "end": 46135,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1540096,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+        "fingerprint": null,
+        "per_slice_reserved_interval_assuming_512_interleaved_slices": [
+          3008,
+          3040
+        ]
+      },
+      {
+        "name": "scale_vrf",
+        "index": "113",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 16916,
+          "end": 22736,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1523712,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 2, Slice: (QkvGroup, H / 960), Element: 1 # 8]",
+        "fingerprint": null,
+        "per_slice_reserved_interval_assuming_512_interleaved_slices": [
+          2976,
+          3008
+        ]
+      },
+      {
+        "name": "weight_scale_vrf",
+        "index": "78",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 3652,
+          "end": 36265,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1556480,
+        "size": 524288,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, Ns), Element: Ds]",
+        "fingerprint": null,
+        "per_slice_reserved_interval_assuming_512_interleaved_slices": [
+          3040,
+          4064
+        ]
+      },
+      {
+        "name": "vISA(T373)_i7_load_norm_weight_0",
+        "index": "90",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 5271,
+          "end": 39383,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 524288,
+        "size": 524288,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, Ns), Element: Ds]",
+        "fingerprint": null,
+        "per_slice_reserved_interval_assuming_512_interleaved_slices": [
+          1024,
+          2048
+        ]
+      },
+      {
+        "name": "sum_vrf",
+        "index": "119",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 17783,
+          "end": 19487,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2228224,
+        "size": 1966080,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 2, Slice: (QkvGroup, H / 960), Element: H % 960]",
+        "fingerprint": null,
+        "per_slice_reserved_interval_assuming_512_interleaved_slices": [
+          4352,
+          8192
+        ]
+      },
+      {
+        "name": "scale_vrf",
+        "index": "124",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 18510,
+          "end": 48584,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2080768,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, Ns), Element: 1 # 8]",
+        "fingerprint": null,
+        "per_slice_reserved_interval_assuming_512_interleaved_slices": [
+          4064,
+          4096
+        ]
+      },
+      {
+        "name": "sum_vrf",
+        "index": "129",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 19487,
+          "end": 21472,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2228224,
+        "size": 1966080,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 2, Slice: (QkvGroup, H / 960), Element: H % 960]",
+        "fingerprint": null,
+        "per_slice_reserved_interval_assuming_512_interleaved_slices": [
+          4352,
+          8192
+        ]
+      }
+    ],
+    "limits": [
+      "Selected operation roles are a manual semantic crosswalk; actual binary marker engine order and all92 operations must be checked by the profile owner.",
+      "Native markers combine weight fetch, native arithmetic, normalizedTerm4 and K4 reductions; they do not time individual internal engines.",
+      "Static durations/overlaps are not runtime service times or speedup estimates."
+    ]
+  },
+  "leaderboard_provenance": {
+    "url": "https://micro2026-api.duckdns.org:7777/api/leaderboard",
+    "captured_at_utc": "2026-09-30T13:25:01.981469+00:00",
+    "bytes": 26720,
+    "sha256": "6dfc1ef1a6c293502f8c6c1813fe0fb8c29d918b34f201873a8f50c372225e4c",
+    "response": {
+      "success": true,
+      "baselineCycles": {
+        "ops::sliding_project_qkv": 250514,
+        "ops::sliding_attention_output": 404633,
+        "ops::decoder_feedforward": 3703473
+      },
+      "data": [
+        {
+          "rank": 1,
+          "teamName": "IA -ARIA ON THE PLANETES-",
+          "submissionId": "2026-09-30-08-57-09-689-b4fc2e00",
+          "submissionCode": "b4fc2e00",
+          "qkvCycles": 58345,
+          "attentionCycles": 29033,
+          "ffnCycles": 181057,
+          "cycles": {
+            "ops::sliding_project_qkv": 58345,
+            "ops::sliding_attention_output": 29033,
+            "ops::decoder_feedforward": 181057
+          },
+          "score": 10.697046120363474,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 2,
+          "teamName": "Goat Chovy #1557",
+          "submissionId": "2026-09-29-12-25-02-925-4ec77810",
+          "submissionCode": "4ec77810",
+          "qkvCycles": 58858,
+          "attentionCycles": 31765,
+          "ffnCycles": 188995,
+          "cycles": {
+            "ops::sliding_project_qkv": 58858,
+            "ops::sliding_attention_output": 31765,
+            "ops::decoder_feedforward": 188995
+          },
+          "score": 10.203893943989396,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 3,
+          "teamName": "The_Odyssey_of_EDABK",
+          "submissionId": "2026-09-30-09-09-46-012-ab01ada5",
+          "submissionCode": "ab01ada5",
+          "qkvCycles": 66054,
+          "attentionCycles": 35056,
+          "ffnCycles": 194785,
+          "cycles": {
+            "ops::sliding_project_qkv": 66054,
+            "ops::sliding_attention_output": 35056,
+            "ops::decoder_feedforward": 194785
+          },
+          "score": 9.40650947012403,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 4,
+          "teamName": "EoM",
+          "submissionId": "2026-09-30-05-01-10-878-a8f7c7cb",
+          "submissionCode": "a8f7c7cb",
+          "qkvCycles": 66377,
+          "attentionCycles": 35886,
+          "ffnCycles": 194234,
+          "cycles": {
+            "ops::sliding_project_qkv": 66377,
+            "ops::sliding_attention_output": 35886,
+            "ops::decoder_feedforward": 194234
+          },
+          "score": 9.327061752481592,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 5,
+          "teamName": "EDABK Spidey",
+          "submissionId": "2026-09-28-04-18-06-790-a71fdd30",
+          "submissionCode": "a71fdd30",
+          "qkvCycles": 67900,
+          "attentionCycles": 35295,
+          "ffnCycles": 193792,
+          "cycles": {
+            "ops::sliding_project_qkv": 67900,
+            "ops::sliding_attention_output": 35295,
+            "ops::decoder_feedforward": 193792
+          },
+          "score": 9.315250953048595,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 6,
+          "teamName": "EDABK-Artemis",
+          "submissionId": "2026-09-28-15-55-11-729-29647198",
+          "submissionCode": "29647198",
+          "qkvCycles": 67832,
+          "attentionCycles": 34694,
+          "ffnCycles": 198222,
+          "cycles": {
+            "ops::sliding_project_qkv": 67832,
+            "ops::sliding_attention_output": 34694,
+            "ops::decoder_feedforward": 198222
+          },
+          "score": 9.301519003484005,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 7,
+          "teamName": "Fluidstack",
+          "submissionId": "2026-09-28-13-56-53-716-b6e01199",
+          "submissionCode": "b6e01199",
+          "qkvCycles": 66817,
+          "attentionCycles": 36227,
+          "ffnCycles": 193246,
+          "cycles": {
+            "ops::sliding_project_qkv": 66817,
+            "ops::sliding_attention_output": 36227,
+            "ops::decoder_feedforward": 193246
+          },
+          "score": 9.293034343580748,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 8,
+          "teamName": "Participant #428",
+          "submissionId": "2026-09-30-13-03-28-510-047c4b80",
+          "submissionCode": "047c4b80",
+          "qkvCycles": 68910,
+          "attentionCycles": 35603,
+          "ffnCycles": 193372,
+          "cycles": {
+            "ops::sliding_project_qkv": 68910,
+            "ops::sliding_attention_output": 35603,
+            "ops::decoder_feedforward": 193372
+          },
+          "score": 9.249395497933614,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 9,
+          "teamName": "Participant #663",
+          "submissionId": "2026-09-28-16-42-02-389-5b4c996d",
+          "submissionCode": "5b4c996d",
+          "qkvCycles": 68481,
+          "attentionCycles": 35697,
+          "ffnCycles": 196719,
+          "cycles": {
+            "ops::sliding_project_qkv": 68481,
+            "ops::sliding_attention_output": 35697,
+            "ops::decoder_feedforward": 196719
+          },
+          "score": 9.20770621638275,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 10,
+          "teamName": "Participant #482",
+          "submissionId": "2026-09-30-05-03-44-755-f677a700",
+          "submissionCode": "f677a700",
+          "qkvCycles": 69798,
+          "attentionCycles": 35036,
+          "ffnCycles": 197414,
+          "cycles": {
+            "ops::sliding_project_qkv": 69798,
+            "ops::sliding_attention_output": 35036,
+            "ops::decoder_feedforward": 197414
+          },
+          "score": 9.19578932242152,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 11,
+          "teamName": "PN",
+          "submissionId": "2026-09-24-08-57-19-256-601c66fb",
+          "submissionCode": "601c66fb",
+          "qkvCycles": 67778,
+          "attentionCycles": 36289,
+          "ffnCycles": 197974,
+          "cycles": {
+            "ops::sliding_project_qkv": 67778,
+            "ops::sliding_attention_output": 36289,
+            "ops::decoder_feedforward": 197974
+          },
+          "score": 9.169455031942526,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 12,
+          "teamName": "SOTA",
+          "submissionId": "2026-09-30-02-09-38-300-d17b2add",
+          "submissionCode": "d17b2add",
+          "qkvCycles": 70489,
+          "attentionCycles": 36693,
+          "ffnCycles": 195139,
+          "cycles": {
+            "ops::sliding_project_qkv": 70489,
+            "ops::sliding_attention_output": 36693,
+            "ops::decoder_feedforward": 195139
+          },
+          "score": 9.060481527340997,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 13,
+          "teamName": "Participant #-2147483648",
+          "submissionId": "2026-09-28-19-11-10-686-49dbfde3",
+          "submissionCode": "49dbfde3",
+          "qkvCycles": 71157,
+          "attentionCycles": 36138,
+          "ffnCycles": 197708,
+          "cycles": {
+            "ops::sliding_project_qkv": 71157,
+            "ops::sliding_attention_output": 36138,
+            "ops::decoder_feedforward": 197708
+          },
+          "score": 9.038551405007627,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 14,
+          "teamName": "KLG",
+          "submissionId": "2026-09-30-11-59-52-085-928d4466",
+          "submissionCode": "928d4466",
+          "qkvCycles": 71107,
+          "attentionCycles": 35734,
+          "ffnCycles": 200320,
+          "cycles": {
+            "ops::sliding_project_qkv": 71107,
+            "ops::sliding_attention_output": 35734,
+            "ops::decoder_feedforward": 200320
+          },
+          "score": 9.034998001022213,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 15,
+          "teamName": "SAL",
+          "submissionId": "2026-09-29-21-17-55-393-5f3faa16",
+          "submissionCode": "5f3faa16",
+          "qkvCycles": 70951,
+          "attentionCycles": 36695,
+          "ffnCycles": 196617,
+          "cycles": {
+            "ops::sliding_project_qkv": 70951,
+            "ops::sliding_attention_output": 36695,
+            "ops::decoder_feedforward": 196617
+          },
+          "score": 9.017898336928885,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 16,
+          "teamName": "Participant #164",
+          "submissionId": "2026-09-30-09-17-20-160-da3c4e99",
+          "submissionCode": "da3c4e99",
+          "qkvCycles": 72332,
+          "attentionCycles": 36177,
+          "ffnCycles": 205591,
+          "cycles": {
+            "ops::sliding_project_qkv": 72332,
+            "ops::sliding_attention_output": 36177,
+            "ops::decoder_feedforward": 205591
+          },
+          "score": 8.86975832854103,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 17,
+          "teamName": "Participant #398",
+          "submissionId": "2026-09-15-17-52-04-798-27b30f89",
+          "submissionCode": "27b30f89",
+          "qkvCycles": 78870,
+          "attentionCycles": 30228,
+          "ffnCycles": 226475,
+          "cycles": {
+            "ops::sliding_project_qkv": 78870,
+            "ops::sliding_attention_output": 30228,
+            "ops::decoder_feedforward": 226475
+          },
+          "score": 8.859046613946372,
+          "skeleton": null
+        },
+        {
+          "rank": 18,
+          "teamName": "FY",
+          "submissionId": "2026-09-28-19-50-58-076-a2e8821d",
+          "submissionCode": "a2e8821d",
+          "qkvCycles": 75582,
+          "attentionCycles": 37311,
+          "ffnCycles": 201170,
+          "cycles": {
+            "ops::sliding_project_qkv": 75582,
+            "ops::sliding_attention_output": 37311,
+            "ops::decoder_feedforward": 201170
+          },
+          "score": 8.714209556479839,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 19,
+          "teamName": "NPU_ASP_BKIC",
+          "submissionId": "2026-09-29-12-15-49-514-18eeae6b",
+          "submissionCode": "18eeae6b",
+          "qkvCycles": 74817,
+          "attentionCycles": 37653,
+          "ffnCycles": 205294,
+          "cycles": {
+            "ops::sliding_project_qkv": 74817,
+            "ops::sliding_attention_output": 37653,
+            "ops::decoder_feedforward": 205294
+          },
+          "score": 8.658489157027324,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 20,
+          "teamName": "Participant #185",
+          "submissionId": "2026-09-30-09-42-53-230-18c8c50f",
+          "submissionCode": "18c8c50f",
+          "qkvCycles": 72656,
+          "attentionCycles": 38205,
+          "ffnCycles": 210382,
+          "cycles": {
+            "ops::sliding_project_qkv": 72656,
+            "ops::sliding_attention_output": 38205,
+            "ops::decoder_feedforward": 210382
+          },
+          "score": 8.630462537367384,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 21,
+          "teamName": "zlfn",
+          "submissionId": "2026-09-23-10-14-58-029-def2d3a9",
+          "submissionCode": "def2d3a9",
+          "qkvCycles": 74764,
+          "attentionCycles": 36374,
+          "ffnCycles": 216044,
+          "cycles": {
+            "ops::sliding_project_qkv": 74764,
+            "ops::sliding_attention_output": 36374,
+            "ops::decoder_feedforward": 216044
+          },
+          "score": 8.613088192357347,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 22,
+          "teamName": "ASP Opticore",
+          "submissionId": "2026-09-28-17-18-29-243-7bce066c",
+          "submissionCode": "7bce066c",
+          "qkvCycles": 75417,
+          "attentionCycles": 36744,
+          "ffnCycles": 213339,
+          "cycles": {
+            "ops::sliding_project_qkv": 75417,
+            "ops::sliding_attention_output": 36744,
+            "ops::decoder_feedforward": 213339
+          },
+          "score": 8.595256623326012,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 23,
+          "teamName": "pdao",
+          "submissionId": "2026-09-30-13-07-44-509-4bd7ebd0",
+          "submissionCode": "4bd7ebd0",
+          "qkvCycles": 72814,
+          "attentionCycles": 36808,
+          "ffnCycles": 220607,
+          "cycles": {
+            "ops::sliding_project_qkv": 72814,
+            "ops::sliding_attention_output": 36808,
+            "ops::decoder_feedforward": 220607
+          },
+          "score": 8.594923751045028,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 24,
+          "teamName": "RTOSLab",
+          "submissionId": "2026-09-29-17-27-15-290-981db7ed",
+          "submissionCode": "981db7ed",
+          "qkvCycles": 76252,
+          "attentionCycles": 37286,
+          "ffnCycles": 211174,
+          "cycles": {
+            "ops::sliding_project_qkv": 76252,
+            "ops::sliding_attention_output": 37286,
+            "ops::decoder_feedforward": 211174
+          },
+          "score": 8.551093742895086,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 25,
+          "teamName": "monkey",
+          "submissionId": "2026-09-28-09-25-21-611-91136eef",
+          "submissionCode": "91136eef",
+          "qkvCycles": 76198,
+          "attentionCycles": 38340,
+          "ffnCycles": 206445,
+          "cycles": {
+            "ops::sliding_project_qkv": 76198,
+            "ops::sliding_attention_output": 38340,
+            "ops::decoder_feedforward": 206445
+          },
+          "score": 8.538222691883595,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 26,
+          "teamName": "ASP - RISE",
+          "submissionId": "2026-09-29-06-45-17-415-82bbdc5a",
+          "submissionCode": "82bbdc5a",
+          "qkvCycles": 77738,
+          "attentionCycles": 38891,
+          "ffnCycles": 209537,
+          "cycles": {
+            "ops::sliding_project_qkv": 77738,
+            "ops::sliding_attention_output": 38891,
+            "ops::decoder_feedforward": 209537
+          },
+          "score": 8.399493455128695,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 27,
+          "teamName": "Pribess",
+          "submissionId": "2026-09-29-01-09-58-363-c54b5ac6",
+          "submissionCode": "c54b5ac6",
+          "qkvCycles": 78003,
+          "attentionCycles": 37590,
+          "ffnCycles": 217820,
+          "cycles": {
+            "ops::sliding_project_qkv": 78003,
+            "ops::sliding_attention_output": 37590,
+            "ops::decoder_feedforward": 217820
+          },
+          "score": 8.376714219135094,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 28,
+          "teamName": "EarlyBird",
+          "submissionId": "2026-09-28-19-01-35-668-e848a6de",
+          "submissionCode": "e848a6de",
+          "qkvCycles": 77975,
+          "attentionCycles": 39571,
+          "ffnCycles": 212582,
+          "cycles": {
+            "ops::sliding_project_qkv": 77975,
+            "ops::sliding_attention_output": 39571,
+            "ops::decoder_feedforward": 212582
+          },
+          "score": 8.30260790365593,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 29,
+          "teamName": "COSLAB",
+          "submissionId": "2026-09-26-02-45-26-676-7989a4ab",
+          "submissionCode": "7989a4ab",
+          "qkvCycles": 80625,
+          "attentionCycles": 39334,
+          "ffnCycles": 218296,
+          "cycles": {
+            "ops::sliding_project_qkv": 80625,
+            "ops::sliding_attention_output": 39334,
+            "ops::decoder_feedforward": 218296
+          },
+          "score": 8.154668069809686,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 30,
+          "teamName": "Participant #991",
+          "submissionId": "2026-09-25-14-57-08-850-60787ff6",
+          "submissionCode": "60787ff6",
+          "qkvCycles": 75364,
+          "attentionCycles": 38860,
+          "ffnCycles": 244008,
+          "cycles": {
+            "ops::sliding_project_qkv": 75364,
+            "ops::sliding_attention_output": 38860,
+            "ops::decoder_feedforward": 244008
+          },
+          "score": 8.068829902032553,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 31,
+          "teamName": "KIM",
+          "submissionId": "2026-09-25-04-14-04-897-20d77da0",
+          "submissionCode": "20d77da0",
+          "qkvCycles": 78488,
+          "attentionCycles": 37509,
+          "ffnCycles": 246216,
+          "cycles": {
+            "ops::sliding_project_qkv": 78488,
+            "ops::sliding_attention_output": 37509,
+            "ops::decoder_feedforward": 246216
+          },
+          "score": 8.030621447772656,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 32,
+          "teamName": "vinxst",
+          "submissionId": "2026-09-14-04-55-22-140-052771d3",
+          "submissionCode": "052771d3",
+          "qkvCycles": 86355,
+          "attentionCycles": 34421,
+          "ffnCycles": 243884,
+          "cycles": {
+            "ops::sliding_project_qkv": 86355,
+            "ops::sliding_attention_output": 34421,
+            "ops::decoder_feedforward": 243884
+          },
+          "score": 8.030379456800663,
+          "skeleton": null
+        },
+        {
+          "rank": 33,
+          "teamName": "Asteromorph",
+          "submissionId": "2026-09-30-05-54-49-382-f63c90f9",
+          "submissionCode": "f63c90f9",
+          "qkvCycles": 77677,
+          "attentionCycles": 41952,
+          "ffnCycles": 223643,
+          "cycles": {
+            "ops::sliding_project_qkv": 77677,
+            "ops::sliding_attention_output": 41952,
+            "ops::decoder_feedforward": 223643
+          },
+          "score": 8.016178019449242,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 34,
+          "teamName": "KAIMARU",
+          "submissionId": "2026-09-23-04-42-28-330-5cac1cf9",
+          "submissionCode": "5cac1cf9",
+          "qkvCycles": 75992,
+          "attentionCycles": 40625,
+          "ffnCycles": 236630,
+          "cycles": {
+            "ops::sliding_project_qkv": 75992,
+            "ops::sliding_attention_output": 40625,
+            "ops::decoder_feedforward": 236630
+          },
+          "score": 8.009839434194001,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 35,
+          "teamName": "Participant #283",
+          "submissionId": "2026-09-27-15-35-52-223-76cf9180",
+          "submissionCode": "76cf9180",
+          "qkvCycles": 77709,
+          "attentionCycles": 38131,
+          "ffnCycles": 247196,
+          "cycles": {
+            "ops::sliding_project_qkv": 77709,
+            "ops::sliding_attention_output": 38131,
+            "ops::decoder_feedforward": 247196
+          },
+          "score": 8.002711787557535,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 36,
+          "teamName": "Leo",
+          "submissionId": "2026-09-24-08-06-03-618-e92fbcd3",
+          "submissionCode": "e92fbcd3",
+          "qkvCycles": 79851,
+          "attentionCycles": 37611,
+          "ffnCycles": 244713,
+          "cycles": {
+            "ops::sliding_project_qkv": 79851,
+            "ops::sliding_attention_output": 37611,
+            "ops::decoder_feedforward": 244713
+          },
+          "score": 7.9937408989638,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 37,
+          "teamName": "mskim",
+          "submissionId": "2026-09-30-08-29-36-400-1a024aec",
+          "submissionCode": "1a024aec",
+          "qkvCycles": 75917,
+          "attentionCycles": 37411,
+          "ffnCycles": 264462,
+          "cycles": {
+            "ops::sliding_project_qkv": 75917,
+            "ops::sliding_attention_output": 37411,
+            "ops::decoder_feedforward": 264462
+          },
+          "score": 7.93597486134071,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 38,
+          "teamName": "SNU_Mlsys",
+          "submissionId": "2026-09-28-02-42-47-861-4bd4ecea",
+          "submissionCode": "4bd4ecea",
+          "qkvCycles": 104198,
+          "attentionCycles": 36226,
+          "ffnCycles": 200786,
+          "cycles": {
+            "ops::sliding_project_qkv": 104198,
+            "ops::sliding_attention_output": 36226,
+            "ops::decoder_feedforward": 200786
+          },
+          "score": 7.912184937450697,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 39,
+          "teamName": "Participant #608",
+          "submissionId": "2026-09-26-00-00-47-681-d4623827",
+          "submissionCode": "d4623827",
+          "qkvCycles": 78524,
+          "attentionCycles": 38138,
+          "ffnCycles": 254571,
+          "cycles": {
+            "ops::sliding_project_qkv": 78524,
+            "ops::sliding_attention_output": 38138,
+            "ops::decoder_feedforward": 254571
+          },
+          "score": 7.896677623874374,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 40,
+          "teamName": "Participant #795",
+          "submissionId": "2026-09-30-12-37-55-851-f7641a68",
+          "submissionCode": "f7641a68",
+          "qkvCycles": 80787,
+          "attentionCycles": 41786,
+          "ffnCycles": 229560,
+          "cycles": {
+            "ops::sliding_project_qkv": 80787,
+            "ops::sliding_attention_output": 41786,
+            "ops::decoder_feedforward": 229560
+          },
+          "score": 7.853766685356568,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 41,
+          "teamName": "Participant #720",
+          "submissionId": "2026-09-29-02-43-52-966-de6cb7a6",
+          "submissionCode": "de6cb7a6",
+          "qkvCycles": 80674,
+          "attentionCycles": 38942,
+          "ffnCycles": 253438,
+          "cycles": {
+            "ops::sliding_project_qkv": 80674,
+            "ops::sliding_attention_output": 38942,
+            "ops::decoder_feedforward": 253438
+          },
+          "score": 7.783225903305429,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 42,
+          "teamName": "eclab",
+          "submissionId": "2026-09-23-04-21-55-583-bf5e68e9",
+          "submissionCode": "bf5e68e9",
+          "qkvCycles": 87708,
+          "attentionCycles": 38235,
+          "ffnCycles": 238532,
+          "cycles": {
+            "ops::sliding_project_qkv": 87708,
+            "ops::sliding_attention_output": 38235,
+            "ops::decoder_feedforward": 238532
+          },
+          "score": 7.771147945595257,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 43,
+          "teamName": "ILoveFuriosaAI\u2764\ufe0f",
+          "submissionId": "2026-09-23-07-17-47-060-e7ce99ea",
+          "submissionCode": "e7ce99ea",
+          "qkvCycles": 79664,
+          "attentionCycles": 41880,
+          "ffnCycles": 243807,
+          "cycles": {
+            "ops::sliding_project_qkv": 79664,
+            "ops::sliding_attention_output": 41880,
+            "ops::decoder_feedforward": 243807
+          },
+          "score": 7.72791808963601,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 44,
+          "teamName": "bitbit",
+          "submissionId": "2026-09-24-08-00-11-558-309ea90a",
+          "submissionCode": "309ea90a",
+          "qkvCycles": 81122,
+          "attentionCycles": 45812,
+          "ffnCycles": 225828,
+          "cycles": {
+            "ops::sliding_project_qkv": 81122,
+            "ops::sliding_attention_output": 45812,
+            "ops::decoder_feedforward": 225828
+          },
+          "score": 7.647783725092736,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 45,
+          "teamName": "castaway",
+          "submissionId": "2026-09-30-12-11-42-437-0ca7f00d",
+          "submissionCode": "0ca7f00d",
+          "qkvCycles": 87913,
+          "attentionCycles": 40348,
+          "ffnCycles": 264139,
+          "cycles": {
+            "ops::sliding_project_qkv": 87913,
+            "ops::sliding_attention_output": 40348,
+            "ops::decoder_feedforward": 264139
+          },
+          "score": 7.372219890903667,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 46,
+          "teamName": "Curling Gradient",
+          "submissionId": "2026-09-30-12-45-41-286-1f2e1ea9",
+          "submissionCode": "1f2e1ea9",
+          "qkvCycles": 83347,
+          "attentionCycles": 40662,
+          "ffnCycles": 277135,
+          "cycles": {
+            "ops::sliding_project_qkv": 83347,
+            "ops::sliding_attention_output": 40662,
+            "ops::decoder_feedforward": 277135
+          },
+          "score": 7.36621062242241,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 47,
+          "teamName": "franknoh",
+          "submissionId": "2026-09-23-13-47-19-056-c2e53609",
+          "submissionCode": "c2e53609",
+          "qkvCycles": 82862,
+          "attentionCycles": 41531,
+          "ffnCycles": 275228,
+          "cycles": {
+            "ops::sliding_project_qkv": 82862,
+            "ops::sliding_attention_output": 41531,
+            "ops::decoder_feedforward": 275228
+          },
+          "score": 7.345601369367354,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 48,
+          "teamName": "ASP SOLO",
+          "submissionId": "2026-09-24-09-58-47-240-648b2ddb",
+          "submissionCode": "648b2ddb",
+          "qkvCycles": 86891,
+          "attentionCycles": 42399,
+          "ffnCycles": 267006,
+          "cycles": {
+            "ops::sliding_project_qkv": 86891,
+            "ops::sliding_attention_output": 42399,
+            "ops::decoder_feedforward": 267006
+          },
+          "score": 7.253545692274164,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 49,
+          "teamName": "ecl",
+          "submissionId": "2026-09-30-12-33-53-370-92fc4138",
+          "submissionCode": "92fc4138",
+          "qkvCycles": 96403,
+          "attentionCycles": 41565,
+          "ffnCycles": 253304,
+          "cycles": {
+            "ops::sliding_project_qkv": 96403,
+            "ops::sliding_attention_output": 41565,
+            "ops::decoder_feedforward": 253304
+          },
+          "score": 7.17817486442802,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 50,
+          "teamName": "AIFUR",
+          "submissionId": "2026-09-30-06-02-11-399-02bcf4d2",
+          "submissionCode": "02bcf4d2",
+          "qkvCycles": 86073,
+          "attentionCycles": 40941,
+          "ffnCycles": 299676,
+          "cycles": {
+            "ops::sliding_project_qkv": 86073,
+            "ops::sliding_attention_output": 40941,
+            "ops::decoder_feedforward": 299676
+          },
+          "score": 7.083942779293717,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 51,
+          "teamName": "Participant #596",
+          "submissionId": "2026-09-29-09-19-08-123-e717ba78",
+          "submissionCode": "e717ba78",
+          "qkvCycles": 95673,
+          "attentionCycles": 43948,
+          "ffnCycles": 254846,
+          "cycles": {
+            "ops::sliding_project_qkv": 95673,
+            "ops::sliding_attention_output": 43948,
+            "ops::decoder_feedforward": 254846
+          },
+          "score": 7.049614756693925,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 52,
+          "teamName": "If I had the money",
+          "submissionId": "2026-09-16-02-54-09-447-5ba91cf4",
+          "submissionCode": "5ba91cf4",
+          "qkvCycles": 92118,
+          "attentionCycles": 42184,
+          "ffnCycles": 276793,
+          "cycles": {
+            "ops::sliding_project_qkv": 92118,
+            "ops::sliding_attention_output": 42184,
+            "ops::decoder_feedforward": 276793
+          },
+          "score": 7.040741084909178,
+          "skeleton": null
+        },
+        {
+          "rank": 53,
+          "teamName": "Slugcat",
+          "submissionId": "2026-09-13-13-02-10-952-e8098647",
+          "submissionCode": "e8098647",
+          "qkvCycles": 100005,
+          "attentionCycles": 41132,
+          "ffnCycles": 265565,
+          "cycles": {
+            "ops::sliding_project_qkv": 100005,
+            "ops::sliding_attention_output": 41132,
+            "ops::decoder_feedforward": 265565
+          },
+          "score": 7.004492936617083,
+          "skeleton": null
+        },
+        {
+          "rank": 54,
+          "teamName": "NpuMind",
+          "submissionId": "2026-09-30-07-36-30-500-bce9b676",
+          "submissionCode": "bce9b676",
+          "qkvCycles": 101849,
+          "attentionCycles": 42711,
+          "ffnCycles": 269524,
+          "cycles": {
+            "ops::sliding_project_qkv": 101849,
+            "ops::sliding_attention_output": 42711,
+            "ops::decoder_feedforward": 269524
+          },
+          "score": 6.841261275478177,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 55,
+          "teamName": "Participant #300",
+          "submissionId": "2026-09-25-03-58-34-968-175cdd79",
+          "submissionCode": "175cdd79",
+          "qkvCycles": 98296,
+          "attentionCycles": 42151,
+          "ffnCycles": 297977,
+          "cycles": {
+            "ops::sliding_project_qkv": 98296,
+            "ops::sliding_attention_output": 42151,
+            "ops::decoder_feedforward": 297977
+          },
+          "score": 6.724479449891169,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 56,
+          "teamName": "aman28",
+          "submissionId": "2026-09-30-02-07-00-479-f1419667",
+          "submissionCode": "f1419667",
+          "qkvCycles": 97245,
+          "attentionCycles": 50615,
+          "ffnCycles": 258337,
+          "cycles": {
+            "ops::sliding_project_qkv": 97245,
+            "ops::sliding_attention_output": 50615,
+            "ops::decoder_feedforward": 258337
+          },
+          "score": 6.658705127791377,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 57,
+          "teamName": "Participant #070",
+          "submissionId": "2026-09-13-17-34-08-846-82b62098",
+          "submissionCode": "82b62098",
+          "qkvCycles": 103400,
+          "attentionCycles": 44785,
+          "ffnCycles": 279087,
+          "cycles": {
+            "ops::sliding_project_qkv": 103400,
+            "ops::sliding_attention_output": 44785,
+            "ops::decoder_feedforward": 279087
+          },
+          "score": 6.622722930331512,
+          "skeleton": null
+        },
+        {
+          "rank": 58,
+          "teamName": "BEEF",
+          "submissionId": "2026-09-27-12-58-32-712-e1f58b9e",
+          "submissionCode": "e1f58b9e",
+          "qkvCycles": 104474,
+          "attentionCycles": 42694,
+          "ffnCycles": 302799,
+          "cycles": {
+            "ops::sliding_project_qkv": 104474,
+            "ops::sliding_attention_output": 42694,
+            "ops::decoder_feedforward": 302799
+          },
+          "score": 6.526159132655642,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 59,
+          "teamName": "Test_Server",
+          "submissionId": "2026-09-29-11-59-33-853-50974b83",
+          "submissionCode": "50974b83",
+          "qkvCycles": 95163,
+          "attentionCycles": 46556,
+          "ffnCycles": 306184,
+          "cycles": {
+            "ops::sliding_project_qkv": 95163,
+            "ops::sliding_attention_output": 46556,
+            "ops::decoder_feedforward": 306184
+          },
+          "score": 6.516665094127976,
+          "skeleton": "0.6.0"
+        },
+        {
+          "rank": 60,
+          "teamName": "Pulbitmaru",
+          "submissionId": "2026-09-10-10-31-48-593-131b128d",
+          "submissionCode": "131b128d",
+          "qkvCycles": 107376,
+          "attentionCycles": 45577,
+          "ffnCycles": 289031,
+          "cycles": {
+            "ops::sliding_project_qkv": 107376,
+            "ops::sliding_attention_output": 45577,
+            "ops::decoder_feedforward": 289031
+          },
+          "score": 6.426409070875781,
+          "skeleton": null
+        },
+        {
+          "rank": 61,
+          "teamName": "latebird",
+          "submissionId": "2026-09-26-08-10-11-248-c70c8bc9",
+          "submissionCode": "c70c8bc9",
+          "qkvCycles": 103604,
+          "attentionCycles": 48957,
+          "ffnCycles": 295653,
+          "cycles": {
+            "ops::sliding_project_qkv": 103604,
+            "ops::sliding_attention_output": 48957,
+            "ops::decoder_feedforward": 295653
+          },
+          "score": 6.302453124558821,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 62,
+          "teamName": "hgichon",
+          "submissionId": "2026-09-26-12-54-41-831-3bbedeab",
+          "submissionCode": "3bbedeab",
+          "qkvCycles": 114707,
+          "attentionCycles": 44187,
+          "ffnCycles": 303551,
+          "cycles": {
+            "ops::sliding_project_qkv": 114707,
+            "ops::sliding_attention_output": 44187,
+            "ops::decoder_feedforward": 303551
+          },
+          "score": 6.248783225273839,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 63,
+          "teamName": "Participant #659",
+          "submissionId": "2026-09-12-12-18-34-684-6c129778",
+          "submissionCode": "6c129778",
+          "qkvCycles": 111530,
+          "attentionCycles": 46270,
+          "ffnCycles": 320968,
+          "cycles": {
+            "ops::sliding_project_qkv": 111530,
+            "ops::sliding_attention_output": 46270,
+            "ops::decoder_feedforward": 320968
+          },
+          "score": 6.097004494033579,
+          "skeleton": null
+        },
+        {
+          "rank": 64,
+          "teamName": "Only One",
+          "submissionId": "2026-09-20-06-01-44-534-d905de1a",
+          "submissionCode": "d905de1a",
+          "qkvCycles": 106714,
+          "attentionCycles": 52082,
+          "ffnCycles": 299685,
+          "cycles": {
+            "ops::sliding_project_qkv": 106714,
+            "ops::sliding_attention_output": 52082,
+            "ops::decoder_feedforward": 299685
+          },
+          "score": 6.085685081776873,
+          "skeleton": null
+        },
+        {
+          "rank": 65,
+          "teamName": "Participant #604",
+          "submissionId": "2026-09-30-09-12-53-048-a68f39ef",
+          "submissionCode": "a68f39ef",
+          "qkvCycles": 104907,
+          "attentionCycles": 51274,
+          "ffnCycles": 509480,
+          "cycles": {
+            "ops::sliding_project_qkv": 104907,
+            "ops::sliding_attention_output": 51274,
+            "ops::decoder_feedforward": 509480
+          },
+          "score": 5.154951204799489,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 66,
+          "teamName": "dodo",
+          "submissionId": "2026-09-24-14-59-24-446-9d0ff8dd",
+          "submissionCode": "9d0ff8dd",
+          "qkvCycles": 110992,
+          "attentionCycles": 59135,
+          "ffnCycles": 471549,
+          "cycles": {
+            "ops::sliding_project_qkv": 110992,
+            "ops::sliding_attention_output": 59135,
+            "ops::decoder_feedforward": 471549
+          },
+          "score": 4.950090346982413,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 67,
+          "teamName": "Huflit-NPU",
+          "submissionId": "2026-09-29-01-10-25-082-47c49d3f",
+          "submissionCode": "47c49d3f",
+          "qkvCycles": 181641,
+          "attentionCycles": 60903,
+          "ffnCycles": 366937,
+          "cycles": {
+            "ops::sliding_project_qkv": 181641,
+            "ops::sliding_attention_output": 60903,
+            "ops::decoder_feedforward": 366937
+          },
+          "score": 4.522231620811688,
+          "skeleton": "0.6.0"
+        },
+        {
+          "rank": 68,
+          "teamName": "SPAC",
+          "submissionId": "2026-09-18-18-19-57-543-3b04b72f",
+          "submissionCode": "3b04b72f",
+          "qkvCycles": 171084,
+          "attentionCycles": 65193,
+          "ffnCycles": 563586,
+          "cycles": {
+            "ops::sliding_project_qkv": 171084,
+            "ops::sliding_attention_output": 65193,
+            "ops::decoder_feedforward": 563586
+          },
+          "score": 3.908804727727119,
+          "skeleton": null
+        },
+        {
+          "rank": 69,
+          "teamName": "AICS-GN1",
+          "submissionId": "2026-09-17-04-09-22-100-98f72b7f",
+          "submissionCode": "98f72b7f",
+          "qkvCycles": 160228,
+          "attentionCycles": 102662,
+          "ffnCycles": 986961,
+          "cycles": {
+            "ops::sliding_project_qkv": 160228,
+            "ops::sliding_attention_output": 102662,
+            "ops::decoder_feedforward": 986961
+          },
+          "score": 2.8489497312845793,
+          "skeleton": null
+        },
+        {
+          "rank": 70,
+          "teamName": "Flux",
+          "submissionId": "2026-09-30-13-03-23-487-e536d417",
+          "submissionCode": "e536d417",
+          "qkvCycles": 224910,
+          "attentionCycles": 109020,
+          "ffnCycles": 1173488,
+          "cycles": {
+            "ops::sliding_project_qkv": 224910,
+            "ops::sliding_attention_output": 109020,
+            "ops::decoder_feedforward": 1173488
+          },
+          "score": 2.35416173155821,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 71,
+          "teamName": "CodingVillain",
+          "submissionId": "2026-09-17-00-25-37-316-c8dfad2f",
+          "submissionCode": "c8dfad2f",
+          "qkvCycles": 117999,
+          "attentionCycles": 67871,
+          "ffnCycles": 3704424,
+          "cycles": {
+            "ops::sliding_project_qkv": 117999,
+            "ops::sliding_attention_output": 67871,
+            "ops::decoder_feedforward": 3704424
+          },
+          "score": 2.3302708707533424,
+          "skeleton": null
+        },
+        {
+          "rank": 72,
+          "teamName": "4NiuMa",
+          "submissionId": "2026-09-30-06-15-10-551-5cb92cd3",
+          "submissionCode": "5cb92cd3",
+          "qkvCycles": 196931,
+          "attentionCycles": 137444,
+          "ffnCycles": 1217406,
+          "cycles": {
+            "ops::sliding_project_qkv": 196931,
+            "ops::sliding_attention_output": 137444,
+            "ops::decoder_feedforward": 1217406
+          },
+          "score": 2.250137501269994,
+          "skeleton": "0.8.1"
+        },
+        {
+          "rank": 73,
+          "teamName": "Participant #208",
+          "submissionId": "2026-09-18-02-59-40-051-7f9b7eb7",
+          "submissionCode": "7f9b7eb7",
+          "qkvCycles": 244192,
+          "attentionCycles": 279230,
+          "ffnCycles": 1326745,
+          "cycles": {
+            "ops::sliding_project_qkv": 244192,
+            "ops::sliding_attention_output": 279230,
+            "ops::decoder_feedforward": 1326745
+          },
+          "score": 1.6069677897312766,
+          "skeleton": null
+        },
+        {
+          "rank": 74,
+          "teamName": "SpamAI",
+          "submissionId": "2026-09-20-16-18-33-216-e0396270",
+          "submissionCode": "e0396270",
+          "qkvCycles": 245384,
+          "attentionCycles": 405325,
+          "ffnCycles": 1213437,
+          "cycles": {
+            "ops::sliding_project_qkv": 245384,
+            "ops::sliding_attention_output": 405325,
+            "ops::decoder_feedforward": 1213437
+          },
+          "score": 1.4597501850600891,
+          "skeleton": null
+        },
+        {
+          "rank": 75,
+          "teamName": "C\u1ecdLab_PTIT_VietNam",
+          "submissionId": "2026-09-30-07-54-14-726-4bf6ee21",
+          "submissionCode": "4bf6ee21",
+          "qkvCycles": 235581,
+          "attentionCycles": 337263,
+          "ffnCycles": 1930206,
+          "cycles": {
+            "ops::sliding_project_qkv": 235581,
+            "ops::sliding_attention_output": 337263,
+            "ops::decoder_feedforward": 1930206
+          },
+          "score": 1.3477105271695262,
+          "skeleton": "0.6.0"
+        },
+        {
+          "rank": 76,
+          "teamName": "Participant #547",
+          "submissionId": "2026-09-18-03-16-08-663-2dfee732",
+          "submissionCode": "2dfee732",
+          "qkvCycles": 244979,
+          "attentionCycles": 345413,
+          "ffnCycles": 3287074,
+          "cycles": {
+            "ops::sliding_project_qkv": 244979,
+            "ops::sliding_attention_output": 345413,
+            "ops::decoder_feedforward": 3287074
+          },
+          "score": 1.1051175824161044,
+          "skeleton": null
+        },
+        {
+          "rank": 77,
+          "teamName": "CMCU",
+          "submissionId": "2026-09-18-14-52-10-486-ee772b50",
+          "submissionCode": "ee772b50",
+          "qkvCycles": 250276,
+          "attentionCycles": 404611,
+          "ffnCycles": 3696667,
+          "cycles": {
+            "ops::sliding_project_qkv": 250276,
+            "ops::sliding_attention_output": 404611,
+            "ops::decoder_feedforward": 3696667
+          },
+          "score": 1.000948547986419,
+          "skeleton": null
+        },
+        {
+          "rank": 78,
+          "teamName": "Baseline",
+          "submissionId": "2026-09-08-10-52-27-259-207bc933",
+          "submissionCode": "207bc933",
+          "qkvCycles": 250514,
+          "attentionCycles": 404633,
+          "ffnCycles": 3703473,
+          "cycles": {
+            "ops::sliding_project_qkv": 250514,
+            "ops::sliding_attention_output": 404633,
+            "ops::decoder_feedforward": 3703473
+          },
+          "score": 1,
+          "skeleton": null
+        },
+        {
+          "rank": 79,
+          "teamName": "probe",
+          "submissionId": "2026-09-16-01-45-30-287-c431ed33",
+          "submissionCode": "c431ed33",
+          "qkvCycles": 258854,
+          "attentionCycles": 401453,
+          "ffnCycles": 3704735,
+          "cycles": {
+            "ops::sliding_project_qkv": 258854,
+            "ops::sliding_attention_output": 401453,
+            "ops::decoder_feedforward": 3704735
+          },
+          "score": 0.9916351568781077,
+          "skeleton": null
+        }
+      ]
+    },
+    "response_raw_utf8": "{\"success\":true,\"baselineCycles\":{\"ops::sliding_project_qkv\":250514,\"ops::sliding_attention_output\":404633,\"ops::decoder_feedforward\":3703473},\"data\":[{\"rank\":1,\"teamName\":\"IA -ARIA ON THE PLANETES-\",\"submissionId\":\"2026-09-30-08-57-09-689-b4fc2e00\",\"submissionCode\":\"b4fc2e00\",\"qkvCycles\":58345,\"attentionCycles\":29033,\"ffnCycles\":181057,\"cycles\":{\"ops::sliding_project_qkv\":58345,\"ops::sliding_attention_output\":29033,\"ops::decoder_feedforward\":181057},\"score\":10.697046120363474,\"skeleton\":\"0.8.1\"},{\"rank\":2,\"teamName\":\"Goat Chovy #1557\",\"submissionId\":\"2026-09-29-12-25-02-925-4ec77810\",\"submissionCode\":\"4ec77810\",\"qkvCycles\":58858,\"attentionCycles\":31765,\"ffnCycles\":188995,\"cycles\":{\"ops::sliding_project_qkv\":58858,\"ops::sliding_attention_output\":31765,\"ops::decoder_feedforward\":188995},\"score\":10.203893943989396,\"skeleton\":\"0.8.1\"},{\"rank\":3,\"teamName\":\"The_Odyssey_of_EDABK\",\"submissionId\":\"2026-09-30-09-09-46-012-ab01ada5\",\"submissionCode\":\"ab01ada5\",\"qkvCycles\":66054,\"attentionCycles\":35056,\"ffnCycles\":194785,\"cycles\":{\"ops::sliding_project_qkv\":66054,\"ops::sliding_attention_output\":35056,\"ops::decoder_feedforward\":194785},\"score\":9.40650947012403,\"skeleton\":\"0.8.1\"},{\"rank\":4,\"teamName\":\"EoM\",\"submissionId\":\"2026-09-30-05-01-10-878-a8f7c7cb\",\"submissionCode\":\"a8f7c7cb\",\"qkvCycles\":66377,\"attentionCycles\":35886,\"ffnCycles\":194234,\"cycles\":{\"ops::sliding_project_qkv\":66377,\"ops::sliding_attention_output\":35886,\"ops::decoder_feedforward\":194234},\"score\":9.327061752481592,\"skeleton\":\"0.8.1\"},{\"rank\":5,\"teamName\":\"EDABK Spidey\",\"submissionId\":\"2026-09-28-04-18-06-790-a71fdd30\",\"submissionCode\":\"a71fdd30\",\"qkvCycles\":67900,\"attentionCycles\":35295,\"ffnCycles\":193792,\"cycles\":{\"ops::sliding_project_qkv\":67900,\"ops::sliding_attention_output\":35295,\"ops::decoder_feedforward\":193792},\"score\":9.315250953048595,\"skeleton\":\"0.8.1\"},{\"rank\":6,\"teamName\":\"EDABK-Artemis\",\"submissionId\":\"2026-09-28-15-55-11-729-29647198\",\"submissionCode\":\"29647198\",\"qkvCycles\":67832,\"attentionCycles\":34694,\"ffnCycles\":198222,\"cycles\":{\"ops::sliding_project_qkv\":67832,\"ops::sliding_attention_output\":34694,\"ops::decoder_feedforward\":198222},\"score\":9.301519003484005,\"skeleton\":\"0.8.1\"},{\"rank\":7,\"teamName\":\"Fluidstack\",\"submissionId\":\"2026-09-28-13-56-53-716-b6e01199\",\"submissionCode\":\"b6e01199\",\"qkvCycles\":66817,\"attentionCycles\":36227,\"ffnCycles\":193246,\"cycles\":{\"ops::sliding_project_qkv\":66817,\"ops::sliding_attention_output\":36227,\"ops::decoder_feedforward\":193246},\"score\":9.293034343580748,\"skeleton\":\"0.8.1\"},{\"rank\":8,\"teamName\":\"Participant #428\",\"submissionId\":\"2026-09-30-13-03-28-510-047c4b80\",\"submissionCode\":\"047c4b80\",\"qkvCycles\":68910,\"attentionCycles\":35603,\"ffnCycles\":193372,\"cycles\":{\"ops::sliding_project_qkv\":68910,\"ops::sliding_attention_output\":35603,\"ops::decoder_feedforward\":193372},\"score\":9.249395497933614,\"skeleton\":\"0.8.1\"},{\"rank\":9,\"teamName\":\"Participant #663\",\"submissionId\":\"2026-09-28-16-42-02-389-5b4c996d\",\"submissionCode\":\"5b4c996d\",\"qkvCycles\":68481,\"attentionCycles\":35697,\"ffnCycles\":196719,\"cycles\":{\"ops::sliding_project_qkv\":68481,\"ops::sliding_attention_output\":35697,\"ops::decoder_feedforward\":196719},\"score\":9.20770621638275,\"skeleton\":\"0.8.1\"},{\"rank\":10,\"teamName\":\"Participant #482\",\"submissionId\":\"2026-09-30-05-03-44-755-f677a700\",\"submissionCode\":\"f677a700\",\"qkvCycles\":69798,\"attentionCycles\":35036,\"ffnCycles\":197414,\"cycles\":{\"ops::sliding_project_qkv\":69798,\"ops::sliding_attention_output\":35036,\"ops::decoder_feedforward\":197414},\"score\":9.19578932242152,\"skeleton\":\"0.8.1\"},{\"rank\":11,\"teamName\":\"PN\",\"submissionId\":\"2026-09-24-08-57-19-256-601c66fb\",\"submissionCode\":\"601c66fb\",\"qkvCycles\":67778,\"attentionCycles\":36289,\"ffnCycles\":197974,\"cycles\":{\"ops::sliding_project_qkv\":67778,\"ops::sliding_attention_output\":36289,\"ops::decoder_feedforward\":197974},\"score\":9.169455031942526,\"skeleton\":\"0.8.1\"},{\"rank\":12,\"teamName\":\"SOTA\",\"submissionId\":\"2026-09-30-02-09-38-300-d17b2add\",\"submissionCode\":\"d17b2add\",\"qkvCycles\":70489,\"attentionCycles\":36693,\"ffnCycles\":195139,\"cycles\":{\"ops::sliding_project_qkv\":70489,\"ops::sliding_attention_output\":36693,\"ops::decoder_feedforward\":195139},\"score\":9.060481527340997,\"skeleton\":\"0.8.1\"},{\"rank\":13,\"teamName\":\"Participant #-2147483648\",\"submissionId\":\"2026-09-28-19-11-10-686-49dbfde3\",\"submissionCode\":\"49dbfde3\",\"qkvCycles\":71157,\"attentionCycles\":36138,\"ffnCycles\":197708,\"cycles\":{\"ops::sliding_project_qkv\":71157,\"ops::sliding_attention_output\":36138,\"ops::decoder_feedforward\":197708},\"score\":9.038551405007627,\"skeleton\":\"0.8.1\"},{\"rank\":14,\"teamName\":\"KLG\",\"submissionId\":\"2026-09-30-11-59-52-085-928d4466\",\"submissionCode\":\"928d4466\",\"qkvCycles\":71107,\"attentionCycles\":35734,\"ffnCycles\":200320,\"cycles\":{\"ops::sliding_project_qkv\":71107,\"ops::sliding_attention_output\":35734,\"ops::decoder_feedforward\":200320},\"score\":9.034998001022213,\"skeleton\":\"0.8.1\"},{\"rank\":15,\"teamName\":\"SAL\",\"submissionId\":\"2026-09-29-21-17-55-393-5f3faa16\",\"submissionCode\":\"5f3faa16\",\"qkvCycles\":70951,\"attentionCycles\":36695,\"ffnCycles\":196617,\"cycles\":{\"ops::sliding_project_qkv\":70951,\"ops::sliding_attention_output\":36695,\"ops::decoder_feedforward\":196617},\"score\":9.017898336928885,\"skeleton\":\"0.8.1\"},{\"rank\":16,\"teamName\":\"Participant #164\",\"submissionId\":\"2026-09-30-09-17-20-160-da3c4e99\",\"submissionCode\":\"da3c4e99\",\"qkvCycles\":72332,\"attentionCycles\":36177,\"ffnCycles\":205591,\"cycles\":{\"ops::sliding_project_qkv\":72332,\"ops::sliding_attention_output\":36177,\"ops::decoder_feedforward\":205591},\"score\":8.86975832854103,\"skeleton\":\"0.8.1\"},{\"rank\":17,\"teamName\":\"Participant #398\",\"submissionId\":\"2026-09-15-17-52-04-798-27b30f89\",\"submissionCode\":\"27b30f89\",\"qkvCycles\":78870,\"attentionCycles\":30228,\"ffnCycles\":226475,\"cycles\":{\"ops::sliding_project_qkv\":78870,\"ops::sliding_attention_output\":30228,\"ops::decoder_feedforward\":226475},\"score\":8.859046613946372,\"skeleton\":null},{\"rank\":18,\"teamName\":\"FY\",\"submissionId\":\"2026-09-28-19-50-58-076-a2e8821d\",\"submissionCode\":\"a2e8821d\",\"qkvCycles\":75582,\"attentionCycles\":37311,\"ffnCycles\":201170,\"cycles\":{\"ops::sliding_project_qkv\":75582,\"ops::sliding_attention_output\":37311,\"ops::decoder_feedforward\":201170},\"score\":8.714209556479839,\"skeleton\":\"0.8.1\"},{\"rank\":19,\"teamName\":\"NPU_ASP_BKIC\",\"submissionId\":\"2026-09-29-12-15-49-514-18eeae6b\",\"submissionCode\":\"18eeae6b\",\"qkvCycles\":74817,\"attentionCycles\":37653,\"ffnCycles\":205294,\"cycles\":{\"ops::sliding_project_qkv\":74817,\"ops::sliding_attention_output\":37653,\"ops::decoder_feedforward\":205294},\"score\":8.658489157027324,\"skeleton\":\"0.8.1\"},{\"rank\":20,\"teamName\":\"Participant #185\",\"submissionId\":\"2026-09-30-09-42-53-230-18c8c50f\",\"submissionCode\":\"18c8c50f\",\"qkvCycles\":72656,\"attentionCycles\":38205,\"ffnCycles\":210382,\"cycles\":{\"ops::sliding_project_qkv\":72656,\"ops::sliding_attention_output\":38205,\"ops::decoder_feedforward\":210382},\"score\":8.630462537367384,\"skeleton\":\"0.8.1\"},{\"rank\":21,\"teamName\":\"zlfn\",\"submissionId\":\"2026-09-23-10-14-58-029-def2d3a9\",\"submissionCode\":\"def2d3a9\",\"qkvCycles\":74764,\"attentionCycles\":36374,\"ffnCycles\":216044,\"cycles\":{\"ops::sliding_project_qkv\":74764,\"ops::sliding_attention_output\":36374,\"ops::decoder_feedforward\":216044},\"score\":8.613088192357347,\"skeleton\":\"0.8.1\"},{\"rank\":22,\"teamName\":\"ASP Opticore\",\"submissionId\":\"2026-09-28-17-18-29-243-7bce066c\",\"submissionCode\":\"7bce066c\",\"qkvCycles\":75417,\"attentionCycles\":36744,\"ffnCycles\":213339,\"cycles\":{\"ops::sliding_project_qkv\":75417,\"ops::sliding_attention_output\":36744,\"ops::decoder_feedforward\":213339},\"score\":8.595256623326012,\"skeleton\":\"0.8.1\"},{\"rank\":23,\"teamName\":\"pdao\",\"submissionId\":\"2026-09-30-13-07-44-509-4bd7ebd0\",\"submissionCode\":\"4bd7ebd0\",\"qkvCycles\":72814,\"attentionCycles\":36808,\"ffnCycles\":220607,\"cycles\":{\"ops::sliding_project_qkv\":72814,\"ops::sliding_attention_output\":36808,\"ops::decoder_feedforward\":220607},\"score\":8.594923751045028,\"skeleton\":\"0.8.1\"},{\"rank\":24,\"teamName\":\"RTOSLab\",\"submissionId\":\"2026-09-29-17-27-15-290-981db7ed\",\"submissionCode\":\"981db7ed\",\"qkvCycles\":76252,\"attentionCycles\":37286,\"ffnCycles\":211174,\"cycles\":{\"ops::sliding_project_qkv\":76252,\"ops::sliding_attention_output\":37286,\"ops::decoder_feedforward\":211174},\"score\":8.551093742895086,\"skeleton\":\"0.8.1\"},{\"rank\":25,\"teamName\":\"monkey\",\"submissionId\":\"2026-09-28-09-25-21-611-91136eef\",\"submissionCode\":\"91136eef\",\"qkvCycles\":76198,\"attentionCycles\":38340,\"ffnCycles\":206445,\"cycles\":{\"ops::sliding_project_qkv\":76198,\"ops::sliding_attention_output\":38340,\"ops::decoder_feedforward\":206445},\"score\":8.538222691883595,\"skeleton\":\"0.8.1\"},{\"rank\":26,\"teamName\":\"ASP - RISE\",\"submissionId\":\"2026-09-29-06-45-17-415-82bbdc5a\",\"submissionCode\":\"82bbdc5a\",\"qkvCycles\":77738,\"attentionCycles\":38891,\"ffnCycles\":209537,\"cycles\":{\"ops::sliding_project_qkv\":77738,\"ops::sliding_attention_output\":38891,\"ops::decoder_feedforward\":209537},\"score\":8.399493455128695,\"skeleton\":\"0.8.1\"},{\"rank\":27,\"teamName\":\"Pribess\",\"submissionId\":\"2026-09-29-01-09-58-363-c54b5ac6\",\"submissionCode\":\"c54b5ac6\",\"qkvCycles\":78003,\"attentionCycles\":37590,\"ffnCycles\":217820,\"cycles\":{\"ops::sliding_project_qkv\":78003,\"ops::sliding_attention_output\":37590,\"ops::decoder_feedforward\":217820},\"score\":8.376714219135094,\"skeleton\":\"0.8.1\"},{\"rank\":28,\"teamName\":\"EarlyBird\",\"submissionId\":\"2026-09-28-19-01-35-668-e848a6de\",\"submissionCode\":\"e848a6de\",\"qkvCycles\":77975,\"attentionCycles\":39571,\"ffnCycles\":212582,\"cycles\":{\"ops::sliding_project_qkv\":77975,\"ops::sliding_attention_output\":39571,\"ops::decoder_feedforward\":212582},\"score\":8.30260790365593,\"skeleton\":\"0.8.1\"},{\"rank\":29,\"teamName\":\"COSLAB\",\"submissionId\":\"2026-09-26-02-45-26-676-7989a4ab\",\"submissionCode\":\"7989a4ab\",\"qkvCycles\":80625,\"attentionCycles\":39334,\"ffnCycles\":218296,\"cycles\":{\"ops::sliding_project_qkv\":80625,\"ops::sliding_attention_output\":39334,\"ops::decoder_feedforward\":218296},\"score\":8.154668069809686,\"skeleton\":\"0.8.1\"},{\"rank\":30,\"teamName\":\"Participant #991\",\"submissionId\":\"2026-09-25-14-57-08-850-60787ff6\",\"submissionCode\":\"60787ff6\",\"qkvCycles\":75364,\"attentionCycles\":38860,\"ffnCycles\":244008,\"cycles\":{\"ops::sliding_project_qkv\":75364,\"ops::sliding_attention_output\":38860,\"ops::decoder_feedforward\":244008},\"score\":8.068829902032553,\"skeleton\":\"0.8.1\"},{\"rank\":31,\"teamName\":\"KIM\",\"submissionId\":\"2026-09-25-04-14-04-897-20d77da0\",\"submissionCode\":\"20d77da0\",\"qkvCycles\":78488,\"attentionCycles\":37509,\"ffnCycles\":246216,\"cycles\":{\"ops::sliding_project_qkv\":78488,\"ops::sliding_attention_output\":37509,\"ops::decoder_feedforward\":246216},\"score\":8.030621447772656,\"skeleton\":\"0.8.1\"},{\"rank\":32,\"teamName\":\"vinxst\",\"submissionId\":\"2026-09-14-04-55-22-140-052771d3\",\"submissionCode\":\"052771d3\",\"qkvCycles\":86355,\"attentionCycles\":34421,\"ffnCycles\":243884,\"cycles\":{\"ops::sliding_project_qkv\":86355,\"ops::sliding_attention_output\":34421,\"ops::decoder_feedforward\":243884},\"score\":8.030379456800663,\"skeleton\":null},{\"rank\":33,\"teamName\":\"Asteromorph\",\"submissionId\":\"2026-09-30-05-54-49-382-f63c90f9\",\"submissionCode\":\"f63c90f9\",\"qkvCycles\":77677,\"attentionCycles\":41952,\"ffnCycles\":223643,\"cycles\":{\"ops::sliding_project_qkv\":77677,\"ops::sliding_attention_output\":41952,\"ops::decoder_feedforward\":223643},\"score\":8.016178019449242,\"skeleton\":\"0.8.1\"},{\"rank\":34,\"teamName\":\"KAIMARU\",\"submissionId\":\"2026-09-23-04-42-28-330-5cac1cf9\",\"submissionCode\":\"5cac1cf9\",\"qkvCycles\":75992,\"attentionCycles\":40625,\"ffnCycles\":236630,\"cycles\":{\"ops::sliding_project_qkv\":75992,\"ops::sliding_attention_output\":40625,\"ops::decoder_feedforward\":236630},\"score\":8.009839434194001,\"skeleton\":\"0.8.1\"},{\"rank\":35,\"teamName\":\"Participant #283\",\"submissionId\":\"2026-09-27-15-35-52-223-76cf9180\",\"submissionCode\":\"76cf9180\",\"qkvCycles\":77709,\"attentionCycles\":38131,\"ffnCycles\":247196,\"cycles\":{\"ops::sliding_project_qkv\":77709,\"ops::sliding_attention_output\":38131,\"ops::decoder_feedforward\":247196},\"score\":8.002711787557535,\"skeleton\":\"0.8.1\"},{\"rank\":36,\"teamName\":\"Leo\",\"submissionId\":\"2026-09-24-08-06-03-618-e92fbcd3\",\"submissionCode\":\"e92fbcd3\",\"qkvCycles\":79851,\"attentionCycles\":37611,\"ffnCycles\":244713,\"cycles\":{\"ops::sliding_project_qkv\":79851,\"ops::sliding_attention_output\":37611,\"ops::decoder_feedforward\":244713},\"score\":7.9937408989638,\"skeleton\":\"0.8.1\"},{\"rank\":37,\"teamName\":\"mskim\",\"submissionId\":\"2026-09-30-08-29-36-400-1a024aec\",\"submissionCode\":\"1a024aec\",\"qkvCycles\":75917,\"attentionCycles\":37411,\"ffnCycles\":264462,\"cycles\":{\"ops::sliding_project_qkv\":75917,\"ops::sliding_attention_output\":37411,\"ops::decoder_feedforward\":264462},\"score\":7.93597486134071,\"skeleton\":\"0.8.1\"},{\"rank\":38,\"teamName\":\"SNU_Mlsys\",\"submissionId\":\"2026-09-28-02-42-47-861-4bd4ecea\",\"submissionCode\":\"4bd4ecea\",\"qkvCycles\":104198,\"attentionCycles\":36226,\"ffnCycles\":200786,\"cycles\":{\"ops::sliding_project_qkv\":104198,\"ops::sliding_attention_output\":36226,\"ops::decoder_feedforward\":200786},\"score\":7.912184937450697,\"skeleton\":\"0.8.1\"},{\"rank\":39,\"teamName\":\"Participant #608\",\"submissionId\":\"2026-09-26-00-00-47-681-d4623827\",\"submissionCode\":\"d4623827\",\"qkvCycles\":78524,\"attentionCycles\":38138,\"ffnCycles\":254571,\"cycles\":{\"ops::sliding_project_qkv\":78524,\"ops::sliding_attention_output\":38138,\"ops::decoder_feedforward\":254571},\"score\":7.896677623874374,\"skeleton\":\"0.8.1\"},{\"rank\":40,\"teamName\":\"Participant #795\",\"submissionId\":\"2026-09-30-12-37-55-851-f7641a68\",\"submissionCode\":\"f7641a68\",\"qkvCycles\":80787,\"attentionCycles\":41786,\"ffnCycles\":229560,\"cycles\":{\"ops::sliding_project_qkv\":80787,\"ops::sliding_attention_output\":41786,\"ops::decoder_feedforward\":229560},\"score\":7.853766685356568,\"skeleton\":\"0.8.1\"},{\"rank\":41,\"teamName\":\"Participant #720\",\"submissionId\":\"2026-09-29-02-43-52-966-de6cb7a6\",\"submissionCode\":\"de6cb7a6\",\"qkvCycles\":80674,\"attentionCycles\":38942,\"ffnCycles\":253438,\"cycles\":{\"ops::sliding_project_qkv\":80674,\"ops::sliding_attention_output\":38942,\"ops::decoder_feedforward\":253438},\"score\":7.783225903305429,\"skeleton\":\"0.8.1\"},{\"rank\":42,\"teamName\":\"eclab\",\"submissionId\":\"2026-09-23-04-21-55-583-bf5e68e9\",\"submissionCode\":\"bf5e68e9\",\"qkvCycles\":87708,\"attentionCycles\":38235,\"ffnCycles\":238532,\"cycles\":{\"ops::sliding_project_qkv\":87708,\"ops::sliding_attention_output\":38235,\"ops::decoder_feedforward\":238532},\"score\":7.771147945595257,\"skeleton\":\"0.8.1\"},{\"rank\":43,\"teamName\":\"ILoveFuriosaAI\u2764\ufe0f\",\"submissionId\":\"2026-09-23-07-17-47-060-e7ce99ea\",\"submissionCode\":\"e7ce99ea\",\"qkvCycles\":79664,\"attentionCycles\":41880,\"ffnCycles\":243807,\"cycles\":{\"ops::sliding_project_qkv\":79664,\"ops::sliding_attention_output\":41880,\"ops::decoder_feedforward\":243807},\"score\":7.72791808963601,\"skeleton\":\"0.8.1\"},{\"rank\":44,\"teamName\":\"bitbit\",\"submissionId\":\"2026-09-24-08-00-11-558-309ea90a\",\"submissionCode\":\"309ea90a\",\"qkvCycles\":81122,\"attentionCycles\":45812,\"ffnCycles\":225828,\"cycles\":{\"ops::sliding_project_qkv\":81122,\"ops::sliding_attention_output\":45812,\"ops::decoder_feedforward\":225828},\"score\":7.647783725092736,\"skeleton\":\"0.8.1\"},{\"rank\":45,\"teamName\":\"castaway\",\"submissionId\":\"2026-09-30-12-11-42-437-0ca7f00d\",\"submissionCode\":\"0ca7f00d\",\"qkvCycles\":87913,\"attentionCycles\":40348,\"ffnCycles\":264139,\"cycles\":{\"ops::sliding_project_qkv\":87913,\"ops::sliding_attention_output\":40348,\"ops::decoder_feedforward\":264139},\"score\":7.372219890903667,\"skeleton\":\"0.8.1\"},{\"rank\":46,\"teamName\":\"Curling Gradient\",\"submissionId\":\"2026-09-30-12-45-41-286-1f2e1ea9\",\"submissionCode\":\"1f2e1ea9\",\"qkvCycles\":83347,\"attentionCycles\":40662,\"ffnCycles\":277135,\"cycles\":{\"ops::sliding_project_qkv\":83347,\"ops::sliding_attention_output\":40662,\"ops::decoder_feedforward\":277135},\"score\":7.36621062242241,\"skeleton\":\"0.8.1\"},{\"rank\":47,\"teamName\":\"franknoh\",\"submissionId\":\"2026-09-23-13-47-19-056-c2e53609\",\"submissionCode\":\"c2e53609\",\"qkvCycles\":82862,\"attentionCycles\":41531,\"ffnCycles\":275228,\"cycles\":{\"ops::sliding_project_qkv\":82862,\"ops::sliding_attention_output\":41531,\"ops::decoder_feedforward\":275228},\"score\":7.345601369367354,\"skeleton\":\"0.8.1\"},{\"rank\":48,\"teamName\":\"ASP SOLO\",\"submissionId\":\"2026-09-24-09-58-47-240-648b2ddb\",\"submissionCode\":\"648b2ddb\",\"qkvCycles\":86891,\"attentionCycles\":42399,\"ffnCycles\":267006,\"cycles\":{\"ops::sliding_project_qkv\":86891,\"ops::sliding_attention_output\":42399,\"ops::decoder_feedforward\":267006},\"score\":7.253545692274164,\"skeleton\":\"0.8.1\"},{\"rank\":49,\"teamName\":\"ecl\",\"submissionId\":\"2026-09-30-12-33-53-370-92fc4138\",\"submissionCode\":\"92fc4138\",\"qkvCycles\":96403,\"attentionCycles\":41565,\"ffnCycles\":253304,\"cycles\":{\"ops::sliding_project_qkv\":96403,\"ops::sliding_attention_output\":41565,\"ops::decoder_feedforward\":253304},\"score\":7.17817486442802,\"skeleton\":\"0.8.1\"},{\"rank\":50,\"teamName\":\"AIFUR\",\"submissionId\":\"2026-09-30-06-02-11-399-02bcf4d2\",\"submissionCode\":\"02bcf4d2\",\"qkvCycles\":86073,\"attentionCycles\":40941,\"ffnCycles\":299676,\"cycles\":{\"ops::sliding_project_qkv\":86073,\"ops::sliding_attention_output\":40941,\"ops::decoder_feedforward\":299676},\"score\":7.083942779293717,\"skeleton\":\"0.8.1\"},{\"rank\":51,\"teamName\":\"Participant #596\",\"submissionId\":\"2026-09-29-09-19-08-123-e717ba78\",\"submissionCode\":\"e717ba78\",\"qkvCycles\":95673,\"attentionCycles\":43948,\"ffnCycles\":254846,\"cycles\":{\"ops::sliding_project_qkv\":95673,\"ops::sliding_attention_output\":43948,\"ops::decoder_feedforward\":254846},\"score\":7.049614756693925,\"skeleton\":\"0.8.1\"},{\"rank\":52,\"teamName\":\"If I had the money\",\"submissionId\":\"2026-09-16-02-54-09-447-5ba91cf4\",\"submissionCode\":\"5ba91cf4\",\"qkvCycles\":92118,\"attentionCycles\":42184,\"ffnCycles\":276793,\"cycles\":{\"ops::sliding_project_qkv\":92118,\"ops::sliding_attention_output\":42184,\"ops::decoder_feedforward\":276793},\"score\":7.040741084909178,\"skeleton\":null},{\"rank\":53,\"teamName\":\"Slugcat\",\"submissionId\":\"2026-09-13-13-02-10-952-e8098647\",\"submissionCode\":\"e8098647\",\"qkvCycles\":100005,\"attentionCycles\":41132,\"ffnCycles\":265565,\"cycles\":{\"ops::sliding_project_qkv\":100005,\"ops::sliding_attention_output\":41132,\"ops::decoder_feedforward\":265565},\"score\":7.004492936617083,\"skeleton\":null},{\"rank\":54,\"teamName\":\"NpuMind\",\"submissionId\":\"2026-09-30-07-36-30-500-bce9b676\",\"submissionCode\":\"bce9b676\",\"qkvCycles\":101849,\"attentionCycles\":42711,\"ffnCycles\":269524,\"cycles\":{\"ops::sliding_project_qkv\":101849,\"ops::sliding_attention_output\":42711,\"ops::decoder_feedforward\":269524},\"score\":6.841261275478177,\"skeleton\":\"0.8.1\"},{\"rank\":55,\"teamName\":\"Participant #300\",\"submissionId\":\"2026-09-25-03-58-34-968-175cdd79\",\"submissionCode\":\"175cdd79\",\"qkvCycles\":98296,\"attentionCycles\":42151,\"ffnCycles\":297977,\"cycles\":{\"ops::sliding_project_qkv\":98296,\"ops::sliding_attention_output\":42151,\"ops::decoder_feedforward\":297977},\"score\":6.724479449891169,\"skeleton\":\"0.8.1\"},{\"rank\":56,\"teamName\":\"aman28\",\"submissionId\":\"2026-09-30-02-07-00-479-f1419667\",\"submissionCode\":\"f1419667\",\"qkvCycles\":97245,\"attentionCycles\":50615,\"ffnCycles\":258337,\"cycles\":{\"ops::sliding_project_qkv\":97245,\"ops::sliding_attention_output\":50615,\"ops::decoder_feedforward\":258337},\"score\":6.658705127791377,\"skeleton\":\"0.8.1\"},{\"rank\":57,\"teamName\":\"Participant #070\",\"submissionId\":\"2026-09-13-17-34-08-846-82b62098\",\"submissionCode\":\"82b62098\",\"qkvCycles\":103400,\"attentionCycles\":44785,\"ffnCycles\":279087,\"cycles\":{\"ops::sliding_project_qkv\":103400,\"ops::sliding_attention_output\":44785,\"ops::decoder_feedforward\":279087},\"score\":6.622722930331512,\"skeleton\":null},{\"rank\":58,\"teamName\":\"BEEF\",\"submissionId\":\"2026-09-27-12-58-32-712-e1f58b9e\",\"submissionCode\":\"e1f58b9e\",\"qkvCycles\":104474,\"attentionCycles\":42694,\"ffnCycles\":302799,\"cycles\":{\"ops::sliding_project_qkv\":104474,\"ops::sliding_attention_output\":42694,\"ops::decoder_feedforward\":302799},\"score\":6.526159132655642,\"skeleton\":\"0.8.1\"},{\"rank\":59,\"teamName\":\"Test_Server\",\"submissionId\":\"2026-09-29-11-59-33-853-50974b83\",\"submissionCode\":\"50974b83\",\"qkvCycles\":95163,\"attentionCycles\":46556,\"ffnCycles\":306184,\"cycles\":{\"ops::sliding_project_qkv\":95163,\"ops::sliding_attention_output\":46556,\"ops::decoder_feedforward\":306184},\"score\":6.516665094127976,\"skeleton\":\"0.6.0\"},{\"rank\":60,\"teamName\":\"Pulbitmaru\",\"submissionId\":\"2026-09-10-10-31-48-593-131b128d\",\"submissionCode\":\"131b128d\",\"qkvCycles\":107376,\"attentionCycles\":45577,\"ffnCycles\":289031,\"cycles\":{\"ops::sliding_project_qkv\":107376,\"ops::sliding_attention_output\":45577,\"ops::decoder_feedforward\":289031},\"score\":6.426409070875781,\"skeleton\":null},{\"rank\":61,\"teamName\":\"latebird\",\"submissionId\":\"2026-09-26-08-10-11-248-c70c8bc9\",\"submissionCode\":\"c70c8bc9\",\"qkvCycles\":103604,\"attentionCycles\":48957,\"ffnCycles\":295653,\"cycles\":{\"ops::sliding_project_qkv\":103604,\"ops::sliding_attention_output\":48957,\"ops::decoder_feedforward\":295653},\"score\":6.302453124558821,\"skeleton\":\"0.8.1\"},{\"rank\":62,\"teamName\":\"hgichon\",\"submissionId\":\"2026-09-26-12-54-41-831-3bbedeab\",\"submissionCode\":\"3bbedeab\",\"qkvCycles\":114707,\"attentionCycles\":44187,\"ffnCycles\":303551,\"cycles\":{\"ops::sliding_project_qkv\":114707,\"ops::sliding_attention_output\":44187,\"ops::decoder_feedforward\":303551},\"score\":6.248783225273839,\"skeleton\":\"0.8.1\"},{\"rank\":63,\"teamName\":\"Participant #659\",\"submissionId\":\"2026-09-12-12-18-34-684-6c129778\",\"submissionCode\":\"6c129778\",\"qkvCycles\":111530,\"attentionCycles\":46270,\"ffnCycles\":320968,\"cycles\":{\"ops::sliding_project_qkv\":111530,\"ops::sliding_attention_output\":46270,\"ops::decoder_feedforward\":320968},\"score\":6.097004494033579,\"skeleton\":null},{\"rank\":64,\"teamName\":\"Only One\",\"submissionId\":\"2026-09-20-06-01-44-534-d905de1a\",\"submissionCode\":\"d905de1a\",\"qkvCycles\":106714,\"attentionCycles\":52082,\"ffnCycles\":299685,\"cycles\":{\"ops::sliding_project_qkv\":106714,\"ops::sliding_attention_output\":52082,\"ops::decoder_feedforward\":299685},\"score\":6.085685081776873,\"skeleton\":null},{\"rank\":65,\"teamName\":\"Participant #604\",\"submissionId\":\"2026-09-30-09-12-53-048-a68f39ef\",\"submissionCode\":\"a68f39ef\",\"qkvCycles\":104907,\"attentionCycles\":51274,\"ffnCycles\":509480,\"cycles\":{\"ops::sliding_project_qkv\":104907,\"ops::sliding_attention_output\":51274,\"ops::decoder_feedforward\":509480},\"score\":5.154951204799489,\"skeleton\":\"0.8.1\"},{\"rank\":66,\"teamName\":\"dodo\",\"submissionId\":\"2026-09-24-14-59-24-446-9d0ff8dd\",\"submissionCode\":\"9d0ff8dd\",\"qkvCycles\":110992,\"attentionCycles\":59135,\"ffnCycles\":471549,\"cycles\":{\"ops::sliding_project_qkv\":110992,\"ops::sliding_attention_output\":59135,\"ops::decoder_feedforward\":471549},\"score\":4.950090346982413,\"skeleton\":\"0.8.1\"},{\"rank\":67,\"teamName\":\"Huflit-NPU\",\"submissionId\":\"2026-09-29-01-10-25-082-47c49d3f\",\"submissionCode\":\"47c49d3f\",\"qkvCycles\":181641,\"attentionCycles\":60903,\"ffnCycles\":366937,\"cycles\":{\"ops::sliding_project_qkv\":181641,\"ops::sliding_attention_output\":60903,\"ops::decoder_feedforward\":366937},\"score\":4.522231620811688,\"skeleton\":\"0.6.0\"},{\"rank\":68,\"teamName\":\"SPAC\",\"submissionId\":\"2026-09-18-18-19-57-543-3b04b72f\",\"submissionCode\":\"3b04b72f\",\"qkvCycles\":171084,\"attentionCycles\":65193,\"ffnCycles\":563586,\"cycles\":{\"ops::sliding_project_qkv\":171084,\"ops::sliding_attention_output\":65193,\"ops::decoder_feedforward\":563586},\"score\":3.908804727727119,\"skeleton\":null},{\"rank\":69,\"teamName\":\"AICS-GN1\",\"submissionId\":\"2026-09-17-04-09-22-100-98f72b7f\",\"submissionCode\":\"98f72b7f\",\"qkvCycles\":160228,\"attentionCycles\":102662,\"ffnCycles\":986961,\"cycles\":{\"ops::sliding_project_qkv\":160228,\"ops::sliding_attention_output\":102662,\"ops::decoder_feedforward\":986961},\"score\":2.8489497312845793,\"skeleton\":null},{\"rank\":70,\"teamName\":\"Flux\",\"submissionId\":\"2026-09-30-13-03-23-487-e536d417\",\"submissionCode\":\"e536d417\",\"qkvCycles\":224910,\"attentionCycles\":109020,\"ffnCycles\":1173488,\"cycles\":{\"ops::sliding_project_qkv\":224910,\"ops::sliding_attention_output\":109020,\"ops::decoder_feedforward\":1173488},\"score\":2.35416173155821,\"skeleton\":\"0.8.1\"},{\"rank\":71,\"teamName\":\"CodingVillain\",\"submissionId\":\"2026-09-17-00-25-37-316-c8dfad2f\",\"submissionCode\":\"c8dfad2f\",\"qkvCycles\":117999,\"attentionCycles\":67871,\"ffnCycles\":3704424,\"cycles\":{\"ops::sliding_project_qkv\":117999,\"ops::sliding_attention_output\":67871,\"ops::decoder_feedforward\":3704424},\"score\":2.3302708707533424,\"skeleton\":null},{\"rank\":72,\"teamName\":\"4NiuMa\",\"submissionId\":\"2026-09-30-06-15-10-551-5cb92cd3\",\"submissionCode\":\"5cb92cd3\",\"qkvCycles\":196931,\"attentionCycles\":137444,\"ffnCycles\":1217406,\"cycles\":{\"ops::sliding_project_qkv\":196931,\"ops::sliding_attention_output\":137444,\"ops::decoder_feedforward\":1217406},\"score\":2.250137501269994,\"skeleton\":\"0.8.1\"},{\"rank\":73,\"teamName\":\"Participant #208\",\"submissionId\":\"2026-09-18-02-59-40-051-7f9b7eb7\",\"submissionCode\":\"7f9b7eb7\",\"qkvCycles\":244192,\"attentionCycles\":279230,\"ffnCycles\":1326745,\"cycles\":{\"ops::sliding_project_qkv\":244192,\"ops::sliding_attention_output\":279230,\"ops::decoder_feedforward\":1326745},\"score\":1.6069677897312766,\"skeleton\":null},{\"rank\":74,\"teamName\":\"SpamAI\",\"submissionId\":\"2026-09-20-16-18-33-216-e0396270\",\"submissionCode\":\"e0396270\",\"qkvCycles\":245384,\"attentionCycles\":405325,\"ffnCycles\":1213437,\"cycles\":{\"ops::sliding_project_qkv\":245384,\"ops::sliding_attention_output\":405325,\"ops::decoder_feedforward\":1213437},\"score\":1.4597501850600891,\"skeleton\":null},{\"rank\":75,\"teamName\":\"C\u1ecdLab_PTIT_VietNam\",\"submissionId\":\"2026-09-30-07-54-14-726-4bf6ee21\",\"submissionCode\":\"4bf6ee21\",\"qkvCycles\":235581,\"attentionCycles\":337263,\"ffnCycles\":1930206,\"cycles\":{\"ops::sliding_project_qkv\":235581,\"ops::sliding_attention_output\":337263,\"ops::decoder_feedforward\":1930206},\"score\":1.3477105271695262,\"skeleton\":\"0.6.0\"},{\"rank\":76,\"teamName\":\"Participant #547\",\"submissionId\":\"2026-09-18-03-16-08-663-2dfee732\",\"submissionCode\":\"2dfee732\",\"qkvCycles\":244979,\"attentionCycles\":345413,\"ffnCycles\":3287074,\"cycles\":{\"ops::sliding_project_qkv\":244979,\"ops::sliding_attention_output\":345413,\"ops::decoder_feedforward\":3287074},\"score\":1.1051175824161044,\"skeleton\":null},{\"rank\":77,\"teamName\":\"CMCU\",\"submissionId\":\"2026-09-18-14-52-10-486-ee772b50\",\"submissionCode\":\"ee772b50\",\"qkvCycles\":250276,\"attentionCycles\":404611,\"ffnCycles\":3696667,\"cycles\":{\"ops::sliding_project_qkv\":250276,\"ops::sliding_attention_output\":404611,\"ops::decoder_feedforward\":3696667},\"score\":1.000948547986419,\"skeleton\":null},{\"rank\":78,\"teamName\":\"Baseline\",\"submissionId\":\"2026-09-08-10-52-27-259-207bc933\",\"submissionCode\":\"207bc933\",\"qkvCycles\":250514,\"attentionCycles\":404633,\"ffnCycles\":3703473,\"cycles\":{\"ops::sliding_project_qkv\":250514,\"ops::sliding_attention_output\":404633,\"ops::decoder_feedforward\":3703473},\"score\":1,\"skeleton\":null},{\"rank\":79,\"teamName\":\"probe\",\"submissionId\":\"2026-09-16-01-45-30-287-c431ed33\",\"submissionCode\":\"c431ed33\",\"qkvCycles\":258854,\"attentionCycles\":401453,\"ffnCycles\":3704735,\"cycles\":{\"ops::sliding_project_qkv\":258854,\"ops::sliding_attention_output\":401453,\"ops::decoder_feedforward\":3704735},\"score\":0.9916351568781077,\"skeleton\":null}]}"
+  },
+  "correction": {
+    "status": "initial_topology_inference_disproved_by_actual_MIR; corrected_fullh_v2_exact_compile_passed",
+    "original_inference": "SliceRow/8,Time[K4,Row%8] -> outputTimeRow was not valid",
+    "observed_MIR": "expected (QkvQueryRow % 8, QkvQueryRow / 8), got QkvQueryRow",
+    "corrected_mapping": "SliceRow%4 + localRow/4 -> expectedTime[Row/4,Row%4] canonicalRow",
+    "source_evidence": [
+      {
+        "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v1/projection.rs",
+        "bytes": 40008,
+        "sha256": "7f18767de11a6987e5bae2aa81599af66ed47f14793eafaff1ab1d9b49c9b2c6",
+        "present_on_main_at_review": false
+      },
+      {
+        "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/build-e144-fullh-v1-repro.json",
+        "bytes": 17630,
+        "sha256": "9b0097c1a73aeb8f07d0503bd7b413643bfa1d00aa2739318e7f17e5f747c435",
+        "present_on_main_at_review": false
+      },
+      {
+        "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/evidence/e144-fullh-v1/compile.log",
+        "bytes": 1889,
+        "sha256": "27703e32d5f9214a36699174b79b2680d9f41248c818323fe2f6a41fea42a357",
+        "present_on_main_at_review": false
+      },
+      {
+        "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/projection.rs",
+        "bytes": 40008,
+        "sha256": "3d2500295785592bebdc723fb62617398e2e001ba41c63b2a5c078cda5e00fed",
+        "present_on_main_at_review": false
+      },
+      {
+        "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/build-e144-fullh-v2-repro.json",
+        "bytes": 17748,
+        "sha256": "8c3268d30e89ddcaaf085f90c0ad784baf840a784375f5f692672502ed965ea4",
+        "present_on_main_at_review": false
+      }
+    ],
+    "v1_compile_log": "warning: unused import: `Replicated`\n --> src/device/sliding/projection.rs:5:38\n  |\n5 | use crate::device::layout::{Cluster, Replicated};\n  |                                      ^^^^^^^^^^\n  |\n  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused import: `crate::device::layout::Slice`\n   --> src/device/sliding/projection.rs:317:5\n    |\n317 | use crate::device::layout::Slice;\n    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `broadcast_sliding_heads` is never used\n  --> src/device/layout.rs:27:15\n   |\n27 | pub(crate) fn broadcast_sliding_heads(\n   |               ^^^^^^^^^^^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: function `feedforward` is never used\n   --> src/device/shared/mlp.rs:511:15\n    |\n511 | pub(crate) fn feedforward(\n    |               ^^^^^^^^^^^\n\nwarning: function `scale_by_layer_gate` is never used\n  --> src/device/shared/residual.rs:55:15\n   |\n55 | pub(crate) fn scale_by_layer_gate(\n   |               ^^^^^^^^^^^^^^^^^^^\n\nwarning: function `add_and_scale_parallel` is never used\n   --> src/device/shared/residual.rs:126:15\n    |\n126 | pub(crate) fn add_and_scale_parallel(\n    |               ^^^^^^^^^^^^^^^^^^^^^^\n\n   Compiling [1/1] ops::sliding_project_qkv\nerror: furiosa-opt: ops::sliding_project_qkv: mir: Switch OutTime mismatch: expected (QkvQueryRow % 8, QkvQueryRow / 8), got QkvQueryRow\n   --> src/device/sliding/projection.rs:233:10\n    |\n233 |         .switch::<QkvColumns, m![QkvQueryRow]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 8 })\n    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n    Finished 1 compiled, 14 not matching ops::sliding_project_qkv\nerror: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 6 warnings emitted\n",
+    "v2_exact_image": {
+      "bytes": 206592,
+      "sha256": "687f1c8df3ccf24eee1e9425a64c685148620e09c4a245d4b039231380f3bc53"
+    },
+    "limits": "No new compile/NPU by reviewer. Exact v2 build is not NPU correctness/performance proof; independent descriptor gate pending when correction recorded."
+  }
+}

@@ -11,6 +11,10 @@ Whole QKV104551→108642→104192로 E138 v2는 E142 앞뒤 중앙 대비4.0916%
 저장은 추가하지 않으며 실제 Switch/reader/lifetime 비용과256B ingress descriptor를
 검증한다. Source recipe는 E142 나머지44파일+E138 v2 QKV caller/projection의 조합이며
 현재 E142 FFN을 보존한다. 성능 control은 별도 E142다. 아직 E144 실측은 없다.
+첫 fullh-v1은 Switch OutTime 순서 계약 오류로 MIR에서 실패했다. 단순 row 이름 변경이
+아닌 ingress 소유권을 Row%4/Row/4로 맞추는 fullh-v2를 선택했다. 행마다 H3840은
+유지하지만 slice 내부 행은 stride4이며, 초기 contiguous-row 가정과 다르다.
+원 v1 소스·실패 로그는 보존하고 v2의 실제 descriptor와 좌표를 새로 검증한다.
 
 최신9월30일22:25 KST [공개 조회](leaderboard-qkv-start-20260930.json)에서 BEEF는
 58/79위,6.526159×로 점수는 같고 다른 팀 개선에 따라 순위가 바뀌었다.
