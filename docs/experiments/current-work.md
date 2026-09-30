@@ -1,3 +1,18 @@
+# 2026-10-01 D-E145 현재 E144 병목 계측 후 구현 진행
+
+사용자가 병목 확인 후 구현·실험·개선 채택까지 연속 진행하도록 지시했다. 현재 source46은
+E144와 일치하며 기존 완료 branch가 main에 포함됨을 확인했다. D-E145는
+`diag/e144-qkv-readiness`, 실제 시작 `08d9bb1597456c7fe7413229358d6d5077cdd7ba`다.
+E142/E144 실제 QKV image의 이름만 바꾼 paired profile을 한 allocation으로 실행한다.
+E142의 검증된 diagnostic host는 재검증하여 재사용하고 E144 host만 새로 조립한다.
+O/FFN image는 이번 두 source에서 동일하다. 이전 E138-v2 계측을 현재 병목으로 대입하지 않는다.
+
+관측: preRMS·BF16 seed/ring·global max/scale·네 항/coeff·TRF, 각 Q/K/V weight/native,
+F32 gather/scale·head/cache 완료. 가장 늦은 실제 의존성에 따라 지원되는 producer/consumer
+수정을 선택하고, 전체 QKV 실측이 좋아지면 동결·독립 반복·정밀 검증·채택·공식 제출한다.
+정적 schedule이나 중첩 구간을 합산하여 예상 speedup으로 삼지 않는다. 계측 자체의 채택은
+해당 없음; 임의 row/term sweep은 중단 유지; 연구 결정은 이번 관측으로 내린다.
+
 # 2026-09-30 E144 QKV 채택·공식 제출 완료
 
 현재 runtime은 **E144 / `baseline-e144` / `3586c41`**다. E142 FFN과 O 이미지는
