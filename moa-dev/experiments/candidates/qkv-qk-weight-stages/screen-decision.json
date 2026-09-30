@@ -1,0 +1,66 @@
+{
+  "id": "E146",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "3586c417e43f4ea3afc7df7c428d381b7dcbcc5e",
+  "comparison_recipe": "baseline/e144.json",
+  "candidate_build_label": "e146-qk-half-v4",
+  "job": 137020,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_qkv_cycles": 96201,
+  "control_before_qkv_cycles": 97971,
+  "control_after_qkv_cycles": 97351,
+  "bracketing_median": 97661.0,
+  "change_percent": -1.494967284791271,
+  "candidate_cycles_by_run": [
+    100829,
+    95948,
+    96201
+  ],
+  "static_candidate_cycles": 49218,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/graph-verification-e146-qk-half-v4.json",
+      "bytes": 1819,
+      "sha256": "3b852b5ef33b842031a880c3246c098a060beb973909cd94d7fa407a7b4c0fe3"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/e146-qk-half-v4-screen-job-137020-results.json",
+    "bytes": 5306,
+    "sha256": "4605dca055d8c601d807918cf882c58e66c81d7f3aba3cfa53bfe83f92d28687"
+  },
+  "weight_hbm_read_bytes": 31457280,
+  "weight_dm_write_bytes": 31457280,
+  "weight_dm_read_bytes": 31457280,
+  "weight_switch_native_streams": 5,
+  "additional_streams_vs_e144": 2,
+  "full_weight_transpose_dm_bytes": 0,
+  "cost_scope": "Logical bytes, not measured traffic or saved cycles; actual graph gate binds implementation.",
+  "scope": "Two explicit Q/K half-weight stages feed full-H low2-row-owner Main Switch/native and disjoint F32 row outputs; V, activation quantization, Term4/K4 arithmetic and head/cache remain E144. Includes all additional starts and direct sliced-output dependencies, with no extra assembly pass; E144 O/FFN unchanged. No internal NPU attribution from this whole screen.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "original raw9 projection and full2 cancellation/cache cases on actual new source/image"
+      ]
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Do two explicit Q/K half-weight producers and consumers shorten complete QKV after accounting for extra DMA/native starts and disjoint sliced-output write dependencies, with V unchanged? Do not replace this whole result with summed profile windows."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

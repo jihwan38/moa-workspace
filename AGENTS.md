@@ -256,6 +256,27 @@
   Official unchanged O/FFN variation is not attributable to QKV optimization.
   Preserve paired QKV7.9907percent as the controlled gain and follow
   docs/research/after-e144-priority-20260930.md for the next bounded diagnostic.
+- D-E145 subsequently measured actual E144 QKV: all six run/cluster samples have
+  V native at activation TRF-end+1 and Q/K at own weight-end+2. Scalar DMA begins
+  before V weight ends; do not label its whole readiness interval a pure bus stall.
+  E146 selects two full-H Q/K row stages with the original single canonical gather,
+  retaining V and the precision path. Weight30MiB stays, DMA/native starts3->5.
+  First variants hit scheduler Scratchpad allocation failures; an actual vISA
+  audit found constant-bool K/V Branches and tensor PhiFunctions. Unconditional
+  K/V functions in v4 compile without v2 initialization or v3 assembly copies.
+  This is a supported source-contract repair, not performance evidence or proof
+  of the sole compiler cause. Check actual stage extents, packet ownership,
+  disjoint output coverage, shared-register lifetime and whole NPU performance.
+- E146 v4 subsequently passed three whole screens, raw73728 exact BF16 values
+  and full16384 tolerance/cache8380416 checks, but paired QKV changes were
+  -1.494967,+0.710594,+0.406876percent; median+0.406876percent. Do not adopt it or
+  replace the paired outcome with the favorable aggregate ratio. Preserve the
+  first positive and compiler repairs; no extra6 NPU was run after the reversal.
+  Stop row/stage tuning. E147 selects E144 source/control with one-pass scale
+  production and scalar Sub broadcast directly to VRF, preserving precision and
+  original whole weight stages. Verify finite-BF16 scale equivalence, actual
+  ring4 bitmap/valid masks/VRF lifetimes and full cost; D145 readiness is not a
+  guaranteed saving or proof of exclusive TDMA causality.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

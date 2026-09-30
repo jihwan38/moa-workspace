@@ -1,0 +1,164 @@
+--- furiosa-opt-gemma4-12B/src/device/sliding/projection.rs	2026-10-01 00:17:49.535842274 +0900
++++ moa-dev/experiments/candidates/qkv-qk-weight-stages/qk-half-v1/projection.rs	2026-10-01 00:20:36.727214620 +0900
+@@ -212,8 +212,8 @@
+         .begin(coefficients.view()).fetch::<m![1], m![QkvTerm]>()
+         .collect::<m![1], m![QkvTerm # 8]>().to_vrf();
+     let q = project_native_query(device, &x_trf, &coefficients, &scale, q_weight, q_weight_scale);
+-    let k = project_native_kv(device, &x_trf, &coefficients, &scale, k_weight, k_weight_scale);
+-    let v = project_native_kv(device, &x_trf, &coefficients, &scale, v_weight, v_weight_scale);
++    let k = project_native_kv(device, &x_trf, &coefficients, &scale, k_weight, k_weight_scale, true);
++    let v = project_native_kv(device, &x_trf, &coefficients, &scale, v_weight, v_weight_scale, false);
+     (q, k, v)
+ }
+ 
+@@ -227,22 +227,15 @@
+ ) -> DmTensor<bf16, Chip, Cluster, QkvHeadSlices, m![Gs, Ds]> {
+     // Full compact source wire order: row=2048c+32g+r, h=960q+u.
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, QkvGroup, QkvQueryRow, H]> = unsafe { weight.view().reshape() };
+-    let weight: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvQueryRow % 4], m![QkvQueryRow / 4, H]> = weight.to_dm(&mut device.tdma);
+-    let raw: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvQueryRow]> = device.main
+-        .begin(weight.view()).fetch::<m![H / 960, QkvQueryRow / 4], m![H % 960]>()
+-        .switch::<QkvColumns, m![QkvQueryRow]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 8 })
+-        .collect::<m![QkvQueryRow, H / 32 % 30], m![H % 32]>()
+-        .contract_outer::<m![QkvQueryRow, H / 64 % 15], m![H % 64], _, _, _>(x)
+-        .contract_packet::<m![1]>().contract_time::<m![QkvQueryRow]>()
+-        .contract_lane::<m![QkvQueryRow], m![QkvTerm # 8]>(LaneMode::Interleaved)
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![QkvTerm]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)
+-        .vector_intra_slice_reduce::<QkvTerm, m![QkvQueryRow], m![1 # 4]>(IntraSliceReduceOpF32::Add)
+-        .vector_widen_pad::<m![1 # 8]>()
+-        .vector_inter_slice_reduce::<QkvRows, m![QkvQueryRow]>(InterSliceReduceOpF32::Add)
+-        .vector_final().transpose::<m![QkvQueryRow / 2], m![QkvQueryRow % 2 # 8]>()
+-        .commit_trim::<m![QkvQueryRow % 2]>().commit();
++    // Two independent full-H ingress allocations expose first-half consumption.
++    // Each source slice retains row low2 ownership; no packed copies or extra output assembly.
++    let first: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvQueryRow = 16 % 4], m![QkvQueryRow = 16 / 4, H]> =
++        weight.tile::<m![QkvQueryRow], 16, m![Dummy2, QkvGroup, QkvQueryRow = 16 # 32, H]>(0).to_dm(&mut device.tdma);
++    let second: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvQueryRow = 16 % 4], m![QkvQueryRow = 16 / 4, H]> =
++        weight.tile::<m![QkvQueryRow], 16, m![Dummy2, QkvGroup, QkvQueryRow = 16 # 32, H]>(16).to_dm(&mut device.tdma);
++    let mut raw: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvQueryRow]> = DmTensor::new();
++    project_native_query_stage(device, x, coefficients, &first, &mut raw, 0);
++    project_native_query_stage(device, x, coefficients, &second, &mut raw, 16);
+     // Full-allocation relabel preserves the q=0 live mask; typed DMA merges
+     // canonical heads from both row-owning clusters into original head layout.
+     let raw: DmTensor<f32, Chip, m![Ns / 4], m![Ns % 4, Gs, Ds / 32, 1 # 4], m![Ds % 32]> = unsafe { raw.reshape() };
+@@ -265,6 +258,31 @@
+         .vector_final().cast::<bf16, m![Ds % 8 # 16]>().commit_trim::<m![Ds % 8]>().commit()
+ }
+ 
++fn project_native_query_stage(
++    device: &mut Device,
++    x: &TrfTensor<f8e4m3, Chip, QkvCluster, QkvColumns, m![QkvTerm], m![H % 960]>,
++    coefficients: &VrfTensor<f32, Chip, QkvCluster, QkvColumns, m![QkvTerm # 8]>,
++    weight: &DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvQueryRow = 16 % 4], m![QkvQueryRow = 16 / 4, H]>,
++    output: &mut DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvQueryRow]>,
++    offset: usize,
++) {
++    device.main
++        .begin(weight.view()).fetch::<m![H / 960, QkvQueryRow = 16 / 4], m![H % 960]>()
++        .switch::<QkvColumns, m![QkvQueryRow = 16]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 4 })
++        .collect::<m![QkvQueryRow = 16, H / 32 % 30], m![H % 32]>()
++        .contract_outer::<m![QkvQueryRow = 16, H / 64 % 15], m![H % 64], _, _, _>(x)
++        .contract_packet::<m![1]>().contract_time::<m![QkvQueryRow = 16]>()
++        .contract_lane::<m![QkvQueryRow = 16], m![QkvTerm # 8]>(LaneMode::Interleaved)
++        .vector_init().vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![QkvTerm]>()
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)
++        .vector_intra_slice_reduce::<QkvTerm, m![QkvQueryRow = 16], m![1 # 4]>(IntraSliceReduceOpF32::Add)
++        .vector_widen_pad::<m![1 # 8]>()
++        .vector_inter_slice_reduce::<QkvRows, m![QkvQueryRow = 16]>(InterSliceReduceOpF32::Add)
++        .vector_final().transpose::<m![QkvQueryRow = 16 / 2], m![QkvQueryRow = 16 % 2 # 8]>()
++        .commit_trim::<m![QkvQueryRow = 16 % 2]>().commit_view(output.view_mut().tile::<m![QkvQueryRow], 16, m![QkvQueryRow = 16 #{!} 32]>(offset));
++}
++
+ fn project_native_kv(
+     device: &mut Device,
+     x: &TrfTensor<f8e4m3, Chip, QkvCluster, QkvColumns, m![QkvTerm], m![H % 960]>,
+@@ -272,25 +290,38 @@
+     scale: &DmTensor<f32, Chip, Cluster, QkvHeadSlices, m![1 # 8]>,
+     weight: &HbmTensor<f8e4m3, Chip, m![Ps, H]>,
+     weight_scale: &HbmTensor<bf16, Chip, m![Ps]>,
++    staged: bool,
+ ) -> DmTensor<bf16, Chip, Cluster, QkvHeadSlices, m![Ds]> {
+     // Full compact source wire order: row=1024c+16g+r, h=960q+u.
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, QkvGroup, QkvKvRow, H]> = unsafe { weight.view().reshape() };
+-    let weight: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvKvRow % 4], m![QkvKvRow / 4, H]> = weight.to_dm(&mut device.tdma);
+-    let raw: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvKvRow]> = device.main
+-        .begin(weight.view()).fetch::<m![H / 960, QkvKvRow / 4], m![H % 960]>()
+-        .switch::<QkvColumns, m![QkvKvRow]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 4 })
+-        .collect::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()
+-        .contract_outer::<m![QkvKvRow, H / 64 % 15], m![H % 64], _, _, _>(x)
+-        .contract_packet::<m![1]>().contract_time::<m![QkvKvRow]>()
+-        .contract_lane::<m![QkvKvRow], m![QkvTerm # 8]>(LaneMode::Interleaved)
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_narrow_trim::<m![QkvTerm]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)
+-        .vector_intra_slice_reduce::<QkvTerm, m![QkvKvRow], m![1 # 4]>(IntraSliceReduceOpF32::Add)
+-        .vector_widen_pad::<m![1 # 8]>()
+-        .vector_inter_slice_reduce::<QkvRows, m![QkvKvRow]>(InterSliceReduceOpF32::Add)
+-        .vector_final().transpose::<m![QkvKvRow / 2], m![QkvKvRow % 2 # 8]>()
+-        .commit_trim::<m![QkvKvRow % 2]>().commit();
++    let raw: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvKvRow]> = if staged {
++        let first: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvKvRow = 8 % 4], m![QkvKvRow = 8 / 4, H]> =
++            weight.tile::<m![QkvKvRow], 8, m![Dummy2, QkvGroup, QkvKvRow = 8 # 16, H]>(0).to_dm(&mut device.tdma);
++        let second: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvKvRow = 8 % 4], m![QkvKvRow = 8 / 4, H]> =
++            weight.tile::<m![QkvKvRow], 8, m![Dummy2, QkvGroup, QkvKvRow = 8 # 16, H]>(8).to_dm(&mut device.tdma);
++        let mut raw: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvKvRow]> = DmTensor::new();
++        project_native_kv_stage(device, x, coefficients, &first, &mut raw, 0);
++        project_native_kv_stage(device, x, coefficients, &second, &mut raw, 8);
++        raw
++    } else {
++        let weight: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvKvRow % 4], m![QkvKvRow / 4, H]> = weight.to_dm(&mut device.tdma);
++        let raw: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvKvRow]> = device.main
++            .begin(weight.view()).fetch::<m![H / 960, QkvKvRow / 4], m![H % 960]>()
++            .switch::<QkvColumns, m![QkvKvRow]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 4 })
++            .collect::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()
++            .contract_outer::<m![QkvKvRow, H / 64 % 15], m![H % 64], _, _, _>(x)
++            .contract_packet::<m![1]>().contract_time::<m![QkvKvRow]>()
++            .contract_lane::<m![QkvKvRow], m![QkvTerm # 8]>(LaneMode::Interleaved)
++            .vector_init().vector_intra_slice_tag(TagMode::Zero)
++            .vector_narrow_trim::<m![QkvTerm]>()
++            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)
++            .vector_intra_slice_reduce::<QkvTerm, m![QkvKvRow], m![1 # 4]>(IntraSliceReduceOpF32::Add)
++            .vector_widen_pad::<m![1 # 8]>()
++            .vector_inter_slice_reduce::<QkvRows, m![QkvKvRow]>(InterSliceReduceOpF32::Add)
++            .vector_final().transpose::<m![QkvKvRow / 2], m![QkvKvRow % 2 # 8]>()
++            .commit_trim::<m![QkvKvRow % 2]>().commit();
++        raw
++    };
+     // Full-allocation relabel preserves the q=0 live mask; typed DMA merges
+     // canonical heads from both row-owning clusters into original head layout.
+     let raw: DmTensor<f32, Chip, m![Ns / 4], m![Ns % 4, Ds / 16, 1 # 4], m![Ds % 16]> = unsafe { raw.reshape() };
+@@ -313,6 +344,31 @@
+         .vector_final().cast::<bf16, m![Ds % 8 # 16]>().commit_trim::<m![Ds % 8]>().commit()
+ }
+ 
++fn project_native_kv_stage(
++    device: &mut Device,
++    x: &TrfTensor<f8e4m3, Chip, QkvCluster, QkvColumns, m![QkvTerm], m![H % 960]>,
++    coefficients: &VrfTensor<f32, Chip, QkvCluster, QkvColumns, m![QkvTerm # 8]>,
++    weight: &DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvKvRow = 8 % 4], m![QkvKvRow = 8 / 4, H]>,
++    output: &mut DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvKvRow]>,
++    offset: usize,
++) {
++    device.main
++        .begin(weight.view()).fetch::<m![H / 960, QkvKvRow = 8 / 4], m![H % 960]>()
++        .switch::<QkvColumns, m![QkvKvRow = 8]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 2 })
++        .collect::<m![QkvKvRow = 8, H / 32 % 30], m![H % 32]>()
++        .contract_outer::<m![QkvKvRow = 8, H / 64 % 15], m![H % 64], _, _, _>(x)
++        .contract_packet::<m![1]>().contract_time::<m![QkvKvRow = 8]>()
++        .contract_lane::<m![QkvKvRow = 8], m![QkvTerm # 8]>(LaneMode::Interleaved)
++        .vector_init().vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![QkvTerm]>()
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), coefficients)
++        .vector_intra_slice_reduce::<QkvTerm, m![QkvKvRow = 8], m![1 # 4]>(IntraSliceReduceOpF32::Add)
++        .vector_widen_pad::<m![1 # 8]>()
++        .vector_inter_slice_reduce::<QkvRows, m![QkvKvRow = 8]>(InterSliceReduceOpF32::Add)
++        .vector_final().transpose::<m![QkvKvRow = 8 / 2], m![QkvKvRow = 8 % 2 # 8]>()
++        .commit_trim::<m![QkvKvRow = 8 % 2]>().commit_view(output.view_mut().tile::<m![QkvKvRow], 8, m![QkvKvRow = 8 #{!} 16]>(offset));
++}
++
+ // E137 uses E134 QKV unchanged; O changes activation representation and native reduction.
+ use crate::device::layout::Slice;
+ axes![OutputTerm = 4];

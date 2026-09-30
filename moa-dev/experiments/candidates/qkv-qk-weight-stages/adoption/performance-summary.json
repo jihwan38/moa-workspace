@@ -1,0 +1,87 @@
+{
+  "id": "E146",
+  "valid": true,
+  "independent_allocations": 3,
+  "candidate_distinct_standard_inputs": 3,
+  "candidate_comparisons_passed": 45,
+  "candidate_qkv_comparisons_passed": 27,
+  "total_standard_comparisons_passed": 135,
+  "normalized_stage_payloads": {
+    "candidate": {
+      "fixtures.safetensors": {
+        "bytes": 202632,
+        "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+      },
+      "remote_entrypoint.sh": {
+        "bytes": 965,
+        "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+      },
+      "test_runtime": {
+        "bytes": 3815488,
+        "sha256": "a6442a912ca934528827ee539bde2390e9966a8d13ee5b5ef86db5dfc3357e7a"
+      }
+    },
+    "control": {
+      "fixtures.safetensors": {
+        "bytes": 202632,
+        "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+      },
+      "remote_entrypoint.sh": {
+        "bytes": 965,
+        "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+      },
+      "test_runtime": {
+        "bytes": 3808320,
+        "sha256": "17d510ddcfcba87d1e3c6b6194c00782be0a16470e7ae4db43ac1478ec1ed81e"
+      }
+    }
+  },
+  "outer_batch_payloads_identical": true,
+  "paired_observations": [
+    {
+      "job_id": 137020,
+      "screen_label": "e146-qk-half-v4-screen",
+      "candidate_qkv_cycles": 96201,
+      "control_before_qkv_cycles": 97971,
+      "control_after_qkv_cycles": 97351,
+      "bracketing_control_qkv_cycles": 97661.0,
+      "ratio": 0.9850503271520873,
+      "delta_percent": -1.494967284791271
+    },
+    {
+      "job_id": 137025,
+      "screen_label": "e146-qk-half-v4-repeat-a",
+      "candidate_qkv_cycles": 97721,
+      "control_before_qkv_cycles": 98260,
+      "control_after_qkv_cycles": 95803,
+      "bracketing_control_qkv_cycles": 97031.5,
+      "ratio": 1.0071059398236655,
+      "delta_percent": 0.7105939823665475
+    },
+    {
+      "job_id": 137030,
+      "screen_label": "e146-qk-half-v4-repeat-b",
+      "candidate_qkv_cycles": 96119,
+      "control_before_qkv_cycles": 95869,
+      "control_after_qkv_cycles": 95590,
+      "bracketing_control_qkv_cycles": 95729.5,
+      "ratio": 1.0040687562350163,
+      "delta_percent": 0.40687562350163464
+    }
+  ],
+  "median_paired_delta_percent": 0.40687562350163464,
+  "aggregate_median_delta_percent": -0.8559076176293257,
+  "all_paired_qkv_improved": false,
+  "candidate_report": "moa-dev/experiments/candidates/qkv-qk-weight-stages/adoption/e146-adoption-performance.json",
+  "control_report": "moa-dev/experiments/candidates/qkv-qk-weight-stages/adoption/e146-e144-paired-control.json",
+  "builder": {
+    "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/validation_performance.py",
+    "bytes": 11539,
+    "sha256": "837dd9d8fb40ef12bdfce641669a13284739959cbed1f5460e48fca3884c2207"
+  },
+  "method": "Three distinct Arena allocations of byte-identical whole-kernel candidate/E144 benchmark stages and outer batch payloads. Each runs actual E144 before -> frozen E146 Q/K half-weight stages -> actual E144 after; original three inputs and PROFILE=info. Uploaded archives and complete raw logs independently rechecked. Inputs, before/after and other kernels are not independent allocations.",
+  "adopted": false,
+  "official_submission": false,
+  "status": "performance_not_uniform_requires_root_evidence_review",
+  "decision_owner": "Root; this report describes performance only and never adopts automatically."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "E146-RAW-QKV-BOUNDARY",
+  "purpose": "Actual unchanged production QKV helper; preRMS BF16 input boundary to pre-head-RMS BF16 output",
+  "cases": 9,
+  "outputs": 73728,
+  "reference": "Independent F64 stored BF16/E4 dot and channel scaling, exact F32 representability checks, BF16 RNE",
+  "scope": "Selected dyadic zero/K960/row-group/cluster/cancellation/scale-before-BF16/fourth-active inputs. No reachable-PRNG, arbitrary-input or performance claim. Whole production preRMS/head/cache separately tested.",
+  "input_verification": "Host regenerated weight matrices and actual input payloads all63 SHA256 checked against CPU source",
+  "production_changes": "None to original projection/ops or other original compile inputs except lib.rs append that exposes diagnostic module",
+  "whole_validation": "Original E53 whole2cases and standard extra6 unchanged acceptance",
+  "reuse": "Wrapper, host and F64 generator byte-identical to E144, which reused original E138 raw9. Original truth bytes and all63 input SHA256 retained; no previous hardware result inherited.",
+  "production_binding": "Explicit select_production.py binds the selected successful E146 build and gate after parent signal. Build requires its matching --build-label and assigned --target; all original production files stay identical.",
+  "required_before_build": "passed package.checked_gate for the explicit production build label; separate root authorization for compilation and NPU"
+}
