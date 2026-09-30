@@ -1,0 +1,39 @@
+{
+  "id": "D-E143",
+  "status": "completed",
+  "diagnostic_only": true,
+  "job": 136455,
+  "valid": true,
+  "correctness_comparisons": 81,
+  "whole_qkv_change_percent": 4.091634210488504,
+  "source_control_scope": "E142 actual package versus frozen E138v2 actual package, QKV comparison only; older candidate FFN explicitly excluded.",
+  "adoption": {
+    "action": "none",
+    "reason": "Diagnostic only; runtime stays E142. Frozen E138v2 whole remains slower. No use of a5percent threshold to block a future positive candidate."
+  },
+  "tuning": {
+    "action": "stop",
+    "reason": "No additional diagnostic allocation or source-order/row/term/input-routing sweep."
+  },
+  "major_research": {
+    "action": "select_supported_complete_weight_ingress_path_review",
+    "evidence": "All six samples: firstV follows activationTRF+1; laterQ/K follow weightDMA+2 whileTRF alreadyready. Not solely first-input preparation.",
+    "next_question": "Canonical full-H3840 weight ingress then supported MainSwitch to same K4 native, including added staging/replication/storage and all readiness costs. Root owns new candidate selection/implementation authorization."
+  },
+  "interpretation_limits": [
+    "DMA markers can include queue/dependency waiting; no pure bus service or stall fraction is inferred.",
+    "Native marker includes Term/K4 reductions; no separate timing is claimed.",
+    "Ready windows and overlapping spans are not predicted savings.",
+    "Candidate standard host retains E137-source/E134 FFN; only QKV is compared with E142.",
+    "Endpoint medians and median within-sample intervals are separate.",
+    "The shared weight-DMA spans include waiting and cannot be summed into projected savings."
+  ],
+  "reports": [
+    "verification.json",
+    "profile-analysis.json",
+    "readiness-summary.json",
+    "independent-image-review.json",
+    "independent-source-readiness-map.json"
+  ],
+  "official_submission": false
+}

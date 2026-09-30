@@ -1,0 +1,24 @@
+{
+  "id": "D-E143",
+  "scope": "frozen image readiness diagnostic, no new kernel",
+  "actual_start_commit": "6c3a3f51188a53efa68f5ada5f88b6d2bd0123ce",
+  "control_recipe": "baseline/e142.json",
+  "control_source_commit": "b3fe0ab4be2a5ece6382ae5745112722200f1b66",
+  "candidate_source": "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/recipe.json",
+  "candidate_build": "e138-native-v2",
+  "comparison_scope": "Only QKV is compared. E142 standard control has E142 FFN; frozen E138 v2 standard candidate has E134 FFN. O is identical, but no O/FFN change is attributed to QKV. Both full hosts retain their own exact source/image bundles.",
+  "prior_attempts": [
+    "E138 v1 consumer-local QKV +12.9006%; its original readiness selected BF16 seed/ring repair.",
+    "E138 native-v2 +4.1041% against E137; no internal v2 profile exists.",
+    "E142 QKV remains exact same BF16 image used by E137/E140."
+  ],
+  "question": "Does first activation preparation or later Q/K weight readiness determine current complete native-v2 QKV completion?",
+  "execution": "One allocation; E142 whole before, frozen E138v2 whole, E142 whole after, each side diagnostic info and trace; original3inputs/81comparisons/70seconds.",
+  "image_edits": "Existing profile name bytes only; executable/constants/address/IO/marker-count preserved and all3diagnostic images verified.",
+  "adoption_decision": "No adoption from diagnostic timings. Runtime stays E142. A future positive full candidate would enter bounded correctness/repeat validation regardless of5%.",
+  "tuning_decision": "No source reorder/row/term/padding sweep.",
+  "major_research_decision": "Use measured readiness to select a supported complete-path change, or report inconclusive; do not add overlapping spans as savings.",
+  "target": "/tmp/moa-c09-validation-probe/target",
+  "official_submission": false,
+  "target_reason": "Root approved existing warm c09 target exclusively; originally named c08 directory does not exist."
+}
