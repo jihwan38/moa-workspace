@@ -226,6 +226,18 @@
   low-pass-count SDK pipeline. M06-v4 lacks the three unsafe packing DMAs, so
   E140's repair does not justify treating both M06 timeouts as solved. See
   docs/research/after-e142-priority-20260927.md before selecting another kernel.
+- D-E143 subsequently measured frozen E138-v2 against actual E142 QKV in one
+  allocation136455:81 comparisons pass, whole QKV regresses4.0916percent. Every
+  run/cluster has first V native at TRF-end+1 and Q/K at their weight-end+2.
+  E144 selects canonical full-H row-owned E4 ingress plus Main Switch into the
+  same native K4 consumer, retaining four-term precision and all head arithmetic.
+  This changes the weight routing boundary; no full transpose DM or weight TRF
+  is intended. Include actual Switch/collect/reader costs, verify target lowering
+  and all32768 row-quarter packet coordinates before NPU. Reuse E138 QKV source
+  while retaining E142 FFN; historical source origin is not the performance
+  control. Read docs/research/e144-qkv-fullh-switch-selection-20260930.md. The
+  September30 public ranking is58/79 at the same E142 score; no new rank gain is
+  implied by diagnostic readiness or the proposed ingress change.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

@@ -1,3 +1,22 @@
+# 2026-09-30 D-E143 완료·E144 weight ingress/stream 분배 조합 선택
+
+D-E143136455는81비교와 실제 이미지/업로드/76·92개 operation 연결 검증을 통과했다.
+Whole QKV104551→108642→104192로 E138 v2는 E142 앞뒤 중앙 대비4.0916% 느렸다.
+모든6개 run/cluster 관측에서 V native는 TRF 완료1cycle 뒤, Q/K는 각자의 weight DMA
+완료2cycles 뒤 시작했다. [원본 계측](../../moa-dev/experiments/candidates/e142-e138v2-qkv-readiness/README.md).
+
+[선택한 E144](../research/e144-qkv-fullh-switch-selection-20260930.md)는 E138 v2의 네 항
+입력/TRF·native·Term/K4·head 계산을 유지하고 weight를 canonical fullH row 소유권으로
+적재한 뒤 Main stream Switch로 H960 소비 위치에 보낸다. 별도 전체 weight transpose
+저장은 추가하지 않으며 실제 Switch/reader/lifetime 비용과256B ingress descriptor를
+검증한다. Source recipe는 E142 나머지44파일+E138 v2 QKV caller/projection의 조합이며
+현재 E142 FFN을 보존한다. 성능 control은 별도 E142다. 아직 E144 실측은 없다.
+
+최신9월30일22:25 KST [공개 조회](leaderboard-qkv-start-20260930.json)에서 BEEF는
+58/79위,6.526159×로 점수는 같고 다른 팀 개선에 따라 순위가 바뀌었다.
+30위8.068830×까지 총점23.64% 상승이 필요하다. 이 후보의 예상 개선율로 주장하지 않는다.
+아래는 계측 착수 당시 기록이다.
+
 # 2026-09-30 D-E143 QKV 입력·후반 weight readiness 비교 진행
 
 Runtime은 E142이며 live source 검사와 기존 완료 branch의 main 포함 여부를 확인했다.
