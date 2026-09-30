@@ -1,0 +1,14 @@
+{
+  "id": "E144-RAW-QKV-BOUNDARY",
+  "purpose": "Actual unchanged production QKV helper; preRMS BF16 input boundary to pre-head-RMS BF16 output",
+  "cases": 9,
+  "outputs": 73728,
+  "reference": "Independent F64 stored BF16/E4 dot and channel scaling, exact F32 representability checks, BF16 RNE",
+  "scope": "Selected dyadic zero/K960/row-group/cluster/cancellation/scale-before-BF16/fourth-active inputs. No reachable-PRNG, arbitrary-input or performance claim. Whole production preRMS/head/cache separately tested.",
+  "input_verification": "Host regenerated weight matrices and actual input payloads all63 SHA256 checked against CPU source",
+  "production_changes": "None to original projection/ops or other original compile inputs except lib.rs append that exposes diagnostic module",
+  "whole_validation": "Original E53 whole2cases and standard extra6 unchanged acceptance",
+  "reuse": "Wrapper, host and F64 generator are byte-identical to E138 boundary-suite-v2; original E138 v1 raw-truth reused only for fixture identity, never result inheritance.",
+  "production_binding": "At build, explicit --build-label selects this candidate build record; copy and verify every actual compile input, preserve production projection bytes, and bind its whole exact-image digest. No prepared v1 or historical source SHA is substituted.",
+  "required_before_build": "passed package.checked_gate for the explicit production build label; separate root authorization for compilation and NPU"
+}

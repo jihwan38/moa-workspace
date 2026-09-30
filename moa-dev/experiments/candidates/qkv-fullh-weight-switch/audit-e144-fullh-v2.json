@@ -1,0 +1,2044 @@
+{
+  "passed": true,
+  "candidate": "E144",
+  "label": "e144-fullh-v2",
+  "scope": "Source, actual emitted descriptors/reader/Switch/numerical order/output shape and scheduled register lifetime. NPU correctness/performance separate.",
+  "inputdigests": {
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/build-e144-fullh-v2-repro.json": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/build-e144-fullh-v2-repro.json",
+      "bytes": 17748,
+      "sha256": "8c3268d30e89ddcaaf085f90c0ad784baf840a784375f5f692672502ed965ea4"
+    },
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/projection.rs": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/projection.rs",
+      "bytes": 40008,
+      "sha256": "3d2500295785592bebdc723fb62617398e2e001ba41c63b2a5c078cda5e00fed"
+    },
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/ops.rs": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/ops.rs",
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/recipe.json": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/recipe.json",
+      "bytes": 5289,
+      "sha256": "3f0ac4d997a8180c15c7fd2c8e38d19751da3bfe3daea10f17636060a2a9023a"
+    },
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/evidence/e144-fullh-v2/graph.json": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/evidence/e144-fullh-v2/graph.json",
+      "bytes": 252558,
+      "sha256": "5ad07991772f812457ea8a6e3b6121c64ba8d1efec18924bafe623ced7cec75e"
+    },
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/evidence/e144-fullh-v2/schedule.json": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/evidence/e144-fullh-v2/schedule.json",
+      "bytes": 129955,
+      "sha256": "62ae976d64e582da0a8b8e71f3fe11d777bb09402741a86901c6a9cc99bb13f7"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/projection.rs": {
+      "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/projection.rs",
+      "bytes": 39754,
+      "sha256": "0eb9a25fad91d75a22c1f9ecf17da2bfc018b684c2c9a95bd1098dd4db5c9262"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/ops.rs": {
+      "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/ops.rs",
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v2/graph.json": {
+      "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/evidence/e138-native-v2/graph.json",
+      "bytes": 251272,
+      "sha256": "cf734d5fc620f222f77fea2cce31333f45f627133e1cda3571becc9c63f68f72"
+    },
+    "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/verify_graph.py": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/verify_graph.py",
+      "bytes": 26418,
+      "sha256": "c87e0d1d4f15cdab46b936bb2ed15f2a10ffe489e11ffddf6348ff2c24557e0a"
+    }
+  },
+  "source_composition": {
+    "e142_inputs": 44,
+    "e138_ops": 1,
+    "e138_projection_with_only_weight_ingress_reader_changes": 1,
+    "old_mlp_not_reintroduced": true
+  },
+  "row_quarter_bijection": 32768,
+  "weight_ingress": [
+    {
+      "projection": "Q",
+      "operator": "DmaCommand#O78",
+      "packet_bytes": 256,
+      "source_coverage": {
+        "packet_count": 61440,
+        "bytes": 15728640,
+        "bounds": [
+          0,
+          15728640
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "per_slice_bytes": 30720,
+      "source_coordinate": "2048*c+32*g+4*r+b",
+      "descriptor": {
+        "0": {
+          "src": {
+            "dims": [
+              [
+                8,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                122880
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                983040
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 0
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                8,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "1": {
+          "src": {
+            "dims": [
+              [
+                8,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                122880
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                983040
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 1966080
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                8,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "2": {
+          "src": {
+            "dims": [
+              [
+                8,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                122880
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                983040
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 3932160
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                8,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "3": {
+          "src": {
+            "dims": [
+              [
+                8,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                122880
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                983040
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 5898240
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                8,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "4": {
+          "src": {
+            "dims": [
+              [
+                8,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                122880
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                983040
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 7864320
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                8,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "5": {
+          "src": {
+            "dims": [
+              [
+                8,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                122880
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                983040
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 9830400
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                8,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "6": {
+          "src": {
+            "dims": [
+              [
+                8,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                122880
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                983040
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 11796480
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                8,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "7": {
+          "src": {
+            "dims": [
+              [
+                8,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                122880
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                983040
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 13762560
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                8,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "projection": "K",
+      "operator": "DmaCommand#O91",
+      "packet_bytes": 256,
+      "source_coverage": {
+        "packet_count": 30720,
+        "bytes": 7864320,
+        "bounds": [
+          0,
+          7864320
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "per_slice_bytes": 15360,
+      "source_coordinate": "1024*c+16*g+4*r+b",
+      "descriptor": {
+        "0": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 0
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "1": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 983040
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "2": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 1966080
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "3": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 2949120
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "4": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 3932160
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "5": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 4915200
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "6": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 5898240
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "7": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 6881280
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "projection": "V",
+      "operator": "DmaCommand#O104",
+      "packet_bytes": 256,
+      "source_coverage": {
+        "packet_count": 30720,
+        "bytes": 7864320,
+        "bounds": [
+          0,
+          7864320
+        ],
+        "no_gaps_or_overlaps": true
+      },
+      "per_slice_bytes": 15360,
+      "source_coordinate": "1024*c+16*g+4*r+b",
+      "descriptor": {
+        "0": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 0
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "1": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 983040
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "2": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 1966080
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "3": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 2949120
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 0,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "4": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 3932160
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 0,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "5": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 4915200
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 1,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "6": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 5898240
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 2,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        },
+        "7": {
+          "src": {
+            "dims": [
+              [
+                4,
+                15360
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                61440
+              ],
+              [
+                4,
+                3840
+              ],
+              [
+                2,
+                491520
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Dram",
+            "address": {
+              "chip": 0,
+              "in_chip": 6881280
+            }
+          },
+          "dst": {
+            "dims": [
+              [
+                4,
+                3840
+              ],
+              [
+                15,
+                256
+              ],
+              [
+                8,
+                16777216
+              ],
+              [
+                4,
+                4194304
+              ],
+              [
+                2,
+                134217728
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "media": "Sram",
+            "address": {
+              "chip": 0,
+              "cluster": 1,
+              "pe": 3,
+              "dmn": 0,
+              "slice": 0,
+              "in_slice": 0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "native_switch": [
+    {
+      "projection": "Q",
+      "operator": "RenegadeCommand#O79",
+      "switch": {
+        "slice1": 4,
+        "slice0": 1,
+        "time0": 8
+      },
+      "row_quarter_packets_bijection": 16384,
+      "packet_bytes": 960,
+      "u_affine_interval": [
+        0,
+        960
+      ],
+      "reader_elements_checked": 30720,
+      "output_rows_per_group": 32,
+      "post_switch_operation_unit_and_commit_identical_to_e138_v2": true
+    },
+    {
+      "projection": "K",
+      "operator": "RenegadeCommand#O92",
+      "switch": {
+        "slice1": 4,
+        "slice0": 1,
+        "time0": 4
+      },
+      "row_quarter_packets_bijection": 8192,
+      "packet_bytes": 960,
+      "u_affine_interval": [
+        0,
+        960
+      ],
+      "reader_elements_checked": 15360,
+      "output_rows_per_group": 16,
+      "post_switch_operation_unit_and_commit_identical_to_e138_v2": true
+    },
+    {
+      "projection": "V",
+      "operator": "RenegadeCommand#O105",
+      "switch": {
+        "slice1": 4,
+        "slice0": 1,
+        "time0": 4
+      },
+      "row_quarter_packets_bijection": 8192,
+      "packet_bytes": 960,
+      "u_affine_interval": [
+        0,
+        960
+      ],
+      "reader_elements_checked": 15360,
+      "output_rows_per_group": 16,
+      "post_switch_operation_unit_and_commit_identical_to_e138_v2": true
+    }
+  ],
+  "unchanged_emitted_operators": 191,
+  "scheduled_shared_register_lifetimes": [
+    {
+      "instruction": "251",
+      "lifetime": {
+        "begin": 22015,
+        "end": 24200
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "136",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 21272,
+            "end": 43209,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Lane: QkvTerm, Element: H % 960]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "121",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 16781,
+            "end": 43209,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2064384,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "instruction": "263",
+      "lifetime": {
+        "begin": 29398,
+        "end": 33503
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "136",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 21272,
+            "end": 43209,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Lane: QkvTerm, Element: H % 960]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "121",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 16781,
+            "end": 43209,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2064384,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    },
+    {
+      "instruction": "414",
+      "lifetime": {
+        "begin": 41024,
+        "end": 43209
+      },
+      "registers": [
+        {
+          "name": "x_trf",
+          "index": "136",
+          "buffer_type": "Trf",
+          "lifetime": {
+            "begin": 21272,
+            "end": 43209,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 0,
+          "size": 16777216,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Lane: QkvTerm, Element: H % 960]",
+          "fingerprint": null
+        },
+        {
+          "name": "coefficients",
+          "index": "121",
+          "buffer_type": "Vrf",
+          "lifetime": {
+            "begin": 16781,
+            "end": 43209,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 2064384,
+          "size": 16384,
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (QkvGroup, H / 960), Element: QkvTerm # 8]",
+          "fingerprint": null
+        }
+      ]
+    }
+  ],
+  "cost_scope": {
+    "original_weight_hbm_bytes": 31457280,
+    "original_weight_dm_write_bytes": 31457280,
+    "original_weight_dm_read_bytes": 31457280,
+    "new_full_weight_dm_transpose_bytes": 0,
+    "new_weight_trf_bytes": 0,
+    "new_work": "Three fused Main Switch routes and their setup/collect/backpressure; local DM read order changed. No latency claim."
+  },
+  "limits": [
+    "Exact lowering and scheduled lifetime are not proof of hidden SFR read-index/bank timing or NPU arithmetic.",
+    "Graph exposes native input register shapes and subsequent VE order; hidden DPE SFR read-index is not decoded from the image here.",
+    "Finite source precision validation must be rebound to this exact image; no inherited NPU PASS."
+  ]
+}
