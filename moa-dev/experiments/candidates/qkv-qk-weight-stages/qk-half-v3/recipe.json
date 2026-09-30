@@ -1,0 +1,50 @@
+{
+  "id": "E146",
+  "variant": "qk-half-v3",
+  "base_commit": "3586c417e43f4ea3afc7df7c428d381b7dcbcc5e",
+  "comparison_recipe": "baseline/e144.json",
+  "source_reference_build": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/measured-build-e144-adoption.json",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_attention_output",
+    "decoder_feedforward"
+  ],
+  "target_kernel": "sliding_project_qkv",
+  "actual_start_commit": "6ec626988820cb3fa7ba18da5dc417d42cb9b8b4",
+  "scope": "Local completion-dependency replacement: full-H Q/K ingress and native consumption in two disjoint row stages; V and activation/head arithmetic remain E144.",
+  "prior": [
+    "E144 fullH/Switch/native path",
+    "D-E145 current later Q/K weight+2 in all6samples",
+    "C09/E127 O two-stage ingress; performance not inherited",
+    "M04 added DMA/native overhead is explicit risk"
+  ],
+  "adoption": {
+    "decision": "validate if whole-path positive",
+    "pending": [
+      "exact actualdescriptor/lifetime gate",
+      "contemporary wholeNPU",
+      "independent repeats and changed-boundary accuracy"
+    ]
+  },
+  "tuning": {
+    "decision": "one explicit two-stage prototype, no row-size sweep",
+    "stop": "on complete-path loss, inspect concrete added critical work before any supported repair; no automatic sub5 adoption rejection"
+  },
+  "major_research": {
+    "decision": "change later Q/K whole-weight completion boundary",
+    "reason": "Scale-only advance of firstV cannot establish earlier final completion."
+  },
+  "repair": {
+    "from": "qk-half-v1/v2 scheduler Scratchpad allocation failure; explicit v2 initialization did not resolve",
+    "mechanism": "Detach native Main/Switch producer from mutable whole-output alias through a compact fresh native commit followed by bounded Sub assembly; original canonical gather unchanged.",
+    "added_cost": {
+      "sub_copy_starts": 4,
+      "logical_dm_read_bytes": 24576,
+      "logical_dm_write_bytes": 24576
+    },
+    "removed_v2": "Two full-region memset operations; not retained",
+    "evidence_scope": "Specific supported producer/alias representation repair, not proof of sole scheduler cause or hardware gain"
+  }
+}

@@ -1,0 +1,59 @@
+--- /home/jihwan38/moa-qkv-qk-stages/moa-dev/experiments/candidates/qkv-qk-weight-stages/qk-half-v1/projection.rs	2026-10-01 00:20:36.727214620 +0900
++++ /home/jihwan38/moa-qkv-qk-stages/moa-dev/experiments/candidates/qkv-qk-weight-stages/qk-half-v3/projection.rs	2026-10-01 00:29:43.941637768 +0900
+@@ -228,7 +228,7 @@
+     // Full compact source wire order: row=2048c+32g+r, h=960q+u.
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, QkvGroup, QkvQueryRow, H]> = unsafe { weight.view().reshape() };
+     // Two independent full-H ingress allocations expose first-half consumption.
+-    // Each source slice retains row low2 ownership; no packed copies or extra output assembly.
++    // Each source slice retains row low2 ownership; compact native results use bounded Sub assembly.
+     let first: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvQueryRow = 16 % 4], m![QkvQueryRow = 16 / 4, H]> =
+         weight.tile::<m![QkvQueryRow], 16, m![Dummy2, QkvGroup, QkvQueryRow = 16 # 32, H]>(0).to_dm(&mut device.tdma);
+     let second: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvQueryRow = 16 % 4], m![QkvQueryRow = 16 / 4, H]> =
+@@ -266,7 +266,7 @@
+     output: &mut DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvQueryRow]>,
+     offset: usize,
+ ) {
+-    device.main
++    let partial: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvQueryRow = 16]> = device.main
+         .begin(weight.view()).fetch::<m![H / 960, QkvQueryRow = 16 / 4], m![H % 960]>()
+         .switch::<QkvColumns, m![QkvQueryRow = 16]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 4 })
+         .collect::<m![QkvQueryRow = 16, H / 32 % 30], m![H % 32]>()
+@@ -280,7 +280,13 @@
+         .vector_widen_pad::<m![1 # 8]>()
+         .vector_inter_slice_reduce::<QkvRows, m![QkvQueryRow = 16]>(InterSliceReduceOpF32::Add)
+         .vector_final().transpose::<m![QkvQueryRow = 16 / 2], m![QkvQueryRow = 16 % 2 # 8]>()
+-        .commit_trim::<m![QkvQueryRow = 16 % 2]>().commit_view(output.view_mut().tile::<m![QkvQueryRow], 16, m![QkvQueryRow = 16 #{!} 32]>(offset));
++        .commit_trim::<m![QkvQueryRow = 16 % 2]>().commit();
++    // Explicit source extent: 64 bytes per active slice; 32-byte destination writes.
++    device.sub.begin(partial.view())
++        .fetch::<m![1], m![QkvQueryRow = 16]>()
++        .collect::<m![QkvQueryRow = 16 / 8], m![QkvQueryRow = 16 % 8]>()
++        .commit_trim::<m![QkvQueryRow = 16 % 8]>()
++        .commit_view(output.view_mut().tile::<m![QkvQueryRow], 16, m![QkvQueryRow = 16 #{!} 32]>(offset));
+ }
+ 
+ fn project_native_kv(
+@@ -352,7 +358,7 @@
+     output: &mut DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvKvRow]>,
+     offset: usize,
+ ) {
+-    device.main
++    let partial: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvKvRow = 8]> = device.main
+         .begin(weight.view()).fetch::<m![H / 960, QkvKvRow = 8 / 4], m![H % 960]>()
+         .switch::<QkvColumns, m![QkvKvRow = 8]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 2 })
+         .collect::<m![QkvKvRow = 8, H / 32 % 30], m![H % 32]>()
+@@ -366,7 +372,13 @@
+         .vector_widen_pad::<m![1 # 8]>()
+         .vector_inter_slice_reduce::<QkvRows, m![QkvKvRow = 8]>(InterSliceReduceOpF32::Add)
+         .vector_final().transpose::<m![QkvKvRow = 8 / 2], m![QkvKvRow = 8 % 2 # 8]>()
+-        .commit_trim::<m![QkvKvRow = 8 % 2]>().commit_view(output.view_mut().tile::<m![QkvKvRow], 8, m![QkvKvRow = 8 #{!} 16]>(offset));
++        .commit_trim::<m![QkvKvRow = 8 % 2]>().commit();
++    // Explicit source extent: 32 bytes per active slice; 32-byte destination writes.
++    device.sub.begin(partial.view())
++        .fetch::<m![1], m![QkvKvRow = 8]>()
++        .collect::<m![QkvKvRow = 8 / 8], m![QkvKvRow = 8 % 8]>()
++        .commit_trim::<m![QkvKvRow = 8 % 8]>()
++        .commit_view(output.view_mut().tile::<m![QkvKvRow], 8, m![QkvKvRow = 8 #{!} 16]>(offset));
+ }
+ 
+ // E137 uses E134 QKV unchanged; O changes activation representation and native reduction.

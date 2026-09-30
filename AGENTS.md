@@ -256,6 +256,17 @@
   Official unchanged O/FFN variation is not attributable to QKV optimization.
   Preserve paired QKV7.9907percent as the controlled gain and follow
   docs/research/after-e144-priority-20260930.md for the next bounded diagnostic.
+- D-E145 subsequently measured actual E144 QKV: all six run/cluster samples have
+  V native at activation TRF-end+1 and Q/K at own weight-end+2. Scalar DMA begins
+  before V weight ends; do not label its whole readiness interval a pure bus stall.
+  E146 selects two full-H Q/K row stages with the original single canonical gather,
+  retaining V and the precision path. Weight30MiB stays, DMA/native starts3->5.
+  First variants hit scheduler Scratchpad allocation failures; an actual vISA
+  audit found constant-bool K/V Branches and tensor PhiFunctions. Unconditional
+  K/V functions in v4 compile without v2 initialization or v3 assembly copies.
+  This is a supported source-contract repair, not performance evidence or proof
+  of the sole compiler cause. Check actual stage extents, packet ownership,
+  disjoint output coverage, shared-register lifetime and whole NPU performance.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

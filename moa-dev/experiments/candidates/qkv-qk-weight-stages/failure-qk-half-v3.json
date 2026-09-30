@@ -1,0 +1,40 @@
+{
+  "variant": "qk-half-v3",
+  "build_label": "e146-qk-half-v3",
+  "stage": "V1-Modulo resource scheduling",
+  "classification": "unresolved scheduler allocation/alias failure after successful front-end/vISA translation",
+  "failure": "Both heuristics fail step12/280: T174 Scratchpad AllocRequest wait_targets[T191],size0.",
+  "evidence": {
+    "build": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/build-e146-qk-half-v3-repro.json",
+      "bytes": 17271,
+      "sha256": "8077445c7218584e55a5aad3c4ab3b3e201218449385a67527c1f1a6858d8b66"
+    },
+    "source": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/qk-half-v3/projection.rs",
+      "bytes": 44559,
+      "sha256": "371f53e3e31367bc54b192b6b8a1f3fb930da97a14ce0fbfea06d4ee3841d198"
+    },
+    "recipe": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/qk-half-v3/recipe.json",
+      "bytes": 2257,
+      "sha256": "d6b5fb669d7a198ee5f6ae99cee14742361ff0dfc88ab994a7d3e4987dcdfae4"
+    },
+    "compile_log": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/evidence/e146-qk-half-v3/compile.log",
+      "bytes": 2233,
+      "sha256": "fc3d80a694afd4640569ba3ad90982061ccd8a98763d45d8011c57f845f2e05a"
+    }
+  },
+  "attempted_repair": "Each native stage commits its own compact F32 tensor, followed by four explicit bounded Sub copies into shared Q/K raw outputs. Removes v2 zero fills; preserves weight/native geometry and numerical ordering.",
+  "added_cost": {
+    "valid_f32_assembly_read_bytes": 24576,
+    "valid_f32_assembly_write_bytes": 24576,
+    "sub_tasks": 4,
+    "scope": "Logical added work only; no executable or measured cost."
+  },
+  "observed": "Separating native output allocation from shared raw assembly did not remove the same scheduler allocation failure pattern. Scheduler-renumbered IDs remain unbound to original tensor identities; this does not prove all shared-output assembly paths unsupported.",
+  "next_supported_repair": "qk-half-v4 returns to v1 direct partial commits with no zero fill/Sub assembly; split K/V constant-bool dispatch into unconditional functions because compiler vISA retains constant branches and tensor joins. The IR observation motivates source repair but does not yet prove sole cause.",
+  "npu_executed": false,
+  "performance_verdict": null
+}

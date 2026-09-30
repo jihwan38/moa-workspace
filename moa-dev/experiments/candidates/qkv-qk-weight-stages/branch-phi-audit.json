@@ -1,0 +1,77 @@
+{
+  "valid_evidence": true,
+  "candidate": "E146",
+  "variant": "qk-half-v1",
+  "inputdigests": [
+    {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/qk-half-v1/projection.rs",
+      "bytes": 43789,
+      "sha256": "df6155a19b65dc2c17f639aeec08759445da22ad1f2161ec011a6b5660998954"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/evidence/e146-qk-half-v1/failure.visa",
+      "bytes": 206320,
+      "sha256": "2a64c9bc09d2d65256534243fd595ceb655555e5ca2846de0b00396856d7299e"
+    },
+    {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/evidence/e146-qk-half-v1/compile.log",
+      "bytes": 2233,
+      "sha256": "2e34bb74276eccf4e0f07da09a6b7f3332ae5666c7ca05f05eddfb4eef808898"
+    }
+  ],
+  "source_condition": "K uses true; V uses false; a tensor-valued if staged selects staged vs single-full native.",
+  "observed_visa_branches": [
+    {
+      "projection": "K",
+      "branch": {
+        "offset_bytes": 91459,
+        "exact_text": "Branch { condition: Const(Bool(true)), then_branch:",
+        "context": " region: Dram, mappings: {Chip: 1, InSlice: (Dummy2, QkvGroup, QkvKvRow, H)} }, input: TensorVar(381), result: TensorVar(382) }), Branch { condition: Const(Bool(true)), then_branch: [Alias { var: TensorVar(383), src: TensorVar(382), tiles: [Tile { index: QkvKvRow, start: Const(Int(Usize(0))), len: 8, target: TileTarget { class: InSlice, mapping: (Dummy2, QkvGroup, QkvKvRow = 8 #"
+      },
+      "phi": {
+        "offset_bytes": 108423,
+        "exact_text": "PhiFunction { lhs: TensorVar(399), rhs1: TensorVar(395), rhs2: TensorVar(398) }",
+        "context": "loat32 }, inputs: [TensorVar(397), TensorVar(354), TensorVar(352)], output: Fresh { result: TensorVar(398) } })], phi_functions: [PhiFunction { lhs: TensorVar(399), rhs1: TensorVar(395), rhs2: TensorVar(398) }] }, TensorOp(LowLevelReshape { input_shape: MappingShape { region: Sram, mappings: {Chip: 1, Cluster: Dummy2, Partitioning: (QkvGroup, 1 # 4), InSlice: QkvKvRow} }, output_shape: MappingShape { regio"
+      },
+      "lhs": 399,
+      "staged_write_rhs": 395,
+      "full_native_rhs": 398,
+      "next_consumer": "LowLevelReshape to canonical head mapping"
+    },
+    {
+      "projection": "V",
+      "branch": {
+        "offset_bytes": 115238,
+        "exact_text": "Branch { condition: Const(Bool(false)), then_branch:",
+        "context": " region: Dram, mappings: {Chip: 1, InSlice: (Dummy2, QkvGroup, QkvKvRow, H)} }, input: TensorVar(411), result: TensorVar(412) }), Branch { condition: Const(Bool(false)), then_branch: [Alias { var: TensorVar(413), src: TensorVar(412), tiles: [Tile { index: QkvKvRow, start: Const(Int(Usize(0))), len: 8, target: TileTarget { class: InSlice, mapping: (Dummy2, QkvGroup, QkvKvRow = 8 #"
+      },
+      "phi": {
+        "offset_bytes": 132203,
+        "exact_text": "PhiFunction { lhs: TensorVar(429), rhs1: TensorVar(425), rhs2: TensorVar(428) }",
+        "context": "loat32 }, inputs: [TensorVar(427), TensorVar(354), TensorVar(352)], output: Fresh { result: TensorVar(428) } })], phi_functions: [PhiFunction { lhs: TensorVar(429), rhs1: TensorVar(425), rhs2: TensorVar(428) }] }, TensorOp(LowLevelReshape { input_shape: MappingShape { region: Sram, mappings: {Chip: 1, Cluster: Dummy2, Partitioning: (QkvGroup, 1 # 4), InSlice: QkvKvRow} }, output_shape: MappingShape { regio"
+      },
+      "lhs": 429,
+      "staged_write_rhs": 425,
+      "full_native_rhs": 428,
+      "next_consumer": "LowLevelReshape to canonical head mapping"
+    }
+  ],
+  "scheduler_failure": {
+    "tensor": "T170",
+    "wait_target": "T185",
+    "requested_bytes": 0,
+    "visa_to_scheduler_identity_available": false
+  },
+  "full_raw_declared_shape": {
+    "Q": "[Chip1,ClusterDummy2,SliceGroup64\u00d7(1#4),ElementRow32] F32",
+    "K": "[Chip1,ClusterDummy2,SliceGroup64\u00d7(1#4),ElementRow16] F32",
+    "Q_live_bytes": 16384,
+    "K_live_bytes": 8192
+  },
+  "inference": "Removing the tensor-returning constant-bool branch by separate K/V functions eliminates these two observed phi nodes without extra memory traffic. It is a smaller supported source-expression repair to test, not a proved cause.",
+  "limits": [
+    "The pre-scheduling vISA dump does not expose scheduler T170/T185 identity or allocation wait graph.",
+    "A size0 AllocRequest does not demonstrate an empty logical F32 tensor.",
+    "No claim that the scheduler Scratchpad is produced by a phi until the split-function exact build tests that mechanism."
+  ]
+}

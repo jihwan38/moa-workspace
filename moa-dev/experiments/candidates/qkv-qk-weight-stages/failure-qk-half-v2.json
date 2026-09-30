@@ -1,0 +1,44 @@
+{
+  "variant": "qk-half-v2",
+  "build_label": "e146-qk-half-v2",
+  "stage": "V1-Modulo resource scheduling",
+  "classification": "unresolved scheduler allocation/alias failure after successful front-end/vISA translation",
+  "failure": "Both DfsPostOrder and SethiUllman fail step10/270: T172 Scratchpad AllocRequest wait_targets[T188],size0.",
+  "evidence": {
+    "build": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/build-e146-qk-half-v2-repro.json",
+      "bytes": 17271,
+      "sha256": "58a3ca94768da85c539bccecc564ea3eb2d70c992ad7152786b2a0c5f72f28d3"
+    },
+    "source": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/qk-half-v2/projection.rs",
+      "bytes": 43986,
+      "sha256": "243dff2f39731b02e8bd553a847bacf40c2cac3658bc8b4393f769aa933b8e1e"
+    },
+    "recipe": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/qk-half-v2/recipe.json",
+      "bytes": 1866,
+      "sha256": "91c5b44302958b5bf6ed9200755dc940c4cad980402b08611c3afaf85fcca26b"
+    },
+    "compile_log": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/evidence/e146-qk-half-v2/compile.log",
+      "bytes": 2233,
+      "sha256": "94edb4cbf1963848a1256efd07de62ed553efc52ea88736ecee4b2f41636eb48"
+    }
+  },
+  "attempted_repair": "Adds explicit zero producers for complete Q/K raw F32 output before disjoint native partial writes. Geometry, precision and input contract remain v1.",
+  "added_cost": {
+    "valid_f32_zero_write_bytes": 24576,
+    "sub_tasks": 2,
+    "scope": "Source-level logical costs; no executable or NPU measurement."
+  },
+  "observed": "The scheduler fails with the same kind of allocation request despite explicit full output producers. Scheduler-renumbered T172/T188 are not mapped to original vISA TensorVars, so source buffer identity and sole cause remain unproved.",
+  "not_established": [
+    "Literal size0 is not proof of a logically empty public tensor shape.",
+    "No evidence that K Switch time0=2 is the cause.",
+    "No executable timing, arithmetic mismatch or architecture-wide performance failure."
+  ],
+  "next_supported_repair": "Root selected qk-half-v3: compact stage-native outputs then explicit bounded Sub assembly into shared raw outputs. Keep stage geometry; include 24KiB read and write each plus four Sub starts; remove v2 fills.",
+  "npu_executed": false,
+  "performance_verdict": null
+}

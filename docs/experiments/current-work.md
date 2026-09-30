@@ -1,3 +1,23 @@
+# 2026-10-01 E146 Q/K weight 단계 공급 실험 진행
+
+현재 채택 runtime은 E144 그대로다. D-E145 job136924의81비교 및 원본 이미지/계측 연결 검증을
+완료하고 진단 branch `0396ed8`을 main `6ec6269`에 병합했다. 현재 E144의 모든6개
+run/cluster에서 V native는 activation TRF 완료1cycle 뒤, Q/K는 각 weight 완료2cycles 뒤
+시작했다. Scalar DMA는 V weight 완료보다 먼저 시작하므로 단순한 순차 DMA 대기로 단정하지 않는다.
+[원본 결과](../../moa-dev/experiments/candidates/e144-qkv-readiness/README.md).
+
+E146 branch는 `opt/qkv-qk-weight-stages`, 실제 시작 `6ec626988820cb3fa7ba18da5dc417d42cb9b8b4`다.
+[선택 근거](../research/e146-qkv-weight-stages-selection-20261001.md)에 따라 Q32→16+16,
+K16→8+8의 full-H weight 공급과 native 소비를 묶으며 V/정밀도/원래 canonical gather는 유지한다.
+Useful weight30MiB는 같고 DMA/native setup은3→5다. 독립 control은 `baseline/e144.json`.
+v1–v3은 allocator에서 실패했으며 실측이 없다. vISA에 남는 상수조건 Branch/tensor Phi를
+제거한 v4가 exact compile을 통과했다. v4는 v2의 초기화와 v3의 추가 복사를 포함하지 않는다.
+정적49218cycles는 성능 판정이 아니며 실제 descriptor/register gate와 whole screen을 진행한다.
+
+채택은 실측/검증 대기, 임의 tile tuning은 중단, 연구는 늦은 Q/K weight 완료 의존성 제거다.
+2026-10-01 00:05 KST 공식공개조회는55/80·6.748109877×로 직전 제출과 같았다.
+[원 응답](leaderboard-e145-start-20261001.json). 아래 기록의 순위/상태는 당시 관측이다.
+
 # 2026-10-01 D-E145 현재 E144 병목 계측 후 구현 진행
 
 사용자가 병목 확인 후 구현·실험·개선 채택까지 연속 진행하도록 지시했다. 현재 source46은
