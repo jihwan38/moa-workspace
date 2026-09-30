@@ -1,3 +1,18 @@
+# 2026-10-01 E147 scalar 생산·Sub→VRF 직접 배포 검증 진행
+
+E146 완료 기록을 main `2bdbe9137b999176dabf510cfe517267cbea7298`에 병합한 뒤
+`opt/qkv-scalar-sub-vrf` branch를 시작했다. Source recipe는 E144 `3586c41`,
+성능 control은 별도 `baseline/e144.json`이며 미채택 E146 weight staging은 포함하지 않는다.
+`qkv-scalar-sub-vrf/scalar-v1`은 처음 exact compile을 통과했다(static48436; NPU 성능 아님).
+
+Finite BF16 exponent map/Mul→H960 Max→floor→K4 Max로 기존 세 Main scale 계산을
+하나로 합친다. Scale32B와 packed coefficient16B를 Sub ring4 방송→32B VRF로
+직접 보내며 기존 소비자 DM용 TDMA를 제거한다. 원래 head용 scale DMA와 full weight
+/native/Term/K4/firstBF16/head/cache/O/FFN은 유지한다. Main 두 시작 및 max 중간값을
+제거하지만 입력491520개의 곱셈 및 Sub Switch/bitmap 설정을 포함한 비용을 비교한다.
+CPU finite BF16 65280개 scale 식 일치와 실제 graph/register gate, 원본 전체 QKV
+대조실험을 구분한다. 아직 E147 NPU 결과/채택/공식 제출은 없다. 아래 기록은 당시 상태다.
+
 # 2026-10-01 E146 완료·미채택, scalar 공급 변경으로 진행
 
 E146 v4는 세 independent Arena137020/137025/137030에서 각각45비교를 통과했지만,

@@ -1,0 +1,96 @@
+{
+  "valid": true,
+  "finite_bf16_cases": 65280,
+  "mismatches": 0,
+  "signed_zero_subnormal_floor_max_sign_checked": true,
+  "f32_rne_and_intermediate_subnormal_flush_variants_equal": true,
+  "finite_positive_scale_map_monotone": true,
+  "output_scale_sequence_sha256": "606d6cb9ae544e7dccd2c8825c52b7459e6fb28acaabe96c6e8cdeac82c56a70",
+  "old": "floorPow2(max(abs(x),2^-119))*2^-7",
+  "new": "max(f32((F32bits(x)&0x7f800000))*2^-7,2^-126)",
+  "group_identity": "Monotone max-homomorphism: max over H960 then K4 commutes with the pointwise map; every nonempty finite-BF16 H3840 group yields identical final scale bits.",
+  "sdk_path": "F32fetch -> Tag -> Logic(mask exponent/sign) -> Narrow -> Mul0(2^-7) -> ReduceAccTree Max(H) -> Widen -> ClipMax(2^-126) -> InterSliceMax(K4) -> commit",
+  "scope": "Scalar proof for finite stored BF16 source and this scale only, not arbitrary F32/NPU pipeline correctness or performance. Four residual terms and restoration coefficients remain unchanged.",
+  "added_work": "Mul0 runs on491520 input values across512slices instead of128 valid group scalars. Hardware timing cannot be inferred from this count.",
+  "removed_work": "Two Main launches and intermediate local-max/global-max DM round trips; source scan and scalar distribution/load remain until separately replaced.",
+  "examples": [
+    {
+      "bf16_bits": "0000",
+      "x": 0.0,
+      "scale": 1.1754943508222875e-38,
+      "scale_bits": "00800000"
+    },
+    {
+      "bf16_bits": "0001",
+      "x": 9.183549615799121e-41,
+      "scale": 1.1754943508222875e-38,
+      "scale_bits": "00800000"
+    },
+    {
+      "bf16_bits": "007f",
+      "x": 1.1663108012064884e-38,
+      "scale": 1.1754943508222875e-38,
+      "scale_bits": "00800000"
+    },
+    {
+      "bf16_bits": "0080",
+      "x": 1.1754943508222875e-38,
+      "scale": 1.1754943508222875e-38,
+      "scale_bits": "00800000"
+    },
+    {
+      "bf16_bits": "03ff",
+      "x": 1.4987552972984166e-36,
+      "scale": 1.1754943508222875e-38,
+      "scale_bits": "00800000"
+    },
+    {
+      "bf16_bits": "0400",
+      "x": 1.504632769052528e-36,
+      "scale": 1.1754943508222875e-38,
+      "scale_bits": "00800000"
+    },
+    {
+      "bf16_bits": "047f",
+      "x": 2.997510594596833e-36,
+      "scale": 1.1754943508222875e-38,
+      "scale_bits": "00800000"
+    },
+    {
+      "bf16_bits": "0480",
+      "x": 3.009265538105056e-36,
+      "scale": 2.350988701644575e-38,
+      "scale_bits": "01000000"
+    },
+    {
+      "bf16_bits": "3f80",
+      "x": 1.0,
+      "scale": 0.0078125,
+      "scale_bits": "3c000000"
+    },
+    {
+      "bf16_bits": "7f7f",
+      "x": 3.3895313892515355e+38,
+      "scale": 1.329227995784916e+36,
+      "scale_bits": "7b800000"
+    },
+    {
+      "bf16_bits": "8000",
+      "x": -0.0,
+      "scale": 1.1754943508222875e-38,
+      "scale_bits": "00800000"
+    },
+    {
+      "bf16_bits": "8001",
+      "x": -9.183549615799121e-41,
+      "scale": 1.1754943508222875e-38,
+      "scale_bits": "00800000"
+    },
+    {
+      "bf16_bits": "ff7f",
+      "x": -3.3895313892515355e+38,
+      "scale": 1.329227995784916e+36,
+      "scale_bits": "7b800000"
+    }
+  ]
+}
