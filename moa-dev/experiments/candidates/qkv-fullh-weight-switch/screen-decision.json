@@ -1,0 +1,65 @@
+{
+  "id": "E144",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "b3fe0ab4be2a5ece6382ae5745112722200f1b66",
+  "comparison_recipe": "baseline/e142.json",
+  "candidate_build_label": "e144-fullh-v2",
+  "job": 136536,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_qkv_cycles": 95909,
+  "control_before_qkv_cycles": 103820,
+  "control_after_qkv_cycles": 103348,
+  "bracketing_median": 103584.0,
+  "change_percent": -7.409445474204512,
+  "candidate_cycles_by_run": [
+    99658,
+    95909,
+    95488
+  ],
+  "static_candidate_cycles": 50510,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/graph-verification-e144-fullh-v2.json",
+      "bytes": 1791,
+      "sha256": "431c155a7c928280087db17f0838944e3e2ebfc6fd415a4d2c39e3cab0ec5b8d"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/e144-fullh-v2-screen-job-136536-results.json",
+    "bytes": 5319,
+    "sha256": "6273f846b7160e3bce247e2943ab97062a4a70ebb2559b94ca36617e7889af15"
+  },
+  "weight_hbm_read_bytes": 31457280,
+  "weight_dm_write_bytes": 31457280,
+  "weight_dm_read_bytes": 31457280,
+  "added_weight_switch_streams": 3,
+  "full_weight_transpose_dm_bytes": 0,
+  "cost_scope": "Logical bytes, not measured traffic or saved cycles; actual graph gate binds implementation.",
+  "scope": "Complete canonical full-H stride4-row-owned original E4 ingress -> Main Switch -> unchanged E138v2 Term4/K4 native consumer, including all quantization/gathers/channel/head/cache costs. E142 O/FFN preserved. No internal NPU attribution from this whole screen.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "original raw9 projection and full2 cancellation/cache cases on actual new source/image"
+      ]
+    },
+    "further_tuning": {
+      "status": "defer_until_validation_and_cost_review",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does full-H stride4-row-owner ingress plus in-stream Switch improve complete QKV after accounting for Switch/collect buffering and native/head readiness? Do not replace this whole result with summed profile windows."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

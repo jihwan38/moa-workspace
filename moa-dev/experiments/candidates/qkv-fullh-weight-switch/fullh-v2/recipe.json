@@ -1,0 +1,86 @@
+{
+  "id": "E144",
+  "variant": "fullh-v2",
+  "base_commit": "b3fe0ab4be2a5ece6382ae5745112722200f1b66",
+  "actual_start_commit": "b840ed4228135f1f04a45819eb7e11c7362ee9ef",
+  "comparison_recipe": "baseline/e142.json",
+  "target_kernel": "sliding_project_qkv",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs",
+    "ops.rs": "src/ops.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-direct-full30-partials/measured-build-e142-adoption.json",
+  "unchanged_kernels": [
+    "sliding_attention_output",
+    "decoder_feedforward"
+  ],
+  "scope": "MIR output-order source repair of fullh-v1: stride4 full-H row ownership plus Main Switch into unchanged E138-v2 K4 native; E142 comparison separate.",
+  "source_origins": {
+    "id": "E144",
+    "actual_start_commit": "b840ed4228135f1f04a45819eb7e11c7362ee9ef",
+    "base_commit": "b3fe0ab4be2a5ece6382ae5745112722200f1b66",
+    "origin_projection": {
+      "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/projection.rs",
+      "bytes": 39754,
+      "sha256": "0eb9a25fad91d75a22c1f9ecf17da2bfc018b684c2c9a95bd1098dd4db5c9262"
+    },
+    "origin_ops": {
+      "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/ops.rs",
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "source_projection": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/projection.rs",
+      "bytes": 40008,
+      "sha256": "3d2500295785592bebdc723fb62617398e2e001ba41c63b2a5c078cda5e00fed"
+    },
+    "source_ops": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/ops.rs",
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "only_delta_from_e138_native_v2": "Q/KV weight DmTensor ownerLow2/fullH placement and fetch/Switch before existing collect; no other source change.",
+    "unchanged_o_suffix_byte_identical_to_e142": true,
+    "unchanged_from_existing_collect_through_native_reduction_scale_head": true,
+    "public_numerical_contract": "Same four terms and coefficients, nativeTerm/K4 F32 reduction, firstBF16/channel/head/cache; no new input specialization.",
+    "repair": "v1 MIR proves expected time order (localRow,oldSliceOwner), so own low2 row bits in Slice and highrow bits in Element; output becomes canonical Row by named-axis algebra."
+  },
+  "prior_related": [
+    "E138v2 frozen fourterm/native path whole+4.104%; D-E143 current+4.0916% and allsamplesQ/Kweightend+2,firstVTRFend+1.",
+    "E136 canonical full-H plainE4 ingress proved target support but weightTRF regressed; no weightTRF here.",
+    "C08 joint copies and C09 stagedO are not reused. No source let-order/tile/term change."
+  ],
+  "full_path": "Original preRMS->unchanged ring32 seed/consumerquant4terms/sharedTRF&coeff -> canonical fullH row-ownedQ/K/V E4DMA -> Main fetch[Kquarter,rowinner] -> InterTranspose(4,1,R) -> existingcollect/nativeTerm/K4F32sum ->canonicalgather/common&channelScale/firstBF16 ->unchanged RMS/RoPE/cache. E142 O and FFN unchanged.",
+  "coordinates": {
+    "source_slice": "4g+b, b=Row%4; Qglobalrow2048c+32g+4r+b,r<8;KV1024c+16g+4r+b,r<4;fullH",
+    "source_reader": "Time[Kquarterq,Row/4r],PacketH%960;localoffset3840r+960q+u",
+    "switch": "srcslice4g+b/timeRq+r -> dstslice4g+q/time4r+b, Q R8/KV R4. NamedOutTime(Row/4,Row%4)=canonicalRow.",
+    "consumer": "originalQrow32/KVrow16,K4quarters960,sameTerm4coeff/native."
+  },
+  "costs": {
+    "logical_not_measured_bus": true,
+    "weight_hbm_read_bytes": 31457280,
+    "weight_dm_write_bytes": 31457280,
+    "weight_dm_read_bytes": 31457280,
+    "additional_whole_transpose_dm_bytes": 0,
+    "weight_trf_bytes": 0,
+    "added": "3Main Switch routes/setup/collect buffering and possible backpressure; sameexistingweightread, source packets andplacement change.",
+    "source_row_pitch_between_local_rows_bytes": 15360
+  },
+  "first_gate": "Exactwholetargetcompile; independent32768rowquarterpacket mapping/affineu0..959 + actualDMA256Bcanonical/fullH bounds + readerSwitchCollectNative/coeffTRF/lifetimes; no addedfullweightDMtranspose. Then originalwhole45comparisons E142bracket.",
+  "decisions": {
+    "adoption": "Pendingactualwhole. Positiveunder5% freezesandentersboundedrepeat+extra+changed-boundaryvalidation; no automaticrejection.",
+    "tuning": "No row/term/stage/padding sweep. Concrete supportedsourceAPI/shape repair mustpreservefailedattempt.",
+    "research": "Single selected producer/consumerownershipcombination groundedlateweightreadiness, no predictedcyclesaving from spans."
+  },
+  "adopted": false,
+  "hardware_status": "not_run",
+  "repair": {
+    "prior": "fullh-v1",
+    "classification": "source named-axis output-time mismatch; not unsupported architecture/performance result",
+    "evidence": "build-e144-fullh-v1-repro.json",
+    "expected_v1": "(Row%R,Row/R), not canonicalRow",
+    "change": "sourceSliceRow%4/ElementRow/4; sameSwitchconfig yields(Row/4,Row%4)=canonicalRow",
+    "cost_difference": "Physicalsourceowner rows stride4 instead of adjacentRrows. FullH3840 retained; actual ingress descriptors must be checked, no blanket E136contiguous-equivalence claim."
+  }
+}

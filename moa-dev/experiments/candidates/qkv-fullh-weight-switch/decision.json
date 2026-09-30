@@ -1,0 +1,112 @@
+{
+  "id": "E144",
+  "status": "validation_complete_ready_for_root_adoption",
+  "adopted": false,
+  "official_submission": false,
+  "variant": "fullh-v2",
+  "build_label": "e144-fullh-v2",
+  "actual_start_commit": "b840ed4228135f1f04a45819eb7e11c7362ee9ef",
+  "source_base_commit": "b3fe0ab4be2a5ece6382ae5745112722200f1b66",
+  "comparison_recipe": "baseline/e142.json",
+  "source_origin": "E14246-file base; frozen E138native-v2 QKV projection/ops overlay plus only full-H low-two-row-owner ingress and Main Switch before existing native consumer. Other44inputs remain E142.",
+  "production_source": {
+    "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/projection.rs",
+    "bytes": 40008,
+    "sha256": "3d2500295785592bebdc723fb62617398e2e001ba41c63b2a5c078cda5e00fed"
+  },
+  "production_ops": {
+    "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/ops.rs",
+    "bytes": 12804,
+    "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+  },
+  "exact_image": {
+    "bytes": 206592,
+    "sha256": "687f1c8df3ccf24eee1e9425a64c685148620e09c4a245d4b039231380f3bc53"
+  },
+  "final_gate": {
+    "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json",
+    "bytes": 19180,
+    "sha256": "89f76ac1e77ece8dfa3778601e298c68eaaf7292e273a82ddb315f811650982f"
+  },
+  "performance": {
+    "independent_allocations": 3,
+    "paired_observations": [
+      {
+        "job_id": 136536,
+        "screen_label": "e144-fullh-v2-screen",
+        "candidate_qkv_cycles": 95909,
+        "control_before_qkv_cycles": 103820,
+        "control_after_qkv_cycles": 103348,
+        "bracketing_control_qkv_cycles": 103584.0,
+        "ratio": 0.9259055452579549,
+        "delta_percent": -7.409445474204512
+      },
+      {
+        "job_id": 136554,
+        "screen_label": "e144-fullh-v2-repeat-a",
+        "candidate_qkv_cycles": 95910,
+        "control_before_qkv_cycles": 104003,
+        "control_after_qkv_cycles": 104574,
+        "bracketing_control_qkv_cycles": 104288.5,
+        "ratio": 0.919660365236819,
+        "delta_percent": -8.033963476318096
+      },
+      {
+        "job_id": 136573,
+        "screen_label": "e144-fullh-v2-repeat-b",
+        "candidate_qkv_cycles": 95899,
+        "control_before_qkv_cycles": 105330,
+        "control_after_qkv_cycles": 103125,
+        "bracketing_control_qkv_cycles": 104227.5,
+        "ratio": 0.9200930656496606,
+        "delta_percent": -7.990693435033935
+      }
+    ],
+    "median_paired_delta_percent": -7.990693435033935,
+    "aggregate_median_delta_percent": -7.98109903816171,
+    "same_benchmark_payload_all_allocations": true,
+    "control_brackets": "actual E142 before/candidate/actual E142 after",
+    "original_first_screen_preserved": true
+  },
+  "correctness": {
+    "standard_distinct_inputs": 9,
+    "candidate_standard_comparisons_including_performance_repeats": 75,
+    "raw_projection_cases": 9,
+    "raw_projection_bf16_outputs": 73728,
+    "raw_exact_signed_zero_equivalent": true,
+    "full_qkv_cases": 2,
+    "full_qkv_outputs": 16384,
+    "full_qkv_untouched_cache_values": 8380416,
+    "scope": "Finite original-standard and selected raw/full boundary inputs; no arbitrary BF16, end-to-end model or ranking claim."
+  },
+  "preserved_failed_attempt": {
+    "variant": "fullh-v1",
+    "stage": "MIR exact compile",
+    "reason": "Switch OutTime expected(Row%R,Row/R), not canonical Row. No executable or NPU result.",
+    "repair": "fullh-v2 slice owns Row%4 and local element Row/4; Switch time(Row/4,Row%4)=Row. Full-H owner rows stride4, no stream relabel or full transpose DM."
+  },
+  "costs": {
+    "weight_hbm_read_bytes": 31457280,
+    "weight_dm_write_bytes": 31457280,
+    "weight_dm_read_bytes": 31457280,
+    "added_main_switch_streams": 3,
+    "full_weight_transpose_dm_bytes": 0,
+    "weight_trf_bytes": 0,
+    "scope": "Logical bytes and explicit added Switch/setup/buffering. Whole NPU improvement is measured; no internal bus-stall or summed-span causal attribution."
+  },
+  "decisions": {
+    "adoption": {
+      "status": "recommend_frozen_fullh_v2_after_all_required_gates_passed",
+      "decision_owner": "Root; no live sources/baseline/official payload changed by this candidate record.",
+      "basis": "Three independent positive allocations, extra6 same images, raw9 original BF16 truth, whole2 production-image output/cache checks and full46-file source binding all PASS."
+    },
+    "further_tuning": {
+      "status": "stop_parameter_series",
+      "reason": "Freeze the validated combination; no further row/stage/term/owner sweep. 5% is not an adoption minimum."
+    },
+    "major_research": {
+      "status": "reassess_adopted_complete_path_readiness_before_next_selection",
+      "reason": "Whole QKV gain validates this combination, not exclusive late-weight causality or exhaustion of broader architectures; root selects next research using current path evidence."
+    }
+  }
+}

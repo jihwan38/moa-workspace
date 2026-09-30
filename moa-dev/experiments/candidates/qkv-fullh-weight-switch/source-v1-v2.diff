@@ -1,0 +1,26 @@
+--- fullh-v1/projection.rs
++++ fullh-v2/projection.rs
+@@ -227,9 +227,9 @@
+ ) -> DmTensor<bf16, Chip, Cluster, QkvHeadSlices, m![Gs, Ds]> {
+     // Full compact source wire order: row=2048c+32g+r, h=960q+u.
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, QkvGroup, QkvQueryRow, H]> = unsafe { weight.view().reshape() };
+-    let weight: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvQueryRow / 8], m![QkvQueryRow % 8, H]> = weight.to_dm(&mut device.tdma);
++    let weight: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvQueryRow % 4], m![QkvQueryRow / 4, H]> = weight.to_dm(&mut device.tdma);
+     let raw: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvQueryRow]> = device.main
+-        .begin(weight.view()).fetch::<m![H / 960, QkvQueryRow % 8], m![H % 960]>()
++        .begin(weight.view()).fetch::<m![H / 960, QkvQueryRow / 4], m![H % 960]>()
+         .switch::<QkvColumns, m![QkvQueryRow]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 8 })
+         .collect::<m![QkvQueryRow, H / 32 % 30], m![H % 32]>()
+         .contract_outer::<m![QkvQueryRow, H / 64 % 15], m![H % 64], _, _, _>(x)
+@@ -275,9 +275,9 @@
+ ) -> DmTensor<bf16, Chip, Cluster, QkvHeadSlices, m![Ds]> {
+     // Full compact source wire order: row=1024c+16g+r, h=960q+u.
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, QkvGroup, QkvKvRow, H]> = unsafe { weight.view().reshape() };
+-    let weight: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvKvRow / 4], m![QkvKvRow % 4, H]> = weight.to_dm(&mut device.tdma);
++    let weight: DmTensor<f8e4m3, Chip, QkvCluster, m![QkvGroup, QkvKvRow % 4], m![QkvKvRow / 4, H]> = weight.to_dm(&mut device.tdma);
+     let raw: DmTensor<f32, Chip, QkvCluster, QkvRows, m![QkvKvRow]> = device.main
+-        .begin(weight.view()).fetch::<m![H / 960, QkvKvRow % 4], m![H % 960]>()
++        .begin(weight.view()).fetch::<m![H / 960, QkvKvRow / 4], m![H % 960]>()
+         .switch::<QkvColumns, m![QkvKvRow]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 4 })
+         .collect::<m![QkvKvRow, H / 32 % 30], m![H % 32]>()
+         .contract_outer::<m![QkvKvRow, H / 64 % 15], m![H % 64], _, _, _>(x)

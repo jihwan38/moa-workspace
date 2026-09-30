@@ -1,0 +1,76 @@
+{
+  "id": "E144",
+  "variant": "fullh-v1",
+  "base_commit": "b3fe0ab4be2a5ece6382ae5745112722200f1b66",
+  "actual_start_commit": "b840ed4228135f1f04a45819eb7e11c7362ee9ef",
+  "comparison_recipe": "baseline/e142.json",
+  "target_kernel": "sliding_project_qkv",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs",
+    "ops.rs": "src/ops.rs"
+  },
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-direct-full30-partials/measured-build-e142-adoption.json",
+  "unchanged_kernels": [
+    "sliding_attention_output",
+    "decoder_feedforward"
+  ],
+  "scope": "Coupled canonical full-H row-owner weight ingress plus Main in-stream Switch into unchanged E138-v2 K4 native consumer; source differs from independently declared E142 comparison.",
+  "source_origins": {
+    "id": "E144",
+    "actual_start_commit": "b840ed4228135f1f04a45819eb7e11c7362ee9ef",
+    "base_commit": "b3fe0ab4be2a5ece6382ae5745112722200f1b66",
+    "origin_projection": {
+      "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/projection.rs",
+      "bytes": 39754,
+      "sha256": "0eb9a25fad91d75a22c1f9ecf17da2bfc018b684c2c9a95bd1098dd4db5c9262"
+    },
+    "origin_ops": {
+      "path": "moa-dev/experiments/candidates/qkv-native-consumer-local/native-v2/ops.rs",
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "source_projection": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v1/projection.rs",
+      "bytes": 40008,
+      "sha256": "7f18767de11a6987e5bae2aa81599af66ed47f14793eafaff1ab1d9b49c9b2c6"
+    },
+    "source_ops": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v1/ops.rs",
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "only_delta_from_e138_native_v2": "Q/KV weight DmTensor placement and fetch/Switch before existing collect; no other source change.",
+    "unchanged_o_suffix_byte_identical_to_e142": true,
+    "unchanged_from_existing_collect_through_native_reduction_scale_head": true,
+    "public_numerical_contract": "Same four terms and coefficients, nativeTerm/K4 F32 reduction, firstBF16/channel/head/cache; no new input specialization."
+  },
+  "prior_related": [
+    "E138v2 frozen fourterm/native path whole+4.104%; D-E143 current+4.0916% and allsamplesQ/Kweightend+2,firstVTRFend+1.",
+    "E136 canonical full-H plainE4 ingress proved target support but weightTRF regressed; no weightTRF here.",
+    "C08 joint copies and C09 stagedO are not reused. No source let-order/tile/term change."
+  ],
+  "full_path": "Original preRMS->unchanged ring32 seed/consumerquant4terms/sharedTRF&coeff -> canonical fullH row-ownedQ/K/V E4DMA -> Main fetch[Kquarter,rowinner] -> InterTranspose(4,1,R) -> existingcollect/nativeTerm/K4F32sum ->canonicalgather/common&channelScale/firstBF16 ->unchanged RMS/RoPE/cache. E142 O and FFN unchanged.",
+  "coordinates": {
+    "source_slice": "4g+b; Qglobalrow2048c+32g+8b+r,KV1024c+16g+4b+r; fullH",
+    "source_reader": "Time[Kquarter q,Row%R r],PacketH%960; perpacketlocaloffset3840r+960q+u",
+    "switch": "srcslice4g+b/timeRq+r -> dstslice4g+q/timeRb+r, R8Query/R4KV",
+    "consumer": "original Qrow32/KVrow16, K4 quarters960, sameTerm4coeff/native."
+  },
+  "costs": {
+    "logical_not_measured_bus": true,
+    "weight_hbm_read_bytes": 31457280,
+    "weight_dm_write_bytes": 31457280,
+    "weight_dm_read_bytes": 31457280,
+    "additional_whole_transpose_dm_bytes": 0,
+    "weight_trf_bytes": 0,
+    "added": "3Main Switch routes/setup/collect buffering and possible backpressure; sameexistingweightread, source packets andplacement change."
+  },
+  "first_gate": "Exactwholetargetcompile; independent32768rowquarterpacket mapping/affineu0..959 + actualDMA256Bcanonical/fullH bounds + readerSwitchCollectNative/coeffTRF/lifetimes; no addedfullweightDMtranspose. Then originalwhole45comparisons E142bracket.",
+  "decisions": {
+    "adoption": "Pendingactualwhole. Positiveunder5% freezesandentersboundedrepeat+extra+changed-boundaryvalidation; no automaticrejection.",
+    "tuning": "No row/term/stage/padding sweep. Concrete supportedsourceAPI/shape repair mustpreservefailedattempt.",
+    "research": "Single selected producer/consumerownershipcombination groundedlateweightreadiness, no predictedcyclesaving from spans."
+  },
+  "adopted": false,
+  "hardware_status": "not_run"
+}
