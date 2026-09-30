@@ -1,0 +1,32 @@
+{
+  "status": "SOURCE_REVIEW_ONLY_NO_NEW_BUILD_OR_NPU",
+  "inputs": {
+    "source": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/qk-half-v4/projection.rs",
+      "bytes": 45721,
+      "sha256": "c4c596906051b9930af44e5806d05b6de2692c7c926c7c619ca0256b69e0da7f"
+    },
+    "E144_source": {
+      "path": "moa-dev/experiments/candidates/qkv-fullh-weight-switch/fullh-v2/projection.rs",
+      "bytes": 40008,
+      "sha256": "3d2500295785592bebdc723fb62617398e2e001ba41c63b2a5c078cda5e00fed"
+    },
+    "raw_wrapper": {
+      "path": "moa-dev/experiments/candidates/qkv-qk-weight-stages/boundary-suite/raw-src/probe.rs",
+      "bytes": 1056,
+      "sha256": "eb5a061103267975227b14be8f29074b8a3f166988eae5b86bc723974d6d7303"
+    }
+  },
+  "checks": {
+    "prepare_qkv_terms_body_byte_identical": true,
+    "V_body_byte_identical_to_original_KV_helper": true,
+    "raw_wrapper_calls_same_public_production_helper": true
+  },
+  "changed_contract": "Q32 and K16 full-H native paths now use16/8-row stages. Existing raw9 row routing plus complete Q/K/V outputs validate both halves under the unchanged reference. Source equality alone does not establish emitted mapping, allocation or hardware correctness.",
+  "pending": [
+    "actual selected graph gate and production image binding",
+    "new raw diagnostic exact-image/host binding",
+    "new whole2 host production-image match",
+    "NPU requires root/first positive signal"
+  ]
+}

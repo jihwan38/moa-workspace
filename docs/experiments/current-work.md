@@ -1,3 +1,21 @@
+# 2026-10-01 E146 완료·미채택, scalar 공급 변경으로 진행
+
+E146 v4는 세 independent Arena137020/137025/137030에서 각각45비교를 통과했지만,
+E144 앞뒤 control 중앙 대비 QKV 변화가 −1.494967%, +0.710594%, +0.406876%로
+중앙 **+0.406876% 회귀**다. 첫 양성은 재현되지 않았고 채택하지 않는다. 원래 raw9
+73,728 BF16 exact(±0 동등), full2의16,384 출력 tolerance 및8,380,416 비대상 cache는
+통과했다. Extra6는 빌드만 했고 성능 재현 실패 후 NPU 실행하지 않았다.
+[완료 기록](../../moa-dev/experiments/candidates/qkv-qk-weight-stages/README.md).
+
+현재 runtime/source는 E144 그대로다. E146 source와 v1–v3 compiler 실패를 보존하고
+row/stage sweep은 중단한다. 다음 E147은 E144를 source/control로 따로 선택하여
+scale 생성의 세 Main 경계를 한 개로 합치고 scale/계수를 Sub broadcast에서 VRF로
+직접 전달하는 조합을 검증한다. 작은 scalar의 TDMA 소비자 저장/재적재를 없애되
+Sub Switch/setup/VRF 비용과 각 입력 exponent 처리 비용이 추가된다. D-E145의
+scale 완료~VRF 구간9,914cycles는 대기 포함 측정이며 절감 약속이 아니다.
+Q weight 시작이 scale DMA 완료 뒤라는 시간상 관측도 단독 인과 증명이 아니다.
+완료 E146 기록 통합 뒤 별도 branch에서 구현한다. 아래 진행 기록은 당시 상태다.
+
 # 2026-10-01 E146 Q/K weight 단계 공급 실험 진행
 
 현재 채택 runtime은 E144 그대로다. D-E145 job136924의81비교 및 원본 이미지/계측 연결 검증을

@@ -267,6 +267,16 @@
   This is a supported source-contract repair, not performance evidence or proof
   of the sole compiler cause. Check actual stage extents, packet ownership,
   disjoint output coverage, shared-register lifetime and whole NPU performance.
+- E146 v4 subsequently passed three whole screens, raw73728 exact BF16 values
+  and full16384 tolerance/cache8380416 checks, but paired QKV changes were
+  -1.494967,+0.710594,+0.406876percent; median+0.406876percent. Do not adopt it or
+  replace the paired outcome with the favorable aggregate ratio. Preserve the
+  first positive and compiler repairs; no extra6 NPU was run after the reversal.
+  Stop row/stage tuning. E147 selects E144 source/control with one-pass scale
+  production and scalar Sub broadcast directly to VRF, preserving precision and
+  original whole weight stages. Verify finite-BF16 scale equivalence, actual
+  ring4 bitmap/valid masks/VRF lifetimes and full cost; D145 readiness is not a
+  guaranteed saving or proof of exclusive TDMA causality.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or
