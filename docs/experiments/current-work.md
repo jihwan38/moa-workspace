@@ -1,4 +1,4 @@
-# 2026-09-30 E144 QKV 채택·공식 제출 준비
+# 2026-09-30 E144 QKV 채택·공식 제출 완료
 
 현재 runtime은 **E144 / `baseline-e144` / `3586c41`**다. E142 FFN과 O 이미지는
 그대로이며, QKV는 full-H E4 행 적재와 Main Switch/native K4 분배를 함께 채택했다.
@@ -25,7 +25,13 @@ main에 병합했다. 두 branch tip과 v1의 source/compile 실패를 보존했
 Switch 출력행 순서 문제를 slice low2 row ownership으로 수정한 동일 후보다.
 추가 파라미터 튜닝은 종료한다. 다음 구조 선택은 현재 E144의 실제 입력·weight·gather
 준비 시점을 먼저 구분하며, E138-v2의 이전 내부 cycle을 현재 병목으로 단정하지 않는다.
-공식 제출은 source/payload 일치 검사 후 진행하며, 아래 이전 순위는 당시 관측이다.
+공식 제출 `2a66e430`은15비교 PASS, QKV95,918 / O42,945 / FFN296,581cycles로 완료했다.
+팀 최고점 **6.748109877×**(+3.40094%)이며2026-09-30 23:01 KST의 순위는 **55/80**,
+이번 작업 시작 snapshot은58/79였다. O/FFN이미지가 같으므로 공식값 변동을QKV효과로 세지 않는다.
+현재30위8.068829902×까지 총점+19.5717%가 필요하다(고정leaderboard, 동률 기준).
+[공식 결과](e144-official-submit-20260930.json) · [리더보드](leaderboard-e144-20260930.json) ·
+[격차 계산](../research/e144-rank-gap-20260930.json) · [다음 판별 실험](../research/after-e144-priority-20260930.md).
+아래 이전 순위와 상태는 당시 관측이다.
 
 # 2026-09-30 D-E143 완료·E144 weight ingress/stream 분배 조합 선택
 

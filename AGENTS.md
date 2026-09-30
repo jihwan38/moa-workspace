@@ -250,6 +250,12 @@
   should distinguish input/TRF, later weight, and head-gather completion before
   the next architecture selection. Do not infer exclusive DMA causality from
   the whole gain or claim30th place from a single-kernel improvement.
+- E144 official submission2a66e430 subsequently passes15 comparisons, becomes
+  BEEF best6.748109877x and ranks55/80 at2026-09-30T14:01Z (prior capture58/79).
+  Current30th8.068829902x needs19.5717percent more score under the frozen board.
+  Official unchanged O/FFN variation is not attributable to QKV optimization.
+  Preserve paired QKV7.9907percent as the controlled gain and follow
+  docs/research/after-e144-priority-20260930.md for the next bounded diagnostic.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

@@ -16,8 +16,15 @@ E142 앞뒤 대조를 둔 독립3회 QKV 감소율은 **7.4094%,8.0340%,7.9907%*
 [독립 검증](../moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json).
 유한 사례 검증이며 임의 입력이나 전체 모델 정확성을 보장하지 않는다.
 
-공식 제출 준비 중이다. 제출 전 관측 최고점은 E142 `e1f58b9e`,6.526159×,2026-09-30
-**58/79위**다. 현재 기록은 [진행 현황](../docs/experiments/current-work.md)을 따른다.
+공식 제출 **`2a66e430` / 6.748109877× / 55/80위**(2026-09-30 23:01 KST),15비교 PASS다.
+이전6.526159× 대비+3.40094%이며 작업 시작58/79위에서 갱신됐다. QKV95,918 /
+O42,945 / FFN296,581cycles. O/FFN은 동일 이미지이므로 공식 변동을 최적화 효과로 세지 않는다.
+현재30위8.068830×까지 총점+19.57%가 더 필요하다.
+[공식 결과](../docs/experiments/e144-official-submit-20260930.json) ·
+[리더보드](../docs/experiments/leaderboard-e144-20260930.json) ·
+[격차](../docs/research/e144-rank-gap-20260930.json) ·
+[다음 판별 실험](../docs/research/after-e144-priority-20260930.md) ·
+[진행 현황](../docs/experiments/current-work.md).
 
 | 찾는 내용 | 파일 |
 |---|---|

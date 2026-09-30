@@ -6,6 +6,8 @@ Nine standard inputs,73728 exact pre-head values,16384 whole-QKV values at origi
 and8380416 untouched cache entries pass. O/FFN images remain E142. Failed v1 mapping and
 successful v2 repair remain in the named branch and merged records.
 [Current work](current-work.md) · [Evidence](../../moa-dev/experiments/candidates/qkv-fullh-weight-switch/README.md).
+Official2a66e430 passes15, reaches6.748109877x and55/80 at2026-09-30T14:01Z.
+[Official record](e144-official-submit-20260930.json) · [Leaderboard](leaderboard-e144-20260930.json).
 Older entries below retain their original decisions and runtime states.
 
 September27 **E129–E131 completed without a new adoption; E128 remains current**.
