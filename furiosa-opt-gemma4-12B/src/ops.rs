@@ -57,20 +57,10 @@ pub fn sliding_project_qkv(
 ) {
     let x: DmTensor<bf16, Chip, m![2], m![1 # 32, H / 480], m![H % 480]> = x.to_dm(&mut device.tdma);
     let x = shared::rmsnorm::normalize_sharded_inter_slice(device, &x, input_rms_weight);
-    let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 32, 1 # 32], m![H]> = x.to_dm(&mut device.tdma);
-    let x: DmTensor<bf16, Chip, m![2], m![Dummy256 / 32, 32], m![H]> = device
-        .main
-        .begin(x.view())
-        .fetch::<m![1], m![H]>()
-        .switch::<m![Dummy256 / 32, 32], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 32 })
-        .collect::<m![H / 16], m![H % 16]>()
-        .commit_trim::<m![H % 16]>()
-        .commit();
-    let x: DmTensor<bf16, Chip, m![2], Replicated, m![H]> = unsafe { x.reshape() };
-
-    let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
-        sliding::projection::project_query(device, &x, q_weight, q_weight_scale);
-    let (k, v) = sliding::projection::project_key_value(device, &x, k_weight, v_weight, k_weight_scale, v_weight_scale);
+    let (q, k, v) = sliding::projection::project_qkv_native(
+        device, &x, q_weight, k_weight, v_weight,
+        q_weight_scale, k_weight_scale, v_weight_scale,
+    );
 
     let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
         sliding::rmsnorm::normalize_query(device, &q, q_rms_weight);
