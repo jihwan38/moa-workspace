@@ -288,6 +288,12 @@
   modest reproducible gains are adopted independently of5percent tuning limits.
   E146 remains unadopted because its first gain failed to reproduce. Neither
   the score gap nor residual weight bottlenecks are solved by this small gain.
+- E147 official aabfb8c6 subsequently passed15 comparisons with QKV94391,
+  O42212 and FFN305502cycles; team best6.756274761x(+0.120995percent), rank55/80
+  unchanged. QKV is1.591985percent below the prior official95918; O/FFN images
+  are identical and their observed variation is not an E147 code change. The
+  current30th-place score8.068829902x still requires19.4272percent more score.
+  Keep the modest recovered gain without representing it as a ranking breakout.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

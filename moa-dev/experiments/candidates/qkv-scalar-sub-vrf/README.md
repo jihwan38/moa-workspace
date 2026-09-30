@@ -1,6 +1,6 @@
 # E147: one-pass scale and Sub scalar distribution to VRF
 
-**Adopted E147**, source/tag `fb45202` / `baseline-e147`. Three paired QKV changes are −1.162207%, −2.262397%, −0.796883%; median **−1.162207%**. Every candidate is faster than both contemporary E144 controls. Standard9, raw9/73728 exact BF16 (signed zero equivalent), full2/16384 original-tolerance outputs and8380416 untouched cache checks pass. O/FFN images remain E144. See [final independent review](adoption/independent-final-review.md) and [adoption decision](adoption-decision.json). Official submission is pending; no rank gain is claimed. Further parameter tuning stops.
+**Adopted E147**, source/tag `fb45202` / `baseline-e147`. Three paired QKV changes are −1.162207%, −2.262397%, −0.796883%; median **−1.162207%**. Every candidate is faster than both contemporary E144 controls. Standard9, raw9/73728 exact BF16 (signed zero equivalent), full2/16384 original-tolerance outputs and8380416 untouched cache checks pass. O/FFN images remain E144. See [final independent review](adoption/independent-final-review.md) and [adoption decision](adoption-decision.json). Official submission `aabfb8c6` passes15 comparisons: QKV94391/O42212/FFN305502cycles, team best6.756274761×(+0.120995%),55/80 unchanged. O/FFN image timing variation is not a code change. See [official result](../../../../docs/experiments/e147-official-submit-20261001.json). Further parameter tuning stops.
 
 The following selection/preparation record predates measurement.
 
