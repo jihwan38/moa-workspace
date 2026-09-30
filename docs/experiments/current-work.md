@@ -1,3 +1,22 @@
+# 2026-09-30 D-E143 QKV 입력·후반 weight readiness 비교 진행
+
+Runtime은 E142이며 live source 검사와 기존 완료 branch의 main 포함 여부를 확인했다.
+새 branch는 `diag/e142-e138v2-qkv-readiness`, 실제 시작은
+`6c3a3f51188a53efa68f5ada5f88b6d2bd0123ce`다. 후보 ID는
+`e142-e138v2-qkv-readiness`다. [선택 근거](../research/after-e142-priority-20260927.md)의
+남은 질문을 실제 동결 이미지로 판별한다. 새 커널 구현이나 타일 튜닝은 아직 선택하지 않았다.
+
+E142 standard host와 frozen E138 native-v2 host의 QKV를 비교하며, profile-name bytes만
+바꾼 각 diagnostic image의 code/constants/주소/IO 동일성을 검증한다. 두 원본 host의
+FFN은 서로 다른 채택본이므로 FFN 성능은 비교하지 않는다. 각각의 세 image와 source
+binding을 확인하고 QKV whole 앞뒤 대조와 info/trace를 한 allocation에 넣는다.
+
+측정 대상은 preRMS→seed/ring→amax/terms/coefficients→TRF, Q/K/V 각각의 weight DMA와
+native, reduction/head/RoPE/cache 완료다. 첫 activation과 후반 weight 중 무엇이 완료를
+늦추는지로 다음 구현을 고른다. 겹친 시간창이나 static schedule을 절감량으로 합산하지 않는다.
+채택은 새 커널이 없어 해당 없음, 추가 routing/row/term 튜닝은 중단 유지, 연구는 이 한정
+진단으로 다음 구조를 선택한다. 아래의 공식 순위는9월27일 기록이며 새 조회와 구분한다.
+
 # 2026-09-27 E142 채택·공식 제출 완료
 
 공식 제출 **e1f58b9e**가15비교를 통과했고 **6.526159×,46/70위**로 완료했다.
