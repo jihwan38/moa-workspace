@@ -1,4 +1,4 @@
-# 2026-10-01 E154 scalar 공급 수리 채택 · 공식 제출 준비
+# 2026-10-01 E154 공식 완료 · 최고 점수 갱신, 순위 동일
 
 현재 runtime은 **E154 / baseline-e154 / `3f384063f5231e00ad286f365209806e5043fc83`**이다. E151 소스에 frozenE153의
 RMS/quantizer 소유권과8복제scale 수리를 합성했다. 성능control은별도E151이다.
@@ -23,8 +23,10 @@ E153의37k겹친scale준비구간전체를절감했다고주장하지않는다.
 
 [최종gate](../../moa-dev/experiments/candidates/ffn-sharded-scale-replicated/adoption/independent-final-review.json) ·
 [채택판정](../../moa-dev/experiments/candidates/ffn-sharded-scale-replicated/adoption-decision.json).
-공식제출은다음단계이며아직E154점수/순위없다. 마지막E151은6.8348×,
-publicbestE150은6.838931882×/57위이며요청한다섯계단상승은미달성이다.
+공식 `4dbf747a`는15PASS, QKV95326/O42489/FFN288529, **6.848703703×/57/80위**다.
+20:28:38 KST publicbest도동일제출이며순위변화0. 종전최고E150대비score+0.142885%,
+동일QKV이미지측정변동이FFN개선을상쇄했다. 요청한다섯계단상승은미달성이다.
+[공식기록](e154-official-submit-20261001.json) · [순위](../research/e154-official-rank-result-20261001.json).
 아래기록은각작성시점상태다.
 
 # 2026-10-01 E154 replicated scale 수리 feasibility 준비

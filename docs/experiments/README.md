@@ -8,7 +8,8 @@ outputs pass. The raw oracle excludes pre-RMS; emitted original RMS arithmetic a
 local-cast coverage plus complete-FFN validation cover that changed boundary.
 GlobalMax/pow2scale stay on8valid quant owners to remove scalar redistribution DMA;
 latepacked23040B, originalring and E151native/down remain. Source3/43unchanged and
-QKV/O images byte-identical. Official submission is pending; no rank gain yet claimed.
+QKV/O images byte-identical. Official4dbf747a passes15: FFN288529, score6.848703703,
+rank57/80 unchanged at20:28KST. Unchanged QKV timing variation offsets part of the FFN gain.
 [Current work](current-work.md) · [Final gate](../../moa-dev/experiments/candidates/ffn-sharded-scale-replicated/adoption/independent-final-review.json).
 
 

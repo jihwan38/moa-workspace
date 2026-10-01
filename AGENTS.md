@@ -510,3 +510,9 @@
   original ring/native/E151down costs. ScalarDMA removal repairs the measured
   dependency but does not reclaim all37k or prove M06's old timeout cause.
   Stop parameter tuning; final official result and rank remain separate.
+
+- E154 official4dbf747a passes15: QKV95326/O42489/FFN288529, score6.848703703,
+  team best and rank57/80 unchanged at20:28KST October1. Unchanged QKV
+  timing variation offsets part of the FFN improvement; do not attribute its
+  cycle change to FFN code or promise the requested five-rank rise. E154 is a
+  verified latest official fallback while a separate direct-leader candidate runs.
