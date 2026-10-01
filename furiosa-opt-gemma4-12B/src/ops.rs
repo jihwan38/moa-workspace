@@ -216,7 +216,7 @@ pub fn decoder_feedforward(
     layer_scalar: &HbmTensor<bf16, Chip, m![1 # 8]>,
 ) {
     let residual: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = residual_hbm.to_dm(&mut device.tdma);
-    let x = shared::rmsnorm::normalize(device, &residual, pre_ff_rms_weight);
+    let x = shared::rmsnorm::normalize_ffn_input_sharded(device, &residual, pre_ff_rms_weight);
 
     let x: DmTensor<bf16, Chip, Cluster, shared::mlp::DownEpilogueSlices, m![H % 480]> = shared::mlp::feedforward_sharded(
         device,
