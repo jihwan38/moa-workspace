@@ -145,7 +145,7 @@
   "response": "Repository:   /tmp/moa-official-e150-20261001\nFiles:        23 (201.2 KiB)\n                src/ops.rs\n                src/device/  (22 files)\n\nSubmitted as: BEEF\nSubmission:   ac53ad0a\n\nTrack it with:  moa-submitter status\nRead the log:   moa-submitter log ac53ad0a\n",
   "finished_at_utc": "2026-10-01T10:06:41.995343+00:00",
   "submission_id": "ac53ad0a",
-  "current_status": "evaluating",
+  "current_status": "completed",
   "server_contract_ok": true,
   "observations": [
     {
@@ -297,6 +297,47 @@
         "bytes": 1141,
         "sha256": "41469b9e351be481fc113dff2455bbe07390c15bea8ce3288f78f91c28bb4875"
       }
+    },
+    {
+      "checked_at_utc": "2026-10-01T10:11:32.960617+00:00",
+      "status": {
+        "command": [
+          "/home/jihwan38/moa-workspace/moa-dev/moa",
+          "moa-submitter",
+          "--server",
+          "https://micro2026-api.duckdns.org:7777",
+          "status",
+          "ac53ad0a"
+        ],
+        "exit_code": 0,
+        "output": "Submission:   ac53ad0a\nTeam:         BEEF\nStatus:       completed\nStage:        evaluate\nSubmitted:    2026-10-01 10:06\nFinished:     2026-10-01 10:10\n\nCycles:\n  ops::sliding_project_qkv         92917\n  ops::sliding_attention_output    42550\n  ops::decoder_feedforward         296854\n\nScore:        6.8389\n\nFull log:     moa-submitter log ac53ad0a\n"
+      },
+      "log": {
+        "command": [
+          "/home/jihwan38/moa-workspace/moa-dev/moa",
+          "moa-submitter",
+          "--server",
+          "https://micro2026-api.duckdns.org:7777",
+          "log",
+          "ac53ad0a"
+        ],
+        "exit_code": 0,
+        "output": "=== receive \u00b7 2026-10-01 10:06:41 UTC ===\naccepted 23 file(s):\n  src/device/audio/mod.rs\n  src/device/audio/projection.rs\n  src/device/full/attention.rs\n  src/device/full/mod.rs\n  src/device/full/projection.rs\n  src/device/full/rmsnorm.rs\n  src/device/full/rope.rs\n  src/device/layout.rs\n  src/device/mod.rs\n  src/device/shared/lm_head.rs\n  src/device/shared/mlp.rs\n  src/device/shared/mod.rs\n  src/device/shared/residual.rs\n  src/device/shared/rmsnorm.rs\n  src/device/sliding/attention.rs\n  src/device/sliding/mod.rs\n  src/device/sliding/projection.rs\n  src/device/sliding/rmsnorm.rs\n  src/device/sliding/rope.rs\n  src/device/vision/layernorm.rs\n  src/device/vision/mod.rs\n  src/device/vision/projection.rs\n  src/ops.rs\n\n=== validate \u00b7 2026-10-01 10:06:42 UTC ===\n==> checking the skeleton contract\n    contract OK (detected version: furiosa-opt-std 0.8.1)\n\n=== build \u00b7 2026-10-01 10:06:42 UTC ===\n==> building on kernel-builder\n\n==> build succeeded\n\n=== evaluate \u00b7 2026-10-01 10:09:13 UTC ===\nqueued on the NPU cluster as job 141342\nrunning on the NPU\nNPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts\n\n==> sliding_project_qkv\n[sliding_project_qkv q run0        ] max|\u0394|=  0.01562 (   0.50% of expected)  mean|\u0394|= 0.000556  within tol=100.00%  -> PASS\n[sliding_project_qkv k run0        ] max|\u0394|=  0.01562 (   0.68% of expected)  mean|\u0394|= 0.000552  within tol=100.00%  -> PASS\n[sliding_project_qkv v run0        ] max|\u0394|=  0.00000 (   0.00% of expected)  mean|\u0394|= 0.000000  within tol=100.00%  -> PASS\n[sliding_project_qkv q run1        ] max|\u0394|=  0.01562 (   0.51% of expected)  mean|\u0394|= 0.000508  within tol=100.00%  -> PASS\n[sliding_project_qkv k run1        ] max|\u0394|=  0.01562 (   0.64% of expected)  mean|\u0394|= 0.000524  within tol=100.00%  -> PASS\n[sliding_project_qkv v run1        ] max|\u0394|=  0.00000 (   0.00% of expected)  mean|\u0394|= 0.000000  within tol=100.00%  -> PASS\n[sliding_project_qkv q run2        ] max|\u0394|=  0.01562 (   0.74% of expected)  mean|\u0394|= 0.000552  within tol=100.00%  -> PASS\n[sliding_project_qkv k run2        ] max|\u0394|=  0.01562 (   0.69% of expected)  mean|\u0394|= 0.000586  within tol=100.00%  -> PASS\n[sliding_project_qkv v run2        ] max|\u0394|=  0.00000 (   0.00% of expected)  mean|\u0394|= 0.000000  within tol=100.00%  -> PASS\n    median cycles=92917 (of 3 runs: [98881, 92298, 92917])\n\n==> sliding_attention_output\n[sliding_attention_output run0     ] max|\u0394|=  0.00000 (   0.00% of expected)  mean|\u0394|= 0.000000  within tol=100.00%  -> PASS\n[sliding_attention_output run1     ] max|\u0394|=  0.00000 (   0.00% of expected)  mean|\u0394|= 0.000000  within tol=100.00%  -> PASS\n[sliding_attention_output run2     ] max|\u0394|=  0.00000 (   0.00% of expected)  mean|\u0394|= 0.000000  within tol=100.00%  -> PASS\n    median cycles=42550 (of 3 runs: [46019, 42251, 42550])\n\n==> decoder_feedforward\n[decoder_feedforward run0          ] max|\u0394|=  0.00781 (   0.96% of expected)  mean|\u0394|= 0.000276  within tol=100.00%  -> PASS\n[decoder_feedforward run1          ] max|\u0394|=  0.01172 (   2.05% of expected)  mean|\u0394|= 0.000380  within tol=100.00%  -> PASS\n[decoder_feedforward run2          ] max|\u0394|=  0.00781 (   0.99% of expected)  mean|\u0394|= 0.000400  within tol=100.00%  -> PASS\n    median cycles=296854 (of 3 runs: [304409, 296812, 296854])\n\n\nall 3 tests passed\nremote_entrypoint.sh: all kernel tests passed\nops::sliding_project_qkv: 92917 cycles\nops::sliding_attention_output: 42550 cycles\nops::decoder_feedforward: 296854 cycles\nscore: 6.8389\nsubmission completed\n",
+        "local_log": "moa-dev/logs/e150-official-ac53ad0a-observation-6.log",
+        "bytes": 3568,
+        "sha256": "d60f412298ba7eb4110af6632ce1b789616b9604e3e1884c18e6664b89dae6c9"
+      }
     }
-  ]
+  ],
+  "official_score": 6.8389,
+  "official_cycles": {
+    "ops::sliding_project_qkv": 92917,
+    "ops::sliding_attention_output": 42550,
+    "ops::decoder_feedforward": 296854
+  },
+  "official_rank": 57,
+  "official_basic_comparisons_passed": 15,
+  "leaderboard_snapshot": "docs/experiments/leaderboard-e150-20261001.json",
+  "leaderboard_score": 6.838931882305703,
+  "leaderboard_team_count": 80
 }

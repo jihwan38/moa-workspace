@@ -442,3 +442,14 @@
   a budget-based early stop for a specific prototype, but are not a calibrated
   NPU performance oracle; small static differences do not establish a hardware
   regression or an architecture-wide upper bound. Report that limitation.
+
+- E150 official ac53ad0a subsequently passed15 comparisons: FFN296854,
+  score6.838931882,57/80 at2026-10-01 19:11 KST; the score improved1.223413%
+  but rank did not change. QKV/O image timing variation is not an FFN code gain.
+  Its current readiness141326 passed51 comparisons and showed last native to
+  first reduce median10244cycles, with down scale DMA ending8965cycles after
+  native and scale VRF to each reduce exactly1cycle in all6 observations.
+  Select E151's row-low2 scale ingress/SubSwitch4-to-original-VRF combination
+  for this measured supply boundary. Preserve weighted arithmetic and native
+  partials; include the new14.0625MiB F32 routing/setup. These overlapping
+  intervals are not a promised saving. No stage/row-count sweep is selected.

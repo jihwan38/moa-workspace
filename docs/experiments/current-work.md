@@ -1,3 +1,18 @@
+# 2026-10-01 E150 공식 완료 · E151 scale 공급 경로 선택
+
+공식 `ac53ad0a`는 15비교 PASS, QKV 92,917 / O 42,550 / FFN 296,854 cycles,
+score **6.838931882**. 19:11:39 KST public snapshot은 **57/80위**, 종전과 순위 동일하다.
+점수 +1.223413%이며 QKV/O는 동일 이미지이므로 그 측정변동을 FFN 코드 이득으로 세지 않는다.
+초기 다섯 계단 목표인 현재 52위 score7.103142846까지 추가 score3.863337%가 필요하다.
+[공식 기록](e150-official-submit-20261001.json), [순위 계산](../research/e150-official-rank-result-20261001.json).
+
+현재 E150 자체 readiness141326은 51비교 PASS. 같은 cluster 시계의
+last-down-native→first-reduce 중앙10,244cycles이며 scaleDMA가 native 종료보다8,965cycles
+늦게 끝난다. 각 scale VRF→reduce는 다섯 쌍 모두6관측에서+1이다. 이 시간창은 겹침을
+포함하므로 절감량이 아니다. E151은 scale HBM 소유권을 row low2/연속480값으로 바꾸고
+Sub cast→InterTranspose4→원래12행 VRF로 공급하는 조합을 선택한다. 원native/partial/
+weighted정밀도는 유지하고 추가14.0625MiB F32 routing과 setup까지 whole FFN으로 평가한다.
+
 # 2026-10-01 E150 FFN down 공급 분할 채택·공식 제출 pending
 
 현재 채택 runtime은 **E150 / `baseline-e150` / `ad1ecb3d3868c7e0ca2e4d1428bbd66bf1111821`**이다.
