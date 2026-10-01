@@ -1,3 +1,11 @@
+# 2026-10-01 E152 gate 분할 회귀 종료
+
+E152141424는45비교PASS지만FFN327706 vs E150297644/297885, bracket대비
++10.05543% 회귀로미채택한다. 컴파일일정의입력전송interleave가전체이득이되지는않았다.
+Raw-upgate/fullFFN은원본reference와빌드검증만완료, boundaryNPU0. 추가stage/row튜닝없다.
+E151은별도검증된개선이며이후보에포함되지않는다.
+[종료판정](../../moa-dev/experiments/candidates/ffn-gate-weight-stages/decision.json).
+
 # 2026-10-01 E152 gate weight 공급 병렬 실험 시작
 
 `opt/ffn-gate-weight-stages`, actualstart `ffce3481842b8f71a635a2dc2ba773518856ec05`.
