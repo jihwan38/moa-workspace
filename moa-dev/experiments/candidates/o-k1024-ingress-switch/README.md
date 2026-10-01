@@ -1,0 +1,9 @@
+# E149: O K1024 ingress with Main row/K exchange
+
+Actual start `9b2e7795280201a017ebcd41ad5e773de5656a86`, branch `opt/o-k1024-ingress-switch`. Explicit source E147fb45202 and independent comparison baseline/e147.json. No E148 source changes are inherited.
+
+Current-image E148 diagnostic141134 observed E147 last native starting at weight1-end+2 for every run/cluster. E148's faster quantizer still lost whole performance, so this candidate changes the weight producer/consumer boundary. Each original60row stage is unchanged in size/count. Source slice16g+4a+b owns row4r+b and K1024 segmenta; Main reads quarterq then rowr and InterTranspose4(time0=15) restores slice16g+4a+q and canonical row4r+b before the original K256 native. Source HBM offsets0/60 retain the full120-row pitch. It reads original wire weights; no offline prepack or whole weight transpose is introduced.
+
+HBM/weight DM total15MiB and native2 counts remain. New15MiB in-stream Switch, reader/collect changes and schedule/backpressure may outweigh better ingress. The logical1024B contiguous region may still lower to4×256B descriptor packets. Exhaustively prove actual source/destination coverage, Switch time/slice ordering, original consumer readers/TRF/VRF lifetimes and numerical/postprocessing equivalence before whole NPU. Prior E144 shows compatible Main Switch/native support; prior row4 O added a different output recovery cost and was static-only. This is a coupled local dataflow replacement, not a new arithmetic architecture or a parameter sweep.
+
+Adoption pending compile/gate/whole. Freeze any positive for bounded repeats and original boundary validation. No5percent adoption floor. A source contract failure permits a justified supported repair; a measured regression closes blind tuning. See ingress-v1/recipe.json for explicit three-way decisions and source/control provenance. No performance evidence exists at selection.

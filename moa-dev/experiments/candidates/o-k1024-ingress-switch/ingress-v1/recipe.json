@@ -1,0 +1,55 @@
+{
+  "id": "E149",
+  "variant": "ingress-v1",
+  "actual_start_commit": "9b2e7795280201a017ebcd41ad5e773de5656a86",
+  "base_commit": "fb45202bba3c24537f74b4bf463276b76d823773",
+  "comparison_recipe": "baseline/e147.json",
+  "source_reference_build": "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/measured-build-e147-adoption.json",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "decoder_feedforward"
+  ],
+  "target_kernel": "sliding_attention_output",
+  "scope": "Coupled O weight ingress ownership and Main in-stream routing replacement; activation/numerical path and native stages stay unchanged.",
+  "prior": [
+    "E144 successful low2-row-owner fullH ingress/Main Switch\u2192native QKV; geometry differs here",
+    "Historical output-fp8-row-interleave-four added output recovery Switch, static-only loss; this restores original consumer before native",
+    "E146 two-stage Q/K whole repeated median regression; no row-stage count or size change here",
+    "E148 scalar/residual-VRF regression twice; actual current O last native follows weight1-end+2 in all6 run/cluster observations; no E148 source inherited"
+  ],
+  "execution": "Original BF16 HBM/consumer K256 quantizer/E4Term4/TRF -> weight original E4 HBM:stage60,row low2 owner/K1024 DM -> Main fetch Kquarter,row15,packet256 -> InterTranspose4,time0=15 -> original K256,row60 native Term/K16 F32 reduction -> original canonical gather/common s/channel scale/firstBF16/RMS/residual/HBM",
+  "coordinates": {
+    "source": "c<2,g<16,a<4,b<4,r<15,q<4,u<256; slice16g+4a+b; h=1920c+120g+offset+4r+b; k=1024a+256q+u",
+    "switch": "source time15q+r -> destination slice16g+4a+q,time4r+b",
+    "offsets": [
+      0,
+      60
+    ]
+  },
+  "removed": [
+    "K256-only owner ingress; replace with K1024 contiguous source regions and low2 row ownership"
+  ],
+  "added": [
+    "Main in-stream Switch on15MiB weights across2 native tasks",
+    "changed DM reader order/collect buffering and schedule; possible routing backpressure"
+  ],
+  "unchanged_costs": [
+    "15MiB HBM/weight DM each direction",
+    "two60-row stages, native2, Term4/K16 precision order and all output boundaries"
+  ],
+  "adoption": {
+    "decision": "pending exact emitted descriptor/stream/register gate and early whole bracket",
+    "positive": "freeze any whole gain for3independent allocations,extra6,original raw9/fullcase7; no5percent minimum"
+  },
+  "tuning": {
+    "decision": "no row/tile/stage sweep",
+    "first_stop": "contract failure gets concrete source repair; measured regression closes frozen prototype unless specific new cost evidence selects a repair"
+  },
+  "major_research": {
+    "decision": "shorten limiting O last-weight preparation without materializing a whole weight transpose",
+    "limit": "expected throughput not measured; source1024contiguity does not imply1024DMApacket"
+  }
+}

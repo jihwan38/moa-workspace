@@ -1,3 +1,11 @@
+# 2026-10-01 E149 시작: O의 마지막 weight 준비 경로 변경
+
+`opt/o-k1024-ingress-switch`, actualstart `9b2e7795280201a017ebcd41ad5e773de5656a86`. Source/control E147,
+기존60+60 weight stage와 K256 native 계산은 유지하며, 원weight를 K1024 구간/
+row low2 소유권으로 적재한 뒤 MainInterTranspose4로 원소비자에 공급한다.
+실제 descriptor와 native stream 검증 후 whole bracket. E148 추가 scalar/VRF 변경은 없다.
+[후보](../../moa-dev/experiments/candidates/o-k1024-ingress-switch/README.md).
+
 # 2026-10-01 E148 종료: 입력을 앞당겨도 마지막 weight가 늦어져 회귀
 
 E147 runtime 유지. E148 직접 VRF 후보는141077/141134 whole O에서 각각
