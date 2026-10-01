@@ -1,3 +1,14 @@
+# 2026-10-01 E153 내부 실측 완료 · E154 scalar 공급 수리 선정
+
+141612는57PASS, 원E151/E153이미지당142marker의명령/주소/IO동일검사PASS.
+Whole은299012 vsE151296324/294082(+1.290299%)로다시느렸다.
+같은clock의scale끝→quantVRF끝은E1512256/E15337235cycles. E153 hi가6679.5앞서도
+gate native는7282.5늦어전체경로상쇄가있다. 37k를절감량으로세지않는다.
+E154는globalMax/원pow2scale을8개유효quant소유자에유지해scalarTDMA를제거한다.
+기존M06형태를현재지원된RMS/Subsum/boundedcopies와재결합하는수리이며새family가아니다.
+Exact/actualgate는통과했으며별도contemporary whole결과가필요하다.
+[계측](../../moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/readiness/profile-analysis.json).
+
 # 2026-10-01 E153 첫 실측 회귀 · 한 번의 내부 비교 선정
 
 현재 채택 runtime은 E151이다. E153은 원RMS F32 산술을 유지하면서 local BF16H480

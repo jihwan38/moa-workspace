@@ -485,3 +485,11 @@
   sweeps. One frozen E151/E153 names-only readiness comparison may identify a
   concrete added dependency or shifted suffix cost before a supported repair.
   Removing early gather does not itself prove speed or the old M06 timeout cause.
+
+- E153 fixed readiness141612 passes57 but repeats whole regression1.290299%.
+  Actual scale-to-quantVRF median2256(E151) versus37235(E153) selects E154
+  replicatedMax/pow2/direct-local-VRF repair. E153 hi was already6679.5cycles
+  earlier yet gate native7282.5later, so37k is not a reclaimable saving. Keep
+  latepacked/ring/suffix costs and contemporary complete comparisons. This
+  reuses a M06 scalar topology with currently supported RMS/Subsum/copies;
+  neither a new family nor a proof of the old SFR868/timeout cause.

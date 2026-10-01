@@ -1,7 +1,7 @@
 {
   "candidate": "E153",
   "variant": "sharded-v1",
-  "status": "not_adopted_first_whole_regression_one_bounded_diagnostic_selected",
+  "status": "not_adopted_two_whole_regressions_specific_scalar_repair_selected",
   "actual_start_commit": "2a49667318718b2f0e2fda00b7feb8a3f3727515",
   "source_origin": "8adbbae1776aa8080a96348a9d9a64022a0cf6d0",
   "performance_control": "baseline/e151.json",
@@ -27,19 +27,39 @@
     "reason": "New complete path removes early gather but adds globalMax, late packed replication and new lifetimes; actual whole loss is not explained by byte count."
   },
   "major_research": {
-    "decision": "one frozen E151/E153 names-only readiness comparison",
-    "question": "Compare actual RMS/Max/quant/late packed/leader/ring/TRF/weight/native/down/tail to distinguish the added readiness dependency from a shifted downstream schedule, before selecting a concrete repair.",
-    "constraints": [
-      "Source, actual instructions, addresses, IO and timing configuration preserved except diagnostic task names.",
-      "Do not infer exclusive physical contention or additive savings from overlapping windows.",
-      "M06v4 timeout is unresolved; this passing E153 does not prove its cause.",
-      "First screen and diagnostic whole timings remain separate observations."
-    ]
+    "decision": "E154 replicated scalar output repair selected for one whole NPU comparison",
+    "reason": "E153 scale calculation is followed by a37k actual wait across scalar TDMA/VRF supply. E154 actual graph removes this DMA by keeping identical scalar values on all8quant owners. Latepacked/ring/suffix remain in complete cost.",
+    "source_scope": "Existing M06 replicatedMax pattern revalidated with current E153 Subsum/copies/RMS, not a new architecture family and not proof of the old timeout cause."
   },
   "evidence": [
     "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/e153-sharded-v1-screen-job-141557-results.json",
     "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/audit-e153-sharded-v1.json",
     "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/source-build-binding.json",
-    "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/boundary-results.json"
-  ]
+    "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/boundary-results.json",
+    "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/readiness/e153-readiness-v1-job-141612-results.json",
+    "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/readiness/profile-analysis.json",
+    "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/readiness/independent-review.json"
+  ],
+  "readiness_followup": {
+    "job": 141612,
+    "comparisons_passed": 57,
+    "whole": {
+      "control_before": 296324,
+      "candidate": 299012,
+      "control_after": 294082,
+      "bracket": 295203,
+      "change_percent": 1.2902985403264955
+    },
+    "source_and_actual_instructions_addresses_io_preserved": true,
+    "markers_per_image": 142,
+    "same_clock_scale_to_quant_vrf_end_median_cycles": {
+      "E151": 2256,
+      "E153": 37235
+    },
+    "endpoint_median_difference_candidate_minus_control": {
+      "hi_start": -6679.5,
+      "gate_native_start": 7282.5
+    },
+    "scope": "Overlapping readiness interval is not reclaimable time; earlier hi but later native proves the remaining path matters. No exclusive physical cause asserted."
+  }
 }
