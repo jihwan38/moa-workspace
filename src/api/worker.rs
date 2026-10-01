@@ -1,13 +1,10 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc;
-use std::time::Instant;
 
-use crate::host::generate::{self, Delta, GenerationOutput, GenerationRequest};
-use crate::host::load;
-use crate::host::runtime::Workspace;
+use crate::host::generate::{GenerationOutput, GenerationRequest};
 use crate::host::tokenizer::Tokenizer;
-use furiosa_opt_std::prelude::*;
+use crate::host::worker::Worker;
 
 pub enum StreamEvent {
     Delta(String),
@@ -51,7 +48,15 @@ pub fn spawn(tokenizer: Tokenizer) -> Result<WorkerHandle, String> {
         .name("gemma4-worker".into())
         .spawn(move || {
             let _alive = AliveFlag(worker_alive);
-            run(tokenizer, jobs_rx, ready_tx);
+            match Worker::new(tokenizer) {
+                Ok(worker) => {
+                    let _ = ready_tx.send(Ok(()));
+                    worker.run(jobs_rx);
+                }
+                Err(error) => {
+                    let _ = ready_tx.send(Err(error.to_string()));
+                }
+            }
         })
         .map_err(|err| format!("failed to spawn the gemma4 generation worker thread: {err}"))?;
     match ready_rx.recv() {
@@ -67,84 +72,4 @@ impl Drop for AliveFlag {
     fn drop(&mut self) {
         self.0.store(false, Ordering::SeqCst);
     }
-}
-
-fn run(tokenizer: Tokenizer, jobs: mpsc::Receiver<Job>, ready: mpsc::Sender<Result<(), String>>) {
-    let rt = match tokio::runtime::Builder::new_current_thread().build() {
-        Ok(rt) => rt,
-        Err(err) => {
-            let _ = ready.send(Err(format!(
-                "failed to build the gemma4 generation worker's executor: {err}"
-            )));
-            return;
-        }
-    };
-
-    let setup = rt.block_on(async {
-        let mut device = Device::new(crate::ops::embed_token.topology()).map_err(|err| err.to_string())?;
-        let load_start = Instant::now();
-        let model = load::load_model(&mut device).await.map_err(|err| err.to_string())?;
-        eprintln!("model loaded in {:.2?}", load_start.elapsed());
-        let workspace = Workspace::new(&mut device, &model)
-            .await
-            .map_err(|err| err.to_string())?;
-        Ok::<_, String>((device, model, workspace))
-    });
-    let (mut device, model, mut workspace) = match setup {
-        Ok(value) => value,
-        Err(message) => {
-            let _ = ready.send(Err(message));
-            return;
-        }
-    };
-    let _ = ready.send(Ok(()));
-
-    for job in jobs {
-        let Job {
-            request,
-            stream,
-            events,
-        } = job;
-        let delta_events = events.clone();
-        let panicked = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            rt.block_on(generate::generate(
-                &mut device,
-                &model,
-                &tokenizer,
-                &mut workspace,
-                request,
-                |delta| {
-                    if !stream {
-                        return true;
-                    }
-                    let event = match delta {
-                        Delta::Content(text) => StreamEvent::Delta(text.to_owned()),
-                        Delta::Reasoning(text) => StreamEvent::ReasoningDelta(text.to_owned()),
-                    };
-                    delta_events.send(event).is_ok()
-                },
-            ))
-        }));
-        let outcome = match panicked {
-            Ok(Ok(output)) => StreamEvent::Done(output),
-            Ok(Err(err)) => StreamEvent::Error(err.to_string()),
-            Err(panic) => {
-                let message = panic_message(&panic);
-                eprintln!("generation worker panicked, taking the worker offline: {message}");
-                let _ = events.send(StreamEvent::Error(format!(
-                    "internal error: generation panicked ({message})"
-                )));
-                return;
-            }
-        };
-        let _ = events.send(outcome);
-    }
-}
-
-fn panic_message(panic: &(dyn std::any::Any + Send)) -> String {
-    panic
-        .downcast_ref::<&str>()
-        .map(|s| s.to_string())
-        .or_else(|| panic.downcast_ref::<String>().cloned())
-        .unwrap_or_else(|| "unknown panic".to_owned())
 }

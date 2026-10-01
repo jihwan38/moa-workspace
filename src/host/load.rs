@@ -76,7 +76,7 @@ pub(crate) struct AudioWeights {
     pub embedding_projection_weight: HbmTensor<bf16, Chip, m![H, Aa]>,
 }
 
-pub struct Model {
+pub struct Weights {
     pub(crate) model_dir: PathBuf,
     pub(crate) embedding_table: HbmTensor<bf16, Chip, m![W, H]>,
     pub(crate) final_norm: HbmTensor<bf16, Chip, m![H]>,
@@ -357,7 +357,7 @@ async fn load_audio(
     })
 }
 
-pub async fn load_model(device: &mut Device) -> Result<Model, Box<dyn std::error::Error>> {
+pub async fn load_weights(device: &mut Device) -> Result<Weights, Box<dyn std::error::Error>> {
     let model_dir = model_dir()?;
     let model_path = model_dir.join("model.safetensors");
     let file = File::open(&model_path)?;
@@ -378,7 +378,7 @@ pub async fn load_model(device: &mut Device) -> Result<Model, Box<dyn std::error
         }
     }
 
-    Ok(Model {
+    Ok(Weights {
         model_dir,
         embedding_table,
         final_norm,
@@ -388,8 +388,8 @@ pub async fn load_model(device: &mut Device) -> Result<Model, Box<dyn std::error
     })
 }
 
-pub fn tokenizer_path(model: &Model) -> PathBuf {
-    tokenizer_path_in(&model.model_dir)
+pub fn tokenizer_path(weights: &Weights) -> PathBuf {
+    tokenizer_path_in(&weights.model_dir)
 }
 
 pub fn tokenizer_path_in(model_dir: &Path) -> PathBuf {

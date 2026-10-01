@@ -1,7 +1,6 @@
 use std::sync::mpsc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use furiosa_opt_std::prelude::AxisName;
 use rand::Rng;
 use serde::Serialize;
 
@@ -13,7 +12,7 @@ use super::schema::{
 };
 use super::server::{self, AppState, HttpRequest, HttpResponse};
 use super::worker::{Job, StreamEvent};
-use crate::axes::{E, W};
+use crate::host::worker::CONTEXT;
 use crate::host::audio::{self, AudioFrames};
 use crate::host::generate::{self, FinishReason, GenerationRequest};
 use crate::host::image::{self, ImagePatches};
@@ -114,26 +113,14 @@ fn validate_unsupported(requested: Option<&'static str>) -> Result<(), HttpRespo
     }
 }
 
-fn validate_top_k(top_k: Option<usize>) -> Result<(), HttpResponse> {
-    match top_k {
-        Some(k) if k > W::SIZE => Err(error_param(
-            400,
-            "invalid_request_error",
-            format!("top_k must be at most the vocabulary size ({})", W::SIZE),
-            "top_k",
-        )),
-        _ => Ok(()),
-    }
-}
-
 fn validate_budget(prompt_len: usize, max_new_tokens: usize, param: &'static str) -> Result<(), HttpResponse> {
-    if prompt_len.saturating_add(max_new_tokens) > E::SIZE {
+    if prompt_len.saturating_add(max_new_tokens) > CONTEXT {
         return Err(error_param(
             400,
             "invalid_request_error",
             format!(
                 "prompt ({prompt_len} tokens) plus {max_new_tokens} generated tokens exceeds the {} position context",
-                E::SIZE
+                CONTEXT
             ),
             param,
         ));
@@ -407,9 +394,6 @@ pub(crate) fn chat_completions(req: &HttpRequest, state: &AppState) -> HttpRespo
     if let Err(response) = validate_n(body.n) {
         return response;
     }
-    if let Err(response) = validate_top_k(body.top_k) {
-        return response;
-    }
     if let Err(response) = validate_unsupported(body.unsupported()) {
         return response;
     }
@@ -449,13 +433,7 @@ pub(crate) fn chat_completions(req: &HttpRequest, state: &AppState) -> HttpRespo
         Err(message) => return error(400, "invalid_request_error", message),
     };
 
-    let sampling = SamplingConfig {
-        temperature: body
-            .temperature
-            .unwrap_or(SamplingConfig::GEMMA_RECOMMENDED.temperature),
-        top_k: body.top_k.unwrap_or(SamplingConfig::GEMMA_RECOMMENDED.top_k),
-        top_p: body.top_p.unwrap_or(SamplingConfig::GEMMA_RECOMMENDED.top_p),
-    };
+    let sampling = SamplingConfig::DEFAULT;
     let max_new_tokens = body
         .max_completion_tokens
         .or(body.max_tokens)
@@ -610,13 +588,7 @@ pub(crate) fn completions(req: &HttpRequest, state: &AppState) -> HttpResponse {
             );
         }
     };
-    let sampling = SamplingConfig {
-        temperature: body
-            .temperature
-            .unwrap_or(SamplingConfig::GEMMA_RECOMMENDED.temperature),
-        top_k: SamplingConfig::GEMMA_RECOMMENDED.top_k,
-        top_p: body.top_p.unwrap_or(SamplingConfig::GEMMA_RECOMMENDED.top_p),
-    };
+    let sampling = SamplingConfig::DEFAULT;
     let max_new_tokens = body.max_tokens.unwrap_or(generate::DEFAULT_MAX_NEW_TOKENS);
     if let Err(response) = validate_budget(prompt_ids.len(), max_new_tokens, "max_tokens") {
         return response;

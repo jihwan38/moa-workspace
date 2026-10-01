@@ -1,9 +1,9 @@
 use crate::Chip;
-use crate::axes::{E, W};
+use crate::axes::W;
 use crate::host::audio::AudioFrames;
 use crate::host::image::ImagePatches;
-use crate::host::load::Model;
-use crate::host::runtime::{self, Workspace};
+use crate::host::model::{Input, Model};
+use crate::host::runtime::{Blocks, Workspace};
 use crate::host::sampling::{SamplingConfig, sample};
 use crate::host::tokenizer::Tokenizer;
 use furiosa_opt_std::prelude::*;
@@ -134,21 +134,6 @@ pub async fn read_logits(
     Ok(logits.into_vec().into_iter().map(bf16::to_f32).collect())
 }
 
-async fn sample_next(
-    device: &mut Device,
-    workspace: &Workspace,
-    sampling: &SamplingConfig,
-    banned: &HashSet<usize>,
-    rng: &mut impl rand::Rng,
-) -> Result<usize, Box<dyn std::error::Error>> {
-    Ok(sample(
-        &read_logits(device, &workspace.logits).await?,
-        sampling,
-        banned,
-        rng,
-    ))
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FinishReason {
     Stop,
@@ -174,158 +159,245 @@ pub struct GenerationOutput {
     pub finish_reason: FinishReason,
 }
 
-pub async fn generate(
-    device: &mut Device,
-    model: &Model,
-    tokenizer: &Tokenizer,
-    workspace: &mut Workspace,
-    req: GenerationRequest,
-    mut on_delta: impl FnMut(Delta) -> bool,
-) -> Result<GenerationOutput, Box<dyn std::error::Error>> {
-    if req.prompt_ids.is_empty() {
-        return Err("prompt produced no tokens".into());
-    }
-    if req.prompt_ids.len().saturating_add(req.max_new_tokens) > E::SIZE {
-        return Err(format!("prompt plus generation exceeds {} positions", E::SIZE).into());
-    }
-    if req.prompt_ids.len() != req.soft_at.len() {
-        return Err(format!(
-            "prompt_ids ({}) and soft_at ({}) must be parallel",
-            req.prompt_ids.len(),
-            req.soft_at.len()
-        )
-        .into());
-    }
+/// One conversation's progress, independent of the order in which requests run.
+pub struct Generation {
+    request: GenerationRequest,
+    phase: Phase,
+    stream: DecodeStream,
+    channel: Channel,
+    output: GenerationOutput,
+    emitted: usize,
+}
 
-    let mut decode = workspace.begin_decode(device).await?;
-    let last_prompt_pos = req.prompt_ids.len() - 1;
-    for (pos, (&token, soft_token)) in req.prompt_ids.iter().zip(req.soft_at.iter()).enumerate() {
-        let compute_logits = pos == last_prompt_pos;
-        match soft_token {
-            Some(SoftToken::Image(i)) => {
-                let patches = req.image.as_ref().expect("soft_at only set when an image was loaded");
-                let embedding =
-                    runtime::encode_vision_patch(device, model, &patches.pixels[*i], patches.positions[*i]).await?;
-                decode
-                    .run_with_embedding(device, workspace, embedding, model, pos, compute_logits)
-                    .await?;
-            }
-            Some(SoftToken::Audio(i)) => {
-                let audio = req.audio.as_ref().expect("soft_at only set when audio was loaded");
-                let embedding = runtime::encode_audio_frame(device, model, &audio.frames[*i]).await?;
-                decode
-                    .run_with_embedding(device, workspace, embedding, model, pos, compute_logits)
-                    .await?;
-            }
-            None => {
-                decode.run(device, workspace, token, model, pos, compute_logits).await?;
-            }
+#[derive(Clone, Copy)]
+enum Phase {
+    Prompt(usize),
+    Decode(usize),
+    Complete,
+}
+
+impl Generation {
+    pub fn new(
+        tokenizer: &Tokenizer,
+        request: GenerationRequest,
+        capacity: usize,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        if request.prompt_ids.is_empty() {
+            return Err("prompt produced no tokens".into());
         }
+        if request.prompt_ids.len().saturating_add(request.max_new_tokens) > capacity {
+            return Err(format!("prompt plus generation exceeds {capacity} positions").into());
+        }
+        if request.prompt_ids.len() != request.soft_at.len() {
+            return Err(format!(
+                "prompt_ids ({}) and soft_at ({}) must be parallel",
+                request.prompt_ids.len(),
+                request.soft_at.len()
+            )
+            .into());
+        }
+        Ok(Self {
+            stream: tokenizer.decode_stream(&request.prompt_ids.iter().map(|&id| id as u32).collect::<Vec<_>>()),
+            output: GenerationOutput {
+                text: String::new(),
+                reasoning: String::new(),
+                prompt_tokens: request.prompt_ids.len(),
+                completion_tokens: 0,
+                finish_reason: FinishReason::Length,
+            },
+            request,
+            phase: Phase::Prompt(0),
+            channel: Channel::Answer,
+            emitted: 0,
+        })
     }
 
-    let mut rng = rand::rng();
-    let banned: HashSet<usize> = SUPPRESSED_TOKENS.into_iter().collect();
-    let mut next = sample_next(device, workspace, &req.sampling, &banned, &mut rng).await?;
+    /// The next token to compute and the position it is written at.
+    pub fn input(&self) -> (Input<'_>, usize) {
+        let (token, soft, logits, position) = match self.phase {
+            Phase::Prompt(pos) => (
+                self.request.prompt_ids[pos],
+                self.request.soft_at[pos],
+                pos + 1 == self.request.prompt_ids.len(),
+                pos,
+            ),
+            Phase::Decode(token) => (
+                token,
+                None,
+                true,
+                self.request.prompt_ids.len() + self.output.completion_tokens - 1,
+            ),
+            Phase::Complete => unreachable!("completed requests have no input"),
+        };
+        (
+            Input {
+                token,
+                soft,
+                logits,
+                image: self.request.image.as_ref(),
+                audio: self.request.audio.as_ref(),
+            },
+            position,
+        )
+    }
 
-    let stop_strings: Vec<&str> = req
-        .stop_strings
-        .iter()
-        .map(String::as_str)
-        .filter(|s| !s.is_empty())
-        .collect();
-    let prompt_ids_u32: Vec<u32> = req.prompt_ids.iter().map(|&id| id as u32).collect();
-    let mut stream = tokenizer.decode_stream(&prompt_ids_u32);
-    let mut generated_count = 0usize;
-    let mut text = String::new();
-    let mut reasoning = String::new();
-    let mut emitted = 0usize;
-    let mut stopped_on_stop_string = false;
-    let mut cancelled = false;
-    let mut channel = Channel::Answer;
+    /// Whether the pending input produces logits that `advance` needs.
+    pub fn wants_logits(&self) -> bool {
+        self.request.max_new_tokens > 0 && self.input().0.logits
+    }
 
-    while !EOS_TOKENS.contains(&next) && generated_count < req.max_new_tokens {
-        let (delta, switch_to) = match next {
-            CHANNEL_OPEN_TOKEN if req.separate_reasoning => (
-                step_over_marker(&mut stream, next, CHANNEL_OPEN_TEXT)?,
+    /// Consume the logits of the pending input (empty if `wants_logits` was false).
+    pub fn advance(
+        &mut self,
+        logits: &[f32],
+        mut on_delta: impl FnMut(Delta) -> bool,
+    ) -> Result<Option<GenerationOutput>, Box<dyn std::error::Error>> {
+        let phase = std::mem::replace(&mut self.phase, Phase::Complete);
+        if matches!(phase, Phase::Complete) {
+            return Err("generation is already complete".into());
+        }
+        if self.request.max_new_tokens == 0 {
+            return Ok(Some(self.finish(FinishReason::Length, &mut on_delta)));
+        }
+        if let Phase::Prompt(pos) = phase
+            && pos + 1 < self.request.prompt_ids.len()
+        {
+            self.phase = Phase::Prompt(pos + 1);
+            return Ok(None);
+        }
+        let next = sample(
+            logits,
+            &self.request.sampling,
+            &SUPPRESSED_TOKENS.into_iter().collect::<HashSet<_>>(),
+            &mut rand::rng(),
+        );
+        if EOS_TOKENS.contains(&next) {
+            return Ok(Some(self.finish(FinishReason::Stop, &mut on_delta)));
+        }
+        if let Some(reason) = self.emit(next, &mut on_delta)? {
+            return Ok(Some(self.finish(reason, &mut on_delta)));
+        }
+        self.output.completion_tokens += 1;
+        if self.output.completion_tokens == self.request.max_new_tokens {
+            return Ok(Some(self.finish(FinishReason::Length, &mut on_delta)));
+        }
+        // The next turn computes the token just emitted, so every turn has one forward.
+        self.phase = Phase::Decode(next);
+        Ok(None)
+    }
+
+    fn emit(
+        &mut self,
+        token: usize,
+        on_delta: &mut impl FnMut(Delta) -> bool,
+    ) -> Result<Option<FinishReason>, Box<dyn std::error::Error>> {
+        let (delta, switch_to) = match token {
+            CHANNEL_OPEN_TOKEN if self.request.separate_reasoning => (
+                step_over_marker(&mut self.stream, token, CHANNEL_OPEN_TEXT)?,
                 Some(Channel::Name),
             ),
-            CHANNEL_CLOSE_TOKEN if req.separate_reasoning => (
-                step_over_marker(&mut stream, next, CHANNEL_CLOSE_TEXT)?,
+            CHANNEL_CLOSE_TOKEN if self.request.separate_reasoning => (
+                step_over_marker(&mut self.stream, token, CHANNEL_CLOSE_TEXT)?,
                 Some(Channel::Answer),
             ),
-            _ => (stream.step(next as u32)?, None),
+            _ => (self.stream.step(token as u32)?, None),
         };
-
         if let Some(delta) = delta {
-            match channel {
+            let keep = match self.channel {
                 Channel::Name => {
                     if let Some((_, rest)) = delta.split_once('\n') {
-                        channel = Channel::Reasoning;
-                        if !rest.is_empty() {
-                            reasoning.push_str(rest);
-                            cancelled |= !on_delta(Delta::Reasoning(rest));
-                        }
+                        self.channel = Channel::Reasoning;
+                        self.output.reasoning.push_str(rest);
+                        rest.is_empty() || on_delta(Delta::Reasoning(rest))
+                    } else {
+                        true
                     }
                 }
                 Channel::Reasoning => {
-                    reasoning.push_str(&delta);
-                    cancelled |= !on_delta(Delta::Reasoning(&delta));
+                    self.output.reasoning.push_str(&delta);
+                    on_delta(Delta::Reasoning(&delta))
                 }
                 Channel::Answer => {
-                    text.push_str(&delta);
-                    let full_match = stop_strings.iter().filter_map(|s| text.find(s)).min();
-                    match full_match {
-                        Some(cut) => {
-                            if cut > emitted {
-                                let _ = on_delta(Delta::Content(&text[emitted..cut]));
-                            }
-                            text.truncate(cut);
-                            stopped_on_stop_string = true;
-                            break;
+                    self.output.text.push_str(&delta);
+                    let stops: Vec<_> = self
+                        .request
+                        .stop_strings
+                        .iter()
+                        .map(String::as_str)
+                        .filter(|text| !text.is_empty())
+                        .collect();
+                    if let Some(cut) = stops.iter().filter_map(|s| self.output.text.find(s)).min() {
+                        if cut > self.emitted {
+                            let _ = on_delta(Delta::Content(&self.output.text[self.emitted..cut]));
                         }
-                        None => {
-                            let safe_len = text.len() - pending_stop_overlap(&text, &stop_strings);
-                            if safe_len > emitted {
-                                cancelled |= !on_delta(Delta::Content(&text[emitted..safe_len]));
-                                emitted = safe_len;
-                            }
-                        }
+                        self.output.text.truncate(cut);
+                        self.emitted = cut;
+                        return Ok(Some(FinishReason::Stop));
+                    }
+                    let safe = self.output.text.len() - pending_stop_overlap(&self.output.text, &stops);
+                    if safe > self.emitted {
+                        let keep = on_delta(Delta::Content(&self.output.text[self.emitted..safe]));
+                        self.emitted = safe;
+                        keep
+                    } else {
+                        true
                     }
                 }
+            };
+            if !keep {
+                return Ok(Some(FinishReason::Length));
             }
         }
-        if let Some(next_channel) = switch_to {
-            channel = next_channel;
+        if let Some(channel) = switch_to {
+            self.channel = channel;
         }
-        if cancelled {
-            break;
-        }
-
-        generated_count += 1;
-        if generated_count == req.max_new_tokens {
-            break;
-        }
-        let pos = req.prompt_ids.len() + generated_count - 1;
-        decode.run(device, workspace, next, model, pos, true).await?;
-        next = sample_next(device, workspace, &req.sampling, &banned, &mut rng).await?;
-    }
-    if !stopped_on_stop_string && emitted < text.len() {
-        let _ = on_delta(Delta::Content(&text[emitted..]));
+        Ok(None)
     }
 
-    let finish_reason = if req.max_new_tokens == 0 {
-        FinishReason::Length
-    } else if stopped_on_stop_string || EOS_TOKENS.contains(&next) {
-        FinishReason::Stop
-    } else {
-        FinishReason::Length
+    fn finish(&mut self, reason: FinishReason, on_delta: &mut impl FnMut(Delta) -> bool) -> GenerationOutput {
+        if self.emitted < self.output.text.len() {
+            let _ = on_delta(Delta::Content(&self.output.text[self.emitted..]));
+        }
+        self.phase = Phase::Complete;
+        GenerationOutput {
+            text: std::mem::take(&mut self.output.text),
+            reasoning: std::mem::take(&mut self.output.reasoning),
+            prompt_tokens: self.output.prompt_tokens,
+            completion_tokens: self.output.completion_tokens,
+            finish_reason: reason,
+        }
+    }
+}
+
+/// Run one request alone, using the first `blocks_for(capacity)` pool blocks.
+pub async fn generate(
+    device: &mut Device,
+    model: &mut Model,
+    tokenizer: &Tokenizer,
+    workspace: &mut Workspace,
+    request: GenerationRequest,
+    mut on_delta: impl FnMut(Delta) -> bool,
+) -> Result<GenerationOutput, Box<dyn std::error::Error>> {
+    let empty = request.max_new_tokens == 0;
+    let mut generation = Generation::new(tokenizer, request, workspace.capacity())?;
+    if empty {
+        return Ok(generation.advance(&[], &mut on_delta)?.expect("empty request finishes"));
+    }
+    let blocks = Blocks {
+        full: (0..Workspace::blocks_for(workspace.capacity())).collect(),
+        sliding: 0,
     };
-
-    Ok(GenerationOutput {
-        text,
-        reasoning,
-        prompt_tokens: req.prompt_ids.len(),
-        completion_tokens: generated_count,
-        finish_reason,
-    })
+    loop {
+        let wants = generation.wants_logits();
+        let (input, position) = generation.input();
+        let outputs = model.forward(device, &[input], &[position], &[&blocks], workspace).await?;
+        let logits = if wants {
+            read_logits(device, &outputs[0]).await?
+        } else {
+            Vec::new()
+        };
+        if let Some(output) = generation.advance(&logits, &mut on_delta)? {
+            return Ok(output);
+        }
+    }
 }

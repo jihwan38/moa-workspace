@@ -51,10 +51,13 @@ The Stage 1 test checks:
 ### Stage 2 — End-to-end optimization
 
 Stage 2 is for optimizing the complete Gemma-4-12B-it E2E path, excluding the public API
-endpoint in `src/api/`.
+endpoint in `src/api/`. The harness supplies iteration scheduling and a bounded KV pool;
+participants can implement batch calculation through `host::model::Model::forward` and its
+device kernels. See [Serving](SERVING.md#batched-serving) for the contract.
 
 Stage 2 values to be finalized:
 
+- **TBD:** allowed host changes and which harness components the evaluator fixes;
 - **TBD:** benchmark input count, prompt lengths, and output lengths;
 - **TBD:** number of benchmark repetitions and RNGD configuration;
 - **TBD:** correctness thresholds and E2E performance metric;

@@ -1,15 +1,15 @@
 use furiosa_opt_std::prelude::*;
 
-use crate::axes::{Aa, C, Df, Ds, E, Gf, Gs, H, Mv, Ns, Pv, Rv, Tf, Ts, W};
-use crate::host::load::{FullLayer, Layer, Model, SlidingLayer};
+use crate::axes::{Aa, Df, Ds, E, Gf, Gs, H, Mv, Ns, Pv, Rv, Tf, Ts, W};
+use crate::host::load::{FullLayer, Layer, Weights, SlidingLayer};
 use crate::{Chip, ops, ops_audio, ops_vision};
 
-fn gather_pos_embedding(model: &Model, col: usize, row: usize) -> Vec<bf16> {
+fn gather_pos_embedding(weights: &Weights, col: usize, row: usize) -> Vec<bf16> {
     let mv = Mv::SIZE;
     let col = col.min(Pv::SIZE - 1);
     let row = row.min(Pv::SIZE - 1);
-    let col_row = &model.vision.pos_embedding[col * 2 * mv..col * 2 * mv + mv];
-    let row_row = &model.vision.pos_embedding[(row * 2 + 1) * mv..(row * 2 + 1) * mv + mv];
+    let col_row = &weights.vision.pos_embedding[col * 2 * mv..col * 2 * mv + mv];
+    let row_row = &weights.vision.pos_embedding[(row * 2 + 1) * mv..(row * 2 + 1) * mv + mv];
     col_row
         .iter()
         .zip(row_row)
@@ -19,7 +19,7 @@ fn gather_pos_embedding(model: &Model, col: usize, row: usize) -> Vec<bf16> {
 
 pub async fn encode_vision_patch(
     device: &mut Device,
-    model: &Model,
+    weights: &Weights,
     pixels: &[bf16],
     position: (usize, usize),
 ) -> Result<HbmTensor<bf16, Chip, m![H]>, Error> {
@@ -35,12 +35,12 @@ pub async fn encode_vision_patch(
         (
             device,
             &x,
-            &model.vision.patch_ln1_weight,
-            &model.vision.patch_ln1_bias,
-            &model.vision.patch_dense_weight,
-            &model.vision.patch_dense_bias,
-            &model.vision.patch_ln2_weight,
-            &model.vision.patch_ln2_bias,
+            &weights.vision.patch_ln1_weight,
+            &weights.vision.patch_ln1_bias,
+            &weights.vision.patch_dense_weight,
+            &weights.vision.patch_dense_bias,
+            &weights.vision.patch_ln2_weight,
+            &weights.vision.patch_ln2_bias,
             &mut patch_out,
         ),
     )
@@ -48,7 +48,7 @@ pub async fn encode_vision_patch(
 
     let (col, row) = position;
     let pos_embed: HbmTensor<bf16, Chip, m![Mv]> =
-        HostTensor::<bf16, m![Mv]>::from_vec(gather_pos_embedding(model, col, row))
+        HostTensor::<bf16, m![Mv]>::from_vec(gather_pos_embedding(weights, col, row))
             .to_hbm(&mut device.pdma)
             .await?;
 
@@ -59,8 +59,8 @@ pub async fn encode_vision_patch(
             device,
             &patch_out,
             &pos_embed,
-            &model.vision.pos_norm_weight,
-            &model.vision.pos_norm_bias,
+            &weights.vision.pos_norm_weight,
+            &weights.vision.pos_norm_bias,
             &mut normed,
         ),
     )
@@ -73,7 +73,7 @@ pub async fn encode_vision_patch(
         (
             device,
             &unsafe { normed.reshape() },
-            &model.vision.embedding_projection_weight,
+            &weights.vision.embedding_projection_weight,
             &mut projected,
         ),
     )
@@ -84,7 +84,7 @@ pub async fn encode_vision_patch(
 
 pub async fn encode_audio_frame(
     device: &mut Device,
-    model: &Model,
+    weights: &Weights,
     samples: &[bf16],
 ) -> Result<HbmTensor<bf16, Chip, m![H]>, Error> {
     assert_eq!(samples.len(), Aa::SIZE, "audio frame must be Aa-wide");
@@ -94,17 +94,19 @@ pub async fn encode_audio_frame(
     let mut output: HbmTensor<bf16, Chip, m![H]> = HostTensor::<bf16, m![H]>::zero().to_hbm(&mut device.pdma).await?;
     launch(
         ops_audio::audio_project_frame,
-        (device, &input, &model.audio.embedding_projection_weight, &mut output),
+        (device, &input, &weights.audio.embedding_projection_weight, &mut output),
     )
     .await?;
     Ok(output)
 }
 
 enum KvCache {
+    /// One window per active request, selected by `Blocks::sliding`.
     Sliding {
-        k: HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
-        v: HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
+        k: Vec<HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>>,
+        v: Vec<HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>>,
     },
+    /// A pool of `Tf`-position blocks shared by all requests, addressed through `Blocks::full`.
     Full {
         k: Vec<HbmTensor<bf16, Chip, m![Tf, Df]>>,
         v: Vec<HbmTensor<bf16, Chip, m![Tf, Df]>>,
@@ -115,8 +117,8 @@ impl KvCache {
     fn as_sliding_mut(
         &mut self,
     ) -> (
-        &mut HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
-        &mut HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
+        &mut Vec<HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>>,
+        &mut Vec<HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>>,
     ) {
         match self {
             KvCache::Sliding { k, v } => (k, v),
@@ -137,6 +139,14 @@ impl KvCache {
     }
 }
 
+/// Which physical KV storage backs one request: `full[i]` is the pool block holding its
+/// positions `i * Tf..(i + 1) * Tf`, and `sliding` selects its sliding-window buffers.
+#[derive(Clone, Debug, Default)]
+pub struct Blocks {
+    pub full: Vec<usize>,
+    pub sliding: usize,
+}
+
 pub struct Workspace {
     cos_s: HbmTensor<bf16, Chip, m![E, Ds]>,
     sin_s: HbmTensor<bf16, Chip, m![E, Ds]>,
@@ -146,6 +156,9 @@ pub struct Workspace {
     mask_f_line: HbmTensor<f32, Chip, m![Tf]>,
     mask_f_diag: Vec<HbmTensor<f32, Chip, m![Tf]>>,
     kv_cache: Vec<KvCache>,
+    capacity: usize,
+    requests: usize,
+    pub(crate) blocks: Blocks,
     offset_kv_s: HbmTensor<i32, Chip, m![1]>,
     offset_kv_f: HbmTensor<i32, Chip, m![1]>,
     offset_rope_s: HbmTensor<i32, Chip, m![1]>,
@@ -154,7 +167,33 @@ pub struct Workspace {
 }
 
 impl Workspace {
-    pub async fn new(device: &mut Device, model: &Model) -> Result<Self, Error> {
+    /// Context positions per request.
+    pub fn capacity(&self) -> usize {
+        self.capacity
+    }
+
+    /// Requests whose KV the workspace can hold at once.
+    pub fn requests(&self) -> usize {
+        self.requests
+    }
+
+    /// Full-attention blocks needed to hold `positions` positions.
+    pub fn blocks_for(positions: usize) -> usize {
+        positions.div_ceil(Tf::SIZE)
+    }
+
+    /// `requests` concurrent requests of up to `capacity` positions each. The full-attention
+    /// pool holds exactly `requests * blocks_for(capacity)` blocks per layer.
+    pub async fn new(
+        device: &mut Device,
+        weights: &Weights,
+        capacity: usize,
+        requests: usize,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        if requests == 0 || !(1..=E::SIZE).contains(&capacity) {
+            return Err(format!("need at least one request and 1..={} positions", E::SIZE).into());
+        }
+        let pool = requests * Self::blocks_for(capacity);
         let (cos_s, sin_s) = upload_rope(device, Ds::SIZE, 10_000.0, Ds::SIZE).await?;
         let (cos_f, sin_f) = upload_rope(device, Df::SIZE, 1_000_000.0, 128).await?;
         let mask_s = upload_mask_rows::<m![Ts], _>(device, Ts::SIZE, |r, c| if c <= r { 1.0 } else { 0.0 }).await?;
@@ -164,20 +203,16 @@ impl Workspace {
         let mask_f_diag =
             upload_mask_rows::<m![Tf], _>(device, Tf::SIZE, |r, c| if c <= r { 1.0 } else { 0.0 }).await?;
 
-        let mut kv_cache = Vec::with_capacity(model.layers.len());
-        for layer in &model.layers {
+        let mut kv_cache = Vec::with_capacity(weights.layers.len());
+        for layer in &weights.layers {
             let cache = match layer {
                 Layer::Sliding(_) => KvCache::Sliding {
-                    k: HostTensor::<bf16, m![Ts, Ns, Ds]>::zero()
-                        .to_hbm(&mut device.pdma)
-                        .await?,
-                    v: HostTensor::<bf16, m![Ts, Ns, Ds]>::zero()
-                        .to_hbm(&mut device.pdma)
-                        .await?,
+                    k: zero_hbm_vec::<bf16, m![Ts, Ns, Ds]>(device, requests).await?,
+                    v: zero_hbm_vec::<bf16, m![Ts, Ns, Ds]>(device, requests).await?,
                 },
                 Layer::Full(_) => KvCache::Full {
-                    k: zero_hbm_vec::<bf16, m![Tf, Df]>(device, C::SIZE).await?,
-                    v: zero_hbm_vec::<bf16, m![Tf, Df]>(device, C::SIZE).await?,
+                    k: zero_hbm_vec::<bf16, m![Tf, Df]>(device, pool).await?,
+                    v: zero_hbm_vec::<bf16, m![Tf, Df]>(device, pool).await?,
                 },
             };
             kv_cache.push(cache);
@@ -199,6 +234,9 @@ impl Workspace {
             mask_f_line,
             mask_f_diag,
             kv_cache,
+            capacity,
+            requests,
+            blocks: Blocks::default(),
             offset_kv_s,
             offset_kv_f,
             offset_rope_s,
@@ -341,15 +379,15 @@ impl Decode {
         device: &mut Device,
         ws: &mut Workspace,
         token: usize,
-        model: &Model,
+        weights: &Weights,
         pos: usize,
         compute_logits: bool,
     ) -> Result<(), Error> {
         let offset: HostTensor<i32, m![1]> = HostTensor::from_vec([(token * H::SIZE * 2) as i32]);
         let offset: HbmTensor<i32, Chip, m![1]> = offset.to_hbm(&mut device.pdma).await?;
 
-        launch(ops::embed_token, (device, &model.embedding_table, &offset, &mut self.x)).await?;
-        self.run_layers(device, ws, model, pos, compute_logits).await
+        launch(ops::embed_token, (device, &weights.embedding_table, &offset, &mut self.x)).await?;
+        self.run_layers(device, ws, weights, pos, compute_logits).await
     }
 
     pub async fn run_with_embedding(
@@ -357,25 +395,25 @@ impl Decode {
         device: &mut Device,
         ws: &mut Workspace,
         embedding: HbmTensor<bf16, Chip, m![H]>,
-        model: &Model,
+        weights: &Weights,
         pos: usize,
         compute_logits: bool,
     ) -> Result<(), Error> {
         self.x = embedding;
-        self.run_layers(device, ws, model, pos, compute_logits).await
+        self.run_layers(device, ws, weights, pos, compute_logits).await
     }
 
     async fn run_layers(
         &mut self,
         device: &mut Device,
         ws: &mut Workspace,
-        model: &Model,
+        weights: &Weights,
         pos: usize,
         compute_logits: bool,
     ) -> Result<(), Error> {
         assert!(pos < E::SIZE, "position exceeds runtime context");
         set_position_offsets(device, ws, pos).await?;
-        for (layer_index, layer) in model.layers.iter().enumerate() {
+        for (layer_index, layer) in weights.layers.iter().enumerate() {
             match layer {
                 Layer::Sliding(layer) => self.sliding(device, ws, layer_index, layer, pos).await?,
                 Layer::Full(layer) => self.full(device, ws, layer_index, layer, pos).await?,
@@ -388,8 +426,8 @@ impl Decode {
                 (
                     device,
                     &self.x,
-                    &model.final_norm,
-                    &model.embedding_table,
+                    &weights.final_norm,
+                    &weights.embedding_table,
                     &mut ws.logits,
                 ),
             )
@@ -407,7 +445,9 @@ impl Decode {
         pos: usize,
     ) -> Result<(), Error> {
         let mask_row = pos.min(Ts::SIZE - 1);
+        let ring = ws.blocks.sliding;
         let (k, v) = ws.kv_cache[layer_index].as_sliding_mut();
+        let (k, v) = (&mut k[ring], &mut v[ring]);
         launch(
             ops::sliding_project_qkv,
             (
@@ -469,7 +509,8 @@ impl Decode {
     ) -> Result<(), Error> {
         let page = pos / Tf::SIZE;
         let row = pos % Tf::SIZE;
-        assert!(page < C::SIZE, "position exceeds full-attention cache");
+        assert!(page < ws.blocks.full.len(), "position has no full-attention block");
+        let blocks = &ws.blocks.full;
         let (k_cache, v_cache) = ws.kv_cache[layer_index].as_full_mut();
         launch(
             ops::full_project_qkv,
@@ -487,8 +528,8 @@ impl Decode {
                 &ws.offset_rope_f,
                 &ws.cos_f,
                 &ws.sin_f,
-                &mut k_cache[page],
-                &mut v_cache[page],
+                &mut k_cache[blocks[page]],
+                &mut v_cache[blocks[page]],
                 &mut self.q_f,
             ),
         )
@@ -503,8 +544,8 @@ impl Decode {
             let args = (
                 &mut *device,
                 &self.q_f,
-                &k_cache[kv_page],
-                &v_cache[kv_page],
+                &k_cache[blocks[kv_page]],
+                &v_cache[blocks[kv_page]],
                 mask,
                 &mut self.attn_max,
                 &mut self.attn_sum,

@@ -32,13 +32,63 @@ launching. A plain `cargo run` builds for the CPU and will not work.
 | `GEMMA4_API_ADDR` | `0.0.0.0:8000` | Listen address |
 | `GEMMA4_API_KEY` | unset | Bearer token; unset means no auth |
 
-## Concurrency
+## Batched serving
 
-Requests are served strictly one at a time. One `Workspace` is one conversation's
-entire KV cache, so there is no batching and no interleaving — a request under load
-waits its turn in the queue. This is a deliberate consequence of the device
-being non-`Send`: a single thread owns the device, the model and the workspace for the
-process lifetime. See `api/worker.rs` before changing how the server is threaded.
+The supplied harness handles HTTP, tokenization, sampling, streaming, admission and KV
+allocation. `host::model::Model::forward` is the host-side calculation boundary:
+
+```rust
+pub async fn forward(
+    &mut self,
+    device: &mut Device,
+    inputs: &[Input<'_>],
+    positions: &[usize],
+    blocks: &[&Blocks],
+    workspace: &mut Workspace,
+) -> Result<&[Logits], Box<dyn std::error::Error>>;
+```
+
+Each row appends one token (`inputs[i].token`, or an image/audio soft token in
+`inputs[i].soft`) at `positions[i]` in one request's history. `blocks[i].full` maps logical
+full-attention blocks of `Tf` positions to physical blocks in the shared cache;
+`blocks[i].sliding` selects that request's sliding-window buffers. The harness retains these
+mappings until completion. The model updates KV and returns logits in input order; it does
+not sample or finish requests. Rows have disjoint block mappings, and each history before
+`positions[i]` has already been written. Prompt tokens are fed one per iteration. A row with
+`inputs[i].logits == false` (every prompt token but the last) needs no logits, and its buffer
+is stale.
+
+`load::Weights` holds checkpoint tensors. `model::Model` owns the calculation scratch and
+dispatches to the existing `runtime::Decode`, then `ops_*` and `device/`.
+`runtime::Workspace` holds KV, RoPE, masks and output staging; it is shared by the batch.
+There is no single whole-model `#[device]` function in this reference.
+
+The reference calls the existing kernels serially within `forward`, so concurrency adds no
+throughput yet. Participants can implement joint batch calculation behind the same caller
+contract. Image/audio soft tokens retain their existing representation in `Input`. Host
+dispatch can be changed along with kernels; using the supplied scheduler requires no serving
+implementation from participants. The official scope of host edits remains to be finalized.
+
+`host::worker` admits waiting requests between iterations, advances every active request by
+one token, and reuses completed requests' blocks. With at most `R` active requests, total
+prompt and output limit `L`, and block size `S`, the pool contains `R * ceil(L / S)`
+full-attention blocks per layer. Blocks are assigned as histories grow. Every admitted
+request can finish within its budget, so preemption is unnecessary. The baseline uses
+`R = 4`, `L = 8192`, `S = 512` (`Tf`), so 64 blocks per layer; each active request also has
+its own sliding-window buffers per sliding layer.
+
+Requests beyond `L` are rejected; requests beyond `R` wait. These are harness limits,
+not restrictions imposed by the NPU. A device failure takes the worker offline instead of
+reusing potentially incomplete shared state. A single thread still owns the device, the
+weights and the workspace, because `Device::new()` is non-`Send`; see `api/worker.rs` before
+changing how the server is threaded.
+
+## Sampling
+
+Sampling is fixed server-side at `SamplingConfig::DEFAULT` (temperature 0.1,
+top-k 64, top-p 0.95). The API does not read `temperature`, `top_p` or `top_k`: a request
+that includes them is still accepted and they are ignored, so outputs are random even with
+`temperature: 0`. 
 
 ## CLI
 

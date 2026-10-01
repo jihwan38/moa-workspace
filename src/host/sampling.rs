@@ -9,8 +9,8 @@ pub struct SamplingConfig {
 }
 
 impl SamplingConfig {
-    pub const GEMMA_RECOMMENDED: Self = Self {
-        temperature: 1.0,
+    pub const DEFAULT: Self = Self {
+        temperature: 0.1,
         top_k: 64,
         top_p: 0.95,
     };

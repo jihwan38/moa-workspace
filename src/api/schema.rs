@@ -66,12 +66,6 @@ pub struct ChatCompletionRequest {
     #[serde(default)]
     pub max_completion_tokens: Option<usize>,
     #[serde(default)]
-    pub temperature: Option<f32>,
-    #[serde(default)]
-    pub top_p: Option<f32>,
-    #[serde(default)]
-    pub top_k: Option<usize>,
-    #[serde(default)]
     pub stop: Option<OneOrMany<String>>,
     #[serde(default)]
     pub n: Option<u32>,
@@ -223,10 +217,6 @@ pub struct CompletionRequest {
     pub stream: bool,
     #[serde(default)]
     pub max_tokens: Option<usize>,
-    #[serde(default)]
-    pub temperature: Option<f32>,
-    #[serde(default)]
-    pub top_p: Option<f32>,
     #[serde(default)]
     pub stop: Option<OneOrMany<String>>,
     #[serde(default)]

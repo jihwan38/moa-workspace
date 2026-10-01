@@ -78,8 +78,10 @@ src/
 ├── host/                       CPU-side orchestration and preprocessing
 │   ├── mod.rs
 │   ├── runtime.rs              persistent device state + the layer loop
-│   ├── load.rs                 checkpoint -> HBM
-│   ├── generate.rs             prefill-then-decode loop
+│   ├── load.rs                 checkpoint -> HBM Weights
+│   ├── model.rs                Model::forward -> existing Decode
+│   ├── worker.rs               bounded scheduling and shared KV allocation
+│   ├── generate.rs             per-request progress, sampling and streaming
 │   ├── tokenizer.rs            chat templating and BPE
 │   ├── sampling.rs             temperature / top-k / top-p
 │   ├── image.rs                image decode, resize, patchify
@@ -88,7 +90,7 @@ src/
 ├── api/                        OpenAI-compatible HTTP server
 │   ├── mod.rs
 │   ├── schema.rs               request/response types
-│   ├── worker.rs               the dedicated generation thread
+│   ├── worker.rs               starts the generation thread
 │   ├── server.rs               hand-rolled HTTP/1.1 layer
 │   └── handlers.rs             per-route glue
 │
@@ -158,9 +160,11 @@ These are the functions the host launches. Each is one RNGD dispatch.
 
 | File | Purpose |
 |---|---|
-| `runtime.rs` | The orchestration layer. `Workspace` owns everything that outlives a token — KV caches, RoPE tables, causal masks, scratch. `Decode` holds per-position scratch and runs the loop over all 48 layers. Also encodes vision patches and audio frames into soft tokens. |
+| `runtime.rs` | The orchestration layer. `Workspace` owns everything that outlives a token — KV caches (sliding: one window per active request; full-attention: a shared pool of `Tf`-position blocks addressed through `Blocks`), RoPE tables, causal masks, scratch. `Decode` holds per-position scratch and runs the loop over all 48 layers. Also encodes vision patches and audio frames into soft tokens. |
 | `load.rs` | Reads the safetensors checkpoint into HBM, with one struct per layer kind. Picks the layer kind by index, and handles the checkpoint's mixed precision: fp8 per-channel scales for attention, real NVFP4 for the MLP only. |
-| `generate.rs` | The prefill-then-decode loop over token positions: splices image and audio placeholders into the prompt, samples each next token, handles stop strings safely for streaming, and splits the model's thinking channel out of its answer. |
+| `model.rs` | `Model::forward` accepts a batch (one token per request) and calls the existing `Decode` calculation. Owns the weights and calculation scratch. |
+| `worker.rs` | Admits bounded concurrent requests and assigns blocks from the shared KV pool. |
+| `generate.rs` | Per-request progress: selects the next prompt or decode token, splices image and audio placeholders, samples logits, handles stop strings safely for streaming, and splits the model's thinking channel out of its answer. |
 | `tokenizer.rs` | Chat templating and BPE encode/decode, including the incremental decoder used for streaming and the `thinking` flag that reshapes the prompt for reasoning mode. |
 | `sampling.rs` | Temperature, top-k and top-p. No device dependency. |
 | `image.rs` | Decodes an image, resizes it to a whole number of merged patches, and cuts it into patches. Host-only. |
@@ -172,7 +176,7 @@ These are the functions the host launches. Each is one RNGD dispatch.
 |---|---|
 | `mod.rs` | Just the module declarations (`schema`, `server`, `worker`, `handlers`) — no logic of its own. |
 | `schema.rs` | Request and response types, close enough to OpenAI's wire format that stock SDK clients work. |
-| `worker.rs` | The dedicated generation thread. This exists because `Device::new()` returns a non-`Send` guard, so the device cannot be moved between threads — one thread owns it, the model and the workspace for the process lifetime. **Read this before changing how the server is threaded.** |
+| `worker.rs` | The HTTP-to-host boundary: starts the device-owning thread, then hands the request receiver to `host::worker::Worker`. This exists because `Device::new()` returns a non-`Send` guard, so the device cannot be moved between threads — one thread owns it, the weights and the workspace for the process lifetime. Scheduling and execution live in the host module. **Read this before changing how the server is threaded.** |
 | `server.rs` | A minimal synchronous HTTP/1.1 layer on `std::net`, one thread per connection, including the route table (`fn route`). Do not assume full HTTP/1.1. |
 | `handlers.rs` | Per-route glue: validate a request, decode any image or audio, decide whether thinking mode is on (`wants_thinking`), turn it into a job, and shape the worker's events back into OpenAI responses. |
 
@@ -201,22 +205,20 @@ These are the functions the host launches. Each is one RNGD dispatch.
 
 A chat request with an image or audio attachment travels:
 
-```
-handlers.rs   decode the attachment      image.rs / audio.rs   ->  patches / frames
-     │        render the chat template   tokenizer.rs
-     ▼
-worker.rs     queue one job, run it alone on the device-owning thread
-     ▼
-generate.rs   splice placeholders, then loop over positions
-     │           image position ─► ops_vision::*  ─┐
-     │           audio position ─► ops_audio::*   ─┼─► soft token replaces the embedding
-     │           text position  ─► ops::embed_token┘
-     ▼
-runtime.rs    for each position, run 48 layers through ops::*, then the lm_head
-     ▼
-sampling.rs   pick the next token, feed it back, stream the text out
+```text
+handlers.rs         HTTP, attachments and tokenization
+    ↓
+host/worker.rs      admission, batch assembly and KV block assignment
+    ↓
+host/model.rs       Model::forward(inputs, positions, blocks, workspace)
+    ↓
+host/runtime.rs     Decode: embedding → 48 layers → logits
+    ↓
+ops_*.rs → device/  NPU kernels
 ```
 
-Requests are served strictly one at a time: one `Workspace` is one conversation's entire
-KV cache, so there is no batching and no interleaving. A request under load waits its
-turn in the queue.
+Image and audio positions go through `ops_vision::*` / `ops_audio::*` and their soft token
+replaces the embedding. The worker passes logits to each request's `Generation` for sampling
+and streaming. Requests own their progress and block mappings; the worker owns the shared
+`Workspace`. The default model executes the batch rows serially through the existing
+kernels. See [Serving](SERVING.md#batched-serving) for the caller contract.
