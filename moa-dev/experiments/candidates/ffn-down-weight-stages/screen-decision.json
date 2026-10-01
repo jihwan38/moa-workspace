@@ -1,0 +1,67 @@
+{
+  "id": "E150",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "fb45202bba3c24537f74b4bf463276b76d823773",
+  "comparison_recipe": "baseline/e147.json",
+  "candidate_build_label": "e150-staged-v1",
+  "job": 141242,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_ffn_cycles": 297276,
+  "control_before_ffn_cycles": 303848,
+  "control_after_ffn_cycles": 304036,
+  "bracketing_median": 303942.0,
+  "change_percent": -2.193181593856719,
+  "candidate_cycles_by_run": [
+    305232,
+    296186,
+    297276
+  ],
+  "static_candidate_cycles": 145300,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/ffn-down-weight-stages/graph-verification-e150-staged-v1.json",
+      "bytes": 1898,
+      "sha256": "4b1e4ce3acefa26fc6846d40e8fdbcd475df1e870301f2794ac6daaff66d0386"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/ffn-down-weight-stages/e150-staged-v1-screen-job-141242-results.json",
+    "bytes": 5312,
+    "sha256": "3e4939f0f8aa217831cb09de04296e5ddb6c99d58f7757bd13a29041284f6dac"
+  },
+  "down_weight_hbm_read_bytes": 29491200,
+  "down_weight_dm_write_bytes": 29491200,
+  "down_weight_dm_read_bytes": 29491200,
+  "down_partial_f32_write_bytes": 14745600,
+  "down_partial_f32_read_bytes": 14745600,
+  "down_weight_native_streams": 2,
+  "additional_down_streams_vs_e147": 1,
+  "cost_scope": "Original logical weight/partial bytes remain. Adds one weight DMA and native/lookup stream with full-root IndexWrite dependencies. Whole timings include all costs; no overlap-span or bus-stall savings are presumed.",
+  "scope": "FFN down compact30+30 weight ingress and two native streams write original disjoint F32 partial halves. Weighted E5 quantizer/broadcast/TRF, five12 blockscale reductions, epilogue and up/gate remain. QKV/O images unchanged; original reference boundary checks are separate.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "original rawdown9 production helper and full-FFN regression on actual new source/image"
+      ]
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does dividing current down weight/native into two compact30-row stages let ready up gather/GeGLU and weighted activation preparation advance, including added DMA/lookup/native starts and full F32 partial write dependencies? No overlap-window savings are presumed."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}
