@@ -1,0 +1,23 @@
+{
+  "id": "E153-READINESS",
+  "actual_start_commit": "2a49667318718b2f0e2fda00b7feb8a3f3727515",
+  "source_recipe": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/sharded-v1/recipe.json",
+  "performance_control": "baseline/e151.json",
+  "fixed_candidate_build": "e153-sharded-v1",
+  "first_whole": {
+    "job": 141557,
+    "correctness": 45,
+    "change_percent": 1.1454347888735006
+  },
+  "scope": "One allocation, seven serial stages,57 original comparisons; current E151 and frozen E153 source-bound FFN names-only internal profiles plus original E151 before/E153 whole/E151 after. No production source edits.",
+  "questions": [
+    "Was original canonical gather/early BF16 replication replaced by a critical late packed cluster transfer?",
+    "Compare preRMS/sharded quantizer/globalMax/latecopy/ring/TRF and gate/up/down weight/native/scale/end readiness within each cluster clock.",
+    "Choose a concrete supported complete-path repair only if actual boundaries and added costs support one."
+  ],
+  "decisions": {
+    "adoption": "Rejected current prototype performance; runtime E151 remains.",
+    "tuning": "No parameter sweep or extra performance repetitions.",
+    "major_research": "One fixed readiness allocation can select a concrete ownership/supply repair; no span-sum savings or hardware defect claim."
+  }
+}

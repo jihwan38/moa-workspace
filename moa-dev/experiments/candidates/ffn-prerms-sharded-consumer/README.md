@@ -15,3 +15,15 @@ Stop parameter tuning and adoption repeats. One frozen-image E151/E153 names-onl
 readiness comparison is selected to identify a concrete supply/dependency repair.
 No exclusive physical cause or family-wide rejection follows from this first loss.
 [Decision](decision.json) · [Boundary scope](boundary-results.json).
+
+## Current-image readiness result
+
+141612 passes57 comparisons and repeats the whole regression:299012 versus
+296324/294082, bracket295203 (+1.290298540%). Names-only E151/E153 images each
+carry142 checked markers with original instructions, addresses and IO preserved.
+Same-clock scale-finish→quantVRF-finish median is2256cycles(E151) versus37235(E153).
+Candidate hi starts6679.5cycles earlier, but gate native starts7282.5cycles later.
+These overlapping intervals are not savings or proof of exclusive DMA contention.
+E154 therefore tests replicated scalar output/direct local scaleVRF while retaining
+the remaining complete path; it has its own branch and new exact/NPU checks.
+[Analysis](readiness/profile-analysis.json) · [Decision](decision.json).
