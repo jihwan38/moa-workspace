@@ -1,0 +1,45 @@
+{
+  "id": "E155",
+  "variant": "direct-v1",
+  "actual_start_commit": "f33e7c6d723cfc96a360e23a6053ce74481a5a34",
+  "base_commit": "3f384063f5231e00ad286f365209806e5043fc83",
+  "comparison_recipe": "baseline/e154.json",
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/measured-build-e154-adoption.json",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "target_kernel": "decoder_feedforward",
+  "scope": "Local packed-input routing replacement on adopted E154; not a new architecture family.",
+  "execution": "Original E154 CL0 packed8H480 shards feed all16 full-H ring leaders directly by typedDMA, removing the intermediate CL2H480 packed allocation/transfer. Original ring,scale8/directVRF/all512restore,native/down and precision unchanged.",
+  "removed": [
+    "One23040B packed destination/read intermediate and its explicit DMA dependency"
+  ],
+  "added": [
+    "CL1 crosscluster logical payload11520->92160B, +80640B/8x; totalleader184320B and ring5898240B unchanged"
+  ],
+  "prior": [
+    "M06v4/v5 compiled directCL0leader topology but whole timed out; current E154 RMS/Subsum/boundedcopies/scale8 differs, old cause unresolved.",
+    "E153 profile saw earlierhi but later native; this is not an E154 trace or promised saving.",
+    "E154 has three whole improvements and allboundarychecks; it remains officialfallback."
+  ],
+  "adoption": {
+    "decision": "first wholeE154bracket after actualdescriptor/registergate; positive frozen3alloc/extra6/rawup8/fullFFN; no5percentminimum",
+    "deadline": "Do not replace verified official E154 with incomplete or regressing source."
+  },
+  "tuning": {
+    "decision": "one bounded direct-routing candidate; no ring/shard/padding sweep",
+    "first_stop": "negative whole or timeout stops this deadline attempt; preserve actualresultscope"
+  },
+  "major_research": {
+    "decision": "Remove one packed replication stage while explicitly measuring increased crosscluster fanout; NPUtimingmustincludeallcosts",
+    "not_claimed": [
+      "No E154 current internal bottleneck measurement",
+      "No M06timeoutcausefix",
+      "No byte-to-cycle savings or guaranteed rank"
+    ]
+  }
+}

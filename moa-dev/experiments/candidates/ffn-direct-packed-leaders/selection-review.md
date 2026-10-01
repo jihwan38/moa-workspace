@@ -1,0 +1,9 @@
+# Unselected E154 direct leader source reserve
+
+Prepared only under `/tmp`; no compile, NPU, branch or runtime change. `prepare.py --check` regenerates all3files against frozen E154 hashes. Only the private `broadcast_ffn_quantized` input cluster mapping changes from bothclusters to canonicalCL0, and its sole caller stops materializing the two-cluster H480 packed intermediate. The helper has one call site. An inverse-source comparison proves every other byte, including the ring producer body and all arithmetic, unchanged.
+
+Full allocation contract: original CL0 packed8shards ×3terms×480E5bytes =11520usefulbytes; destination2clusters×8leaders×3×3840 =184320bytes. Perleader placement stays slices0,32,...224 of eachcluster; term-major H order is unchanged. Main CustomBroadcast32 still emits5898240bytes to512slices. GlobalMax8, directscalarSubVRF, final512scale restore,3bounded480B copies and native/down paths are untouched.
+
+This removes one23040B materialized destination, but changes the source route. Old cluster1 receives11520B once and then locally creates eight leaders. New cluster1 receives eight full11520B leader payloads fromcluster0:92160B,8× and+80640B crosscluster logical destination traffic. Actual encoded transfers and contention must be read from the emitted descriptor/schedule; these logical counts do not predict cycles.
+
+M06v4/v5 exactcompiled with this directCL0→leader type, then both whole runs timed out. E154 differs in originalRMS arithmetic, separate quantizer terms/boundedcopies and scale8 source. The old outcomes establish neither successful NPU support nor a blanket routing failure. Gate: actual sourceCL0+8validshards, offsets/extent/termorder for every16leader, initialized source-only reads, complete8CL1leader destinations, unchanged ring/native/scalar descriptor contracts and whole buffer lifetimes. No padding sweep or new precision change is included.

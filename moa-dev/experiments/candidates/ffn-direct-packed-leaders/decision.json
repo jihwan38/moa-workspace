@@ -1,0 +1,72 @@
+{
+  "id": "E155",
+  "status": "not_adopted_mixed_near_zero_performance",
+  "runtime_preserved": "E154 / baseline-e154 / 3f384063f5231e00ad286f365209806e5043fc83",
+  "source_base_commit": "3f384063f5231e00ad286f365209806e5043fc83",
+  "performance_control": "baseline/e154.json",
+  "candidate_build_label": "e155-direct-v1",
+  "independent_allocations": 3,
+  "paired_observations": [
+    {
+      "job_id": 141722,
+      "screen_label": "e155-direct-v1-screen",
+      "candidate_ffn_cycles": 288517,
+      "control_before_ffn_cycles": 288282,
+      "control_after_ffn_cycles": 289016,
+      "bracketing_control_ffn_cycles": 288649.0,
+      "ratio": 0.9995426971858555,
+      "delta_percent": -0.04573028141444668
+    },
+    {
+      "job_id": 141733,
+      "screen_label": "e155-direct-v1-repeat-a",
+      "candidate_ffn_cycles": 288455,
+      "control_before_ffn_cycles": 289264,
+      "control_after_ffn_cycles": 287884,
+      "bracketing_control_ffn_cycles": 288574.0,
+      "ratio": 0.9995876274369833,
+      "delta_percent": -0.04123725630167385
+    },
+    {
+      "job_id": 141747,
+      "screen_label": "e155-direct-v1-repeat-b",
+      "candidate_ffn_cycles": 288339,
+      "control_before_ffn_cycles": 287806,
+      "control_after_ffn_cycles": 288598,
+      "bracketing_control_ffn_cycles": 288202.0,
+      "ratio": 1.0004753610314987,
+      "delta_percent": 0.04753610314987
+    }
+  ],
+  "median_paired_delta_percent": -0.04123725630167385,
+  "aggregate_median_delta_percent": -0.04123725630167385,
+  "all_paired_ffn_improved": false,
+  "allocations_beating_both_individual_controls": 0,
+  "standard_distinct_inputs": 9,
+  "standard_candidate_output_comparisons": 75,
+  "raw_upgate_outputs_exact": 245760,
+  "full_ffn_outputs_exact": 3840,
+  "accuracy_scope": "Original standard9 plus raw8 actual quantizer/routing and one complete FFN stress case. Raw excludes preRMS; finite evidence is not arbitrary BF16 or model equivalence. Original reference/inputs/tolerance preserved.",
+  "source_changes": "Only MLP broadcast helper source cluster type and removal of late packed CL2 intermediate;45other compile inputs and QKV/O images identical E154.",
+  "decisions": {
+    "adoption": {
+      "status": "reject_this_prototype",
+      "reason": "Three paired changes mix signs within approximately ±0.05%; no allocation beats both individual controls. Net improvement is not established. This is not a5%cutoff.",
+      "root_decision": "Keep E154 official4dbf747a as final valid submission."
+    },
+    "further_tuning": {
+      "status": "stop",
+      "reason": "Bounded direct-routing attempt complete; no sweep, additional profile or performance repetitions."
+    },
+    "major_research": {
+      "status": "preserve_complete_path_evidence_for_future_work",
+      "reason": "Direct CL0-to16leader route now completes finite tests in this E154 composition but adding crosscluster fanout does not establish gain. No explanation of historical M06 timeouts and no global family-exhaustion claim."
+    }
+  },
+  "adopted": false,
+  "official_submission": false,
+  "final_review": "adoption/final-no-adoption-review.json",
+  "performance_summary": "adoption/performance-summary.json",
+  "extra_correctness": "adoption/extra-results.json",
+  "boundary_results": "boundary-results.json"
+}

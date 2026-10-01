@@ -1,0 +1,67 @@
+{
+  "id": "E155",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "3f384063f5231e00ad286f365209806e5043fc83",
+  "comparison_recipe": "baseline/e154.json",
+  "candidate_build_label": "e155-direct-v1",
+  "job": 141722,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_ffn_cycles": 288517,
+  "control_before_ffn_cycles": 288282,
+  "control_after_ffn_cycles": 289016,
+  "bracketing_median": 288649.0,
+  "change_percent": -0.04573028141444668,
+  "candidate_cycles_by_run": [
+    299495,
+    288517,
+    287747
+  ],
+  "static_candidate_cycles": 144495,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/ffn-direct-packed-leaders/graph-verification-e155-direct-v1.json",
+      "bytes": 1940,
+      "sha256": "fba18ce5b8439f890b339da91e22db2388293e1405aae0212fceaa0bf1985c41"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/ffn-direct-packed-leaders/e155-direct-v1-screen-job-141722-results.json",
+    "bytes": 5323,
+    "sha256": "37647cc220325470bd9d876b7c424da0b95f40d22f849ffdb03e6b3080ff0726"
+  },
+  "late_packed_cluster_destination_bytes": 0,
+  "retained_ring_leader_destination_bytes": 184320,
+  "retained_ring_broadcast_destination_bytes": 5898240,
+  "added_global_inter_max_streams": 0,
+  "removed_late_packed_tdma_streams": 1,
+  "direct_cl0_to_leaders": true,
+  "crosscluster_destination_increase_bytes": 80640,
+  "cost_scope": "Removes23040B late packed materialized destination. Original184320B leader and5898240B ring destinations remain. CL1 logical cross-cluster destination rises11520→92160B; actual descriptors and whole runtime decide benefit, not byte subtraction.",
+  "scope": "Only private broadcast helper source ownership and its sole caller change. Current E154 pre-RMS/Max8/direct scale VRF/quantization/480B copies/native/down arithmetic remain. Raw upgate uses actual helper but excludes pre-RMS; finite whole checks have separate scope.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "original rawupgate8 production helper and full-FFN regression on new source/image"
+      ]
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does removing the late two-cluster packed intermediate improve the complete E154 FFN when direct CL0-to-sixteen-leader delivery increases cross-cluster destination traffic by80640B? No overlapping interval is a saving promise."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

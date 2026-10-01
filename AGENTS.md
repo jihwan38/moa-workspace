@@ -516,3 +516,19 @@
   timing variation offsets part of the FFN improvement; do not attribute its
   cycle change to FFN code or promise the requested five-rank rise. E154 is a
   verified latest official fallback while a separate direct-leader candidate runs.
+
+- E155 direct CL0 packed-to-16-leader routing subsequently passed all changed
+  boundary checks: nine standard inputs, 245760 raw up/gate values and 3840
+  full-FFN values. It removes the 23040B intermediate packed copy, but increases
+  CL1 logical cross-cluster payload from 11520B to 92160B; leader and ring output
+  remain unchanged. Three contemporary paired changes were -0.045730%,
+  -0.041237% and +0.047536%; each candidate lost to one individual control.
+  This does not establish a reproducible net gain, so retain E154. This decision
+  is based on mixed measurements, not a fixed minimum improvement threshold.
+  Preserve the passing current routing/liveness evidence without claiming an
+  explanation for old M06 timeouts. Stop this deadline attempt and retain the
+  frozen source, actual archives and no-adoption review on its named branch.
+  At 20:40 KST October 1, E154/4dbf747a is the latest completed official
+  submission and public best, 6.848703703x and 57/80. Live/tag 46 inputs and
+  staged 23 payload files match. The requested five-position rise remains
+  unmet; this is a pre-deadline snapshot, not the final competition result.

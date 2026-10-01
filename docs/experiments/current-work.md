@@ -1,3 +1,35 @@
+# 2026-10-01 20:40 KST 최종 제출 확인
+
+현재 채택 소스는 **E154 / baseline-e154 / `3f384063f5231e00ad286f365209806e5043fc83`**이다.
+서버 제출 목록에서도 최신 제출은 **`4dbf747a` / completed / 15 PASS**로 확인했다.
+라이브 소스와 태그의 compile input 46개, 제출 payload 23개, 측정 이미지와 검증 기록이 일치한다.
+
+이번 작업 시작 시 공식 FFN **305,502 → 288,529 cycles (5.5558% 감소)**,
+점수 **6.756274761 → 6.848703703 (1.3680% 상승)**다.
+QKV/O 이미지는 동일하며, 공식 측정 변동을 FFN 코드의 효과로 계산하지 않는다.
+20:40:22 KST 공개 순위는 **57/80위로 동일**하다. 요청한 다섯 계단 상승은 달성하지 못했다.
+현재 52위까지는 점수가 추가로 3.7151% 높아야 한다. 이 값은 마감 전 스냅샷이다.
+
+공식 공지는 10월 1일 **20:59 KST 마감 전 마지막 제출**을 최종 평가에 사용한다고 명시한다.
+E154는 20:22:34 KST 접수됐다. 정확도는 통과했으나 성능 개선이 재현되지 않은 E155는
+제출하지 않고, 검증된 E154를 유지한다. 진행 중인 Arena 작업은 없다.
+[서버·소스·순위 확인](../research/final-round1-check-20261001.json) ·
+[공식 공지](https://micro2026-moa.github.io/index.html).
+
+# 2026-10-01 E155 미채택 · E154 유지
+
+E155의 CL0 packed→16leader 직접 공급은 실제3회와 모든 정확도 검증을 완료했지만
+성능 이득을 확립하지 못했다. Paired 변화는 **−0.045730/−0.041237/+0.047536%**,
+중앙−0.041237%이며 세 번 모두 한 개별control보다 느렸다. 5% cutoff가 아니라
+혼합 부호와 비교변동을 근거로 미채택한다. 현재 runtime은 E154다.
+
+원표준distinct9, raw8의245760exact±0, fullFFN3840exact PASS. 원source46/1MLP변경·45불변,
+세 allocation 동일payload와actualarchive까지 검증했다. 제거된23040B중간packed와
+늘어난CL1crosscluster목적payload11520→92160B는 실제 전체 경로 안에서 평가했다.
+추가튜닝·프로파일·새 source는 중단하고 E154를 유지한다. 아래는 작성시점의 역사 기록이다.
+[판정](../../moa-dev/experiments/candidates/ffn-direct-packed-leaders/decision.json) ·
+[최종독립검토](../../moa-dev/experiments/candidates/ffn-direct-packed-leaders/adoption/final-no-adoption-review.json).
+
 # 2026-10-01 E154 공식 완료 · 최고 점수 갱신, 순위 동일
 
 현재 runtime은 **E154 / baseline-e154 / `3f384063f5231e00ad286f365209806e5043fc83`**이다. E151 소스에 frozenE153의
