@@ -1,0 +1,122 @@
+{
+  "valid": true,
+  "scope": "source-only; not compiled or executed; no target lowering/liveness or general model guarantee",
+  "inputs": {
+    "base_ops.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/source-review/base-ops.rs",
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "base_rmsnorm.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/source-review/base-rmsnorm.rs",
+      "bytes": 10957,
+      "sha256": "d962d6042c90ff51a080720e1f3c851e2375f70776b381a7048e62ccf4115ba5"
+    },
+    "base_mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/source-review/base-mlp.rs",
+      "bytes": 40179,
+      "sha256": "e412ef9422a17cba47b94bbda8955cf45be98825e7dd3577efa09cab6d50f893"
+    },
+    "ops.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/sharded-v1/ops.rs",
+      "bytes": 12822,
+      "sha256": "59a4ab6414d362876255caa8f332a01a567efd5ded0afa2d43da7ffe34e3c61e"
+    },
+    "rmsnorm.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/sharded-v1/rmsnorm.rs",
+      "bytes": 14764,
+      "sha256": "e2aa2efffd7cd6e257772c679b8655f42041963ed568688693842a466546bfc2"
+    },
+    "mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/sharded-v1/mlp.rs",
+      "bytes": 41436,
+      "sha256": "ea39b36a37aac00f1f1293bbe3ed5bd776c552dfefc7fbb490068df570eda756"
+    },
+    "raw_wrapper": {
+      "path": "moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/probe-v1/probe_module.rs",
+      "bytes": 1522,
+      "sha256": "a1c8d13681b779d8669a76b84b2af5820649e3c1a1be4e5f5c1d55b8a22fb534"
+    },
+    "layout": {
+      "path": "furiosa-opt-gemma4-12B/src/device/layout.rs",
+      "bytes": 1805,
+      "sha256": "d0c42dd59ed534123726d22868924fd0f37bf071fc7bbe326d22ea9d95830d68"
+    }
+  },
+  "source": {
+    "original_rms_function_unchanged": true,
+    "same_rms_arithmetic_and_normalized_f32_dm": true,
+    "final_cast_identical_after_routing_removed": true,
+    "unchanged_mlp_functions": [
+      "project_rows_with_scale_contraction",
+      "project_up_and_gate",
+      "geglu",
+      "prepare_down_fp8_split",
+      "project_down_native_half",
+      "project_down_tile",
+      "finish_down",
+      "broadcast_ffn_quantized"
+    ],
+    "same_quantizer_arithmetic_and_bounded_copies_after_cluster_relabel": true,
+    "same_scale_formula": true,
+    "raw_wrapper_calls_actual_sharded_quantizer": true,
+    "raw_does_not_test_pre_rms": true
+  },
+  "finite_amax": {
+    "bf16_patterns": 65280,
+    "all_scalar_patterns": true,
+    "all_pattern_grouped_cases": 17,
+    "grouped_case_width": 3840,
+    "mathematical_basis": "max(max(abs(x_q)), floor) is exact and associative for finite values; floor commutes with max; exponent-mask and F32 power2 multiplication unchanged",
+    "zero_scale": 1.1754943508222875e-38,
+    "maximum_finite_scale": 1.0384593717069655e+34,
+    "nonfinite_equivalence_claimed": false
+  },
+  "source_geometry": {
+    "valid_input_cluster": 0,
+    "valid_input_slices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "h_per_slice": 480,
+    "term_copy_bytes": 480,
+    "term_copy_offsets": [
+      0,
+      480,
+      960
+    ],
+    "packed_extent_per_slice": 1440,
+    "late_copy_destination_bytes": 23040,
+    "replication_mapping": "dst(c,q,t,u) <- src(0,q,t,u); original H=480q+u"
+  },
+  "logical_costs": {
+    "original_early_bf16_dma_destination_bytes": [
+      15360,
+      15360
+    ],
+    "new_late_packed_dma_destination_bytes": 23040,
+    "cross_cluster_payload_old_bf16": 7680,
+    "cross_cluster_payload_new_packed": 11520,
+    "retained_rms_local_cast_read_f32_bytes": 15360,
+    "retained_rms_local_cast_write_bf16_bytes": 7680,
+    "retained_ring_seed_destination_bytes": 184320,
+    "retained_ring_broadcast_destination_bytes": 5898240,
+    "added_global_max_streams": 1,
+    "not_measured_bus_traffic_or_cycle_savings": true
+  },
+  "required_actual_gate": [
+    "three source overrides and43 unchanged inputs; QKV/O image identity",
+    "same RMS operations/constants up to normalized F32 DM and local BF16 cast",
+    "valid CL0/slices0..7; inter-Max actual mask/ratio and scalar distribution",
+    "three bounded480B Sub copies and ring32 bitmap safe addresses/lifetimes",
+    "late packed23040B descriptor source/destination coverage and H/Term order",
+    "8KiB VRF/TRF actual lifetimes including gamma and unchanged native/scales",
+    "actual raw wrapper\u2192new quantizer; original fixture/expected bits preserved; fullFFN tests preRMS"
+  ]
+}

@@ -1,3 +1,14 @@
+# 2026-10-01 E153 첫 실측 회귀 · 한 번의 내부 비교 선정
+
+현재 채택 runtime은 E151이다. E153은 원RMS F32 산술을 유지하면서 local BF16H480
+출력을 직접 양자화하고 packed만 늦게 두cluster에 복제한다. 실제3파일/43불변,
+원RMS emitted 산술/3840좌표/globalMax/23040B/copy범위/VRF 검사는 PASS했다.
+그러나 첫141557 whole45PASS에서298332 vsE151294978/294929, **+1.145435% 회귀**다.
+채택·추가입력NPU·parameter sweep은 진행하지 않는다. Raw8/fullFFN은 빌드만/NPU0.
+한 번의 frozen E151/E153 이름만 바꾼 내부 계측으로 globalMax/latepacked와 뒤쪽 일정을
+구분하여 구체적인 수리 여부를 고른다. 겹친 구간을 절감량으로 더하지 않는다.
+[판정](../../moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/decision.json). 아래 기록은 각 작성 시점의 상태다.
+
 # 2026-10-01 E153 pre-RMS shard 직접 양자화 실험 시작
 
 Source/control E151, actualstart `2a49667318718b2f0e2fda00b7feb8a3f3727515`.

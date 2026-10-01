@@ -1,0 +1,45 @@
+{
+  "candidate": "E153",
+  "variant": "sharded-v1",
+  "status": "not_adopted_first_whole_regression_one_bounded_diagnostic_selected",
+  "actual_start_commit": "2a49667318718b2f0e2fda00b7feb8a3f3727515",
+  "source_origin": "8adbbae1776aa8080a96348a9d9a64022a0cf6d0",
+  "performance_control": "baseline/e151.json",
+  "job": 141557,
+  "whole_result": {
+    "control_before": 294978,
+    "candidate": 298332,
+    "control_after": 294929,
+    "bracketing_median": 294953.5,
+    "candidate_change_percent": 1.1454347888735006
+  },
+  "whole_comparisons_passed": 45,
+  "standard_distinct_inputs": 3,
+  "raw_upgate_npu_cases": 0,
+  "full_ffn_boundary_npu_cases": 0,
+  "adoption": {
+    "decision": "do not adopt frozen prototype on current evidence",
+    "reason": "Whole FFN is slower than both contemporary E151 controls. Expanded boundary packages are built but not executed.",
+    "runtime": "E151 remains live and latest official submission"
+  },
+  "tuning": {
+    "decision": "stop shard/ring/row parameter sweeps and adoption repeats",
+    "reason": "New complete path removes early gather but adds globalMax, late packed replication and new lifetimes; actual whole loss is not explained by byte count."
+  },
+  "major_research": {
+    "decision": "one frozen E151/E153 names-only readiness comparison",
+    "question": "Compare actual RMS/Max/quant/late packed/leader/ring/TRF/weight/native/down/tail to distinguish the added readiness dependency from a shifted downstream schedule, before selecting a concrete repair.",
+    "constraints": [
+      "Source, actual instructions, addresses, IO and timing configuration preserved except diagnostic task names.",
+      "Do not infer exclusive physical contention or additive savings from overlapping windows.",
+      "M06v4 timeout is unresolved; this passing E153 does not prove its cause.",
+      "First screen and diagnostic whole timings remain separate observations."
+    ]
+  },
+  "evidence": [
+    "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/e153-sharded-v1-screen-job-141557-results.json",
+    "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/audit-e153-sharded-v1.json",
+    "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/source-build-binding.json",
+    "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/boundary-results.json"
+  ]
+}
