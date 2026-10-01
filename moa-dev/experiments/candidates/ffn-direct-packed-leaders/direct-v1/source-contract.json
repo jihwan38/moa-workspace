@@ -1,0 +1,65 @@
+{
+  "status": "unselected_source_only_not_compiled_not_measured",
+  "base": "Frozen E154 replicated-v1; adoption status is a separate root decision",
+  "source_inputs": {
+    "ops.rs": {
+      "bytes": 12822,
+      "sha256": "59a4ab6414d362876255caa8f332a01a567efd5ded0afa2d43da7ffe34e3c61e"
+    },
+    "rmsnorm.rs": {
+      "bytes": 14764,
+      "sha256": "e2aa2efffd7cd6e257772c679b8655f42041963ed568688693842a466546bfc2"
+    },
+    "mlp.rs": {
+      "bytes": 42302,
+      "sha256": "838bc4018756ac2096012ccc407fc97294029d9a642dcfa64a77ebbeaf234256"
+    }
+  },
+  "prepared_sources": {
+    "ops.rs": {
+      "bytes": 12822,
+      "sha256": "59a4ab6414d362876255caa8f332a01a567efd5ded0afa2d43da7ffe34e3c61e"
+    },
+    "rmsnorm.rs": {
+      "bytes": 14764,
+      "sha256": "e2aa2efffd7cd6e257772c679b8655f42041963ed568688693842a466546bfc2"
+    },
+    "mlp.rs": {
+      "bytes": 42196,
+      "sha256": "48f101d2e8885c92d5ff8615526370829c410b25333cf77f57389ca2a13c8762"
+    }
+  },
+  "changed": [
+    "private broadcast helper input Cluster now CL0 only",
+    "remove lateCL2 packed intermediate typedDMA"
+  ],
+  "only_private_helper_callers": 1,
+  "unchanged": [
+    "ops/RMS fullbytes",
+    "quantizer and scale8 arithmetic/restore512",
+    "three exact480B copies",
+    "seed destination16 leaders x3x3840E5",
+    "Main ring32",
+    "up/gate native and all downstream precision/weights/scales"
+  ],
+  "logical_bytes": {
+    "source_packed": 11520,
+    "removed_late_packed_destination": 23040,
+    "seed_destination_unchanged": 184320,
+    "ring_destination_unchanged": 5898240,
+    "old_crosscluster_CL1_packed": 11520,
+    "new_crosscluster_CL1_seed_destination": 92160,
+    "crosscluster_destination_multiplier": 8,
+    "crosscluster_destination_increase": 80640
+  },
+  "descriptor_gates": [
+    "all16leader output vectors exact term-major3xH3840",
+    "sourceCL0only8validH480shards; no padded source cells interpreted as useful",
+    "source fullDm notpartialtermview; offsets/extent cover only11520usefulpacked bytes",
+    "8CL1leaders receive correct fullH order across clusters",
+    "unchanged actualMainring32 plus original512scalarrestore",
+    "whole SRAM/VRF lifetime/overlap with changedDMA dependency"
+  ],
+  "prior": "M06 v4/v5 used same directCL0packed-to16leader type and exactcompiled but bothwhole timed out. This is source-level precedent, not successful NPU proof or proven cause. E154 retains separate terms/boundedcopies and original preRMS math.",
+  "selection": "Only parent may select after E154 outcome and remainingdeadline. This script performs no compile or NPU and predicts no speedup."
+}

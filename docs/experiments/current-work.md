@@ -1,3 +1,11 @@
+# 2026-10-01 E155 direct packed leader 공급 시작
+
+검증된E154source/control에서MLP의late23040Bpacked복제하나를제거하고
+CL0packed→16leaders typedDMA로바꾼다. CL1cross11520→92160B증가까지whole포함,
+원ring/scale8/native/정밀도유지. 미검증속도·M06timeout해결주장없음.
+음성/timeout이면이번마감시도종료, 양성이면동결추가검증. E154공식fallback유지.
+[후보](../../moa-dev/experiments/candidates/ffn-direct-packed-leaders/README.md).
+
 # 2026-10-01 E154 scalar 공급 수리 채택 · 공식 제출 준비
 
 현재 runtime은 **E154 / baseline-e154 / `3f384063f5231e00ad286f365209806e5043fc83`**이다. E151 소스에 frozenE153의

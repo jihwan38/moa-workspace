@@ -1,0 +1,25 @@
+--- frozen-E154/mlp.rs
++++ reserve/mlp.rs
+@@ -613,7 +613,7 @@
+ 
+ fn broadcast_ffn_quantized(
+     device: &mut Device,
+-    x: &DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![FfnTerm, H % 480]>,
++    x: &DmTensor<f8e5m2, Chip, Cluster, FfnQuantSlices, m![FfnTerm, H % 480]>,
+ ) -> DmTensor<f8e5m2, Chip, m![2], Replicated, m![FfnTerm, H]> {
+     let x: DmTensor<f8e5m2, Chip, m![2], m![Dummy256 / 32, 1 # 32], m![FfnTerm, H]> = x.to_dm(&mut device.tdma);
+     let x: DmTensor<f8e5m2, Chip, m![2], m![Dummy256 / 32, 32], m![FfnTerm, H]> = device
+@@ -752,10 +752,9 @@
+         .collect::<m![H / 32 % 15], m![H % 32]>()
+         .commit_trim::<m![H % 32]>()
+         .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2));
+-    // Replicate only prepared terms to the two cluster-local H480 producers.
+-    // 2*3*3840 = 23040 logical destination bytes; original ring32 seed and
+-    // full512-slice broadcast remain exactly the same function and mappings.
+-    let packed: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![FfnTerm, H % 480]> = packed.to_dm(&mut device.tdma);
++    // The only broadcast helper now reads the original CL0 H480 packed shards
++    // directly into sixteen full-H leaders. This removes the23040B intermediate,
++    // but CL1 seed destinations require92160B across clusters instead of11520B.
+     // Every active source slice contains the identical global scale. Relabel
+     // H/480 as anonymous8 replicas without shrinking the physical/live mask.
+     // Final all512-slice replication remains a real typed DMA; packet padding
