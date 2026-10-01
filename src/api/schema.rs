@@ -79,6 +79,9 @@ pub struct ChatCompletionRequest {
     pub reasoning_effort: Option<String>,
     #[serde(default)]
     pub stream_options: Option<StreamOptions>,
+    /// Performance tests set this so every request generates `max_completion_tokens` tokens.
+    #[serde(default)]
+    pub ignore_eos: bool,
 
     #[serde(default)]
     pub response_format: Option<serde_json::Value>,

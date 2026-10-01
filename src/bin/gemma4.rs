@@ -87,6 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         sampling: SamplingConfig::DEFAULT,
         stop_strings: Vec::new(),
         separate_reasoning: false,
+        ignore_eos: false,
     };
 
     let (print_tx, print_rx) = mpsc::channel::<String>();

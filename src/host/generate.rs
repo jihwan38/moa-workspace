@@ -149,6 +149,9 @@ pub struct GenerationRequest {
     pub sampling: SamplingConfig,
     pub stop_strings: Vec<String>,
     pub separate_reasoning: bool,
+    /// Never stop at an end-of-sequence token: generate exactly `max_new_tokens` tokens.
+    /// Set only by performance tests, to give every request the same output length.
+    pub ignore_eos: bool,
 }
 
 pub struct GenerationOutput {
@@ -265,12 +268,14 @@ impl Generation {
             self.phase = Phase::Prompt(pos + 1);
             return Ok(None);
         }
-        let next = sample(
-            logits,
-            &self.request.sampling,
-            &SUPPRESSED_TOKENS.into_iter().collect::<HashSet<_>>(),
-            &mut rand::rng(),
-        );
+        let mut banned: HashSet<usize> = SUPPRESSED_TOKENS.into_iter().collect();
+        if self.request.ignore_eos {
+            // Channel tokens are banned too: text in the reasoning channel is not part of the
+            // answer, so it would shorten the visible output.
+            banned.extend(EOS_TOKENS);
+            banned.extend([CHANNEL_OPEN_TOKEN, CHANNEL_CLOSE_TOKEN]);
+        }
+        let next = sample(logits, &self.request.sampling, &banned, &mut rand::rng());
         if EOS_TOKENS.contains(&next) {
             return Ok(Some(self.finish(FinishReason::Stop, &mut on_delta)));
         }

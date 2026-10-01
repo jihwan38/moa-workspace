@@ -459,6 +459,7 @@ pub(crate) fn chat_completions(req: &HttpRequest, state: &AppState) -> HttpRespo
             sampling,
             stop_strings,
             separate_reasoning: true,
+            ignore_eos: body.ignore_eos,
         },
         stream,
     );
@@ -612,6 +613,7 @@ pub(crate) fn completions(req: &HttpRequest, state: &AppState) -> HttpResponse {
             sampling,
             stop_strings,
             separate_reasoning: false,
+            ignore_eos: false,
         },
         stream,
     );

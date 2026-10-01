@@ -90,6 +90,14 @@ top-k 64, top-p 0.95). The API does not read `temperature`, `top_p` or `top_k`: 
 that includes them is still accepted and they are ignored, so outputs are random even with
 `temperature: 0`. 
 
+### Fixed output length
+
+A chat completion request with `"ignore_eos": true` always generates exactly
+`max_completion_tokens` tokens. The server excludes the end-of-sequence tokens and the
+reasoning-channel tokens from sampling, so generation does not stop early and every token
+is part of the visible answer. The Stage 2 performance tests set this flag to give every
+request the same output length; other requests leave it unset and stop normally.
+
 ## CLI
 
 For a quick check without the HTTP layer:
