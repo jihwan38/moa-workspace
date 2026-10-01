@@ -1,3 +1,10 @@
+# 2026-10-01 E151 down scale 공급 실험 시작
+
+`opt/ffn-down-scale-ingress-switch`, actualstart `3d4a600e068429114b7b5f49fe9a8482492c5d31`.
+Source/control E150를 명시하고, row low2 scale 적재→SubSwitch4→기존VRF를 구현한다.
+원weighted계산/native/partial은 고정하며 actualgraph 뒤 whole 비교한다.
+[후보](../../moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/README.md).
+
 # 2026-10-01 E150 공식 완료 · E151 scale 공급 경로 선택
 
 공식 `ac53ad0a`는 15비교 PASS, QKV 92,917 / O 42,550 / FFN 296,854 cycles,

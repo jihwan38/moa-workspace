@@ -1,0 +1,55 @@
+{
+  "id": "E151",
+  "variant": "ingress-v1",
+  "actual_start_commit": "3d4a600e068429114b7b5f49fe9a8482492c5d31",
+  "base_commit": "ad1ecb3d3868c7e0ca2e4d1428bbd66bf1111821",
+  "comparison_recipe": "baseline/e150.json",
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-down-weight-stages/measured-build-e150-adoption.json",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "target_kernel": "decoder_feedforward",
+  "scope": "Local scale ingress ownership and existing Sub-to-VRF routing replacement; original weighted arithmetic/native/partials preserved.",
+  "prior": [
+    "E150 readiness141326 actual51PASS: same-clock lastnative to firstreduce median10244; scaleDMA ends8965 later than native, scaleVRF ends1 before eachreduce all6observations. Not additive or reclaimable savings.",
+    "E45 coalesced scale ingress plus DMscatter regressed3.77%; this routes within existing Sub-to-VRF without extra DM scatter.",
+    "E149 O packed weight K1024/MainSwitch4 regressed34.616647%; different operand and critical boundary, include all routing/setup costs here.",
+    "C03 provides public Sub cast/Switch-to-VRF precedent; E144v2 actual quotient-before-lowbit mapping must be independently rechecked."
+  ],
+  "execution": "E150 full path -> scale HBM source slice4g+b owns h=60g+4r+b/full480scale bytes -> each3row source tile -> Sub fetch Time[quarter4,row3]/Packet[120],castF32 -> InterTranspose4(time0=3) -> original DownColumns twelve-row5760BVRF -> original F32blockpartial Mul/reduce/finish.",
+  "coordinates": {
+    "source": "c<2,g<64,b<4,r<15,k<480; slice4g+b, h=60g+4r+b, block=480c+k; HBMbyte=h*960+block",
+    "consumer": "i<5,q<4,r<3,b<4,k<120; source rows3i+r -> destination slice4g+q,row12i+4r+b,block480c+120q+k",
+    "original_scale_bytes": 3686400,
+    "new_f32_switch_payload_bytes": 14745600,
+    "original_and_new_scale_vrf_per_slice_bytes": 5760
+  },
+  "removed": [
+    "Strided120B K-partitioned source scale layout; no logical scale payload saving."
+  ],
+  "added": [
+    "Five Sub InterTranspose4 streams and bitmap/setup",
+    "14.0625MiB F32 Switch payload; replaces original Sub loads, not a free routing operation."
+  ],
+  "unchanged_costs": [
+    "E150 two downFP4 stages/native and original full60F32partials/five12reducers",
+    "Original weighted E5 quantization, sharedTRF, native term restore order and all scales values",
+    "Up/gate, QKV/O sources and numerical contract"
+  ],
+  "adoption": {
+    "decision": "pending exact actual routing/VRF gate and contemporary whole45 bracket",
+    "positive": "freeze any net gain;3independent allocations,extra6,original rawdown9 and fullFFNregression; no5percent adoption minimum"
+  },
+  "tuning": {
+    "decision": "no width,row,ring sweep",
+    "first_stop": "gate mapping/extent/lifetime error requires concrete source-contract repair; actual regression stops frozen prototype, not all scale ingress architectures"
+  },
+  "major_research": {
+    "decision": "Test changed ownership and in-stream scale delivery at current measured completion gate",
+    "limit": "Added Switch/MainSub contention or scheduling can outweigh shorter source ingress; exact static is not hardware prediction"
+  }
+}
