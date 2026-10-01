@@ -29,7 +29,7 @@ scale/reduce 산술·후단은 유지한다. E150의10,244cycle 준비 간격을
 
 채택은 재현된 작은 이득과 정확도 검증에 근거한다. 추가 row/ring 튜닝은 중단한다.
 병렬 E152 gateweight15+15는 E150에서 별도로 출발했으며 E151 변경을 상속하지 않는다.
-그 결과·합성 채택은 별도 기록과 검증 대상이다. 아래 항목은 각 작성 시점의 상태다.
+E152는 이후45비교PASS에도whole +10.05543% 회귀로종료했다. 합성채택하지않는다. 아래항목은각작성시점의상태다.
 
 # 2026-10-01 E151 down scale 공급 실험 시작
 
@@ -37,6 +37,22 @@ scale/reduce 산술·후단은 유지한다. E150의10,244cycle 준비 간격을
 Source/control E150를 명시하고, row low2 scale 적재→SubSwitch4→기존VRF를 구현한다.
 원weighted계산/native/partial은 고정하며 actualgraph 뒤 whole 비교한다.
 [후보](../../moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/README.md).
+
+# 2026-10-01 E152 gate 분할 회귀 종료
+
+E152141424는45비교PASS지만FFN327706 vs E150297644/297885, bracket대비
++10.05543% 회귀로미채택한다. 컴파일일정의입력전송interleave가전체이득이되지는않았다.
+Raw-upgate/fullFFN은원본reference와빌드검증만완료, boundaryNPU0. 추가stage/row튜닝없다.
+E151은별도검증된개선이며이후보에포함되지않는다.
+[종료판정](../../moa-dev/experiments/candidates/ffn-gate-weight-stages/decision.json).
+
+# 2026-10-01 E152 gate weight 공급 병렬 실험 시작
+
+`opt/ffn-gate-weight-stages`, actualstart `ffce3481842b8f71a635a2dc2ba773518856ec05`.
+Source/control E150이며 미채택 E151을 포함하지 않는다. 초기activation gather의 실제대기를
+목표로 gate만15+15 compact/native→원partial직접쓰기를검증한다. 별도추가DMA/lookup비용포함.
+두후보가모두양성이면합성은새로검증한다.
+[후보](../../moa-dev/experiments/candidates/ffn-gate-weight-stages/README.md).
 
 # 2026-10-01 E150 공식 완료 · E151 scale 공급 경로 선택
 

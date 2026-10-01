@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "method": "Actual official gemma4.MLP + GloballyScaled + RMSNorm on CPU with dense locally-scaled BF16 nn.Linear weights; no candidate numerical reference substitution.",
+  "source_revision": "cc82b9ccff22795165faffd3ba9a68cc557da001",
+  "official_prng_seed": false,
+  "component_wise_generator_range": true,
+  "npu_executed": false,
+  "source_files": {
+    "generate_reference.py": {
+      "bytes": 5813,
+      "sha256": "7e72a596a435545b709e992ab452cf008ca1f8b3a86c05561ed4d1e77ae1f064"
+    },
+    "upstream/fixture_prng.py": {
+      "bytes": 9481,
+      "sha256": "a07e785fbc0c452e7933d6a6184bc6625b0ae0d81b5f0fd20b0eb1f8d1469d6d"
+    },
+    "upstream/generate_references.py": {
+      "bytes": 20247,
+      "sha256": "eb3454334609f30796be776230e324eedc1354fe81371b057dac914332fb1860"
+    },
+    "upstream/reference/gemma4.py": {
+      "bytes": 13777,
+      "sha256": "0095a36a51dca34bd162a0c41aeb9fdbe1a779f91228ee398f2b655922264775"
+    }
+  },
+  "torch_version": "2.14.0+cpu",
+  "numpy_version": "2.2.6",
+  "cpu_threads": 2,
+  "inputs": {
+    "residual": {
+      "shape": [
+        3840
+      ],
+      "dtype": "bf16_le",
+      "bytes": 7680,
+      "sha256": "38d4647106b72e340d44f2e8c8f68c78d4be951acf3a6c510ada6f4717f102b2",
+      "prng_checksum_u32": 4091543552,
+      "prng_checksum_hex": "f3e00000"
+    },
+    "pre_ff_rms_weight": {
+      "shape": [
+        3840
+      ],
+      "dtype": "bf16_le",
+      "bytes": 7680,
+      "sha256": "38d4647106b72e340d44f2e8c8f68c78d4be951acf3a6c510ada6f4717f102b2",
+      "prng_checksum_u32": 4091543552,
+      "prng_checksum_hex": "f3e00000"
+    },
+    "post_ff_rms_weight": {
+      "shape": [
+        3840
+      ],
+      "dtype": "bf16_le",
+      "bytes": 7680,
+      "sha256": "38d4647106b72e340d44f2e8c8f68c78d4be951acf3a6c510ada6f4717f102b2",
+      "prng_checksum_u32": 4091543552,
+      "prng_checksum_hex": "f3e00000"
+    },
+    "up_global_scale": {
+      "shape": [
+        1
+      ],
+      "dtype": "f32_le_reciprocal",
+      "bytes": 4,
+      "sha256": "e696a8ec6b7f294aa56059125664931f12997987bb52fffefc209d35492adc3c",
+      "prng_checksum_u32": 973078528,
+      "prng_checksum_hex": "3a000000"
+    },
+    "gate_global_scale": {
+      "shape": [
+        1
+      ],
+      "dtype": "f32_le_reciprocal",
+      "bytes": 4,
+      "sha256": "e696a8ec6b7f294aa56059125664931f12997987bb52fffefc209d35492adc3c",
+      "prng_checksum_u32": 973078528,
+      "prng_checksum_hex": "3a000000"
+    },
+    "down_global_scale": {
+      "shape": [
+        1
+      ],
+      "dtype": "f32_le_reciprocal",
+      "bytes": 4,
+      "sha256": "e696a8ec6b7f294aa56059125664931f12997987bb52fffefc209d35492adc3c",
+      "prng_checksum_u32": 973078528,
+      "prng_checksum_hex": "3a000000"
+    },
+    "layer_scalar": {
+      "shape": [
+        8
+      ],
+      "dtype": "bf16_le",
+      "bytes": 16,
+      "sha256": "89b6d029755de6d70c03e4c7530e905b8302186a6e0328e7d77d6d6958d5e7a2",
+      "prng_checksum_u32": 3959680000,
+      "prng_checksum_hex": "ec03ec00"
+    },
+    "up_weight_packed": {
+      "shape": [
+        15360,
+        3840
+      ],
+      "dtype": "f4e2m1_low_nibble_first",
+      "bytes": 29491200,
+      "sha256": "71c48c3b71b614b5b08c411e304d9fec7a282ebd580ca3d4a5ce85d6b9884199",
+      "prng_checksum_u32": 3568965233,
+      "prng_checksum_hex": "d4ba1671"
+    },
+    "up_weight_scale": {
+      "shape": [
+        15360,
+        240
+      ],
+      "dtype": "f8e4m3_bits",
+      "bytes": 3686400,
+      "sha256": "0842ce06bfbf41c84a561ee4bfdffc48c0156b3ac6a5ae60574ed7cff5e78ec7",
+      "prng_checksum_u32": 2587877632,
+      "prng_checksum_hex": "9a3fe100"
+    },
+    "gate_weight_packed": {
+      "shape": [
+        15360,
+        3840
+      ],
+      "dtype": "f4e2m1_low_nibble_first",
+      "bytes": 29491200,
+      "sha256": "838756bd9e3e5d321f2948776038a9b57adbdb2e9fbab116fde1712678106d1d",
+      "prng_checksum_u32": 2723301876,
+      "prng_checksum_hex": "a25249f4"
+    },
+    "gate_weight_scale": {
+      "shape": [
+        15360,
+        240
+      ],
+      "dtype": "f8e4m3_bits",
+      "bytes": 3686400,
+      "sha256": "0842ce06bfbf41c84a561ee4bfdffc48c0156b3ac6a5ae60574ed7cff5e78ec7",
+      "prng_checksum_u32": 2587877632,
+      "prng_checksum_hex": "9a3fe100"
+    },
+    "down_weight_packed": {
+      "shape": [
+        3840,
+        15360
+      ],
+      "dtype": "f4e2m1_low_nibble_first",
+      "bytes": 29491200,
+      "sha256": "6ec1db080cbf8ff2f5154b43cf2f8468c856dd5dac2d69dd5f09d7d2f92c3336",
+      "prng_checksum_u32": 3171505920,
+      "prng_checksum_hex": "bd095700"
+    },
+    "down_weight_scale": {
+      "shape": [
+        3840,
+        960
+      ],
+      "dtype": "f8e4m3_bits",
+      "bytes": 3686400,
+      "sha256": "1653d98d39c4127d8ffa50e5b416614bfe2192886238e074ef7849d518922edd",
+      "prng_checksum_u32": 2533359616,
+      "prng_checksum_hex": "97000000"
+    }
+  },
+  "intermediates": {
+    "gate_raw": [
+      {
+        "value": 2.0,
+        "count": 15358
+      },
+      {
+        "value": 16384.0,
+        "count": 1
+      },
+      {
+        "value": 65536.0,
+        "count": 1
+      }
+    ],
+    "gate_scaled": [
+      {
+        "value": 0.0009765625,
+        "count": 15358
+      },
+      {
+        "value": 8.0,
+        "count": 1
+      },
+      {
+        "value": 32.0,
+        "count": 1
+      }
+    ],
+    "up_raw": [
+      {
+        "value": 1.0,
+        "count": 15358
+      },
+      {
+        "value": 128.0,
+        "count": 1
+      },
+      {
+        "value": 65536.0,
+        "count": 1
+      }
+    ],
+    "up_scaled": [
+      {
+        "value": 0.00048828125,
+        "count": 15358
+      },
+      {
+        "value": 0.0625,
+        "count": 1
+      },
+      {
+        "value": 32.0,
+        "count": 1
+      }
+    ],
+    "post_geglu": [
+      {
+        "value": 2.384185791015625e-07,
+        "count": 15358
+      },
+      {
+        "value": 0.5,
+        "count": 1
+      },
+      {
+        "value": 1024.0,
+        "count": 1
+      }
+    ],
+    "down_raw": [
+      {
+        "value": 0.1650390625,
+        "count": 3840
+      }
+    ],
+    "down_scaled": [
+      {
+        "value": 8.058547973632812e-05,
+        "count": 3840
+      }
+    ]
+  },
+  "post_rms": [
+    {
+      "value": 0.08056640625,
+      "count": 3840
+    }
+  ],
+  "expected": {
+    "path": "expected-bf16.bin",
+    "shape": [
+      3840
+    ],
+    "dtype": "bf16_le",
+    "bytes": 7680,
+    "sha256": "d2930beb2df2274c5b316865d4563e4babe550c1ef930cf2bbcd02cca79f3a74",
+    "unique": [
+      {
+        "value": 0.404296875,
+        "count": 3840
+      }
+    ],
+    "unique_bits": [
+      16079
+    ],
+    "prng_checksum_u32": 2365308928
+  },
+  "unchanged_tolerance": {
+    "atol": 0.01,
+    "rtol": 0.01
+  },
+  "scope": "A deliberately correlated, component-wise in-range construction. Actual reference CPU execution does not establish that a public PRNG seed generates these tensors or that an NPU image passes/fails it."
+}

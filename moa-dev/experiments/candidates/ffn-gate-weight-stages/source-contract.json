@@ -1,0 +1,35 @@
+{
+  "status": "source-only unselected; no compile/NPU",
+  "origin_sha256": "813aa7068376a41833723748ba31bf43008972bb5ff9b4e1e7cbc3d185a23530",
+  "proposal": {
+    "bytes": 43556,
+    "sha256": "161208784bddca914d2e8188d94e3b249de6afb2eb989636ddbb26cadd11458c"
+  },
+  "intended_change": "Gate only full30FP4 ingress/native -> two15row compact native streams writing original full30F32partial halves, old five6scaleconsumers unchanged",
+  "half_weight_bytes_per_slice": 28800,
+  "half_partial_bytes_per_slice": 14400,
+  "partial_offsets": [
+    0,
+    14400
+  ],
+  "cross_half_consumer_rows": [
+    12,
+    17
+  ],
+  "added": [
+    "One gate DMA/native/lookup and live alias join"
+  ],
+  "unchanged": [
+    "All logical weight/partial traffic",
+    "original up helper",
+    "all source after cast_gathered_rows incl E150down",
+    "scale values/arithmetic/consumerbody"
+  ],
+  "must_verify": [
+    "actual15row fetch/partialcommit bounds",
+    "TRF CSE remains shared and coefficient lifetime",
+    "ready activation gather interleaves between gate DMAs; no source-order guarantee",
+    "current source-recipe composition if E151 adopted",
+    "source/full/standard/raw-up oracle before adoption"
+  ]
+}

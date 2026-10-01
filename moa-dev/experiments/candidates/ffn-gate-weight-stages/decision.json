@@ -1,0 +1,34 @@
+{
+  "id": "E152",
+  "status": "not_adopted_whole_regression",
+  "adopted": false,
+  "variant": "staged-v1",
+  "source_control": "E150; parallel E151 was not included",
+  "actual_start_commit": "ffce3481842b8f71a635a2dc2ba773518856ec05",
+  "result": "45 original comparisons PASS; wholeFFN327706 vs E150297644/297885, bracket297764.5, +10.0554297104%",
+  "evidence": {
+    "screen": "moa-dev/experiments/candidates/ffn-gate-weight-stages/screen-decision.json",
+    "actual_graph": "moa-dev/experiments/candidates/ffn-gate-weight-stages/graph-verification-e152-staged-v1.json",
+    "boundaries": "moa-dev/experiments/candidates/ffn-gate-weight-stages/boundary-results.json"
+  },
+  "adoption": {
+    "decision": "reject this measured frozen combination",
+    "reason": "Whole regression despite passing first original standard3inputs; raw/full boundaries only built, not run."
+  },
+  "tuning": {
+    "decision": "stop this gate stage-count family for current deadline",
+    "reason": "Do not sweep row counts or assert fewer stored bytes; exact extraDMA/native/lookup adds cost, no physical regression cause isolated."
+  },
+  "major_research": {
+    "decision": "Reconsider initial activation/RMS/quantizer ownership instead of another weight-stage split",
+    "reason": "Static interleaving did not translate to whole speed; original small input gather may be removed with changed producer/consumer ownership, but such path is unselected/unproven."
+  },
+  "correctness_scope": {
+    "standard_distinct_inputs": 3,
+    "candidate_comparisons": 15,
+    "total_comparisons": 45,
+    "raw_projection_npu_cases": 0,
+    "full_regression_npu_cases": 0
+  },
+  "official_submission": false
+}

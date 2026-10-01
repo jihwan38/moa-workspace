@@ -1,0 +1,65 @@
+{
+  "id": "E152",
+  "variant": "staged-v1",
+  "actual_start_commit": "ffce3481842b8f71a635a2dc2ba773518856ec05",
+  "base_commit": "ad1ecb3d3868c7e0ca2e4d1428bbd66bf1111821",
+  "comparison_recipe": "baseline/e150.json",
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-down-weight-stages/measured-build-e150-adoption.json",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "target_kernel": "decoder_feedforward",
+  "scope": "One local gate ingress/native dependency replacement for current initial activation gather; separate parallel prototype, not a stage-count sweep.",
+  "parallel_scope": "E151 pending and not inherited. All completed E150 records integrated before this branch. If both improve, their combined source requires its own comparison and boundary binding.",
+  "prior": [
+    "E150 actual readiness141326 preRMSend11842, inputgather11844..53733 overlapping gateweight4360..52287. These endpoint medians are not paired savings.",
+    "M07 split and assembled weights before full FP8 conversion; original absolute input readiness became later and whole regressed. Here direct15 native writes originalpartial; no full packed/FP8 assembly.",
+    "M04 materialized tiles increased DMA35to74/native3to15 and regressed13.67%. This changes gate alone by one extra DMA/native/lookup.",
+    "E56 old16row up/BF16materialization failed correctness, rootcause unresolved; no inherited correctness.",
+    "E142 reduced direct6row table repetition, so extra gate lookup is a real contrary cost. E150 down split demonstrated safe direct half partial writes and net gain only for its tested combination."
+  ],
+  "execution": "E150 unchanged up and quantizer/sharedTRF -> gateweight FP4 two compact15row loads ->2 original directE5 native/scale streams ->disjoint halves of original full30F32blockpartials ->original five6blockscale/H reductions ->unchangedGeGLU/E150down/suffix.",
+  "coordinates": {
+    "source": "c<2,s<256,t<2,r<15,h<3840: Lrow=7680c+30s+15t+r; HBMbyte=Lrow*1920+floor(h/2)",
+    "packed_half_per_slice_bytes": 28800,
+    "partial_half_per_slice_bytes": 14400,
+    "partial_root_per_slice_bytes": 28800,
+    "partial_offsets": [
+      0,
+      14400
+    ],
+    "cross_half_consumer_rows": [
+      12,
+      17
+    ]
+  },
+  "removed": [
+    "One indivisible full30 gate-weight/native completion dependency; no logical payload removal"
+  ],
+  "added": [
+    "One gate weight DMA/native/lookup",
+    "partial both-write join and potential live-register/allocator costs"
+  ],
+  "unchanged_costs": [
+    "All original packed weight/F32partial traffic",
+    "Native FP32 term/inputscale restoration and five6row consumer arithmetic",
+    "Original up helper and source after cast_gathered_rows byte-identical incl E150down",
+    "QKV/O images expected unchanged"
+  ],
+  "adoption": {
+    "decision": "pending actualbounds/joins/register/sharedTRF gate and earlywhole45 bracket",
+    "positive": "freeze net gain and3independent allocations/extra6/unchanged raw-upgate oracle/fullFFNregression; no5percent minimum"
+  },
+  "tuning": {
+    "decision": "stop at one15+15 layout unless concrete source-contract bug requires repair",
+    "first_stop": "NPU regression stops frozen prototype absent a measured changed-cost repair; consecutive DMA or delayed input weakens hypothesis"
+  },
+  "major_research": {
+    "decision": "Advance actual initial input readiness during first gateweight supply, accounting extra lookup and native",
+    "limit": "No source-order priority guarantee; earlier intermediate completion can be offset downstream"
+  }
+}
