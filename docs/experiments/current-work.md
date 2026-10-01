@@ -1,3 +1,11 @@
+# 2026-10-01 E150 FFN down 공급 분할 시작
+
+`opt/ffn-down-weight-stages`, actualstart `024a0fd1d711d14c5c6355deb76f377828022d47`, source/control E147.
+현재실측upgather/downweight겹침에대해원60rowFP4를compact30+30으로적재하고
+두weightednative가원래full60F32partial의분리된절반에직접쓴다. five12소비자와
+quant/TRF/3항계수/나머지커널은고정. 추가lookup/native/DMA비용포함whole검증예정.
+[후보](../../moa-dev/experiments/candidates/ffn-down-weight-stages/README.md).
+
 # 2026-10-01 E149 종료·E150 FFN down 공급 분할 선택
 
 E149 O K1024ingress/MainSwitch4는45비교PASS지만57414/bracket42650(+34.616647%)

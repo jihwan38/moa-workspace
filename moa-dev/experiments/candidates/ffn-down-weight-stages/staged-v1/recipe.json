@@ -1,0 +1,65 @@
+{
+  "id": "E150",
+  "variant": "staged-v1",
+  "actual_start_commit": "024a0fd1d711d14c5c6355deb76f377828022d47",
+  "base_commit": "fb45202bba3c24537f74b4bf463276b76d823773",
+  "comparison_recipe": "baseline/e147.json",
+  "source_reference_build": "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/measured-build-e147-adoption.json",
+  "changed_sources": {
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "target_kernel": "decoder_feedforward",
+  "scope": "Local coupled FFN down weight supply/native dependency replacement; no stage-count sweep or precision change.",
+  "prior": [
+    "D-E148 actual current E142 FFN: up result gather ends after down weight ingress; GeGLU to downTRF median36829 and native+1 all6observations. Envelopes not additive savings.",
+    "C09 staged O API precedent; E146 staged Q/K did not reproduce gain; neither transfers a gain",
+    "M04 five-staged all projections/materialized upgate/BF16down regressed13.67%; this is current weightedE5 directdown only2stage without assembly",
+    "C12 Main/Sub separation added packing and regressed; original five12blockscale/Main contexts preserved here"
+  ],
+  "execution": "Unchanged upgate/direct full30/partial/reduce/GeGLU -> unchanged canonical weightedE5 quantizer/broadcast/shared downTRF+coeffVRF -> original FP4 HBM60row split compact30+30 ->2 independent lookup/native streams ->direct disjoint writes to original F32full60partial root ->same five12blockscale/localK/K4reduce ->same clustermerge/BF16/epilogue",
+  "coordinates": {
+    "source": "c<2,g<64,q<4,t<2,r<30,k<1920; slice4g+q; h=60g+30t+r; l=7680c+1920q+k; HBMbyte=(h*15360+l)/2",
+    "packed_half_per_slice_bytes": 28800,
+    "packed_half_alignment": "225*128B; actual descriptor source/destination128B phase must be verified",
+    "partial_half_per_slice_bytes": 14400,
+    "partial_offsets_bytes": [
+      0,
+      14400
+    ],
+    "partial_root_per_slice_bytes": 28800,
+    "cross_half_consumer_rows": [
+      24,
+      35
+    ]
+  },
+  "removed": [
+    "One indivisible60row down-weight ingress/native dependency; no logical payload removal is claimed"
+  ],
+  "added": [
+    "One weight DMA",
+    "One native/lookup stream and possibly one table preparation",
+    "Mutable partial IndexWrite/join dependencies"
+  ],
+  "unchanged_costs": [
+    "FP4 HBM29491200B total",
+    "F32partialwrite/read14745600B each",
+    "Weighted E5precision/inputquantization/broadcast/TRF",
+    "Full scales load and five12reduce; QKV/O"
+  ],
+  "adoption": {
+    "decision": "pending exact actualdescriptor/lifetime gate andearlywhole45bracket",
+    "positive": "freeze any net gain for3independent allocations,extra6,original rawdown9/fullFFNregression; no5percent minimum"
+  },
+  "tuning": {
+    "decision": "no stagecount/rowsize sweep",
+    "first_stop": "concrete sourcecontract repair allowed; regression stops arbitrary tuning, changed schedule opportunity must be observed rather than asserted"
+  },
+  "major_research": {
+    "decision": "Let ready upgather/GeGLU progress between down-weight portions if the compiler schedule permits, then overlap weightedinput preparation with remaining weight",
+    "limit": "No public sourceorderpriority; consecutive DMA may preserve oldbarrier. Added table/native may outweigh overlap."
+  }
+}
