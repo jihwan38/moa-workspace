@@ -482,3 +482,12 @@
   Distinguish latest final-evaluation source from best displayed score; unchanged
   QKV/O timing variation is not FFN code gain. Deadline is20:59KST October1;
   the official announcement selects the last pre-deadline submission as final.
+
+- E153 first whole141557 passes45 but regresses1.145435percent against E151
+  brackets(298332 versus294978/294929). Actual original RMS arithmetic through
+  F32 DM is preserved, followed by local BF16H480, globalMax on8valid shards
+  (emitted ratio256), late packed23040B and original ring/native/down. The
+  first loss prevents adoption; raw8/fullFFN are built but NPU0. Stop parameter
+  sweeps. One frozen E151/E153 names-only readiness comparison may identify a
+  concrete added dependency or shifted suffix cost before a supported repair.
+  Removing early gather does not itself prove speed or the old M06 timeout cause.

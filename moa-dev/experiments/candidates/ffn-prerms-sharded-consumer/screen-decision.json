@@ -1,0 +1,60 @@
+{
+  "id": "E153",
+  "status": "screen_no_net_gain",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "8adbbae1776aa8080a96348a9d9a64022a0cf6d0",
+  "comparison_recipe": "baseline/e151.json",
+  "candidate_build_label": "e153-sharded-v1",
+  "job": 141557,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_ffn_cycles": 298332,
+  "control_before_ffn_cycles": 294978,
+  "control_after_ffn_cycles": 294929,
+  "bracketing_median": 294953.5,
+  "change_percent": 1.1454347888735006,
+  "candidate_cycles_by_run": [
+    305953,
+    298332,
+    296915
+  ],
+  "static_candidate_cycles": 143947,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/graph-verification-e153-sharded-v1.json",
+      "bytes": 1955,
+      "sha256": "02206a173694b7f40781ab679d1dee4f725317d913ed8626282fec8da33ce301"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/e153-sharded-v1-screen-job-141557-results.json",
+    "bytes": 5329,
+    "sha256": "797fcd1765de9b2799f14fa8c8cdb999b949c03d30740dd748c8cff3d806ce59"
+  },
+  "late_packed_cluster_destination_bytes": 23040,
+  "retained_ring_leader_destination_bytes": 184320,
+  "retained_ring_broadcast_destination_bytes": 5898240,
+  "added_global_inter_max_streams": 1,
+  "cost_scope": "Removes pre-RMS final F32 gather, early canonical BF16 cluster replication and resharding; adds globalMax and23040B late packed destination. Original native/partial/down/E151scale and ring32 costs remain. Source/byte/static changes do not establish savings.",
+  "scope": "Three changed files: FFN-only ops caller, dedicated RMS local-BF16 output helper, and cluster0 sharded quantizer/compatibility wrapper. Original RMS arithmetic, quantizer residual operations, bounded480B copies and downstream E151 path preserved. Raw upgate does not cover pre-RMS; whole and changed-boundary correctness are separate.",
+  "decisions": {
+    "adoption": {
+      "status": "not_promoted_from_this_screen",
+      "reason": "This single allocation did not show a net gain. Preserve it; root decides whether a concrete unresolved variance or implementation issue justifies another check.",
+      "remaining_checks": []
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does keeping original pre-RMS H480 output shards through cluster0 quantization eliminate early canonical gather/replication dependencies once globalMax, late packed CL2 copy and retained ring32/TRF costs are included? No overlapping interval is a saving promise."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}

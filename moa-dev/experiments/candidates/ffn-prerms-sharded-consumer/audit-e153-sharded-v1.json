@@ -1,0 +1,894 @@
+{
+  "passed": true,
+  "candidate": "E153",
+  "label": "e153-sharded-v1",
+  "inputdigests": {
+    "build_record": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/build-e153-sharded-v1-repro.json",
+      "bytes": 18223,
+      "sha256": "02d42deab0744e7f0b47f4c55efc51f1d126cca778935ef6345e3334d6ab8741"
+    },
+    "graph": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/evidence/e153-sharded-v1/graph.json",
+      "bytes": 448722,
+      "sha256": "70a737d027609e3c3449d553ddedec63f4da19976dd695dbb190aeafde06ee70"
+    },
+    "schedule": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/evidence/e153-sharded-v1/schedule.json",
+      "bytes": 231387,
+      "sha256": "c71bd45d35506bb94710476edfde577b95f73da9ce9a4757e97c22e6ed081317"
+    },
+    "baseline_build": {
+      "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/measured-build-e151-adoption.json",
+      "bytes": 22643,
+      "sha256": "1204d37692299b5088e3e135cc2e122100f1f5a14b936039de81806ea35a6e1f"
+    },
+    "baseline_graph": {
+      "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/evidence/e151-ingress-v1/graph.json",
+      "bytes": 444522,
+      "sha256": "0281348f6e1d7678e76fb52495234d3fdf718371244c2dd7e6465d7fb1dfec72"
+    },
+    "recipe": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/sharded-v1/recipe.json",
+      "bytes": 3606,
+      "sha256": "dbd39da5cd00847791098339483acdf207ac84be1cc97d9e8a253e4ccde45140"
+    },
+    "source_review": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/source-review/source_review.json",
+      "bytes": 4702,
+      "sha256": "9b4eb40442d314f7ae1a2ebe1ef28bfadd6e6cb5e5cb42048fa5bd466e730fce"
+    },
+    "source_verifier": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/source-review/source_review.py",
+      "bytes": 7546,
+      "sha256": "b6a4c0d025084bc500d83e948717cb03934bf64b244b008debf3b5b53cae270f"
+    },
+    "verifier": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/audit.py",
+      "bytes": 10600,
+      "sha256": "081f5df5e6ef0ec02d183a1135b2c258a69c7b66ae9bf4014d0f2e422d6c3624"
+    },
+    "descriptor_helper": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/verify_graph.py",
+      "bytes": 26418,
+      "sha256": "c87e0d1d4f15cdab46b936bb2ed15f2a10ffe489e11ffddf6348ff2c24557e0a"
+    },
+    "copy_helper": {
+      "path": "moa-dev/experiments/candidates/ffn-independent-direct-copy-repair/independent-audit.py",
+      "bytes": 16082,
+      "sha256": "a612a8155be722b013ff87b9d6968ef040acb08e75c65e27a8a89635fef9628e"
+    },
+    "ops.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/sharded-v1/ops.rs",
+      "bytes": 12822,
+      "sha256": "59a4ab6414d362876255caa8f332a01a567efd5ded0afa2d43da7ffe34e3c61e"
+    },
+    "rmsnorm.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/sharded-v1/rmsnorm.rs",
+      "bytes": 14764,
+      "sha256": "e2aa2efffd7cd6e257772c679b8655f42041963ed568688693842a466546bfc2"
+    },
+    "mlp.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/sharded-v1/mlp.rs",
+      "bytes": 41436,
+      "sha256": "ea39b36a37aac00f1f1293bbe3ed5bd776c552dfefc7fbb490068df570eda756"
+    }
+  },
+  "source": {
+    "compiled_input_count": 46,
+    "changed_from_e151": [
+      "src/device/shared/mlp.rs",
+      "src/device/shared/rmsnorm.rs",
+      "src/ops.rs"
+    ],
+    "unchanged_other_inputs": 43,
+    "source_math_review_passed": true,
+    "finite_bf16_patterns": 65280,
+    "unchanged_qkv_o_images": {
+      "sliding_project_qkv": {
+        "path": "moa-dev/experiments/artifacts/ffn-prerms-sharded-consumer/e153-sharded-v1/standard-kernels/furiosa_opt_gemma4::ops::sliding_project_qkv.bin",
+        "bytes": 219904,
+        "sha256": "fd2e252603b4de38389d8720edd78d6ae1b5c82514f6869934a5ebbb46c5f5fb"
+      },
+      "sliding_attention_output": {
+        "path": "moa-dev/experiments/artifacts/ffn-prerms-sharded-consumer/e153-sharded-v1/standard-kernels/furiosa_opt_gemma4::ops::sliding_attention_output.bin",
+        "bytes": 122880,
+        "sha256": "4dde46bfbff2b07c0870f5baf8d5a857b2b0fb7176816f9b0eb417260a671cb4"
+      }
+    }
+  },
+  "actual": {
+    "rms_first_ten_emitted_operations_identical_to_e151": true,
+    "local_cast": "RenegadeCommand#O10",
+    "input_cluster": 0,
+    "valid_input_slices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "h480_local_max": "RenegadeCommand#O11",
+    "global_max": {
+      "operator": "RenegadeCommand#O12",
+      "actual_ratio": 256,
+      "valid_source_shards": 8,
+      "canonical_output_cluster_slice": [
+        0,
+        0
+      ]
+    },
+    "scale_operator": "RenegadeCommand#O13",
+    "scale_supply_valid_shards": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "late_packed_dma": {
+      "operator": "DmaCommand#O40",
+      "packets": 32,
+      "packet_bytes": 720,
+      "destination_bytes": 23040,
+      "source_cluster": 0,
+      "destination_clusters": [
+        0,
+        1
+      ],
+      "source_target_same_h_shard": true
+    },
+    "ring_seed_dma": {
+      "operator": "DmaCommand#O42",
+      "packets": 384,
+      "packet_bytes": 480,
+      "destination_bytes": 184320
+    },
+    "scalar_restore_all512": true,
+    "copy_bitmap": {
+      "copies": [
+        {
+          "operator": "RenegadeCommand#O26",
+          "term": 0,
+          "read_bytes": 480,
+          "write_bytes": 480,
+          "packet_count": 15,
+          "packet_bytes": 32,
+          "root": 36,
+          "root_base_per_slice": 9984,
+          "logical_write_bounds": [
+            0,
+            480
+          ],
+          "physical_write_bounds": [
+            9984,
+            10464
+          ]
+        },
+        {
+          "operator": "RenegadeCommand#O31",
+          "term": 1,
+          "read_bytes": 480,
+          "write_bytes": 480,
+          "packet_count": 15,
+          "packet_bytes": 32,
+          "root": 36,
+          "root_base_per_slice": 9984,
+          "logical_write_bounds": [
+            480,
+            960
+          ],
+          "physical_write_bounds": [
+            10464,
+            10944
+          ]
+        },
+        {
+          "operator": "RenegadeCommand#O36",
+          "term": 2,
+          "read_bytes": 480,
+          "write_bytes": 480,
+          "packet_count": 15,
+          "packet_bytes": 32,
+          "root": 36,
+          "root_base_per_slice": 9984,
+          "logical_write_bounds": [
+            960,
+            1440
+          ],
+          "physical_write_bounds": [
+            10944,
+            11424
+          ]
+        }
+      ],
+      "bitmap": {
+        "graph_tensor": 58,
+        "graph_consumer": "RenegadeCommand#O44",
+        "physical_bounds_per_slice": [
+          13056,
+          13088
+        ],
+        "schedule_tensor": {
+          "name": "",
+          "index": "39",
+          "buffer_type": "Sram",
+          "lifetime": {
+            "begin": 2745,
+            "end": 55037,
+            "block_begin": 0,
+            "block_end": 0
+          },
+          "address": 6684672,
+          "size": 16384,
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "fingerprint": null
+        },
+        "load": {
+          "index": "45",
+          "history": {
+            "resourcelir": "O45"
+          },
+          "tpe": "DmaLoad",
+          "contexts": [
+            "DmaEngine"
+          ],
+          "lifetime": {
+            "begin": 2745,
+            "end": 3464
+          },
+          "input_tensors": [
+            40
+          ],
+          "output_tensors": [
+            39
+          ],
+          "description": "",
+          "util": {
+            "total_util": 0.018080669,
+            "base_util": 0.018080669,
+            "efficiency": 1.0
+          }
+        },
+        "consumer": {
+          "index": "279",
+          "history": {
+            "resourcelir": "O279"
+          },
+          "tpe": "Main",
+          "contexts": [
+            "MainContext"
+          ],
+          "lifetime": {
+            "begin": 43254,
+            "end": 55037
+          },
+          "input_tensors": [
+            153,
+            39
+          ],
+          "output_tensors": [
+            159
+          ],
+          "description": "--> src/device/shared/mlp.rs:619:83\n\ndevice\n.main.begin(x.view())\n.fetch::<m![FfnTerm], m![H]>()\n.switch::<m![Dummy256 / 32, 32], m![FfnTerm]>(SwitchConfig::CustomBroadcast { ring_size: 32 })\n.collect::<m![FfnTerm, H / 32], m![H % 32]>()\n.commit_trim::<m![H % 32]>().commit()",
+          "util": {
+            "total_util": 0.0,
+            "base_util": 0.0,
+            "efficiency": 0.0
+          }
+        },
+        "embedded_pattern_found": true,
+        "repaired_writes_overlap": false
+      }
+    },
+    "all_vrf_lifetimes_nonoverlapping_within_8kib": true,
+    "register_buffers": [
+      {
+        "name": "scale_vrf",
+        "index": "248",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 85865,
+          "end": 87027,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "hi_vrf",
+        "index": "131",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 29142,
+          "end": 30999,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 3211264,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "hi_vrf",
+        "index": "291",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 97979,
+          "end": 99104,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 65536,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (1 # 16, TileL / 480), Element: TileL % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "183",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 66003,
+          "end": 67165,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 262144,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "residual_vrf",
+        "index": "351",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 137093,
+          "end": 142298,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1064960,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "244",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 84703,
+          "end": 85865,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "weight_vrf",
+        "index": "38",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 2545,
+          "end": 5929,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 524288,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "",
+        "index": "357",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 139998,
+          "end": 140399,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 3178496,
+        "size": 524288,
+        "physical_pages": [],
+        "shape": "",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "281",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 96811,
+          "end": 100008,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 49152,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (1 # 16, TileL / 480), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "rms_vrf",
+        "index": "361",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 141289,
+          "end": 141957,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2064384,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "240",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 83541,
+          "end": 84703,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T551)_i11_broadcast_geglu_scale_0",
+        "index": "177",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 56740,
+          "end": 82329,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (TileL / 120, 1 # 4), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "x_scale_vrf",
+        "index": "152",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 35961,
+          "end": 81724,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 16384,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "215",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 74965,
+          "end": 83512,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "",
+        "index": "34",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 1999,
+          "end": 2400,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 0,
+        "size": 524288,
+        "physical_pages": [],
+        "shape": "",
+        "fingerprint": null
+      },
+      {
+        "name": "rms_vrf",
+        "index": "111",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 5261,
+          "end": 5929,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1507328,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "gelu_vrf",
+        "index": "238",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 82872,
+          "end": 93217,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 3702784,
+        "size": 245760,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (TileL / 120, 1 # 4), Element: TileL % 120]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "127",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 28395,
+          "end": 31903,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1523712,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "344",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 134903,
+          "end": 136631,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "vISA(T542)_i10_broadcast_geglu_scale_0",
+        "index": "239",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 83195,
+          "end": 92906,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 32768,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (TileL / 120, 1 # 4), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "down_global_scale_vrf",
+        "index": "301",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 99607,
+          "end": 139998,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 65536,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "340",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 133175,
+          "end": 134903,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scalar",
+        "index": "353",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 137555,
+          "end": 142699,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2048000,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: 1 # 8]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "336",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 131447,
+          "end": 133175,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "208",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 71378,
+          "end": 72461,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 262144,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "332",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 129719,
+          "end": 131447,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "200",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 69489,
+          "end": 70572,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 262144,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "",
+        "index": "234",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 82529,
+          "end": 82872,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 3948544,
+        "size": 245760,
+        "physical_pages": [],
+        "shape": "",
+        "fingerprint": null
+      },
+      {
+        "name": "x_scale_vrf",
+        "index": "304",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 100587,
+          "end": 127712,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2031616,
+        "size": 49152,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (FfnTerm, 1 # 8)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "324",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 127991,
+          "end": 129719,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (H / 60, TileL / 1920), Element: (H % 60 = 12, TileL / 16 % 120)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "194",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 68327,
+          "end": 69489,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 262144,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "weight_vrf",
+        "index": "348",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 136631,
+          "end": 141957,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 81920,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "sum_vrf",
+        "index": "141",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 30999,
+          "end": 31903,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 2228224,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: 1 # 2, Slice: (1 # 32, H / 480), Element: H % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "sum_vrf",
+        "index": "299",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 99104,
+          "end": 100008,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1048576,
+        "size": 983040,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: (1 # 16, TileL / 480), Element: TileL % 480]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "252",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 87027,
+          "end": 88110,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 753664,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "scale_vrf",
+        "index": "190",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 67165,
+          "end": 68327,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 262144,
+        "size": 2949120,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: (FfnRow = 6, H / 16)]",
+        "fingerprint": null
+      },
+      {
+        "name": "x_scale_vrf",
+        "index": "150",
+        "buffer_type": "Vrf",
+        "lifetime": {
+          "begin": 35694,
+          "end": 66003,
+          "block_begin": 0,
+          "block_end": 0
+        },
+        "address": 1540096,
+        "size": 16384,
+        "physical_pages": [],
+        "shape": "MappingShape[Chip: 1, Cluster: Dummy2, Slice: FfnSlice, Element: 1 # 8]",
+        "fingerprint": null
+      }
+    ],
+    "all_register_consumers_live": true,
+    "native_count": 4,
+    "native_and_e151_scale_arithmetic_unchanged": true,
+    "input_h480_typed_dma_packets": 8
+  },
+  "scope": "Actual source/RMS operation identity, masks, emitted DMA/copy/bitmap/consumer and register-lifetime gate; finite source-Max proof. NPU arithmetic/liveness, complete FFN correctness and speed remain separate."
+}

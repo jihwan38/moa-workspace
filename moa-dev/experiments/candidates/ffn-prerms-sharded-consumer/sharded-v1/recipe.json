@@ -1,0 +1,55 @@
+{
+  "id": "E153",
+  "variant": "sharded-v1",
+  "actual_start_commit": "2a49667318718b2f0e2fda00b7feb8a3f3727515",
+  "base_commit": "8adbbae1776aa8080a96348a9d9a64022a0cf6d0",
+  "comparison_recipe": "baseline/e151.json",
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/measured-build-e151-adoption.json",
+  "changed_sources": {
+    "ops.rs": "src/ops.rs",
+    "rmsnorm.rs": "src/device/shared/rmsnorm.rs",
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "target_kernel": "decoder_feedforward",
+  "scope": "Coupled pre-RMS output and quantizer ownership replacement, preserving current RMS arithmetic and weighted projection/down paths.",
+  "prior": [
+    "E150 actual141326 preRMS ending11842 followed by initial BF16cluster copy11844..53733 overlapping gateweight; not an exclusive stall or reclaimed-time claim.",
+    "E152 actual gate15+15 split regressed10.05543% despite static early gather; no gate split inherited.",
+    "M06v4 already had directpacked Main commits, so E140 typed-copy repair does not explain its timeout. New path preserves current normalized arithmetic, originalSubsum and bounded480Bcopies.",
+    "Original normalize_sharded_inter_slice changes EPSClipAdd/FpAdd/sqrt fusion; it is not reused.",
+    "E151 scale ingress and all current weighted down/native arithmetic retained from explicit source."
+  ],
+  "execution": "Original residual HBM -> original RMS inputH480/square/div3840/interAdd/ClipAddEPS/sqrt/DivF/MulF/F32DM ->localBF16H480cluster0 ->localabsMax/clipfloor + oneinterMax ->originalpow2scale and identical three-termE5/Subsum/480Bcopies oncluster0 ->latepackedCL2H480copy23040B ->original184320B leaders/ring32 5898240B ->originalupgate/GeGLU/E151down/output.",
+  "removed": [
+    "Pre-RMS final F32Broadcast1 canonical gather",
+    "Early canonical BF16 cluster replication",
+    "Redundant later BF16 H480 reshard for quantization"
+  ],
+  "added": [
+    "One finite global intersliceMax stream",
+    "Late cluster packed destination23040B; original leader/ring bytes unchanged",
+    "Changed producer/consumer ownership and lifetimes"
+  ],
+  "numerical_contract": [
+    "Original RMS operations/order/normalizedF32 boundary byte-preserved in dedicated helper before final layout/cast",
+    "Finite amax localMax+globalMax with identical clampfloor; original scale exponent/mul and quantizer expressions preserved",
+    "Raw canonical wrapper calls actual new sharded quantizer, not old arithmetic. Production bypasses wrapper DMA.",
+    "Native/upgate/down/E151scale/epilogue helpers unchanged; arbitraryinput equivalence not proved by source."
+  ],
+  "adoption": {
+    "decision": "pending source-review, exact whole mapping/lifetime/copy bounds and earlywhole45 E151 bracket",
+    "positive": "freeze net gain then3independentallocations/extra6/actualnewquant rawupgate/fullFFN originalregression and changed RMS boundary checks as required. No5percentminimum."
+  },
+  "tuning": {
+    "decision": "one complete ownership path, no stage/row/ring sweep",
+    "first_stop": "Source/type/axis bug can receive concrete supported repair; timeout is liveness failure, not arithmetic result; retain failures and reassess complete costs"
+  },
+  "major_research": {
+    "decision": "Remove actual initial canonicalization/replication boundary by letting quantization consume RMS producer shards",
+    "limit": "GlobalMax/latepackedDMA and changed scheduling may offset removed early gather. No static or byte-based speed/rank promise."
+  }
+}
