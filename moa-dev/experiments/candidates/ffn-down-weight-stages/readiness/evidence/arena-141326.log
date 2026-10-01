@@ -1,0 +1,1011 @@
+DIAG_STAGE_BEGIN control_before
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=94153 (of 3 runs: [99492, 94153, 93466])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=42643 (of 3 runs: [46187, 42643, 42146])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=304600 (of 3 runs: [310886, 303914, 304600])
+
+
+all 3 tests passed
+remote_entrypoint.sh: all kernel tests passed
+DIAG_STAGE_EXIT control_before 0
+DIAG_STAGE_END control_before
+DIAG_STAGE_BEGIN candidate_info
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> decoder_feedforward
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000","cluster":0,"begin":1089220450,"end":1089521920}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000","cluster":1,"begin":770523624,"end":770826515}
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000","cluster":0,"begin":2827249633,"end":2827543661}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000","cluster":1,"begin":2508554644,"end":2508848159}
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000","cluster":0,"begin":4557626183,"end":4557921674}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000","cluster":1,"begin":4238931371,"end":4239226247}
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=295491 (of 3 runs: [302891, 294028, 295491])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT candidate_info 0
+DIAG_STAGE_END candidate_info
+DIAG_STAGE_BEGIN candidate_trace
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> decoder_feedforward
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"004","cluster":0,"begin":1088731722,"end":1088732808}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"008","cluster":0,"begin":1088736833,"end":1088737590}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000000a","cluster":0,"begin":1088737592,"end":1088738633}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00e","cluster":0,"begin":1088737598,"end":1088738708}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000001e","cluster":0,"begin":1088739701,"end":1088742362}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000010","cluster":0,"begin":1088738634,"end":1088743487}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000ba","cluster":0,"begin":1088743488,"end":1088743859}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000bc","cluster":0,"begin":1088743860,"end":1088744300}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000be","cluster":0,"begin":1088744301,"end":1088745267}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000c0","cluster":0,"begin":1088745268,"end":1088746571}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000006","cluster":0,"begin":1088732128,"end":1088748031}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"022","cluster":0,"begin":1088739711,"end":1088787498}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0d6","cluster":0,"begin":1088748032,"end":1088788944}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000dc","cluster":0,"begin":1088788946,"end":1088788954}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0da","cluster":0,"begin":1088748043,"end":1088790052}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0e0","cluster":0,"begin":1088788948,"end":1088791162}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000e2","cluster":0,"begin":1088788955,"end":1088791253}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000ea","cluster":0,"begin":1088791254,"end":1088791628}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0e4","cluster":0,"begin":1088788961,"end":1088791800}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0e8","cluster":0,"begin":1088789384,"end":1088793384}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0ec","cluster":0,"begin":1088791629,"end":1088793906}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000ee","cluster":0,"begin":1088793908,"end":1088794550}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000f2","cluster":0,"begin":1088794551,"end":1088795167}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000f4","cluster":0,"begin":1088795168,"end":1088795601}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000f8","cluster":0,"begin":1088795898,"end":1088797040}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0f0","cluster":0,"begin":1088793940,"end":1088797532}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000f6","cluster":0,"begin":1088795602,"end":1088797690}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000102","cluster":0,"begin":1088797691,"end":1088798651}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000104","cluster":0,"begin":1088798652,"end":1088799469}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000108","cluster":0,"begin":1088799770,"end":1088800213}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"10c","cluster":0,"begin":1088799778,"end":1088801314}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000106","cluster":0,"begin":1088799470,"end":1088801815}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000010e","cluster":0,"begin":1088800330,"end":1088802106}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000118","cluster":0,"begin":1088802107,"end":1088804589}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000011a","cluster":0,"begin":1088804232,"end":1088806140}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000011c","cluster":0,"begin":1088804592,"end":1088809973}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"122","cluster":0,"begin":1088804646,"end":1088810242}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000124","cluster":0,"begin":1088809974,"end":1088810319}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000126","cluster":0,"begin":1088810320,"end":1088810822}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"12c","cluster":0,"begin":1088811182,"end":1088820622}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000128","cluster":0,"begin":1088810827,"end":1088834241}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000146","cluster":0,"begin":1088834242,"end":1088837457}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000148","cluster":0,"begin":1088837458,"end":1088858469}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000154","cluster":0,"begin":1088858470,"end":1088859444}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000016a","cluster":0,"begin":1088859445,"end":1088861611}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000016c","cluster":0,"begin":1088861612,"end":1088862586}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000176","cluster":0,"begin":1088862587,"end":1088864754}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000178","cluster":0,"begin":1088864755,"end":1088865730}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000182","cluster":0,"begin":1088865731,"end":1088867898}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"130","cluster":0,"begin":1088811592,"end":1088868158}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000184","cluster":0,"begin":1088867899,"end":1088868874}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000198","cluster":0,"begin":1088868875,"end":1088871042}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000019a","cluster":0,"begin":1088871043,"end":1088871717}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001a4","cluster":0,"begin":1088871718,"end":1088873883}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1ac","cluster":0,"begin":1088872120,"end":1088874060}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1b0","cluster":0,"begin":1088874116,"end":1088875230}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001b2","cluster":0,"begin":1088875232,"end":1088875649}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1b6","cluster":0,"begin":1088875238,"end":1088876616}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001b8","cluster":0,"begin":1088875651,"end":1088879651}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001ae","cluster":0,"begin":1088874062,"end":1088880702}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001be","cluster":0,"begin":1088879653,"end":1088881114}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001c0","cluster":0,"begin":1088880703,"end":1088881223}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001c4","cluster":0,"begin":1088881231,"end":1088881838}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001c6","cluster":0,"begin":1088881839,"end":1088882265}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1bc","cluster":0,"begin":1088875657,"end":1088886580}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1ca","cluster":0,"begin":1088881897,"end":1088887708}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001d0","cluster":0,"begin":1088886884,"end":1088888236}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001c2","cluster":0,"begin":1088881224,"end":1088902179}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001ea","cluster":0,"begin":1088902580,"end":1088904745}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001fc","cluster":0,"begin":1088904746,"end":1088905720}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000206","cluster":0,"begin":1088905721,"end":1088907888}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000208","cluster":0,"begin":1088907889,"end":1088908864}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000212","cluster":0,"begin":1088908865,"end":1088911034}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000218","cluster":0,"begin":1088911035,"end":1088912010}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000222","cluster":0,"begin":1088912011,"end":1088914178}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000224","cluster":0,"begin":1088914179,"end":1088914853}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000022e","cluster":0,"begin":1088914854,"end":1088917019}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1e4","cluster":0,"begin":1088886895,"end":1088920418}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"234","cluster":0,"begin":1088917020,"end":1088921096}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000236","cluster":0,"begin":1088921098,"end":1088921539}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000023c","cluster":0,"begin":1088921540,"end":1088921967}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"23a","cluster":0,"begin":1088921104,"end":1088923368}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000023e","cluster":0,"begin":1088921968,"end":1088923823}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"242","cluster":0,"begin":1088923825,"end":1088925294}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"246","cluster":0,"begin":1088925302,"end":1088926484}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"24a","cluster":0,"begin":1088925702,"end":1088928104}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000240","cluster":0,"begin":1088923370,"end":1088930581}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000244","cluster":0,"begin":1088925296,"end":1088930647}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000252","cluster":0,"begin":1088930648,"end":1088931055}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000254","cluster":0,"begin":1088931056,"end":1088931425}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"250","cluster":0,"begin":1088930640,"end":1088931768}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"256","cluster":0,"begin":1088931063,"end":1088932334}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000024c","cluster":0,"begin":1088930586,"end":1088935967}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000260","cluster":0,"begin":1088931820,"end":1088936412}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000262","cluster":0,"begin":1088935969,"end":1088936706}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000270","cluster":0,"begin":1088936707,"end":1088937322}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"266","cluster":0,"begin":1088936404,"end":1088937520}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000272","cluster":0,"begin":1088937323,"end":1088937745}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000274","cluster":0,"begin":1088937329,"end":1088939234}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000027c","cluster":0,"begin":1088939235,"end":1088939862}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000286","cluster":0,"begin":1088939863,"end":1088940840}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000028a","cluster":0,"begin":1088940847,"end":1088941309}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"27a","cluster":0,"begin":1088937746,"end":1088941330}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000288","cluster":0,"begin":1088940841,"end":1088941803}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000294","cluster":0,"begin":1088941804,"end":1088942621}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000298","cluster":0,"begin":1088942628,"end":1088943268}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000296","cluster":0,"begin":1088942622,"end":1088943597}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000029a","cluster":0,"begin":1088943598,"end":1088944039}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002a0","cluster":0,"begin":1088944044,"end":1088946448}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2a2","cluster":0,"begin":1088945966,"end":1088947372}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2a4","cluster":0,"begin":1088947374,"end":1088953960}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002a6","cluster":0,"begin":1088953966,"end":1088965861}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002ac","cluster":0,"begin":1088965862,"end":1088967637}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002ae","cluster":0,"begin":1088967638,"end":1088978777}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2aa","cluster":0,"begin":1088954322,"end":1088989206}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002b8","cluster":0,"begin":1088989208,"end":1089000315}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2bc","cluster":0,"begin":1088989215,"end":1089009426}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2d6","cluster":0,"begin":1089000712,"end":1089010144}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002dc","cluster":0,"begin":1089009730,"end":1089010708}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2f2","cluster":0,"begin":1089010718,"end":1089011826}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002ee","cluster":0,"begin":1089010709,"end":1089012941}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002f4","cluster":0,"begin":1089012942,"end":1089013918}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002fe","cluster":0,"begin":1089013919,"end":1089016152}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000300","cluster":0,"begin":1089016153,"end":1089017130}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000030a","cluster":0,"begin":1089017131,"end":1089019364}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000030c","cluster":0,"begin":1089019365,"end":1089020340}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000316","cluster":0,"begin":1089020341,"end":1089022574}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000318","cluster":0,"begin":1089022575,"end":1089023544}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000322","cluster":0,"begin":1089023545,"end":1089025779}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000324","cluster":0,"begin":1089025781,"end":1089026632}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000032c","cluster":0,"begin":1089026635,"end":1089027189}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"32a","cluster":0,"begin":1089026180,"end":1089027618}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000330","cluster":0,"begin":1089027918,"end":1089028239}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000032e","cluster":0,"begin":1089027620,"end":1089028240}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000332","cluster":0,"begin":1089028241,"end":1089029089}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000334","cluster":0,"begin":1089029090,"end":1089029697}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000336","cluster":0,"begin":1089029698,"end":1089030739}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000338","cluster":0,"begin":1089030740,"end":1089031164}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000033a","cluster":0,"begin":1089031165,"end":1089031545}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"33c","cluster":0,"begin":1089031546,"end":1089032188}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000033e","cluster":0,"begin":1089032190,"end":1089032536}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000340","cluster":0,"begin":1089032537,"end":1089033505}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000342","cluster":0,"begin":1089033506,"end":1089034335}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000344","cluster":0,"begin":1089034336,"end":1089034943}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"348","cluster":0,"begin":1089034944,"end":1089035784}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000034c","cluster":0,"begin":1089035786,"end":1089035788}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000","cluster":0,"begin":1088731621,"end":1089035791}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"004","cluster":1,"begin":769907972,"end":769908134}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"008","cluster":1,"begin":769912415,"end":769912578}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00e","cluster":1,"begin":769912586,"end":769912746}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000000a","cluster":1,"begin":769912580,"end":769913617}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000001e","cluster":1,"begin":769915349,"end":769918143}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000010","cluster":1,"begin":769913618,"end":769918467}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000ba","cluster":1,"begin":769918468,"end":769918835}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000bc","cluster":1,"begin":769918836,"end":769919819}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000be","cluster":1,"begin":769919820,"end":769920781}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000c0","cluster":1,"begin":769920782,"end":769922081}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000006","cluster":1,"begin":769908376,"end":769923356}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"022","cluster":1,"begin":769915359,"end":769962714}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0d6","cluster":1,"begin":769923357,"end":769962726}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0da","cluster":1,"begin":769923368,"end":769963926}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0e0","cluster":1,"begin":769962730,"end":769965026}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000dc","cluster":1,"begin":769962728,"end":769966011}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0e4","cluster":1,"begin":769966018,"end":769966918}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000e2","cluster":1,"begin":769966012,"end":769968305}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0e8","cluster":1,"begin":769966422,"end":769968528}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000ea","cluster":1,"begin":769968306,"end":769968676}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0ec","cluster":1,"begin":769968677,"end":769969320}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000ee","cluster":1,"begin":769969322,"end":769969960}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000f2","cluster":1,"begin":769969961,"end":769970573}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000f4","cluster":1,"begin":769970574,"end":769971003}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0f0","cluster":1,"begin":769969354,"end":769972950}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000f8","cluster":1,"begin":769971314,"end":769973198}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000000f6","cluster":1,"begin":769971004,"end":769973276}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000102","cluster":1,"begin":769973277,"end":769974233}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000104","cluster":1,"begin":769974234,"end":769975047}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000108","cluster":1,"begin":769975922,"end":769976359}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"10c","cluster":1,"begin":769975930,"end":769977282}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000106","cluster":1,"begin":769975048,"end":769977680}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000010e","cluster":1,"begin":769976365,"end":769977986}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000118","cluster":1,"begin":769977987,"end":769980517}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000011a","cluster":1,"begin":769980164,"end":769982294}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000011c","cluster":1,"begin":769980520,"end":769985897}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000124","cluster":1,"begin":769985898,"end":769986239}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"122","cluster":1,"begin":769980574,"end":769986374}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000126","cluster":1,"begin":769986240,"end":769986740}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"12c","cluster":1,"begin":769987096,"end":769996502}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000128","cluster":1,"begin":769986745,"end":770010151}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000146","cluster":1,"begin":770010152,"end":770013363}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000148","cluster":1,"begin":770013364,"end":770034389}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000154","cluster":1,"begin":770034390,"end":770035360}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000016a","cluster":1,"begin":770035361,"end":770037523}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000016c","cluster":1,"begin":770037524,"end":770038494}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000176","cluster":1,"begin":770038495,"end":770040658}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000178","cluster":1,"begin":770040659,"end":770041630}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"130","cluster":1,"begin":769987506,"end":770043770}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000182","cluster":1,"begin":770041631,"end":770043794}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000184","cluster":1,"begin":770043795,"end":770044778}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000198","cluster":1,"begin":770044779,"end":770046942}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000019a","cluster":1,"begin":770046943,"end":770047613}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001a4","cluster":1,"begin":770047614,"end":770049775}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1ac","cluster":1,"begin":770048018,"end":770049974}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1b0","cluster":1,"begin":770050030,"end":770051142}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001b2","cluster":1,"begin":770051144,"end":770051561}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1b6","cluster":1,"begin":770051150,"end":770052510}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001b8","cluster":1,"begin":770051563,"end":770055561}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001ae","cluster":1,"begin":770049976,"end":770056616}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001be","cluster":1,"begin":770055563,"end":770057034}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001c0","cluster":1,"begin":770056617,"end":770057133}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001c4","cluster":1,"begin":770057141,"end":770057754}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001c6","cluster":1,"begin":770057755,"end":770058181}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1bc","cluster":1,"begin":770051569,"end":770062538}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1ca","cluster":1,"begin":770057813,"end":770063648}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001d0","cluster":1,"begin":770062840,"end":770064228}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001c2","cluster":1,"begin":770057134,"end":770078167}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001ea","cluster":1,"begin":770078564,"end":770080725}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000001fc","cluster":1,"begin":770080726,"end":770081696}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000206","cluster":1,"begin":770081697,"end":770083860}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000208","cluster":1,"begin":770083861,"end":770084832}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000212","cluster":1,"begin":770084833,"end":770086996}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000218","cluster":1,"begin":770086997,"end":770087968}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000222","cluster":1,"begin":770087969,"end":770090132}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000224","cluster":1,"begin":770090133,"end":770090803}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000022e","cluster":1,"begin":770090804,"end":770092965}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"1e4","cluster":1,"begin":770062851,"end":770093966}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"234","cluster":1,"begin":770092966,"end":770094644}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000236","cluster":1,"begin":770094646,"end":770095087}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000023c","cluster":1,"begin":770095088,"end":770095511}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"23a","cluster":1,"begin":770094652,"end":770096736}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000023e","cluster":1,"begin":770095512,"end":770097191}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"242","cluster":1,"begin":770097193,"end":770098638}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"246","cluster":1,"begin":770098646,"end":770099836}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"24a","cluster":1,"begin":770099050,"end":770101424}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000240","cluster":1,"begin":770096738,"end":770103941}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000244","cluster":1,"begin":770098640,"end":770104007}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"250","cluster":1,"begin":770104000,"end":770104162}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000252","cluster":1,"begin":770104008,"end":770104415}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000254","cluster":1,"begin":770104416,"end":770104781}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"256","cluster":1,"begin":770104423,"end":770105112}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000024c","cluster":1,"begin":770103946,"end":770109325}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000260","cluster":1,"begin":770105176,"end":770109772}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"266","cluster":1,"begin":770109764,"end":770109928}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000262","cluster":1,"begin":770109327,"end":770110078}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000270","cluster":1,"begin":770110079,"end":770110690}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000272","cluster":1,"begin":770110691,"end":770111113}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000274","cluster":1,"begin":770110697,"end":770112066}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000027c","cluster":1,"begin":770112067,"end":770112804}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000286","cluster":1,"begin":770112805,"end":770113778}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000028a","cluster":1,"begin":770113785,"end":770114243}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000288","cluster":1,"begin":770113779,"end":770114737}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"27a","cluster":1,"begin":770111114,"end":770114806}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000294","cluster":1,"begin":770114738,"end":770115551}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000298","cluster":1,"begin":770115558,"end":770116206}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000296","cluster":1,"begin":770115552,"end":770116523}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000029a","cluster":1,"begin":770116524,"end":770116961}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002a0","cluster":1,"begin":770116966,"end":770119484}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2a2","cluster":1,"begin":770119002,"end":770120408}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2a4","cluster":1,"begin":770120410,"end":770127002}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002a6","cluster":1,"begin":770127008,"end":770138895}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002ac","cluster":1,"begin":770138896,"end":770140667}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002ae","cluster":1,"begin":770140668,"end":770151803}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2aa","cluster":1,"begin":770127360,"end":770158838}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002b8","cluster":1,"begin":770158840,"end":770169957}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2bc","cluster":1,"begin":770158847,"end":770178854}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2d6","cluster":1,"begin":770170358,"end":770178858}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002dc","cluster":1,"begin":770179158,"end":770180132}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"2f2","cluster":1,"begin":770180140,"end":770180302}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002ee","cluster":1,"begin":770180133,"end":770182361}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002f4","cluster":1,"begin":770182362,"end":770183332}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"00000000000002fe","cluster":1,"begin":770183333,"end":770185562}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000300","cluster":1,"begin":770185563,"end":770186534}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000030a","cluster":1,"begin":770186535,"end":770188764}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000030c","cluster":1,"begin":770188765,"end":770189736}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000316","cluster":1,"begin":770189737,"end":770191966}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000318","cluster":1,"begin":770191967,"end":770192934}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000322","cluster":1,"begin":770192935,"end":770195165}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000324","cluster":1,"begin":770195167,"end":770196024}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000032c","cluster":1,"begin":770196027,"end":770196577}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"32a","cluster":1,"begin":770195566,"end":770197030}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000330","cluster":1,"begin":770197330,"end":770197647}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000032e","cluster":1,"begin":770197032,"end":770204629}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000332","cluster":1,"begin":770204630,"end":770205473}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000334","cluster":1,"begin":770205474,"end":770206077}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000336","cluster":1,"begin":770206078,"end":770207115}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000338","cluster":1,"begin":770207116,"end":770207536}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000033a","cluster":1,"begin":770207537,"end":770207913}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"33c","cluster":1,"begin":770207914,"end":770208074}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000000000000033e","cluster":1,"begin":770208317,"end":770208658}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000340","cluster":1,"begin":770208659,"end":770209623}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000342","cluster":1,"begin":770209624,"end":770210449}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000000000000344","cluster":1,"begin":770210450,"end":770211053}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"348","cluster":1,"begin":770211054,"end":770211216}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"000034c","cluster":1,"begin":770211218,"end":770212671}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":0,"name":"0000","cluster":1,"begin":769907874,"end":770212674}
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"004","cluster":0,"begin":2832717348,"end":2832718434}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"008","cluster":0,"begin":2832719391,"end":2832720148}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000000a","cluster":0,"begin":2832720150,"end":2832721191}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00e","cluster":0,"begin":2832720156,"end":2832721268}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000001e","cluster":0,"begin":2832721593,"end":2832722147}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000010","cluster":0,"begin":2832721192,"end":2832726045}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000ba","cluster":0,"begin":2832726046,"end":2832726417}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000bc","cluster":0,"begin":2832726418,"end":2832726858}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000be","cluster":0,"begin":2832726859,"end":2832727825}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000c0","cluster":0,"begin":2832727826,"end":2832729129}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000006","cluster":0,"begin":2832717754,"end":2832729130}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"022","cluster":0,"begin":2832721604,"end":2832769846}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0d6","cluster":0,"begin":2832729131,"end":2832771292}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000dc","cluster":0,"begin":2832771294,"end":2832771302}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0da","cluster":0,"begin":2832729142,"end":2832772512}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000e2","cluster":0,"begin":2832771303,"end":2832773601}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000ea","cluster":0,"begin":2832773602,"end":2832773976}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0e0","cluster":0,"begin":2832771296,"end":2832774208}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0e4","cluster":0,"begin":2832771309,"end":2832774844}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0e8","cluster":0,"begin":2832771734,"end":2832776432}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0ec","cluster":0,"begin":2832773977,"end":2832776954}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000ee","cluster":0,"begin":2832776956,"end":2832777600}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000f2","cluster":0,"begin":2832777601,"end":2832778217}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000f4","cluster":0,"begin":2832778218,"end":2832778651}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000f8","cluster":0,"begin":2832778946,"end":2832780082}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000f6","cluster":0,"begin":2832778652,"end":2832780520}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0f0","cluster":0,"begin":2832776988,"end":2832780582}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000102","cluster":0,"begin":2832780521,"end":2832781481}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000104","cluster":0,"begin":2832781482,"end":2832782299}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000108","cluster":0,"begin":2832782600,"end":2832783043}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000106","cluster":0,"begin":2832782300,"end":2832783271}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000010e","cluster":0,"begin":2832783049,"end":2832783682}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"10c","cluster":0,"begin":2832782608,"end":2832783968}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000118","cluster":0,"begin":2832783683,"end":2832785399}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000011a","cluster":0,"begin":2832785043,"end":2832786262}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000011c","cluster":0,"begin":2832785402,"end":2832790783}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"122","cluster":0,"begin":2832785456,"end":2832790938}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000124","cluster":0,"begin":2832790784,"end":2832791129}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000126","cluster":0,"begin":2832791130,"end":2832791632}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"12c","cluster":0,"begin":2832791992,"end":2832801402}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000128","cluster":0,"begin":2832791637,"end":2832815051}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000146","cluster":0,"begin":2832815052,"end":2832818267}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000148","cluster":0,"begin":2832818268,"end":2832839267}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000154","cluster":0,"begin":2832839268,"end":2832840242}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000016a","cluster":0,"begin":2832840243,"end":2832842409}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000016c","cluster":0,"begin":2832842410,"end":2832843384}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000176","cluster":0,"begin":2832843385,"end":2832845552}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000178","cluster":0,"begin":2832845553,"end":2832846528}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000182","cluster":0,"begin":2832846529,"end":2832848696}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"130","cluster":0,"begin":2832792402,"end":2832848762}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000184","cluster":0,"begin":2832848697,"end":2832849672}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000198","cluster":0,"begin":2832849673,"end":2832851840}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000019a","cluster":0,"begin":2832851841,"end":2832852515}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001a4","cluster":0,"begin":2832852516,"end":2832854681}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1ac","cluster":0,"begin":2832852924,"end":2832854884}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1b0","cluster":0,"begin":2832854940,"end":2832856054}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001b2","cluster":0,"begin":2832856056,"end":2832856473}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1b6","cluster":0,"begin":2832856062,"end":2832857560}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001b8","cluster":0,"begin":2832856475,"end":2832860475}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001ae","cluster":0,"begin":2832854886,"end":2832861528}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001be","cluster":0,"begin":2832860477,"end":2832861942}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001c0","cluster":0,"begin":2832861529,"end":2832862049}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001c4","cluster":0,"begin":2832862057,"end":2832862665}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001c6","cluster":0,"begin":2832862666,"end":2832863086}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1bc","cluster":0,"begin":2832856481,"end":2832867672}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1ca","cluster":0,"begin":2832862721,"end":2832868922}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001d0","cluster":0,"begin":2832867974,"end":2832869322}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001c2","cluster":0,"begin":2832862050,"end":2832883005}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001ea","cluster":0,"begin":2832883406,"end":2832885571}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001fc","cluster":0,"begin":2832885572,"end":2832886546}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000206","cluster":0,"begin":2832886547,"end":2832888714}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000208","cluster":0,"begin":2832888715,"end":2832889690}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000212","cluster":0,"begin":2832889691,"end":2832891858}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000218","cluster":0,"begin":2832891859,"end":2832892834}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000222","cluster":0,"begin":2832892835,"end":2832895002}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000224","cluster":0,"begin":2832895003,"end":2832895677}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000022e","cluster":0,"begin":2832895678,"end":2832897843}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1e4","cluster":0,"begin":2832867985,"end":2832901178}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"234","cluster":0,"begin":2832897844,"end":2832901856}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000236","cluster":0,"begin":2832901858,"end":2832902299}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000023c","cluster":0,"begin":2832902300,"end":2832902727}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"23a","cluster":0,"begin":2832901864,"end":2832903828}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000023e","cluster":0,"begin":2832902728,"end":2832904283}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"242","cluster":0,"begin":2832904285,"end":2832905754}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"246","cluster":0,"begin":2832905762,"end":2832906944}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"24a","cluster":0,"begin":2832906162,"end":2832908546}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000240","cluster":0,"begin":2832903830,"end":2832911041}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000244","cluster":0,"begin":2832905756,"end":2832911107}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000252","cluster":0,"begin":2832911108,"end":2832911515}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000254","cluster":0,"begin":2832911516,"end":2832911885}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"250","cluster":0,"begin":2832911100,"end":2832912230}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"256","cluster":0,"begin":2832911523,"end":2832912796}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000024c","cluster":0,"begin":2832911046,"end":2832916427}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000260","cluster":0,"begin":2832912280,"end":2832916872}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000262","cluster":0,"begin":2832916429,"end":2832917168}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000270","cluster":0,"begin":2832917169,"end":2832917784}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"266","cluster":0,"begin":2832916864,"end":2832917978}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000272","cluster":0,"begin":2832917785,"end":2832918207}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000274","cluster":0,"begin":2832917791,"end":2832918538}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000027c","cluster":0,"begin":2832918539,"end":2832919183}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000286","cluster":0,"begin":2832919184,"end":2832920160}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000028a","cluster":0,"begin":2832920167,"end":2832920629}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000288","cluster":0,"begin":2832920161,"end":2832921123}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"27a","cluster":0,"begin":2832918208,"end":2832921888}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000294","cluster":0,"begin":2832921124,"end":2832921941}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000298","cluster":0,"begin":2832921948,"end":2832922588}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000296","cluster":0,"begin":2832921942,"end":2832922917}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000029a","cluster":0,"begin":2832922918,"end":2832923359}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002a0","cluster":0,"begin":2832923364,"end":2832924780}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2a2","cluster":0,"begin":2832924298,"end":2832925704}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2a4","cluster":0,"begin":2832925706,"end":2832933258}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002a6","cluster":0,"begin":2832933264,"end":2832945159}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002ac","cluster":0,"begin":2832945160,"end":2832946935}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002ae","cluster":0,"begin":2832946936,"end":2832957239}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2aa","cluster":0,"begin":2832933620,"end":2832968916}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002b8","cluster":0,"begin":2832968918,"end":2832980023}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2bc","cluster":0,"begin":2832968925,"end":2832988978}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2d6","cluster":0,"begin":2832980420,"end":2832989696}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002dc","cluster":0,"begin":2832989282,"end":2832990260}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2f2","cluster":0,"begin":2832990270,"end":2832991394}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002ee","cluster":0,"begin":2832990261,"end":2832992493}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002f4","cluster":0,"begin":2832992494,"end":2832993470}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002fe","cluster":0,"begin":2832993471,"end":2832995704}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000300","cluster":0,"begin":2832995705,"end":2832996682}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000030a","cluster":0,"begin":2832996683,"end":2832998916}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000030c","cluster":0,"begin":2832998917,"end":2832999894}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000316","cluster":0,"begin":2832999895,"end":2833002128}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000318","cluster":0,"begin":2833002129,"end":2833003096}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000322","cluster":0,"begin":2833003097,"end":2833005331}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000324","cluster":0,"begin":2833005333,"end":2833006184}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000032c","cluster":0,"begin":2833006187,"end":2833006741}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"32a","cluster":0,"begin":2833005732,"end":2833007170}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000330","cluster":0,"begin":2833007470,"end":2833007791}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000032e","cluster":0,"begin":2833007172,"end":2833007792}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000332","cluster":0,"begin":2833007793,"end":2833008641}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000334","cluster":0,"begin":2833008642,"end":2833009249}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000336","cluster":0,"begin":2833009250,"end":2833010291}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000338","cluster":0,"begin":2833010292,"end":2833010716}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000033a","cluster":0,"begin":2833010717,"end":2833011097}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"33c","cluster":0,"begin":2833011098,"end":2833011740}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000033e","cluster":0,"begin":2833011742,"end":2833012088}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000340","cluster":0,"begin":2833012089,"end":2833013057}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000342","cluster":0,"begin":2833013058,"end":2833013887}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000344","cluster":0,"begin":2833013888,"end":2833014495}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"348","cluster":0,"begin":2833014496,"end":2833015336}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000034c","cluster":0,"begin":2833015338,"end":2833015340}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000","cluster":0,"begin":2832717247,"end":2833015343}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"004","cluster":1,"begin":2513894286,"end":2513894448}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"008","cluster":1,"begin":2513895889,"end":2513896052}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00e","cluster":1,"begin":2513896060,"end":2513896220}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000000a","cluster":1,"begin":2513896054,"end":2513897091}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000001e","cluster":1,"begin":2513897497,"end":2513898606}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000010","cluster":1,"begin":2513897092,"end":2513901941}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000ba","cluster":1,"begin":2513901942,"end":2513902309}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000bc","cluster":1,"begin":2513902310,"end":2513902750}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000be","cluster":1,"begin":2513902751,"end":2513903713}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000c0","cluster":1,"begin":2513903714,"end":2513905013}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000006","cluster":1,"begin":2513894690,"end":2513905014}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"022","cluster":1,"begin":2513897508,"end":2513944426}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0d6","cluster":1,"begin":2513905015,"end":2513944438}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0da","cluster":1,"begin":2513905026,"end":2513945750}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0e0","cluster":1,"begin":2513944442,"end":2513946816}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000dc","cluster":1,"begin":2513944440,"end":2513948369}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0e4","cluster":1,"begin":2513948376,"end":2513949276}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000e2","cluster":1,"begin":2513948370,"end":2513950663}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000ea","cluster":1,"begin":2513950664,"end":2513951034}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0e8","cluster":1,"begin":2513948780,"end":2513951192}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0ec","cluster":1,"begin":2513951035,"end":2513951680}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000ee","cluster":1,"begin":2513951682,"end":2513952320}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000f2","cluster":1,"begin":2513952321,"end":2513952933}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000f4","cluster":1,"begin":2513952934,"end":2513953363}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000f8","cluster":1,"begin":2513953676,"end":2513954814}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000000f6","cluster":1,"begin":2513953364,"end":2513955021}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0f0","cluster":1,"begin":2513951714,"end":2513955330}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000102","cluster":1,"begin":2513955022,"end":2513955977}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000104","cluster":1,"begin":2513955978,"end":2513956791}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000108","cluster":1,"begin":2513957104,"end":2513957541}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000106","cluster":1,"begin":2513956792,"end":2513957759}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000010e","cluster":1,"begin":2513957547,"end":2513958192}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"10c","cluster":1,"begin":2513957112,"end":2513958630}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000118","cluster":1,"begin":2513958193,"end":2513959649}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000011a","cluster":1,"begin":2513959296,"end":2513960502}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000011c","cluster":1,"begin":2513959652,"end":2513965029}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"122","cluster":1,"begin":2513959706,"end":2513965190}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000124","cluster":1,"begin":2513965030,"end":2513965371}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000126","cluster":1,"begin":2513965372,"end":2513965870}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"12c","cluster":1,"begin":2513966226,"end":2513975618}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000128","cluster":1,"begin":2513965875,"end":2513989281}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000146","cluster":1,"begin":2513989282,"end":2513992493}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000148","cluster":1,"begin":2513992494,"end":2514013497}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000154","cluster":1,"begin":2514013498,"end":2514014468}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000016a","cluster":1,"begin":2514014469,"end":2514016631}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000016c","cluster":1,"begin":2514016632,"end":2514017604}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000176","cluster":1,"begin":2514017605,"end":2514019768}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000178","cluster":1,"begin":2514019769,"end":2514020740}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000182","cluster":1,"begin":2514020741,"end":2514022904}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"130","cluster":1,"begin":2513966636,"end":2514023732}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000184","cluster":1,"begin":2514022905,"end":2514023876}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000198","cluster":1,"begin":2514023877,"end":2514026040}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000019a","cluster":1,"begin":2514026041,"end":2514026711}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001a4","cluster":1,"begin":2514026712,"end":2514028873}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1ac","cluster":1,"begin":2514027116,"end":2514029222}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1b0","cluster":1,"begin":2514029278,"end":2514030394}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001b2","cluster":1,"begin":2514030396,"end":2514030813}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1b6","cluster":1,"begin":2514030402,"end":2514031826}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001b8","cluster":1,"begin":2514030815,"end":2514034813}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001ae","cluster":1,"begin":2514029224,"end":2514035870}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001be","cluster":1,"begin":2514034815,"end":2514036286}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001c0","cluster":1,"begin":2514035871,"end":2514036387}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001c4","cluster":1,"begin":2514036395,"end":2514037097}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001c6","cluster":1,"begin":2514037098,"end":2514037522}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1bc","cluster":1,"begin":2514030821,"end":2514041906}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1ca","cluster":1,"begin":2514037153,"end":2514043034}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001d0","cluster":1,"begin":2514042208,"end":2514043540}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001c2","cluster":1,"begin":2514036388,"end":2514057417}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001ea","cluster":1,"begin":2514057814,"end":2514059975}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000001fc","cluster":1,"begin":2514059976,"end":2514060946}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000206","cluster":1,"begin":2514060947,"end":2514063110}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000208","cluster":1,"begin":2514063111,"end":2514064082}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000212","cluster":1,"begin":2514064083,"end":2514066246}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000218","cluster":1,"begin":2514066247,"end":2514067218}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000222","cluster":1,"begin":2514067219,"end":2514069382}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000224","cluster":1,"begin":2514069383,"end":2514070053}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000022e","cluster":1,"begin":2514070054,"end":2514072215}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"1e4","cluster":1,"begin":2514042219,"end":2514073086}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"234","cluster":1,"begin":2514072216,"end":2514073764}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000236","cluster":1,"begin":2514073766,"end":2514074207}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000023c","cluster":1,"begin":2514074208,"end":2514074631}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"23a","cluster":1,"begin":2514073772,"end":2514075992}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000023e","cluster":1,"begin":2514074632,"end":2514076447}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"242","cluster":1,"begin":2514076449,"end":2514077894}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"246","cluster":1,"begin":2514077902,"end":2514079092}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"24a","cluster":1,"begin":2514078306,"end":2514080696}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000240","cluster":1,"begin":2514075994,"end":2514083197}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000244","cluster":1,"begin":2514077896,"end":2514083263}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"250","cluster":1,"begin":2514083256,"end":2514083418}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000252","cluster":1,"begin":2514083264,"end":2514083671}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000254","cluster":1,"begin":2514083672,"end":2514084037}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"256","cluster":1,"begin":2514083679,"end":2514084368}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000024c","cluster":1,"begin":2514083202,"end":2514088581}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000260","cluster":1,"begin":2514084432,"end":2514089028}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"266","cluster":1,"begin":2514089020,"end":2514089182}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000262","cluster":1,"begin":2514088583,"end":2514089334}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000270","cluster":1,"begin":2514089335,"end":2514089946}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000272","cluster":1,"begin":2514089947,"end":2514090369}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000274","cluster":1,"begin":2514089953,"end":2514091490}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000027c","cluster":1,"begin":2514091491,"end":2514091923}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000286","cluster":1,"begin":2514091924,"end":2514092896}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000028a","cluster":1,"begin":2514092903,"end":2514093361}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000288","cluster":1,"begin":2514092897,"end":2514093855}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"27a","cluster":1,"begin":2514090370,"end":2514094034}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000294","cluster":1,"begin":2514093856,"end":2514094669}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000298","cluster":1,"begin":2514094676,"end":2514095330}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000296","cluster":1,"begin":2514094670,"end":2514095641}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000029a","cluster":1,"begin":2514095642,"end":2514096079}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002a0","cluster":1,"begin":2514096084,"end":2514097508}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2a2","cluster":1,"begin":2514097026,"end":2514098432}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2a4","cluster":1,"begin":2514098434,"end":2514105992}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002a6","cluster":1,"begin":2514105998,"end":2514117885}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002ac","cluster":1,"begin":2514117886,"end":2514119657}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002ae","cluster":1,"begin":2514119658,"end":2514129957}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2aa","cluster":1,"begin":2514106350,"end":2514137344}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002b8","cluster":1,"begin":2514137346,"end":2514148451}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2bc","cluster":1,"begin":2514137353,"end":2514157426}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2d6","cluster":1,"begin":2514148852,"end":2514157430}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002dc","cluster":1,"begin":2514157730,"end":2514158700}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"2f2","cluster":1,"begin":2514158710,"end":2514158872}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002ee","cluster":1,"begin":2514158701,"end":2514160929}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002f4","cluster":1,"begin":2514160930,"end":2514161898}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"00000000000002fe","cluster":1,"begin":2514161899,"end":2514164128}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000300","cluster":1,"begin":2514164129,"end":2514165098}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000030a","cluster":1,"begin":2514165099,"end":2514167328}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000030c","cluster":1,"begin":2514167329,"end":2514168300}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000316","cluster":1,"begin":2514168301,"end":2514170530}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000318","cluster":1,"begin":2514170531,"end":2514171494}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000322","cluster":1,"begin":2514171495,"end":2514173725}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000324","cluster":1,"begin":2514173727,"end":2514174580}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000032c","cluster":1,"begin":2514174583,"end":2514175133}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"32a","cluster":1,"begin":2514174126,"end":2514175590}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000330","cluster":1,"begin":2514175890,"end":2514176207}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000032e","cluster":1,"begin":2514175592,"end":2514184249}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000332","cluster":1,"begin":2514184250,"end":2514185093}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000334","cluster":1,"begin":2514185094,"end":2514185697}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000336","cluster":1,"begin":2514185698,"end":2514186735}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000338","cluster":1,"begin":2514186736,"end":2514187156}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000033a","cluster":1,"begin":2514187157,"end":2514187533}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"33c","cluster":1,"begin":2514187534,"end":2514187694}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000000000000033e","cluster":1,"begin":2514187937,"end":2514188278}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000340","cluster":1,"begin":2514188279,"end":2514189243}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000342","cluster":1,"begin":2514189244,"end":2514190069}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000000000000344","cluster":1,"begin":2514190070,"end":2514190673}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"348","cluster":1,"begin":2514190674,"end":2514190834}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"000034c","cluster":1,"begin":2514190836,"end":2514192349}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":1,"name":"0000","cluster":1,"begin":2513894186,"end":2514192352}
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"004","cluster":0,"begin":4578574200,"end":4578575288}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"008","cluster":0,"begin":4578576163,"end":4578576920}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000000a","cluster":0,"begin":4578576922,"end":4578577963}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00e","cluster":0,"begin":4578576928,"end":4578578450}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000001e","cluster":0,"begin":4578578452,"end":4578579005}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000010","cluster":0,"begin":4578577964,"end":4578582817}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000ba","cluster":0,"begin":4578582818,"end":4578583189}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000bc","cluster":0,"begin":4578583190,"end":4578583630}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000be","cluster":0,"begin":4578583631,"end":4578584597}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000c0","cluster":0,"begin":4578584598,"end":4578585901}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000006","cluster":0,"begin":4578574606,"end":4578585902}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"022","cluster":0,"begin":4578578462,"end":4578626074}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0d6","cluster":0,"begin":4578585903,"end":4578627520}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000dc","cluster":0,"begin":4578627522,"end":4578627530}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0da","cluster":0,"begin":4578585914,"end":4578629212}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000e2","cluster":0,"begin":4578627531,"end":4578629829}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000ea","cluster":0,"begin":4578629830,"end":4578630204}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0e0","cluster":0,"begin":4578627524,"end":4578630322}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0e4","cluster":0,"begin":4578627537,"end":4578630958}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0e8","cluster":0,"begin":4578627960,"end":4578632546}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0ec","cluster":0,"begin":4578630205,"end":4578633068}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000ee","cluster":0,"begin":4578633070,"end":4578633716}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000f2","cluster":0,"begin":4578633717,"end":4578634333}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000f4","cluster":0,"begin":4578634334,"end":4578634767}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000f8","cluster":0,"begin":4578635062,"end":4578636200}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000f6","cluster":0,"begin":4578634768,"end":4578636567}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0f0","cluster":0,"begin":4578633102,"end":4578636708}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000102","cluster":0,"begin":4578636568,"end":4578637527}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000104","cluster":0,"begin":4578637528,"end":4578638345}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000108","cluster":0,"begin":4578638646,"end":4578639089}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000106","cluster":0,"begin":4578638346,"end":4578639317}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000010e","cluster":0,"begin":4578639095,"end":4578639728}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"10c","cluster":0,"begin":4578638654,"end":4578640012}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000118","cluster":0,"begin":4578639729,"end":4578641381}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000011a","cluster":0,"begin":4578641025,"end":4578642260}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000011c","cluster":0,"begin":4578641384,"end":4578646765}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"122","cluster":0,"begin":4578641438,"end":4578646920}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000124","cluster":0,"begin":4578646766,"end":4578647111}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000126","cluster":0,"begin":4578647112,"end":4578647614}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"12c","cluster":0,"begin":4578647974,"end":4578657400}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000128","cluster":0,"begin":4578647619,"end":4578671033}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000146","cluster":0,"begin":4578671034,"end":4578674249}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000148","cluster":0,"begin":4578674250,"end":4578695249}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000154","cluster":0,"begin":4578695250,"end":4578696224}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000016a","cluster":0,"begin":4578696225,"end":4578698391}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000016c","cluster":0,"begin":4578698392,"end":4578699366}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000176","cluster":0,"begin":4578699367,"end":4578701534}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000178","cluster":0,"begin":4578701535,"end":4578702510}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000182","cluster":0,"begin":4578702511,"end":4578704678}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"130","cluster":0,"begin":4578648384,"end":4578704696}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000184","cluster":0,"begin":4578704679,"end":4578705654}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000198","cluster":0,"begin":4578705655,"end":4578707822}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000019a","cluster":0,"begin":4578707823,"end":4578708497}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001a4","cluster":0,"begin":4578708498,"end":4578710663}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1ac","cluster":0,"begin":4578708900,"end":4578710866}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1b0","cluster":0,"begin":4578710922,"end":4578712036}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001b2","cluster":0,"begin":4578712038,"end":4578712455}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1b6","cluster":0,"begin":4578712044,"end":4578713739}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001b8","cluster":0,"begin":4578712457,"end":4578717331}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001ae","cluster":0,"begin":4578710868,"end":4578718384}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001be","cluster":0,"begin":4578717333,"end":4578718798}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001c0","cluster":0,"begin":4578718385,"end":4578718903}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001c4","cluster":0,"begin":4578718911,"end":4578719483}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001c6","cluster":0,"begin":4578719484,"end":4578719835}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1bc","cluster":0,"begin":4578712463,"end":4578723258}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1ca","cluster":0,"begin":4578719516,"end":4578724826}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001d0","cluster":0,"begin":4578723560,"end":4578724934}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001c2","cluster":0,"begin":4578718904,"end":4578739101}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001ea","cluster":0,"begin":4578739502,"end":4578741667}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001fc","cluster":0,"begin":4578741668,"end":4578742642}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000206","cluster":0,"begin":4578742643,"end":4578744810}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000208","cluster":0,"begin":4578744811,"end":4578745786}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000212","cluster":0,"begin":4578745787,"end":4578747954}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000218","cluster":0,"begin":4578747955,"end":4578748930}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000222","cluster":0,"begin":4578748931,"end":4578751098}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000224","cluster":0,"begin":4578751099,"end":4578751773}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000022e","cluster":0,"begin":4578751774,"end":4578753939}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1e4","cluster":0,"begin":4578723571,"end":4578757062}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"234","cluster":0,"begin":4578753940,"end":4578757740}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000236","cluster":0,"begin":4578757742,"end":4578758183}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000023c","cluster":0,"begin":4578758184,"end":4578758611}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"23a","cluster":0,"begin":4578757748,"end":4578759710}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000023e","cluster":0,"begin":4578758612,"end":4578760165}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"242","cluster":0,"begin":4578760167,"end":4578761636}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"246","cluster":0,"begin":4578761644,"end":4578762826}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"24a","cluster":0,"begin":4578762044,"end":4578764430}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000240","cluster":0,"begin":4578759712,"end":4578766923}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000244","cluster":0,"begin":4578761638,"end":4578766989}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000252","cluster":0,"begin":4578766990,"end":4578767397}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000254","cluster":0,"begin":4578767398,"end":4578767767}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"250","cluster":0,"begin":4578766982,"end":4578768096}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"256","cluster":0,"begin":4578767405,"end":4578768662}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000024c","cluster":0,"begin":4578766928,"end":4578772309}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000260","cluster":0,"begin":4578768162,"end":4578772754}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000262","cluster":0,"begin":4578772311,"end":4578773048}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000270","cluster":0,"begin":4578773049,"end":4578773664}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"266","cluster":0,"begin":4578772746,"end":4578773862}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000272","cluster":0,"begin":4578773665,"end":4578774087}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000274","cluster":0,"begin":4578773671,"end":4578774418}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000027c","cluster":0,"begin":4578774419,"end":4578775106}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000286","cluster":0,"begin":4578775107,"end":4578776084}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000028a","cluster":0,"begin":4578776091,"end":4578776553}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000288","cluster":0,"begin":4578776085,"end":4578777047}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"27a","cluster":0,"begin":4578774088,"end":4578777768}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000294","cluster":0,"begin":4578777048,"end":4578777865}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000298","cluster":0,"begin":4578777872,"end":4578778512}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000296","cluster":0,"begin":4578777866,"end":4578778841}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000029a","cluster":0,"begin":4578778842,"end":4578779283}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002a0","cluster":0,"begin":4578779288,"end":4578780736}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2a2","cluster":0,"begin":4578780254,"end":4578781660}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2a4","cluster":0,"begin":4578781662,"end":4578789196}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002a6","cluster":0,"begin":4578789202,"end":4578801097}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002ac","cluster":0,"begin":4578801098,"end":4578802873}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002ae","cluster":0,"begin":4578802874,"end":4578813177}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2aa","cluster":0,"begin":4578789558,"end":4578825012}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002b8","cluster":0,"begin":4578825014,"end":4578836121}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2bc","cluster":0,"begin":4578825021,"end":4578845070}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2d6","cluster":0,"begin":4578836518,"end":4578845788}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002dc","cluster":0,"begin":4578845374,"end":4578846352}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2f2","cluster":0,"begin":4578846362,"end":4578847612}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002ee","cluster":0,"begin":4578846353,"end":4578848585}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002f4","cluster":0,"begin":4578848586,"end":4578849562}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002fe","cluster":0,"begin":4578849563,"end":4578851796}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000300","cluster":0,"begin":4578851797,"end":4578852774}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000030a","cluster":0,"begin":4578852775,"end":4578855008}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000030c","cluster":0,"begin":4578855009,"end":4578855986}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000316","cluster":0,"begin":4578855987,"end":4578858220}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000318","cluster":0,"begin":4578858221,"end":4578859190}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000322","cluster":0,"begin":4578859191,"end":4578861425}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000324","cluster":0,"begin":4578861427,"end":4578862278}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000032c","cluster":0,"begin":4578862281,"end":4578862835}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"32a","cluster":0,"begin":4578861826,"end":4578863264}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000330","cluster":0,"begin":4578863566,"end":4578863887}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000032e","cluster":0,"begin":4578863266,"end":4578863888}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000332","cluster":0,"begin":4578863889,"end":4578864737}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000334","cluster":0,"begin":4578864738,"end":4578865345}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000336","cluster":0,"begin":4578865346,"end":4578866387}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000338","cluster":0,"begin":4578866388,"end":4578866812}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000033a","cluster":0,"begin":4578866813,"end":4578867193}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"33c","cluster":0,"begin":4578867194,"end":4578867836}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000033e","cluster":0,"begin":4578867838,"end":4578868184}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000340","cluster":0,"begin":4578868185,"end":4578869153}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000342","cluster":0,"begin":4578869154,"end":4578869983}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000344","cluster":0,"begin":4578869984,"end":4578870591}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"348","cluster":0,"begin":4578870592,"end":4578871434}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000034c","cluster":0,"begin":4578871436,"end":4578871438}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000","cluster":0,"begin":4578574099,"end":4578871441}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"004","cluster":1,"begin":4259750808,"end":4259750970}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"008","cluster":1,"begin":4259752385,"end":4259752548}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00e","cluster":1,"begin":4259752556,"end":4259752716}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000000a","cluster":1,"begin":4259752550,"end":4259753587}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000001e","cluster":1,"begin":4259753993,"end":4259755022}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000010","cluster":1,"begin":4259753588,"end":4259758437}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000ba","cluster":1,"begin":4259758438,"end":4259758805}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000bc","cluster":1,"begin":4259758806,"end":4259759246}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000be","cluster":1,"begin":4259759247,"end":4259760209}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000c0","cluster":1,"begin":4259760210,"end":4259761509}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000006","cluster":1,"begin":4259751212,"end":4259761510}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"022","cluster":1,"begin":4259754004,"end":4259801142}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0d6","cluster":1,"begin":4259761511,"end":4259801154}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0da","cluster":1,"begin":4259761522,"end":4259802354}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0e0","cluster":1,"begin":4259801158,"end":4259803604}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000dc","cluster":1,"begin":4259801156,"end":4259804489}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0e4","cluster":1,"begin":4259804496,"end":4259805396}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000e2","cluster":1,"begin":4259804490,"end":4259806783}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0e8","cluster":1,"begin":4259804900,"end":4259807008}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000ea","cluster":1,"begin":4259806784,"end":4259807154}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0ec","cluster":1,"begin":4259807155,"end":4259807798}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000ee","cluster":1,"begin":4259807800,"end":4259808438}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000f2","cluster":1,"begin":4259808439,"end":4259809051}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000f4","cluster":1,"begin":4259809052,"end":4259809481}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000f8","cluster":1,"begin":4259809792,"end":4259810926}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000000f6","cluster":1,"begin":4259809482,"end":4259811169}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0f0","cluster":1,"begin":4259807832,"end":4259811430}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000102","cluster":1,"begin":4259811170,"end":4259812125}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000104","cluster":1,"begin":4259812126,"end":4259812939}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000108","cluster":1,"begin":4259813250,"end":4259813687}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000106","cluster":1,"begin":4259812940,"end":4259813907}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000010e","cluster":1,"begin":4259813693,"end":4259814338}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"10c","cluster":1,"begin":4259813258,"end":4259814606}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000118","cluster":1,"begin":4259814339,"end":4259815963}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000011a","cluster":1,"begin":4259815610,"end":4259816812}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000011c","cluster":1,"begin":4259815966,"end":4259821343}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"122","cluster":1,"begin":4259816020,"end":4259821514}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000124","cluster":1,"begin":4259821344,"end":4259821685}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000126","cluster":1,"begin":4259821686,"end":4259822186}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"12c","cluster":1,"begin":4259822542,"end":4259831940}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000128","cluster":1,"begin":4259822191,"end":4259845597}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000146","cluster":1,"begin":4259845598,"end":4259848811}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000148","cluster":1,"begin":4259848812,"end":4259869809}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000154","cluster":1,"begin":4259869810,"end":4259870780}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000016a","cluster":1,"begin":4259870781,"end":4259872943}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000016c","cluster":1,"begin":4259872944,"end":4259873914}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000176","cluster":1,"begin":4259873915,"end":4259876078}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000178","cluster":1,"begin":4259876079,"end":4259877050}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000182","cluster":1,"begin":4259877051,"end":4259879214}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"130","cluster":1,"begin":4259822952,"end":4259879648}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000184","cluster":1,"begin":4259879215,"end":4259880186}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000198","cluster":1,"begin":4259880187,"end":4259882350}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000019a","cluster":1,"begin":4259882351,"end":4259883021}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001a4","cluster":1,"begin":4259883022,"end":4259885183}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1ac","cluster":1,"begin":4259883426,"end":4259885382}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1b0","cluster":1,"begin":4259885438,"end":4259886552}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001b2","cluster":1,"begin":4259886554,"end":4259886971}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1b6","cluster":1,"begin":4259886560,"end":4259887984}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001b8","cluster":1,"begin":4259886973,"end":4259890971}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001ae","cluster":1,"begin":4259885384,"end":4259892028}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001be","cluster":1,"begin":4259890973,"end":4259892444}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001c0","cluster":1,"begin":4259892029,"end":4259892545}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001c4","cluster":1,"begin":4259892553,"end":4259893206}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001c6","cluster":1,"begin":4259893207,"end":4259893641}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1bc","cluster":1,"begin":4259886979,"end":4259898108}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1ca","cluster":1,"begin":4259893265,"end":4259899232}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001d0","cluster":1,"begin":4259898410,"end":4259899824}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001c2","cluster":1,"begin":4259892546,"end":4259913571}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001ea","cluster":1,"begin":4259913968,"end":4259916129}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000001fc","cluster":1,"begin":4259916130,"end":4259917100}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000206","cluster":1,"begin":4259917101,"end":4259919264}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000208","cluster":1,"begin":4259919265,"end":4259920236}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000212","cluster":1,"begin":4259920237,"end":4259922400}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000218","cluster":1,"begin":4259922401,"end":4259923372}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000222","cluster":1,"begin":4259923373,"end":4259925536}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000224","cluster":1,"begin":4259925537,"end":4259926207}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000022e","cluster":1,"begin":4259926208,"end":4259928369}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"1e4","cluster":1,"begin":4259898421,"end":4259929416}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"234","cluster":1,"begin":4259928370,"end":4259930094}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000236","cluster":1,"begin":4259930096,"end":4259930537}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000023c","cluster":1,"begin":4259930538,"end":4259930961}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"23a","cluster":1,"begin":4259930102,"end":4259932288}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000023e","cluster":1,"begin":4259930962,"end":4259932743}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"242","cluster":1,"begin":4259932745,"end":4259934190}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"246","cluster":1,"begin":4259934198,"end":4259935388}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"24a","cluster":1,"begin":4259934602,"end":4259936978}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000240","cluster":1,"begin":4259932290,"end":4259939493}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000244","cluster":1,"begin":4259934192,"end":4259939559}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"250","cluster":1,"begin":4259939552,"end":4259939714}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000252","cluster":1,"begin":4259939560,"end":4259939967}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000254","cluster":1,"begin":4259939968,"end":4259940333}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"256","cluster":1,"begin":4259939975,"end":4259940664}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000024c","cluster":1,"begin":4259939498,"end":4259944877}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000260","cluster":1,"begin":4259940728,"end":4259945324}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"266","cluster":1,"begin":4259945316,"end":4259945482}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000262","cluster":1,"begin":4259944879,"end":4259945630}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000270","cluster":1,"begin":4259945631,"end":4259946242}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000272","cluster":1,"begin":4259946243,"end":4259946665}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000274","cluster":1,"begin":4259946249,"end":4259946996}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000027c","cluster":1,"begin":4259946997,"end":4259947838}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000286","cluster":1,"begin":4259947839,"end":4259948812}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000028a","cluster":1,"begin":4259948819,"end":4259949277}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000288","cluster":1,"begin":4259948813,"end":4259949771}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"27a","cluster":1,"begin":4259946666,"end":4259950312}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000294","cluster":1,"begin":4259949772,"end":4259950585}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000298","cluster":1,"begin":4259950592,"end":4259951244}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000296","cluster":1,"begin":4259950586,"end":4259951557}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000029a","cluster":1,"begin":4259951558,"end":4259951995}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002a0","cluster":1,"begin":4259952000,"end":4259953484}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2a2","cluster":1,"begin":4259953002,"end":4259954408}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2a4","cluster":1,"begin":4259954410,"end":4259961964}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002a6","cluster":1,"begin":4259961970,"end":4259973859}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002ac","cluster":1,"begin":4259973860,"end":4259975631}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002ae","cluster":1,"begin":4259975632,"end":4259985933}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2aa","cluster":1,"begin":4259962322,"end":4259993004}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002b8","cluster":1,"begin":4259993006,"end":4260004111}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2bc","cluster":1,"begin":4259993013,"end":4260013190}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2d6","cluster":1,"begin":4260004512,"end":4260013194}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002dc","cluster":1,"begin":4260013494,"end":4260014464}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"2f2","cluster":1,"begin":4260014474,"end":4260014636}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002ee","cluster":1,"begin":4260014465,"end":4260016693}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002f4","cluster":1,"begin":4260016694,"end":4260017662}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"00000000000002fe","cluster":1,"begin":4260017663,"end":4260019892}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000300","cluster":1,"begin":4260019893,"end":4260020862}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000030a","cluster":1,"begin":4260020863,"end":4260023092}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000030c","cluster":1,"begin":4260023093,"end":4260024062}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000316","cluster":1,"begin":4260024063,"end":4260026292}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000318","cluster":1,"begin":4260026293,"end":4260027260}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000322","cluster":1,"begin":4260027261,"end":4260029491}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000324","cluster":1,"begin":4260029493,"end":4260030348}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000032c","cluster":1,"begin":4260030351,"end":4260030901}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"32a","cluster":1,"begin":4260029894,"end":4260031378}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000330","cluster":1,"begin":4260031678,"end":4260031995}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000032e","cluster":1,"begin":4260031380,"end":4260040223}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000332","cluster":1,"begin":4260040224,"end":4260041067}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000334","cluster":1,"begin":4260041068,"end":4260041671}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000336","cluster":1,"begin":4260041672,"end":4260042709}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000338","cluster":1,"begin":4260042710,"end":4260043130}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000033a","cluster":1,"begin":4260043131,"end":4260043507}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"33c","cluster":1,"begin":4260043508,"end":4260043668}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000000000000033e","cluster":1,"begin":4260043911,"end":4260044252}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000340","cluster":1,"begin":4260044253,"end":4260045217}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000342","cluster":1,"begin":4260045218,"end":4260046043}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000000000000344","cluster":1,"begin":4260046044,"end":4260046647}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"348","cluster":1,"begin":4260046648,"end":4260046812}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"000034c","cluster":1,"begin":4260046814,"end":4260048391}
+DIAG_SPAN {"kernel":"decoder_feedforward","run":2,"name":"0000","cluster":1,"begin":4259750710,"end":4260048394}
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=298166 (of 3 runs: [304800, 298166, 297684])
+
+
+DIAG_CHECK_COMPLETE selected=1 runs=3 failures=0
+DIAG_STAGE_EXIT candidate_trace 0
+DIAG_STAGE_END candidate_trace
+DIAG_STAGE_BEGIN candidate_whole
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=94492 (of 3 runs: [98941, 93065, 94492])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=42675 (of 3 runs: [45317, 42429, 42675])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=297229 (of 3 runs: [304603, 297229, 296615])
+
+
+all 3 tests passed
+remote_entrypoint.sh: all kernel tests passed
+DIAG_STAGE_EXIT candidate_whole 0
+DIAG_STAGE_END candidate_whole
+DIAG_STAGE_BEGIN control_after
+NPU kernel tests -- 3 cases x 3 independently-seeded runs against a precomputed reference, with on-device cycle counts
+
+==> sliding_project_qkv
+[sliding_project_qkv q run0        ] max|Δ|=  0.01562 (   0.50% of expected)  mean|Δ|= 0.000556  within tol=100.00%  -> PASS
+[sliding_project_qkv k run0        ] max|Δ|=  0.01562 (   0.68% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv v run0        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run1        ] max|Δ|=  0.01562 (   0.51% of expected)  mean|Δ|= 0.000508  within tol=100.00%  -> PASS
+[sliding_project_qkv k run1        ] max|Δ|=  0.01562 (   0.64% of expected)  mean|Δ|= 0.000524  within tol=100.00%  -> PASS
+[sliding_project_qkv v run1        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_project_qkv q run2        ] max|Δ|=  0.01562 (   0.74% of expected)  mean|Δ|= 0.000552  within tol=100.00%  -> PASS
+[sliding_project_qkv k run2        ] max|Δ|=  0.01562 (   0.69% of expected)  mean|Δ|= 0.000586  within tol=100.00%  -> PASS
+[sliding_project_qkv v run2        ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=94305 (of 3 runs: [98727, 92659, 94305])
+
+==> sliding_attention_output
+[sliding_attention_output run0     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run1     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+[sliding_attention_output run2     ] max|Δ|=  0.00000 (   0.00% of expected)  mean|Δ|= 0.000000  within tol=100.00%  -> PASS
+    median cycles=42666 (of 3 runs: [45305, 42666, 42347])
+
+==> decoder_feedforward
+[decoder_feedforward run0          ] max|Δ|=  0.00781 (   0.96% of expected)  mean|Δ|= 0.000276  within tol=100.00%  -> PASS
+[decoder_feedforward run1          ] max|Δ|=  0.01172 (   2.05% of expected)  mean|Δ|= 0.000380  within tol=100.00%  -> PASS
+[decoder_feedforward run2          ] max|Δ|=  0.00781 (   0.99% of expected)  mean|Δ|= 0.000400  within tol=100.00%  -> PASS
+    median cycles=304989 (of 3 runs: [311620, 303547, 304989])
+
+
+all 3 tests passed
+remote_entrypoint.sh: all kernel tests passed
+DIAG_STAGE_EXIT control_after 0
+DIAG_STAGE_END control_after
+DIAG_SCREEN_COMPLETE
