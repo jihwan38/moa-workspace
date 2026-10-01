@@ -1,5 +1,17 @@
 # Experiment ledger
 
+October1 **[E154 replicated scale/direct local VRF adopted](../../baseline/e154.json)**,
+source/tag `3f38406` / `baseline-e154`. Three contemporary E151 brackets improve
+FFN by paired median **2.424948%**. Original nine standard inputs,245760 exact
+raw-up/gate BF16 values (signed-zero equivalent) and3840 exact full-FFN regression
+outputs pass. The raw oracle excludes pre-RMS; emitted original RMS arithmetic and
+local-cast coverage plus complete-FFN validation cover that changed boundary.
+GlobalMax/pow2scale stay on8valid quant owners to remove scalar redistribution DMA;
+latepacked23040B, originalring and E151native/down remain. Source3/43unchanged and
+QKV/O images byte-identical. Official submission is pending; no rank gain yet claimed.
+[Current work](current-work.md) · [Final gate](../../moa-dev/experiments/candidates/ffn-sharded-scale-replicated/adoption/independent-final-review.json).
+
+
 October1 **[E151 down scale ingress/Sub-to-VRF routing adopted](../../baseline/e151.json)**,
 source/tag `8adbbae` / `baseline-e151`. Three contemporary E150 brackets improve FFN by
 paired median **0.716484859%**; aggregate median ratio0.892416474% is separate. All three

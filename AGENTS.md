@@ -499,3 +499,14 @@
   latepacked/ring/suffix costs and contemporary complete comparisons. This
   reuses a M06 scalar topology with currently supported RMS/Subsum/copies;
   neither a new family nor a proof of the old SFR868/timeout cause.
+
+- E154 adopts replicatedMax/pow2/direct-local-scaleVRF after three positive
+  E151-bracketed allocations, paired median2.424948percent. Source/tag
+  3f38406/baseline-e154; three source changes/43unchanged, QKV/O byte-identical.
+  Original standard9, rawup8/245760 exact±0 and fullFFN3840 exact pass. Raw
+  excludes preRMS; original emitted RMS arithmetic/F32 boundary and local3840
+  cast coverage plus completeFFN validation cover that producer. Keep the
+  all512 scalar typedDMA from initialized anonymous8, latepacked23040B and
+  original ring/native/E151down costs. ScalarDMA removal repairs the measured
+  dependency but does not reclaim all37k or prove M06's old timeout cause.
+  Stop parameter tuning; final official result and rank remain separate.

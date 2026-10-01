@@ -2,7 +2,7 @@
 use furiosa_opt_std::prelude::*;
 
 use crate::Chip;
-use crate::axes::{Dummy2, Dummy256, H, L};
+use crate::axes::{Dummy2, Dummy8, Dummy256, H, L};
 use crate::device::layout::{Cluster, Replicated, Slice};
 
 macro_rules! static_passes {
@@ -547,13 +547,14 @@ pub(crate) fn feedforward(
     gate_global_scale: &HbmTensor<f32, Chip, m![1]>,
     down_global_scale: &HbmTensor<f32, Chip, m![1]>,
 ) -> DmTensor<bf16, Chip, Cluster, Slice, m![H]> {
+    let x: DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
     let down = feedforward_sharded(device, x, up_weight_packed, gate_weight_packed, down_weight_packed, up_weight_scale, gate_weight_scale, down_weight_scale, up_global_scale, gate_global_scale, down_global_scale);
     down.to_dm(&mut device.tdma)
 }
 
 pub(crate) fn feedforward_sharded(
     device: &mut Device,
-    x: DmTensor<bf16, Chip, Cluster, Slice, m![H]>,
+    x: DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]>,
     up_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
     gate_weight_packed: &HbmTensor<f4e2m1, Chip, m![L, H]>,
     down_weight_packed: &HbmTensor<f4e2m1, Chip, m![H, L]>,
@@ -565,8 +566,7 @@ pub(crate) fn feedforward_sharded(
     down_global_scale: &HbmTensor<f32, Chip, m![1]>,
 ) -> DmTensor<bf16, Chip, Cluster, DownEpilogueSlices, m![H % 480]> {
     // Quantize the actual runtime BF16 activation; both projections reuse it.
-    let x: DmTensor<bf16, Chip, m![2], Slice, m![H]> = x.to_dm(&mut device.tdma);
-    let (x, x_scale) = prepare_ffn_fp8_split(device, &x);
+    let (x, x_scale) = prepare_ffn_fp8_split_sharded(device, &x);
     let x: DmTensor<f8e5m2, Chip, UpGateCluster, UpGateSlices, m![FfnTerm, H]> = unsafe { x.reshape() };
     let x_scale: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]> = unsafe { x_scale.reshape() };
     let (up, gate) = project_up_and_gate(
@@ -633,24 +633,48 @@ pub(crate) fn prepare_ffn_fp8_split(
     DmTensor<f8e5m2, Chip, m![2], Replicated, m![FfnTerm, H]>,
     DmTensor<f32, Chip, m![2], Replicated, m![1 # 8]>,
 ) {
-    // Amax on the canonical input avoids an expensive inter-slice reduction.
-    // i32 reinterpret makes the absolute-value mask a non-NaN immediate.
-    let amax: DmTensor<f32, Chip, m![2], Slice, m![1 # 8]> = device
+    // Preserve the existing private boundary-probe interface. The production
+    // path calls the sharded helper directly and does not execute this DMA.
+    let x: DmTensor<bf16, Chip, Cluster, FfnQuantSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
+    prepare_ffn_fp8_split_sharded(device, &x)
+}
+
+fn prepare_ffn_fp8_split_sharded(
+    device: &mut Device,
+    x: &DmTensor<bf16, Chip, Cluster, FfnQuantSlices, m![H % 480]>,
+) -> (
+    DmTensor<f8e5m2, Chip, m![2], Replicated, m![FfnTerm, H]>,
+    DmTensor<f32, Chip, m![2], Replicated, m![1 # 8]>,
+) {
+    // Scan the eight actual cluster0 H480 shards; global finite Max preserves
+    // the original amax. Keep the original floor before exponent extraction.
+    let local_amax: DmTensor<f32, Chip, Cluster, FfnQuantSlices, m![1 # 8]> = device
         .main.begin(x.view())
-        .fetch::<m![H / 16], m![H % 16]>().fetch_cast::<f32>()
-        .collect::<m![H / 8], m![H % 8]>()
+        .fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()
+        .collect::<m![H / 8 % 60], m![H % 8]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
         .vector_reinterpret::<i32>()
         .vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)
         .vector_reinterpret::<f32>()
-        .vector_narrow_split::<m![H / 4], m![H % 4]>()
+        .vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()
         .vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)
         .vector_widen_pad::<m![1 # 8]>()
         .vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)
         .vector_final().commit_trim::<m![1 # 8]>().commit();
+    // Materialize the same global finite Max on the eight existing valid
+    // cluster0 shards. Dummy8 uses the original RMS reduction output mapping.
+    let amax: DmTensor<f32, Chip, Cluster, m![1 # 32, Dummy8], m![1 # 8]> = device.main
+        .begin(local_amax.view())
+        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+        .vector_init()
+        .vector_inter_slice_reduce::<m![1 # 32, Dummy8], m![1]>(InterSliceReduceOpF32::Max)
+        .vector_final().commit_trim::<m![1 # 8]>().commit();
+    // Whole-allocation relabel: physical slices0..7 stay valid, with no
+    // permutation and no read from the remaining248 padded slice positions.
+    let amax: DmTensor<f32, Chip, Cluster, FfnQuantSlices, m![1 # 8]> = unsafe { amax.reshape() };
     // Exponent mask produces 2^floor(log2(amax)); floor 2^-112 guarantees
     // scale >= 2^-126, and finite BF16 inputs imply scale <= 2^113.
-    let scale: DmTensor<f32, Chip, m![2], Slice, m![1 # 8]> = device
+    let scale: DmTensor<f32, Chip, Cluster, FfnQuantSlices, m![1 # 8]> = device
         .main.begin(amax.view())
         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
@@ -661,12 +685,12 @@ pub(crate) fn prepare_ffn_fp8_split(
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.00006103515625f32)
         .vector_widen_pad::<m![1 # 8]>().vector_final()
         .commit_trim::<m![1 # 8]>().commit();
-    let quant_scale: DmTensor<f32, Chip, m![2], FfnQuantSlices, m![1 # 8]> = scale.to_dm(&mut device.tdma);
-    let scale_vrf: VrfTensor<f32, Chip, m![2], FfnQuantSlices, m![1 # 8]> = device
-        .sub.begin(quant_scale.view())
+    // The scale producer already occupies the quantizer's eight H480 shards.
+    // The existing Sub load needs no scalar redistribution DMA.
+    let scale_vrf: VrfTensor<f32, Chip, Cluster, FfnQuantSlices, m![1 # 8]> = device
+        .sub.begin(scale.view())
         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
-    let x: DmTensor<bf16, Chip, m![2], FfnQuantSlices, m![H % 480]> = x.to_dm(&mut device.tdma);
-    let hi: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![H % 480]> = device
+    let hi: DmTensor<f8e5m2, Chip, Cluster, FfnQuantSlices, m![H % 480]> = device
         .main.begin(x.view())
         .fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()
         .collect::<m![H / 8 % 60], m![H % 8]>()
@@ -676,11 +700,11 @@ pub(crate) fn prepare_ffn_fp8_split(
         .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()
         .cast::<f8e5m2, m![H % 8 # 32]>()
         .commit_trim::<m![H % 8]>().commit();
-    let hi_vrf: VrfTensor<f32, Chip, m![2], FfnQuantSlices, m![H % 480]> = device
+    let hi_vrf: VrfTensor<f32, Chip, Cluster, FfnQuantSlices, m![H % 480]> = device
         .sub.begin(hi.view())
         .fetch::<m![H / 32 % 15], m![H % 32]>().fetch_cast::<f32>()
         .collect::<m![H / 8 % 60], m![H % 8]>().to_vrf();
-    let lo: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![H % 480]> = device
+    let lo: DmTensor<f8e5m2, Chip, Cluster, FfnQuantSlices, m![H % 480]> = device
         .main.begin(x.view())
         .fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()
         .collect::<m![H / 8 % 60], m![H % 8]>()
@@ -691,17 +715,17 @@ pub(crate) fn prepare_ffn_fp8_split(
         .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()
         .cast::<f8e5m2, m![H % 8 # 32]>()
         .commit_trim::<m![H % 8]>().commit();
-    let sum_terms: DmTensor<f32, Chip, m![2], FfnQuantSlices, m![H % 480]> = device.sub
+    let sum_terms: DmTensor<f32, Chip, Cluster, FfnQuantSlices, m![H % 480]> = device.sub
         .begin(lo.view()).fetch::<m![H / 32 % 15], m![H % 32]>().fetch_cast::<f32>()
         .collect::<m![H / 8 % 60], m![H % 8]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
         .vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()
         .vector_fp_binary(FpBinaryOp::AddF, &hi_vrf)
         .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final().commit_trim::<m![H % 8]>().commit();
-    let sum_vrf: VrfTensor<f32, Chip, m![2], FfnQuantSlices, m![H % 480]> = device.sub
+    let sum_vrf: VrfTensor<f32, Chip, Cluster, FfnQuantSlices, m![H % 480]> = device.sub
         .begin(sum_terms.view()).fetch::<m![H / 8 % 60], m![H % 8]>()
         .collect::<m![H / 8 % 60], m![H % 8]>().to_vrf();
-    let third: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![H % 480]> = device
+    let third: DmTensor<f8e5m2, Chip, Cluster, FfnQuantSlices, m![H % 480]> = device
         .main.begin(x.view())
         .fetch::<m![H / 16 % 30], m![H % 16]>().fetch_cast::<f32>()
         .collect::<m![H / 8 % 60], m![H % 8]>()
@@ -712,7 +736,7 @@ pub(crate) fn prepare_ffn_fp8_split(
         .vector_widen_concat::<m![H / 8 % 60], m![H % 8]>().vector_final()
         .cast::<f8e5m2, m![H % 8 # 32]>()
         .commit_trim::<m![H % 8]>().commit();
-    let mut packed: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![FfnTerm, H % 480]> = DmTensor::new();
+    let mut packed: DmTensor<f8e5m2, Chip, Cluster, FfnQuantSlices, m![FfnTerm, H % 480]> = DmTensor::new();
     device.sub.begin(hi.view())
         .fetch::<m![H / 32 % 15], m![H % 32]>()
         .collect::<m![H / 32 % 15], m![H % 32]>()
@@ -728,5 +752,14 @@ pub(crate) fn prepare_ffn_fp8_split(
         .collect::<m![H / 32 % 15], m![H % 32]>()
         .commit_trim::<m![H % 32]>()
         .commit_view(packed.view_mut().tile::<m![FfnTerm], 1, m![FfnTerm = 1 #{!} 3, H % 480]>(2));
-    (broadcast_ffn_quantized(device, &packed), scale.to_dm(&mut device.tdma))
+    // Replicate only prepared terms to the two cluster-local H480 producers.
+    // 2*3*3840 = 23040 logical destination bytes; original ring32 seed and
+    // full512-slice broadcast remain exactly the same function and mappings.
+    let packed: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![FfnTerm, H % 480]> = packed.to_dm(&mut device.tdma);
+    // Every active source slice contains the identical global scale. Relabel
+    // H/480 as anonymous8 replicas without shrinking the physical/live mask.
+    // Final all512-slice replication remains a real typed DMA; packet padding
+    // is not additional useful scalar data.
+    let shared_scale: DmTensor<f32, Chip, Cluster, m![1 # 32, 8], m![1 # 8]> = unsafe { scale.reshape() };
+    (broadcast_ffn_quantized(device, &packed), shared_scale.to_dm(&mut device.tdma))
 }

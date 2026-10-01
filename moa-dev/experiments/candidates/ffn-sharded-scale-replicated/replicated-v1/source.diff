@@ -1,0 +1,61 @@
+--- frozen-E153/mlp.rs
++++ prepared-E154/mlp.rs
+@@ -2,7 +2,7 @@
+ use furiosa_opt_std::prelude::*;
+ 
+ use crate::Chip;
+-use crate::axes::{Dummy2, Dummy256, H, L};
++use crate::axes::{Dummy2, Dummy8, Dummy256, H, L};
+ use crate::device::layout::{Cluster, Replicated, Slice};
+ 
+ macro_rules! static_passes {
+@@ -661,15 +661,20 @@
+         .vector_widen_pad::<m![1 # 8]>()
+         .vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)
+         .vector_final().commit_trim::<m![1 # 8]>().commit();
+-    let amax: DmTensor<f32, Chip, Cluster, Slice, m![1 # 8]> = device.main
++    // Materialize the same global finite Max on the eight existing valid
++    // cluster0 shards. Dummy8 uses the original RMS reduction output mapping.
++    let amax: DmTensor<f32, Chip, Cluster, m![1 # 32, Dummy8], m![1 # 8]> = device.main
+         .begin(local_amax.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+         .vector_init()
+-        .vector_inter_slice_reduce::<Slice, m![1]>(InterSliceReduceOpF32::Max)
++        .vector_inter_slice_reduce::<m![1 # 32, Dummy8], m![1]>(InterSliceReduceOpF32::Max)
+         .vector_final().commit_trim::<m![1 # 8]>().commit();
++    // Whole-allocation relabel: physical slices0..7 stay valid, with no
++    // permutation and no read from the remaining248 padded slice positions.
++    let amax: DmTensor<f32, Chip, Cluster, FfnQuantSlices, m![1 # 8]> = unsafe { amax.reshape() };
+     // Exponent mask produces 2^floor(log2(amax)); floor 2^-112 guarantees
+     // scale >= 2^-126, and finite BF16 inputs imply scale <= 2^113.
+-    let scale: DmTensor<f32, Chip, Cluster, Slice, m![1 # 8]> = device
++    let scale: DmTensor<f32, Chip, Cluster, FfnQuantSlices, m![1 # 8]> = device
+         .main.begin(amax.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+@@ -680,9 +685,10 @@
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.00006103515625f32)
+         .vector_widen_pad::<m![1 # 8]>().vector_final()
+         .commit_trim::<m![1 # 8]>().commit();
+-    let quant_scale: DmTensor<f32, Chip, Cluster, FfnQuantSlices, m![1 # 8]> = scale.to_dm(&mut device.tdma);
++    // The scale producer already occupies the quantizer's eight H480 shards.
++    // The existing Sub load needs no scalar redistribution DMA.
+     let scale_vrf: VrfTensor<f32, Chip, Cluster, FfnQuantSlices, m![1 # 8]> = device
+-        .sub.begin(quant_scale.view())
++        .sub.begin(scale.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+     let hi: DmTensor<f8e5m2, Chip, Cluster, FfnQuantSlices, m![H % 480]> = device
+         .main.begin(x.view())
+@@ -750,5 +756,10 @@
+     // 2*3*3840 = 23040 logical destination bytes; original ring32 seed and
+     // full512-slice broadcast remain exactly the same function and mappings.
+     let packed: DmTensor<f8e5m2, Chip, m![2], FfnQuantSlices, m![FfnTerm, H % 480]> = packed.to_dm(&mut device.tdma);
+-    (broadcast_ffn_quantized(device, &packed), scale.to_dm(&mut device.tdma))
+-}
++    // Every active source slice contains the identical global scale. Relabel
++    // H/480 as anonymous8 replicas without shrinking the physical/live mask.
++    // Final all512-slice replication remains a real typed DMA; packet padding
++    // is not additional useful scalar data.
++    let shared_scale: DmTensor<f32, Chip, Cluster, m![1 # 32, 8], m![1 # 8]> = unsafe { scale.reshape() };
++    (broadcast_ffn_quantized(device, &packed), shared_scale.to_dm(&mut device.tdma))
++}

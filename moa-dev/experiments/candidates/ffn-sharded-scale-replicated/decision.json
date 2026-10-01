@@ -1,0 +1,73 @@
+{
+  "id": "E154",
+  "status": "frozen_validation_complete_pending_root_adoption",
+  "source_base_commit": "8adbbae1776aa8080a96348a9d9a64022a0cf6d0",
+  "source_composition": "E151 full source plus frozen E153 three-file sharded pre-RMS/quantizer path, then replicated Max8 and direct quantizer scale-VRF supply. E153 was not adopted.",
+  "performance_control": "baseline/e151.json",
+  "build_label": "e154-replicated-v1",
+  "independent_allocations": 3,
+  "paired_observations": [
+    {
+      "job_id": 141633,
+      "screen_label": "e154-replicated-v1-screen",
+      "candidate_ffn_cycles": 288044,
+      "control_before_ffn_cycles": 295176,
+      "control_after_ffn_cycles": 295622,
+      "bracketing_control_ffn_cycles": 295399.0,
+      "ratio": 0.9751014729230634,
+      "delta_percent": -2.4898527076936627
+    },
+    {
+      "job_id": 141648,
+      "screen_label": "e154-replicated-v1-repeat-a",
+      "candidate_ffn_cycles": 288616,
+      "control_before_ffn_cycles": 294688,
+      "control_after_ffn_cycles": 295855,
+      "bracketing_control_ffn_cycles": 295271.5,
+      "ratio": 0.977459727742095,
+      "delta_percent": -2.2540272257905003
+    },
+    {
+      "job_id": 141661,
+      "screen_label": "e154-replicated-v1-repeat-b",
+      "candidate_ffn_cycles": 287581,
+      "control_before_ffn_cycles": 294564,
+      "control_after_ffn_cycles": 294892,
+      "bracketing_control_ffn_cycles": 294728.0,
+      "ratio": 0.9757505225156755,
+      "delta_percent": -2.424947748432449
+    }
+  ],
+  "median_paired_delta_percent": -2.424947748432449,
+  "aggregate_median_delta_percent": -2.447747242791809,
+  "all_paired_ffn_improved": true,
+  "all_candidate_medians_below_both_controls": true,
+  "standard_distinct_inputs": 9,
+  "standard_candidate_output_comparisons": 75,
+  "standard_candidate_ffn_comparisons": 15,
+  "raw_upgate_scope": "8 frozen cases/245760 first-BF16 values exact (signed zero equivalent). Actual sharded quantizer via compatibility wrapper; production pre-RMS excluded.",
+  "full_ffn_scope": "One original constructed full-production FFN case,3840 exact values. Production pre-RMS included but intermediate RMS was not separately observed.",
+  "numerical_scope": "Original reference/input/tolerances unchanged. Finite nine standard inputs and separate eight raw/one whole case; no arbitrary BF16 or end-to-end model guarantee.",
+  "images": "QKV and O remain byte-identical to E151; their timing variation is not improvement.",
+  "decisions": {
+    "adoption": {
+      "status": "ready_for_final_independent_and_root_decision",
+      "reason": "Three same-payload controlled allocations all improved and standard9/raw8/fullFFN checks passed; no5%minimum.",
+      "root_owns_live_source_and_official_submission": true
+    },
+    "further_tuning": {
+      "status": "stop",
+      "reason": "Frozen replicated-scalar repair, no parameter sweep or extra same-purpose repetitions."
+    },
+    "major_research": {
+      "status": "measure_current_complete_path_before_new_design",
+      "reason": "The E153 scalar readiness interval selected this supported repair. Its37k observed span was not claimed as savings; the actual whole gain is about2.42%. Current downstream native/ring/weight/scale overlap is not proven optimal."
+    }
+  },
+  "adopted": false,
+  "official_submission": false,
+  "performance_summary": "adoption/performance-summary.json",
+  "extra_correctness": "adoption/extra-results.json",
+  "boundary_results": "boundary-results.json",
+  "source_binding": "source-build-binding.json"
+}

@@ -1,0 +1,45 @@
+{
+  "id": "E154",
+  "variant": "replicated-v1",
+  "actual_start_commit": "b336c45c20bcf95815d8f66cfea4d9b8b8d99922",
+  "base_commit": "8adbbae1776aa8080a96348a9d9a64022a0cf6d0",
+  "comparison_recipe": "baseline/e151.json",
+  "source_reference_build": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/measured-build-e151-adoption.json",
+  "composition_reference": "Frozen E153 sharded-v1 three-source bundle, followed by replicated scale output repair; E153 is not adopted.",
+  "changed_sources": {
+    "ops.rs": "src/ops.rs",
+    "rmsnorm.rs": "src/device/shared/rmsnorm.rs",
+    "mlp.rs": "src/device/shared/mlp.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "sliding_attention_output"
+  ],
+  "target_kernel": "decoder_feedforward",
+  "scope": "Local dataflow repair of E153 ownership combination, not a new architecture family or shard-size sweep.",
+  "prior": [
+    "E153 first whole141557 passes45 but regresses1.145435% against E151; one actual E151/E153 names-only diagnostic is running independently.",
+    "M06v1/v2 used replicatedMax but SFR868; canonicalMax+ring8v3 also failed; later Mainsum v4 compiled but timed out. This does not establish replicatedMax alone as unsupported or repaired.",
+    "Current E153 compiles original Subsum, bounded480Bcopies and original RMS arithmetic. Recombine replicated scalar output with this current path and revalidate actual target/whole behavior."
+  ],
+  "execution": "Original E153 preRMSH480/finite localMax -> globalMax replicated on8 Dummy8 slices -> same8valid H480 relabel -> originalpow2scale on8shards -> directSubVRF; final scalar is same8copies relabeled anonymous8 for original all512 typedDMA. Original latepacked23040B/ring/native/E151down retained.",
+  "removed": [
+    "Quantization scalar TDMA from one canonical slice back to eight H480 owners"
+  ],
+  "added": [
+    "GlobalMax output and power2scale are materialized at8valid scalar positions, preserving their repeated value",
+    "Replica8-to-all512 actual descriptor and shared lifetimes require new validation"
+  ],
+  "adoption": {
+    "decision": "not eligible until exact whole gate and contemporary NPU comparison plus changed-boundary checks",
+    "positive": "Freeze positive whole; three independent controls, extra6, original rawupgate8 and completeFFN regression. No5percent adoption minimum."
+  },
+  "tuning": {
+    "decision": "one bounded replicated-scalar repair, no shard/ring/row sweep",
+    "first_stop": "Concrete source/axis/shape bugs may receive supported repair; unresolved lowering/liveness failure remains recorded. No blind retries."
+  },
+  "major_research": {
+    "decision": "Prepare source/exact feasibility in parallel with E153 diagnostic to avoid idle deadline time",
+    "npu_selection": "Root will compare actual diagnostic scale DMA/VRF readiness and graph removal/additions before NPU; currently no new measured speed claim."
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "job": {
+    "id": 141661,
+    "owner": "jihwan38",
+    "mine": true,
+    "name": "beef-e154-replicated-v1-repeat-b",
+    "status": "SUCCEEDED",
+    "created_at": "2026-10-01T11:15:58Z",
+    "started_at": "2026-10-01T11:17:31Z",
+    "finished_at": "2026-10-01T11:17:51Z",
+    "duration_sec": 19.931817543,
+    "exit_code": 0,
+    "device_id": null
+  },
+  "log": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/evidence/arena-141661.log",
+  "log_digest": {
+    "bytes": 7363,
+    "sha256": "197bd4bd35b37e0e3d5dfe30a744b5f6f73f4cb4e2a6dad9110eb0944bac132e"
+  },
+  "build_record": {
+    "path": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/e154-replicated-v1-repeat-b-build.json",
+    "bytes": 12014,
+    "sha256": "eae22f8d27730ef1442579e90f70155f9069c6d1849f6f1dbf3fcd69ead0dac2"
+  },
+  "method": "One allocation, three serial original three-input benchmark hosts: actual E151 before -> candidate whole FFN -> actual E151 after. PROFILE=info; no diagnostic host. Before/after and inputs are not independent allocations.",
+  "stages": {
+    "control_before": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 94623,
+          "cycles_by_run": [
+            98591,
+            92385,
+            94623
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 42732,
+          "cycles_by_run": [
+            46419,
+            42525,
+            42732
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 294564,
+          "cycles_by_run": [
+            302107,
+            293937,
+            294564
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    },
+    "candidate_whole": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 94607,
+          "cycles_by_run": [
+            98861,
+            91554,
+            94607
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 42786,
+          "cycles_by_run": [
+            45189,
+            42786,
+            42686
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 287581,
+          "cycles_by_run": [
+            296637,
+            286784,
+            287581
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    },
+    "control_after": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 94218,
+          "cycles_by_run": [
+            100422,
+            92823,
+            94218
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 42666,
+          "cycles_by_run": [
+            45605,
+            42666,
+            42467
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 294892,
+          "cycles_by_run": [
+            301593,
+            293584,
+            294892
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    }
+  },
+  "completed_stage_names": [
+    "control_before",
+    "candidate_whole",
+    "control_after"
+  ],
+  "stage_sequence_matches": true,
+  "screen_complete": true,
+  "actual_upload_matches": true,
+  "valid": true,
+  "package_files": {
+    "run.sh": {
+      "bytes": 1353,
+      "sha256": "93e19ff73167afe8d617e0d2ebea0d04b45d87152ac2373e8be202179a56574c"
+    },
+    "fixtures.safetensors": {
+      "bytes": 202632,
+      "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+    },
+    "job.yaml": {
+      "bytes": 93,
+      "sha256": "7e3cb344b984dee44c4f28868e19fdfbb4bd33e4ed0b45f00b962b291f06b141"
+    },
+    "remote_entrypoint.sh": {
+      "bytes": 965,
+      "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+    },
+    "candidate_test_runtime": {
+      "bytes": 3831616,
+      "sha256": "99ac9fa98a565d5986f8f19757f9b49801454d4f9d64ee032cf85480593b233f"
+    },
+    "control_test_runtime": {
+      "bytes": 3832128,
+      "sha256": "74d65cd07311887aeb45cdb6918d15745067b27ef5514b78cb82afd925b71079"
+    }
+  },
+  "archive": {
+    "path": "moa-dev/experiments/artifacts/ffn-sharded-scale-replicated/job-141661.tar",
+    "bytes": 7874048,
+    "sha256": "75d81ecb58d003f11266997f5ae8f401882fc17df405cd2b45ae13c54eb144f8"
+  },
+  "correctness_passes": 45,
+  "whole_ffn_comparison": {
+    "control_before": 294564,
+    "candidate": 287581,
+    "control_after": 294892,
+    "bracketing_median": 294728.0,
+    "candidate_change_percent": -2.424947748432449
+  }
+}

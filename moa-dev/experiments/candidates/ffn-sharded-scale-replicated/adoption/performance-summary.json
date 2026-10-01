@@ -1,0 +1,87 @@
+{
+  "id": "E154",
+  "valid": true,
+  "independent_allocations": 3,
+  "candidate_distinct_standard_inputs": 3,
+  "candidate_comparisons_passed": 45,
+  "candidate_ffn_comparisons_passed": 9,
+  "total_standard_comparisons_passed": 135,
+  "normalized_stage_payloads": {
+    "candidate": {
+      "fixtures.safetensors": {
+        "bytes": 202632,
+        "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+      },
+      "remote_entrypoint.sh": {
+        "bytes": 965,
+        "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+      },
+      "test_runtime": {
+        "bytes": 3831616,
+        "sha256": "99ac9fa98a565d5986f8f19757f9b49801454d4f9d64ee032cf85480593b233f"
+      }
+    },
+    "control": {
+      "fixtures.safetensors": {
+        "bytes": 202632,
+        "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+      },
+      "remote_entrypoint.sh": {
+        "bytes": 965,
+        "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+      },
+      "test_runtime": {
+        "bytes": 3832128,
+        "sha256": "74d65cd07311887aeb45cdb6918d15745067b27ef5514b78cb82afd925b71079"
+      }
+    }
+  },
+  "outer_batch_payloads_identical": true,
+  "paired_observations": [
+    {
+      "job_id": 141633,
+      "screen_label": "e154-replicated-v1-screen",
+      "candidate_ffn_cycles": 288044,
+      "control_before_ffn_cycles": 295176,
+      "control_after_ffn_cycles": 295622,
+      "bracketing_control_ffn_cycles": 295399.0,
+      "ratio": 0.9751014729230634,
+      "delta_percent": -2.4898527076936627
+    },
+    {
+      "job_id": 141648,
+      "screen_label": "e154-replicated-v1-repeat-a",
+      "candidate_ffn_cycles": 288616,
+      "control_before_ffn_cycles": 294688,
+      "control_after_ffn_cycles": 295855,
+      "bracketing_control_ffn_cycles": 295271.5,
+      "ratio": 0.977459727742095,
+      "delta_percent": -2.2540272257905003
+    },
+    {
+      "job_id": 141661,
+      "screen_label": "e154-replicated-v1-repeat-b",
+      "candidate_ffn_cycles": 287581,
+      "control_before_ffn_cycles": 294564,
+      "control_after_ffn_cycles": 294892,
+      "bracketing_control_ffn_cycles": 294728.0,
+      "ratio": 0.9757505225156755,
+      "delta_percent": -2.424947748432449
+    }
+  ],
+  "median_paired_delta_percent": -2.424947748432449,
+  "aggregate_median_delta_percent": -2.447747242791809,
+  "all_paired_ffn_improved": true,
+  "candidate_report": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/adoption/e154-adoption-performance.json",
+  "control_report": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/adoption/e154-e151-paired-control.json",
+  "builder": {
+    "path": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/validation_performance.py",
+    "bytes": 11625,
+    "sha256": "80d328a089eeacc407136e6eeb2bd56db1b20dce1a836c1db5e659d3fa9bfc9c"
+  },
+  "method": "Three distinct Arena allocations of byte-identical whole-kernel candidate/E151 benchmark stages and outer batch payloads. Each runs actual E151 before -> frozen E154 FFN pre-RMS shard/quantizer ownership -> actual E151 after; original three inputs and PROFILE=info. Uploaded archives and complete raw logs independently rechecked. Inputs, before/after and other kernels are not independent allocations.",
+  "adopted": false,
+  "official_submission": false,
+  "status": "performance_reproduced_pending_separate_correctness_review",
+  "decision_owner": "Root; this report describes performance only and never adopts automatically."
+}
