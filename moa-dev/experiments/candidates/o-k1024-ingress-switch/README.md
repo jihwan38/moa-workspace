@@ -1,3 +1,11 @@
+# E149 result: correct but slower, not adopted
+
+Whole141183 passes45 comparisons but O57414 versus contemporary E14742839/42461 (bracket42650) regresses34.616647%. Exact61,440 packet/15MiB geometry, actual Switch/native arithmetic and register gate pass. Performance includes changed ingress/readers/Switch/scheduling; no internal trace attributes the regression exclusively to one physical resource. QKV/FFN images remain unchanged. No repeats, extra6 or boundary NPU were performed. Original boundary packages are preparation/build evidence only. Source/measurements remain frozen.
+
+Adoption rejects ingress-v1; further parameter tuning stops. Next selected candidate is current E142/E147 FFN down30+30 weight ingress/native stages, motivated by current-image141134 up-gather/down-weight overlap. It retains weighted numerical terms and original full60 partial/five12-row consumers. See [decision](decision.json), [whole result](screen-decision.json) and [exact gate](audit-e149-ingress-v1.md).
+
+The following is the preserved selection context.
+
 # E149: O K1024 ingress with Main row/K exchange
 
 Actual start `9b2e7795280201a017ebcd41ad5e773de5656a86`, branch `opt/o-k1024-ingress-switch`. Explicit source E147fb45202 and independent comparison baseline/e147.json. No E148 source changes are inherited.

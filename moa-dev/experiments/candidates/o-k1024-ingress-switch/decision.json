@@ -1,0 +1,60 @@
+{
+  "id": "E149",
+  "status": "not_adopted_whole_regression",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "fb45202bba3c24537f74b4bf463276b76d823773",
+  "comparison_recipe": "baseline/e147.json",
+  "candidate_build_label": "e149-ingress-v1",
+  "job": 141183,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_o_cycles": 57414,
+  "control_before_o_cycles": 42839,
+  "control_after_o_cycles": 42461,
+  "bracketing_median": 42650.0,
+  "change_percent": 34.6166471277843,
+  "candidate_cycles_by_run": [
+    59680,
+    57006,
+    57414
+  ],
+  "static_candidate_cycles": 26656,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/o-k1024-ingress-switch/graph-verification-e149-ingress-v1.json",
+      "bytes": 1869,
+      "sha256": "b35dad854ce045dd77350fe6a31c405d59ec89d619b17d8ba644711aa4a5101a"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/o-k1024-ingress-switch/e149-ingress-v1-screen-job-141183-results.json",
+    "bytes": 5302,
+    "sha256": "7c6df2bedba08498d8a70a39733805dce99b08da978ff74ed1d2274bbfe5d58b"
+  },
+  "weight_hbm_read_bytes": 15728640,
+  "weight_dm_write_bytes": 15728640,
+  "weight_dm_read_bytes": 15728640,
+  "weight_native_streams": 2,
+  "additional_streams_vs_e147": 0,
+  "cost_scope": "Logical unchanged weight bytes; added in-stream Switch and actual emitted DMA packets require whole-path measurement. Whole timings include all costs, not measured traffic or exclusive bus stalls.",
+  "scope": "O K1024/low2 row ownership ingress and Main InterTranspose restore the original K256/row60 native consumer. E147 quantizer, four terms, coefficients, native Term/K16 reduction and entire epilogue remain. QKV/FFN images unchanged; original reference boundary checks remain separate.",
+  "decisions": {
+    "adoption": {
+      "status": "reject_frozen_ingress_v1",
+      "reason": "45 standard comparisons pass but whole O57414 vs E147 bracket42650 regresses34.616647%; no repeat/extra/boundary NPU promoted."
+    },
+    "further_tuning": {
+      "status": "stop",
+      "reason": "No row/K/ring sweep or extra profile selected. This failed full path does not universally reject in-stream routing."
+    },
+    "major_research": {
+      "status": "select_current_ffn_down_ingress_staging",
+      "reason": "Current E142 exact FFN profile141134 observes up result gather overlapping long down-weight load and finishing just after it. Test down30+30 compact loads/native direct commits into original full60 partial to allow earlier gather/GeGLU, including extra native/lookup/setup costs."
+    },
+    "decision_owner": "Root"
+  }
+}

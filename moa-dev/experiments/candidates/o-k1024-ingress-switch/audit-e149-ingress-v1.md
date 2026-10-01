@@ -1,0 +1,9 @@
+Independent emitted-graph gate passed. Reproduce with `python3 audit.py e149-ingress-v1 --check` and `python3 geometry.py --check`.
+
+The compiled 46-input manifest differs from E147 only in `sliding/projection.rs`. Restoring the three weight DM type declarations and one fetch/Switch chain reproduces the complete E147 file byte for byte. Quantization, four-term arithmetic, two 60-row native stages, canonical gather, channel/global scales, RMS, residual, and the QKV prefix are unchanged.
+
+Actual DMA O70/O73 each cover 30,720 packets of 256B. Including their HBM view offsets 0/60 gives one complete 15MiB weight traversal with no overlap or gap. Source `(c,g,a,b,r,q,u)` maps row `1920c+120g+offset+4r+b` and K coordinate `1024a+256q+u` into slice `16g+4a+b`, local byte `1024r+256q+u`. The descriptor encodes four 256B packets across each logical1024B region, not a1024B packet.
+
+Actual Main O78/O83 fetch `q,r,u` in that order and encode InterTranspose `(4,1,15)`. The output is original consumer slice `16g+4a+q`, canonical row `4r+b`. All61,440 row/K-quarter coordinates are bijective. The post-Switch operation unit and F32 eight-byte pair commits match the original path exactly; output windows0..59 and60..119 remain disjoint. Every other emitted operator signature matches the image-identical E137v3 O reference underlying E147.
+
+Both native tasks use the same live activation TRF and coefficient VRF. All emitted VRF allocations stay within8KiB per slice and have no overlapping live address ranges. No weight transpose allocation or extra native task appears. Added work is the two Main Switch routes and changed DM reading/buffering across15MiB. Scheduled lifetimes do not prove runtime latency, hidden bus/SFR behavior, or numerical correctness; the actual image still requires NPU validation.
