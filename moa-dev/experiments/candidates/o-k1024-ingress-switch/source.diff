@@ -1,0 +1,31 @@
+--- /home/jihwan38/moa-o-k1024-ingress-switch/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs	2026-10-01 18:34:57.336910261 +0900
++++ /home/jihwan38/moa-o-k1024-ingress-switch/moa-dev/experiments/candidates/o-k1024-ingress-switch/ingress-v1/projection.rs	2026-10-01 18:35:52.979396902 +0900
+@@ -495,10 +495,10 @@
+         .collect::<m![1], m![OutputTerm # 8]>().to_vrf();
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H / 120 % 16, H % 120, Qs]> = unsafe { weight.view().reshape() };
+     // Distinct DM allocations expose the second DMA while the first row half computes.
+-    let first: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120 = 60, Qs % 256]> =
++    let first: DmTensor<f8e4m3, Chip, OutputCluster, m![H / 120 % 16, Qs / 1024, H % 120 = 60 % 4], m![H % 120 = 60 / 4, Qs % 1024]> =
+         weight.tile::<m![H % 120], 60, m![Dummy2, H / 120 % 16, H % 120 = 60 # 120, Qs]>(0)
+             .to_dm(&mut device.tdma);
+-    let second: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120 = 60, Qs % 256]> =
++    let second: DmTensor<f8e4m3, Chip, OutputCluster, m![H / 120 % 16, Qs / 1024, H % 120 = 60 % 4], m![H % 120 = 60 / 4, Qs % 1024]> =
+         weight.tile::<m![H % 120], 60, m![Dummy2, H / 120 % 16, H % 120 = 60 # 120, Qs]>(60)
+             .to_dm(&mut device.tdma);
+     let mut result: DmTensor<f32, Chip, OutputCluster, OutputRows, m![H % 120]> = DmTensor::new();
+@@ -513,12 +513,13 @@
+     device: &mut Device,
+     x: &TrfTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![OutputTerm], m![Qs % 256]>,
+     coefficients: &VrfTensor<f32, Chip, OutputCluster, OutputColumns, m![OutputTerm # 8]>,
+-    weight: &DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120 = 60, Qs % 256]>,
++    weight: &DmTensor<f8e4m3, Chip, OutputCluster, m![H / 120 % 16, Qs / 1024, H % 120 = 60 % 4], m![H % 120 = 60 / 4, Qs % 1024]>,
+     output: &mut DmTensor<f32, Chip, OutputCluster, m![H / 120 % 16, 1 # 16], m![H % 120]>,
+     offset: usize,
+ ) {
+     device.main.begin(weight.view())
+-        .fetch::<m![H % 120 = 60, Qs / 32 % 8], m![Qs % 32]>()
++        .fetch::<m![Qs / 256 % 4, H % 120 = 60 / 4], m![Qs % 256]>()
++        .switch::<OutputColumns, m![H % 120 = 60]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 15 })
+         .collect::<m![H % 120 = 60, Qs / 32 % 8], m![Qs % 32]>()
+         // Four native lanes consume the same streamed original E4 weight packet.
+         .contract_outer::<m![H % 120 = 60, Qs / 64 % 4], m![Qs % 64], _, _, _>(x)

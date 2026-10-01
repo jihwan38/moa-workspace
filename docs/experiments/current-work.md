@@ -1,3 +1,21 @@
+# 2026-10-01 E149 종료·E150 FFN down 공급 분할 선택
+
+E149 O K1024ingress/MainSwitch4는45비교PASS지만57414/bracket42650(+34.616647%)
+회귀로미채택. 추가ring/row튜닝·profile·boundaryNPU없다. E147 runtime유지.
+다음E150은현재FFN 실측141134의upgather/downweight겹침에근거해 down의원60행을
+30+30compactHBM/native로분리한다. 기존F32partialfull60root에직접쓰고5×12scale/reduce와
+weighted3항/quant/TRF는유지한다. 새copy없음, 대신lookup/native/DMA하나가추가된다.
+분할만으로gather우선권이생긴다고가정하지않고actualschedule/whole검증한다.
+[종료판정](../../moa-dev/experiments/candidates/o-k1024-ingress-switch/decision.json).
+
+# 2026-10-01 E149 시작: O의 마지막 weight 준비 경로 변경
+
+`opt/o-k1024-ingress-switch`, actualstart `9b2e7795280201a017ebcd41ad5e773de5656a86`. Source/control E147,
+기존60+60 weight stage와 K256 native 계산은 유지하며, 원weight를 K1024 구간/
+row low2 소유권으로 적재한 뒤 MainInterTranspose4로 원소비자에 공급한다.
+실제 descriptor와 native stream 검증 후 whole bracket. E148 추가 scalar/VRF 변경은 없다.
+[후보](../../moa-dev/experiments/candidates/o-k1024-ingress-switch/README.md).
+
 # 2026-10-01 E148 종료: 입력을 앞당겨도 마지막 weight가 늦어져 회귀
 
 E147 runtime 유지. E148 직접 VRF 후보는141077/141134 whole O에서 각각

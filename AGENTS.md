@@ -317,6 +317,18 @@
   Current E142 FFN also has gate at shared-TRF-end+1 and down at TRF-end+1. Its
   up-result gather finishes just after the long down-weight ingress; these may
   motivate a coupled supply/consumer change, not source-only TRF commoning.
+- E149 K1024 O ingress/Main Switch4 subsequently passes45 standard comparisons
+  and exact61,440 packet/15MiB/consumer/register gates but regresses34.616647percent
+  whole O in141183. Do not adopt or repeat ring/row sweeps. The whole result does
+  not isolate Switch service, HBM efficiency or bank contention. E150 selects
+  current E147/E142 FFN weighted-down30+30 compact ingress/native into disjoint
+  halves of the existing full60 F32 partial allocation; all five12-row scale/
+  reduce consumers and quantizer stay unchanged. Current141134 evidence shows
+  up gather finishing just after long down-weight ingress, then down native at
+  activation-TRF-end+1. Splitting changes native dependencies and may let gather/
+  GeGLU progress; source order does not enforce this. Include additional lookup/
+  native/DMA/setup, actual28800B packed half extents/128B phase and cross-half
+  rows24..35 consumer. No padding retry follows from odd128B packet counts alone.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or
