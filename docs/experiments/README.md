@@ -7,8 +7,10 @@ Nine distinct standard inputs,34560 exact raw-down BF16 values and3840 exact who
 regression outputs pass with the original references. QKV/O images remain E147.
 Two30-row compact weight/native stages write directly into the original full60 F32
 partial; five12-row consumers stay intact. Extra DMA/lookup/native setup is included;
-weight and partial traffic bytes are unchanged. Official submission is pending, and
-fixed-image readiness diagnosis continues separately; no new score or rank is claimed.
+weight and partial traffic bytes are unchanged. Official ac53ad0a passed15 comparisons:
+FFN296854, score6.838931882, rank57/80 (unchanged) at2026-10-01 19:11 KST.
+Readiness141326 subsequently identified scale supply as the next measured boundary;
+its overlapping intervals are not a saving guarantee.
 [Current work](current-work.md) · [Final gate](../../moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/independent-final-review.json) ·
 [Evidence](../../moa-dev/experiments/candidates/ffn-down-weight-stages/README.md).
 Older entries retain their original decisions and runtime states.

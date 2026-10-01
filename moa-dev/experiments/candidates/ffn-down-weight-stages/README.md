@@ -1,6 +1,6 @@
 # E150: staged weighted-down supply adopted
 
-Adopted frozen `staged-v1` as `baseline-e150`, source commit `ad1ecb3d3868c7e0ca2e4d1428bbd66bf1111821`. Official submission is **pending**; no new official score or rank is claimed. Actual start `024a0fd1d711d14c5c6355deb76f377828022d47`, branch `opt/ffn-down-weight-stages`. Source and independent performance control are E147; the inherited FFN is E142. E148/E149 O changes are not included.
+Adopted frozen `staged-v1` as `baseline-e150`, source commit `ad1ecb3d3868c7e0ca2e4d1428bbd66bf1111821`. Official `ac53ad0a` passed15 comparisons: FFN296854, score6.838931882, rank57/80 at2026-10-01 19:11 KST (rank unchanged). QKV/O images are unchanged; their timing variation is not attributed to the FFN source change. Actual start `024a0fd1d711d14c5c6355deb76f377828022d47`, branch `opt/ffn-down-weight-stages`. Source and independent performance control are E147; the inherited FFN is E142. E148/E149 O changes are not included.
 
 | Allocation | E147 before / after FFN | E150 FFN | Paired change |
 |---|---|---:|---:|
