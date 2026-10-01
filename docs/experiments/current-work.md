@@ -1,3 +1,12 @@
+# 2026-10-01 E148 O scalar·누적 복원 직접 VRF 실험 시작
+
+채택 runtime은 E147이다. `opt/o-scalar-residual-vrf`, 실제 시작 `f9451626d508197901deee9bafbb03aa8edf2d34`에서
+source E147fb45202와 별도 control baseline/e147.json을 선택했다. O만 scale3Main→1Main,
+scalar/계수 Sub ring16→VRF, 두 F32 누적 복원 Main→VRF를 결합한다. 원래4항/2native/
+60+60weight/후단은 유지한다. QKV/FFN 불변을 확인하고 exact gate→whole screen으로 진행한다.
+논리 DM write/read각1MiB 감소에 Main/Sub/VE 점유와 bitmap/VRF 수명 비용이 추가된다.
+아직 성능/정확도/채택 결과는 없다. 양성은 크기와 무관하게 동결·반복·경계 검증한다.
+
 # 2026-10-01 E147 채택·공식 제출 완료
 
 현재 runtime은 **E147 / `baseline-e147` / `fb45202`**다. 공식 제출 `aabfb8c6`은

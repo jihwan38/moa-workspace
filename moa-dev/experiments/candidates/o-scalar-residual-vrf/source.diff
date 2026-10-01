@@ -1,0 +1,139 @@
+--- /home/jihwan38/moa-o-scalar-residual-vrf/furiosa-opt-gemma4-12B/src/device/sliding/projection.rs	2026-10-01 18:05:58.182979699 +0900
++++ /home/jihwan38/moa-o-scalar-residual-vrf/moa-dev/experiments/candidates/o-scalar-residual-vrf/direct-v1/projection.rs	2026-10-01 18:09:36.930441404 +0900
+@@ -313,48 +313,31 @@
+     x: &DmTensor<bf16, Chip, m![2], OutputQuantSlices, m![Qs % 256]>,
+ ) -> (DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![OutputTerm, Qs % 256]>,
+       DmTensor<f32, Chip, Cluster, OutputEpilogueSlices, m![1 # 8]>,
+-      DmTensor<f32, Chip, OutputCluster, OutputColumns, m![OutputTerm]>) {
+-    // Each (cluster,row-group) receives identical complete K4096 BF16 input.
+-    // Its sixteen-column maximum is the same global amax in all32 groups.
+-    // Local floor commutes with max across the sixteen valid 256-value shards.
+-    let local_amax: DmTensor<f32, Chip, m![2], OutputQuantSlices, m![1 # 8]> = device
++      VrfTensor<f32, Chip, OutputCluster, OutputColumns, m![OutputTerm # 8]>) {
++    // Finite BF16: exponent mapping commutes with Max. Apply the tiny-value
++    // floor after local Max, retaining the original global K4096 power2 scale.
++    let scale: DmTensor<f32, Chip, m![2], OutputQuantRows, m![1 # 8]> = device
+         .main.begin(x.view())
+         .fetch::<m![Qs / 16 % 16], m![Qs % 16]>().fetch_cast::<f32>()
+         .collect::<m![Qs / 8 % 32], m![Qs % 8]>()
+         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+         .vector_reinterpret::<i32>()
+-        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)
++        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)
+         .vector_reinterpret::<f32>()
+         .vector_narrow_split::<m![Qs / 4 % 64], m![Qs % 4]>()
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0078125f32)
+         .vector_intra_slice_reduce::<Qs, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Max)
+         .vector_widen_pad::<m![1 # 8]>()
+-        .vector_clip(ClipBinaryOpF32::Max, 1.504632769052528e-36f32)
+-        .vector_final().commit_trim::<m![1 # 8]>().commit();
+-    // Preserve H/120 row-group ownership and reduce only the sixteen K columns.
+-    // Exactly q=0 is initialized in each group; padded q slots stay invalid.
+-    let amax: DmTensor<f32, Chip, m![2], OutputQuantRows, m![1 # 8]> = device
+-        .main.begin(local_amax.view())
+-        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+-        .vector_init()
++        .vector_clip(ClipBinaryOpF32::Max, 1.1754943508222875e-38f32)
+         .vector_inter_slice_reduce::<OutputQuantRows, m![1]>(InterSliceReduceOpF32::Max)
+         .vector_final().commit_trim::<m![1 # 8]>().commit();
+-    // Exponent mask produces 2^floor(log2(amax)); floor 2^-119 guarantees
+-    // scale >= 2^-126, and finite BF16 inputs imply scale <= 2^120.
+-    let scale: DmTensor<f32, Chip, m![2], OutputQuantRows, m![1 # 8]> = device
+-        .main.begin(amax.view())
+-        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>()
+-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+-        .vector_reinterpret::<i32>()
+-        .vector_logic(LogicBinaryOpI32::BitAnd, 0x7f80_0000i32)
+-        .vector_reinterpret::<f32>()
+-        .vector_narrow_trim::<m![1 # 4]>()
+-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0078125f32)
+-        .vector_widen_pad::<m![1 # 8]>().vector_final()
+-        .commit_trim::<m![1 # 8]>().commit();
+-    let quant_scale: DmTensor<f32, Chip, m![2], OutputQuantSlices, m![1 # 8]> = scale.to_dm(&mut device.tdma);
+-    let scale_vrf: VrfTensor<f32, Chip, m![2], OutputQuantSlices, m![1 # 8]> = device
+-        .sub.begin(quant_scale.view())
+-        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
++    // Every slice16g+q receives the initialized scalar from leader16g.
++    // Reshape names actual replicated Slice values; it performs no transfer.
++    let scale_vrf: VrfTensor<f32, Chip, m![2], m![H / 120 % 16, 16], m![1 # 8]> = device.sub
++        .begin(scale.view()).fetch::<m![1], m![1 # 8]>()
++        .switch::<m![H / 120 % 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })
++        .collect::<m![1], m![1 # 8]>().to_vrf();
++    let scale_vrf: VrfTensor<f32, Chip, m![2], OutputQuantSlices, m![1 # 8]> = unsafe { scale_vrf.reshape() };
+     let mut packed: DmTensor<f8e4m3, Chip, m![2], OutputQuantSlices, m![OutputTerm, Qs % 256]> = DmTensor::new();
+     device.main.begin(x.view())
+         .fetch::<m![Qs / 16 % 16], m![Qs % 16]>().fetch_cast::<f32>()
+@@ -381,7 +364,7 @@
+         .vector_widen_concat::<m![Qs / 8 % 32], m![Qs % 8]>().vector_final()
+         .cast::<f8e4m3, m![Qs % 8 # 32]>().commit_trim::<m![Qs % 8]>()
+         .commit_view(packed.view_mut().tile::<m![OutputTerm], 1, m![OutputTerm = 1 #{!} 4, Qs % 256]>(1));
+-    let sum: DmTensor<f32, Chip, m![2], OutputQuantSlices, m![Qs % 256]> = device.main
++    let sum_vrf: VrfTensor<f32, Chip, m![2], OutputQuantSlices, m![Qs % 256]> = device.main
+         .begin(packed.view().tile::<m![OutputTerm], 1, m![OutputTerm = 1 # 4, Qs % 256]>(1))
+         .fetch::<m![Qs / 32 % 8], m![Qs % 32]>().fetch_cast::<f32>()
+         .collect::<m![Qs / 8 % 32], m![Qs % 8]>()
+@@ -390,10 +373,7 @@
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0625f32)
+         .vector_fp_binary(FpBinaryOp::AddF, &sum_vrf)
+         .vector_widen_concat::<m![Qs / 8 % 32], m![Qs % 8]>().vector_final()
+-        .commit_trim::<m![Qs % 8]>().commit();
+-    let sum_vrf: VrfTensor<f32, Chip, m![2], OutputQuantSlices, m![Qs % 256]> = device.sub
+-        .begin(sum.view()).fetch::<m![Qs / 8 % 32], m![Qs % 8]>()
+-        .collect::<m![Qs / 8 % 32], m![Qs % 8]>().to_vrf();
++        .to_vrf(&mut device.sub);
+     // Term 2: residual is x/s minus the F32 cumulative reconstruction.
+     device.main.begin(x.view())
+         .fetch::<m![Qs / 16 % 16], m![Qs % 16]>().fetch_cast::<f32>()
+@@ -406,7 +386,7 @@
+         .vector_widen_concat::<m![Qs / 8 % 32], m![Qs % 8]>().vector_final()
+         .cast::<f8e4m3, m![Qs % 8 # 32]>().commit_trim::<m![Qs % 8]>()
+         .commit_view(packed.view_mut().tile::<m![OutputTerm], 1, m![OutputTerm = 1 #{!} 4, Qs % 256]>(2));
+-    let sum: DmTensor<f32, Chip, m![2], OutputQuantSlices, m![Qs % 256]> = device.main
++    let sum_vrf: VrfTensor<f32, Chip, m![2], OutputQuantSlices, m![Qs % 256]> = device.main
+         .begin(packed.view().tile::<m![OutputTerm], 1, m![OutputTerm = 1 # 4, Qs % 256]>(2))
+         .fetch::<m![Qs / 32 % 8], m![Qs % 32]>().fetch_cast::<f32>()
+         .collect::<m![Qs / 8 % 32], m![Qs % 8]>()
+@@ -415,10 +395,7 @@
+         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.0000002384185791015625f32)
+         .vector_fp_binary(FpBinaryOp::AddF, &sum_vrf)
+         .vector_widen_concat::<m![Qs / 8 % 32], m![Qs % 8]>().vector_final()
+-        .commit_trim::<m![Qs % 8]>().commit();
+-    let sum_vrf: VrfTensor<f32, Chip, m![2], OutputQuantSlices, m![Qs % 256]> = device.sub
+-        .begin(sum.view()).fetch::<m![Qs / 8 % 32], m![Qs % 8]>()
+-        .collect::<m![Qs / 8 % 32], m![Qs % 8]>().to_vrf();
++        .to_vrf(&mut device.sub);
+     // Term 3: residual is x/s minus the F32 cumulative reconstruction.
+     device.main.begin(x.view())
+         .fetch::<m![Qs / 16 % 16], m![Qs % 16]>().fetch_cast::<f32>()
+@@ -465,6 +442,12 @@
+         .collect::<m![OutputTerm], m![1 # 8]>()
+         .transpose::<m![OutputTerm / 2], m![OutputTerm % 2 # 8]>()
+         .commit_trim::<m![OutputTerm % 2]>().commit();
++    // Compact16B coefficients retain their valid four cells; collect pads VRF to32B.
++    let coefficients: VrfTensor<f32, Chip, m![2], m![H / 120 % 16, 16], m![OutputTerm # 8]> = device.sub
++        .begin(coefficients.view()).fetch::<m![1], m![OutputTerm]>()
++        .switch::<m![H / 120 % 16, 16], m![1]>(SwitchConfig::CustomBroadcast { ring_size: 16 })
++        .collect::<m![1], m![OutputTerm # 8]>().to_vrf();
++    let coefficients: VrfTensor<f32, Chip, OutputCluster, OutputColumns, m![OutputTerm # 8]> = unsafe { coefficients.reshape() };
+     // Input DMA gives each (c,g) the identical4096 finite BF16 values x[256q+u].
+     // K16 Max/floor/exponentmask/pow2scale are deterministic, so all32 scalars
+     // are equal. Relabel only the full allocation Hgroup axis as anonymous16;
+@@ -473,7 +456,7 @@
+     // Packed data is already in the consuming row/K slices. The cluster relabel
+     // m![2] -> Dummy2 changes no physical position or byte, and makes no DMA.
+     let packed: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![OutputTerm, Qs % 256]> = unsafe { packed.reshape() };
+-    (packed, shared_scale.to_dm(&mut device.tdma), coefficients.to_dm(&mut device.tdma))
++    (packed, shared_scale.to_dm(&mut device.tdma), coefficients)
+ }
+ 
+ pub(crate) fn project_output(
+@@ -490,9 +473,6 @@
+         .fetch::<m![OutputTerm, Qs / 32 % 8], m![Qs % 32]>()
+         .collect::<m![OutputTerm, Qs / 32 % 8], m![Qs % 32]>()
+         .to_trf();
+-    let coefficients: VrfTensor<f32, Chip, OutputCluster, OutputColumns, m![OutputTerm # 8]> = device
+-        .sub.begin(coefficients.view()).fetch::<m![1], m![OutputTerm]>()
+-        .collect::<m![1], m![OutputTerm # 8]>().to_vrf();
+     let weight: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, H / 120 % 16, H % 120, Qs]> = unsafe { weight.view().reshape() };
+     // Distinct DM allocations expose the second DMA while the first row half computes.
+     let first: DmTensor<f8e4m3, Chip, OutputCluster, OutputColumns, m![H % 120 = 60, Qs % 256]> =
