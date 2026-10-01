@@ -1,0 +1,87 @@
+{
+  "status": "source_prepared_not_compiled_not_measured",
+  "candidate": "E154 conditional repair of E153",
+  "source_origin": "E151 plus frozen E153 three-file ownership change; E153 is not adopted",
+  "performance_control": "E151",
+  "source_inputs": {
+    "ops.rs": {
+      "bytes": 12822,
+      "sha256": "59a4ab6414d362876255caa8f332a01a567efd5ded0afa2d43da7ffe34e3c61e"
+    },
+    "rmsnorm.rs": {
+      "bytes": 14764,
+      "sha256": "e2aa2efffd7cd6e257772c679b8655f42041963ed568688693842a466546bfc2"
+    },
+    "mlp.rs": {
+      "bytes": 41436,
+      "sha256": "ea39b36a37aac00f1f1293bbe3ed5bd776c552dfefc7fbb490068df570eda756"
+    }
+  },
+  "prepared_sources": {
+    "ops.rs": {
+      "bytes": 12822,
+      "sha256": "59a4ab6414d362876255caa8f332a01a567efd5ded0afa2d43da7ffe34e3c61e"
+    },
+    "rmsnorm.rs": {
+      "bytes": 14764,
+      "sha256": "e2aa2efffd7cd6e257772c679b8655f42041963ed568688693842a466546bfc2"
+    },
+    "mlp.rs": {
+      "bytes": 42302,
+      "sha256": "838bc4018756ac2096012ccc407fc97294029d9a642dcfa64a77ebbeaf234256"
+    }
+  },
+  "changed_from_E153": [
+    "global Max output canonical1 -> namedDummy8 at physical0..7",
+    "wire-order reshape Dummy8 -> H/480 retains8valid/256physical",
+    "pow2 scale runs on the same8valid slices, existing Sub directly reads it; one quant_scale DMA removed",
+    "final scale wire-order reshape H/480 -> anonymous8, original typed all512 replication retained"
+  ],
+  "unchanged": [
+    "ops.rs fullbytes",
+    "rmsnorm.rs fullbytes",
+    "all MLP outside sharded quantizer except Dummy8 import",
+    "local abs-Max/floor expression",
+    "power-of-two mask/multiplication expression",
+    "three E5 terms and existing Sub residual addition",
+    "three exact480B Subcopies",
+    "late23040B packed destination and original184320B seed/5898240B ring",
+    "native/weight/scale/reduction/postRMS/down arithmetic"
+  ],
+  "mapping": {
+    "input_cluster": 0,
+    "input_valid_physical_slices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "physical_slices_per_cluster": 256,
+    "h_of_slice": "h=480*slice+u, 0<=u<480",
+    "replicated_amax_mapping": "[1#32,Dummy8]",
+    "quant_scale_mapping": "[1#32,H/480]",
+    "restore_source_mapping": "[1#32,8]",
+    "scalar_packet": "one logical F32 scalar in 32B padded packet; padding is not scalar replicas"
+  },
+  "source_api_evidence": [
+    "original RMS global Add uses [1#32,Dummy8] and H/480 owned reshape",
+    "M06v1/v2 contain same replicated Max but failed SFR; no attribution to this operation alone",
+    "adopted E137 O uses named equal scale -> anonymous replicas -> typed DMA",
+    "SDK0.8.1 DmTensor::reshape retains per-level size and wire order; DmTensor::to_dm validates coverage/alignment"
+  ],
+  "required_emitted_gates": [
+    "Max reads original8shards and commits exactly8identical scalar positions; actual ratio/mask recorded",
+    "all relabels preserve offset/wire order/valid mask; no canonical-mask shrink",
+    "Sub scale reader has correct32B packet and quantizer owner",
+    "final scale typed DMA reads initialized replicas only and writes all512 existing native consumers; source extent/strides/bounds and padding tracked",
+    "late packed and all3copies match E153",
+    "whole VRF overlaps/lifetimes including RMS weights/hi/sum/native scale/blocks checked"
+  ],
+  "numerical_scope": "Finite BF16 Max/floor replicated deterministically; no intermediate RMS NPU observation or arbitrary BF16 whole-model promise. Original boundary fixtures/tolerances remain required.",
+  "cost_scope": "Remove one scalar TDMA boundary, increase globalMax/pow2 active scalar output from1 to8; final all512 scale DMA remains. Actual encoded bytes and runtime benefit require emitted graph/profile/whole measurement.",
+  "prior_scope": "M06v1/v2 SFR868; v3 canonicalMax still failed, v4 moved Subsum toMain and compiled then timed out. E153 same Subsum+separate480copies already exact/NPU45PASS; new replicatedMax composition still uncompiled."
+}

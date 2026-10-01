@@ -1,3 +1,11 @@
+# 2026-10-01 E154 replicated scale 수리 feasibility 준비
+
+E153의 canonical scalar를8개quant shard로보내는TDMA를제거할수있는
+Max8복제→원pow2scale→localSubVRF 조합을병렬준비한다. E151source/control,
+frozenE1533파일에수리하나추가. M06유사시도와실패를새기법으로세지않는다.
+E153내부계측과actualgraph를확인한뒤NPU선정한다. 현재runtimeE151.
+[후보](../../moa-dev/experiments/candidates/ffn-sharded-scale-replicated/README.md).
+
 # 2026-10-01 E153 첫 실측 회귀 · 한 번의 내부 비교 선정
 
 현재 채택 runtime은 E151이다. E153은 원RMS F32 산술을 유지하면서 local BF16H480
