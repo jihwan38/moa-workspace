@@ -8,8 +8,10 @@ Nine standard inputs,34560 exact raw-down BF16 values and3840 exact full-FFN reg
 outputs pass with original references. QKV/O images remain E150. Scale payload stays
 3,686,400B; five Sub Switch streams add14.0625MiB logical F32 routing/setup into the
 original VRFs, with weighted/native/partial/reduction arithmetic preserved. Parameter
-tuning stops. Official submission is being prepared; no E151 official score/rank is yet claimed.
-The last completed official E150 is6.838931882×,57/80, so the five-rank goal remains unmet.
+tuning stops. Official E151 `2ac6e446` passes15: QKV92705/O42977/FFN295105, reported6.8348×.
+The public best remains E150 `ac53ad0a`,6.838931882×,57/80 at19:48KST; the five-rank goal remains unmet.
+Unchanged O-image timing variation offsets the FFN gain in this official score.
+[Latest official versus public best](../research/e151-official-rank-result-20261001.json).
 [Current work](current-work.md) · [Final gate](../../moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/independent-final-review.json) ·
 [Evidence](../../moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/README.md).
 Older entries below preserve their state at the time, including earlier pending submissions.

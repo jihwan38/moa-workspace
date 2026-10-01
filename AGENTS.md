@@ -476,3 +476,9 @@
   Do not adopt or tune gate row counts. Reconsider initial activation producer
   ownership only with an actual complete-path mechanism; source-order or static
   earlier readiness alone is insufficient. E151 remains adopted independently.
+
+- E151 official2ac6e446 passes15: QKV92705/O42977/FFN295105, score6.8348.
+  Public best remains E150ac53ad0a6.838931882,57/80 at19:48KST October1.
+  Distinguish latest final-evaluation source from best displayed score; unchanged
+  QKV/O timing variation is not FFN code gain. Deadline is20:59KST October1;
+  the official announcement selects the last pre-deadline submission as final.

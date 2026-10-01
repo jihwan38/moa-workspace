@@ -1,9 +1,11 @@
-# 2026-10-01 E151 down scale 공급 변경 채택 · 공식 제출 준비
+# 2026-10-01 E151 공식 완료 · public best E150 유지
 
 현재 runtime은 **E151 / `baseline-e151` / `8adbbae1776aa8080a96348a9d9a64022a0cf6d0`**이다.
 Source와 성능 control은 각각 명시한 E150이며, compile input46개 중 `mlp.rs`만 바뀌었다.
-QKV/O 이미지는 E150과 byte-identical이다. 공식 제출 도구/preflight 준비 중이며 아직 E151의
-공식 완료 점수·순위는 없다. 마지막 완료 공식 E150은 **6.838931882× / 57/80위**다.
+QKV/O 이미지는 E150과 byte-identical이다. 공식 `2ac6e446`는 15비교 PASS, QKV92,705 / O42,977 / FFN295,105, **6.8348×**다.
+10월1일19:48:33 KST public best는 E150 `ac53ad0a`, **6.838931882× / 57/80위**를 유지한다.
+E151의 FFN 개선에도 동일 O 이미지의 측정 변동으로 전체 점수는 직전보다 약0.05971% 낮다.
+[공식 기록](e151-official-submit-20261001.json) · [최신 제출/최고 기록 구분](../research/e151-official-rank-result-20261001.json).
 큰 개선이나 요청한 다섯 계단 상승을 달성했다고 주장하지 않는다.
 
 | Arena | E150 before / after | E151 FFN | Paired 변화 |
