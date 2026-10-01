@@ -1,0 +1,71 @@
+{
+  "id": "E150-READINESS",
+  "job": 141326,
+  "status": "complete",
+  "source_variant": "staged-v1",
+  "performance_control": "E147",
+  "additional_diagnostic_allocations": 1,
+  "correctness_comparisons": 51,
+  "prototype_changed": false,
+  "adoption": {
+    "decision": "unchanged",
+    "scope": "Existing E150 adoption evidence remains separate; this fixed-source diagnostic authorizes no kernel replacement."
+  },
+  "parameter_tuning": {
+    "decision": "stop",
+    "scope": "No additional profile, row-size or lookup sweeps on this frozen prototype."
+  },
+  "major_research": {
+    "decision": "review_supported_block_scale_supply_change",
+    "evidence": {
+      "last_native_to_first_reduce_cycles": {
+        "median": 10244.0,
+        "min": 10176,
+        "max": 10394,
+        "samples": [
+          10394,
+          10176,
+          10238,
+          10250,
+          10232,
+          10354
+        ]
+      },
+      "scale_dma_to_first_reduce_cycles": {
+        "median": 1281.0,
+        "min": 1275,
+        "max": 1283,
+        "samples": [
+          1283,
+          1279,
+          1283,
+          1275,
+          1283,
+          1275
+        ]
+      },
+      "scale_vrf_to_first_reduce_cycles": {
+        "median": 1.0,
+        "min": 1,
+        "max": 1,
+        "samples": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "scope": "A complete supply/lifetime change must include the impact on all TDMA/register consumers and whole FFN. No additive span or promised speedup."
+  },
+  "limitations": [
+    "Six run/cluster observations share one allocation, not six independent repetitions.",
+    "Endpoint summaries are medians; their differences are not medians of per-run differences. Interval metrics use paired endpoints in the same cluster clock.",
+    "Spans include waits and overlap and are not exclusive service or savings. No elapsed spans are summed.",
+    "Only E150 has internal traces in this allocation. Historical E147 internal traces are not contemporaneous controls.",
+    "Whole/info/trace use different host process scopes. This fixed diagnostic is not an additional adoption performance allocation.",
+    "A readiness boundary does not by itself identify a pure bus stall or guarantee that changing one producer advances final completion."
+  ]
+}
