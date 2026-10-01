@@ -467,3 +467,12 @@
   the old readiness interval disappeared. The parallel E152 gate staging
   uses E150 independently; it does not inherit E151, and any combined source
   requires separate complete-path checks. Official submission is separate.
+
+- E152 then passed45 original whole comparisons but regressed10.05543percent
+  against contemporary E150 controls. Its gate15+15 ingress/native directly
+  wrote original full30 partial halves with no assembly; static input gather
+  did interleave between the two DMAs. This still did not establish whole gain.
+  Preserve source/actual-descriptor evidence and built-but-unrun raw/full suites.
+  Do not adopt or tune gate row counts. Reconsider initial activation producer
+  ownership only with an actual complete-path mechanism; source-order or static
+  earlier readiness alone is insufficient. E151 remains adopted independently.
