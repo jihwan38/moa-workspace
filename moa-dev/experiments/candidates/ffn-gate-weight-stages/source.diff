@@ -1,0 +1,92 @@
+--- E150/mlp.rs
++++ prepared/mlp.rs
+@@ -80,6 +80,65 @@
+     });
+ }
+ 
++// Prepared source only: compact gate half -> disjoint original full-row partial.
++fn project_gate_native_half(
++    device: &mut Device,
++    x_trf: &TrfTensor<f8e5m2, Chip, UpGateCluster, UpGateSlices, m![1], m![FfnTerm, H]>,
++    x_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
++    weights: &DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 15, H]>,
++    partials: &mut DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]>,
++    offset: usize,
++) {
++    device
++        .main.begin(weights.view())
++        .fetch::<m![FfnRow = 15], m![H]>()
++        .fetch_table_lookup::<f8e5m2>()
++        .collect::<m![FfnRow = 15, H / 32], m![H % 32]>()
++        .contract_outer::<m![FfnRow = 15, H / 64, FfnTerm], m![H % 64], _, _, _>(x_trf)
++        .contract_packet::<m![H / 16 % 4]>()
++        .contract_time::<m![FfnRow = 15, H / 64]>()
++        .contract_lane::<m![FfnRow = 15, H / 64], m![H / 16 % 4 # 8]>(LaneMode::Sequential)
++        .vector_init()
++        .vector_intra_slice_tag(TagMode::Zero)
++        .vector_narrow_trim::<m![H / 16 % 4]>()
++        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)
++        .vector_widen_pad::<m![H / 16 % 4 # 8]>()
++        .vector_final()
++        .commit_trim::<m![H / 16 % 4]>()
++        .commit_view(partials.view_mut().tile::<m![FfnRow], 15, m![FfnRow = 15 #{!} 30, H / 16]>(offset));
++ }
++
++fn project_gate_rows_staged(
++    device: &mut Device,
++    x_trf: &TrfTensor<f8e5m2, Chip, UpGateCluster, UpGateSlices, m![1], m![FfnTerm, H]>,
++    x_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![1 # 8]>,
++    first: &DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 15, H]>,
++    second: &DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 15, H]>,
++    scales: &DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]>,
++    output: &mut DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow]>,
++) {
++    let mut partials: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> = DmTensor::new();
++    project_gate_native_half(device, x_trf, x_scale_vrf, first, &mut partials, 0);
++    project_gate_native_half(device, x_trf, x_scale_vrf, second, &mut partials, 15);
++    static_passes!(i, [0, 1, 2, 3, 4], {
++        let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 6, H / 16]> = device.sub
++            .begin(scales.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H / 16]>(6 * i))
++            .fetch::<m![FfnRow = 6], m![H / 16]>().fetch_cast::<f32>()
++            .collect::<m![FfnRow = 6, H / 16 / 8], m![H / 16 % 8]>().to_vrf();
++        device.main
++            .begin(partials.view().tile::<m![FfnRow], 6, m![FfnRow = 6 # 30, H / 16]>(6 * i))
++            .fetch::<m![FfnRow = 6, H / 16 / 8], m![H / 16 % 8]>()
++            .collect::<m![FfnRow = 6, H / 16 / 8], m![H / 16 % 8]>()
++            .vector_init().vector_intra_slice_tag(TagMode::Zero)
++            .vector_narrow_split::<m![FfnRow = 6, H / 16 / 4], m![H / 16 % 4]>()
++            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale_vrf)
++            .vector_intra_slice_reduce::<H, m![FfnRow = 6], m![1 # 4]>(IntraSliceReduceOpF32::Add)
++            .vector_widen_pad::<m![1 # 8]>().vector_final()
++            .transpose::<m![FfnRow = 6 / 2], m![FfnRow = 6 % 2 # 8]>().commit_trim::<m![FfnRow = 6 % 2]>()
++            .commit_view(output.view_mut().tile::<m![FfnRow], 6, m![FfnRow = 6 #{!} 30]>(6 * i));
++    });
++}
++
+ pub(crate) fn project_up_and_gate(
+     device: &mut Device,
+     x: &DmTensor<f8e5m2, Chip, UpGateCluster, UpGateSlices, m![FfnTerm, H]>,
+@@ -115,8 +174,12 @@
+     let mut gate: DmTensor<f32, Chip, UpGateCluster, UpGateSlices, m![FfnRow]> = DmTensor::new();
+ 
+     let gate_weight_packed: HbmTensorView<'_, f4e2m1, Chip, m![Dummy2, FfnSlice, FfnRow, H]> = unsafe { gate_weight_packed.view().reshape() };
+-    let gate_weight_packed: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H]> =
+-        gate_weight_packed.to_dm(&mut device.tdma);
++    let gate_weight_first: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 15, H]> = gate_weight_packed
++        .tile::<m![FfnRow], 15, m![Dummy2, FfnSlice, FfnRow = 15 # 30, H]>(0)
++        .to_dm(&mut device.tdma);
++    let gate_weight_second: DmTensor<f4e2m1, Chip, UpGateCluster, UpGateSlices, m![FfnRow = 15, H]> = gate_weight_packed
++        .tile::<m![FfnRow], 15, m![Dummy2, FfnSlice, FfnRow = 15 # 30, H]>(15)
++        .to_dm(&mut device.tdma);
+     let gate_weight_scale: HbmTensorView<'_, f8e4m3, Chip, m![Dummy2, FfnSlice, FfnRow, H / 16]> = unsafe { gate_weight_scale.view().reshape() };
+ 
+     let gate_weight_scale: DmTensor<f8e4m3, Chip, UpGateCluster, UpGateSlices, m![FfnRow, H / 16]> =
+@@ -130,7 +193,7 @@
+         .sub.begin(x_scale.view())
+         .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+ 
+-    project_rows_with_scale_contraction(device, &x_trf, &x_scale_vrf, &gate_weight_packed, &gate_weight_scale, &mut gate);
++    project_gate_rows_staged(device, &x_trf, &x_scale_vrf, &gate_weight_first, &gate_weight_second, &gate_weight_scale, &mut gate);
+ 
+     // Compact four adjacent 30-row F32 producers within the same cluster.
+     // Only then cast; a 30-row BF16 producer would violate 8-byte commit alignment.

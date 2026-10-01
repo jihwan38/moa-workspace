@@ -1,3 +1,11 @@
+# 2026-10-01 E152 gate weight 공급 병렬 실험 시작
+
+`opt/ffn-gate-weight-stages`, actualstart `ffce3481842b8f71a635a2dc2ba773518856ec05`.
+Source/control E150이며 미채택 E151을 포함하지 않는다. 초기activation gather의 실제대기를
+목표로 gate만15+15 compact/native→원partial직접쓰기를검증한다. 별도추가DMA/lookup비용포함.
+두후보가모두양성이면합성은새로검증한다.
+[후보](../../moa-dev/experiments/candidates/ffn-gate-weight-stages/README.md).
+
 # 2026-10-01 E150 공식 완료 · E151 scale 공급 경로 선택
 
 공식 `ac53ad0a`는 15비교 PASS, QKV 92,917 / O 42,550 / FFN 296,854 cycles,
