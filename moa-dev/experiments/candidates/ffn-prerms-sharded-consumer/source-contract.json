@@ -1,0 +1,56 @@
+{
+  "status": "prepared_source_only_not_compiled",
+  "base": "E151",
+  "source_inputs": {
+    "src/ops.rs": {
+      "bytes": 12804,
+      "sha256": "3cd28fb9afdc880c7966437dcd9d0df38464b54d297fa13bd573d9d97ee040b6"
+    },
+    "src/device/shared/rmsnorm.rs": {
+      "bytes": 10957,
+      "sha256": "d962d6042c90ff51a080720e1f3c851e2375f70776b381a7048e62ccf4115ba5"
+    },
+    "src/device/shared/mlp.rs": {
+      "bytes": 40179,
+      "sha256": "e412ef9422a17cba47b94bbda8955cf45be98825e7dd3577efa09cab6d50f893"
+    }
+  },
+  "prepared_sources": {
+    "src/ops.rs": {
+      "bytes": 12822,
+      "sha256": "59a4ab6414d362876255caa8f332a01a567efd5ded0afa2d43da7ffe34e3c61e"
+    },
+    "src/device/shared/rmsnorm.rs": {
+      "bytes": 14764,
+      "sha256": "e2aa2efffd7cd6e257772c679b8655f42041963ed568688693842a466546bfc2"
+    },
+    "src/device/shared/mlp.rs": {
+      "bytes": 41436,
+      "sha256": "ea39b36a37aac00f1f1293bbe3ed5bd776c552dfefc7fbb490068df570eda756"
+    }
+  },
+  "producer": "cluster0, physical slices0..7, H480 per slice",
+  "changes": [
+    "preFF helper preserves original normalize arithmetic but casts BF16 locally instead of final F32 Broadcast1 gather",
+    "production FFN takes H480 shards; no early canonicalBF16 cluster replication/repartition",
+    "local finiteMax then canonical interMax; original floor/exponent/scale/Subsum/three480Subcopies",
+    "late packed23040B cluster copy followed by original184320B seed and5898240B ring32 output"
+  ],
+  "unchanged_functions": [
+    "project_rows_with_scale_contraction",
+    "project_up_and_gate",
+    "geglu",
+    "prepare_down_fp8_split",
+    "project_down_native_half",
+    "project_down_tile",
+    "finish_down",
+    "broadcast_ffn_quantized"
+  ],
+  "new_stream_costs": {
+    "global_inter_max_stream": 1,
+    "late_packed_cluster_destination_bytes": 23040,
+    "original_ring_seed_destination_bytes_retained": 184320,
+    "original_ring_broadcast_destination_bytes_retained": 5898240
+  },
+  "scope": "Source/API-supported proposal only; original M06v4 timeout is unresolved and is not attributed to repaired DMA. Actual whole lowering, bounds, register lifetimes and NPU must be checked anew."
+}

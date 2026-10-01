@@ -1,3 +1,11 @@
+# 2026-10-01 E153 pre-RMS shard 직접 양자화 실험 시작
+
+Source/control E151, actualstart `2a49667318718b2f0e2fda00b7feb8a3f3727515`.
+원RMS산술/F32경계보존, 최종localBF16shard→cluster0양자화→latepackedCL2복제.
+기존초기canonicalgather/복제/reshard대신새globalMax/lateDMA비용까지whole검증한다.
+E152 gate분할은포함하지않고M06v4timeout해결도주장하지않는다.
+[후보](../../moa-dev/experiments/candidates/ffn-prerms-sharded-consumer/README.md).
+
 # 2026-10-01 E151 down scale 공급 변경 채택 · 공식 제출 준비
 
 현재 runtime은 **E151 / `baseline-e151` / `8adbbae1776aa8080a96348a9d9a64022a0cf6d0`**이다.
