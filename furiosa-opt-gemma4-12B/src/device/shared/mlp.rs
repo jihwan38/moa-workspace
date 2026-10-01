@@ -474,7 +474,9 @@ fn project_down_tile(
         .tile::<m![H % 60], 30, m![H / 60, H % 60 = 30 # 60, Dummy2, TileL]>(30)
         .to_dm(&mut device.tdma);
     let scale: HbmTensorView<'_, f8e4m3, Chip, m![H, Dummy2, TileL / 16]> = unsafe { scale.view().reshape() };
-    let scales: DmTensor<f8e4m3, Chip, UpGateCluster, DownColumns, m![H % 60, TileL / 16 % 120]> = scale.to_dm(&mut device.tdma);
+    // Source slice 4*g+b owns rows 60*g+4*r+b, r<15, with each
+    // cluster's full 480-byte scale row. No intermediate DM scatter.
+    let scales: DmTensor<f8e4m3, Chip, UpGateCluster, m![H / 60, H % 4], m![H / 4 % 15, TileL / 16]> = scale.to_dm(&mut device.tdma);
     // Direct FP4 lookup feeds native E5; no full decoded-weight DM tensor.
     // Preserve native term results, restore [s,s/16,s/256] in F32, then sum.
     // VE Fp precedes Reduce, so input-scale restoration is per term; the existing
@@ -485,9 +487,12 @@ fn project_down_tile(
     let mut down: DmTensor<f32, Chip, UpGateCluster, DownRows, m![H % 60]> = DmTensor::new();
     static_passes!(i, [0, 1, 2, 3, 4], {
         let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, DownColumns, m![H % 60 = 12, TileL / 16 % 120]> = device.sub
-            .begin(scales.view().tile::<m![H % 60], 12, m![H % 60 = 12 # 60, TileL / 16 % 120]>(12 * i))
-            .fetch::<m![H % 60 = 12], m![TileL / 16 % 120]>()
+            .begin(scales.view().tile::<m![H / 4 % 15], 3, m![H / 4 % 15 = 3 # 15, TileL / 16]>(3 * i))
+            .fetch::<m![TileL / 1920, H / 4 % 15 = 3], m![TileL / 16 % 120]>()
             .fetch_cast::<f32>()
+            // Actual InterTranspose order is (row-high3,row-low4).
+            // The four old source slices supply 12 consecutive output rows.
+            .switch::<DownColumns, m![H % 60 = 12]>(SwitchConfig::InterTranspose { slice1: 4, slice0: 1, time0: 3 })
             .collect::<m![H % 60 = 12, TileL / 128 % 15], m![TileL / 16 % 8]>()
             .to_vrf();
         device.main

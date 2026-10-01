@@ -1,0 +1,97 @@
+{
+  "id": "E151",
+  "status": "frozen_validation_passed_root_adoption_separate",
+  "source_base_commit": "ad1ecb3d3868c7e0ca2e4d1428bbd66bf1111821",
+  "comparison_recipe": "baseline/e150.json",
+  "build_label": "e151-ingress-v1",
+  "adopted": false,
+  "official_submission": false,
+  "performance": {
+    "paired_observations": [
+      {
+        "job_id": 141382,
+        "screen_label": "e151-ingress-v1-screen",
+        "candidate_ffn_cycles": 295031,
+        "control_before_ffn_cycles": 297622,
+        "control_after_ffn_cycles": 308406,
+        "bracketing_control_ffn_cycles": 303014.0,
+        "ratio": 0.973654682621925,
+        "delta_percent": -2.6345317378074995
+      },
+      {
+        "job_id": 141396,
+        "screen_label": "e151-ingress-v1-repeat-a",
+        "candidate_ffn_cycles": 295185,
+        "control_before_ffn_cycles": 297217,
+        "control_after_ffn_cycles": 297109,
+        "bracketing_control_ffn_cycles": 297163.0,
+        "ratio": 0.9933437204497195,
+        "delta_percent": -0.6656279550280475
+      },
+      {
+        "job_id": 141411,
+        "screen_label": "e151-ingress-v1-repeat-b",
+        "candidate_ffn_cycles": 295709,
+        "control_before_ffn_cycles": 298487,
+        "control_after_ffn_cycles": 297199,
+        "bracketing_control_ffn_cycles": 297843.0,
+        "ratio": 0.9928351514052706,
+        "delta_percent": -0.7164848594729434
+      }
+    ],
+    "median_paired_delta_percent": -0.7164848594729434,
+    "aggregate_median_delta_percent": -0.8924164744513075,
+    "each_candidate_faster_than_both_individual_controls": true,
+    "note": "First after-control308406 is high; it remains included unchanged. Paired median and all individual controls are reported; no favorable allocation was selected."
+  },
+  "correctness": {
+    "distinct_standard_inputs": 9,
+    "candidate_standard_comparisons": 75,
+    "rawdown_cases": 9,
+    "rawdown_exact_bf16_outputs": 34560,
+    "full_ffn_cases": 1,
+    "full_ffn_exact_bf16_outputs": 3840,
+    "scope": "Selected original references and inputs only; no arbitrary BF16/end-to-end model correctness claim."
+  },
+  "decisions": {
+    "adoption": {
+      "decision": "ready_for_root_adoption",
+      "evidence": "All three contemporary allocations positive, extra6, original rawdown9, full-FFN regression and final independent source/image/archive gate pass. Root owns live/tag/official adoption separately."
+    },
+    "further_tuning": {
+      "decision": "stop",
+      "reason": "Recover the measured frozen gain; no row/width/ring sweep. Below5% is not an adoption rejection."
+    },
+    "major_research": {
+      "decision": "require_new_complete_path_evidence",
+      "reason": "E151 whole gain does not quantify how much of the E150 late-scale interval disappeared. Added F32 routing/setup and all scheduling costs remain included. Parallel E152 is sourced from E150, not E151; any future composition requires separate validation."
+    }
+  },
+  "evidence": {
+    "adoption/performance-summary.json": {
+      "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/performance-summary.json",
+      "bytes": 3543,
+      "sha256": "bc2fa5cf32c011abe7fea61bee457d4670e6beaf407d29efbdac27f053895850"
+    },
+    "adoption/extra-results.json": {
+      "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/extra-results.json",
+      "bytes": 2724,
+      "sha256": "da2a87b6160a23a1d4e2ae329f3871101ced78a91cef74f9fd8bd26bb7ab8586"
+    },
+    "boundary-results.json": {
+      "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/boundary-results.json",
+      "bytes": 3222,
+      "sha256": "959b403c59096da0a9e2e148f881bf8df879f795e5441f891c42fbadf6f44375"
+    },
+    "adoption/independent-final-review.json": {
+      "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/independent-final-review.json",
+      "bytes": 15857,
+      "sha256": "711ca0e282653ab20f22a458bc061273466336e898cf3a3fa9bb1cd8d0c04410"
+    },
+    "source-build-binding.json": {
+      "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/source-build-binding.json",
+      "bytes": 13263,
+      "sha256": "43380c122f80bc83fca108d5c0c25f475344da4043e731c3017f62ea24a5731c"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "label": "e151-down-oracle-v1",
+  "source_build": "build-e151-ingress-v1-repro.json",
+  "production_source": "ingress-v1/mlp.rs",
+  "production_source_sha256": "e412ef9422a17cba47b94bbda8955cf45be98825e7dd3577efa09cab6d50f893",
+  "diagnostic_only": true,
+  "performance_excluded": true,
+  "status_at_preparation": "not_compiled_not_run",
+  "case_count": 9,
+  "required_exact_cases": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "prior_e133_underflow_case": 4,
+  "cpu_construction_boundary_case": 8,
+  "reference": "Original BF16 activation, independent FP4 mathematical code values and original FP8 blockscales; F64 reference asserts exact F32 representability after every block dot/scale and column/cluster sum. No E5 transformed oracle.",
+  "acceptance": "All nine cases require exact BF16 output, signed zero equivalent, finite values and unchanged standard compare atol0.01/rtol0.01. The prior adversarial case4 has no exception in this repaired candidate.",
+  "case8": "Lhalf anchors1024/.5, remaining tiny2^-22, blockscale15. Hfirst1920 rows select only cluster0tiny withFP4=6; Hlast1920 selectcluster1tiny; anchorsweight0. RawBF16reference0.1650390625.",
+  "scope": "Tests actual new down preparation/helper/finish_down. Case8 is the raw-down boundary extracted from the CPU range-based full-FFN construction, not an NPU execution of that complete FFN or an observed PRNG seed. No generic BF16/exhaustive/model-wide guarantee.",
+  "provenance": "Exactproduction prefix preserved, wrapper appended, original compare body copied verbatim and checked against productionhost. Actual exact/host images and actual uploaded archive must match.",
+  "control_of_run": "Build after actual whole graph gate; NPU only after first positive whole screen and slot2 permission.",
+  "source_context_repair": "E151 preserves E150 two native halves and changes only scale HBM ownership and five Sub cast/Switch-to-VRF producers. All original weighted arithmetic and original oracle inputs/reference unchanged.",
+  "original_sources": {
+    "probe_lib.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/probe_lib.rs",
+      "bytes": 206,
+      "sha256": "81e05d73ffa117b23c3525815c5f7099f65a1ce4ba758c92ea7d598311e6ecc9"
+    },
+    "probe_module.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/probe_module.rs",
+      "bytes": 755,
+      "sha256": "5574620b006caeef9326d8962f20817c1ade5502bfc6810b9348b983f5bc86ad"
+    },
+    "probe_stream.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/probe_stream.rs",
+      "bytes": 8084,
+      "sha256": "4dae8dfa4207bbe721472f9fb497dd7555167f517c46ed5fabf88ea618d3bd8f"
+    },
+    "stream_probe.rs": {
+      "path": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/stream_probe.rs",
+      "bytes": 373,
+      "sha256": "5ac89cc41ba4e0cce5e1937da68a73587448b2a66409c65995614f7f1be03951"
+    }
+  }
+}
