@@ -1,3 +1,32 @@
+# 2026-10-01 E154 scalar 공급 수리 채택 · 공식 제출 준비
+
+현재 runtime은 **E154 / baseline-e154 / `3f384063f5231e00ad286f365209806e5043fc83`**이다. E151 소스에 frozenE153의
+RMS/quantizer 소유권과8복제scale 수리를 합성했다. 성능control은별도E151이다.
+Compile input46중3파일변경/43불변, QKV/O이미지는E151과byte-identical이다.
+
+| Arena | E151 before / after | E154 FFN | Paired 변화 |
+|---|---:|---:|---:|
+|141633|295176 / 295622|288044|-2.489853%|
+|141648|294688 / 295855|288616|-2.254027%|
+|141661|294564 / 294892|287581|-2.424948%|
+
+독립3allocation의paired중앙은 **-2.424948%**다. 표준distinct9, 원rawupgate8의
+245760 BF16 exact(±0동등), 원fullFFN회귀3840exact가PASS했다. Raw는실제새quantizer를
+호출하지만preRMS는제외한다. 원RMS emitted산술/F32경계/3840좌표와전체FFN을별도로검증했다.
+임의입력이나모델전체동치증명은아니다. 원reference/host/허용오차는유지했다.
+
+GlobalMax와원pow2scale을8개유효quant소유자에유지하여중간scalarTDMA를제거한다.
+Actualratio256/8valid복제이며최종all512scalar복제는anonymous8source의초기화된0..7을
+읽는typedDMA로남는다. Latepacked23040B, seed184320B, ring5898240B와원native/E151down은
+유지한다. 과거M06형태의현재조합수리이며새architecturefamily나옛timeout원인입증이아니다.
+E153의37k겹친scale준비구간전체를절감했다고주장하지않는다.
+
+[최종gate](../../moa-dev/experiments/candidates/ffn-sharded-scale-replicated/adoption/independent-final-review.json) ·
+[채택판정](../../moa-dev/experiments/candidates/ffn-sharded-scale-replicated/adoption-decision.json).
+공식제출은다음단계이며아직E154점수/순위없다. 마지막E151은6.8348×,
+publicbestE150은6.838931882×/57위이며요청한다섯계단상승은미달성이다.
+아래기록은각작성시점상태다.
+
 # 2026-10-01 E154 replicated scale 수리 feasibility 준비
 
 E153의 canonical scalar를8개quant shard로보내는TDMA를제거할수있는

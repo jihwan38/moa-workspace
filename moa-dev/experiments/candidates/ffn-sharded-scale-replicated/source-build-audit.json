@@ -1,0 +1,62 @@
+{
+  "candidate": "E154",
+  "adopted_source_candidate": "replicated-v1",
+  "actual_start_commit": "b336c45c20bcf95815d8f66cfea4d9b8b8d99922",
+  "source_origin": "E1518adbbae plus frozen E153 three-source ownership composition and replicatedMax/direct scaleVRF repair;43other compileinputs unchanged",
+  "adopted_source_commit": "3f384063f5231e00ad286f365209806e5043fc83",
+  "performance_control": "baseline/e151.json",
+  "measured_build": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/measured-build-e154-adoption.json",
+  "measured_build_digest": {
+    "path": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/measured-build-e154-adoption.json",
+    "bytes": 23544,
+    "sha256": "f0e19c94e8203fc2cf3e8d71b907f7346bbb7d9451e58e08911b5f4c33c07e6a"
+  },
+  "original_compile_record": {
+    "path": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/build-e154-replicated-v1-repro.json",
+    "bytes": 18277,
+    "sha256": "9332d081278cb0cc76b9328ccd453d342028729c042005f32dca4d5f7cd408f8"
+  },
+  "original_package_record": {
+    "path": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/package-e154-replicated-v1.json",
+    "bytes": 20894,
+    "sha256": "c43ff1fd08fff5010cff605424ea1e7b3eb1e19676f13cd32ecbe21cd7ade51f"
+  },
+  "source_binding": {
+    "path": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/source-build-binding.json",
+    "bytes": 14619,
+    "sha256": "54c2595d55b784920fde4f7219d979e66930075fe8e5c084498ed650e8f6ea63"
+  },
+  "compile_inputs": 46,
+  "live_compile_inputs_match_frozen_build": true,
+  "changed_runtime_files": [
+    "src/device/shared/mlp.rs",
+    "src/device/shared/rmsnorm.rs",
+    "src/ops.rs"
+  ],
+  "public_device_entrypoints_unchanged": true,
+  "qkv_o_images_unchanged": true,
+  "basic_and_extra_images_identical": true,
+  "images": {
+    "sliding_project_qkv": {
+      "bytes": 219904,
+      "sha256": "fd2e252603b4de38389d8720edd78d6ae1b5c82514f6869934a5ebbb46c5f5fb",
+      "host_occurrences": 1
+    },
+    "sliding_attention_output": {
+      "bytes": 122880,
+      "sha256": "4dde46bfbff2b07c0870f5baf8d5a857b2b0fb7176816f9b0eb417260a671cb4",
+      "host_occurrences": 1
+    },
+    "decoder_feedforward": {
+      "bytes": 299264,
+      "sha256": "cec8d66ee22294217dce35317024eafb728a1f09b2a089c2ce90b5f97c4e669e",
+      "host_occurrences": 1
+    }
+  },
+  "validation": {
+    "path": "moa-dev/experiments/candidates/ffn-sharded-scale-replicated/adoption/independent-final-review.json",
+    "bytes": 18279,
+    "sha256": "e6617874b503f3e3b804b0c0689336a93d7292c799a11594754fdfe4eb1b7585"
+  },
+  "scope": "Original pre-RMS arithmetic through normalized F32 DM preserved, final gather replaced by local BF16H480 shards consumed directly by cluster0 quantizer. Original finite amax/clamp/power2scale and three-term expressions/Subsum/480Bcopies preserved, with globalMax replicated on8valid slices, direct local scaleVRF without scalarTDMA, anonymous8-to-all512 scale restoration and late23040B packed replication before original leader/ring32. E151 native/upgate/down retained. Rawupgate covers actual new quantizer but excludes preRMS; emitted arithmetic/coordinate review and original fullFFN/std cases cover the full path. Finite validation, not arbitrary-input or model proof."
+}
