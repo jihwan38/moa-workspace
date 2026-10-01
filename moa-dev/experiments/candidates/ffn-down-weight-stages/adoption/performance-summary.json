@@ -1,0 +1,87 @@
+{
+  "id": "E150",
+  "valid": true,
+  "independent_allocations": 3,
+  "candidate_distinct_standard_inputs": 3,
+  "candidate_comparisons_passed": 45,
+  "candidate_ffn_comparisons_passed": 9,
+  "total_standard_comparisons_passed": 135,
+  "normalized_stage_payloads": {
+    "candidate": {
+      "fixtures.safetensors": {
+        "bytes": 202632,
+        "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+      },
+      "remote_entrypoint.sh": {
+        "bytes": 965,
+        "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+      },
+      "test_runtime": {
+        "bytes": 3832384,
+        "sha256": "08cbab9350c467db4fcbd1c47146a6c90c7f69490fe522ba9b31e6ef41112f98"
+      }
+    },
+    "control": {
+      "fixtures.safetensors": {
+        "bytes": 202632,
+        "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+      },
+      "remote_entrypoint.sh": {
+        "bytes": 965,
+        "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+      },
+      "test_runtime": {
+        "bytes": 3821632,
+        "sha256": "0d3ce84833c38b8084055d34339ac16b42b02d76a5842caee4681b93ae354800"
+      }
+    }
+  },
+  "outer_batch_payloads_identical": true,
+  "paired_observations": [
+    {
+      "job_id": 141242,
+      "screen_label": "e150-staged-v1-screen",
+      "candidate_ffn_cycles": 297276,
+      "control_before_ffn_cycles": 303848,
+      "control_after_ffn_cycles": 304036,
+      "bracketing_control_ffn_cycles": 303942.0,
+      "ratio": 0.9780681840614328,
+      "delta_percent": -2.193181593856719
+    },
+    {
+      "job_id": 141259,
+      "screen_label": "e150-staged-v1-repeat-a",
+      "candidate_ffn_cycles": 298524,
+      "control_before_ffn_cycles": 303744,
+      "control_after_ffn_cycles": 304075,
+      "bracketing_control_ffn_cycles": 303909.5,
+      "ratio": 0.9822792640572275,
+      "delta_percent": -1.7720735942772459
+    },
+    {
+      "job_id": 141276,
+      "screen_label": "e150-staged-v1-repeat-b",
+      "candidate_ffn_cycles": 297731,
+      "control_before_ffn_cycles": 304657,
+      "control_after_ffn_cycles": 304240,
+      "bracketing_control_ffn_cycles": 304448.5,
+      "ratio": 0.9779355129028391,
+      "delta_percent": -2.206448709716091
+    }
+  ],
+  "median_paired_delta_percent": -2.193181593856719,
+  "aggregate_median_delta_percent": -2.0434819801146253,
+  "all_paired_ffn_improved": true,
+  "candidate_report": "moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/e150-adoption-performance.json",
+  "control_report": "moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/e150-e147-paired-control.json",
+  "builder": {
+    "path": "moa-dev/experiments/candidates/ffn-down-weight-stages/validation_performance.py",
+    "bytes": 11551,
+    "sha256": "cfd37957772b45e19498d9cc4cdc0e148fc77242115ccbbd44d69a621f887f29"
+  },
+  "method": "Three distinct Arena allocations of byte-identical whole-kernel candidate/E147 benchmark stages and outer batch payloads. Each runs actual E147 before -> frozen E150 FFN down two-stage weight/native -> actual E147 after; original three inputs and PROFILE=info. Uploaded archives and complete raw logs independently rechecked. Inputs, before/after and other kernels are not independent allocations.",
+  "adopted": false,
+  "official_submission": false,
+  "status": "performance_reproduced_pending_separate_correctness_review",
+  "decision_owner": "Root; this report describes performance only and never adopts automatically."
+}

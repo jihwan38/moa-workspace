@@ -329,6 +329,20 @@
   GeGLU progress; source order does not enforce this. Include additional lookup/
   native/DMA/setup, actual28800B packed half extents/128B phase and cross-half
   rows24..35 consumer. No padding retry follows from odd128B packet counts alone.
+- E150 subsequently adopts current E147/E142 weighted-down30+30 ingress/native
+  after three paired FFN improvements2.193182/1.772074/2.206449percent, median
+  2.1931816percent. Source/tag is ad1ecb3 / baseline-e150. All135 standard-stage
+  comparisons plus extra6/30 comparisons pass: nine distinct standard inputs.
+  Raw down9 passes34560 exact BF16 values (signed zero equivalent), and the
+  original full-FFN regression passes3840 exact values with the original13input
+  and official-reference checks. All46 compile inputs are bound; only mlp.rs
+  changes and QKV/O images match E147. Two native streams write directly into
+  the original partial root at0/14400B; five12-row consumers, including24..35,
+  remain. Include the extra weight DMA/native/lookup setup: weight29491200B
+  and partial write/read14745600B each remain unchanged, with no assembly copy.
+  No exclusive DMA-contention cause or generic-input/model accuracy is proved.
+  Stop stage/row tuning; fixed-image readiness diagnosis is running separately.
+  Official submission is pending; do not claim a new official score or rank.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

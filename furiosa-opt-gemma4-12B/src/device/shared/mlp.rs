@@ -418,6 +418,34 @@ fn prepare_down_fp8_split(
     (broadcast_down_quantized(device, &packed), term_scales.to_dm(&mut device.tdma))
 }
 
+// Read one compact30-row FP4 allocation and write its original weighted F32 partial rows.
+// The two output halves are disjoint views of the original full60-row allocation.
+fn project_down_native_half(
+    device: &mut Device,
+    x_trf: &TrfTensor<f8e5m2, Chip, UpGateCluster, DownColumns, m![1], m![FfnTerm, TileL % 1920]>,
+    x_scale_vrf: &VrfTensor<f32, Chip, UpGateCluster, DownColumns, m![FfnTerm, 1 # 8]>,
+    packed: &DmTensor<f4e2m1, Chip, UpGateCluster, DownColumns, m![H % 60 = 30, TileL % 1920]>,
+    partials: &mut DmTensor<f32, Chip, UpGateCluster, DownColumns, m![H % 60, TileL / 16 % 120]>,
+    offset: usize,
+) {
+    device.main
+        .begin(packed.view())
+        .fetch::<m![H % 60 = 30], m![TileL % 1920]>()
+        .fetch_table_lookup::<f8e5m2>()
+        .collect::<m![H % 60 = 30, TileL / 32 % 60], m![TileL % 32]>()
+        .contract_outer::<m![H % 60 = 30, TileL / 64 % 30, FfnTerm], m![TileL % 64], _, _, _>(x_trf)
+        .contract_packet::<m![TileL / 16 % 4]>()
+        .contract_time::<m![H % 60 = 30, TileL / 64 % 30, FfnTerm]>()
+        .contract_lane::<m![H % 60 = 30, TileL / 64 % 30, FfnTerm], m![TileL / 16 % 4 # 8]>(LaneMode::Sequential)
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_trim::<m![TileL / 16 % 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), x_scale_vrf)
+        .vector_intra_slice_reduce::<FfnTerm, m![H % 60 = 30, TileL / 64 % 30], m![TileL / 16 % 4]>(IntraSliceReduceOpF32::Add)
+        .vector_widen_pad::<m![TileL / 16 % 4 # 8]>().vector_final()
+        .commit_trim::<m![TileL / 16 % 4]>()
+        .commit_view(partials.view_mut().tile::<m![H % 60], 30, m![H % 60 = 30 #{!} 60, TileL / 16 % 120]>(offset));
+}
+
 fn project_down_tile(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, UpGateCluster, LocalRows, m![TileL % 120]>,
@@ -438,29 +466,22 @@ fn project_down_tile(
 
     // HBM remains [H,L], with contiguous L halves owned by separate clusters.
     // Packed row pitch is 7680 bytes; every local K segment is 960 bytes.
-    let weight: HbmTensorView<'_, f4e2m1, Chip, m![H, Dummy2, TileL]> = unsafe { weight.view().reshape() };
-    let packed: DmTensor<f4e2m1, Chip, UpGateCluster, DownColumns, m![H % 60, TileL % 1920]> = weight.to_dm(&mut device.tdma);
+    let weight: HbmTensorView<'_, f4e2m1, Chip, m![H / 60, H % 60, Dummy2, TileL]> = unsafe { weight.view().reshape() };
+    let first: DmTensor<f4e2m1, Chip, UpGateCluster, DownColumns, m![H % 60 = 30, TileL % 1920]> = weight
+        .tile::<m![H % 60], 30, m![H / 60, H % 60 = 30 # 60, Dummy2, TileL]>(0)
+        .to_dm(&mut device.tdma);
+    let second: DmTensor<f4e2m1, Chip, UpGateCluster, DownColumns, m![H % 60 = 30, TileL % 1920]> = weight
+        .tile::<m![H % 60], 30, m![H / 60, H % 60 = 30 # 60, Dummy2, TileL]>(30)
+        .to_dm(&mut device.tdma);
     let scale: HbmTensorView<'_, f8e4m3, Chip, m![H, Dummy2, TileL / 16]> = unsafe { scale.view().reshape() };
     let scales: DmTensor<f8e4m3, Chip, UpGateCluster, DownColumns, m![H % 60, TileL / 16 % 120]> = scale.to_dm(&mut device.tdma);
     // Direct FP4 lookup feeds native E5; no full decoded-weight DM tensor.
     // Preserve native term results, restore [s,s/16,s/256] in F32, then sum.
     // VE Fp precedes Reduce, so input-scale restoration is per term; the existing
     // F32 block partial shape and five block-scale/reduction streams remain.
-    let partials: DmTensor<f32, Chip, UpGateCluster, DownColumns, m![H % 60, TileL / 16 % 120]> = device.main
-        .begin(packed.view())
-        .fetch::<m![H % 60], m![TileL % 1920]>()
-        .fetch_table_lookup::<f8e5m2>()
-        .collect::<m![H % 60, TileL / 32 % 60], m![TileL % 32]>()
-        .contract_outer::<m![H % 60, TileL / 64 % 30, FfnTerm], m![TileL % 64], _, _, _>(&x_trf)
-        .contract_packet::<m![TileL / 16 % 4]>()
-        .contract_time::<m![H % 60, TileL / 64 % 30, FfnTerm]>()
-        .contract_lane::<m![H % 60, TileL / 64 % 30, FfnTerm], m![TileL / 16 % 4 # 8]>(LaneMode::Sequential)
-        .vector_init().vector_intra_slice_tag(TagMode::Zero)
-        .vector_narrow_trim::<m![TileL / 16 % 4]>()
-        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &x_scale_vrf)
-        .vector_intra_slice_reduce::<FfnTerm, m![H % 60, TileL / 64 % 30], m![TileL / 16 % 4]>(IntraSliceReduceOpF32::Add)
-        .vector_widen_pad::<m![TileL / 16 % 4 # 8]>().vector_final()
-        .commit_trim::<m![TileL / 16 % 4]>().commit();
+    let mut partials: DmTensor<f32, Chip, UpGateCluster, DownColumns, m![H % 60, TileL / 16 % 120]> = DmTensor::new();
+    project_down_native_half(device, &x_trf, &x_scale_vrf, &first, &mut partials, 0);
+    project_down_native_half(device, &x_trf, &x_scale_vrf, &second, &mut partials, 30);
     let mut down: DmTensor<f32, Chip, UpGateCluster, DownRows, m![H % 60]> = DmTensor::new();
     static_passes!(i, [0, 1, 2, 3, 4], {
         let scale_vrf: VrfTensor<f32, Chip, UpGateCluster, DownColumns, m![H % 60 = 12, TileL / 16 % 120]> = device.sub

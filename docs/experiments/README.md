@@ -1,5 +1,18 @@
 # Experiment ledger
 
+October1 **[E150 weighted-down weight/native staging adopted](../../baseline/e150.json)**,
+source/tag `ad1ecb3` / `baseline-e150`. Three contemporary E147 brackets improve FFN
+by paired median2.1931816%; aggregate ratio2.043482% is a separate statistic.
+Nine distinct standard inputs,34560 exact raw-down BF16 values and3840 exact whole-FFN
+regression outputs pass with the original references. QKV/O images remain E147.
+Two30-row compact weight/native stages write directly into the original full60 F32
+partial; five12-row consumers stay intact. Extra DMA/lookup/native setup is included;
+weight and partial traffic bytes are unchanged. Official submission is pending, and
+fixed-image readiness diagnosis continues separately; no new score or rank is claimed.
+[Current work](current-work.md) · [Final gate](../../moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/independent-final-review.json) ·
+[Evidence](../../moa-dev/experiments/candidates/ffn-down-weight-stages/README.md).
+Older entries retain their original decisions and runtime states.
+
 September30 **[E144 native QKV with full-row ingress/Switch adopted](../../baseline/e144.json)**.
 Three contemporary E142-bracketed allocations improve whole QKV by paired median7.9907%.
 Nine standard inputs,73728 exact pre-head values,16384 whole-QKV values at original tolerances

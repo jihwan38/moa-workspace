@@ -1,3 +1,44 @@
+# 2026-10-01 E150 FFN down 공급 분할 채택·공식 제출 pending
+
+현재 채택 runtime은 **E150 / `baseline-e150` / `ad1ecb3d3868c7e0ca2e4d1428bbd66bf1111821`**이다.
+공식 제출은 아직 pending이며, 새 공식 점수·순위는 확인되지 않았다. Source recipe와 성능 control은
+별도로 선택한 E147이며 미채택 E148/E149 O 변경을 포함하지 않는다. 46개 compile input 중
+`src/device/shared/mlp.rs` 하나만 바뀌고 QKV/O 이미지는 E147과 byte-identical이다.
+
+| Arena | E147 앞뒤 중앙 | E150 FFN | Paired 변화 |
+|---|---:|---:|---:|
+|141242|303942|297276|−2.193182%|
+|141259|303909.5|298524|−1.772074%|
+|141276|304448.5|297731|−2.206449%|
+
+독립 세 allocation의 paired 변화 중앙은 **−2.1931816%**다. Aggregate 중앙값 비율
+−2.043482%와 구분한다. 표준 세 입력 반복의 전체135비교와 extra6의30비교가 PASS하여
+standard distinct9다. 별도 raw-down9의34560 BF16 exact(±0동등), 실제 production FFN
+회귀 사례의3840 exact 출력과 원본13입력/reference/업로드 검증도 PASS했다.
+이는 선택된 입력 검증이며 arbitrary BF16·모델 전체 정확도 보장이 아니다.
+[최종 gate](../../moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/independent-final-review.json) ·
+[채택 결정](../../moa-dev/experiments/candidates/ffn-down-weight-stages/adoption-decision.json).
+
+Down FP4의 local60행을30+30 compact ingress/native로 나누고 기존 full60 F32 partial의
+per-slice `[0,14400)`, `[14400,28800)`에 직접 쓴다. 원래 five12-row scale/reduce가
+rows24..35의 half 경계를 정상 소비하며 weighted3항·quantizer·TRF·후단은 그대로다.
+새 assembly는 없지만 weight DMA와 native/lookup 시작이 각각 하나 늘었다. Weight
+29,491,200B 및 F32 partial write/read 각각14,745,600B는 줄지 않았다. 추가 비용을 포함한
+whole 개선을 채택하며 source 순서가 DMA 우선권을 보장하거나 trace 겹침이 절감량이라는
+주장은 하지 않는다. [후보와 비용](../../moa-dev/experiments/candidates/ffn-down-weight-stages/README.md).
+
+Stage/row 수 튜닝은 중단한다. 같은 고정 이미지의 `readiness/` 내부 계측이 병렬 진행 중이며
+완료 전 원인이나 후속 효과를 확정하지 않는다. 공식 제출 및 추가 구조 선택은 root가 관리한다.
+아래 기록은 각 시점의 상태다.
+
+# 2026-10-01 E150 FFN down 공급 분할 시작
+
+`opt/ffn-down-weight-stages`, actualstart `024a0fd1d711d14c5c6355deb76f377828022d47`, source/control E147.
+현재실측upgather/downweight겹침에대해원60rowFP4를compact30+30으로적재하고
+두weightednative가원래full60F32partial의분리된절반에직접쓴다. five12소비자와
+quant/TRF/3항계수/나머지커널은고정. 추가lookup/native/DMA비용포함whole검증예정.
+[후보](../../moa-dev/experiments/candidates/ffn-down-weight-stages/README.md).
+
 # 2026-10-01 E149 종료·E150 FFN down 공급 분할 선택
 
 E149 O K1024ingress/MainSwitch4는45비교PASS지만57414/bracket42650(+34.616647%)

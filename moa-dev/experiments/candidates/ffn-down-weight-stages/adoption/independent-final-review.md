@@ -1,0 +1,7 @@
+E150 final independent evidence review passed; reproduce with `python3 adoption/independent-final-review.py --check`. This record supports root adoption review and does not change live sources.
+
+Three independent contemporary E147 brackets improved whole FFN by2.1931816%,1.7720736%,2.2064487%; paired median improvement is2.1931816%. The repeated three standard inputs are counted once. Six additional original-generator inputs passed, giving nine distinct standard inputs. QKV and O images remain byte-identical to E147.
+
+The actual candidate down helper passed all nine original raw-down cases:34,560 exact BF16 outputs with signed-zero equivalence, including the previous tiny-value regression boundaries. Its diagnostic crate appends the unchanged historical wrapper to the full candidate MLP; it is a separately compiled diagnostic image, not the public whole FFN image. The original complete-FFN regression passed3,840 exact outputs on the byte-identical public candidate image with all13 original input tensors/reference/host preserved.
+
+The whole and raw graph gates check the changed30+30 ingress/native path, original weighted-term order, exact14,400B partial offsets, both-write join, cross-half rows24..35 and actual shared-register lifetimes. Performance, raw logs, downloaded archives, source manifests and exact images are rebound by their frozen verifiers and digests. This is finite validation; no arbitrary-input, end-to-end model, physical contention cause or ranking guarantee follows.
