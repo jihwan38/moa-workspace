@@ -453,3 +453,17 @@
   for this measured supply boundary. Preserve weighted arithmetic and native
   partials; include the new14.0625MiB F32 routing/setup. These overlapping
   intervals are not a promised saving. No stage/row-count sweep is selected.
+
+- E151 subsequently adopted the scale-ingress/Sub-to-original-VRF combination
+  as baseline-e151/8adbbae. Three E150-bracketed allocations improve FFN by
+  paired median0.716484859%; all candidates beat both individual controls.
+  Keep the high first after-control308406 in the record; do not present its
+  paired2.634532% as the reproducible gain. Nine standard inputs,34560 exact
+  raw-down values and3840 exact full-FFN regression outputs pass. Source46
+  and actual uploads/images are bound; QKV/O stay E150. Scale payload3,686,400B
+  is unchanged and14,745,600B F32 Switch routing/setup is included. Preserve
+  the weighted/native/partial/reduction arithmetic. Stop parameter tuning,
+  recover the validated small gain, and do not infer that all10244cycles of
+  the old readiness interval disappeared. The parallel E152 gate staging
+  uses E150 independently; it does not inherit E151, and any combined source
+  requires separate complete-path checks. Official submission is separate.

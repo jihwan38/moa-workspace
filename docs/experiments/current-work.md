@@ -1,3 +1,36 @@
+# 2026-10-01 E151 down scale 공급 변경 채택 · 공식 제출 준비
+
+현재 runtime은 **E151 / `baseline-e151` / `8adbbae1776aa8080a96348a9d9a64022a0cf6d0`**이다.
+Source와 성능 control은 각각 명시한 E150이며, compile input46개 중 `mlp.rs`만 바뀌었다.
+QKV/O 이미지는 E150과 byte-identical이다. 공식 제출 도구/preflight 준비 중이며 아직 E151의
+공식 완료 점수·순위는 없다. 마지막 완료 공식 E150은 **6.838931882× / 57/80위**다.
+큰 개선이나 요청한 다섯 계단 상승을 달성했다고 주장하지 않는다.
+
+| Arena | E150 before / after | E151 FFN | Paired 변화 |
+|---|---:|---:|---:|
+|141382|297622 / 308406|295031|−2.634532%|
+|141396|297217 / 297109|295185|−0.665628%|
+|141411|298487 / 297199|295709|−0.716485%|
+
+독립 세 allocation의 paired 중앙은 **−0.716484859%**이며 aggregate 중앙값 비율
+−0.892416474%와 구분한다. 첫 after308406이 높았던 기록을 제외하지 않았고, 세 candidate는
+각 before/after 양쪽보다 빠르다. 동일 host·fixture·runner·바깥 패키지와 실제 upload를 검증했다.
+표준 distinct9, raw-down9의34560 exact BF16(±0동등), 실제 fullFFN 회귀3840 exact가
+원본 reference/허용오차로 통과했다. 이는 선택된 입력의 유한 검증이다.
+[성능](../../moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/performance-summary.md) ·
+[최종 gate](../../moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/independent-final-review.json) ·
+[채택 결정](../../moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption-decision.json).
+
+Scale HBM은 row low2 소유권의 연속480값으로 읽고 Sub cast→InterTranspose4→원래12행
+5760B VRF에 공급한다. Scale HBM/DM payload3,686,400B는 줄지 않으며 F32 Switch routing
+14,745,600B와 설정 비용을 포함한다. 원weighted E5·두 down native·F32 partial·five12
+scale/reduce 산술·후단은 유지한다. E150의10,244cycle 준비 간격을 절감량으로 세거나,
+새 E151에서 같은 경계가 사라졌다고 내부 계측 없이 단정하지 않는다.
+
+채택은 재현된 작은 이득과 정확도 검증에 근거한다. 추가 row/ring 튜닝은 중단한다.
+병렬 E152 gateweight15+15는 E150에서 별도로 출발했으며 E151 변경을 상속하지 않는다.
+그 결과·합성 채택은 별도 기록과 검증 대상이다. 아래 항목은 각 작성 시점의 상태다.
+
 # 2026-10-01 E151 down scale 공급 실험 시작
 
 `opt/ffn-down-scale-ingress-switch`, actualstart `3d4a600e068429114b7b5f49fe9a8482492c5d31`.

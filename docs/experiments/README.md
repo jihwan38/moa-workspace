@@ -1,5 +1,19 @@
 # Experiment ledger
 
+October1 **[E151 down scale ingress/Sub-to-VRF routing adopted](../../baseline/e151.json)**,
+source/tag `8adbbae` / `baseline-e151`. Three contemporary E150 brackets improve FFN by
+paired median **0.716484859%**; aggregate median ratio0.892416474% is separate. All three
+candidates beat both individual controls; the high first after-control remains included.
+Nine standard inputs,34560 exact raw-down BF16 values and3840 exact full-FFN regression
+outputs pass with original references. QKV/O images remain E150. Scale payload stays
+3,686,400B; five Sub Switch streams add14.0625MiB logical F32 routing/setup into the
+original VRFs, with weighted/native/partial/reduction arithmetic preserved. Parameter
+tuning stops. Official submission is being prepared; no E151 official score/rank is yet claimed.
+The last completed official E150 is6.838931882×,57/80, so the five-rank goal remains unmet.
+[Current work](current-work.md) · [Final gate](../../moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/independent-final-review.json) ·
+[Evidence](../../moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/README.md).
+Older entries below preserve their state at the time, including earlier pending submissions.
+
 October1 **[E150 weighted-down weight/native staging adopted](../../baseline/e150.json)**,
 source/tag `ad1ecb3` / `baseline-e150`. Three contemporary E147 brackets improve FFN
 by paired median2.1931816%; aggregate ratio2.043482% is a separate statistic.

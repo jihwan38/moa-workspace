@@ -1,0 +1,1038 @@
+{
+  "schema_version": 1,
+  "id": "E151",
+  "status": "adopted",
+  "git": {
+    "tag": "baseline-e151",
+    "commit": "8adbbae1776aa8080a96348a9d9a64022a0cf6d0"
+  },
+  "compile_inputs": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/compiled-source-manifest.json",
+  "tracked_lock": "moa-dev/locks/gemma4-Cargo.lock",
+  "source_build_audit": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/source-build-audit.json",
+  "performance_report": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/e151-adoption-performance.json",
+  "recent_control_report": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/e151-e150-paired-control.json",
+  "correctness_evidence": [
+    "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/independent-final-review.json",
+    "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/e151-extra-correctness.json",
+    "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/down-oracle/results.json",
+    "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/full-ffn-stress/e151-full-ffn-stress-results.json",
+    "moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/independent-final-review.json",
+    "moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/e150-extra-correctness.json",
+    "moa-dev/experiments/candidates/ffn-down-weight-stages/down-oracle/results.json",
+    "moa-dev/experiments/candidates/ffn-down-weight-stages/full-ffn-stress/e150-full-ffn-stress-results.json",
+    "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption/independent-final-review.json",
+    "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption/e147-extra-correctness.json",
+    "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/numerical/scale-proof.json",
+    "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/boundary-suite/raw-results-v1.json",
+    "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/boundary-suite/result-137116.json",
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json",
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/e144-extra-correctness.json",
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/boundary-suite/raw-results-v1.json",
+    "moa-dev/experiments/candidates/qkv-fullh-weight-switch/boundary-suite/result-136578.json",
+    "moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/final-verification.json",
+    "docs/experiments/e142-extra-correctness.json",
+    "moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/verification-summary.json",
+    "moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/probe-results-v1.json",
+    "moa-dev/experiments/candidates/ffn-direct-full30-partials/full-ffn-stress/verification.json",
+    "moa-dev/experiments/candidates/ffn-direct-full30-partials/full-ffn-stress/e142-full-ffn-stress-results.json",
+    "moa-dev/experiments/candidates/down-native-consumer-local/control-adoption/final-verification.json",
+    "docs/experiments/e140-control-copy-extra-correctness.json",
+    "moa-dev/experiments/candidates/down-native-consumer-local/full-ffn-stress/verification.json",
+    "moa-dev/experiments/candidates/down-native-consumer-local/full-ffn-stress/e140-full-ffn-stress-results.json",
+    "docs/experiments/e137-extra-correctness.json",
+    "moa-dev/experiments/candidates/o-native-activation-resident/validation/final-verification.json",
+    "moa-dev/experiments/candidates/o-native-activation-resident/validation/verification-summary-v3.json",
+    "moa-dev/experiments/candidates/o-native-activation-resident/validation/oracle-results-v3.json",
+    "moa-dev/experiments/candidates/o-native-activation-resident/validation/stress-results-v3.json",
+    "docs/experiments/e134-extra-correctness.json",
+    "docs/experiments/e134-probe-correctness.json",
+    "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/e134-full-ffn-stress-results.json",
+    "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/verification.json",
+    "docs/experiments/e128-extra-correctness.json",
+    "docs/experiments/e128-probe-correctness.json",
+    "docs/experiments/e127-c09-extra-correctness.json",
+    "docs/experiments/e127-c09-probe-correctness.json",
+    "docs/experiments/e122-m03-extra-correctness.json",
+    "docs/experiments/e122-m03-probe-correctness.json",
+    "docs/experiments/e55-qkv-boundary-probe.json",
+    "docs/experiments/output-boundary-comparison.md"
+  ],
+  "scope": "Downscale HBM uses row-low2 ownership and full480-value scale rows; each of the five original twelve-row VRFs is supplied by Sub cast and InterTranspose4. Original E150 weighted arithmetic, two native stages, partials, quantizer/TRF and final reduction preserved. Includes14.0625MiB F32 routing/setup with no extra scale DM scatter. Finite validation, not arbitrary-input or end-to-end model proof.",
+  "methods": [
+    {
+      "id": "Q1",
+      "name": "입력 RMS를 H480×8로 분할",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "BF16 입력 3,840개를 480개씩 나눠 RMS를 계산한다. QKV는 normalize_sharded_inter_slice를 호출하며, O/FFN의 Switch-gather RMS와 다른 합산 경로를 유지한다.",
+      "parameters": "H=3840, 8개 유효 shard, BF16 정규화 출력",
+      "coupled_with": [
+        "Q2"
+      ],
+      "invariant": "정규화의 F32 연산 순서·EPS 위치·BF16 출력 경계를 보존한다. 같은 helper로 통일하면 세 커널 모두 빨라진다고 가정하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "sliding_project_qkv"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/rmsnorm.rs",
+          "symbols": [
+            "normalize_sharded_inter_slice"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/kernel-specific-rms/README.md",
+        "docs/experiments/e37-combined-repeats.json"
+      ]
+    },
+    {
+      "id": "Q2",
+      "name": "H960 소비 위치의 BF16 seed/ring과 weighted E4 네 항 준비",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "preRMS H480 결과를 64개 anchor의 H960 seed로 보내고 ring32로 128개 rowgroup에 복제한다. 각 group의 K4 maximum으로 같은 H3840 scale을 구한 뒤 F32 누적 잔차 네 항을 만들어 Q/K/V가 하나의 activation TRF를 공유한다.",
+      "parameters": "2 clusters ×64 groups ×4 K columns; H960/slice; factors [1,16,2^22,2^27]",
+      "coupled_with": [
+        "Q1",
+        "Q3",
+        "Q4",
+        "Q7"
+      ],
+      "invariant": "H3840 공통 scale과 F32 누적합/RNE 순서를 유지한다. E4 두 항 근사나 PRNG 값에만 맞춘 축약으로 바꾸지 않는다. 입력 seed/ring·F32 임시합·term 저장/TRF 비용을 포함한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_qkv_native",
+            "prepare_qkv_terms"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/README.md",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/audit-e144-fullh-v2.json",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json",
+        "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption/independent-final-review.json"
+      ]
+    },
+    {
+      "id": "Q3",
+      "name": "Full-H weight 행 적재와 Main Switch의 K4 분배",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "Original E4 weight의 각 H3840 행을 통째로 DM에 적재한다. Slice의 low2비트가 출력행의 low2비트를 소유하며 local 행은 stride4다. Main fetch의 H960 조각을 InterTranspose로 native K4 소유 위치에 보내고 곧바로 contraction한다. 별도 전체 weight transpose DM과 weight TRF는 없다.",
+      "parameters": "Q: Row32/4=8 local full-H rows, time0=8; K/V: Row16/4=4 rows, time0=4; slice1=4,slice0=1",
+      "coupled_with": [
+        "Q2",
+        "Q4",
+        "Q5"
+      ],
+      "invariant": "입력 slice4g+b의 Q 행=2048c+32g+4r+b, KV 행=1024c+16g+4r+b. Switch 뒤 slice4g+q의 행 순서는 canonical Row, H=960q+u다. 30MiB 원본 weight와 32768개 row-quarter 대응을 유지한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_native_query",
+            "project_native_kv",
+            "QkvColumns"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/README.md",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/audit-e144-fullh-v2.json",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json"
+      ]
+    },
+    {
+      "id": "Q4",
+      "name": "공유 E4 activation TRF와 weighted Term/K4 native dot",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "원본 E4 weight를 스트림 안에서 분배한 뒤 공유 네 항 activation TRF와 native dot한다. F32에서 [1,1/16,2^-22,2^-27] 계수를 곱하고 Term 합산 뒤 K4를 합산한다. Q/K/V 모두 같은 activation TRF와 계수 VRF를 사용한다.",
+      "parameters": "Term4 × H960 E4 TRF; native K64 packet ×15; F32 Term then K4 reduction",
+      "coupled_with": [
+        "Q2",
+        "Q3",
+        "Q5"
+      ],
+      "invariant": "모든 weight 원소를 해당 H960 activation과 곱하고 Term 계수·합산 순서를 유지한다. 정밀 검증은 이번 native 경로의 실제 raw9/whole2 근거를 사용하며 과거 BF16 경로의 성공만 승계하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_qkv_native",
+            "project_native_query",
+            "project_native_kv"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/README.md",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/audit-e144-fullh-v2.json",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json"
+      ]
+    },
+    {
+      "id": "Q5",
+      "name": "Canonical F32 head gather 뒤 공통·channel scale과 첫 BF16",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "Term/K4 합산이 끝난 q0의 F32 출력을 두 값씩 8B packet으로 저장하고 typed DMA로 canonical head에 모은다. 별도 Main에서 공통 input scale 다음 channel scale을 곱한 뒤 처음 BF16으로 변환한다. 이후 기존 head RMS/RoPE/cache로 전달한다.",
+      "parameters": "Q4096/K2048/V2048; 32KiB F32 원시 출력; 8B pair commit; common scale → channel scale → BF16",
+      "coupled_with": [
+        "Q3",
+        "Q4",
+        "Q6"
+      ],
+      "invariant": "부분 dot이나 scale 이전 값을 BF16으로 만들지 않는다. q0만 유효한 K4 결과와 canonical head/cache 좌표를 보존하며 F32 중간 저장·gather·별도 scale 비용을 포함한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_native_query",
+            "project_native_kv"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/README.md",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/audit-e144-fullh-v2.json",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json"
+      ]
+    },
+    {
+      "id": "Q6",
+      "name": "head별 RMS·RoPE 병렬 처리",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "projection 결과를 Ns head별 slice로 모아 Q/K RMS, V RMS와 Q/K RoPE를 수행한다. q_out과 지정 KV cache 슬롯을 기록한다.",
+      "parameters": "Ns=8, Gs=2, Ds=256; HeadSlices=m![1 # 32, Ns]",
+      "coupled_with": [
+        "Q3"
+      ],
+      "invariant": "head/차원 순서, rope_offset과 kv_offset의 의미, 비대상 cache 원소 보존을 유지한다. 배치만 바꿔도 scatter 대상이 달라지지 않는지 검사한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/rmsnorm.rs",
+          "symbols": [
+            "normalize_query",
+            "normalize_key",
+            "normalize_value"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/rope.rs",
+          "symbols": [
+            "apply_rope"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "sliding_project_qkv"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-head-normalization/README.md",
+        "docs/experiments/e55-qkv-boundary-probe.json",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/boundary-suite/README.md",
+        "moa-dev/experiments/candidates/qkv-fullh-weight-switch/adoption/independent-final-review.json"
+      ]
+    },
+    {
+      "id": "O1",
+      "name": "O의16-column 소유권·두60행 original-E4 native stage",
+      "kernels": [
+        "O"
+      ],
+      "behavior": "출력 행을 두 cluster와16 row groups에 나누고 각120행을 두60행 stage로 계산한다. 원본 row-major E4 HBM을 서로 다른 compact DM에 읽고 같은4항 activation TRF를 재사용한다. Main은 lookup 없이 원본 E4를 native DPE에 흘린다. 각 stage에서 정규화된 항 계수를 곱하고 Term4와 K16을 F32로 합산하여 공통120행 결과의 서로 다른 절반에 기록한다.",
+      "parameters": "h=1920*c+120*g+60*stage+t; slice=16*g+q; k=256*q+u. c<2,g<16,q<16,stage<2,t<60,u<256; stage DM15360B/slice; combined weight15728640B.",
+      "coupled_with": [
+        "O2",
+        "O3",
+        "O4"
+      ],
+      "invariant": "두 HBM view는 원본120행 pitch와 offset0/60을 유지하고 목적 DM은 각60×256 compact다. F32 출력[0,240)/[240,480)B를 중복 없이 채운다. 실제 weight15MiB ingress, 두 native task, activation/계수 TRF·VRF 적재 비용을 포함한다. source 순서만으로 실행 중첩을 보장하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_output",
+            "project_output_stage",
+            "OutputCluster",
+            "OutputColumns"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/o-native-activation-resident/README.md",
+        "moa-dev/experiments/candidates/o-native-activation-resident/native-v3/recipe.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/graph-verification-e137-native-v3.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/independent-native-v3-review.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/source-build-binding.json",
+        "docs/experiments/e137-adoption-performance.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/validation/verification-summary-v3.json"
+      ]
+    },
+    {
+      "id": "O2",
+      "name": "4항 native E4의 F32 복원·Term/K16 합산·scale 후 BF16",
+      "kernels": [
+        "O"
+      ],
+      "behavior": "TRF의4개 Term lane은 같은 원본 E4 weight stream을 사용한다. Interleaved lane fold의 F32 packet에[1,1/16,2^-22,2^-27]을 곱하고 packet Term합→K16합을 한 Main stream에서 연결한다. 최종 행 F32 결과만 저장·gather한 뒤 기존 scale Main에서 공통 입력scale s를 Mul0, channel scale을 Mul1로 곱하고 처음 BF16으로 바꾼다. 이후 RMS/residual의 BF16 경계를 유지한다.",
+      "parameters": "E4×E4 native; Lane=Term4, Element=K256; F32 계수 복원·Term/K16 합; s와channel scale 후 BF16",
+      "coupled_with": [
+        "O1",
+        "O3",
+        "O4"
+      ],
+      "invariant": "항별 s 선곱이나 중간 BF16 경계를 추가하지 않는다. 계수는 연속16B를 padded32B VRF로 읽는다. global s와 native 결과의 같은 입력 의미를 보존한다. 과거 E47 상쇄 case7 및 fourth-term-active 사례는 새 실제 경로로 검증했지만 임의 BF16/전체 모델 정확성 증명은 아니다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "project_output",
+            "project_output_stage",
+            "apply_output_channel_scale_f32"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/o-native-activation-resident/README.md",
+        "moa-dev/experiments/candidates/o-native-activation-resident/native-v3/recipe.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/graph-verification-e137-native-v3.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/independent-native-v3-review.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/source-build-binding.json",
+        "docs/experiments/e137-adoption-performance.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/validation/verification-summary-v3.json"
+      ]
+    },
+    {
+      "id": "R1",
+      "name": "8개 RMS 부분합을 gather한 뒤 local 합산",
+      "kernels": [
+        "O",
+        "FFN"
+      ],
+      "behavior": "각 480원소 shard의 F32 부분 평균을 구하고 Broadcast1로 정확히 8개를 ScalarSlice의 Time 축에 모아 합산한다. EPS와 sqrt는 뒤의 별도 pass에서 수행한다.",
+      "parameters": "8 logical partials; Broadcast1 {slice1:8,slice0:1}; F32 RMS",
+      "coupled_with": [
+        "O3",
+        "F5"
+      ],
+      "invariant": "physical padding을 데이터로 더하지 않는다. reduce/EPS/sqrt 순서와 BF16 경계를 유지한다. QKV는 Q1을 사용한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/rmsnorm.rs",
+          "symbols": [
+            "normalize_output_fused"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "sliding_attention_output",
+            "decoder_feedforward"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/rmsnorm-switch-gather/README.md",
+        "moa-dev/experiments/candidates/kernel-specific-rms/README.md"
+      ]
+    },
+    {
+      "id": "O3",
+      "name": "O의 scale·RMS·residual을 H480×8 배치로 연결",
+      "kernels": [
+        "O"
+      ],
+      "behavior": "dot의 F32 결과를 H480×8로 모은 뒤 공통 입력scale과 channel scale, post-RMS, residual 덧셈을 같은 shard 배치로 이어간다. 마지막에 residual_hbm을 덮어쓴다. 이 단계들이 하나의 Main에 모두 fusion된 것은 아니다.",
+      "parameters": "H%480 local, H/480=8 유효 shards",
+      "coupled_with": [
+        "O1",
+        "O2",
+        "R1",
+        "O4"
+      ],
+      "invariant": "channel scale 이후와 post-RMS 이후의 BF16 값, residual 덧셈 뒤 BF16 변환을 유지한다. helper 반환 배치와 다음 호출의 입력 배치를 같이 바꾼다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "OutputEpilogueSlices",
+            "add_output_residual"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "sliding_attention_output"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/output-parallel-epilogue/README.md",
+        "docs/experiments/e53-bf16-output-repeats.json",
+        "moa-dev/experiments/candidates/c09-output-first-npu/README.md",
+        "docs/experiments/e127-c09-adoption-performance.json",
+        "docs/experiments/e127-c09-extra-correctness.json",
+        "docs/experiments/e127-c09-probe-correctness.json",
+        "moa-dev/experiments/candidates/c09-output-first-npu/descriptor-analysis-c09-first-npu-v1.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/README.md",
+        "moa-dev/experiments/candidates/o-native-activation-resident/native-v3/recipe.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/graph-verification-e137-native-v3.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/independent-native-v3-review.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/source-build-binding.json",
+        "docs/experiments/e137-adoption-performance.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/validation/verification-summary-v3.json"
+      ]
+    },
+    {
+      "id": "O4",
+      "name": "소비 slice에서 global-scale weighted E4 4항 양자화",
+      "kernels": [
+        "O"
+      ],
+      "behavior": "실제 BF16 K4096 입력을32개(cluster,rowgroup)에 복제하고 각각16개 K256 slice로 나눈다. 각 rowgroup의 K16 Max에서 같은 power-of-two s를 구한다. u=x/s를[1,16,2^22,2^27] 배율의4개 E4 잔차항으로 변환해 해당 native 소비 slice의 DM에 직접 쓴다. v2의512KiB term 배포 DMA는 없다. 로컬 term512KiB와 TRF적재, 중간 F32 reconstruction과 coefficient 준비는 남는다.",
+      "parameters": "512 consumer slices; BF16 입력복제256KiB; term512KiB; s=2^(floor(log2(max(amax,2^-119)))-7); full K4096 amax per identical rowgroup",
+      "coupled_with": [
+        "O1",
+        "O2",
+        "O3"
+      ],
+      "invariant": "모든 rowgroup이 같은4096 입력을 받는 실제 descriptor를 유지한다. scale의 full Hgroup16 allocation을 anonymous16으로만 relabel하고 physical256 slice 및 q=0 valid mask를 유지한다. 1#256으로 축소하면 안 된다. 유한 입력 전제이며 4항도 일반 BF16 exact 분해가 아니다. CPU normalized error2^-37과 |u|>=2^-29 exact 결과는 제한된 열거/반올림 모형이고 최종 NPU 오차 보증이 아니다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "prepare_output_terms",
+            "OutputQuantSlices",
+            "OutputQuantRows",
+            "project_output"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/o-native-activation-resident/README.md",
+        "moa-dev/experiments/candidates/o-native-activation-resident/native-v3/recipe.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/graph-verification-e137-native-v3.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/independent-native-v3-review.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/source-build-binding.json",
+        "docs/experiments/e137-adoption-performance.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/validation/verification-summary-v3.json",
+        "moa-dev/experiments/candidates/o-native-activation-resident/consumer-local-quant-review.md",
+        "moa-dev/experiments/candidates/o-native-activation-resident/numerical/three-term-scope-note.md",
+        "moa-dev/experiments/candidates/o-native-activation-resident/profile/README.md"
+      ]
+    },
+    {
+      "id": "F1",
+      "name": "L 절반의 소유권을 up/gate·GeGLU·down까지 유지",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "각 cluster가 L7680을 소유한다. 6행씩 dot·scale·합산한 native up/gate의30행 F32 출력을 같은 cluster 안에서120행으로 모아 BF16으로 바꾸고 GeGLU를 계산한다. Down 입력은 그 L 절반 안에서 compact DMA와 ring32로 네 column에 방송한다. 전체 L의 cross-cluster gather/복제를 제거한다.",
+      "parameters": "up: l=7680*c+30*s+r; GeGLU: l=7680*c+120*r+t, slice=4*r; down: h=60*r+t, l=7680*c+1920*k+u, slice=4*r+k",
+      "coupled_with": [
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6"
+      ],
+      "invariant": "Weight/scale/activation의 동일 L-half 소유권을 유지한다. 네 column의 F32 합 뒤 두 cluster의 H partial을 더하며 합 이전 BF16 rounding을 추가하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "project_up_and_gate",
+            "cast_gathered_rows",
+            "geglu",
+            "project_down_tile",
+            "finish_down"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/README.md",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/graph-verification.json",
+        "docs/experiments/e128-probe-correctness.json"
+      ]
+    },
+    {
+      "id": "F2",
+      "name": "Up/gate와 down 모두 packed FP4를 native 입력으로 직접 decode",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "Up/gate는 독립 compact FP4 HBM을 DM에 적재하고 projection마다 한 full30-row Main lookup/native stream으로 직접 소비한다. 전체 decoded E5 weight DM은 없다. Dot에 input scale을 곱한 F32 block partial을 저장한 뒤 별도6행 Main에서 blockscale과 H 합산을 처리한다. Down은 E134/E140의 weighted E5 세 항, 직접 FP4 decode/native 및 복원계수 경로를 유지한다.",
+      "parameters": "up/gate FP8 materialization112.5MiB write/read 각각 제거; 새 up/gate F32 partial28.125MiB write/read 각각; down F32 partial14.0625MiB write/read 각각 유지. 모두 논리량이며 버스 계측 아님.",
+      "coupled_with": [
+        "F1",
+        "F3",
+        "F4",
+        "F6"
+      ],
+      "invariant": "원본 FP4/FP8 scale HBM 입력과 두 cluster L-half 소유권 유지. Full30 direct native는 F32 partial을[Row30,H/16=240]으로 저장하고 scale reader와 동일한 좌표를 사용한다. Down coefficient restoration은 Term 합산 전에 수행한다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "project_up_and_gate",
+            "project_rows_with_scale_contraction",
+            "prepare_down_fp8_split",
+            "broadcast_down_quantized",
+            "project_down_tile"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/README.md",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/graph-verification.json",
+        "docs/experiments/e128-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/weighted-v3/recipe.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/graph-verification-e134-weighted-v3.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/source-build-binding.json",
+        "docs/experiments/e134-adoption-performance.json",
+        "docs/experiments/e134-extra-correctness.json",
+        "docs/experiments/e134-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/result-summary.md",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/numerical-bound.md",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/e134-full-ffn-stress-results.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/stage1-scope-decision.json",
+        "moa-dev/experiments/candidates/ffn-direct-full30-partials/independent-audit.json",
+        "moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/final-verification.json",
+        "moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/independent-final-review.json",
+        "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/independent-final-review.json"
+      ]
+    },
+    {
+      "id": "F3",
+      "name": "Weighted native term 복원 뒤 block·column·cluster F32 합산",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "Up/gate는 native16원소 block dot → input scale → F32 DM → block scale → F32 H 합산 순서다. F32 partial 저장/읽기 사이에 BF16 또는 FP8 cast를 넣지 않는다. Down은 native 각 term에[s,s/16,s/256]을 곱한 뒤 Term 합산, blockscale, L1920/column/cluster 합산을 유지하고 finish_down에서 처음 BF16으로 바꾼다.",
+      "parameters": "block16; scale restore는 native term마다 먼저 적용; F32 partial16B commit; 두 H3840 F32 cluster partial30720 logical bytes와 기존 gather/reduction 유지",
+      "coupled_with": [
+        "F1",
+        "F2",
+        "F4",
+        "F6"
+      ],
+      "invariant": "Weighted term을 DPE에서 먼저 같은 계수로 합치면 안 된다. [hi,lo16,third256]과[s,s/16,s/256]을 함께 변경한다. 복원곱의 F32 연산 순서는 기존 BF16 dot/공통scale 경로와 모든 입력에서 동일하다고 가정하지 않으며 새 oracle/whole 검증 범위를 명시한다. Cluster 합 이전 BF16 경계를 추가하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "project_rows_with_scale_contraction",
+            "prepare_down_fp8_split",
+            "project_down_tile",
+            "finish_down"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/README.md",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/graph-verification.json",
+        "docs/experiments/e128-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/weighted-v3/recipe.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/graph-verification-e134-weighted-v3.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/source-build-binding.json",
+        "docs/experiments/e134-adoption-performance.json",
+        "docs/experiments/e134-extra-correctness.json",
+        "docs/experiments/e134-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/result-summary.md",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/numerical-bound.md",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/e134-full-ffn-stress-results.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/stage1-scope-decision.json",
+        "moa-dev/experiments/candidates/ffn-direct-full30-partials/independent-audit.json",
+        "moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/final-verification.json",
+        "moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/independent-final-review.json",
+        "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/independent-final-review.json"
+      ]
+    },
+    {
+      "id": "F4",
+      "name": "Up/gate30·down30+30 native와 row-low2 scale ingress·SubSwitch4 후단",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "Up/gate projection마다 full30 native 한 번과6행 blockscale/H reduction 다섯 번이다. Down은원60행을compact30+30 FP4 HBM/native로분리하며각weightednative가원full60F32partial에직접쓴다. 기존five12scale/reduce는유지하고24..35행소비자는두half를읽는다. 추가partialassembly나stage간합산은없다. 별도DMA/lookup/native는하나씩증가한다. Downscale은source slice4g+b가row60g+4r+b의full480 E4값을소유한다. 각원12row consumer는source3row를F32cast해InterTranspose4(time0=3)로공급받는다. 원weighted계산순서/native/F32partial/five12VRF와reduce는불변이다.",
+      "parameters": "down packedhalf28800B/slice, F32partialhalf14400B at0/14400, fullroot28800B;two14.0625MiB HBMs,total28.125MiB;partial14.0625MiBwrite/readeach;native lookup4total(up/gate2+down2). Up/gate6row5760BVRF anddown12row5760BVRF/96Bcoeff unchanged. ScaleHBM3686400B동일; SubSwitchF32payload14745600B추가; 각VRF5760B. 실제Switch에는별도bitmap operand가없다.",
+      "coupled_with": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "invariant": "Down coefficient3개에 cluster Dummy2와 FfnTerm 좌표를 보존한다. Term padding copy는 명시적 Sub480B, coefficient copy는 명시적 Main32B로 제한하며 typed DMA extent 확장을 피한다. 96B VRF와5760B scale VRF의 실제 graph lifetime/주소를 검증한다. 추가 양자화·복원·방송 비용은 전체 FFN 실측에 포함한다. Up/gate partial5개 row window는[0,6,12,18,24]×240 F32 좌표로 중복 없이30행을 덮어야 한다. 물리적으로 분리된 Mul0와 기존 fused Mul1의 모든 입력 동치는 가정하지 않고 실제 oracle/whole로 검증한다. 두weight sourceoffset0/30의원7680Browpitch와목적지28800Bcompact범위를검증한다. 원nativeTerm복원순서와partialroot양half/join/모든fiveconsumer/register수명을유지한다. Rust호출순서가DMA우선권을보장하지않으므로컴파일일정과wholeNPU를확인한다. Source480-value row와목적지row12i+4a+b의모든30720rowpacket/value순서및8KiB VRF수명을actualgraph로검증한다. Logical480B구간을bus단일transaction으로일반화하지않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "static_passes",
+            "project_rows_with_scale_contraction",
+            "prepare_down_fp8_split",
+            "broadcast_down_quantized",
+            "project_down_tile",
+            "cast_gathered_rows",
+            "project_down_native_half"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/README.md",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/graph-verification.json",
+        "docs/experiments/e128-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/weighted-v3/recipe.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/graph-verification-e134-weighted-v3.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/source-build-binding.json",
+        "docs/experiments/e134-adoption-performance.json",
+        "docs/experiments/e134-extra-correctness.json",
+        "docs/experiments/e134-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/result-summary.md",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/numerical-bound.md",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/e134-full-ffn-stress-results.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/stage1-scope-decision.json",
+        "moa-dev/experiments/candidates/ffn-direct-full30-partials/independent-audit.json",
+        "moa-dev/experiments/candidates/ffn-direct-full30-partials/validation/final-verification.json",
+        "moa-dev/experiments/candidates/ffn-down-weight-stages/adoption/independent-final-review.json",
+        "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/independent-final-review.json"
+      ]
+    },
+    {
+      "id": "F5",
+      "name": "FFN down 이후 H480×8 epilogue",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "두 cluster의 F32 H partial을 H480×8로 모아 finish_down에서 합친 뒤 BF16으로 바꾼다. 이후 global scale, post-RMS, residual 덧셈, layer scale, 최종 저장은 E104 경계를 유지한다. Host sliding/full 두 경로가 같은 decoder_feedforward를 사용한다.",
+      "parameters": "DownEpilogueSlices=m![1 # 32,H/480]; pre-FFN RMS는 기존 single-slice normalize",
+      "coupled_with": [
+        "F1",
+        "R1"
+      ],
+      "invariant": "global scale 뒤 BF16, post-RMS 뒤 BF16, residual 덧셈 뒤 BF16, layer scale 뒤 BF16 경계를 유지한다. add_and_scale_sharded도 덧셈·scale 사이 cast를 없애지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "feedforward_sharded",
+            "DownEpilogueSlices",
+            "finish_down"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/residual.rs",
+          "symbols": [
+            "add_and_scale_sharded"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/ops.rs",
+          "symbols": [
+            "decoder_feedforward"
+          ]
+        },
+        {
+          "path": "furiosa-opt-gemma4-12B/src/host/runtime.rs",
+          "symbols": [
+            "sliding",
+            "full",
+            "mlp"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json"
+      ]
+    },
+    {
+      "id": "F6",
+      "name": "Up/gate 세 항의480B 명시 복사·down weighted residual 세 항",
+      "kernels": [
+        "FFN"
+      ],
+      "behavior": "Up/gate는 기존 실제 pre-RMS BF16 입력의 동일-scale E5 hi/lo/third 표현을 유지한다. Down은 실제 post-GeGLU BF16의 cluster별 amax에서 power-of-two scale을 구한다. 480원소 shard에서 hi=RN_E5(u), lo16=RN_E5(F32((u-hi)*16)), third256=RN_E5(F32((u-F32(hi+lo16/16))*256))를 만든 뒤 세 항을 방송한다. Native F32 term마다[s,s/16,s/256]으로 복원하고 합친다. Fixture 분기나 고정 activation은 없다. E140은 prepare_ffn_fp8_split의 hi/lo/third를 Sub fetch/collect/commit_trim으로 각각480B만 packed에 기록한다. 기존 padded typed-DMA는 실제1440B를 전송해 배열을 넘었으므로 제거했다. 양자화 산술은 동일하다.",
+      "parameters": "u=F32(x/s); s=2^(floor(log2(max(amax,2^-112)))-14); DownQuantSlices=m![1#16,TileL/480], cluster별16개480원소 shard; weighted residual 안전승수16/256",
+      "coupled_with": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "invariant": "일반 BF16 정확분해가 아니다. CPU RNE 표현 열거의 normalized 최대절대오차2^-25는 activation단위로s×2^-25이며 projected/RMS출력오차 보장이 아니다. 더 작은 값의 반올림/소실, native F32 합산·hardware subnormal 동작은 별도 한계다. E134는 관측된 E133 case4/구성 full-FFN 실패를 수정했지만 임의 입력 전체를 증명하지 않는다. Up/gate의 기존 수치적 한계도 그대로다. 실제 descriptor의 source/destination byte extent가480B이고 destination offset은0/480/960이어야 한다. 논리적 view 크기만으로 증명하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/shared/mlp.rs",
+          "symbols": [
+            "prepare_ffn_fp8_split",
+            "broadcast_ffn_quantized",
+            "prepare_down_fp8_split",
+            "broadcast_down_quantized",
+            "DownQuantSlices",
+            "project_down_tile"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/README.md",
+        "docs/experiments/e104-c07-e5-reload-materialized.json",
+        "docs/experiments/e104-c07-extra-correctness.json",
+        "docs/experiments/e104-c07-probe-correctness.json",
+        "moa-dev/experiments/candidates/c07-native-scale-dpe/numerics.json",
+        "moa-dev/experiments/candidates/m03-producer-local-ffn/README.md",
+        "docs/experiments/e122-m03-adoption-validation.json",
+        "docs/experiments/e122-m03-extra-correctness.json",
+        "docs/experiments/e122-m03-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/README.md",
+        "moa-dev/experiments/candidates/ffn-native-fused-scale/graph-verification.json",
+        "docs/experiments/e128-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/weighted-v3/recipe.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/graph-verification-e134-weighted-v3.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/source-build-binding.json",
+        "docs/experiments/e134-adoption-performance.json",
+        "docs/experiments/e134-extra-correctness.json",
+        "docs/experiments/e134-probe-correctness.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/down-oracle/result-summary.md",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/numerical-bound.md",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/e134-full-ffn-stress-results.json",
+        "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/stage1-scope-decision.json",
+        "moa-dev/experiments/candidates/down-native-consumer-local/graph-verification-e140-control-copy-fix.json",
+        "moa-dev/experiments/candidates/down-native-consumer-local/control-adoption/final-verification.json"
+      ]
+    },
+    {
+      "id": "Q7",
+      "name": "한 Main scale 생산과 Sub ring4의 scale·계수 VRF 직접 전달",
+      "kernels": [
+        "QKV"
+      ],
+      "behavior": "BF16 exponent mask·2^-7 곱·H960 Max·2^-126 floor·K4 Max를 한 Main stream에서 실행한다. 원 leader scale과 compact Term4 계수를 Sub CustomBroadcast ring4로 실제 네 K slice의 VRF에 복제하고 distribution 축만 relabel한다. Quantizer용 scalar/계수 TDMA 및 복제 DM은 없어지고 head용 scale DMA는 유지한다.",
+      "parameters": "scale source32B(유효 scalar4B), coeff source16B, VRF32B/slice; shared bitmap DMA16KiB; no weight staging",
+      "coupled_with": [
+        "Q2",
+        "Q4",
+        "Q5"
+      ],
+      "invariant": "Finite BF16 scale 식, 원래 four-term 잔차/RNE 및 Term→K4→common scale→channel scale→firstBF16 순서를 유지한다. 실제 source mask·bitmap·register 수명을 검증하며 byte 감소를 성능으로 환산하지 않는다.",
+      "implementation": [
+        {
+          "path": "furiosa-opt-gemma4-12B/src/device/sliding/projection.rs",
+          "symbols": [
+            "prepare_qkv_terms",
+            "project_qkv_native"
+          ]
+        }
+      ],
+      "evidence": [
+        "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/numerical/scale-proof.json",
+        "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/audit-e147-scalar-v1.json",
+        "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/adoption/independent-final-review.json"
+      ]
+    }
+  ],
+  "inherited_e134_numerical_evidence_scope": {
+    "standard_distinct_inputs": 9,
+    "standard_input_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "standard_candidate_output_comparisons": 45,
+    "extra_output_comparisons": 30,
+    "standard_performance_independent_allocations": 3,
+    "median_paired_ffn_delta_percent": -4.451846030126916,
+    "down_oracle_job": 109958,
+    "mapping_cases_exact_bf16": 9,
+    "mapping_output_elements": 34560,
+    "observed_prior_e133_case4_repaired": {
+      "expected": 1.40625,
+      "e134_actual": 1.40625,
+      "e133_historical_actual": 0.703125,
+      "outputs": 3840
+    },
+    "known_cpu_construction_down_case8": {
+      "expected": 0.1650390625,
+      "e134_actual": 0.1650390625,
+      "outputs": 3840
+    },
+    "constructed_public_whole_ffn": {
+      "job": 109965,
+      "input_count": 1,
+      "input_scope": "Constructed within public generator component ranges, not an observed PRNG seed",
+      "expected_bf16": 0.404296875,
+      "e134_exact_outputs": 3840,
+      "e128_exact_outputs": 3840,
+      "prior_e133_tolerance_failures": 1920,
+      "result": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/e134-full-ffn-stress-results.json",
+      "verification": "moa-dev/experiments/candidates/ffn-native-down-weighted-residual/full-ffn-stress/verification.json"
+    },
+    "remaining_representation_limit": {
+      "cpu_model": "RNE normalized finite BF16-derived F32 values; see numerical-bound.json for enumeration/domain",
+      "max_normalized_abs_error": "2^-25",
+      "activation_unit_bound": "s * 2^-25",
+      "scope": "Not a projected or normalized FFN output-error bound; not a native arithmetic/underflow proof or guarantee for arbitrary input."
+    },
+    "acceptance_boundary": "Unchanged public whole-FFN acceptance after down global scale, residual, RMS and layer scale; exact raw-down checks are additional selected mapping/precision diagnostics.",
+    "no_claims": [
+      "General BF16 exact decomposition",
+      "Arbitrary legal FFN inputs correct",
+      "End-to-end model inference correctness",
+      "Official grading/submission result"
+    ]
+  },
+  "adoption_decision": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption-decision.json",
+  "inherited_e137_numerical_evidence_scope": {
+    "standard_distinct_inputs": 9,
+    "standard_input_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "standard_performance_independent_allocations": 3,
+    "median_paired_o_delta_percent": -12.297751145864167,
+    "projection_oracle": {
+      "cases": 9,
+      "outputs": 34560,
+      "exact_bitwise": true,
+      "signed_zero_equivalent": true,
+      "actual_production_quantizer": true,
+      "before_rms": true,
+      "job": 110561
+    },
+    "full_o_stress": {
+      "cases": 1,
+      "outputs": 3840,
+      "exact_bitwise": true,
+      "actual_public_image": true,
+      "job": 110569,
+      "original_reference_and_tolerance_unchanged": true,
+      "performance_excluded": true
+    },
+    "scope_limits": [
+      "Four weighted E4 terms are not an exact encoding of every BF16 value.",
+      "Pointwise normalized error bounds do not prove arbitrary cancellation, projected or post-RMS error bounds.",
+      "Nine standard inputs, nine selected raw projection cases and one full O construction are finite validation; no full-model claim."
+    ],
+    "inherited_qkv_ffn": "Historical E137 evidence. E140 preserves QKV/O exact images; FFN prefix copy memory contract is newly validated below."
+  },
+  "inherited_e140_numerical_evidence_scope": {
+    "standard_distinct_inputs": 9,
+    "standard_input_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "standard_performance_independent_allocations": 3,
+    "median_paired_ffn_delta_percent": -0.18471172402382274,
+    "whole_ffn_stress": {
+      "job": 111488,
+      "outputs": 3840,
+      "exact_bitwise": true,
+      "actual_public_image": true,
+      "original_reference_and_tolerance_unchanged": true
+    },
+    "scope_limits": [
+      "Finite standard and one complete FFN construction, not arbitrary-input or whole-model correctness.",
+      "Raw-down111393 excludes the modified upstream quantizer and is not an E140 prefix adoption gate."
+    ]
+  },
+  "inherited_e142_numerical_evidence_scope": {
+    "standard_distinct_inputs": 9,
+    "standard_input_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "standard_performance_independent_allocations": 3,
+    "median_paired_ffn_delta_percent": -3.6192592144611235,
+    "upgate_oracle": {
+      "job": 111704,
+      "cases": 8,
+      "outputs": 245760,
+      "exact_bitwise": true,
+      "signed_zero_equivalent": true,
+      "actual_production_quantizer": true,
+      "before_geglu": true,
+      "original_bf16_f64_reference": true
+    },
+    "whole_ffn_stress": {
+      "job": 111736,
+      "outputs": 3840,
+      "exact_bitwise": true,
+      "actual_public_image": true,
+      "original_reference_and_tolerance_unchanged": true
+    },
+    "scope_limits": [
+      "Finite standard, eight actual up/gate cases and one complete FFN construction, not arbitrary-input or whole-model correctness.",
+      "Original E103 failures are preserved; their sole cause was not established by this new combination."
+    ]
+  },
+  "inherited_e147_numerical_evidence_scope": {
+    "standard_distinct_inputs": 9,
+    "standard_input_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "standard_performance_independent_allocations": 3,
+    "median_paired_qkv_delta_percent": -1.1622068330648383,
+    "finite_bf16_scalar_cpu_patterns": 65280,
+    "raw_projection": {
+      "cases": 9,
+      "outputs": 73728,
+      "exact_bitwise": true,
+      "signed_zero_equivalent": true
+    },
+    "full_qkv": {
+      "cases": 2,
+      "outputs": 16384,
+      "untouched_cache_values": 8380416,
+      "original_tolerance": [
+        0.04,
+        0.01
+      ],
+      "actual_production_image": true
+    },
+    "scope_limits": [
+      "CPU scalar equivalence for finite BF16 does not establish arbitrary NPU arithmetic or end-to-end model correctness.",
+      "Nine standard and selected raw/full inputs are finite validation.",
+      "Same O/FFN images; their timing variation is not a new kernel optimization."
+    ]
+  },
+  "inherited_e150_numerical_evidence_scope": {
+    "standard_distinct_inputs": 9,
+    "standard_input_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "standard_performance_independent_allocations": 3,
+    "median_paired_ffn_delta_percent": -2.193181593856719,
+    "raw_down": {
+      "cases": 9,
+      "outputs": 34560,
+      "exact_bitwise": true,
+      "signed_zero_equivalent": true,
+      "production_mlp_entire_prefix_preserved": true,
+      "original_diagnostic_append_preserved": true
+    },
+    "full_ffn": {
+      "cases": 1,
+      "outputs": 3840,
+      "exact_bf16": true,
+      "actual_production_image": true,
+      "original_inputs_reference_host_unchanged": true
+    },
+    "scope_limits": [
+      "Selected raw/full and nine standard inputs are finite validation, not arbitrary-input proof.",
+      "Raw uses a separate diagnostic crate with full production MLP prefix plus original wrapper append; no claim that the diagnostic crate equals all46 whole-build inputs.",
+      "QKV/O images unchanged; their timing variation is not an FFN code improvement."
+    ]
+  },
+  "numerical_evidence_scope": {
+    "standard_distinct_inputs": 9,
+    "standard_input_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "standard_performance_independent_allocations": 3,
+    "median_paired_ffn_delta_percent": -0.7164848594729434,
+    "raw_down": {
+      "cases": 9,
+      "outputs": 34560,
+      "exact_bitwise": true,
+      "signed_zero_equivalent": true,
+      "production_mlp_entire_prefix_preserved": true,
+      "original_diagnostic_append_preserved": true
+    },
+    "full_ffn": {
+      "cases": 1,
+      "outputs": 3840,
+      "exact_bf16": true,
+      "actual_production_image": true,
+      "original_inputs_reference_host_unchanged": true
+    },
+    "scope_limits": [
+      "Selected raw/full and nine standard inputs are finite validation, not arbitrary-input proof.",
+      "Raw uses a separate diagnostic crate with full production MLP prefix plus original wrapper append; no claim that the diagnostic crate equals all46 whole-build inputs.",
+      "QKV/O images unchanged; their timing variation is not an FFN code improvement."
+    ]
+  }
+}

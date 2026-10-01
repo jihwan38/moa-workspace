@@ -1,0 +1,60 @@
+{
+  "candidate": "E151",
+  "adopted_source_candidate": "ingress-v1",
+  "actual_start_commit": "3d4a600e068429114b7b5f49fe9a8482492c5d31",
+  "source_origin": "E150ad1ecb3;45othercompileinputs unchanged; only downscale HBM ownership and Sub routing changed",
+  "adopted_source_commit": "8adbbae1776aa8080a96348a9d9a64022a0cf6d0",
+  "performance_control": "baseline/e150.json",
+  "measured_build": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/measured-build-e151-adoption.json",
+  "measured_build_digest": {
+    "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/measured-build-e151-adoption.json",
+    "bytes": 22643,
+    "sha256": "1204d37692299b5088e3e135cc2e122100f1f5a14b936039de81806ea35a6e1f"
+  },
+  "original_compile_record": {
+    "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/build-e151-ingress-v1-repro.json",
+    "bytes": 17416,
+    "sha256": "16790aa4ebb5fcea48aa15a5dfbe692d244126fbba90a75d08eb3c7ecb7dddf1"
+  },
+  "original_package_record": {
+    "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/package-e151-ingress-v1.json",
+    "bytes": 20833,
+    "sha256": "5f45822dd7e8a85100ff8f1cec428c90f8f707de13d0b35bd1932133ad15424e"
+  },
+  "source_binding": {
+    "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/source-build-binding.json",
+    "bytes": 13263,
+    "sha256": "43380c122f80bc83fca108d5c0c25f475344da4043e731c3017f62ea24a5731c"
+  },
+  "compile_inputs": 46,
+  "live_compile_inputs_match_frozen_build": true,
+  "changed_runtime_files": [
+    "src/device/shared/mlp.rs"
+  ],
+  "public_device_entrypoints_unchanged": true,
+  "qkv_o_images_unchanged": true,
+  "basic_and_extra_images_identical": true,
+  "images": {
+    "sliding_project_qkv": {
+      "bytes": 219904,
+      "sha256": "fd2e252603b4de38389d8720edd78d6ae1b5c82514f6869934a5ebbb46c5f5fb",
+      "host_occurrences": 1
+    },
+    "sliding_attention_output": {
+      "bytes": 122880,
+      "sha256": "4dde46bfbff2b07c0870f5baf8d5a857b2b0fb7176816f9b0eb417260a671cb4",
+      "host_occurrences": 1
+    },
+    "decoder_feedforward": {
+      "bytes": 299776,
+      "sha256": "abd825b11337de46d7d525f6cc14319db304109e5dbf53dd3ac1a93c45db69a0",
+      "host_occurrences": 1
+    }
+  },
+  "validation": {
+    "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/adoption/independent-final-review.json",
+    "bytes": 15857,
+    "sha256": "711ca0e282653ab20f22a458bc061273466336e898cf3a3fa9bb1cd8d0c04410"
+  },
+  "scope": "Downscale HBM uses row-low2 ownership and full480-value scale rows; each of the five original twelve-row VRFs is supplied by Sub cast and InterTranspose4. Original E150 weighted arithmetic, two native stages, partials, quantizer/TRF and final reduction preserved. Includes14.0625MiB F32 routing/setup with no extra scale DM scatter. Finite validation, not arbitrary-input or end-to-end model proof."
+}

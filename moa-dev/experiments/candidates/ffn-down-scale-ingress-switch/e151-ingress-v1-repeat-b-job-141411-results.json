@@ -1,0 +1,190 @@
+{
+  "job": {
+    "id": 141411,
+    "owner": "jihwan38",
+    "mine": true,
+    "name": "beef-e151-ingress-v1-repeat-b",
+    "status": "SUCCEEDED",
+    "created_at": "2026-10-01T10:26:00Z",
+    "started_at": "2026-10-01T10:28:30Z",
+    "finished_at": "2026-10-01T10:28:50Z",
+    "duration_sec": 20.250046522,
+    "exit_code": 0,
+    "device_id": null
+  },
+  "log": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/evidence/arena-141411.log",
+  "log_digest": {
+    "bytes": 7362,
+    "sha256": "9a5d14e5a9ce882a280ad36e89e437ae90b35fb5757adfd862090064dd7b0ff2"
+  },
+  "build_record": {
+    "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/e151-ingress-v1-repeat-b-build.json",
+    "bytes": 11982,
+    "sha256": "51e984221b457172b6b007304d87a8aaea1af65cb41860d83e1b239fa8467fe2"
+  },
+  "method": "One allocation, three serial original three-input benchmark hosts: actual E150 before -> candidate whole FFN -> actual E150 after. PROFILE=info; no diagnostic host. Before/after and inputs are not independent allocations.",
+  "stages": {
+    "control_before": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 94709,
+          "cycles_by_run": [
+            99784,
+            94709,
+            94188
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 43115,
+          "cycles_by_run": [
+            45653,
+            42671,
+            43115
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 298487,
+          "cycles_by_run": [
+            306550,
+            296695,
+            298487
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    },
+    "candidate_whole": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 94421,
+          "cycles_by_run": [
+            99988,
+            94421,
+            92075
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 42707,
+          "cycles_by_run": [
+            46065,
+            41931,
+            42707
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 295709,
+          "cycles_by_run": [
+            302573,
+            295436,
+            295709
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    },
+    "control_after": {
+      "valid": true,
+      "complete": true,
+      "exit_code": 0,
+      "correctness_passes": 15,
+      "kernels": {
+        "sliding_project_qkv": {
+          "correctness": "passed",
+          "median_cycles": 94472,
+          "cycles_by_run": [
+            99962,
+            94144,
+            94472
+          ],
+          "output_comparisons_passed": 9
+        },
+        "sliding_attention_output": {
+          "correctness": "passed",
+          "median_cycles": 42452,
+          "cycles_by_run": [
+            45049,
+            42379,
+            42452
+          ],
+          "output_comparisons_passed": 3
+        },
+        "decoder_feedforward": {
+          "correctness": "passed",
+          "median_cycles": 297199,
+          "cycles_by_run": [
+            306427,
+            296591,
+            297199
+          ],
+          "output_comparisons_passed": 3
+        }
+      }
+    }
+  },
+  "completed_stage_names": [
+    "control_before",
+    "candidate_whole",
+    "control_after"
+  ],
+  "stage_sequence_matches": true,
+  "screen_complete": true,
+  "actual_upload_matches": true,
+  "valid": true,
+  "package_files": {
+    "run.sh": {
+      "bytes": 1353,
+      "sha256": "93e19ff73167afe8d617e0d2ebea0d04b45d87152ac2373e8be202179a56574c"
+    },
+    "fixtures.safetensors": {
+      "bytes": 202632,
+      "sha256": "338c0a8c06458a528b29d58f0f65a5ea13af79a14a9929a06c571b8adb002359"
+    },
+    "job.yaml": {
+      "bytes": 90,
+      "sha256": "a95271b407b37fb4b3bb1993ae8898ef8199df32faa668f2f528a6afc907f546"
+    },
+    "remote_entrypoint.sh": {
+      "bytes": 965,
+      "sha256": "6ea0fa3b0b224f85c33b4a8e893adad77421c3f228646520d83cf9b85bd26b9d"
+    },
+    "candidate_test_runtime": {
+      "bytes": 3832128,
+      "sha256": "74d65cd07311887aeb45cdb6918d15745067b27ef5514b78cb82afd925b71079"
+    },
+    "control_test_runtime": {
+      "bytes": 3832384,
+      "sha256": "08cbab9350c467db4fcbd1c47146a6c90c7f69490fe522ba9b31e6ef41112f98"
+    }
+  },
+  "archive": {
+    "path": "moa-dev/experiments/artifacts/ffn-down-scale-ingress-switch/job-141411.tar",
+    "bytes": 7875072,
+    "sha256": "ce4159e1a9fe1020beeba93a57bc9ce53e20a9004e093441f4265b6d5d5ca11b"
+  },
+  "correctness_passes": 45,
+  "whole_ffn_comparison": {
+    "control_before": 298487,
+    "candidate": 295709,
+    "control_after": 297199,
+    "bracketing_median": 297843.0,
+    "candidate_change_percent": -0.7164848594729434
+  }
+}

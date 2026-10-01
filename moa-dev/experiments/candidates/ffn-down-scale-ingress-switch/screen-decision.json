@@ -1,0 +1,71 @@
+{
+  "id": "E151",
+  "status": "screen_positive_pending_validation",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "ad1ecb3d3868c7e0ca2e4d1428bbd66bf1111821",
+  "comparison_recipe": "baseline/e150.json",
+  "candidate_build_label": "e151-ingress-v1",
+  "job": 141382,
+  "independent_allocations": 1,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_ffn_cycles": 295031,
+  "control_before_ffn_cycles": 297622,
+  "control_after_ffn_cycles": 308406,
+  "bracketing_median": 303014.0,
+  "change_percent": -2.6345317378074995,
+  "candidate_cycles_by_run": [
+    302025,
+    295031,
+    293440
+  ],
+  "static_candidate_cycles": 143189,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/graph-verification-e151-ingress-v1.json",
+      "bytes": 1936,
+      "sha256": "6333ae7d741d321b63ad821a168eada1db66386824e7d5a6f4994d983a41e41f"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/ffn-down-scale-ingress-switch/e151-ingress-v1-screen-job-141382-results.json",
+    "bytes": 5336,
+    "sha256": "4dd588968079a27755f819ab7a1573357054f4ee272d3689155f861f4130c393"
+  },
+  "down_weight_hbm_read_bytes": 29491200,
+  "down_weight_dm_write_bytes": 29491200,
+  "down_weight_dm_read_bytes": 29491200,
+  "down_partial_f32_write_bytes": 14745600,
+  "down_partial_f32_read_bytes": 14745600,
+  "down_weight_native_streams": 2,
+  "additional_down_streams_vs_e150": 0,
+  "down_scale_hbm_bytes": 3686400,
+  "additional_f32_switch_payload_bytes": 14745600,
+  "scale_sub_switch_streams": 5,
+  "consumer_scale_vrf_bytes_per_slice": 5760,
+  "cost_scope": "Original logical weight/partial/scale bytes remain. Replaces five scale Sub loads with full-row ingress and five Sub Switch-to-original-VRF streams, adding14.0625MiB logical F32 routing and bitmap/setup. Whole timings include all costs; no overlap-span or bus-stall savings are presumed.",
+  "scope": "Only down scale ingress ownership and Sub routing into original five12 scale VRFs change. Original E150 two weight/native stages, F32 partials, weighted quantizer/broadcast/TRF, scale/reduce arithmetic, epilogue and up/gate remain. QKV/O images unchanged; original reference boundary checks are separate.",
+  "decisions": {
+    "adoption": {
+      "status": "validate_frozen_candidate",
+      "reason": "A positive complete-kernel screen warrants bounded independent contemporary repeats, extra6 and changed-boundary oracle checks; gain below5% is eligible.",
+      "remaining_checks": [
+        "independent contemporary allocations",
+        "extra6 same-image correctness",
+        "original rawdown9 production helper and full-FFN regression on actual new source/image"
+      ]
+    },
+    "further_tuning": {
+      "status": "stop_parameter_exploration",
+      "reason": "5% is a provisional additional-tuning budget, not an adoption minimum. No tile sweep is authorized by this report."
+    },
+    "major_research": {
+      "status": "review_complete_dataflow_cost",
+      "question": "Does full-row low2 scale ingress and in-stream Sub Switch-to-VRF advance the measured scale delivery boundary after the last down native, including all added F32 routing and bitmap/setup? No overlap-window savings are presumed."
+    },
+    "decision_owner": "Root reviewer; these are evidence-based proposed next actions, not an automatic adoption."
+  }
+}
