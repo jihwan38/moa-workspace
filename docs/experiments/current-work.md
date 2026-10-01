@@ -1,10 +1,16 @@
-# 2026-10-01 E155 direct packed leader 공급 시작
+# 2026-10-01 E155 미채택 · E154 유지
 
-검증된E154source/control에서MLP의late23040Bpacked복제하나를제거하고
-CL0packed→16leaders typedDMA로바꾼다. CL1cross11520→92160B증가까지whole포함,
-원ring/scale8/native/정밀도유지. 미검증속도·M06timeout해결주장없음.
-음성/timeout이면이번마감시도종료, 양성이면동결추가검증. E154공식fallback유지.
-[후보](../../moa-dev/experiments/candidates/ffn-direct-packed-leaders/README.md).
+E155의 CL0 packed→16leader 직접 공급은 실제3회와 모든 정확도 검증을 완료했지만
+성능 이득을 확립하지 못했다. Paired 변화는 **−0.045730/−0.041237/+0.047536%**,
+중앙−0.041237%이며 세 번 모두 한 개별control보다 느렸다. 5% cutoff가 아니라
+혼합 부호와 비교변동을 근거로 미채택한다. 현재 runtime은 E154다.
+
+원표준distinct9, raw8의245760exact±0, fullFFN3840exact PASS. 원source46/1MLP변경·45불변,
+세 allocation 동일payload와actualarchive까지 검증했다. 제거된23040B중간packed와
+늘어난CL1crosscluster목적payload11520→92160B는 실제 전체 경로 안에서 평가했다.
+추가튜닝·프로파일·새 source는 중단하고 E154를 유지한다. 아래는 작성시점의 역사 기록이다.
+[판정](../../moa-dev/experiments/candidates/ffn-direct-packed-leaders/decision.json) ·
+[최종독립검토](../../moa-dev/experiments/candidates/ffn-direct-packed-leaders/adoption/final-no-adoption-review.json).
 
 # 2026-10-01 E154 scalar 공급 수리 채택 · 공식 제출 준비
 
