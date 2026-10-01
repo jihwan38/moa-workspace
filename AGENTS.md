@@ -294,6 +294,29 @@
   are identical and their observed variation is not an E147 code change. The
   current30th-place score8.068829902x still requires19.4272percent more score.
   Keep the modest recovered gain without representing it as a ranking breakout.
+- E148 O one-Main scale/Sub ring16 direct-VRF plus two direct cumulative sums
+  subsequently passed exact descriptors/registers and45 standard comparisons,
+  but whole O43945 versus E147 bracket42546 regressed3.288206percent in141077.
+  Do not adopt or infer benefit from1MiB logical sum writes/reads removed. Preserve
+  Main/Sub/VE coupling and16KiB shared bitmap cost. Raw9/fullcase7/extra6 packages
+  were built but not executed after this screen. One fixed E147/E148 names-only
+  O readiness comparison is selected to discriminate scalar/term/resource and
+  weight/head-tail effects; it may justify a specific repair, not a tile sweep.
+  The same diagnostic host can observe unchanged actual E142 FFN. Source-level
+  duplicate up/gate TRF loads already share one actual TRF; do not count them as
+  an unremoved5.625MiB transfer or select source-only commoning as a speedup.
+- D-E148 subsequently confirms the frozen O prototype regresses again4.473631percent
+  in141134(63comparisons pass). Quantization/TRF finish about12kcycles earlier,
+  while last native waits for weight1-end+2 in all6 observations on both images.
+  Do not call its removed storage inherently useless or attribute exclusive physical
+  contention from trace envelopes. Stop local scalar/term tuning. E149 selects
+  E147 source/control with unchanged O60+60 rows and native arithmetic, changing
+  weight ownership to low2 row bits/K1024 ingress then Main InterTranspose4 into
+  the original K256 consumer. Include routing cost and prove actual256B descriptor
+  loops/row coverage; source1024B contiguous regions are not1024B DMA packets.
+  Current E142 FFN also has gate at shared-TRF-end+1 and down at TRF-end+1. Its
+  up-result gather finishes just after the long down-weight ingress; these may
+  motivate a coupled supply/consumer change, not source-only TRF commoning.
 - For a major candidate, write the proposed full execution graph and identify
   which inherited assumptions it removes: weight materialization, activation
   replication, cluster/row/column ownership, reduction/scale decomposition, or

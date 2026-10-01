@@ -1,0 +1,46 @@
+{
+  "id": "E148",
+  "variant": "direct-v1",
+  "base_commit": "fb45202bba3c24537f74b4bf463276b76d823773",
+  "comparison_recipe": "baseline/e147.json",
+  "source_reference_build": "moa-dev/experiments/candidates/qkv-scalar-sub-vrf/measured-build-e147-adoption.json",
+  "changed_sources": {
+    "projection.rs": "src/device/sliding/projection.rs"
+  },
+  "unchanged_kernels": [
+    "sliding_project_qkv",
+    "decoder_feedforward"
+  ],
+  "target_kernel": "sliding_attention_output",
+  "actual_start_commit": "f9451626d508197901deee9bafbb03aa8edf2d34",
+  "scope": "Coupled local O producer/transport replacement, not a whole projection architecture or parameter sweep.",
+  "prior": [
+    "E147 finite BF16 one-Main scale and Sub ring4 direct VRF validated on QKV; K16 mapping must be verified anew",
+    "C11 Main VectorFinal to VRF compiled but increased native task count; this design preserves two O native tasks",
+    "E146 weight row stages mixed paired median +0.406876%; no staging retry or source inherited",
+    "Current O is E137 consumer-local K256/Term4, two60-row native stages; no current O internal trace establishes a saving"
+  ],
+  "execution": "BF16 HBM->consumer K256 DM->one Main exponent/Mul/H256Max/floor/K16Max leader DM->Sub ring16 VRF->same four E4 terms with two cumulative F32 sums directly in VRF->term DM->TRF->original weight2stages/native Term thenK16 reduction->canonical gather/common scale/channel scale/firstBF16/RMS/residual/HBM",
+  "removed": [
+    "two scale Main starts/local-global max intermediates",
+    "scalar and coefficient replicated DM/TDMA",
+    "two cumulative F32 sum DM writes/reads, logical1048576B each and two Sub reload tasks"
+  ],
+  "added": [
+    "pointwise scale Mul on131072 values rather than32 leader scalars",
+    "Sub ring16 bitmap/control distribution",
+    "Main directVRF occupies Main/Sub/VE and needs old/new1024B residuals simultaneously; verify all register lifetimes"
+  ],
+  "adoption": {
+    "decision": "pending exact gate and contemporary whole O screen",
+    "positive": "freeze any net positive for independent repeats,extra6,raw9,fullcase7; no5percent minimum"
+  },
+  "tuning": {
+    "decision": "no tile or term sweeps",
+    "first_stop": "measured regression stops blind tuning; specific resource/readiness evidence may justify one coherent repair"
+  },
+  "major_research": {
+    "decision": "remove O quantizer handoffs while preserving original numerical terms and native work",
+    "limit": "logical byte savings are not cycle savings; rank improvement requires measured whole-path gains"
+  }
+}

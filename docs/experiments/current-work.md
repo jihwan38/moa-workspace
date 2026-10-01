@@ -1,3 +1,36 @@
+# 2026-10-01 E148 종료: 입력을 앞당겨도 마지막 weight가 늦어져 회귀
+
+E147 runtime 유지. E148 직접 VRF 후보는141077/141134 whole O에서 각각
++3.288206/+4.473631%로 느려져 미채택. 첫45비교·두 번째whole/진단63비교PASS,
+standard distinct3이며 raw9/fullcase7/extra6는 빌드만·NPU미실행이다.
+실제입력 TRF 준비23,860.5→12,004cycles에도 마지막 native는 양쪽모두 weight1끝+2,
+6 run/cluster 전부같다. 추가bitmap/달라진일정비용을입력절감과함께평가한다.
+다음선택은 E147 source/control에 O60행 stage의 K1024 ingress→MainSwitch4→원K256
+native60을결합하는 E149다. E148 source를다음후보에상속하지않는다.
+[종료판정](../../moa-dev/experiments/candidates/o-scalar-residual-vrf/decision.json),
+[현재O/FFN실측](../../moa-dev/experiments/candidates/o-scalar-residual-vrf/readiness/profile-analysis.json).
+
+# 2026-10-01 E148 첫 whole 회귀·고정 이미지 비용 진단
+
+`e148-direct-v1` exact/static24908과 descriptor/register gate는 통과했다. Arena141077은
+원래45비교 PASS, O43945 vs E14742473/42619(앞뒤중앙42546)로 **+3.288206% 회귀**다.
+채택하지 않는다. Raw9/fullcase7 패키지는 원본참조·실제source/image까지 빌드했으나 NPU는
+실행하지 않았다. Extra6도 빌드만 했다. 추가 타일/항 수 반복은 없다.
+
+원인이 direct Main→VRF의 Main/Sub/VE 동시 점유인지, scalar 방송·weight 준비/후단인지
+구분하는 E147/E148 이름-only O paired profile 한 allocation을 진행한다. 같은 control
+host의 unchanged E142 FFN info/trace도 포함해 현재 FFN 후속 구조 판단에 사용한다.
+중첩 marker 시간창은 절감량으로 합산하지 않는다. 실제 비용 변화가 확인될 때만 수리한다.
+
+# 2026-10-01 E148 O scalar·누적 복원 직접 VRF 실험 시작
+
+채택 runtime은 E147이다. `opt/o-scalar-residual-vrf`, 실제 시작 `f9451626d508197901deee9bafbb03aa8edf2d34`에서
+source E147fb45202와 별도 control baseline/e147.json을 선택했다. O만 scale3Main→1Main,
+scalar/계수 Sub ring16→VRF, 두 F32 누적 복원 Main→VRF를 결합한다. 원래4항/2native/
+60+60weight/후단은 유지한다. QKV/FFN 불변을 확인하고 exact gate→whole screen으로 진행한다.
+논리 DM write/read각1MiB 감소에 Main/Sub/VE 점유와 bitmap/VRF 수명 비용이 추가된다.
+아직 성능/정확도/채택 결과는 없다. 양성은 크기와 무관하게 동결·반복·경계 검증한다.
+
 # 2026-10-01 E147 채택·공식 제출 완료
 
 현재 runtime은 **E147 / `baseline-e147` / `fb45202`**다. 공식 제출 `aabfb8c6`은

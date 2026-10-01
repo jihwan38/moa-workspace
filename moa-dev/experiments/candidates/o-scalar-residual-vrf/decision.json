@@ -1,0 +1,69 @@
+{
+  "id": "E148",
+  "status": "not_adopted_after_two_whole_regressions_and_bounded_profile",
+  "adopted": false,
+  "official_submission": false,
+  "source_base_commit": "fb45202bba3c24537f74b4bf463276b76d823773",
+  "comparison_recipe": "baseline/e147.json",
+  "candidate_build_label": "e148-direct-v1",
+  "job": 141077,
+  "independent_allocations": 2,
+  "candidate_distinct_standard_inputs": 3,
+  "total_comparisons_passed": 45,
+  "candidate_comparisons_passed": 15,
+  "candidate_o_cycles": 43945,
+  "control_before_o_cycles": 42473,
+  "control_after_o_cycles": 42619,
+  "bracketing_median": 42546.0,
+  "change_percent": 3.2882057067644466,
+  "candidate_cycles_by_run": [
+    46747,
+    43641,
+    43945
+  ],
+  "static_candidate_cycles": 24908,
+  "graph_gate": {
+    "record": {
+      "path": "moa-dev/experiments/candidates/o-scalar-residual-vrf/graph-verification-e148-direct-v1.json",
+      "bytes": 1878,
+      "sha256": "c57286a6f3d34679a7f5b9c73db06c14bd5afa6da952e3ee1d98deab9a53d10d"
+    },
+    "rechecked_input_digests": true
+  },
+  "source_batch_report": {
+    "path": "moa-dev/experiments/candidates/o-scalar-residual-vrf/e148-direct-v1-screen-job-141077-results.json",
+    "bytes": 5301,
+    "sha256": "7ae6493480ea3814465ef710e9eccd24193ef6980aa30d93dcddc971517588a6"
+  },
+  "weight_hbm_read_bytes": 15728640,
+  "weight_dm_write_bytes": 15728640,
+  "weight_dm_read_bytes": 15728640,
+  "weight_native_streams": 2,
+  "additional_streams_vs_e147": 0,
+  "cost_scope": "Logical unchanged weight bytes; scalar/bitmap and removed residual-store work must be verified in actual graph. Whole timings include all costs, not measured traffic or exclusive bus stalls.",
+  "scope": "O one Main scale producer, Sub ring16 direct scale/coefficient VRF and two F32 cumulative sums directly to VRF. Four residual terms, native Term/K16 reduction, common/channel scale, firstBF16 and final epilogue remain. E147 QKV/FFN images unchanged; finite scale equivalence and original O reference checks remain separate.",
+  "decisions": {
+    "adoption": {
+      "status": "reject_frozen_direct_v1",
+      "reason": "Both independent whole allocations regress +3.288206% and +4.473631%; finite standard checks pass but no net performance gain. Extra6/raw9/fullcase7 packages built, not NPU-executed."
+    },
+    "further_tuning": {
+      "status": "stop",
+      "reason": "No term/tile/bitmap sweep. Earlier activation does not advance the last weight-bound native; preserving this source for future coupled comparisons."
+    },
+    "major_research": {
+      "status": "select_o_weight_ingress_exchange",
+      "reason": "Actual E147 and E148 last native starts at weight1-end+2 in every run/cluster. Select E147 source with original activation path and 60row stage row-low2/K-quarter exchange: K1024 ingress then Main InterTranspose4 into unchanged K256/native60."
+    },
+    "decision_owner": "Root"
+  },
+  "followup_profile": {
+    "job": 141134,
+    "comparisons_passed": 63,
+    "whole_o_before": 42271,
+    "whole_o_candidate": 44266,
+    "whole_o_after": 42470,
+    "paired_change_percent": 4.4736314180856995,
+    "record": "moa-dev/experiments/candidates/o-scalar-residual-vrf/readiness/profile-analysis.json"
+  }
+}
