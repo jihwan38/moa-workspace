@@ -85,10 +85,10 @@ changing how the server is threaded.
 
 ## Sampling
 
-Sampling is fixed server-side at `SamplingConfig::DEFAULT` (temperature 0.1,
-top-k 64, top-p 0.95). The API does not read `temperature`, `top_p` or `top_k`: a request
-that includes them is still accepted and they are ignored, so outputs are random even with
-`temperature: 0`. 
+Sampling is fixed server-side at `SamplingConfig::DEFAULT` (temperature 0), which picks
+the argmax token (greedy decoding). The API does not read
+`temperature`, `top_p` or `top_k`: a request that includes them is still accepted and they
+are ignored.
 
 ### Fixed output length
 

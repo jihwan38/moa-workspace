@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Public performance test: identical streaming requests, timed inside the Arena job.
+"""Public performance test: streaming requests, timed inside the Arena job.
 
 Shares the prepare, bundle and remote flow of `accuracy.py`; this file adds the input
 selection, the streaming measurement of one request, and the summary metrics.
@@ -15,10 +15,21 @@ import urllib.request
 import accuracy
 
 PREFIX = "STAGE2_PERFORMANCE"
+INPUTS = ("256", "1024", "2048", "image", "audio")
 
 
-def select_input(name: str | None) -> dict:
-    """The request for `--test NAME`: a text prompt of that many tokens, or public media."""
+def read_media_inputs() -> dict[str, dict]:
+    """Load `public-test/performance.jsonl`: the image and audio requests, padded with text
+    to 512 and 768 prompt tokens as in grading, keyed by dataset."""
+    base = accuracy.CRATE / "public-test"
+    rows = [json.loads(line) for line in (base / "performance.jsonl").read_text().splitlines() if line.strip()]
+    for row in rows:
+        accuracy.expand(row["request"], base)  # Only checks the media; the job expands it again.
+    return {row["dataset"]: row for row in rows}
+
+
+def read_input(name: str) -> dict:
+    """The request of one input: a text prompt of that many tokens, or padded public media."""
     if name in ("256", "1024", "2048"):
         source = json.loads((accuracy.HERE / "performance_text.json").read_text())
         prompt = source["256"]
@@ -33,13 +44,24 @@ def select_input(name: str | None) -> dict:
             ]},
         }
     elif name in ("image", "audio"):
-        source = accuracy.select_case(accuracy.read_cases(), {"image": "vqav2", "audio": "fleurs_en"}[name])
+        source = read_media_inputs()[{"image": "vqav2", "audio": "fleurs_en"}[name]]
         row = {"id": source["id"], "suite": name, "request": source["request"]}
     else:
-        raise ValueError("Choose one test: 256, 1024, 2048, image, audio")
+        raise ValueError("Choose one test: " + ", ".join(INPUTS))
     row["request"].update(max_completion_tokens=64, temperature=0.0, ignore_eos=True,
                           stream=True, stream_options={"include_usage": True})
     return row
+
+
+def select_inputs(name: str | None, concurrency: int) -> tuple[str, list[dict], list[int]]:
+    """Without `--test`, the five inputs in turn; with it, that input alone.
+
+    Both send `ROUNDS * concurrency` requests.
+    """
+    total = accuracy.ROUNDS * concurrency
+    if name is not None:
+        return name, [read_input(name)], [0] * total
+    return "mixed", [read_input(name) for name in INPUTS], [index % len(INPUTS) for index in range(total)]
 
 
 def stream_response(response):
@@ -132,26 +154,37 @@ def percentile(values: list, percent: int) -> float | None:
     return values[max(0, math.ceil(len(values) * percent / 100) - 1)] if values else None
 
 
+def percentiles(records: list[dict], names: tuple[str, ...]) -> dict:
+    return {name: {f"p{p}": percentile([r[name] for r in records], p) for p in (50, 90)}
+            for name in names}
+
+
 def summarize(records: list[dict]) -> dict:
-    """p50/p90 of the per-request times, and throughput over the whole run."""
+    """p50/p90 of the per-request times, and throughput over the whole run.
+
+    A mixed run also lists TTFT and TPOT for each input.
+    """
     # A run with a failed request must not look like a successful measurement.
     if not records or not all(record["passed"] for record in records):
         return {"metrics": None}
     window = (max(r["completion_offset_ms"] for r in records)
               - min(r["dispatch_offset_ms"] for r in records)) / 1000
-    metrics = {
-        name: {f"p{p}": percentile([r[name] for r in records], p) for p in (50, 90)}
-        for name in ("ttft_ms", "latency_ms", "estimated_tpot_ms")
-    }
+    metrics = percentiles(records, ("ttft_ms", "latency_ms", "estimated_tpot_ms"))
     metrics.update(
         generated_tokens_per_second=sum(r["usage"]["completion_tokens"] for r in records) / window,
         requests_per_second=len(records) / window,
         measurement_window_seconds=window,
     )
+    suites = [name for name in INPUTS if any(r["suite"] == name for r in records)]
+    if len(suites) > 1:
+        metrics["inputs"] = {
+            name: percentiles([r for r in records if r["suite"] == name], ("ttft_ms", "estimated_tpot_ms"))
+            for name in suites
+        }
     return {"metrics": metrics}
 
 
 if __name__ == "__main__":
     accuracy.run("performance_test.sh",
                  lambda: accuracy.remote(measure_request, summarize, PREFIX),
-                 lambda: accuracy.local(__doc__.splitlines()[0], select_input))
+                 lambda: accuracy.local(__doc__.splitlines()[0], select_inputs))

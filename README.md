@@ -60,23 +60,26 @@ code and checks two things:
 
 1. **Correctness:** every response meets the threshold of its suite, listed under
    "Grading criteria" below.
-2. **Performance:** the server's throughput on each input type. Where its TTFT p90 exceeds
-   the limit, the submission earns no speedup.
+2. **Performance:** the server's throughput on a stream of requests that mixes the input
+   types. If its TTFT p90 or TPOT p90 exceeds the limit, the submission receives no score.
 
 See [Submit for grading](#submit-for-grading) for how a submission is scored.
 
 Stage 2 rules:
 
 1. **No input-specific optimization.** Optimizations must be general. They must not target
-   particular prompts, media, or datasets.
-2. **No test-specific behavior.** Performance requests set `ignore_eos`, which makes the
+   specific inputs, such as the benchmark prompts, media, or datasets.
+2. **No reuse of computation across requests.** Each request must compute its own KV cache
+   and image or audio encoder outputs from its own prompt and media. Reusing results from another
+   request, such as through prefix caching or cached encoder outputs, is prohibited.
+3. **No test-specific behavior.** Performance requests set `ignore_eos`, which makes the
    server generate exactly `max_completion_tokens` tokens. Keep that behavior, and do not use
    the flag, or any other way of telling a performance request from an accuracy request,
    to change how a request is computed.
 
 Stage 2 values to be finalized:
 
-- **TBD:** the TTFT p90 limit;
+- **TBD:** the TTFT p90 and TPOT p90 limits;
 - **TBD:** submission deadline and tie-break rule.
 
 ## Grading criteria
@@ -109,14 +112,15 @@ Prompts and scoring are adapted from the source datasets; see
 
 The grading server will measure performance using the official evaluation. The Stage 1 test
 reports each kernel's median RNGD cycle count across 3 independently-seeded runs. The Stage 2
-test reports the server's throughput on each input type; where its TTFT p90 exceeds the
-limit, the submission is scored a speedup of 1. The limit is TBD.
+test reports the server's throughput on a stream of requests that mixes the input types; if
+its TTFT p90 or TPOT p90 exceeds the limit, the submission receives no score. The limits are
+TBD.
 
 The following scoring values are still TBD:
 
 | Field | Planned rule |
 |---|---|
-| Stage 2 TTFT p90 limit | **TBD** |
+| Stage 2 TTFT p90 and TPOT p90 limits | **TBD** |
 | Reproducibility and code review | **TBD** |
 
 Schedule makespan is a useful development metric, but it is not a substitute for official
@@ -181,25 +185,28 @@ For a locally available RNGD setup, the repository also provides:
 
 ```sh
 ./scripts/stage2/accuracy_test.sh --test mmlu
+./scripts/stage2/performance_test.sh --concurrency 4
 ./scripts/stage2/performance_test.sh --test 256 --concurrency 4
 ```
 
-These build the model server, submit it through the Arena server, and test it with a public
-input. `accuracy_test.sh` runs a case from `public-test/`, which holds one example per suite,
+These build the model server, submit it through the Arena server, and test it with public
+inputs. `accuracy_test.sh` runs a case from `public-test/`, which holds one example per suite,
 and reports whether the responses pass. `performance_test.sh` reports TTFT, latency, TPOT,
 and throughput.
 
 | Script | `--test` |
 |---|---|
 | `accuracy_test.sh` | `mmlu`, `gsm8k`, `ifeval`, `vqav2`, `fleurs_en`, `fleurs_ko` |
-| `performance_test.sh` | `256`, `1024`, `2048` (text prompt tokens), `image`, `audio` |
+| `performance_test.sh` | optional: `256`, `1024`, `2048` (text prompt tokens), `image`, `audio` |
 
+Without `--test`, `performance_test.sh` mixes the five inputs into one stream, taking them
+in turn (256, 1024, 2048, image, audio). With `--test`, it sends that input alone.
 Performance requests set `ignore_eos`, as in grading, so every response has 64 tokens.
-`--concurrency N` (default 1) sends the input `2 × N` times with N requests in flight, so
-that later requests are admitted while others are still running, as in grading. Unlike
-grading, there is no warmup: the first requests include the server's cold start. Use
-`--no-build` to reuse the latest binary or `--no-wait` to submit without waiting for the
-result.
+
+`--concurrency N` (default 1) keeps N requests in flight and sends `2 × N` requests, so
+that later requests are admitted while others are still running, as in grading. Unlike grading, there is no warmup: the first requests include the server's cold
+start. Use `--no-build` to reuse the latest binary or `--no-wait` to submit without waiting
+for the result.
 
 ### Submit for grading
 
@@ -229,17 +236,23 @@ server startup.
   the 5 minutes. With a concurrency of 16 or more, the 16 cases are sent
   `⌊concurrency / 16⌋ + 1` times in a row, so that new requests are admitted while others
   are still running, and every case must pass every time.
-- **Performance:** the server is measured on five input types, in this order: text prompts
-  of 256, 1024, and 2048 tokens, an image prompt, and an audio prompt. For each type it receives `concurrency` warmup requests, then `3 × concurrency` measured requests with `concurrency`
-  of them in flight at a time: a new one starts as soon as one finishes. Every request sets
-  `ignore_eos` and `max_completion_tokens: 64`, so each response has 64 tokens. The speedup on a
-  type is the server's generated tokens/s divided by the baseline's, and the score is the
-  geometric mean of the five speedups. If the server's TTFT p90 over the measured requests
-  exceeds the limit on a type, or it does not finish that type within the 5 minutes, its
-  speedup there counts as 1.
+- **Performance:** the server is measured on one stream of requests that mixes five input
+  types: text prompts of 256, 1024, and 2048 tokens (Python code from CrossCodeEval), image
+  prompts of 512 tokens (VQAv2), and audio prompts of 768 tokens (FLEURS English and Korean).
+  Requests are sent with `concurrency` of them in flight at a time: a new one starts as soon
+  as one finishes. Every request sets `ignore_eos` and `max_completion_tokens: 64`, so each
+  response has 64 tokens.
+  - **Warmup:** `concurrency` requests, taking the five types in turn. They are not
+    measured, and the measurement starts after all of them have finished.
+  - **Measurement:** `3 × concurrency` requests per type, `15 × concurrency` in total. They
+    are sent in blocks, each holding every type once in a fixed shuffled order, which is the
+    same for every submission.
+  - **Score:** the generated tokens/s over the measured requests. A submission receives no
+    score if its TTFT p90 or TPOT p90 over the measured requests exceeds the limit, or if
+    the job does not finish within the 5 minutes.
 
-A higher concurrency leaves more room to raise throughput, but it also makes the TTFT limit
-harder to meet.
+A higher concurrency leaves more room to raise throughput, but it also makes the TTFT and
+TPOT limits harder to meet.
 
 ## Toolchain
 

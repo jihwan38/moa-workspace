@@ -15,6 +15,9 @@ A publicly available test dataset containing six text, image, and audio cases.
 ## Contents
 
 - `cases.jsonl`: one test case per line.
+- `performance.jsonl`: the image and audio requests of `performance_test.sh`. They use the
+  `vqav2` and `fleurs_en` media, with the instruction repeated to pad the prompt to 512
+  (image) and 768 (audio) tokens, as in grading.
 - `corpus/`: images and audio used by the cases.
 - `ATTRIBUTION.md` and `LICENSES/`: credits and licenses.
 

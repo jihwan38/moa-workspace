@@ -4,7 +4,7 @@
 `arena_test.sh` calls this file twice on the submitting machine: `--prepare` validates the
 selection and writes `selection.json`, and `--bundle-python` packs a Python runtime, since
 the Arena worker has none. Inside the Arena job, `entrypoint.sh` runs it with `--remote`:
-it starts the server, sends the selected case, scores every response and prints the result.
+it starts the server, sends the selected requests, scores every response and prints the result.
 """
 from __future__ import annotations
 
@@ -89,6 +89,12 @@ def select_case(rows: list[dict], suite: str | None) -> dict:
     if len(matches) != 1:
         raise ValueError(f"{suite} must contain exactly one case; found {len(matches)}")
     return matches[0]
+
+
+def select_test(suite: str | None, concurrency: int) -> tuple[str, list[dict], list[int]]:
+    """The case of `--test NAME`, sent `ROUNDS * concurrency` times."""
+    row = select_case(read_cases(), suite)
+    return row["id"], [row], [0] * (ROUNDS * concurrency)
 
 
 def concurrency_value(value: str) -> int:
@@ -184,9 +190,10 @@ def remote(run_one=run_request, summarize=None, prefix: str = "STAGE2") -> int:
     `performance.py` reuses this with its own `run_one` and `summarize`.
     """
     config = json.loads(Path("selection.json").read_text())
-    row = config["case"]
+    rows = config["cases"]
+    order = config["order"]  # The case of each request, in the order the requests are sent.
     concurrency = config["concurrency"]
-    total = ROUNDS * concurrency
+    total = len(order)
     started = time.monotonic()
     env = dict(os.environ, GEMMA4_API_ADDR="127.0.0.1:8000", GEMMA4_API_KEY="")
     records = []
@@ -194,7 +201,7 @@ def remote(run_one=run_request, summarize=None, prefix: str = "STAGE2") -> int:
     try:
         if not env.get("RNGD_MODEL_DIR"):
             raise ValueError("Arena must supply RNGD_MODEL_DIR")
-        body = expand(row["request"], Path("public-test"))
+        bodies = [expand(row["request"], Path("public-test")) for row in rows]
         with open("server.log", "w") as log:
             server = subprocess.Popen(["./server"], env=env, stdout=log, stderr=subprocess.STDOUT,
                                       start_new_session=True)
@@ -210,15 +217,15 @@ def remote(run_one=run_request, summarize=None, prefix: str = "STAGE2") -> int:
             except (OSError, ValueError):
                 time.sleep(0.2)
         print(f"Server ready after {time.monotonic() - started:.2f}s", flush=True)
-        print(f"Sending {total} requests for {row['id']}, {concurrency} at a time", flush=True)
+        print(f"Sending {total} requests for {config['test']}, {concurrency} at a time", flush=True)
 
         # The pool keeps `concurrency` requests in flight: the first ones are released
         # together, and each later one starts as soon as a worker finishes.
         start = threading.Event()
         with ThreadPoolExecutor(max_workers=concurrency) as pool:
             try:
-                futures = [pool.submit(run_one, row, body, index, config["request_timeout"], start)
-                           for index in range(1, total + 1)]
+                futures = [pool.submit(run_one, rows[case], bodies[case], index, config["request_timeout"], start)
+                           for index, case in enumerate(order, 1)]
             finally:
                 # `performance.py` reports each request's times relative to this instant.
                 start.epoch = time.monotonic()
@@ -229,8 +236,9 @@ def remote(run_one=run_request, summarize=None, prefix: str = "STAGE2") -> int:
                 emit(prefix + "_RESULT ", record)
     except Exception as err:
         done = {record["request_index"] for record in records}
-        for index in range(1, total + 1):
+        for index, case in enumerate(order, 1):
             if index not in done:
+                row = rows[case]
                 record = dict(id=row["id"], suite=row["suite"], request_index=index, passed=False, error=str(err))
                 records.append(record)
                 emit(prefix + "_RESULT ", record)
@@ -247,7 +255,7 @@ def remote(run_one=run_request, summarize=None, prefix: str = "STAGE2") -> int:
         if Path("server.log").exists():
             print("SERVER_LOG_TAIL\n" + Path("server.log").read_text(errors="replace")[-8000:])
     passed = sum(record["passed"] for record in records)
-    summary = {"id": row["id"], "suite": row["suite"], "concurrency": concurrency,
+    summary = {"test": config["test"], "concurrency": concurrency,
                "total": total, "passed": passed, "failed": total - passed}
     if summarize is not None:
         summary.update(summarize(records))
@@ -258,7 +266,8 @@ def remote(run_one=run_request, summarize=None, prefix: str = "STAGE2") -> int:
 def local(description: str, select) -> int:
     """The steps `arena_test.sh` runs before submitting: `--prepare` or `--bundle-python`.
 
-    `select` maps the `--test` value to the case to run.
+    `select` maps the `--test` value and the concurrency to the name of the test, its cases,
+    and the case of each request in the order the requests are sent.
     """
     parser = argparse.ArgumentParser(description=description)
     action = parser.add_mutually_exclusive_group(required=True)
@@ -272,10 +281,12 @@ def local(description: str, select) -> int:
         python_bundle(args.bundle_python)
         return 0
 
-    row = select(args.test)
-    print(f"Selected: {row['id']}; concurrency: {args.concurrency}", flush=True)
+    name, rows, order = select(args.test, args.concurrency)
+    print(f"Selected: {name}; requests: {len(order)}; concurrency: {args.concurrency}", flush=True)
     config = {
-        "case": row,
+        "test": name,
+        "cases": rows,
+        "order": order,
         "concurrency": args.concurrency,
         "startup_timeout": STARTUP_TIMEOUT,
         "request_timeout": REQUEST_TIMEOUT,
@@ -297,4 +308,4 @@ def run(script: str, remote_main, local_main) -> None:
 
 if __name__ == "__main__":
     run("accuracy_test.sh", remote,
-        lambda: local(__doc__.splitlines()[0], lambda name: select_case(read_cases(), name)))
+        lambda: local(__doc__.splitlines()[0], select_test))

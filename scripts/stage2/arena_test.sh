@@ -40,13 +40,16 @@ while [ "$#" -gt 0 ]; do
         --no-build) build=0; shift ;;
         --no-wait) wait_for_result=0; shift ;;
         -h|--help)
-            echo "Usage: scripts/stage2/${MODE}_test.sh --test NAME [--concurrency N] [--no-build] [--no-wait]"
             if [ "$MODE" = accuracy ]; then
+                echo "Usage: scripts/stage2/accuracy_test.sh --test NAME [--concurrency N] [--no-build] [--no-wait]"
                 echo "Required: --test NAME (mmlu, gsm8k, ifeval, vqav2, fleurs_en, fleurs_ko)"
+                echo "Concurrency: 1-100 (default 1); send the case 2N times, N at a time"
             else
-                echo "Required: --test NAME (256, 1024, 2048, image, audio)"
+                echo "Usage: scripts/stage2/performance_test.sh [--test NAME] [--concurrency N] [--no-build] [--no-wait]"
+                echo "Default: the five inputs (256, 1024, 2048, image, audio) in turn"
+                echo "Optional: --test NAME (256, 1024, 2048, image, audio) to send that input alone"
+                echo "Concurrency: 1-100 (default 1); send 2N requests, N at a time"
             fi
-            echo "Concurrency: 1-100 (default 1); send the same input 2N times, N at a time"
             exit 0
             ;;
         *) echo "${MODE}_test.sh: unknown argument $1" >&2; exit 2 ;;
@@ -55,7 +58,7 @@ done
 
 staging="$(mktemp -d)"
 trap 'rm -rf "$staging"' EXIT
-"$PYTHON" "$HELPER" --prepare "$staging" --test "$TEST" --concurrency "$CONCURRENCY"
+"$PYTHON" "$HELPER" --prepare "$staging" ${TEST:+--test "$TEST"} --concurrency "$CONCURRENCY"
 
 BINARY="target/release/server"
 

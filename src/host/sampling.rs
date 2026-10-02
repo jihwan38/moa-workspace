@@ -10,7 +10,7 @@ pub struct SamplingConfig {
 
 impl SamplingConfig {
     pub const DEFAULT: Self = Self {
-        temperature: 0.1,
+        temperature: 0.0,
         top_k: 64,
         top_p: 0.95,
     };
@@ -18,7 +18,10 @@ impl SamplingConfig {
 
 pub fn sample(logits: &[f32], config: &SamplingConfig, banned: &HashSet<usize>, rng: &mut impl Rng) -> usize {
     assert!(!logits.is_empty(), "sample requires at least one logit");
-    let temperature = config.temperature.max(1e-5);
+    if config.temperature <= 0.0 {
+        return argmax(logits, banned);
+    }
+    let temperature = config.temperature;
 
     let mut ranked: Vec<usize> = (0..logits.len()).collect();
     if config.top_k > 0 {
@@ -68,4 +71,14 @@ pub fn sample(logits: &[f32], config: &SamplingConfig, banned: &HashSet<usize>, 
         }
     }
     ranked[nucleus_len - 1]
+}
+
+/// Highest logit outside `banned`; falls back to the overall highest if every token is banned.
+fn argmax(logits: &[f32], banned: &HashSet<usize>) -> usize {
+    let best = |allowed: &dyn Fn(usize) -> bool| {
+        (0..logits.len())
+            .filter(|&i| allowed(i))
+            .max_by(|&a, &b| logits[a].total_cmp(&logits[b]).then(b.cmp(&a)))
+    };
+    best(&|i| !banned.contains(&i)).or_else(|| best(&|_| true)).unwrap()
 }
