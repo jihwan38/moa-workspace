@@ -1,12 +1,9 @@
 # Gemma-4 Kernel Optimization Competition on Furiosa RNGD
 
 This repository is the competition skeleton code for optimizing Gemma-4-12B-it on Furiosa
-RNGD. Stage 1 focuses on three decoder-layer kernels; Stage 2 will focus on end-to-end
-(E2E) performance. Competitors modify the allowed implementation while preserving the
-public interface and the model's numerical behavior.
-
-The two-stage format is confirmed. Only the specific submission and scoring values marked
-**TBD** remain to be announced.
+RNGD. Stage 1 focused on three decoder-layer kernels; Stage 2 focuses on end-to-end (E2E)
+performance. Competitors modify the allowed implementation while preserving the public
+interface and the model's output quality.
 
 ## What you are optimizing
 
@@ -19,8 +16,8 @@ The three Stage 1 kernels are declared in `src/ops.rs`:
 | `ops::decoder_feedforward` | RMSNorm, GeGLU MLP, post-FF RMSNorm, residual add, and layer gate |
 
 The kernels use the model's existing quantized weights and tensor layouts. Each kernel is
-measured across 3 independently-seeded input configurations for the Stage 1 test (see
-"Grading criteria" below), not a single fixed invocation.
+measured across 3 independently-seeded input configurations for the Stage 1 test, not a
+single fixed invocation.
 
 Stage 2 covers the complete E2E model-serving path except for the public API endpoint in
 `src/api/`. This includes model execution, host orchestration, tokenization, image and
@@ -28,25 +25,9 @@ audio preprocessing, and runtime integration.
 
 ## Competition format
 
-The competition has two stages. The scope of each stage is confirmed below; the remaining
-unknown submission and scoring values are listed explicitly.
-
 ### Stage 1 — Kernel optimization
 
-Stage 1 is for optimizing the three kernels listed above. A dedicated grading server will
-run the provided `src/bin/test_kernels.rs` against each submission. This test is the source
-of truth for Stage 1 correctness and kernel performance.
-
-The Stage 1 test checks:
-
-1. **Buildability:** the allowed code compiles with the competition toolchain.
-2. **Correctness:** each kernel satisfies the published tolerances on every one of 3
-   independently-seeded input configurations, not just one -- a kernel that special-cases
-   a fixed input fails as soon as a different configuration exposes it.
-3. **Performance:** the test reports each kernel's median RNGD cycle count across those 3
-   runs, so one unusually fast or slow run doesn't move the number that's graded.
-
-**Stage 1 submission deadline: September 30, 2026, 11:59 PM AoE.**
+The submission period for Stage 1 has ended.
 
 ### Stage 2 — End-to-end optimization
 
@@ -63,40 +44,16 @@ code and checks two things:
 2. **Performance:** the server's throughput on a stream of requests that mixes the input
    types. If its TTFT p90 or TPOT p90 exceeds the limit, the submission receives no score.
 
-See [Submit for grading](#submit-for-grading) for how a submission is scored.
+Values to be finalized:
 
-Stage 2 rules:
-
-1. **No input-specific optimization.** Optimizations must be general. They must not target
-   specific inputs, such as the benchmark prompts, media, or datasets.
-2. **No reuse of computation across requests.** Each request must compute its own KV cache
-   and image or audio encoder outputs from its own prompt and media. Reusing results from another
-   request, such as through prefix caching or cached encoder outputs, is prohibited.
-3. **No test-specific behavior.** Performance requests set `ignore_eos`, which makes the
-   server generate exactly `max_completion_tokens` tokens. Keep that behavior, and do not use
-   the flag, or any other way of telling a performance request from an accuracy request,
-   to change how a request is computed.
-
-Stage 2 values to be finalized:
-
-- **TBD:** the TTFT p90 and TPOT p90 limits;
 - **TBD:** submission deadline and tie-break rule.
 
 ## Grading criteria
 
 The competition uses one grading policy across both stages. Correctness is a hard gate: a
-submission that fails a required correctness check receives no performance credit, even if
-it is faster.
+submission that fails a required correctness check receives no score, even if it is faster.
 
-For the Stage 1 kernel evaluation, `src/bin/test_kernels.rs` defines the following tolerances:
-
-| Kernel | Absolute tolerance | Relative tolerance |
-|---|---:|---:|
-| `sliding_project_qkv` | `0.04` | `1e-2` |
-| `sliding_attention_output` | `0.05` | `1e-2` |
-| `decoder_feedforward` | `0.01` | `1e-2` |
-
-For the Stage 2 end-to-end evaluation, every case must meet the threshold of its suite:
+Every case must meet the threshold of its suite:
 
 | Suite | Metric | Pass | Graded cases |
 |---|---|---:|---:|
@@ -109,79 +66,52 @@ For the Stage 2 end-to-end evaluation, every case must meet the threshold of its
 
 Prompts and scoring are adapted from the source datasets; see
 [public-test/README.md](public-test/README.md#how-the-cases-differ-from-the-source-datasets).
+The server's sampling temperature is fixed at 0 (greedy decoding) so that it generates a
+consistent answer for every case; we recommend keeping it.
 
-The grading server will measure performance using the official evaluation. The Stage 1 test
-reports each kernel's median RNGD cycle count across 3 independently-seeded runs. The Stage 2
-test reports the server's throughput on a stream of requests that mixes the input types; if
-its TTFT p90 or TPOT p90 exceeds the limit, the submission receives no score. The limits are
-TBD.
+Submissions are graded by measured throughput (generated tokens/s) on a stream of mixed
+request types, subject to two latency limits:
 
-The following scoring values are still TBD:
+| Limit | Value |
+|---|---:|
+| TTFT p90 | `≤ 4 s` |
+| TPOT p90 | `≤ 100 ms` |
 
-| Field | Planned rule |
-|---|---|
-| Stage 2 TTFT p90 and TPOT p90 limits | **TBD** |
-| Reproducibility and code review | **TBD** |
+A submission whose TTFT p90 or TPOT p90 exceeds its limit receives no score.
 
-Schedule makespan is a useful development metric, but it is not a substitute for official
-grading results.
+## Rules
 
-## Stage 1 rules: skeleton contract
+1. **Only permitted implementation changes are graded.** Optimizing the E2E path,
+   excluding the public API endpoint in `src/api/`, is permitted. `src/api/` is replaced
+   by the organizers' copy at grading, so the server must keep the interfaces it depends
+   on. Only `src/` is uploaded, so dependencies and the build itself cannot change. If you
+   need a change in `src/api/`, ask the organizers: a change that is accepted is applied
+   to the baseline for every team.
+2. **Serve the provided model.** The server must run Gemma-4-12B-it from the provided
+   weights. Replacing the weights with another model's is prohibited.
+3. **No input-specific optimization.** Optimizations must be general. They must not target
+   specific inputs, such as the benchmark prompts, media, or datasets.
+4. **No reuse of computation across requests.** Each request must compute its own KV cache
+   and image or audio encoder outputs from its own prompt and media. Reusing results from
+   another request, such as through prefix caching or cached encoder outputs, is
+   prohibited.
+5. **No test-specific behavior.** Performance requests set `ignore_eos`, which makes the
+   server generate exactly `max_completion_tokens` tokens. Keep that behavior, and do not use
+   the flag, or any other way of telling a performance request from an accuracy request,
+   to change how a request is computed.
+6. **Fair play.** The rules above do not cover every case. Where a submission raises a
+   fairness concern, the organizers will decide how it is handled.
 
-The following rules apply to Stage 1 kernel submissions. Stage 2 follows the E2E scope
-described above; its remaining submission rules are listed in the Stage 2 section.
+Value to be finalized:
 
-The Stage 1 skeleton is intentionally fixed so that submissions remain comparable.
+- **TBD:** the boundary of permitted kernel implementation techniques, and the
+  reproducibility requirements that apply to them.
 
-1. **Keep device function names and signatures unchanged.** The name, parameters, types,
-   and return type of every `#[device]` function are part of the evaluator contract.
-2. **Only permitted implementation changes are graded.** Changes to `src/device/` and the
-   function bodies in `src/ops.rs` are included in the evaluation. Everything else is
-   ignored, including `src/ops_vision.rs`, `src/ops_audio.rs`, `src/axes.rs`, `src/host/`,
-   `src/api/`, `src/bin/`, and `src/lib.rs`.
-3. **Keep kernel module paths stable.** `src/ops.rs`, `src/ops_vision.rs`, and
-   `src/ops_audio.rs` must remain at the crate root because compiled kernel names include
-   `module_path!()`.
-
-Shared code may affect more than one path. In particular, `device/shared/rmsnorm.rs` and
-`device/shared/mlp.rs` are also used by full attention, vision, and audio code. Check the
-impact of a shared change before measuring a result.
+Submissions are reviewed, and a submission that violates these rules is disqualified.
 
 ## Evaluation commands
 
-### Prepare the public fixture
-
-Run this once when `ref/fixtures.safetensors` is missing:
-
-```sh
-python3 scripts/generate_references.py
-```
-
-The fixture contains expected outputs and checksums. Inputs are generated deterministically
-from the shared PRNG on both the Python and Rust sides.
-
-### Optimize a kernel
-
-Follow [OPTIMIZATION.md](OPTIMIZATION.md) for the schedule-dump, bottleneck-analysis,
-kernel-tuning, and makespan-comparison workflow.
-
-### Run the public RNGD check
-
-```sh
-./scripts/rngd_test.sh
-```
-
-This builds the test binary, submits it through the Arena server, and reports accuracy
-and real RNGD cycle counts. Use `--no-build` to reuse the latest binary or `--no-wait` to
-submit without waiting for the result.
-
-For a locally available RNGD setup, the repository also provides:
-
-```sh
-./scripts/local_test.sh
-```
-
-### Test Stage 2 on the public cases
+### Test on the public cases
 
 ```sh
 ./scripts/stage2/accuracy_test.sh --test mmlu
@@ -204,14 +134,18 @@ in turn (256, 1024, 2048, image, audio). With `--test`, it sends that input alon
 Performance requests set `ignore_eos`, as in grading, so every response has 64 tokens.
 
 `--concurrency N` (default 1) keeps N requests in flight and sends `2 × N` requests, so
-that later requests are admitted while others are still running, as in grading. Unlike grading, there is no warmup: the first requests include the server's cold
-start. Use `--no-build` to reuse the latest binary or `--no-wait` to submit without waiting
-for the result.
+that later requests are admitted while others are still running, as in grading. Unlike
+grading, there is no warmup. Use `--no-build` to reuse the latest binary or `--no-wait` to
+submit without waiting for the result.
+
+**Each test job is limited to 70 seconds**, including server startup. A test that does not
+finish within this limit reports no result. The prefill stage was outside the scope of
+Stage 1 and remains unoptimized, so optimizing it is recommended as the first step.
 
 ### Submit for grading
 
 ```sh
-cargo binstall moa-submitter-cli   # for Stage 2, run again to update to the Stage 2 version
+cargo binstall moa-submitter-cli   # run again to update an installed version for Stage 2
 
 moa-submitter login
 moa-submitter submit         # run from the repository root; auto-detects furiosa-opt-std version
@@ -221,21 +155,18 @@ moa-submitter status <id>    # the results and score of one submission
 moa-submitter log <id>       # the complete log, stage by stage
 ```
 
-For Stage 1, `submit` uploads `src/ops.rs` and everything under `src/device/`. For Stage 2,
-it uploads all the code except `src/api/`. Keep the original directory structure. Run it
-from the repository root, or pass `--source path/to/furiosa-opt-gemma4-12B`.
+`submit` uploads `src/` only, without `src/api/`. Keep the original directory structure.
+Run it from the repository root, or pass `--source path/to/furiosa-opt-gemma4-12B`.
 
-**Stage 1.** A submission is scored as the geometric mean of its speedup over the baseline
-across the three kernels.
+Each team may submit up to **4 times per 24 hours**. This limit may be adjusted during the
+competition.
 
-**Stage 2.** A submission is built into a server and evaluated with AI-BMT in two Arena
-jobs. Both use the `--concurrency` you chose, and each is limited to 5 minutes including
-server startup.
+A submission is built into a server and evaluated with AI-BMT in two Arena jobs. Both use
+the `--concurrency` you chose, and each is limited to 5 minutes including server startup.
 
-- **Accuracy:** every one of the 16 private cases must pass, and the job must finish within
-  the 5 minutes. With a concurrency of 16 or more, the 16 cases are sent
-  `⌊concurrency / 16⌋ + 1` times in a row, so that new requests are admitted while others
-  are still running, and every case must pass every time.
+- **Accuracy:** all 16 private cases must pass within the 5 minutes. At a concurrency of
+  16 or more, the cases are sent `⌊concurrency / 16⌋ + 1` times, and every case must pass
+  every time. If accuracy fails, the performance results are still reported.
 - **Performance:** the server is measured on one stream of requests that mixes five input
   types: text prompts of 256, 1024, and 2048 tokens (Python code from CrossCodeEval), image
   prompts of 512 tokens (VQAv2), and audio prompts of 768 tokens (FLEURS English and Korean).
@@ -244,12 +175,11 @@ server startup.
   response has 64 tokens.
   - **Warmup:** `concurrency` requests, taking the five types in turn. They are not
     measured, and the measurement starts after all of them have finished.
-  - **Measurement:** `3 × concurrency` requests per type, `15 × concurrency` in total. They
-    are sent in blocks, each holding every type once in a fixed shuffled order, which is the
-    same for every submission.
+  - **Measurement:** `3 × concurrency` requests per type, `15 × concurrency` in total, with
+    the five types mixed in a fixed order that is the same for every submission.
   - **Score:** the generated tokens/s over the measured requests. A submission receives no
-    score if its TTFT p90 or TPOT p90 over the measured requests exceeds the limit, or if
-    the job does not finish within the 5 minutes.
+    score if its TTFT p90 exceeds 4 s or its TPOT p90 exceeds 100 ms over the measured
+    requests, or if the job does not finish within the 5 minutes.
 
 A higher concurrency leaves more room to raise throughput, but it also makes the TTFT and
 TPOT limits harder to meet.
@@ -271,7 +201,7 @@ cargo install furiosa-schedule-viewer
 
 ### Furiosa Arena CLI
 
-Configure the Furiosa Arena CLI once before using `scripts/rngd_test.sh`:
+Configure the Furiosa Arena CLI once before using the test scripts:
 
 ```sh
 cargo binstall furiosa-arena-cli

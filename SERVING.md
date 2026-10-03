@@ -67,7 +67,7 @@ The reference calls the existing kernels serially within `forward`, so concurren
 throughput yet. Participants can implement joint batch calculation behind the same caller
 contract. Image/audio soft tokens retain their existing representation in `Input`. Host
 dispatch can be changed along with kernels; using the supplied scheduler requires no serving
-implementation from participants. The official scope of host edits remains to be finalized.
+implementation from participants. Everything outside `src/api/` may be changed.
 
 `host::worker` admits waiting requests between iterations, advances every active request by
 one token, and reuses completed requests' blocks. With at most `R` active requests, total
