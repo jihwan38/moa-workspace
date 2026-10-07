@@ -184,6 +184,16 @@ the `--concurrency` you chose, and each is limited to 5 minutes including server
 A higher concurrency leaves more room to raise throughput, but it also makes the TTFT and
 TPOT limits harder to meet.
 
+### Test runs with a prebuilt server
+
+```sh
+moa-submitter submit --bin target/release/server --concurrency 4   # needs 2.1.0 or newer
+```
+
+`--bin` uploads a server you built instead of `src/`, so you can test a change without
+waiting for our build. A test run **counts** toward the daily limit and **is not** added to
+the leaderboard.
+
 ## Toolchain
 
 The supported development environment is x86_64 Ubuntu 22.04 or newer with GLIBC 2.34 or
