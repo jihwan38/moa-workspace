@@ -163,6 +163,7 @@ competition.
 
 A submission is built into a server and evaluated with AI-BMT in two Arena jobs. Both use
 the `--concurrency` you chose, and each is limited to 5 minutes including server startup.
+Each job runs on x86_64 Ubuntu 22.04 with 8 CPUs, 16 GiB of memory, and 1 RNGD.
 
 - **Accuracy:** all 16 private cases must pass within the 5 minutes. At a concurrency of
   16 or more, the cases are sent `⌊concurrency / 16⌋ + 1` times, and every case must pass
