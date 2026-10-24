@@ -348,7 +348,7 @@ impl Decode64 {
         .await?;
         self.record_profile("r64.sliding.attention", &mut profile_mark);
         launch(
-            linear::project_sliding_output_batch,
+            crate::ops_output_r64_parallel_gather::project_sliding_output_batch,
             (
                 device,
                 &self.attn_s,
@@ -475,7 +475,7 @@ impl Decode64 {
         .await?;
         self.record_profile("r64.full.attention", &mut profile_mark);
         launch(
-            linear::project_full_output_batch,
+            crate::ops_output_r64_parallel_gather::project_full_output_batch,
             (
                 device,
                 &self.divided_f,
@@ -518,7 +518,7 @@ impl Decode64 {
         launch(norm::rmsnorm_r64, (device, &self.x, pre, &mut self.norm)).await?;
         self.record_profile("r64.ffn.pre_norm", &mut profile_mark);
         launch(
-            crate::ops_native_fp8_r64::batch_ffn,
+            crate::ops_native_fp8_r64_sharded::batch_ffn_partitioned_input,
             (
                 device,
                 &self.norm,
