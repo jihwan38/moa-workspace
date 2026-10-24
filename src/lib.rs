@@ -28,6 +28,8 @@ pub mod ops_batch_r64;
 pub mod ops_output_r64_direct;
 pub mod ops_geglu_direct_r64;
 pub mod ops_native_fp8_r64;
+pub mod ops_native_fp8_p256;
+pub mod ops_geglu_direct_p256;
 pub mod ops_batch_kpart16;
 pub mod ops_batch_kpart_bf16;
 pub mod ops_batch_clusters;

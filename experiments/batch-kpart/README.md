@@ -283,3 +283,12 @@ axis was left unread by the split fetch packet. Compilable direct variant uses
 four B8 tiles per cluster rather than two P16 tiles; this adds two loop bodies
 per sum node while removing both operands' DM copies. Arithmetic is unchanged;
 actual timing will decide whether removed DMA exceeds extra control overhead.
+
+P256 plan after9fde97c:128 independent token rows per cluster and16 B8
+contractions reuse each blocked FP8 weight tile, instead of two P128 calls
+loading it twice. Reuse the same model weights/scales and per-row quantization;
+no approximate arithmetic change. Direct GeGLU removes tile copies. Larger
+activation/result buffers may exceed512KiB per-slice DM live allocation, so
+first compile before any host integration. Require all983040 output bits equal
+to two P128 calls on the same256 inputs. ABBA batches compare one P256 call
+with two P128 calls and matched total output bytes, reporting launch/read scope.
