@@ -312,7 +312,7 @@ impl WidePrefill {
         self.normalize(device, pre, scratch).await?;
         scratch.record_profile("wide.ffn.pre_norm", &mut mark);
         launch(
-            linear::batch_ffn,
+            crate::ops_batch_down960::batch_ffn,
             (
                 device,
                 &self.norm,
