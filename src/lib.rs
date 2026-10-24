@@ -36,6 +36,7 @@ pub mod ops_qkv_p128_trf32;
 pub mod ops_geglu_direct_r64;
 pub mod ops_native_fp8_r64;
 pub mod ops_native_fp8_r64_local_control;
+pub mod ops_native_fp8_p128_local_control;
 pub mod ops_native_fp8_r64_split;
 pub mod ops_native_fp8_r64_split_explicit;
 pub mod ops_native_fp8_r64_split_switch;

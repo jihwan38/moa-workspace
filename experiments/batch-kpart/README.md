@@ -595,3 +595,14 @@ but reject speed:.6257–.6321ms vs.5192–.5235ms actual production control. St
 R64 output-cluster variations. Parent next authorizes one physically blocked
 P512 activation/output experiment with component attribution and actual four
 current-P128 localquant+TRF calls as control; batch width remains fixed512.
+
+P512 component-attribution probe freezes the actual production P128 control from
+native-ffn/r64-server ops_native_fp8_local_reuse.rs (SHA256
+f0bc04f5dfa6d3cb0be7675855278fb9321b2d9e58bb08e0c6d79465b5b66b1c), calling
+batch_ffn_partitioned_input fourtimes. It compares every output to current
+row-major P512 and times full paths plus quantH/up/gate/GeGLU+quantL/down
+separately. Timed scope is10 completed awaited launches, no host read: SDK0.9.0
+backend/npu/function.rs Function::run invokes launch(...).wait().await before
+returning. Initial correctness still downloads every output; optional trace spans
+are collected afterward. This separates DMA/compute stages without attributing
+PCIe reads to a matrix kernel.
