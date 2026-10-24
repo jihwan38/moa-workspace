@@ -483,3 +483,21 @@ half local channel rows. A fused up/gate projection can share those input reads
 because both120×960 weight tiles fit together; this is a separate candidate. No cross-cluster DM
 reduction is required because stages use HBM. Gate every final output bit against
 both token-cluster P512 and P128 controls before timing; retain baseline module.
+
+
+Output-cluster P512 hardware gate, sourcee1234e0: Arena318041/r279 all1966080
+outputs exactly match P128, but reject for speed: fourP128 TRF64 4.13ms,
+token-cluster staged P512 3.02ms, output-cluster staged P512 4.527ms. This supports
+the corrected duplicated-activation traffic concern, without proving individual
+DMA attribution. Baseline remains preferred.
+
+Fused output-cluster up/gate candidate holds two115200B weight tiles and shares
+one64-row FP8 input/TRF between projections, then exact GeGLU writes one BF16
+hidden stage. Hybrid down uses the token-cluster baseline: total weights236MB,
+activation replication377MB unchanged, stageIO reduced by~31MB. Full output-
+cluster down remains a separate control with additional input replication.
+Initial fused1920-value GeGLU tiles failed VRF allocation (3932160B across512
+physical slots =7680B/slice, plus live scales); moving scales into matrix helper
+scope did not eliminate the allocator failure, likely because invariants are
+retained across iterations. Use960-value direct GeGLU tiles to reduce the VRF
+operand to3840B. Logs preserve both rejected compile attempts. Arithmetic unchanged.

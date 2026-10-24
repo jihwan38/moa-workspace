@@ -272,3 +272,12 @@ pub fn geglu_quantize(device:&mut Device,up:&HbmTensor<bf16,Chip,m![P512,L]>,
     q.view().to_hbm_view(&mut device.tdma,output.view_mut());
     scale.view().to_hbm_view(&mut device.tdma,scales.view_mut());
 }
+
+#[device(chip=1)]
+pub fn quantize_ffn(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P512,L]>,
+    output:&mut HbmTensor<f8e4m3,Chip,m![P512,L]>,scales:&mut HbmTensor<f32,Chip,m![P512]>) {
+    let input:DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>=input.to_dm(&mut device.tdma);
+    let (q,scale)=quantize_ffn_dm(device,&input);
+    q.view().to_hbm_view(&mut device.tdma,output.view_mut());
+    scale.view().to_hbm_view(&mut device.tdma,scales.view_mut());
+}
