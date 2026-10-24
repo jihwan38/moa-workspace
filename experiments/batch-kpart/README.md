@@ -224,3 +224,18 @@ splits output groups between two clusters,128 valid tiles each padded with an
 anonymous axis to256 physical slices. Every weight is copied once; blocked
 HBM order and live FFN behavior are unchanged. This avoids requiring a second
 4-PE runtime topology only for startup.
+
+Direct-GeGLU plan afterfc3eb66: unchanged global-scale BF16 casts, Erf GeGLU
+sequence and final BF16 cast. Read up/gate B8 tiles as padded DM views directly
+in scale streams, and commit final GeGLU directly to the full P64 result view.
+This removes three sets of eight strided DM copies measured at194760 cycles.
+Variant `ops_native_fp8_blocked::batch_ffn_direct_geglu` preserves blocked-only
+control; require491520 output bits equal before matched ABBA timing.
+
+Arena317891/r152 blocked-only gate:all117964800 reblocked FP8 values match
+the independent CPU permutation and all491520 final FFN values are bit-exact
+to row-major FP8. Matched warm row-major1.3625–1.3635ms→blocked
+1.2486–1.2526ms, about8%. Same quantization error as the existing FP8 path.
+Direct-GeGLU variant compiles; its independent change is still awaiting NPU
+bit-equivalence/timing. Compiler cycle estimates remain hypotheses: root's
+partition-local quantization reduced estimated cycles without a measured gain.
