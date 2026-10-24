@@ -145,3 +145,5 @@ pub mod ops_prompt_group_io;
 pub mod ops_output_b16_parallel_gather;
 
 pub mod ops_query_native_fp8;
+
+pub mod ops_qkv_native_prequant;

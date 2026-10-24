@@ -20,3 +20,11 @@ project_query_quantized, including a two-launch sequence. These include HBM
 traffic and do not exactly decompose fused internal DM redistribution. A
 measured difference can identify whether the known per-row-to-shard transfer
 is a worthwhile specific repair; no quantizer algorithm/layout changes yet.
+
+Stage NPU318096/r320-native-query-stage-profile-submit (source7f22866):
+quantizer16.75–17.01us, prequantized core139.07–139.74us, two-launch total
+176.42–177.67us versus BF16 TRF32 control204.83–205.07us; fused DM path
+278.8–279.7us. Materializing the same FP8 rows in HBM avoids the costly
+internal per-row-to-H960 DM redistribution. The already-validated two-launch
+path is therefore the prototype to extend, still pending whole-QKV and
+full-model/public numerical gates.
