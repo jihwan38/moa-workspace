@@ -19,7 +19,7 @@ fn scale(n: usize) -> f32 {
 
 #[tokio::main]
 async fn main() {
-    let mut device = Device::new(ops_batch_kpart::project_query_wide.topology()).unwrap();
+    let mut device = Device::new(ops_batch_kpart::project_query_batch.topology()).unwrap();
     let x: HbmTensor<bf16, Chip, m![P128, H]> = HostTensor::<bf16, m![P128, H]>::from_vec(
         (0..P128::SIZE).flat_map(|b| (0..H::SIZE).map(move |k| bf16::from_f32(input(b, k)))),
     )
@@ -91,7 +91,7 @@ async fn main() {
         let start=std::time::Instant::now();
         for _ in 0..5 {
             if variant==0 {launch(ops_batch_wide::project_query_batch,(&mut device,&x,&w,&s,&mut out)).await.unwrap();}
-            else {launch(ops_batch_kpart::project_query_wide,(&mut device,&x,&w,&s,&mut out)).await.unwrap();}
+            else {launch(ops_batch_kpart::project_query_batch,(&mut device,&x,&w,&s,&mut out)).await.unwrap();}
         }
         let _:HostTensor<bf16,m![P128,Qs]>=out.to_host(&mut device.pdma).await.unwrap();
         times[variant].push(start.elapsed().as_secs_f64()*1000.0/5.0);
@@ -119,7 +119,7 @@ async fn random_probe(device:&mut Device) {
     let mut out:HbmTensor<bf16,Chip,m![P128,Qs]>=HostTensor::<bf16,m![P128,Qs]>::from_vec((0..P128::SIZE*Qs::SIZE).map(|_|bf16::from_f32(0.0))).to_hbm(&mut device.pdma).await.unwrap();
     launch(ops_batch_wide::project_query_batch,(device,&x,&w,&s,&mut out)).await.unwrap();
     let original:HostTensor<bf16,m![P128,Qs]>=out.to_host(&mut device.pdma).await.unwrap();
-    launch(ops_batch_kpart::project_query_wide,(device,&x,&w,&s,&mut out)).await.unwrap();
+    launch(ops_batch_kpart::project_query_batch,(device,&x,&w,&s,&mut out)).await.unwrap();
     let changed:HostTensor<bf16,m![P128,Qs]>=out.to_host(&mut device.pdma).await.unwrap();
     let mut bitdiff=0;let mut failures=0;let mut max_abs=0f32;let mut max_rel=0f32;
     for (i,(expected,got)) in original.into_vec().iter().zip(changed.into_vec()).enumerate() {

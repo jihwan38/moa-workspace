@@ -976,7 +976,7 @@ fn upgate_cached(
     }
     result
 }
-fn down_cached(
+pub(crate) fn down_cached(
     device: &mut Device,
     input: &DmTensor<bf16, Chip, Cluster, UpRows, m![L % 60, P128 % 64]>,
     packed: &HbmTensor<f4e2m1, Chip, m![H, L]>,
