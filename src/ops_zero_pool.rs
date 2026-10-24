@@ -15,7 +15,7 @@ pub fn zero_sliding_pool(device: &mut Device) -> HbmTensor<bf16, Chip, m![Rc64, 
             &mut device.tdma,
             output
                 .view_mut()
-                .tile::<m![Rc64], 1, m![Rc64 = 1 # 64, Ts, Ns, Ds]>(ring),
+                .tile::<m![Rc64], 1, m![Rc64 = 1 #{!} 64, Ts, Ns, Ds]>(ring),
         );
     }
     output
@@ -32,7 +32,7 @@ pub fn zero_full_pool(device: &mut Device) -> HbmTensor<bf16, Chip, m![Fc, Tf, D
             &mut device.tdma,
             output
                 .view_mut()
-                .tile::<m![Fc], 1, m![Fc = 1 # 256, Tf, Df]>(page),
+                .tile::<m![Fc], 1, m![Fc = 1 #{!} 256, Tf, Df]>(page),
         );
     }
     output
