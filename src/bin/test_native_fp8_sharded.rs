@@ -94,23 +94,29 @@ async fn main() {
     let partitioned:HostTensor<bf16,m![P128,H]>=output.to_host(&mut device.pdma).await.unwrap();let partitioned=partitioned.into_vec();
     let differences=original.iter().zip(&partitioned).filter(|(a,b)|a.to_bits()!=b.to_bits()).count();
     println!("L_sharded_Hlocal_native_FP8_FFN checked={} bit_differences={differences}",original.len());assert_eq!(differences,0);
-    let mut times=[Vec::<f64>::new(),Vec::<f64>::new(),Vec::<f64>::new()];
-    for variant in [0,1,2,2,1,0] {
+    launch(ops_native_fp8_sharded::batch_ffn_seeded_input,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();
+    let seeded:HostTensor<bf16,m![P128,H]>=output.to_host(&mut device.pdma).await.unwrap();let seeded=seeded.into_vec();
+    let differences=original.iter().zip(&seeded).filter(|(a,b)|a.to_bits()!=b.to_bits()).count();
+    println!("L_sharded_Hseed_native_FP8_FFN checked={} bit_differences={differences}",original.len());assert_eq!(differences,0);
+    let mut times=[Vec::<f64>::new(),Vec::<f64>::new(),Vec::<f64>::new(),Vec::<f64>::new()];
+    for variant in [0,1,2,3,3,2,1,0] {
         let start=std::time::Instant::now();
         for _ in 0..5 {
             if variant==0{launch(ops_native_fp8_blocked::batch_ffn_direct_geglu,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
             else if variant==1{launch(ops_native_fp8_sharded::batch_ffn,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
-            else{launch(ops_native_fp8_sharded::batch_ffn_partitioned_input,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
+            else if variant==2{launch(ops_native_fp8_sharded::batch_ffn_partitioned_input,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
+        else{launch(ops_native_fp8_sharded::batch_ffn_seeded_input,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
         }
         let _:HostTensor<bf16,m![P128,H]>=output.to_host(&mut device.pdma).await.unwrap();times[variant].push(start.elapsed().as_secs_f64()*1000.0/5.0);
     }
-    println!("native_FP8_FFN direct_geglu_control_ms={:?} L_sharded_ms={:?} L_sharded_Hlocal_ms={:?} scope=5launches+1same_read_divided5",times[0],times[1],times[2]);
+    println!("native_FP8_FFN direct_geglu_control_ms={:?} L_sharded_ms={:?} L_sharded_Hlocal_ms={:?} L_sharded_Hseed_ms={:?} scope=5launches+1same_read_divided5",times[0],times[1],times[2],times[3]);
     if std::env::args().any(|a|a=="--profile") {
-      for variant in 0..3 {
+      for variant in 0..4 {
         println!("PROFILE_VARIANT {variant}");collector.enable(true);
         if variant==0{launch(ops_native_fp8_blocked::batch_ffn_direct_geglu,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
         else if variant==1{launch(ops_native_fp8_sharded::batch_ffn,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
-        else{launch(ops_native_fp8_sharded::batch_ffn_partitioned_input,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
+        else if variant==2{launch(ops_native_fp8_sharded::batch_ffn_partitioned_input,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
+        else{launch(ops_native_fp8_sharded::batch_ffn_seeded_input,(&mut device,&input,&bu,&bg,&bd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();}
         collector.enable(false);
       }
     }
