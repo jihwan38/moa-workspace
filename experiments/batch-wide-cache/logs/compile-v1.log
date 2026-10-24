@@ -1,0 +1,17 @@
+   Compiling [1/3] ops_batch_wide::batch_ffn_up_cached
+error: furiosa-opt: ops_batch_wide::batch_ffn_up_cached: mir: Switch OutSlice mismatch: expected 8 # 256, got L / 60
+   --> src/ops_batch_wide.rs:945:18
+    |
+945 |                 .switch::<UpRows,m![P128 % 64 = 8,H / 480]>(SwitchConfig::Broadcast1{slice1:8,slice0:1})
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [2/3] ops_batch_wide::batch_ffn_down_cached
+   Compiling [3/3] ops_batch_wide::batch_ffn_cached
+error: furiosa-opt: ops_batch_wide::batch_ffn_cached: mir: Switch OutSlice mismatch: expected 8 # 256, got L / 60
+   --> src/ops_batch_wide.rs:945:18
+    |
+945 |                 .switch::<UpRows,m![P128 % 64 = 8,H / 480]>(SwitchConfig::Broadcast1{slice1:8,slice0:1})
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 3 compiled, 33 not matching ops_batch_wide::batch_ffn_up_cached, ops_batch_wide::batch_ffn_down_cached, ops_batch_wide::batch_ffn_cached
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors
