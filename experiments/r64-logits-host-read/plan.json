@@ -1,0 +1,8 @@
+{
+  "source_commit": "b84d768",
+  "control": "64 calls to proven blocked::extract_logits_row +64 scalar.to_host +bf16->f32 conversion, same returned Vec<Vec<f32>> shape as batched path",
+  "candidate": "One BlockedLogits.to_host reads all64*W BF16 values once; at most8 scoped CPU threads partition logical rows and restore vocabulary order while converting BF16 toF32. No model/worker edits.",
+  "expected_removed": "64 extraction kernel launches (~5.1ms actual318011),63 PCIe read submissions; retains32MiB payload read plus64MiB F32 output and logical row permutation.",
+  "correctness": "All16,777,216 F32 bit patterns and row/vocabulary order against extracted-row reference; existing4B16/canonical/CPU projection checks retained.",
+  "measurement": "Warm ABBA total wall time including NPU launch/wait, PCIe copy, host output allocation/permutation/conversion. Print read/kernel and conversion stage totals plus available parallelism and actual workers<=8. Single-thread Tokio driver."
+}
