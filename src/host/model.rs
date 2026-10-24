@@ -146,8 +146,9 @@ impl Model {
             .enumerate()
             .filter_map(|(row, s)| (s.inputs.len() == 1).then_some(row))
             .collect();
-        let batched_singletons =
-            use_prefill && (2..=crate::axes::B::SIZE).contains(&singletons.len());
+        let batched_singletons = use_prefill
+            && (2..=crate::axes::B::SIZE).contains(&singletons.len())
+            && super::request_pool::independent_sequences(sequences);
         if batched_singletons {
             let rows: Vec<_> = singletons
                 .iter()
@@ -172,6 +173,9 @@ impl Model {
             if batched_singletons && sequence.inputs.len() == 1 {
                 continue;
             }
+            workspace
+                .ensure_legacy(device, sequence.blocks, sequence.start_position)
+                .await?;
             workspace.blocks.full.clone_from(&sequence.blocks.full);
             workspace.blocks.sliding = sequence.blocks.sliding;
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
