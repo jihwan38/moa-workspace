@@ -365,7 +365,13 @@ impl Generation {
         {
             return Err("this input does not consume a selected token".into());
         }
-        if token >= W::SIZE || self.banned_tokens.contains(&token) {
+        // `sample` deliberately falls back to unmasked argmax when every valid
+        // vocabulary ID is banned. Current request bans cannot cover W, but keep
+        // that contract if the request policy later gains arbitrary bans.
+        let banned_without_fallback = self.banned_tokens.contains(&token)
+            && !(self.banned_tokens.len() >= W::SIZE
+                && (0..W::SIZE).all(|id| self.banned_tokens.contains(&id)));
+        if token >= W::SIZE || banned_without_fallback {
             return Err("selected token is outside the vocabulary or banned".into());
         }
         self.phase = phase;
@@ -797,6 +803,25 @@ mod selected_token_tests {
         assert_eq!(out.text, "a");
         assert_eq!(out.finish_reason, FinishReason::Length);
     }
+    #[test]
+    fn all_banned_fallback_matches_existing_sampler() {
+        let mut cpu = Generation::new(tokenizer(), request(1, &[], false), 256).unwrap();
+        let mut selected = Generation::new(tokenizer(), request(1, &[], false), 256).unwrap();
+        cpu.banned_tokens = (0..W::SIZE).collect();
+        selected.banned_tokens = cpu.banned_tokens.clone();
+        let mut logits = vec![-1.0; W::SIZE];
+        logits[3] = 1.0;
+        let a = cpu.advance_inputs(3, &logits, |_| true).unwrap().unwrap();
+        let b = selected
+            .advance_inputs_greedy(3, 3, |_| true)
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            (a.text, a.completion_tokens, a.finish_reason),
+            (b.text, b.completion_tokens, b.finish_reason)
+        );
+    }
+
     #[test]
     fn zero_completion_and_intermediate_prompt_never_consume_a_selection() {
         let mut g = Generation::new(tokenizer(), request(0, &[], false), 256).unwrap();
