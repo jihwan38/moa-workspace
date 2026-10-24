@@ -24,7 +24,7 @@ const PROMPT512_ENABLED: bool = true;
 /// Public TPOT averages request latency; the private evaluator's exact formula
 /// is unverified. This candidate needs measured output-gap and HTTP gates.
 const CREDIT_SCHEDULER_ENABLED: bool = false;
-const SCHEDULER_TRACE_ENABLED: bool = false;
+const SCHEDULER_TRACE_ENABLED: bool = true;
 const DECODE_CREDIT_TARGET: Duration = Duration::from_millis(90);
 /// A soft per-delta bound complements the earned average budget. Slow model
 /// work and the existing minimum-progress quantum can exceed a prediction.
