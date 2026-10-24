@@ -108,5 +108,30 @@ pub fn logits_batch(
         band_result.view().to_dm_view(&mut device.tdma, result.view_mut()
             .tile::<m![W / 16384], 1, m![1 #{!} 16, W % 32, B]>(band));
     }
+    let result: DmTensor<bf16, Chip, Cluster, Rows, m![B, W / 16384, W % 32]> = device.main
+        .begin(result.view())
+        .fetch::<m![W / 16384, W % 32], m![B]>()
+        .collect::<m![W / 16384, W % 32], m![B]>()
+        .transpose::<m![W / 16384, W / 4 % 8, B], m![W % 4 # 16]>()
+        .commit_trim::<m![W % 4]>()
+        .commit();
     result.view().to_hbm_view(&mut device.tdma, out.view_mut());
+}
+
+/// Copy one live row into the caller-owned scalar logit buffer.
+/// `byte_offset[0]` is `row * W::SIZE * size_of::<bf16>()`.
+#[device(chip = 1)]
+pub fn extract_logits_row(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![B, W]>,
+    byte_offset: &HbmTensor<i32, Chip, m![1]>,
+    out: &mut HbmTensor<bf16, Chip, m![W]>,
+) {
+    type Cluster = m![W / 8192 % 2];
+    type Rows = m![W / 32 % 256];
+    let row: DmTensor<bf16, Chip, Cluster, Rows, m![W / 16384, W % 32]> = input
+        .gather::<m![B], m![W]>()
+        .by_byte_offsets(byte_offset)
+        .to_dm(&mut device.tdma);
+    row.view().to_hbm_view(&mut device.tdma, out.view_mut());
 }
