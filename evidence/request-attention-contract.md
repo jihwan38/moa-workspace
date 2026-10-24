@@ -60,3 +60,12 @@ or request computation reuse happens inside attention.
 Host ownership must survive batch shrink/growth and singleton fallback. After
 pooled decode, either keep subsequent decode in pools or reverse-copy dirty
 slots/pages before any legacy path. New request position0 resets ownership.
+
+Faster equivalent sliding implementation: sourceb52ec49 in
+`ops_request_attention_clusters::sliding_attention_b16` has exactly the same
+arguments as the initial pooled sliding function. Host adoption only changes
+that function path (or imports the module under a local alias). It splits B8
+tiles across two clusters with four local requests each. Arena317736 passed all
+39 scalar row comparisons and cache invariants, with warm534..547us versus
+1079..1082us for the replicated-cluster control. A separate ring-gather candidate
+changes index shape to[B] but remains unvalidated at this point.
