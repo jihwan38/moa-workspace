@@ -11,3 +11,11 @@ Only PairPrefill's IO module changes here; QKV/O/attention/FFN arithmetic stays
 on the frozen baseline for an interpretable comparison. Paired automatic Worker
 dispatch remains off. Boundary/interleaved fullmodel proof and post-prompt KV
 reuse are still required, now with the validated fast canonical zero constructor.
+
+Boundary/interleave proof c3543f7 passed Arena318034/r268 at starts896/384:
+48 same-R64 interleaved decode comparisons, both completed prompt logits, and
+the following C2 decode using their committed KV were all exact. Uninterrupted
+two-P128 control296.377ms; paired layer time272.880ms; cold pair prepare12.565ms;
+maximum layer quantum10.859ms. These use the same frozen dense arithmetic and
+prove ownership/scheduling safety, not production queue latency or a throughput
+score. Worker pairing remains inactive pending current-kernel integration.

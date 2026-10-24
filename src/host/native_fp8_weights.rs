@@ -27,76 +27,38 @@ impl NativeFp8Weights {
         gate_block: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
         down_block: &HbmTensor<f8e4m3, Chip, m![H, L / 16]>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        // Allocate and initialize one tensor at a time, bounding host peak memory.
-        let mut quantized_up = HostTensor::<f8e4m3, m![L, H]>::zero()
-            .to_hbm(&mut device.pdma)
-            .await?;
-        let mut up_dequant = HostTensor::<f32, m![L]>::zero()
-            .to_hbm(&mut device.pdma)
-            .await?;
-        launch(
-            crate::ops_batch_prepack8::prepack_up,
-            (device, up, up_block, &mut quantized_up, &mut up_dequant),
+        // Each device kernel returns fully written storage. Drop each temporary
+        // row-major weight immediately after blocking; retain only one FP8 copy.
+        let (quantized_up, up_dequant) = launch(
+            crate::ops_prepack_alloc::prepack_up,
+            (&mut *device, up, up_block),
         )
         .await?;
-        let mut blocked_up = HostTensor::<f8e4m3, UpWeight>::zero()
-            .to_hbm(&mut device.pdma)
-            .await?;
-        launch(
-            crate::ops_native_fp8_blocked::reblock_up,
-            (device, &quantized_up, &mut blocked_up),
+        let blocked_up = launch(
+            crate::ops_prepack_alloc::reblock_up,
+            (&mut *device, &quantized_up),
         )
         .await?;
         drop(quantized_up);
-        let mut quantized_gate = HostTensor::<f8e4m3, m![L, H]>::zero()
-            .to_hbm(&mut device.pdma)
-            .await?;
-        let mut gate_dequant = HostTensor::<f32, m![L]>::zero()
-            .to_hbm(&mut device.pdma)
-            .await?;
-        launch(
-            crate::ops_batch_prepack8::prepack_up,
-            (
-                device,
-                gate,
-                gate_block,
-                &mut quantized_gate,
-                &mut gate_dequant,
-            ),
+        let (quantized_gate, gate_dequant) = launch(
+            crate::ops_prepack_alloc::prepack_up,
+            (&mut *device, gate, gate_block),
         )
         .await?;
-        let mut blocked_gate = HostTensor::<f8e4m3, UpWeight>::zero()
-            .to_hbm(&mut device.pdma)
-            .await?;
-        launch(
-            crate::ops_native_fp8_blocked::reblock_up,
-            (device, &quantized_gate, &mut blocked_gate),
+        let blocked_gate = launch(
+            crate::ops_prepack_alloc::reblock_up,
+            (&mut *device, &quantized_gate),
         )
         .await?;
         drop(quantized_gate);
-        let mut quantized_down = HostTensor::<f8e4m3, m![H, L]>::zero()
-            .to_hbm(&mut device.pdma)
-            .await?;
-        let mut down_dequant = HostTensor::<f32, m![H]>::zero()
-            .to_hbm(&mut device.pdma)
-            .await?;
-        launch(
-            crate::ops_batch_prepack8::prepack_down,
-            (
-                device,
-                down,
-                down_block,
-                &mut quantized_down,
-                &mut down_dequant,
-            ),
+        let (quantized_down, down_dequant) = launch(
+            crate::ops_prepack_alloc::prepack_down,
+            (&mut *device, down, down_block),
         )
         .await?;
-        let mut blocked_down = HostTensor::<f8e4m3, DownWeight>::zero()
-            .to_hbm(&mut device.pdma)
-            .await?;
-        launch(
-            crate::ops_native_fp8_blocked::reblock_down,
-            (device, &quantized_down, &mut blocked_down),
+        let blocked_down = launch(
+            crate::ops_prepack_alloc::reblock_down,
+            (&mut *device, &quantized_down),
         )
         .await?;
         drop(quantized_down);
