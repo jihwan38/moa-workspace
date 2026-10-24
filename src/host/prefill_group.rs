@@ -1,5 +1,6 @@
-//! Four independent P128 prompts share QKV weight loads and a blocked P512 FFN pass.
-//! Each request keeps its own chronological attention, hidden state, positions and KV.
+//! Four P128 row groups share QKV weight loads and a blocked P512 FFN pass.
+//! Separate constructors preserve either independent request allocations or four
+//! chronological chunks of one request; attention always visits rows in order.
 use super::*;
 use crate::ops_batch_layouts::{P512H960, P512L240, P512L960};
 use crate::ops_prompt_group_io as group_io;
@@ -20,6 +21,16 @@ pub(crate) struct GroupPrefill {
 }
 pub(crate) struct PreparedGroup {
     states: [PreparedWide; 4],
+}
+/// Four chronological chunks of one request. Only its single allocation may be
+/// exposed to the scheduler; the four copies below are execution metadata.
+pub(crate) struct PreparedPrompt512 {
+    chunks: PreparedGroup,
+}
+impl PreparedPrompt512 {
+    pub(crate) fn blocks(&self) -> &runtime::Blocks {
+        &self.chunks.states[0].blocks
+    }
 }
 impl PreparedGroup {
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 4] {
@@ -85,6 +96,57 @@ impl GroupPrefill {
         if !Self::supports(sequences) {
             return Err("grouped prefill needs four independent page-local128-token chunks".into());
         }
+        self.prepare_rows(device, weights, sequences, scratch).await
+    }
+
+    pub(crate) fn supports_prompt512(sequence: &Sequence<'_>) -> bool {
+        sequence.inputs.len() == P512::SIZE
+            && sequence.start_position % P128::SIZE == 0
+            && sequence.start_position.checked_add(P512::SIZE).is_some()
+            && sequence.inputs[..P512::SIZE - 1]
+                .iter()
+                .all(|input| !input.logits)
+    }
+
+    /// This constructor deliberately does not call the independent-request
+    /// constructor. All chunks borrow the same allocation and their positions
+    /// are derived here, so callers cannot reorder or overlap them.
+    pub(crate) async fn prepare_prompt512(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        sequence: &Sequence<'_>,
+        scratch: &mut Prefill,
+    ) -> Result<PreparedPrompt512> {
+        if !Self::supports_prompt512(sequence) {
+            return Err(
+                "Prompt512 needs512 consecutive inputs aligned to128 with final-only logits".into(),
+            );
+        }
+        let chunks: Vec<_> = sequence
+            .inputs
+            .chunks_exact(P128::SIZE)
+            .enumerate()
+            .map(|(chunk, inputs)| Sequence {
+                inputs,
+                start_position: sequence.start_position + chunk * P128::SIZE,
+                blocks: sequence.blocks,
+            })
+            .collect();
+        Ok(PreparedPrompt512 {
+            chunks: self.prepare_rows(device, weights, &chunks, scratch).await?,
+        })
+    }
+
+    /// Only the two validated constructors above call this execution helper.
+    async fn prepare_rows(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        sequences: &[Sequence<'_>],
+        scratch: &mut Prefill,
+    ) -> Result<PreparedGroup> {
+        debug_assert_eq!(sequences.len(), 4);
         Ok(PreparedGroup {
             states: [
                 self.rows[0]
@@ -101,6 +163,33 @@ impl GroupPrefill {
                     .await?,
             ],
         })
+    }
+
+    pub(crate) async fn advance_prompt512(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        state: &mut PreparedPrompt512,
+        ws: &mut Workspace,
+        scratch: &mut Prefill,
+    ) -> Result<bool> {
+        // advance_layer visits attention/commit in row order after all QKV
+        // projections. Thus each chunk sees all earlier chunks in this layer,
+        // and a sliding wrap never evicts history before that chunk attends.
+        self.advance_layer(device, weights, &mut state.chunks, ws, scratch)
+            .await
+    }
+
+    pub(crate) async fn finish_prompt512(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        state: &PreparedPrompt512,
+        ws: &mut Workspace,
+        scratch: &mut Prefill,
+    ) -> Result<()> {
+        self.finish(3, device, weights, &state.chunks, ws, scratch)
+            .await
     }
     pub(crate) async fn advance_layer(
         &mut self,
@@ -369,5 +458,63 @@ impl GroupPrefill {
         self.rows[row]
             .finish(device, weights, &state.states[row], ws, scratch)
             .await
+    }
+}
+
+#[cfg(test)]
+mod prompt512_tests {
+    use super::*;
+    use crate::host::model::Input;
+    fn input(logits: bool) -> Input<'static> {
+        Input {
+            token: 2,
+            soft: None,
+            logits,
+            image: None,
+            audio: None,
+        }
+    }
+    #[test]
+    fn same_owner_chronological_chunks_have_a_separate_validation_contract() {
+        let mut inputs: Vec<_> = (0..512).map(|p| input(p == 511)).collect();
+        let blocks = runtime::Blocks {
+            sliding: 63,
+            full: vec![255, 127, 7],
+        };
+        for start in [0, 384, 896] {
+            let sequence = Sequence {
+                inputs: &inputs,
+                start_position: start,
+                blocks: &blocks,
+            };
+            assert!(GroupPrefill::supports_prompt512(&sequence));
+            let chunks: Vec<_> = inputs
+                .chunks_exact(128)
+                .enumerate()
+                .map(|(i, rows)| Sequence {
+                    inputs: rows,
+                    start_position: start + 128 * i,
+                    blocks: &blocks,
+                })
+                .collect();
+            assert!(chunks.iter().all(WidePrefill::supports));
+            assert!(
+                !GroupPrefill::supports(&chunks),
+                "independent-request validation must still reject a shared allocation"
+            );
+        }
+        for (start, count) in [(1, 512), (384, 511), (0, 128), (usize::MAX - 127, 512)] {
+            assert!(!GroupPrefill::supports_prompt512(&Sequence {
+                inputs: &inputs[..count],
+                start_position: start,
+                blocks: &blocks,
+            }));
+        }
+        inputs[127].logits = true;
+        assert!(!GroupPrefill::supports_prompt512(&Sequence {
+            inputs: &inputs,
+            start_position: 0,
+            blocks: &blocks
+        }));
     }
 }

@@ -5,7 +5,7 @@ use crate::{Chip, axes::W};
 use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
-use super::prefill::wide::group::{GroupPrefill, PreparedGroup};
+use super::prefill::wide::group::{GroupPrefill, PreparedGroup, PreparedPrompt512};
 use super::prefill::{
     Prefill, PreparedNarrow,
     wide::{PreparedWide, WidePrefill},
@@ -53,12 +53,14 @@ pub struct Model {
 enum ActivePrefill {
     Wide(PreparedWide),
     Narrow(PreparedNarrow),
+    Prompt512(PreparedPrompt512),
 }
 impl ActivePrefill {
     fn blocks(&self) -> &Blocks {
         match self {
             Self::Wide(state) => &state.blocks,
             Self::Narrow(state) => &state.blocks,
+            Self::Prompt512(state) => state.blocks(),
         }
     }
 }
@@ -238,6 +240,33 @@ impl Model {
         Ok(Some(&self.logits[..4]))
     }
 
+    /// Diagnostic: process512 consecutive prompt inputs while retaining exactly
+    /// one request allocation. Every128-row subchunk keeps its existing causal
+    /// attention arithmetic; dense QKV/FFN work is shared within the request.
+    /// Complete using `advance_prefill`; only the final input may request logits.
+    pub async fn start_prefill512(
+        &mut self,
+        device: &mut Device,
+        sequence: &Sequence<'_>,
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() {
+            return Err("another prefill is in progress".into());
+        }
+        validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+        validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
+        if !workspace.is_canonical() || !GroupPrefill::supports_prompt512(sequence) {
+            return Err("Prompt512 needs a canonical512-token sequence aligned to128".into());
+        }
+        self.prepare_group_scratch(device).await?;
+        self.active_prefill = Some(ActivePrefill::Prompt512(
+            self.group.as_mut().unwrap().prepare_prompt512(
+                device, &self.weights, sequence, &mut self.prefill,
+            ).await?,
+        ));
+        Ok(())
+    }
+
     /// Prepare one request's embeddings and masks without advancing Generation.
     /// Only one prompt chunk can be in flight; independent request decode may run
     /// between subsequent complete-layer advances. Retain the same Workspace
@@ -306,6 +335,11 @@ impl Model {
                     .advance_layer(device, &self.weights, state, workspace)
                     .await?
             }
+            ActivePrefill::Prompt512(state) => {
+                self.group.as_mut().expect("Prompt512 owns grouped scratch")
+                    .advance_prompt512(device, &self.weights, state, workspace, &mut self.prefill)
+                    .await?
+            }
         };
         if !complete {
             return Ok(None);
@@ -320,6 +354,11 @@ impl Model {
             ActivePrefill::Narrow(state) => {
                 self.prefill
                     .finish(device, &self.weights, state, workspace)
+                    .await
+            }
+            ActivePrefill::Prompt512(state) => {
+                self.group.as_mut().expect("Prompt512 owns grouped scratch")
+                    .finish_prompt512(device, &self.weights, state, workspace, &mut self.prefill)
                     .await
             }
         };
