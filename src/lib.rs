@@ -89,3 +89,5 @@ pub mod host_logit_bytes;
 pub mod ops_greedy_r64;
 
 pub mod ops_r64_lm_partitioned;
+
+pub mod ops_native_fp8_b16_staged;
