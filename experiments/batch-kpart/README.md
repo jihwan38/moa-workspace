@@ -61,3 +61,25 @@ Arena317733 whole-model513 tokens:1753ms versus B16 3903ms and previous exact
 P128 2661ms, but relativeL2=0.045957,max_abs1.875,argmax100→2946. This is not an
 accepted model correctness result. The corrected all-projection oracle gates
 bug investigation before any accuracy evaluation or adoption.
+
+B16 follow-up plan (source9dde843): adapt H960 QKV/up-gate to one B8 row tile
+per cluster, preserving parent's independently proven B8 down helper arithmetic
+from native-ffn020aa5c. This removes three quarters of up/gate activation
+replication versus split-cluster full-H, but introduces four-slice F32 reduction.
+Compare all61,440 FFN outputs against exact baseline, report all numerical
+differences, and measure matched ABBA launches. No serving adoption is implied.
+
+Corrected all-QKV Arena317743:both full-H and H960 variants were exactly equal
+to the independent dyadic oracle for all1,900,544 outputs acrossQs/Ps/Qf/Pf.
+Full random comparisons had relativeL2 around2–3e-5, and512 sampled F64 scalar
+dots per shape matched both variants exactly. No QKV layout/scaling defect was
+observed. This replaces the withdrawn earlier H960 independent-query claim,
+and does not erase the measured whole-model numerical drift.
+
+Stage-profiling plan after Arena317730:expose post-GeGLU asHBM[L,P128], then
+run unchanged cached-down from that tensor. Verify split output is bit-exact to
+fused H960 FFN. Measure fused/upgate+GeGLU/down in ABC-CBA order with5 launches
+and one stage result read. Stage measurements include additional intermediate
+HBM write/read and differing download sizes, so they are upper-bound component
+estimates, not an additive decomposition of fused runtime. This separates the
+remaining down cost from up/gate scale-dequantization and contraction work.
