@@ -209,7 +209,7 @@ fn geglu(device:&mut Device,up:&DmTensor<bf16,Chip,UpCluster,UpRows,m![L % 120,B
     us:&HbmTensor<f32,Chip,m![1]>,gs:&HbmTensor<f32,Chip,m![1]>)
     ->DmTensor<bf16,Chip,UpCluster,UpRows,m![L % 120,B]> {
     let mut result:DmTensor<bf16,Chip,UpCluster,UpRows,m![L % 120,B]>=DmTensor::new();
-    for chunk in 0..8 {
+    for chunk in 0..(B::SIZE / 8) {
         geglu_tile_into(device,
             up.view().tile::<m![B],8,m![L % 120,B=8 #16]>(8*chunk),
             gate.view().tile::<m![B],8,m![L % 120,B=8 #16]>(8*chunk),us,gs,
