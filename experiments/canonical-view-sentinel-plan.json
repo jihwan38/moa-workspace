@@ -1,0 +1,9 @@
+{
+  "candidate": "Explicit HBM view kernel ABI for canonical KV windows",
+  "control": "Independent CPU raw-bit payload and untouched-neighbor oracle",
+  "source": "ops_pool_views four read/write entrypoints; Rc64 physicalslot axis independent of future queryaxisR64",
+  "test": "Read initialslots0,31,63 andpages0,127,255 via tile+unit-axis reshape; write distinct raw-bit replacement through mutableviews; copy complete64ring/256page pools back and compare every element, including all untouchedneighbors. Uses separate384MiB-class testallocations, no modelweights.",
+  "expected_removed_work": "Scalar/prompt wrappers can bind original canonical bytes directly instead of copying a full request history between Vec and pool allocations",
+  "host_compile": "Passed after explicit HostTensor and to_host mapping annotations; existing HbmTensor-parameter ABI failure is preserved separately",
+  "next_gate": "Compile all4device entries, then root-run NPU sentinel before canonical workspace integration"
+}

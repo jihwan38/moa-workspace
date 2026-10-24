@@ -49,3 +49,5 @@ pub mod ops_sliding_prompt_clusters;
 pub mod ops_head_wide_tile;
 
 pub mod ops_prefill_tiles_reference;
+
+pub mod ops_pool_views;
