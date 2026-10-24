@@ -211,6 +211,30 @@ async fn main() {
             (err2 / ref2.max(1e-300)).sqrt()
         );
         if seed == 31 {
+            // Diagnostic stage costs include their public HBM traffic; they are not an exact
+            // additive decomposition of the fused kernel's internal redistribution cost.
+            for stage in [0, 1, 2, 2, 1, 0] {
+                let now = std::time::Instant::now();
+                for _ in 0..20 {
+                    if stage != 1 {
+                        launch(op::quantize_input, (&mut d, &input, &mut q, &mut xs))
+                            .await
+                            .unwrap();
+                    }
+                    if stage != 0 {
+                        launch(
+                            op::project_query_quantized,
+                            (&mut d, &q, &xs, &weights, &scales, &mut output),
+                        )
+                        .await
+                        .unwrap();
+                    }
+                }
+                println!(
+                    "stage={stage} (0=quantize,1=core,2=two_launches) warm_us={:.3}",
+                    now.elapsed().as_secs_f64() * 1e6 / 20.0
+                );
+            }
             for variant in [0, 1, 1, 0] {
                 let now = std::time::Instant::now();
                 for _ in 0..20 {
