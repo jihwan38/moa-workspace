@@ -118,6 +118,21 @@ impl Model {
         for sequence in sequences {
             validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
         }
+        if use_prefill
+            && (2..=crate::axes::B::SIZE).contains(&sequences.len())
+            && sequences.iter().all(|sequence| sequence.inputs.len() == 1)
+        {
+            self.prefill
+                .decode_batch(
+                    device,
+                    &self.weights,
+                    sequences,
+                    workspace,
+                    &mut self.logits[..sequences.len()],
+                )
+                .await?;
+            return Ok(&self.logits[..sequences.len()]);
+        }
         for (row, sequence) in sequences.iter().enumerate() {
             workspace.blocks.full.clone_from(&sequence.blocks.full);
             workspace.blocks.sliding = sequence.blocks.sliding;

@@ -11,7 +11,7 @@ use crate::host::tokenizer::Tokenizer;
 use furiosa_opt_std::prelude::*;
 
 /// Requests computed together; more wait in the queue.
-pub const CAPACITY: usize = 4;
+pub const CAPACITY: usize = crate::axes::B::SIZE;
 /// Prompt plus generated positions allowed per request.
 pub const CONTEXT: usize = 8192;
 
