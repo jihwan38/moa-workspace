@@ -45,3 +45,5 @@ pub mod ops_request_full_clusters;
 pub mod ops_norm_wide;
 
 pub mod ops_sliding_prompt_clusters;
+
+pub mod ops_head_wide_tile;
