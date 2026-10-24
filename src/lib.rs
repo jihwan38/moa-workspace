@@ -25,6 +25,7 @@ pub mod ops_native_fp8_b16_blocked;
 pub mod ops_native_fp8_blocked;
 pub mod ops_geglu_direct;
 pub mod ops_batch_r64;
+pub mod ops_batch_layouts;
 pub mod ops_output_r64_direct;
 pub mod ops_output_r64_direct16;
 pub mod ops_output_r64_parallel;
