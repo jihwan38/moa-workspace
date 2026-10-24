@@ -13,6 +13,8 @@ pub mod axes;
 pub mod host;
 pub mod ops;
 pub mod ops_audio;
+pub mod ops_attention;
+pub mod ops_sliding_batch;
 pub mod ops_vision;
 
 pub(crate) mod device;

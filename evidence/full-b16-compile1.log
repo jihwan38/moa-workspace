@@ -1,0 +1,58 @@
+warning: type alias `Rows` is never used
+  --> src/ops_sliding_batch.rs:11:6
+   |
+11 | type Rows = m![B, Ns, Gs];
+   |      ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: type alias `HeadRows` is never used
+  --> src/ops_sliding_batch.rs:12:6
+   |
+12 | type HeadRows = m![Ns, 1 # 32];
+   |      ^^^^^^^^
+
+warning: type alias `Scalar` is never used
+  --> src/ops_sliding_batch.rs:13:6
+   |
+13 | type Scalar = DmTensor<f32, Chip, Cluster, Rows, m![1 # 8]>;
+   |      ^^^^^^
+
+warning: function `scalar_vrf` is never used
+  --> src/ops_sliding_batch.rs:15:4
+   |
+15 | fn scalar_vrf(device: &mut Device, x: &Scalar) -> VrfTensor<f32, Chip, Cluster, Rows, m![1 # 8]> {
+   |    ^^^^^^^^^^
+
+warning: function `old_scores` is never used
+  --> src/ops_sliding_batch.rs:20:4
+   |
+20 | fn old_scores(
+   |    ^^^^^^^^^^
+
+warning: function `row_max` is never used
+  --> src/ops_sliding_batch.rs:50:4
+   |
+50 | fn row_max(device: &mut Device, scores: &DmTensor<f32, Chip, Cluster, Rows, m![Ts]>) -> Scalar {
+   |    ^^^^^^^
+
+warning: function `exp_scores` is never used
+  --> src/ops_sliding_batch.rs:59:4
+   |
+59 | fn exp_scores(device: &mut Device, scores: &DmTensor<f32, Chip, Cluster, Rows, m![Ts]>, max: &Scalar)
+   |    ^^^^^^^^^^
+
+warning: function `row_sum` is never used
+  --> src/ops_sliding_batch.rs:70:4
+   |
+70 | fn row_sum(device: &mut Device, exp: &DmTensor<f32, Chip, Cluster, Rows, m![Ts]>) -> Scalar {
+   |    ^^^^^^^
+
+warning: function `weighted_values` is never used
+  --> src/ops_sliding_batch.rs:79:4
+   |
+79 | fn weighted_values(device: &mut Device, exp: &DmTensor<f32, Chip, Cluster, Rows, m![Ts]>,
+   |    ^^^^^^^^^^^^^^^
+
+   Compiling [1/1] ops_attention::full_attention_first_page_b16
+    Finished 1 compiled, 17 not matching ops_attention::full_attention_first_page_b16
