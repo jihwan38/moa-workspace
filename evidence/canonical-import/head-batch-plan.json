@@ -1,0 +1,22 @@
+{
+  "source_control": "6a52964",
+  "control": "ops_prefill row-loop head RMSNorm/RoPE, original device scalar RMSNorm/RoPE helpers",
+  "complete_change": "Distribute B x query-head or KV-head over slices and compute head RMSNorm plus RoPE once across all rows, preserving the original per-head F32 reduction/order and BF16 commit boundaries. Full K and V share their identical raw-key RMS denominator.",
+  "removed_work": "Sixteen serial row passes; full RoPE additionally performs sixteen serial query-head passes per row; repeated norm-weight and RoPE preparation.",
+  "added_work": "Direct head-slice input placement and batched RoPE gather/redistribution.",
+  "validation": "Compile, then NPU compare all B16 Q/K/V values to original scalar helpers using distinct nonzero values, weights, positions and actual full partial-RoPE tables. Time complete candidate/control launches, no zero smoke as correctness evidence.",
+  "decision": "Integrate only if numerical checks pass and measured head stage improves; root measures complete-model effect.",
+  "compiled_kernels": [
+    "sliding_heads_b16",
+    "full_heads_b16",
+    "reference_sliding_head_row",
+    "reference_full_head_row"
+  ],
+  "probe_binary": "target/release/test_head_batch",
+  "probe_sha256": "f34a812de908a83be092c59653960d1e0d6717235a5a5ea32176f9e4af21c725",
+  "source_sha256": {
+    "src/ops_head_batch.rs": "b2b799b5f059d62ab731bf3ee7dff4ed29df6a5d60c7dd661bec525898ce958a",
+    "src/bin/test_head_batch.rs": "9b5ca4852a673590eef9319a17ad0d980bd3b93cb39358e7041e8f87add39949"
+  },
+  "npu_execution": "Pending root dispatch"
+}

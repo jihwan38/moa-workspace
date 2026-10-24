@@ -1,0 +1,8 @@
+{
+  "candidate": "Whole canonical pool plus explicit byte offsets",
+  "control": "Independent CPU raw-bit oracle for all64rings and256pages",
+  "change": "Bind unshifted Rc64/Fc256 allocations. Device gather/scatter selects one contiguous cache using i32[1] bytebase; no hostview or unpad. This is the same address model as validated pooled attention.",
+  "checks": "Read initialrings0,31,63 andpages0,127,255; overwrite each throughscatter; compareeveryrawvalue including untouchedneighbors.",
+  "status": "Hostcheckpassed; NPUbuild and actualrootgate next",
+  "replaces": "Rejected hostviewABI317890 and317917; artifacts preserved"
+}

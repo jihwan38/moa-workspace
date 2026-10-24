@@ -1,0 +1,25 @@
+{
+  "candidate": "Canonical64-slot KV with bounded256 full pages",
+  "control": "51fdefc exact B16/Rc16 pool plus separate legacy KV, resumable prompt layers",
+  "status": "Host-view approach rejected after two distinct actual failures; canonical production ABI uses wholepool+byteoffset gather/scatter",
+  "storage": "New canonical sliding[ Rc64=64,Ts,Ns,Ds ] and existing full[ Fc=256,Tf,Df ], one K andV tensor per layer. Querybatch R64 is a separate64axis to avoid aliasing selected rows with storage slots.",
+  "host": "Add explicit Workspace::new_canonical64 and canonical KV variants; preserve default baseline constructor. C1 and prompt entrypoints take complete Rc64/Fc256 pool handles plus base byte offsets. Joint decode uses existing proven pooled attention addressing. No ownership domain migration for canonical constructor.",
+  "admission": "Epoch-bearing private Reservation owns enough pages for prompt+max_new_tokens before admission.64slot and256page limits independent. Three CPU tests pass exhaustion/progress,all64shortrequests,atomicNone/oversize,andold-epoch release afteridenticalslot/pagesreuse.",
+  "abi_finding": "Unpadded tile failed host mapping validation317890. Padded tile constructed successfully, but317917 runtime required fullphysicalpaddedspan afterbufferbaseoffset and rejected ring31 BufferTooSmall. SDK has no public HBM unpad. Stop hostview approach; no private ABI alias workaround.",
+  "gates": [
+    "Compile and NPU sentinel test for immutable and mutable ring/page views, including last physical slot and untouched neighbors",
+    "CanonicalB16 model comparisons across singleton, jointdecode, resumableprompt, ringreuse and fullpage boundaries",
+    "Admission exhaustion tests must show eventual progress and no over-allocation for all supported contexts",
+    "Only then introduce R64 matrix/attention path and measure actual memory/latency under admission load"
+  ],
+  "memory_manifest": "experiments/canonical-pool-memory.json",
+  "source_refs": [
+    "src/host/runtime.rs::Workspace::new",
+    "src/host/request_pool.rs::RequestPool::new",
+    "src/host/model.rs::start_prefill/advance_prefill",
+    "src/host/worker.rs::Worker::run",
+    "src/host/load.rs::load_weights",
+    "SDK0.9tensor/memory.rs::HbmTensorView::tile/reshape",
+    "SDK0.9backend/npu/bind.rs::DeviceSend for HbmTensorView"
+  ]
+}

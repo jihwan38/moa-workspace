@@ -1,0 +1,8 @@
+{
+  "candidate": "Scalar and B16 prompt cache view entrypoints",
+  "control": "Original scalar ops and proven B16 attention/commit modules",
+  "change": "Copy arithmetic bodies into explicit view-ABI modules; read cache mappings preserve outer Top padding and writable windows preserve Bottom padding. No host dispatch changes yet.",
+  "source_modules": ["ops.rs scalar QKV and attention", "device/sliding/attention.rs", "device/full/attention.rs", "ops_sliding_prompt_clusters.rs", "ops_attention.rs", "ops_prefill.rs live-prefix commits"],
+  "integration": "Future canonical KvCache variants return borrowed ring/page windows. Root may route scalar projection imports to device_e154 exactly as existing ops.rs does.",
+  "status": "Host typecheck only; device compilation, view sentinel and actual-model correctness gates pending. Stable constructors and dispatch remain unchanged."
+}

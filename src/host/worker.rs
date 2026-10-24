@@ -217,9 +217,10 @@ impl Worker {
     }
 }
 
-/// Emit a ready decode batch before running another prompt chunk. A single
-/// prompt chunk alternates with decode batches so continued arrivals cannot
-/// serialize all active decode requests behind a whole round of prefill.
+/// Start prompt chunks in stable ring order. While one chunk is active, alternate
+/// its next complete layer with ready independent decode requests; keep other
+/// prompts pending until that chunk finishes. With no active chunk, alternate
+/// ready decode with the next prompt so neither kind of work can starve.
 fn select_work(
     available: &[(usize, usize)],
     prefer_prefill: &mut bool,
@@ -270,7 +271,7 @@ fn select_work(
 mod tests {
     use super::*;
     #[test]
-    fn active_wide_chunk_yields_to_decode_and_keeps_other_prompts_pending() {
+    fn active_prompt_chunk_yields_to_decode_and_keeps_other_prompts_pending() {
         let work = [(2, 1), (7, 128), (12, 1), (5, 128)];
         let mut prefer = false;
         let mut ring = 8;

@@ -5,6 +5,7 @@ use super::{
     model::Sequence,
     runtime::{Blocks, KvCache, Workspace},
 };
+use crate::ops_pool_views::Rc64;
 use crate::{Chip, axes::*, ops_request_attention as op};
 use furiosa_opt_std::prelude::*;
 use op::{Fc, Rc};
@@ -611,6 +612,130 @@ impl PoolOffsets {
             Self::V16 { sliding, .. } => {
                 launch(
                     op::commit_sliding_pool_16,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+        }
+        Ok(())
+    }
+    pub async fn sliding_canonical(
+        &self,
+        device: &mut Device,
+        k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+        v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+        pool_k: &mut HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
+        pool_v: &mut HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
+    ) -> Result<()> {
+        match self {
+            Self::V1 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_1,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V2 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_2,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V3 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_3,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V4 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_4,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V5 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_5,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V6 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_6,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V7 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_7,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V8 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_8,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V9 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_9,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V10 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_10,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V11 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_11,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V12 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_12,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V13 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_13,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V14 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_14,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V15 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_15,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V16 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_16,
                     (device, k, v, sliding, pool_k, pool_v),
                 )
                 .await?

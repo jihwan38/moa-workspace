@@ -124,6 +124,7 @@ impl Model {
             return Err("another prefill is in progress".into());
         }
         validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+        validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
         if !WidePrefill::supports(sequence) && !Prefill::supports(sequence) {
             return Err("resumable prefill requires a page-local multi-token chunk".into());
         }
@@ -133,13 +134,19 @@ impl Model {
         self.active_prefill = Some(if WidePrefill::supports(sequence) {
             ActivePrefill::Wide(
                 self.wide
-                    .prepare(device, &self.weights, sequence, &mut self.prefill)
+                    .prepare(
+                        device,
+                        &self.weights,
+                        sequence,
+                        &mut self.prefill,
+                        workspace.is_canonical(),
+                    )
                     .await?,
             )
         } else {
             ActivePrefill::Narrow(
                 self.prefill
-                    .prepare(device, &self.weights, sequence)
+                    .prepare(device, &self.weights, sequence, workspace.is_canonical())
                     .await?,
             )
         });
@@ -148,6 +155,8 @@ impl Model {
 
     /// Run one complete layer. A result is returned only after all layers and
     /// the requested final logits complete; the caller may then advance input.
+    /// An execution error can leave partial KV writes: discard the model/workspace
+    /// rather than retrying that layer. The HTTP worker already takes itself offline.
     pub async fn advance_prefill(
         &mut self,
         device: &mut Device,
@@ -193,7 +202,8 @@ impl Model {
     }
 
     /// Append each input to its history and return one logits buffer per input, in input order.
-    /// Buffers of inputs with `logits == false` are stale. The reference runs rows serially.
+    /// Buffers of inputs with `logits == false` are stale. Independent requests
+    /// may share matrix and attention launches while retaining separate histories.
     pub async fn forward(
         &mut self,
         device: &mut Device,
@@ -219,8 +229,9 @@ impl Model {
     }
 
     /// Compute one consecutive sequence per request, returning its last logits.
-    /// Page-local128-token chunks share wide matrix weights; shorter chunks use
-    /// B16, and independent singleton requests share a B16 decode step.
+    /// Page-local128-token chunks share wide matrix weights; chunks of2..16 use
+    /// B16, and independent singleton requests share a B16 decode step. Other
+    /// caller-supplied shapes retain token-wise execution.
     pub async fn forward_sequences(
         &mut self,
         device: &mut Device,
@@ -265,6 +276,7 @@ impl Model {
         }
         for sequence in sequences {
             validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+            validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
         }
         if let Some(active) = &self.active_prefill {
             for sequence in sequences {
@@ -400,6 +412,18 @@ impl Model {
             .await?;
         Ok(())
     }
+}
+
+fn validate_physical_pages(blocks: &Blocks, pages: usize) -> Result<(), &'static str> {
+    let mut seen = std::collections::HashSet::new();
+    if blocks
+        .full
+        .iter()
+        .any(|&page| page >= pages || !seen.insert(page))
+    {
+        return Err("full-attention pages must be valid and distinct");
+    }
+    Ok(())
 }
 
 fn validate_sequence(

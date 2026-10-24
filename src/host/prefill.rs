@@ -12,6 +12,7 @@ use crate::{
     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
     ops_sliding_batch,
 };
+use crate::{ops_pool_views::Rc64, ops_request_attention::Fc};
 use furiosa_opt_std::prelude::*;
 use ops_sliding_batch::Bk;
 
@@ -156,6 +157,7 @@ impl Prefill {
         device: &mut Device,
         weights: &Weights,
         sequence: &Sequence<'_>,
+        canonical: bool,
     ) -> Result<PreparedNarrow> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequence.inputs.len();
@@ -231,7 +233,8 @@ impl Prefill {
         let chunk_mask = HostTensor::<f32, m![B, Bk]>::from_vec(chunk_mask)
             .to_hbm(&mut device.pdma)
             .await?;
-        let commits = CommitOffsets::new(device, start, count).await?;
+        let commits =
+            CommitOffsets::new(device, start, count, canonical.then_some(sequence.blocks)).await?;
         self.record_profile("prepare.prompt", &mut profile_mark);
         std::mem::swap(&mut self.x, &mut self.prompt_x);
         Ok(PreparedNarrow {
@@ -344,7 +347,9 @@ impl Prefill {
         sequence: &Sequence<'_>,
         ws: &mut Workspace,
     ) -> Result<()> {
-        let mut state = self.prepare(device, weights, sequence).await?;
+        let mut state = self
+            .prepare(device, weights, sequence, ws.is_canonical())
+            .await?;
         while !self.advance_layer(device, weights, &mut state, ws).await? {}
         self.finish(device, weights, &state, ws).await
     }
@@ -421,25 +426,50 @@ impl Prefill {
         )
         .await?;
         self.record_profile("sliding.heads_rope", &mut profile_mark);
-        let (k, v) = ws.kv_cache[index].as_sliding_mut();
-        launch(
-            crate::ops_sliding_prompt_clusters::sliding_attention_b16,
-            (
-                device,
-                &self.q_s,
-                &k[ring],
-                &v[ring],
-                &self.k_s,
-                &self.v_s,
-                old_mask,
-                chunk_mask,
-                &mut self.attn_s,
-            ),
-        )
-        .await?;
-        commits
-            .sliding(device, &self.k_s, &self.v_s, &mut k[ring], &mut v[ring])
+        if ws.is_canonical() {
+            let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
+                unreachable!()
+            };
+            launch(
+                crate::ops_sliding_prompt_pool::sliding_attention_b16,
+                (
+                    device,
+                    &self.q_s,
+                    &*k,
+                    &*v,
+                    &ws.cache_ring_offsets[ring],
+                    &self.k_s,
+                    &self.v_s,
+                    old_mask,
+                    chunk_mask,
+                    &mut self.attn_s,
+                ),
+            )
             .await?;
+            commits
+                .sliding_pool(device, &self.k_s, &self.v_s, k, v)
+                .await?;
+        } else {
+            let (k, v) = ws.kv_cache[index].as_sliding_mut();
+            launch(
+                crate::ops_sliding_prompt_clusters::sliding_attention_b16,
+                (
+                    device,
+                    &self.q_s,
+                    &k[ring],
+                    &v[ring],
+                    &self.k_s,
+                    &self.v_s,
+                    old_mask,
+                    chunk_mask,
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+            commits
+                .sliding(device, &self.k_s, &self.v_s, &mut k[ring], &mut v[ring])
+                .await?;
+        }
         self.record_profile("sliding.attention", &mut profile_mark);
         launch(
             ops_batch::project_sliding_output_batch,
@@ -534,36 +564,76 @@ impl Prefill {
         )
         .await?;
         self.record_profile("full.heads_rope", &mut profile_mark);
-        let (k, v) = ws.kv_cache[index].as_full_mut();
-        commits
-            .full(
-                device,
-                &self.k_f,
-                &self.v_f,
-                &mut k[blocks[page]],
-                &mut v[blocks[page]],
-            )
-            .await?;
-        for current in 0..=page {
-            let mask = if current == page {
-                mask
-            } else {
-                &self.full_line_mask
+        if ws.is_canonical() {
+            let runtime::KvCache::FullCanonical { k, v } = &mut ws.kv_cache[index] else {
+                unreachable!()
             };
-            let args = (
-                &mut *device,
-                &self.q_f,
-                &k[blocks[current]],
-                &v[blocks[current]],
-                mask,
-                &mut self.max_f,
-                &mut self.sum_f,
-                &mut self.attn_f,
-            );
-            if current == 0 {
-                launch(ops_attention::full_attention_first_page_b16, args).await?;
-            } else {
-                launch(ops_attention::full_attention_next_page_b16, args).await?;
+            commits
+                .full_pool(device, &self.k_f, &self.v_f, &mut *k, &mut *v)
+                .await?;
+            for current in 0..=page {
+                let mask = if current == page {
+                    mask
+                } else {
+                    &self.full_line_mask
+                };
+                let args = (
+                    &mut *device,
+                    &self.q_f,
+                    &*k,
+                    &*v,
+                    &ws.cache_page_offsets[blocks[current]],
+                    mask,
+                    &mut self.max_f,
+                    &mut self.sum_f,
+                    &mut self.attn_f,
+                );
+                if current == 0 {
+                    launch(
+                        crate::ops_attention_pool::full_attention_first_page_b16,
+                        args,
+                    )
+                    .await?;
+                } else {
+                    launch(
+                        crate::ops_attention_pool::full_attention_next_page_b16,
+                        args,
+                    )
+                    .await?;
+                }
+            }
+        } else {
+            let (k, v) = ws.kv_cache[index].as_full_mut();
+            commits
+                .full(
+                    device,
+                    &self.k_f,
+                    &self.v_f,
+                    &mut k[blocks[page]],
+                    &mut v[blocks[page]],
+                )
+                .await?;
+            for current in 0..=page {
+                let mask = if current == page {
+                    mask
+                } else {
+                    &self.full_line_mask
+                };
+                let args = (
+                    &mut *device,
+                    &self.q_f,
+                    &k[blocks[current]],
+                    &v[blocks[current]],
+                    mask,
+                    &mut self.max_f,
+                    &mut self.sum_f,
+                    &mut self.attn_f,
+                );
+                if current == 0 {
+                    launch(ops_attention::full_attention_first_page_b16, args).await?;
+                } else {
+                    launch(ops_attention::full_attention_next_page_b16, args).await?;
+                }
             }
         }
         launch(
@@ -716,12 +786,27 @@ enum CommitOffsets {
     },
 }
 impl CommitOffsets {
-    async fn new(device: &mut Device, start: usize, count: usize) -> Result<Self> {
+    async fn new(
+        device: &mut Device,
+        start: usize,
+        count: usize,
+        blocks: Option<&runtime::Blocks>,
+    ) -> Result<Self> {
         let sliding: Vec<_> = (0..count)
-            .map(|r| (((start + r) % Ts::SIZE) * Ns::SIZE * Ds::SIZE * 2) as i32)
+            .map(|r| {
+                ((blocks.map_or(0, |b| b.sliding * Ts::SIZE) + (start + r) % Ts::SIZE)
+                    * Ns::SIZE
+                    * Ds::SIZE
+                    * 2) as i32
+            })
             .collect();
         let full: Vec<_> = (0..count)
-            .map(|r| (((start + r) % Tf::SIZE) * Df::SIZE * 2) as i32)
+            .map(|r| {
+                ((blocks.map_or(0, |b| b.full[(start + r) / Tf::SIZE] * Tf::SIZE)
+                    + (start + r) % Tf::SIZE)
+                    * Df::SIZE
+                    * 2) as i32
+            })
             .collect();
         Ok(match count {
             1 => Self::V1 {
@@ -1060,6 +1145,255 @@ impl CommitOffsets {
             Self::V16 { full, .. } => {
                 launch(
                     ep::commit_full_kv_16,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+        }
+        Ok(())
+    }
+    async fn sliding_pool(
+        &self,
+        device: &mut Device,
+        k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+        v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+        cache_k: &mut HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
+        cache_v: &mut HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
+    ) -> Result<()> {
+        match self {
+            Self::V1 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_1,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V2 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_2,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V3 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_3,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V4 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_4,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V5 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_5,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V6 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_6,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V7 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_7,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V8 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_8,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V9 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_9,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V10 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_10,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V11 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_11,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V12 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_12,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V13 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_13,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V14 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_14,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V15 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_15,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V16 { sliding, .. } => {
+                launch(
+                    crate::ops_commit_r64::commit_sliding_pool_16,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+        }
+        Ok(())
+    }
+
+    async fn full_pool(
+        &self,
+        device: &mut Device,
+        k: &HbmTensor<bf16, Chip, m![B, Df]>,
+        v: &HbmTensor<bf16, Chip, m![B, Df]>,
+        cache_k: &mut HbmTensor<bf16, Chip, m![Fc, Tf, Df]>,
+        cache_v: &mut HbmTensor<bf16, Chip, m![Fc, Tf, Df]>,
+    ) -> Result<()> {
+        match self {
+            Self::V1 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_1,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V2 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_2,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V3 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_3,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V4 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_4,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V5 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_5,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V6 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_6,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V7 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_7,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V8 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_8,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V9 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_9,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V10 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_10,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V11 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_11,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V12 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_12,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V13 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_13,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V14 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_14,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V15 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_15,
+                    (device, k, v, full, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V16 { full, .. } => {
+                launch(
+                    crate::ops_request_attention::commit_full_pool_16,
                     (device, k, v, full, cache_k, cache_v),
                 )
                 .await?

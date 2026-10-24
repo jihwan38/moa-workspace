@@ -2,6 +2,8 @@ use furiosa_opt_std::prelude::*;
 
 use crate::axes::{Aa, Df, Ds, E, Gf, Gs, H, Mv, Ns, Pv, Rv, Tf, Ts, W};
 use crate::host::load::{FullLayer, Layer, SlidingLayer, Weights};
+use crate::ops_pool_views::Rc64;
+use crate::ops_request_attention::Fc;
 use crate::{Chip, ops, ops_audio, ops_vision};
 
 fn gather_pos_embedding(weights: &Weights, col: usize, row: usize) -> Vec<bf16> {
@@ -113,6 +115,16 @@ pub async fn encode_audio_frame(
 }
 
 pub(crate) enum KvCache {
+    /// Canonical request slots: every execution path reads/writes this allocation.
+    SlidingCanonical {
+        k: HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
+        v: HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
+    },
+    /// Bounded global page pool, independent of the number of request slots.
+    FullCanonical {
+        k: HbmTensor<bf16, Chip, m![Fc, Tf, Df]>,
+        v: HbmTensor<bf16, Chip, m![Fc, Tf, Df]>,
+    },
     /// One window per active request, selected by `Blocks::sliding`.
     Sliding {
         k: Vec<HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>>,
@@ -134,7 +146,7 @@ impl KvCache {
     ) {
         match self {
             KvCache::Sliding { k, v } => (k, v),
-            KvCache::Full { .. } => panic!("sliding layer must have a sliding KV cache"),
+            _ => panic!("expected legacy sliding KV cache"),
         }
     }
 
@@ -146,7 +158,7 @@ impl KvCache {
     ) {
         match self {
             KvCache::Full { k, v } => (k, v),
-            KvCache::Sliding { .. } => panic!("full layer must have a full KV cache"),
+            _ => panic!("expected legacy full KV cache"),
         }
     }
 }
@@ -171,6 +183,10 @@ pub struct Workspace {
     pub(crate) kv_cache: Vec<KvCache>,
     capacity: usize,
     requests: usize,
+    canonical: bool,
+    physical_full_pages: usize,
+    pub(crate) cache_ring_offsets: Vec<HbmTensor<i32, Chip, m![1]>>,
+    pub(crate) cache_page_offsets: Vec<HbmTensor<i32, Chip, m![1]>>,
     pub(crate) blocks: Blocks,
     offset_kv_s: HbmTensor<i32, Chip, m![1]>,
     offset_kv_f: HbmTensor<i32, Chip, m![1]>,
@@ -191,6 +207,13 @@ impl Workspace {
                 .await?;
         }
         Ok(())
+    }
+
+    pub(crate) fn is_canonical(&self) -> bool {
+        self.canonical
+    }
+    pub(crate) fn physical_full_pages(&self) -> usize {
+        self.physical_full_pages
     }
 
     /// Context positions per request.
@@ -216,10 +239,49 @@ impl Workspace {
         capacity: usize,
         requests: usize,
     ) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::new_storage(device, weights, capacity, requests, false, true).await
+    }
+
+    /// Diagnostic control with ordinary per-request KV and no duplicate pooled mirror.
+    pub async fn new_reference(
+        device: &mut Device,
+        weights: &Weights,
+        capacity: usize,
+        requests: usize,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::new_storage(device, weights, capacity, requests, false, false).await
+    }
+
+    /// One canonical Rc64/Fc256 allocation per layer. Admission must reserve a
+    /// request's complete page requirement from the bounded global page pool.
+    pub async fn new_canonical64(
+        device: &mut Device,
+        weights: &Weights,
+        capacity: usize,
+        requests: usize,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::new_storage(device, weights, capacity, requests, true, false).await
+    }
+
+    async fn new_storage(
+        device: &mut Device,
+        weights: &Weights,
+        capacity: usize,
+        requests: usize,
+        canonical: bool,
+        mirror_pool: bool,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         if requests == 0 || !(1..=E::SIZE).contains(&capacity) {
             return Err(format!("need at least one request and 1..={} positions", E::SIZE).into());
         }
-        let pool = requests * Self::blocks_for(capacity);
+        if canonical && (requests > Rc64::SIZE || Self::blocks_for(capacity) > Fc::SIZE) {
+            return Err("canonical KV exceeds request slots or one-request page budget".into());
+        }
+        let pool = if canonical {
+            Fc::SIZE
+        } else {
+            requests * Self::blocks_for(capacity)
+        };
         let (cos_s, sin_s) = upload_rope(device, Ds::SIZE, 10_000.0, Ds::SIZE).await?;
         let (cos_f, sin_f) = upload_rope(device, Df::SIZE, 1_000_000.0, 128).await?;
         let mask_s =
@@ -234,17 +296,53 @@ impl Workspace {
 
         let mut kv_cache = Vec::with_capacity(weights.layers.len());
         for layer in &weights.layers {
-            let cache = match layer {
-                Layer::Sliding(_) => KvCache::Sliding {
+            let cache = match (layer, canonical) {
+                (Layer::Sliding(_), true) => KvCache::SlidingCanonical {
+                    k: HostTensor::<bf16, m![Rc64, Ts, Ns, Ds]>::zero()
+                        .to_hbm(&mut device.pdma)
+                        .await?,
+                    v: HostTensor::<bf16, m![Rc64, Ts, Ns, Ds]>::zero()
+                        .to_hbm(&mut device.pdma)
+                        .await?,
+                },
+                (Layer::Full(_), true) => KvCache::FullCanonical {
+                    k: HostTensor::<bf16, m![Fc, Tf, Df]>::zero()
+                        .to_hbm(&mut device.pdma)
+                        .await?,
+                    v: HostTensor::<bf16, m![Fc, Tf, Df]>::zero()
+                        .to_hbm(&mut device.pdma)
+                        .await?,
+                },
+                (Layer::Sliding(_), false) => KvCache::Sliding {
                     k: zero_hbm_vec::<bf16, m![Ts, Ns, Ds]>(device, requests).await?,
                     v: zero_hbm_vec::<bf16, m![Ts, Ns, Ds]>(device, requests).await?,
                 },
-                Layer::Full(_) => KvCache::Full {
+                (Layer::Full(_), false) => KvCache::Full {
                     k: zero_hbm_vec::<bf16, m![Tf, Df]>(device, pool).await?,
                     v: zero_hbm_vec::<bf16, m![Tf, Df]>(device, pool).await?,
                 },
             };
             kv_cache.push(cache);
+        }
+        let mut cache_ring_offsets = Vec::new();
+        let mut cache_page_offsets = Vec::new();
+        if canonical {
+            for ring in 0..requests {
+                cache_ring_offsets.push(
+                    HostTensor::<i32, m![1]>::from_vec([
+                        (ring * Ts::SIZE * Ns::SIZE * Ds::SIZE * 2) as i32,
+                    ])
+                    .to_hbm(&mut device.pdma)
+                    .await?,
+                );
+            }
+            for page in 0..pool {
+                cache_page_offsets.push(
+                    HostTensor::<i32, m![1]>::from_vec([(page * Tf::SIZE * Df::SIZE * 2) as i32])
+                        .to_hbm(&mut device.pdma)
+                        .await?,
+                );
+            }
         }
 
         let logits = HostTensor::<bf16, m![W]>::zero()
@@ -255,8 +353,11 @@ impl Workspace {
         let offset_kv_f = zero_offset(device).await?;
         let offset_rope_s = zero_offset(device).await?;
         let offset_rope_f = zero_offset(device).await?;
-        let request_pool =
-            super::request_pool::RequestPool::new(device, weights, capacity, requests).await?;
+        let request_pool = if mirror_pool {
+            super::request_pool::RequestPool::new(device, weights, capacity, requests).await?
+        } else {
+            None
+        };
 
         Ok(Self {
             request_pool,
@@ -270,6 +371,10 @@ impl Workspace {
             kv_cache,
             capacity,
             requests,
+            canonical,
+            physical_full_pages: pool,
+            cache_ring_offsets,
+            cache_page_offsets,
             blocks: Blocks::default(),
             offset_kv_s,
             offset_kv_f,
@@ -315,8 +420,18 @@ async fn set_position_offsets(
     ws: &mut Workspace,
     pos: usize,
 ) -> Result<(), Error> {
-    let ps = pos % Ts::SIZE;
-    let pf = pos % Tf::SIZE;
+    let ps = pos % Ts::SIZE
+        + if ws.canonical {
+            ws.blocks.sliding * Ts::SIZE
+        } else {
+            0
+        };
+    let pf = pos % Tf::SIZE
+        + if ws.canonical {
+            ws.blocks.full[pos / Tf::SIZE] * Tf::SIZE
+        } else {
+            0
+        };
 
     let offset_kv_s: HostTensor<i32, m![1]> =
         HostTensor::from_vec([(ps * Ns::SIZE * Ds::SIZE * 2) as i32]);
@@ -511,44 +626,87 @@ impl Decode {
     ) -> Result<(), Error> {
         let mask_row = pos.min(Ts::SIZE - 1);
         let ring = ws.blocks.sliding;
-        let (k, v) = ws.kv_cache[layer_index].as_sliding_mut();
-        let (k, v) = (&mut k[ring], &mut v[ring]);
-        launch(
-            ops::sliding_project_qkv,
-            (
-                device,
-                &self.x,
-                &layer.q_weight,
-                &layer.k_weight,
-                &layer.v_weight,
-                &layer.q_weight_scale,
-                &layer.k_weight_scale,
-                &layer.v_weight_scale,
-                &layer.input_norm,
-                &layer.q_norm,
-                &layer.k_norm,
-                &ws.offset_kv_s,
-                &ws.offset_rope_s,
-                &ws.cos_s,
-                &ws.sin_s,
-                &mut *k,
-                &mut *v,
-                &mut self.q_s,
-            ),
-        )
-        .await?;
-        launch(
-            ops::sliding_attention,
-            (
-                device,
-                &self.q_s,
-                &*k,
-                &*v,
-                &ws.mask_s[mask_row],
-                &mut self.attn_s,
-            ),
-        )
-        .await?;
+        if ws.canonical {
+            let KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[layer_index] else {
+                unreachable!()
+            };
+            launch(
+                crate::ops_cache_pools::sliding_project_qkv,
+                (
+                    device,
+                    &self.x,
+                    &layer.q_weight,
+                    &layer.k_weight,
+                    &layer.v_weight,
+                    &layer.q_weight_scale,
+                    &layer.k_weight_scale,
+                    &layer.v_weight_scale,
+                    &layer.input_norm,
+                    &layer.q_norm,
+                    &layer.k_norm,
+                    &ws.offset_kv_s,
+                    &ws.offset_rope_s,
+                    &ws.cos_s,
+                    &ws.sin_s,
+                    &mut *k,
+                    &mut *v,
+                    &mut self.q_s,
+                ),
+            )
+            .await?;
+            launch(
+                crate::ops_cache_pools::sliding_attention,
+                (
+                    device,
+                    &self.q_s,
+                    &*k,
+                    &*v,
+                    &ws.cache_ring_offsets[ring],
+                    &ws.mask_s[mask_row],
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+        } else {
+            let (k, v) = ws.kv_cache[layer_index].as_sliding_mut();
+            let (k, v) = (&mut k[ring], &mut v[ring]);
+            launch(
+                ops::sliding_project_qkv,
+                (
+                    device,
+                    &self.x,
+                    &layer.q_weight,
+                    &layer.k_weight,
+                    &layer.v_weight,
+                    &layer.q_weight_scale,
+                    &layer.k_weight_scale,
+                    &layer.v_weight_scale,
+                    &layer.input_norm,
+                    &layer.q_norm,
+                    &layer.k_norm,
+                    &ws.offset_kv_s,
+                    &ws.offset_rope_s,
+                    &ws.cos_s,
+                    &ws.sin_s,
+                    &mut *k,
+                    &mut *v,
+                    &mut self.q_s,
+                ),
+            )
+            .await?;
+            launch(
+                ops::sliding_attention,
+                (
+                    device,
+                    &self.q_s,
+                    &*k,
+                    &*v,
+                    &ws.mask_s[mask_row],
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+        }
         launch(
             ops::sliding_attention_output,
             (
@@ -586,53 +744,108 @@ impl Decode {
             "position has no full-attention block"
         );
         let blocks = &ws.blocks.full;
-        let (k_cache, v_cache) = ws.kv_cache[layer_index].as_full_mut();
-        launch(
-            ops::full_project_qkv,
-            (
-                device,
-                &self.x,
-                &layer.q_weight,
-                &layer.k_weight,
-                &layer.q_weight_scale,
-                &layer.k_weight_scale,
-                &layer.input_norm,
-                &layer.q_norm,
-                &layer.k_norm,
-                &ws.offset_kv_f,
-                &ws.offset_rope_f,
-                &ws.cos_f,
-                &ws.sin_f,
-                &mut k_cache[blocks[page]],
-                &mut v_cache[blocks[page]],
-                &mut self.q_f,
-            ),
-        )
-        .await?;
-
-        for kv_page in 0..=page {
-            let mask = if kv_page == page {
-                &ws.mask_f_diag[row]
-            } else {
-                &ws.mask_f_line
+        if ws.canonical {
+            let KvCache::FullCanonical {
+                k: k_cache,
+                v: v_cache,
+            } = &mut ws.kv_cache[layer_index]
+            else {
+                unreachable!()
             };
-            let args = (
-                &mut *device,
-                &self.q_f,
-                &k_cache[blocks[kv_page]],
-                &v_cache[blocks[kv_page]],
-                mask,
-                &mut self.attn_max,
-                &mut self.attn_sum,
-                &mut self.attn_f,
-            );
-            if kv_page == 0 {
-                launch(ops::full_attention_first_page, args).await?;
-            } else {
-                launch(ops::full_attention_page, args).await?;
+            launch(
+                crate::ops_cache_pools::full_project_qkv,
+                (
+                    device,
+                    &self.x,
+                    &layer.q_weight,
+                    &layer.k_weight,
+                    &layer.q_weight_scale,
+                    &layer.k_weight_scale,
+                    &layer.input_norm,
+                    &layer.q_norm,
+                    &layer.k_norm,
+                    &ws.offset_kv_f,
+                    &ws.offset_rope_f,
+                    &ws.cos_f,
+                    &ws.sin_f,
+                    &mut *k_cache,
+                    &mut *v_cache,
+                    &mut self.q_f,
+                ),
+            )
+            .await?;
+
+            for kv_page in 0..=page {
+                let mask = if kv_page == page {
+                    &ws.mask_f_diag[row]
+                } else {
+                    &ws.mask_f_line
+                };
+                let args = (
+                    &mut *device,
+                    &self.q_f,
+                    &*k_cache,
+                    &*v_cache,
+                    &ws.cache_page_offsets[blocks[kv_page]],
+                    mask,
+                    &mut self.attn_max,
+                    &mut self.attn_sum,
+                    &mut self.attn_f,
+                );
+                if kv_page == 0 {
+                    launch(crate::ops_cache_pools::full_attention_first_page, args).await?;
+                } else {
+                    launch(crate::ops_cache_pools::full_attention_page, args).await?;
+                }
+            }
+        } else {
+            let (k_cache, v_cache) = ws.kv_cache[layer_index].as_full_mut();
+            launch(
+                ops::full_project_qkv,
+                (
+                    device,
+                    &self.x,
+                    &layer.q_weight,
+                    &layer.k_weight,
+                    &layer.q_weight_scale,
+                    &layer.k_weight_scale,
+                    &layer.input_norm,
+                    &layer.q_norm,
+                    &layer.k_norm,
+                    &ws.offset_kv_f,
+                    &ws.offset_rope_f,
+                    &ws.cos_f,
+                    &ws.sin_f,
+                    &mut k_cache[blocks[page]],
+                    &mut v_cache[blocks[page]],
+                    &mut self.q_f,
+                ),
+            )
+            .await?;
+
+            for kv_page in 0..=page {
+                let mask = if kv_page == page {
+                    &ws.mask_f_diag[row]
+                } else {
+                    &ws.mask_f_line
+                };
+                let args = (
+                    &mut *device,
+                    &self.q_f,
+                    &k_cache[blocks[kv_page]],
+                    &v_cache[blocks[kv_page]],
+                    mask,
+                    &mut self.attn_max,
+                    &mut self.attn_sum,
+                    &mut self.attn_f,
+                );
+                if kv_page == 0 {
+                    launch(ops::full_attention_first_page, args).await?;
+                } else {
+                    launch(ops::full_attention_page, args).await?;
+                }
             }
         }
-
         launch(
             ops::full_attention_output,
             (
