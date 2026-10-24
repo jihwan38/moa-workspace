@@ -36,3 +36,13 @@ weight bytes/dequantization are performed twice per128 rows. The combined
 `batch_ffn_up32_down_cached` keeps the same cached-down variant.
 `test_wide_cache32` uses the same exact-output and symmetric timing protocol.
 Both variants and their executable compile; hardware results are pending root.
+
+Hardware results (root Arena317662 and317676): every candidate checked491520
+outputs bit-exact against the original P128 FFN. The two-stage Switch candidate
+was rejected: up-only157.4ms and combined153.46ms versus12.88ms control. Cached
+down alone reduced runtime to9.13ms. The non-Switch32-row candidate then measured
+approximately8.52ms up-only,9.02ms down-only, and4.59–4.63ms combined, against
+approximately13.0ms control. The combined implementation is now canonical
+`ops_batch_wide::batch_ffn`; the initial repeated-staging implementation remains
+`batch_ffn_staged_control` for reproducible comparisons. No approximation or
+weight change was introduced. Whole-model runtime validation follows in root.
