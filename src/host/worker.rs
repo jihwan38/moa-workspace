@@ -19,7 +19,7 @@ pub const CONTEXT: usize = 8192;
 /// Grouped execution uses the same request-owned state as the validated model path.
 const GROUP_PREFILL_ENABLED: bool = true;
 /// Keep disabled until the chronological model and HTTP gates pass.
-const PROMPT512_ENABLED: bool = false;
+const PROMPT512_ENABLED: bool = true;
 
 pub struct Worker {
     runtime: tokio::runtime::Runtime,
