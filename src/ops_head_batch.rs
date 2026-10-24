@@ -5,7 +5,7 @@ use crate::device::{full, sliding};
 use crate::{Chip, EPS};
 use furiosa_opt_std::prelude::*;
 
-fn rms_ds<S: M>(
+pub(crate) fn rms_ds<S: M>(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, S, m![Ds]>,
 ) -> VrfTensor<f32, Chip, Cluster, S, m![1 # 8]> {
@@ -47,7 +47,7 @@ fn rms_ds<S: M>(
         .collect::<m![1], m![1 # 8]>()
         .to_vrf()
 }
-fn weight_ds<S: M>(
+pub(crate) fn weight_ds<S: M>(
     device: &mut Device,
     w: &HbmTensor<bf16, Chip, m![Ds]>,
 ) -> VrfTensor<f32, Chip, Cluster, S, m![Ds]> {
@@ -60,7 +60,7 @@ fn weight_ds<S: M>(
         .collect::<m![Ds / 8], m![Ds % 8]>()
         .to_vrf()
 }
-fn norm_ds<S: M>(
+pub(crate) fn norm_ds<S: M>(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, S, m![Ds]>,
     rms: &VrfTensor<f32, Chip, Cluster, S, m![1 # 8]>,
@@ -83,7 +83,7 @@ fn norm_ds<S: M>(
         .commit_trim::<m![Ds % 8]>()
         .commit()
 }
-fn value_ds<S: M>(
+pub(crate) fn value_ds<S: M>(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, S, m![Ds]>,
     rms: &VrfTensor<f32, Chip, Cluster, S, m![1 # 8]>,
@@ -104,7 +104,7 @@ fn value_ds<S: M>(
         .commit_trim::<m![Ds % 8]>()
         .commit()
 }
-fn rope_ds<S: M>(
+pub(crate) fn rope_ds<S: M>(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, S, m![Ds]>,
     cos: &DmTensor<bf16, Chip, Cluster, S, m![Ds]>,
@@ -195,7 +195,7 @@ fn rope_ds<S: M>(
         .commit()
 }
 
-fn rms_df<S: M>(
+pub(crate) fn rms_df<S: M>(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, S, m![Df]>,
 ) -> VrfTensor<f32, Chip, Cluster, S, m![1 # 8]> {
@@ -237,7 +237,7 @@ fn rms_df<S: M>(
         .collect::<m![1], m![1 # 8]>()
         .to_vrf()
 }
-fn weight_df<S: M>(
+pub(crate) fn weight_df<S: M>(
     device: &mut Device,
     w: &HbmTensor<bf16, Chip, m![Df]>,
 ) -> VrfTensor<f32, Chip, Cluster, S, m![Df]> {
@@ -250,7 +250,7 @@ fn weight_df<S: M>(
         .collect::<m![Df / 8], m![Df % 8]>()
         .to_vrf()
 }
-fn norm_df<S: M>(
+pub(crate) fn norm_df<S: M>(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, S, m![Df]>,
     rms: &VrfTensor<f32, Chip, Cluster, S, m![1 # 8]>,
@@ -273,7 +273,7 @@ fn norm_df<S: M>(
         .commit_trim::<m![Df % 8]>()
         .commit()
 }
-fn value_df<S: M>(
+pub(crate) fn value_df<S: M>(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, S, m![Df]>,
     rms: &VrfTensor<f32, Chip, Cluster, S, m![1 # 8]>,
@@ -294,7 +294,7 @@ fn value_df<S: M>(
         .commit_trim::<m![Df % 8]>()
         .commit()
 }
-fn rope_df<S: M>(
+pub(crate) fn rope_df<S: M>(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, S, m![Df]>,
     cos: &DmTensor<bf16, Chip, Cluster, S, m![Df]>,
