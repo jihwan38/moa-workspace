@@ -66,3 +66,15 @@ pub mod ops_commit_r64;
 pub mod ops_request_sliding_b16_rc64;
 
 pub mod ops_norm_r64;
+
+pub mod ops_batch_prepack8;
+pub mod ops_batch_kpart;
+pub mod ops_native_fp8_blocked;
+pub mod ops_geglu_direct;
+pub mod ops_native_fp8_r64;
+pub mod ops_geglu_direct_r64;
+pub mod ops_batch_r64;
+pub mod ops_r64_io;
+pub mod ops_request_sliding_r64;
+pub mod ops_request_full_r64;
+pub mod ops_head_r64;
