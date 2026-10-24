@@ -1,0 +1,8 @@
+{
+  "candidate": "Read projected P128 head tiles directly in head normalization",
+  "control": "322cdbd P128 runtime with explicit raw Q/K/V B16 transfer kernels",
+  "change": "Use ops_head_wide_tile::{sliding_heads_from_wide_tile,full_heads_from_wide_tile} with the existing tile index, replacing3 sliding or2 full raw tile copies per segment. Head outputs, RoPE offsets, attention and KV commit order remain unchanged.",
+  "proof": "Root317801 all2228224outputs bit-exact for all8tiles and RoPE positions0..32767; source921c746",
+  "validation": "Host server and resumable comparison check passed",
+  "next_gate": "Root full-model interleaving and public HTTP checks"
+}
