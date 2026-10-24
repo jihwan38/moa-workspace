@@ -479,7 +479,7 @@ impl Prefill {
         }
         self.record_profile("sliding.attention", &mut profile_mark);
         launch(
-            ops_batch::project_sliding_output_batch,
+            crate::ops_output_b16_parallel_gather::project_sliding_output_batch,
             (
                 device,
                 &self.attn_s,
@@ -650,7 +650,7 @@ impl Prefill {
         .await?;
         self.record_profile("full.attention", &mut profile_mark);
         launch(
-            ops_batch::project_full_output_batch,
+            crate::ops_output_b16_parallel_gather::project_full_output_batch,
             (
                 device,
                 &self.divided_f,
