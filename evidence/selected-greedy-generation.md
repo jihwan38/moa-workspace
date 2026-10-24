@@ -22,3 +22,10 @@ callback cancellation, rejected selections without phase changes, intermediate
 prompt chunks, zero completion, and stochastic top_k1 fallback. All20 host tests
 also pass. Initial test-only callback lifetime inference error was fixed with
 an explicit Delta<'_> parameter; no production transition change was needed.
+
+Follow-up preserves sample's all-vocabulary-banned fallback. Current immutable
+Generation policies contain only2 or7 bans, so this is unreachable in normal
+requests, but a future arbitrary-ban policy can still accept unmasked argmax.
+Only an already-banned selected token with at leastW bans triggers the coverage
+check; ordinary selection never scans W. Focused fallback test passes alongside
+the four prior selected-token tests.
