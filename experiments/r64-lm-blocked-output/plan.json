@@ -12,5 +12,16 @@
     "passed": "Projection all16.7M CPU-reindexed values exactly canonical and4B16",
     "failed": "First extracted row mismatch; no timings reached",
     "repair_hypothesis": "SPM single-active-cluster index used with two vocabulary clusters; test retained SPM control with first-mismatch diagnostics. Prefer proven HBM byte-offset gather, taking row*32*sizeof(bf16), avoiding SPM index placement."
+  },
+  "actual_fixed": {
+    "job": 318011,
+    "source_commit": "2527014",
+    "binary_sha256": "67f935924ce97422b99b4872efe41ca384217df075d5e98dbf174481e9733227",
+    "correctness": "All16,777,216 projection values exact vs canonical and4B16, all64 extracted rows (16,777,216 values) exact,512 independent CPU dots exact. Original SPM control mismatches exactly131072 values per row beginning at vocabulary8192, confirming second physical cluster index failure.",
+    "timing_lines": [
+      "BLOCKED_PROJECTION_TIMING fourB16_ms=[13.761317999999997, 13.790038333333333] canonical_ms=[10.153419666666666, 10.147409666666666] blocked_ms=[5.731266333333333, 5.728949666666668] scope=warm_launch_wait",
+      "BLOCKED_EXTRACTION_TIMING canonical64_ms=[5.438974, 5.059365] blocked64_ms=[5.1228940000000005, 5.101337] scope=warm_launch_wait"
+    ],
+    "decision": "Adopt blocked projection plus HBM-byte-offset extractor. Keep old SPM function only as failed-control diagnostic; do not call in production. Whole-model evidence remains separate."
   }
 }
