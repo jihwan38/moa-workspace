@@ -21,5 +21,63 @@
     "differences": 61437,
     "diagnosis": "Firsttile7 writesrow8insecondcluster insteadrow120; indexSPMone-livepaddedcluster leavescluster1withoutthetileindex. Domainaxes preventednaiveindexbroadcast. Firstcluster writescorrecthalf.",
     "decision": "Useoneactivecluster and256livepayloadslices, keepingcontrolindexscope. Stillremovesone-liveslicebottleneck withoutcrossclusterindextransport."
-  }
+  },
+  "npu": {
+    "job": 317858,
+    "source_commit": "f81b3fb",
+    "result": "All7payloadshapes x8tileindices rawBF16bits exacttoCPU, withallnonselectedrows preserved.64ABBAwarmedsamples/kernel.",
+    "timings": [
+      {
+        "payload": "hidden",
+        "store_original_us": 19.735,
+        "store_distributed_us": 22.575,
+        "load_original_us": 20.686,
+        "load_distributed_us": 20.645
+      },
+      {
+        "payload": "query_sliding",
+        "store_original_us": 19.435,
+        "store_distributed_us": 18.51,
+        "load_original_us": 20.671,
+        "load_distributed_us": 14.805
+      },
+      {
+        "payload": "key_sliding",
+        "store_original_us": 18.995,
+        "store_distributed_us": 14.521,
+        "load_original_us": 19.735,
+        "load_distributed_us": 14.431
+      },
+      {
+        "payload": "query_full",
+        "store_original_us": 21.655,
+        "store_distributed_us": 14.59,
+        "load_original_us": 23.0,
+        "load_distributed_us": 15.335
+      },
+      {
+        "payload": "key_full",
+        "store_original_us": 18.741,
+        "store_distributed_us": 15.181,
+        "load_original_us": 18.756,
+        "load_distributed_us": 16.25
+      },
+      {
+        "payload": "heads_sliding",
+        "store_original_us": 19.086,
+        "store_distributed_us": 16.995,
+        "load_original_us": 20.636,
+        "load_distributed_us": 17.925
+      },
+      {
+        "payload": "heads_full",
+        "store_original_us": 21.441,
+        "store_distributed_us": 14.291,
+        "load_original_us": 22.77,
+        "load_distributed_us": 15.136
+      }
+    ],
+    "decision": "KeepdistributedrawQKV/headloads/stores; reexporttheexacttestedoriginalhiddenload/storefunctions becausehiddenstore regressed andhiddenloadwasneutral. SamepublicAPI; hiddenfunctionidentityisoriginalcontrol, notnewuntestedimplementation."
+  },
+  "selective_adoption": "Publichiddenload/store reexport originalcontrolfunctions tested317858; allotherfunctions usef81b3fb distributed implementation. Selectiveprobe rebuildpassed. Actualsourcef81b3fb binary hashremainsrecordedabove; newaliasesdo notchangeanydevicefunctionbody."
 }
