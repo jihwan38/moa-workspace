@@ -118,22 +118,37 @@ impl Model {
         for sequence in sequences {
             validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
         }
-        if use_prefill
-            && (2..=crate::axes::B::SIZE).contains(&sequences.len())
-            && sequences.iter().all(|sequence| sequence.inputs.len() == 1)
-        {
+        let singletons: Vec<usize> = sequences
+            .iter()
+            .enumerate()
+            .filter_map(|(row, s)| (s.inputs.len() == 1).then_some(row))
+            .collect();
+        let batched_singletons =
+            use_prefill && (2..=crate::axes::B::SIZE).contains(&singletons.len());
+        if batched_singletons {
+            let rows: Vec<_> = singletons
+                .iter()
+                .map(|&row| Sequence {
+                    inputs: sequences[row].inputs,
+                    start_position: sequences[row].start_position,
+                    blocks: sequences[row].blocks,
+                })
+                .collect();
             self.prefill
                 .decode_batch(
                     device,
                     &self.weights,
-                    sequences,
+                    &rows,
                     workspace,
-                    &mut self.logits[..sequences.len()],
+                    &mut self.logits,
+                    &singletons,
                 )
                 .await?;
-            return Ok(&self.logits[..sequences.len()]);
         }
         for (row, sequence) in sequences.iter().enumerate() {
+            if batched_singletons && sequence.inputs.len() == 1 {
+                continue;
+            }
             workspace.blocks.full.clone_from(&sequence.blocks.full);
             workspace.blocks.sliding = sequence.blocks.sliding;
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
