@@ -476,7 +476,10 @@ across clusters. Up Cluster=L/7680, slices=[L/120%64,H/960]; down
 Cluster=H/1920,slices=[H/120%16,L/960]. Each slice loads an existing blocked
 weight's contiguous120-row half (115200B) once, streams all512 token rows in
 eight64-row tiles, and writes its half of output channels. Three projection
-weight transfers total177MB instead354MB; input replication is similar and
-matrix loop count doubles with half local channel rows. No cross-cluster DM
+weight transfers total177MB instead354MB; input replication doubles377MB→755MB because each cluster retains64/16 output
+row groups but now reads all512 tokens. Thus total HBM traffic worsens; the
+original similar-activation estimate was wrong. Matrix loop count doubles with
+half local channel rows. A fused up/gate projection can share those input reads
+because both120×960 weight tiles fit together; this is a separate candidate. No cross-cluster DM
 reduction is required because stages use HBM. Gate every final output bit against
 both token-cluster P512 and P128 controls before timing; retain baseline module.
