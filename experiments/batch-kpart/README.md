@@ -277,3 +277,9 @@ as a padded DM view directly into the existing vector stream, removing two
 DM tile copies per add node. Existing entry points remain controls; require
 all output bits equal on varied inputs and independent dyadic CPU oracles,
 then matched-output ABBA timing. No weight or numerical-format changes.
+
+Direct P16 operand fetch initially failed SDK lowering because its live padded
+axis was left unread by the split fetch packet. Compilable direct variant uses
+four B8 tiles per cluster rather than two P16 tiles; this adds two loop bodies
+per sum node while removing both operands' DM copies. Arithmetic is unchanged;
+actual timing will decide whether removed DMA exceeds extra control overhead.
