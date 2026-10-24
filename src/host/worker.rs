@@ -41,10 +41,9 @@ struct Pending {
 
 impl Worker {
     pub fn new(tokenizer: Tokenizer) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::new_with_storage(tokenizer, false)
+        Self::new_with_storage(tokenizer, true)
     }
-    /// Candidate constructor with one canonical KV pool and R64 request capacity.
-    /// The default constructor remains the reproducible legacy control.
+    /// Canonical KV pool and R64 request capacity, also used by the HTTP worker.
     pub fn new_canonical64(tokenizer: Tokenizer) -> Result<Self, Box<dyn std::error::Error>> {
         Self::new_with_storage(tokenizer, true)
     }
