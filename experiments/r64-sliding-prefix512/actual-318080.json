@@ -1,0 +1,168 @@
+{
+  "source": "eaa6e97",
+  "job": 318080,
+  "log": "/round2/runs/r311-r64-prefix512-attention-submit/arena.log",
+  "binary": "/round2/attention/target/release/test_request_sliding_r64_prefix512",
+  "sha256": "be80dc90c3b740e47815d51d985e86feb3f9c1caa2b6e4752cc76e74b8324e7e",
+  "result": "PASS: all64 row/control/scalar comparisons exact, everyfuturetailpoisonedfinite, sparse7updates,inactivezero,64->7->64.",
+  "positions": [
+    0,
+    31,
+    255,
+    510,
+    511,
+    1,
+    127,
+    256
+  ],
+  "warm_abba": [
+    "R64_PREFIX512_TIMING count=64 control_us=[713.5806666666667, 713.7006666666667] prefix512_us=[471.4270000000001, 464.137] scope=warm_launch_wait",
+    "R64_PREFIX512_TIMING count=64 control_us=[713.054, 713.5073333333335] prefix512_us=[471.067, 463.2436666666667] scope=warm_launch_wait",
+    "R64_PREFIX512_TIMING count=7 control_us=[714.2006666666666, 716.1606666666667] prefix512_us=[469.89366666666666, 464.30366666666663] scope=warm_launch_wait",
+    "R64_PREFIX512_TIMING count=64 control_us=[715.3773333333332, 713.304] prefix512_us=[470.384, 462.8933333333334] scope=warm_launch_wait"
+  ],
+  "profile": {
+    "control": {
+      "0": {
+        "task_cycles": 1399313,
+        "by_operation": {
+          "DMA": {
+            "count": 80,
+            "sum": 1141114,
+            "max": 58478
+          },
+          "Cluster": {
+            "count": 25,
+            "sum": 51437,
+            "max": 3471
+          },
+          "Renegade::TuExec": {
+            "count": 112,
+            "sum": 495726,
+            "max": 16955
+          },
+          "Renegade::StoVrf": {
+            "count": 32,
+            "sum": 32441,
+            "max": 1662
+          },
+          "Task": {
+            "count": 1,
+            "sum": 1399313,
+            "max": 1399313
+          }
+        }
+      },
+      "1": {
+        "task_cycles": 1396943,
+        "by_operation": {
+          "DMA": {
+            "count": 80,
+            "sum": 1143850,
+            "max": 59078
+          },
+          "Cluster": {
+            "count": 25,
+            "sum": 45820,
+            "max": 2742
+          },
+          "Renegade::TuExec": {
+            "count": 112,
+            "sum": 495107,
+            "max": 16953
+          },
+          "Renegade::StoVrf": {
+            "count": 32,
+            "sum": 32433,
+            "max": 1661
+          },
+          "Task": {
+            "count": 1,
+            "sum": 1396943,
+            "max": 1396943
+          }
+        }
+      }
+    },
+    "prefix512": {
+      "0": {
+        "task_cycles": 920493,
+        "by_operation": {
+          "DMA": {
+            "count": 88,
+            "sum": 667899,
+            "max": 29332
+          },
+          "Renegade::ParallelMemSet": {
+            "count": 16,
+            "sum": 31427,
+            "max": 2817
+          },
+          "Cluster": {
+            "count": 25,
+            "sum": 78521,
+            "max": 8137
+          },
+          "Renegade::TuExec": {
+            "count": 112,
+            "sum": 492088,
+            "max": 16955
+          },
+          "Renegade::StoVrf": {
+            "count": 32,
+            "sum": 32504,
+            "max": 1660
+          },
+          "Task": {
+            "count": 1,
+            "sum": 920493,
+            "max": 920493
+          }
+        }
+      },
+      "1": {
+        "task_cycles": 917881,
+        "by_operation": {
+          "DMA": {
+            "count": 88,
+            "sum": 671555,
+            "max": 29434
+          },
+          "Renegade::ParallelMemSet": {
+            "count": 16,
+            "sum": 31300,
+            "max": 2753
+          },
+          "Cluster": {
+            "count": 25,
+            "sum": 71630,
+            "max": 8081
+          },
+          "Renegade::TuExec": {
+            "count": 112,
+            "sum": 491996,
+            "max": 16953
+          },
+          "Renegade::StoVrf": {
+            "count": 32,
+            "sum": 32534,
+            "max": 1658
+          },
+          "Task": {
+            "count": 1,
+            "sum": 917881,
+            "max": 917881
+          }
+        }
+      }
+    }
+  },
+  "adoption": {
+    "entrypoint": "crate::ops_request_sliding_r64_prefix512::sliding_attention_r64",
+    "condition": "Everyactive Sequence.start_position<512 andexistingcausalvisibilitymasktailzero. Allothercontexts useoriginalfullring kernel.",
+    "ABI": "Identical originalR64q,time-majorRc64K/V,ringbasebyteoffset[R64],visibilitymask[R64,Ts],out[R64,Ns,Gs,Ds].",
+    "needed_sources": "eaa6e97 newmodule+libexport; noheadmajororR16/R32 dependencies.",
+    "arithmetic": "Full1024softmax+sum;first16 original32-keyBF16partials copiedintoall32zero-filledplanes beforeunchanged32-way F32add/BF16cast.",
+    "scope": "Kernel~35%faster (control~714us,prefix~467us);~10mssumover40layers whenallshort. Notwholemodelthroughputproof; rootmodelgate required."
+  }
+}
