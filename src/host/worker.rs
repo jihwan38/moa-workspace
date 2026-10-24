@@ -20,6 +20,15 @@ pub const CONTEXT: usize = 8192;
 const GROUP_PREFILL_ENABLED: bool = true;
 /// Keep disabled until the chronological model and HTTP gates pass.
 const PROMPT512_ENABLED: bool = true;
+/// Diagnostic candidates flip these constants globally, never from request data.
+/// Public TPOT averages request latency; the private evaluator's exact formula
+/// is unverified. This candidate needs measured output-gap and HTTP gates.
+const CREDIT_SCHEDULER_ENABLED: bool = false;
+const SCHEDULER_TRACE_ENABLED: bool = false;
+const DECODE_CREDIT_TARGET: Duration = Duration::from_millis(90);
+/// A soft per-delta bound complements the earned average budget. Slow model
+/// work and the existing minimum-progress quantum can exceed a prediction.
+const DECODE_GAP_SOFTCAP: Duration = Duration::from_millis(150);
 
 pub struct Worker {
     runtime: tokio::runtime::Runtime,
@@ -41,6 +50,7 @@ struct Session {
     reservation: Option<Reservation>,
     events: mpsc::Sender<StreamEvent>,
     stream: bool,
+    timing: SessionTiming,
 }
 
 struct Pending {
@@ -48,6 +58,183 @@ struct Pending {
     positions: usize,
     events: mpsc::Sender<StreamEvent>,
     stream: bool,
+    timing: SessionTiming,
+}
+
+#[derive(Default)]
+struct TokenProgress {
+    first: Option<Instant>,
+    last: Option<Instant>,
+    tokens: usize,
+    max_gap: Duration,
+}
+impl TokenProgress {
+    fn emitted(&mut self, now: Instant) {
+        self.first.get_or_insert(now);
+        if let Some(last) = self.last {
+            self.max_gap = self.max_gap.max(now.saturating_duration_since(last));
+        }
+        self.last = Some(now);
+    }
+    fn deadline(&self, target: Duration, gap_cap: Duration) -> Option<Instant> {
+        if self.tokens == 0 {
+            return None;
+        }
+        let count = u32::try_from(self.tokens).ok()?;
+        let earned = self.first?.checked_add(target.checked_mul(count)?)?;
+        let per_gap = self.last?.checked_add(gap_cap)?;
+        Some(earned.min(per_gap))
+    }
+}
+
+struct SessionTiming {
+    id: u64,
+    prompt_tokens: usize,
+    received: Instant,
+    admitted: Instant,
+    progress: TokenProgress,
+    own: Duration,
+    decode_wait: Duration,
+    prompt_wait: Duration,
+    decode_rounds: usize,
+    credited: usize,
+}
+impl SessionTiming {
+    fn new(id: u64, prompt_tokens: usize, now: Instant) -> Self {
+        Self {
+            id,
+            prompt_tokens,
+            received: now,
+            admitted: now,
+            progress: TokenProgress::default(),
+            own: Duration::ZERO,
+            decode_wait: Duration::ZERO,
+            prompt_wait: Duration::ZERO,
+            decode_rounds: 0,
+            credited: 0,
+        }
+    }
+    fn report(&self, finished: Instant) {
+        let ms = |duration: Duration| duration.as_secs_f64() * 1000.0;
+        let first = self
+            .progress
+            .first
+            .map(|t| t.saturating_duration_since(self.admitted));
+        let accounted = self.own + self.decode_wait + self.prompt_wait;
+        let average = self
+            .progress
+            .first
+            .filter(|_| self.progress.tokens > 1)
+            .map(|t| ms(finished.saturating_duration_since(t)) / (self.progress.tokens - 1) as f64)
+            .unwrap_or(0.0);
+        eprintln!(
+            "SCHED_REQ id={} p={} q={:.1} first={:.1} own={:.1} dw={:.1}/{} pw={:.1} host={:.1} n={} avg={:.2} maxgap={:.1} credited={}",
+            self.id,
+            self.prompt_tokens,
+            ms(self.admitted.saturating_duration_since(self.received)),
+            first.map(ms).unwrap_or(-1.0),
+            ms(self.own),
+            ms(self.decode_wait),
+            self.decode_rounds,
+            ms(self.prompt_wait),
+            first
+                .map(|f| ms(f.saturating_sub(accounted)))
+                .unwrap_or(0.0),
+            self.progress.tokens,
+            average,
+            ms(self.progress.max_gap),
+            self.credited
+        );
+    }
+}
+
+#[derive(Clone, Copy, Default)]
+struct WorkCost {
+    calls: usize,
+    total: Duration,
+    max: Duration,
+}
+impl WorkCost {
+    fn add(&mut self, elapsed: Duration) {
+        self.calls += 1;
+        self.total += elapsed;
+        self.max = self.max.max(elapsed);
+    }
+    fn compact(&self) -> String {
+        format!(
+            "{}:{:.2}/{:.2}",
+            self.calls,
+            self.total.as_secs_f64() * 1000.0 / self.calls.max(1) as f64,
+            self.max.as_secs_f64() * 1000.0
+        )
+    }
+}
+struct SchedulerTrace {
+    decode: [WorkCost; crate::axes::R64::SIZE + 1],
+    prompt: [WorkCost; 2],
+    // Actual owners per dispatch, separate from the cost class: Prompt512 has
+    // one owner but shares the four-chunk cost class with four independent rows.
+    prompt_dispatches: [usize; 5],
+    credit_opportunities: usize,
+    unknown_credit: usize,
+    credited: WorkCost,
+}
+impl SchedulerTrace {
+    fn new() -> Self {
+        Self {
+            decode: [WorkCost::default(); crate::axes::R64::SIZE + 1],
+            prompt: [WorkCost::default(); 2],
+            prompt_dispatches: [0; 5],
+            credit_opportunities: 0,
+            unknown_credit: 0,
+            credited: WorkCost::default(),
+        }
+    }
+    fn work(
+        &mut self,
+        width: usize,
+        scheduled: &[ScheduledInput],
+        elapsed: Duration,
+        credited: bool,
+    ) {
+        if width > 0 {
+            self.decode[width].add(elapsed);
+        } else {
+            self.prompt[usize::from(prompt_cost_width(scheduled) == 4)].add(elapsed);
+            self.prompt_dispatches[scheduled.len()] += 1;
+        }
+        if credited {
+            self.credited.add(elapsed);
+        }
+    }
+    fn report(&self) {
+        let widths: Vec<_> = self
+            .decode
+            .iter()
+            .enumerate()
+            .filter(|(_, s)| s.calls > 0)
+            .map(|(width, s)| format!("d{width}={}", s.compact()))
+            .collect();
+        let prompt_widths: Vec<_> = self
+            .prompt_dispatches
+            .iter()
+            .enumerate()
+            .filter(|(_, count)| **count > 0)
+            .map(|(width, count)| format!("p{width}={count}"))
+            .collect();
+        eprintln!(
+            "SCHED_TOTAL credit={} cap_ms={} {} {} pc1={} pc4={} credit_fit={} unknown={} used={}",
+            CREDIT_SCHEDULER_ENABLED,
+            DECODE_GAP_SOFTCAP.as_millis(),
+            widths.join(" "),
+            prompt_widths.join(" "),
+            self.prompt[0].compact(),
+            self.prompt[1].compact(),
+            self.credit_opportunities,
+            self.unknown_credit,
+            self.credited.compact()
+        );
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -104,7 +291,31 @@ impl DecodeCadence {
             && now.saturating_duration_since(last)
                 + self.prompt_cost[usize::from(prompt_width == 4)]
                 + self.costs[ready]
-                <= Duration::from_millis(90)
+                <= DECODE_CREDIT_TARGET
+    }
+    /// None retains the conventional policy until both width cost and actual
+    /// stream progress are known. Credit comes only from already emitted usage.
+    fn earned_prompt_fits(
+        &self,
+        now: Instant,
+        ready: &[&TokenProgress],
+        prompt_width: usize,
+        gap_cap: Duration,
+    ) -> Option<bool> {
+        if ready.is_empty() {
+            return Some(true);
+        }
+        let decode = self.costs[ready.len()];
+        if decode == Duration::ZERO {
+            return None;
+        }
+        let mut deadline = None::<Instant>;
+        for stream in ready {
+            let next = stream.deadline(DECODE_CREDIT_TARGET, gap_cap)?;
+            deadline = Some(deadline.map_or(next, |current| current.min(next)));
+        }
+        let finish = now + self.prompt_cost[usize::from(prompt_width == 4)] + decode;
+        Some(finish <= deadline.unwrap())
     }
     fn observe_prompt(&mut self, elapsed: Duration, width: usize) {
         let cost = &mut self.prompt_cost[usize::from(width == 4)];
@@ -191,6 +402,8 @@ impl Worker {
         let mut cadence = DecodeCadence::new();
         let mut next_prefill_ring = 0;
         let mut active_work = Vec::<ScheduledInput>::new();
+        let mut request_id = 0u64;
+        let mut trace = SchedulerTrace::new();
         loop {
             let incoming: Vec<_> = if sessions.is_empty() && pending.is_empty() {
                 let Ok(job) = jobs.recv() else { break };
@@ -204,6 +417,9 @@ impl Worker {
                     .collect()
             };
             for job in incoming {
+                request_id += 1;
+                let timing =
+                    SessionTiming::new(request_id, job.request.prompt_ids.len(), Instant::now());
                 let empty = job.request.max_new_tokens == 0;
                 let Some(positions) = job
                     .request
@@ -226,6 +442,7 @@ impl Worker {
                         positions,
                         events: job.events,
                         stream: job.stream,
+                        timing,
                     }),
                     Ok(generation) => sessions.push(Session {
                         generation,
@@ -236,6 +453,7 @@ impl Worker {
                         },
                         events: job.events,
                         stream: job.stream,
+                        timing,
                     }),
                     Err(error) => {
                         let _ = job.events.send(StreamEvent::Error(error.to_string()));
@@ -252,13 +470,15 @@ impl Worker {
                     else {
                         break;
                     };
-                    let request = pending.pop_front().unwrap();
+                    let mut request = pending.pop_front().unwrap();
+                    request.timing.admitted = Instant::now();
                     sessions.push(Session {
                         generation: request.generation,
                         blocks: reservation.blocks.clone(),
                         reservation: Some(reservation),
                         events: request.events,
                         stream: request.stream,
+                        timing: request.timing,
                     });
                 }
             }
@@ -296,12 +516,38 @@ impl Worker {
                 &active_rings,
                 group_enabled,
             );
-            let pending_inputs =
-                schedule_inputs(&available, &pending_selection, &active_work, prompt512_enabled);
+            let pending_inputs = schedule_inputs(
+                &available,
+                &pending_selection,
+                &active_work,
+                prompt512_enabled,
+            );
             let prompt_width = prompt_cost_width(&pending_inputs);
             // Keep all ready decoders together, while allowing several short
             // prompt layers inside the time left before their next round.
-            prefer_prefill |= cadence.prompt_fits(Instant::now(), ready, prompt_width);
+            let now = Instant::now();
+            let conventional_fits = cadence.prompt_fits(now, ready, prompt_width);
+            let ready_progress: Vec<_> = sessions
+                .iter()
+                .zip(&available)
+                .filter(|(_, input)| input.count == 1 && !active_rings.contains(&input.ring))
+                .map(|(session, _)| &session.timing.progress)
+                .collect();
+            let earned_fits =
+                cadence.earned_prompt_fits(now, &ready_progress, prompt_width, DECODE_GAP_SOFTCAP);
+            let credit_opportunity = !prefer_prefill
+                && !conventional_fits
+                && !pending_selection.is_empty()
+                && earned_fits == Some(true);
+            if SCHEDULER_TRACE_ENABLED {
+                trace.credit_opportunities += usize::from(credit_opportunity);
+                trace.unknown_credit += usize::from(ready > 0 && earned_fits.is_none());
+            }
+            prefer_prefill |= if CREDIT_SCHEDULER_ENABLED {
+                earned_fits.unwrap_or(conventional_fits)
+            } else {
+                conventional_fits
+            };
             let selected = select_work_in(
                 capacity,
                 &available,
@@ -321,6 +567,7 @@ impl Worker {
             };
             let grouped = selected.len() == 4 && decode_width == 0;
             let cost_width = prompt_cost_width(&scheduled);
+            let credited = CREDIT_SCHEDULER_ENABLED && credit_opportunity && decode_width == 0;
             if decode_width == 0 && active_work.is_empty() {
                 active_work.clone_from(&scheduled);
             }
@@ -514,6 +761,15 @@ impl Worker {
                     Ok::<_, Box<dyn std::error::Error>>(Some(logits))
                 })
             }));
+            if SCHEDULER_TRACE_ENABLED {
+                account_prefill_wait(
+                    &mut sessions,
+                    &scheduled,
+                    decode_width,
+                    work_started.elapsed(),
+                    credited,
+                );
+            }
             let completed = match result {
                 Ok(Ok(outputs)) => complete_work(
                     &mut sessions,
@@ -529,7 +785,11 @@ impl Worker {
             };
             match completed {
                 Ok(false) => {
-                    cadence.observe_prompt(work_started.elapsed(), cost_width);
+                    let elapsed = work_started.elapsed();
+                    cadence.observe_prompt(elapsed, cost_width);
+                    if SCHEDULER_TRACE_ENABLED {
+                        trace.work(0, &scheduled, elapsed, credited);
+                    }
                     continue;
                 }
                 Ok(true) => {
@@ -553,16 +813,51 @@ impl Worker {
                     for queued in &pending {
                         let _ = queued.events.send(StreamEvent::Error(message.clone()));
                     }
+                    if SCHEDULER_TRACE_ENABLED {
+                        trace.report();
+                    }
                     return;
                 }
             }
             let finished = Instant::now();
             let elapsed = finished.duration_since(work_started);
+            if SCHEDULER_TRACE_ENABLED {
+                trace.work(decode_width, &scheduled, elapsed, credited);
+                if sessions.is_empty() && pending.is_empty() {
+                    trace.report();
+                }
+            }
             if decode_width > 0 {
                 cadence.observe_decode(finished, decode_width, elapsed);
             } else {
                 cadence.observe_prompt(elapsed, cost_width);
             }
+        }
+    }
+}
+
+fn account_prefill_wait(
+    sessions: &mut [Session],
+    scheduled: &[ScheduledInput],
+    decode_width: usize,
+    elapsed: Duration,
+    credited: bool,
+) {
+    for session in sessions {
+        if session.timing.progress.first.is_some() {
+            continue;
+        }
+        if scheduled
+            .iter()
+            .any(|input| input.ring == session.blocks.sliding)
+        {
+            session.timing.own += elapsed;
+            session.timing.credited += usize::from(credited);
+        } else if decode_width > 0 {
+            session.timing.decode_wait += elapsed;
+            session.timing.decode_rounds += 1;
+        } else {
+            session.timing.prompt_wait += elapsed;
         }
     }
 }
@@ -608,6 +903,12 @@ fn complete_work(
         };
         let count = scheduled[row].count;
         let emit = |delta: Delta<'_>| {
+            let text = match delta {
+                Delta::Content(text) | Delta::Reasoning(text) => text,
+            };
+            if !text.is_empty() {
+                session.timing.progress.emitted(Instant::now());
+            }
             !session.stream
                 || session
                     .events
@@ -623,12 +924,16 @@ fn complete_work(
                 .generation
                 .advance_inputs_greedy(count, *token, emit),
         };
+        session.timing.progress.tokens = session.generation.completion_tokens();
         let event = match result {
             Ok(None) => return true,
             Ok(Some(output)) => StreamEvent::Done(output),
             Err(error) => StreamEvent::Error(error.to_string()),
         };
         let _ = session.events.send(event);
+        if SCHEDULER_TRACE_ENABLED {
+            session.timing.report(Instant::now());
+        }
         if let Some(reservation) = session.reservation.take() {
             reservations
                 .as_mut()
@@ -1016,6 +1321,7 @@ mod tests {
                 reservation: Some(reservation),
                 events,
                 stream: true,
+                timing: SessionTiming::new(0, prompt, Instant::now()),
             },
             receiver,
         )
@@ -1417,5 +1723,196 @@ mod tests {
         assert!(sessions.is_empty());
         assert_eq!(pool.as_ref().unwrap().available_pages(), 256);
         assert!(free.is_empty() && rings.is_empty());
+    }
+    #[test]
+    fn earned_credit_uses_only_completed_tokens_and_the_earliest_stream_deadline() {
+        let start = Instant::now();
+        let mut cadence = DecodeCadence::new();
+        cadence.prompt_cost[0] = Duration::from_millis(20);
+        cadence.observe_decode(
+            start + Duration::from_millis(30),
+            1,
+            Duration::from_millis(30),
+        );
+        let fast = TokenProgress {
+            first: Some(start),
+            last: Some(start + Duration::from_millis(30)),
+            tokens: 2,
+            max_gap: Duration::from_millis(30),
+        };
+        let now = start + Duration::from_millis(100);
+        assert!(!cadence.prompt_fits(now, 1, 1));
+        assert_eq!(
+            cadence.earned_prompt_fits(now, &[&fast], 1, DECODE_GAP_SOFTCAP),
+            Some(true)
+        );
+        let unearned = TokenProgress { tokens: 1, ..fast };
+        assert_eq!(
+            cadence.earned_prompt_fits(now, &[&unearned], 1, DECODE_GAP_SOFTCAP),
+            Some(false)
+        );
+        cadence.costs[2] = Duration::from_millis(30);
+        let newly_ready = TokenProgress {
+            first: Some(start + Duration::from_millis(50)),
+            last: Some(start + Duration::from_millis(50)),
+            tokens: 1,
+            max_gap: Duration::ZERO,
+        };
+        assert_eq!(
+            cadence.earned_prompt_fits(now, &[&fast, &newly_ready], 1, DECODE_GAP_SOFTCAP),
+            Some(false)
+        );
+    }
+
+    #[test]
+    fn soft_gap_cap_limits_banked_credit_and_unknown_progress_keeps_the_control_policy() {
+        let start = Instant::now();
+        let mut cadence = DecodeCadence::new();
+        let rich = TokenProgress {
+            first: Some(start),
+            last: Some(start + Duration::from_millis(90)),
+            tokens: 100,
+            max_gap: Duration::ZERO,
+        };
+        let now = start + Duration::from_millis(100);
+        assert_eq!(
+            cadence.earned_prompt_fits(now, &[&rich], 1, DECODE_GAP_SOFTCAP),
+            None
+        );
+        cadence.costs[1] = Duration::from_millis(30);
+        cadence.prompt_cost[0] = Duration::from_millis(110);
+        assert_eq!(
+            cadence.earned_prompt_fits(now, &[&rich], 1, DECODE_GAP_SOFTCAP),
+            Some(true)
+        );
+        cadence.prompt_cost[0] = Duration::from_millis(111);
+        assert_eq!(
+            cadence.earned_prompt_fits(now, &[&rich], 1, DECODE_GAP_SOFTCAP),
+            Some(false)
+        );
+        assert_eq!(
+            cadence.earned_prompt_fits(now, &[&TokenProgress::default()], 1, DECODE_GAP_SOFTCAP),
+            None
+        );
+        // The established minimum-progress alternation remains available even
+        // when an overloaded batch cannot satisfy a predicted soft deadline.
+        let work = ready_inputs(&[(0, 1), (1, 128)]);
+        let mut prefer = true;
+        let mut next = 0;
+        assert_eq!(
+            select_work_in(64, &work, &mut prefer, &mut next, &[], true),
+            vec![1]
+        );
+        assert_eq!(
+            select_work_in(64, &work, &mut prefer, &mut next, &[], true),
+            vec![0]
+        );
+    }
+
+    #[test]
+    fn progress_tracks_real_generation_usage_and_first_nonempty_delta() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (session, receiver) = session(pool.as_mut().unwrap(), 256, 4);
+        let mut sessions = vec![session];
+        let mut free = vec![];
+        let mut rings = vec![];
+        complete_selected(
+            &mut sessions,
+            &[0],
+            Some(&[SampleOutput::Logits(vec![])]),
+            &mut pool,
+            &mut free,
+            &mut rings,
+        )
+        .unwrap();
+        assert!(sessions[0].timing.progress.first.is_none());
+        assert_eq!(sessions[0].timing.progress.tokens, 0);
+        complete_selected(
+            &mut sessions,
+            &[0],
+            Some(&[SampleOutput::Greedy(3)]),
+            &mut pool,
+            &mut free,
+            &mut rings,
+        )
+        .unwrap();
+        let first = sessions[0].timing.progress.first.unwrap();
+        assert_eq!(sessions[0].timing.progress.tokens, 1);
+        assert!(matches!(receiver.try_recv(), Ok(StreamEvent::Delta(_))));
+        complete_selected(
+            &mut sessions,
+            &[0],
+            Some(&[SampleOutput::Greedy(4)]),
+            &mut pool,
+            &mut free,
+            &mut rings,
+        )
+        .unwrap();
+        assert_eq!(sessions[0].timing.progress.first, Some(first));
+        assert_eq!(sessions[0].timing.progress.tokens, 2);
+        assert!(sessions[0].timing.progress.last.unwrap() >= first);
+        assert_eq!(sessions[0].generation.completion_tokens(), 2);
+    }
+
+    #[test]
+    fn compact_trace_separates_own_compute_decoder_wait_and_other_prompt_wait() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (mut sessions, _receivers): (Vec<_>, Vec<_>) = (0..3)
+            .map(|_| session(pool.as_mut().unwrap(), 256, 4))
+            .unzip();
+        let work = ready_sessions(&sessions);
+        let own = schedule_inputs(&work, &[0], &[], false);
+        let decoder = schedule_inputs(&work, &[1], &[], false);
+        let other = schedule_inputs(&work, &[2], &[], false);
+        account_prefill_wait(&mut sessions, &own, 0, Duration::from_millis(2), true);
+        account_prefill_wait(&mut sessions, &decoder, 1, Duration::from_millis(20), false);
+        account_prefill_wait(&mut sessions, &other, 0, Duration::from_millis(7), false);
+        let stats = &sessions[0].timing;
+        assert_eq!(
+            (stats.own, stats.decode_wait, stats.prompt_wait),
+            (
+                Duration::from_millis(2),
+                Duration::from_millis(20),
+                Duration::from_millis(7)
+            )
+        );
+        assert_eq!((stats.decode_rounds, stats.credited), (1, 1));
+        sessions[0].timing.progress.emitted(Instant::now());
+        account_prefill_wait(&mut sessions, &other, 0, Duration::from_millis(100), false);
+        assert_eq!(sessions[0].timing.prompt_wait, Duration::from_millis(7));
+    }
+
+    #[test]
+    fn dispatch_trace_distinguishes_r64_width_and_prompt_owner_width_from_cost_class() {
+        let mut trace = SchedulerTrace::new();
+        let decode: Vec<_> = (0..17)
+            .map(|ring| ScheduledInput {
+                ring,
+                position: 128,
+                count: 1,
+            })
+            .collect();
+        trace.work(17, &decode, Duration::from_millis(70), false);
+        let single = [ScheduledInput {
+            ring: 31,
+            position: 0,
+            count: 512,
+        }];
+        trace.work(0, &single, Duration::from_millis(8), true);
+        let quad: Vec<_> = (0..4)
+            .map(|ring| ScheduledInput {
+                ring,
+                position: 0,
+                count: 128,
+            })
+            .collect();
+        trace.work(0, &quad, Duration::from_millis(9), false);
+        assert_eq!(trace.decode[17].calls, 1);
+        assert_eq!(trace.decode[16].calls, 0);
+        assert_eq!(trace.prompt_dispatches[1], 1);
+        assert_eq!(trace.prompt_dispatches[4], 1);
+        assert_eq!(trace.prompt[0].calls, 0);
+        assert_eq!(trace.prompt[1].calls, 2);
+        assert_eq!(trace.credited.calls, 1);
     }
 }

@@ -312,6 +312,12 @@ impl Generation {
         &self.request.sampling
     }
 
+    /// Tokens actually accepted by generation so far, excluding unsampled future
+    /// output and EOS/stop events that do not increment completion usage.
+    pub(crate) fn completion_tokens(&self) -> usize {
+        self.output.completion_tokens
+    }
+
     /// Immutable request bans, shared by CPU sampling and external greedy selection.
     pub fn banned_tokens(&self) -> &HashSet<usize> {
         &self.banned_tokens
