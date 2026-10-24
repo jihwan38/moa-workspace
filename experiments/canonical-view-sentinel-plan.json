@@ -5,5 +5,6 @@
   "test": "Read initialslots0,31,63 andpages0,127,255 via tile+unit-axis reshape; write distinct raw-bit replacement through mutableviews; copy complete64ring/256page pools back and compare every element, including all untouchedneighbors. Uses separate384MiB-class testallocations, no modelweights.",
   "expected_removed_work": "Scalar/prompt wrappers can bind original canonical bytes directly instead of copying a full request history between Vec and pool allocations",
   "host_compile": "Passed after explicit HostTensor and to_host mapping annotations; existing HbmTensor-parameter ABI failure is preserved separately",
-  "next_gate": "Compile all4device entries, then root-run NPU sentinel before canonical workspace integration"
+  "next_gate": "Compile all4device entries, then root-run NPU sentinel before canonical workspace integration",
+  "device_compile_repair": "First four device kernels failed MIR because cluster extent1 did not match default two-cluster device. Use existing device::layout::Cluster (one live cluster padded to physical extent2), preserving payload mapping."
 }

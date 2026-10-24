@@ -1,6 +1,7 @@
 //! Canonical KV storage axis and explicit zero-copy view ABI probes.
 //! Query batch axes remain separate from physical request slots.
 use crate::{Chip, axes::*};
+use crate::device::layout::Cluster;
 use furiosa_opt_std::prelude::*;
 axes![Rc64 = 64];
 
@@ -10,7 +11,7 @@ pub fn read_ring(
     input: HbmTensorView<'_, bf16, Chip, m![Ts, Ns, Ds]>,
     output: &mut HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
 ) {
-    let x: DmTensor<bf16, Chip, m![1], m![Ts / 4], m![Ts % 4, Ns, Ds]> =
+    let x: DmTensor<bf16, Chip, Cluster, m![Ts / 4], m![Ts % 4, Ns, Ds]> =
         input.to_dm(&mut device.tdma);
     x.view().to_hbm_view(&mut device.tdma, output.view_mut());
 }
@@ -21,7 +22,7 @@ pub fn write_ring(
     input: &HbmTensor<bf16, Chip, m![Ts, Ns, Ds]>,
     output: HbmTensorViewMut<'_, bf16, Chip, m![Ts, Ns, Ds]>,
 ) {
-    let x: DmTensor<bf16, Chip, m![1], m![Ts / 4], m![Ts % 4, Ns, Ds]> =
+    let x: DmTensor<bf16, Chip, Cluster, m![Ts / 4], m![Ts % 4, Ns, Ds]> =
         input.to_dm(&mut device.tdma);
     x.view().to_hbm_view(&mut device.tdma, output);
 }
@@ -32,7 +33,7 @@ pub fn read_page(
     input: HbmTensorView<'_, bf16, Chip, m![Tf, Df]>,
     output: &mut HbmTensor<bf16, Chip, m![Tf, Df]>,
 ) {
-    let x: DmTensor<bf16, Chip, m![1], m![Tf / 2], m![Tf % 2, Df]> = input.to_dm(&mut device.tdma);
+    let x: DmTensor<bf16, Chip, Cluster, m![Tf / 2], m![Tf % 2, Df]> = input.to_dm(&mut device.tdma);
     x.view().to_hbm_view(&mut device.tdma, output.view_mut());
 }
 
@@ -42,6 +43,6 @@ pub fn write_page(
     input: &HbmTensor<bf16, Chip, m![Tf, Df]>,
     output: HbmTensorViewMut<'_, bf16, Chip, m![Tf, Df]>,
 ) {
-    let x: DmTensor<bf16, Chip, m![1], m![Tf / 2], m![Tf % 2, Df]> = input.to_dm(&mut device.tdma);
+    let x: DmTensor<bf16, Chip, Cluster, m![Tf / 2], m![Tf % 2, Df]> = input.to_dm(&mut device.tdma);
     x.view().to_hbm_view(&mut device.tdma, output);
 }
