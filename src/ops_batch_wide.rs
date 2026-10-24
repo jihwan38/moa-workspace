@@ -716,7 +716,7 @@ fn down_wide(
 }
 
 #[device(chip = 1)]
-pub fn batch_ffn(
+pub fn batch_ffn_staged_control(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![P128, H]>,
     up: &HbmTensor<f4e2m1, Chip, m![L, H]>,
@@ -1253,7 +1253,7 @@ pub fn batch_ffn_up32(
 }
 
 #[device(chip = 1)]
-pub fn batch_ffn_up32_down_cached(
+pub fn batch_ffn(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![P128, H]>,
     up: &HbmTensor<f4e2m1, Chip, m![L, H]>,
