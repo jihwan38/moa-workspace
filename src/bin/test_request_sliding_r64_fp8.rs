@@ -323,6 +323,57 @@ fn cpu_attention(q: &[f32], k: &[f32], v: &[f32], pos: usize, h: usize, g: usize
         })
         .collect()
 }
+// Independent F64 accumulation with the implementation's explicit BF16 storage
+// boundaries. The F64 unrounded reference above remains an error measurement;
+// it cannot be an equivalence gate for the original BF16 attention itself.
+fn cpu_bf16_boundaries(
+    q: &[f32],
+    k: &[f32],
+    v: &[f32],
+    pos: usize,
+    h: usize,
+    g: usize,
+) -> Vec<f32> {
+    let n = (pos + 1).min(1024);
+    let q = &q[(h * 2 + g) * 256..(h * 2 + g + 1) * 256];
+    let score: Vec<f32> = (0..n)
+        .map(|t| {
+            bf(q.iter()
+                .zip(&k[(t * 8 + h) * 256..(t * 8 + h + 1) * 256])
+                .map(|(&q, &k)| q as f64 * k as f64)
+                .sum::<f64>() as f32)
+        })
+        .collect();
+    let max = score.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+    let exp: Vec<f32> = score.iter().map(|s| (s - max).exp()).collect();
+    let sum = exp.iter().map(|&x| x as f64).sum::<f64>() as f32 + furiosa_opt_gemma4::EPS;
+    let weights: Vec<f32> = exp.iter().map(|&x| bf(x)).collect();
+    (0..256)
+        .map(|j| {
+            let combined = (0..32)
+                .map(|part| {
+                    bf((part * 32..((part + 1) * 32).min(n))
+                        .map(|t| weights[t] as f64 * v[(t * 8 + h) * 256 + j] as f64)
+                        .sum::<f64>() as f32) as f64
+                })
+                .sum::<f64>();
+            bf(bf(combined as f32) / sum)
+        })
+        .collect()
+}
+fn cpu_boundary_diagnostic() {
+    let r = 47;
+    let q = values(4096, 100 + r as u64, 1.);
+    let k = quantize(&ring(r, false)).decoded;
+    let v = quantize(&ring(r, true)).decoded;
+    let ideal = cpu_attention(&q, &k, &v, position(r), 7, 0);
+    let bounded = cpu_bf16_boundaries(&q, &k, &v, position(r), 7, 0);
+    report(
+        "CPU-only row47 h7 g0 BF16 boundaries versus unrounded F64",
+        &ideal,
+        &bounded,
+    );
+}
 async fn run(
     d: &mut Device,
     p: &Pools,
@@ -426,10 +477,27 @@ async fn run(
             for (h, g) in [(0, 0), (3, 1), (7, 0)] {
                 let expected = cpu_attention(&qv, &k, &v, position(r), h, g);
                 let got = &result[r * 4096 + (h * 2 + g) * 256..r * 4096 + (h * 2 + g + 1) * 256];
-                let e = report(&format!("CPU_F64 row={r} h={h} g={g}"), &expected, got);
+                let baseline =
+                    &reference[r * 4096 + (h * 2 + g) * 256..r * 4096 + (h * 2 + g + 1) * 256];
+                report(
+                    &format!("CPU_F64_UNROUNDED candidate row={r} h={h} g={g}"),
+                    &expected,
+                    got,
+                );
+                report(
+                    &format!("CPU_F64_UNROUNDED BF16control row={r} h={h} g={g}"),
+                    &expected,
+                    baseline,
+                );
+                let bounded = cpu_bf16_boundaries(&qv, &k, &v, position(r), h, g);
+                let e = report(
+                    &format!("CPU_BF16_BOUNDARIES row={r} h={h} g={g}"),
+                    &bounded,
+                    got,
+                );
                 assert!(
-                    e < 0.05 || expected.iter().all(|x| x.abs() < 1e-30),
-                    "independent F64 quantized attention"
+                    e < 0.01 || bounded.iter().all(|x| x.abs() < 1e-30),
+                    "independent F64 with original BF16 score, weight, 32-key partial, combined and output boundaries"
                 );
             }
         }
@@ -485,6 +553,7 @@ async fn run(
 #[tokio::main]
 async fn main() {
     check_cpu_quantizer();
+    cpu_boundary_diagnostic();
     if std::env::args().any(|x| x == "--cpu-only") {
         return;
     }

@@ -1,0 +1,19 @@
+{
+  "job": 318163,
+  "log": "/round2/runs/r346-fp8-kv-attention-submit/arena.log",
+  "source": "808d41d",
+  "binary_sha256": "9144ccab60ef482d97d00d924ea7097fc2fb5193db3a932ab87f4a57639f9ce9",
+  "result": "FAILED unrounded F64 reference threshold on sharp-attention row47/head7/group0; timing and future gates not reached",
+  "passed_before_failure": {
+    "device_quantized_values": 8388608,
+    "device_repeated_scales": 262144,
+    "dequantized_BF16_control_output_values": 262144,
+    "bit_mismatches": 0
+  },
+  "quantization_vs_original_BF16": {
+    "aggregate_nrmse": 0.148204587,
+    "max_abs": 10.4375,
+    "largest_row_nrmse": 0.389716888
+  },
+  "oracle_issue": "Original BF16 attention stores BF16 scores/weights/32-key partials/combined numerator and output. Unrounded F64 reference omitted all those boundaries; it is a measurement of mathematical drift, not an equivalence oracle. Repair adds explicit-boundary independent F64 accumulation while retaining original highprecision errors for both baseline and candidate."
+}
