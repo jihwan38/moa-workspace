@@ -172,3 +172,5 @@ pub mod ops_query_r64_native_fp8;
 pub mod ops_qkv_r64_native_prequant;
 pub mod ops_query_b16_native_fp8;
 pub mod ops_qkv_b16_native_prequant;
+
+pub mod ops_native_fp8_p512_pipeline;
