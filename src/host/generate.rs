@@ -1,5 +1,5 @@
 use crate::Chip;
-use crate::axes::{B, P128, Tf, W};
+use crate::axes::{B, P128, P512, Tf, W};
 use crate::host::audio::AudioFrames;
 use crate::host::image::ImagePatches;
 use crate::host::model::{Input, Model, Sequence};
@@ -555,9 +555,16 @@ pub async fn generate(
     }
 }
 
-/// Match the two implemented prompt widths while staying in the current full-KV page.
-/// Short tails use B16 instead of paying for all128 matrix rows.
+/// An explicit512-row limit opts into four chronological P128 chunks. Existing
+/// callers keep their page-local P128/B16 policy; short tails never pad to512.
 fn prompt_chunk_count(position: usize, remaining: usize, limit: usize) -> usize {
+    if limit >= P512::SIZE
+        && remaining >= P512::SIZE
+        && position % P128::SIZE == 0
+        && position.checked_add(P512::SIZE).is_some()
+    {
+        return P512::SIZE;
+    }
     let available = remaining.min(limit).min(Tf::SIZE - position % Tf::SIZE);
     if available >= P128::SIZE {
         P128::SIZE
@@ -596,6 +603,35 @@ mod chunk_tests {
         assert_eq!(prompt_chunk_count(0, 128, PREFILL_CHUNK), 128);
         assert_eq!(prompt_chunk_count(500, 140, PREFILL_CHUNK), 12);
         assert_eq!(prompt_chunk_count(0, 512, 8), 8);
+    }
+
+    #[test]
+    fn explicit_prompt512_chunks_cover_boundaries_and_fall_back_for_tails() {
+        for (start, len) in [(0, 513), (384, 1025), (896, 512), (500, 1025)] {
+            let mut position = start;
+            let mut remaining = len;
+            while remaining > 0 {
+                let count = prompt_chunk_count(position, remaining, P512::SIZE);
+                assert!(count <= remaining);
+                if count == P512::SIZE {
+                    assert_eq!(position % P128::SIZE, 0);
+                    for chunk in 0..4 {
+                        let first = position + chunk * P128::SIZE;
+                        assert_eq!(first / Tf::SIZE, (first + P128::SIZE - 1) / Tf::SIZE);
+                    }
+                } else {
+                    assert!(count == P128::SIZE || count <= B::SIZE);
+                    assert_eq!(position / Tf::SIZE, (position + count - 1) / Tf::SIZE);
+                }
+                position += count;
+                remaining -= count;
+            }
+            assert_eq!(position, start + len);
+        }
+        assert_eq!(prompt_chunk_count(896, 512, P512::SIZE), 512);
+        assert_eq!(prompt_chunk_count(896, 512, PREFILL_CHUNK), 128);
+        assert_eq!(prompt_chunk_count(384, 511, P512::SIZE), 128);
+        assert_eq!(prompt_chunk_count(500, 512, P512::SIZE), 12);
     }
 }
 

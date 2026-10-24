@@ -18,6 +18,8 @@ pub const CAPACITY: usize = crate::axes::B::SIZE;
 pub const CONTEXT: usize = 8192;
 /// Grouped execution uses the same request-owned state as the validated model path.
 const GROUP_PREFILL_ENABLED: bool = true;
+/// Keep disabled until the chronological model and HTTP gates pass.
+const PROMPT512_ENABLED: bool = false;
 
 pub struct Worker {
     runtime: tokio::runtime::Runtime,
@@ -50,6 +52,16 @@ struct Pending {
 
 #[derive(Clone, Copy)]
 struct ReadyInput {
+    ring: usize,
+    position: usize,
+    count: usize,
+    prompt512: bool,
+}
+
+/// Stable request identity and the exact input range whose model state is in
+/// flight. Session-vector indices may change while a different decoder finishes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct ScheduledInput {
     ring: usize,
     position: usize,
     count: usize,
@@ -138,7 +150,7 @@ impl Worker {
             );
             let started = std::time::Instant::now();
             let mut model = Model::new(&mut device, weights, &mut workspace).await?;
-            if GROUP_PREFILL_ENABLED && canonical {
+            if (GROUP_PREFILL_ENABLED || PROMPT512_ENABLED) && canonical {
                 model.prepare_group_scratch(&mut device).await?;
             }
             eprintln!(
@@ -178,6 +190,7 @@ impl Worker {
         let mut prefer_prefill = false;
         let mut cadence = DecodeCadence::new();
         let mut next_prefill_ring = 0;
+        let mut active_work = Vec::<ScheduledInput>::new();
         loop {
             let incoming: Vec<_> = if sessions.is_empty() && pending.is_empty() {
                 let Ok(job) = jobs.recv() else { break };
@@ -258,22 +271,34 @@ impl Worker {
                     ring: s.blocks.sliding,
                     position: s.generation.input().1,
                     count: s.generation.input_count(PREFILL_CHUNK),
+                    prompt512: s.generation.input_count(crate::axes::P512::SIZE)
+                        == crate::axes::P512::SIZE,
                 })
                 .collect();
             let active_rings = self.model.active_prefill_rings();
+            debug_assert_eq!(
+                active_rings,
+                active_work
+                    .iter()
+                    .map(|input| input.ring)
+                    .collect::<Vec<_>>()
+            );
             let group_enabled = GROUP_PREFILL_ENABLED && canonical;
+            let prompt512_enabled = PROMPT512_ENABLED && canonical;
             let ready = available
                 .iter()
                 .filter(|input| input.count == 1 && !active_rings.contains(&input.ring))
                 .count();
-            let prompt_width = pending_prompt(
+            let pending_selection = pending_prompt(
                 capacity,
                 &available,
                 next_prefill_ring,
                 &active_rings,
                 group_enabled,
-            )
-            .len();
+            );
+            let pending_inputs =
+                schedule_inputs(&available, &pending_selection, &active_work, prompt512_enabled);
+            let prompt_width = prompt_cost_width(&pending_inputs);
             // Keep all ready decoders together, while allowing several short
             // prompt layers inside the time left before their next round.
             prefer_prefill |= cadence.prompt_fits(Instant::now(), ready, prompt_width);
@@ -285,6 +310,7 @@ impl Worker {
                 &active_rings,
                 group_enabled,
             );
+            let scheduled = schedule_inputs(&available, &selected, &active_work, prompt512_enabled);
             let decode_width = if selected
                 .iter()
                 .all(|&i| available[i].count == 1 && !active_rings.contains(&available[i].ring))
@@ -294,11 +320,15 @@ impl Worker {
                 0
             };
             let grouped = selected.len() == 4 && decode_width == 0;
+            let cost_width = prompt_cost_width(&scheduled);
+            if decode_width == 0 && active_work.is_empty() {
+                active_work.clone_from(&scheduled);
+            }
             let work_started = Instant::now();
-            for &index in &selected {
+            for (&index, input) in selected.iter().zip(&scheduled) {
                 let session = &mut sessions[index];
                 let (_, position) = session.generation.input();
-                let count = session.generation.input_count(PREFILL_CHUNK);
+                let count = input.count;
                 if canonical {
                     assert!(
                         session.blocks.full.len() >= Workspace::blocks_for(position + count),
@@ -318,8 +348,14 @@ impl Worker {
                 self.runtime.block_on(async {
                     let chunks: Vec<_> = selected
                         .iter()
-                        .map(|&index| sessions[index].generation.inputs(PREFILL_CHUNK))
+                        .zip(&scheduled)
+                        .map(|(&index, input)| sessions[index].generation.inputs(input.count))
                         .collect();
+                    if chunks.iter().zip(&scheduled).any(|((rows, start), input)| {
+                        rows.len() != input.count || *start != input.position
+                    }) {
+                        return Err("scheduled input range changed before model execution".into());
+                    }
                     let sequences: Vec<_> = chunks
                         .iter()
                         .zip(&selected)
@@ -366,9 +402,23 @@ impl Worker {
                             || (active_rings.is_empty() && sequences[0].inputs.len() > 1))
                     {
                         if active_rings.is_empty() {
-                            self.model
-                                .start_prefill(&mut self.device, &sequences[0], &mut self.workspace)
-                                .await?;
+                            if scheduled[0].count == crate::axes::P512::SIZE {
+                                self.model
+                                    .start_prefill512(
+                                        &mut self.device,
+                                        &sequences[0],
+                                        &mut self.workspace,
+                                    )
+                                    .await?;
+                            } else {
+                                self.model
+                                    .start_prefill(
+                                        &mut self.device,
+                                        &sequences[0],
+                                        &mut self.workspace,
+                                    )
+                                    .await?;
+                            }
                         }
                         let Some(output) = self
                             .model
@@ -467,7 +517,7 @@ impl Worker {
             let completed = match result {
                 Ok(Ok(outputs)) => complete_work(
                     &mut sessions,
-                    &selected,
+                    &scheduled,
                     outputs.as_deref(),
                     &mut reservations,
                     &mut free,
@@ -479,10 +529,14 @@ impl Worker {
             };
             match completed {
                 Ok(false) => {
-                    cadence.observe_prompt(work_started.elapsed(), selected.len());
+                    cadence.observe_prompt(work_started.elapsed(), cost_width);
                     continue;
                 }
-                Ok(true) => {}
+                Ok(true) => {
+                    if decode_width == 0 {
+                        active_work.clear();
+                    }
+                }
                 Err(message) => {
                     // Any partially executed prompt layer makes the entire model
                     // unusable. Release every live reservation only as we go offline.
@@ -507,7 +561,7 @@ impl Worker {
             if decode_width > 0 {
                 cadence.observe_decode(finished, decode_width, elapsed);
             } else {
-                cadence.observe_prompt(elapsed, selected.len());
+                cadence.observe_prompt(elapsed, cost_width);
             }
         }
     }
@@ -517,7 +571,7 @@ impl Worker {
 /// every session and reservation, even if its stream receiver has disconnected.
 fn complete_work(
     sessions: &mut Vec<Session>,
-    selected: &[usize],
+    scheduled: &[ScheduledInput],
     outputs: Option<&[SampleOutput]>,
     reservations: &mut Option<PageReservations>,
     free: &mut Vec<usize>,
@@ -526,24 +580,33 @@ fn complete_work(
     let Some(outputs) = outputs else {
         return Ok(false);
     };
-    if outputs.len() != selected.len() || selected.is_empty() {
+    if outputs.len() != scheduled.len() || scheduled.is_empty() {
         return Err("model output count does not match its requests");
     }
-    if selected
-        .iter()
-        .enumerate()
-        .any(|(row, &index)| index >= sessions.len() || selected[..row].contains(&index))
-    {
-        return Err("model output mapping does not identify distinct live requests");
+    // Validate every range before advancing any row. In particular, a512-token
+    // completion must not silently shrink back to the default128-token limit.
+    for (row, input) in scheduled.iter().enumerate() {
+        let Some(session) = sessions.iter().find(|s| s.blocks.sliding == input.ring) else {
+            return Err("scheduled request is no longer live");
+        };
+        if input.count == 0
+            || scheduled[..row]
+                .iter()
+                .any(|other| other.ring == input.ring)
+            || session.generation.input().1 != input.position
+            || session.generation.input_count(input.count) != input.count
+        {
+            return Err("scheduled input range changed before completion");
+        }
     }
-    let mut session_index = 0;
     sessions.retain_mut(|session| {
-        let index = session_index;
-        session_index += 1;
-        let Some(row) = selected.iter().position(|&selected| selected == index) else {
+        let Some(row) = scheduled
+            .iter()
+            .position(|input| input.ring == session.blocks.sliding)
+        else {
             return true;
         };
-        let count = session.generation.input_count(PREFILL_CHUNK);
+        let count = scheduled[row].count;
         let emit = |delta: Delta<'_>| {
             !session.stream
                 || session
@@ -579,6 +642,48 @@ fn complete_work(
         false
     });
     Ok(true)
+}
+
+/// Four independent requests take priority because `pending_prompt` selects
+/// them first. Only its single-request fallback can expand to512 chronological
+/// rows. Active ranges are copied exactly until that model checkpoint completes.
+fn schedule_inputs(
+    available: &[ReadyInput],
+    selected: &[usize],
+    active: &[ScheduledInput],
+    prompt512_enabled: bool,
+) -> Vec<ScheduledInput> {
+    selected
+        .iter()
+        .map(|&index| {
+            let ready = available[index];
+            if let Some(input) = active.iter().find(|input| input.ring == ready.ring) {
+                return *input;
+            }
+            ScheduledInput {
+                ring: ready.ring,
+                position: ready.position,
+                count: if prompt512_enabled
+                    && active.is_empty()
+                    && selected.len() == 1
+                    && ready.prompt512
+                {
+                    crate::axes::P512::SIZE
+                } else {
+                    ready.count
+                },
+            }
+        })
+        .collect()
+}
+
+/// Prompt512 owns one request but runs the same four-P128 dense work as a quad.
+fn prompt_cost_width(inputs: &[ScheduledInput]) -> usize {
+    if inputs.iter().map(|input| input.count).sum::<usize>() >= crate::axes::P512::SIZE {
+        4
+    } else {
+        inputs.len()
+    }
 }
 
 /// Resolve active rows in Model order after unrelated sessions may have left.
@@ -663,6 +768,7 @@ fn select_work(
             ring,
             position: 0,
             count,
+            prompt512: false,
         })
         .collect();
     select_work_in(
@@ -685,6 +791,7 @@ mod tests {
                 ring,
                 position: 0,
                 count,
+                prompt512: false,
             })
             .collect()
     }
@@ -737,6 +844,7 @@ mod tests {
                 ring,
                 position: 0,
                 count: 1,
+                prompt512: false,
             })
             .collect();
         assert_eq!(
@@ -827,6 +935,7 @@ mod tests {
                 ring: 1,
                 position: 509,
                 count: 3,
+                prompt512: false,
             },
         );
         assert_eq!(pending_prompt(64, &work, 62, &[], true), vec![1]);
@@ -919,8 +1028,23 @@ mod tests {
                 ring: s.blocks.sliding,
                 position: s.generation.input().1,
                 count: s.generation.input_count(PREFILL_CHUNK),
+                prompt512: s.generation.input_count(crate::axes::P512::SIZE)
+                    == crate::axes::P512::SIZE,
             })
             .collect()
+    }
+
+    fn complete_selected(
+        sessions: &mut Vec<Session>,
+        selected: &[usize],
+        outputs: Option<&[SampleOutput]>,
+        pool: &mut Option<PageReservations>,
+        free: &mut Vec<usize>,
+        rings: &mut Vec<usize>,
+    ) -> Result<bool, &'static str> {
+        let work = ready_sessions(sessions);
+        let scheduled = schedule_inputs(&work, selected, &[], false);
+        complete_work(sessions, &scheduled, outputs, pool, free, rings)
     }
 
     #[test]
@@ -938,7 +1062,7 @@ mod tests {
             SampleOutput::Greedy(5),
         ];
         assert!(
-            complete_work(
+            complete_selected(
                 &mut sessions,
                 &selected,
                 Some(&partial),
@@ -970,7 +1094,7 @@ mod tests {
         let mut free = vec![];
         let mut rings = vec![];
         assert!(
-            !complete_work(
+            !complete_selected(
                 &mut sessions,
                 &selected,
                 None,
@@ -994,7 +1118,7 @@ mod tests {
             SampleOutput::Greedy(6),
         ];
         assert!(
-            complete_work(
+            complete_selected(
                 &mut sessions,
                 &selected,
                 Some(&outputs),
@@ -1032,7 +1156,7 @@ mod tests {
         let ready = ready_sessions(&sessions);
         let decode = select_work_in(64, &ready, &mut prefer, &mut next, &active, true);
         assert_eq!(decode, vec![1]);
-        complete_work(
+        complete_selected(
             &mut sessions,
             &decode,
             Some(&[SampleOutput::Greedy(1)]),
@@ -1050,7 +1174,7 @@ mod tests {
             "layer resumes cannot rotate the chunk-level cursor"
         );
         assert!(
-            !complete_work(
+            !complete_selected(
                 &mut sessions,
                 &resumed,
                 None,
@@ -1066,7 +1190,7 @@ mod tests {
             SampleOutput::Greedy(4),
             SampleOutput::Logits(vec![]),
         ];
-        complete_work(
+        complete_selected(
             &mut sessions,
             &resumed,
             Some(&outputs),
@@ -1094,5 +1218,204 @@ mod tests {
             vec![0, 2]
         );
         assert_eq!(pool.as_ref().unwrap().available_pages(), 252);
+    }
+    #[test]
+    fn four_independent_prompts_precede_single_owner512_and_share_its_cost_class() {
+        let mut work = ready_inputs(&[(7, 128), (2, 128), (31, 128), (63, 128), (9, 1)]);
+        for input in &mut work[..4] {
+            input.prompt512 = true;
+        }
+        let quad = pending_prompt(64, &work, 0, &[], true);
+        let scheduled = schedule_inputs(&work, &quad, &[], true);
+        assert_eq!(
+            scheduled
+                .iter()
+                .map(|input| input.count)
+                .collect::<Vec<_>>(),
+            vec![128; 4]
+        );
+        assert_eq!(prompt_cost_width(&scheduled), 4);
+        let pending = pending_prompt(64, &work[..3], 0, &[], true);
+        let single = schedule_inputs(&work[..3], &pending, &[], true);
+        assert_eq!(
+            single,
+            vec![ScheduledInput {
+                ring: 2,
+                position: 0,
+                count: 512
+            }]
+        );
+        assert_eq!(prompt_cost_width(&single), 4);
+        assert_eq!(schedule_inputs(&work, &pending, &[], false)[0].count, 128);
+        // The oldest short prompt keeps its turn, even when newer prompts can supply512.
+        work[1].prompt512 = false;
+        work[1].count = 3;
+        let pending = pending_prompt(64, &work, 0, &[], true);
+        assert_eq!(schedule_inputs(&work, &pending, &[], true)[0].count, 3);
+    }
+
+    fn advance_prompt_to(session: &mut Session, position: usize) {
+        while session.generation.input().1 < position {
+            let count = session.generation.input_count(PREFILL_CHUNK);
+            assert!(session.generation.input().1 + count <= position);
+            assert!(
+                session
+                    .generation
+                    .advance_inputs(count, &[], |_| true)
+                    .unwrap()
+                    .is_none()
+            );
+        }
+    }
+
+    #[test]
+    fn prompt512_range_survives_decoder_removal_yields_and_a_cross_page_completion() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (decoder, decoder_rx) = session(pool.as_mut().unwrap(), 1, 3);
+        let (mut prompt, prompt_rx) = session(pool.as_mut().unwrap(), 1409, 4);
+        advance_prompt_to(&mut prompt, 896);
+        assert_eq!(
+            prompt.blocks.full.len(),
+            3,
+            "all future pages were reserved at admission"
+        );
+        let prompt_ring = prompt.blocks.sliding;
+        let mut sessions = vec![decoder, prompt];
+        let _receivers = [decoder_rx, prompt_rx];
+        let mut free = vec![];
+        let mut rings = vec![];
+        let work = ready_sessions(&sessions);
+        let active = schedule_inputs(&work, &[1], &[], true);
+        assert_eq!(
+            active,
+            vec![ScheduledInput {
+                ring: prompt_ring,
+                position: 896,
+                count: 512
+            }]
+        );
+        assert_eq!(
+            Workspace::blocks_for(active[0].position + active[0].count),
+            3
+        );
+        let (inputs, start) = sessions[1].generation.inputs(active[0].count);
+        assert_eq!((start, inputs.len()), (896, 512));
+        assert!(inputs.iter().all(|input| !input.logits));
+        let mut prefer = false;
+        let mut next = 2;
+        let selected = select_work_in(64, &work, &mut prefer, &mut next, &[prompt_ring], true);
+        assert_eq!(selected, vec![0]);
+        complete_selected(
+            &mut sessions,
+            &selected,
+            Some(&[SampleOutput::Greedy(1)]),
+            &mut pool,
+            &mut free,
+            &mut rings,
+        )
+        .unwrap();
+        let work = ready_sessions(&sessions);
+        let selected = select_work_in(64, &work, &mut prefer, &mut next, &[prompt_ring], true);
+        assert_eq!(selected, vec![0]);
+        let resumed = schedule_inputs(&work, &selected, &active, false);
+        assert_eq!(
+            resumed, active,
+            "a resume cannot recompute the default128-token count"
+        );
+        assert!(
+            !complete_work(
+                &mut sessions,
+                &resumed,
+                None,
+                &mut pool,
+                &mut free,
+                &mut rings
+            )
+            .unwrap()
+        );
+        assert_eq!(sessions[0].generation.input().1, 896);
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 253);
+        let mut stale = resumed.clone();
+        stale[0].position += 128;
+        assert!(
+            complete_work(
+                &mut sessions,
+                &stale,
+                Some(&[SampleOutput::Logits(vec![])]),
+                &mut pool,
+                &mut free,
+                &mut rings
+            )
+            .is_err()
+        );
+        assert_eq!(sessions[0].generation.input().1, 896);
+        complete_work(
+            &mut sessions,
+            &resumed,
+            Some(&[SampleOutput::Logits(vec![])]),
+            &mut pool,
+            &mut free,
+            &mut rings,
+        )
+        .unwrap();
+        assert_eq!(sessions[0].generation.input().1, 1408);
+        assert_eq!(sessions[0].generation.input_count(PREFILL_CHUNK), 1);
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 253);
+        assert_eq!(next, 2);
+    }
+
+    #[test]
+    fn cancelled_final_prompt512_holds_one_reservation_until_its_output_completes() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (mut prompt, receiver) = session(pool.as_mut().unwrap(), 896, 4);
+        advance_prompt_to(&mut prompt, 384);
+        let mut sessions = vec![prompt];
+        let work = ready_sessions(&sessions);
+        let scheduled = schedule_inputs(&work, &[0], &[], true);
+        assert_eq!(scheduled[0].count, 512);
+        let (inputs, start) = sessions[0].generation.inputs(scheduled[0].count);
+        assert_eq!((start, inputs.len()), (384, 512));
+        assert!(inputs[..511].iter().all(|input| !input.logits));
+        assert!(inputs[511].logits);
+        drop(receiver);
+        let mut free = vec![];
+        let mut rings = vec![];
+        assert!(
+            !complete_work(
+                &mut sessions,
+                &scheduled,
+                None,
+                &mut pool,
+                &mut free,
+                &mut rings
+            )
+            .unwrap()
+        );
+        assert_eq!(sessions[0].generation.input().1, 384);
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 254);
+        assert!(
+            complete_work(
+                &mut sessions,
+                &scheduled,
+                Some(&[]),
+                &mut pool,
+                &mut free,
+                &mut rings
+            )
+            .is_err()
+        );
+        assert_eq!(sessions[0].generation.input().1, 384);
+        complete_work(
+            &mut sessions,
+            &scheduled,
+            Some(&[SampleOutput::Greedy(3)]),
+            &mut pool,
+            &mut free,
+            &mut rings,
+        )
+        .unwrap();
+        assert!(sessions.is_empty());
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 256);
+        assert!(free.is_empty() && rings.is_empty());
     }
 }
