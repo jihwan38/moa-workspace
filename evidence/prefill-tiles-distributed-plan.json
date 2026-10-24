@@ -1,0 +1,17 @@
+{
+  "source_control": "297a5d0 exactops_prefill_tiles copiedfrom382982f; e9dfe81 latestattentionproof",
+  "control": "Genericload/store usesCluster1#2 andSlice1#256, meaningone livepaddedcluster/slice, not512copies. FullB16payload travels throughthatmapping.",
+  "complete_change": "KeepallpublictileAPIs andindices. Split16rows across2liveclusters and32payloadshards/row across256slices percluster. GenericPayloadSlice/Element maps coverhidden,Q/K,andheadpayloads.",
+  "removed_work": "Serializedwholepayload transfer throughone live slice; no unsupportedmultipliedcopybyteclaim.",
+  "added_work": "Distributedsource/destinationmapping andexact axisrenaming betweenB andP128%16.",
+  "validation": "NPUABBA timing againstcopiedoriginalcontrol, CPUrawbyteoracle forselectedtile andallnonselectedrows, all8tileindices inpermutedorder, all7payloadshapes, load/store roundtrip; preservearbitraryBF16bitpatterns.",
+  "decision": "Adopt onlywith exactbyteproof andobservedtimebenefit; compareloadsandstores separately.",
+  "binary": "target/release/test_prefill_tiles_distributed",
+  "binary_sha256": "c246d5500421a0c9285b72d83efad9cd9bab3fa617376b77a60dc3bf3f15b2d5",
+  "source_sha256": {
+    "src/ops_prefill_tiles.rs": "b25f28006527147decc296105e1a81ba19c30c97270100c08069995a855d0d51",
+    "src/ops_prefill_tiles_reference.rs": "08a159deef542601a3229f71ff6a522ff2f8646200ba3555adef0f91d8b3ea79",
+    "src/bin/test_prefill_tiles_distributed.rs": "c3fc89093c2a1524d2ee3f5f3a307a56e5fda8f4e727f30bdd98fcf4fe80fd3c"
+  },
+  "compile_status": "All14 candidate entrypoints and14originalcontrols compile. TileindexSPM keeps one livepaddedcluster soitslogicaldomain is1; data uses2liveclusters. ABBA has64warmedsamples/kernel/payload,7payloads8indices. ActualNPU pendingroot."
+}
