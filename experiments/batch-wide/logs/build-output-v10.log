@@ -1,0 +1,26 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+   Compiling furiosa_opt_gemma4::ops_batch_wide::project_sliding_output_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_batch_wide::project_sliding_output_batch: visa: while lowering StoVrf
+       caused by: FetchArgs::fetch_projection()
+       caused by: configuring the fetch sequencer
+       caused by: Fetch: a live input axis is left unread (Time 1, Packet P128 % 64 = 16 # 64)
+   --> src/ops_batch_wide.rs:812:1
+    |
+812 | #[device(chip = 1)]
+    | ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling furiosa_opt_gemma4::ops_batch_wide::project_full_output_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_batch_wide::project_full_output_batch: visa: while lowering StoVrf
+       caused by: FetchArgs::fetch_projection()
+       caused by: configuring the fetch sequencer
+       caused by: Fetch: a live input axis is left unread (Time 1, Packet P128 % 64 = 16 # 64)
+   --> src/ops_batch_wide.rs:855:1
+    |
+855 | #[device(chip = 1)]
+    | ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: could not compile `furiosa-opt-gemma4` (bin "test_wide_output") due to 2 previous errors
