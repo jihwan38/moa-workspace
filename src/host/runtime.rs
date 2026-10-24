@@ -298,20 +298,12 @@ impl Workspace {
         for layer in &weights.layers {
             let cache = match (layer, canonical) {
                 (Layer::Sliding(_), true) => KvCache::SlidingCanonical {
-                    k: HostTensor::<bf16, m![Rc64, Ts, Ns, Ds]>::zero()
-                        .to_hbm(&mut device.pdma)
-                        .await?,
-                    v: HostTensor::<bf16, m![Rc64, Ts, Ns, Ds]>::zero()
-                        .to_hbm(&mut device.pdma)
-                        .await?,
+                    k: launch(crate::ops_zero_pool::zero_sliding_pool, &mut *device).await?,
+                    v: launch(crate::ops_zero_pool::zero_sliding_pool, &mut *device).await?,
                 },
                 (Layer::Full(_), true) => KvCache::FullCanonical {
-                    k: HostTensor::<bf16, m![Fc, Tf, Df]>::zero()
-                        .to_hbm(&mut device.pdma)
-                        .await?,
-                    v: HostTensor::<bf16, m![Fc, Tf, Df]>::zero()
-                        .to_hbm(&mut device.pdma)
-                        .await?,
+                    k: launch(crate::ops_zero_pool::zero_full_pool, &mut *device).await?,
+                    v: launch(crate::ops_zero_pool::zero_full_pool, &mut *device).await?,
                 },
                 (Layer::Sliding(_), false) => KvCache::Sliding {
                     k: zero_hbm_vec::<bf16, m![Ts, Ns, Ds]>(device, requests).await?,
