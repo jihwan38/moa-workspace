@@ -1,0 +1,147 @@
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `project_query` is never used
+ --> src/device/sliding/projection.rs:7:15
+  |
+7 | pub(crate) fn project_query(
+  |               ^^^^^^^^^^^^^
+
+warning: type alias `KvRows` is never used
+  --> src/device/sliding/projection.rs:84:6
+   |
+84 | type KvRows = m![Ps / 8];
+   |      ^^^^^^
+
+warning: function `project_one_kv_matrix` is never used
+  --> src/device/sliding/projection.rs:86:4
+   |
+86 | fn project_one_kv_matrix(
+   |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `project_key_value` is never used
+   --> src/device/sliding/projection.rs:151:15
+    |
+151 | pub(crate) fn project_key_value(
+    |               ^^^^^^^^^^^^^^^^^
+
+warning: function `project_output` is never used
+   --> src/device/sliding/projection.rs:178:15
+    |
+178 | pub(crate) fn project_output(
+    |               ^^^^^^^^^^^^^^
+
+warning: type alias `HiddenRows` is never used
+   --> src/device/sliding/projection.rs:198:6
+    |
+198 | type HiddenRows = m![H / 120, 1 # 8];
+    |      ^^^^^^^^^^
+
+warning: function `output_partial` is never used
+   --> src/device/sliding/projection.rs:200:4
+    |
+200 | fn output_partial(
+    |    ^^^^^^^^^^^^^^
+
+warning: function `add_partials` is never used
+   --> src/device/sliding/projection.rs:241:4
+    |
+241 | fn add_partials(
+    |    ^^^^^^^^^^^^
+
+warning: function `apply_output_channel_scale` is never used
+   --> src/device/sliding/projection.rs:268:4
+    |
+268 | fn apply_output_channel_scale(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `feedforward` is never used
+   --> src/device_e154/shared/mlp.rs:537:15
+    |
+537 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `prepare_ffn_fp8_split` is never used
+   --> src/device_e154/shared/mlp.rs:629:15
+    |
+629 | pub(crate) fn prepare_ffn_fp8_split(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device_e154/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_vision` is never used
+  --> src/device_e154/shared/residual.rs:86:15
+   |
+86 | pub(crate) fn add_vision<Cluster: M, Slice: M>(
+   |               ^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device_e154/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [1/1] ops_greedy_r64::greedy_argmax_r64
+error: furiosa-opt: ops_greedy_r64::greedy_argmax_r64: visa: while verifying DmaCommand
+       caused by: verification of operator failed:
+       DmaCommand
+       inner: DmaCommand: dram -> sram
+       -- assigned_pe: None --
+       src0: [R64_1=32:4, W_8192=32:65536, W_32=32:256, W_1024=2:8192, anonymdma_tail(0)_1=1:4], Dram(chip=0, in_chip=0x0)
+       dst0: [R64_1=32:128, W_8192=32:4, W_32=32:4194304, W_1024=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src1: [R64_1=32:4, W_8192=32:65536, W_32=32:256, W_1024=2:8192, anonymdma_tail(0)_1=1:4], Dram(chip=0, in_chip=0x4000)
+       dst1: [R64_1=32:128, W_8192=32:4, W_32=32:4194304, W_1024=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src2: [R64_1=32:4, W_8192=32:65536, W_32=32:256, W_1024=2:8192, anonymdma_tail(0)_1=1:4], Dram(chip=0, in_chip=0x8000)
+       dst2: [R64_1=32:128, W_8192=32:4, W_32=32:4194304, W_1024=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src3: [R64_1=32:4, W_8192=32:65536, W_32=32:256, W_1024=2:8192, anonymdma_tail(0)_1=1:4], Dram(chip=0, in_chip=0xC000)
+       dst3: [R64_1=32:128, W_8192=32:4, W_32=32:4194304, W_1024=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)
+       src4: [R64_1=32:4, W_8192=32:65536, W_32=32:256, W_1024=2:8192, anonymdma_tail(0)_1=1:4], Dram(chip=0, in_chip=0x80)
+       dst4: [R64_1=32:128, W_8192=32:4, W_32=32:4194304, W_1024=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src5: [R64_1=32:4, W_8192=32:65536, W_32=32:256, W_1024=2:8192, anonymdma_tail(0)_1=1:4], Dram(chip=0, in_chip=0x4080)
+       dst5: [R64_1=32:128, W_8192=32:4, W_32=32:4194304, W_1024=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src6: [R64_1=32:4, W_8192=32:65536, W_32=32:256, W_1024=2:8192, anonymdma_tail(0)_1=1:4], Dram(chip=0, in_chip=0x8080)
+       dst6: [R64_1=32:128, W_8192=32:4, W_32=32:4194304, W_1024=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src7: [R64_1=32:4, W_8192=32:65536, W_32=32:256, W_1024=2:8192, anonymdma_tail(0)_1=1:4], Dram(chip=0, in_chip=0xC080)
+       dst7: [R64_1=32:128, W_8192=32:4, W_32=32:4194304, W_1024=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)
+       
+       name: 
+       
+       input tensors: 1
+         input T1: MappingShape[Chip: 1, Element: (W / 32, R64)], 2097152 B, raw_i32, dram
+         source: unknown
+         total bytes: 2097152
+       output tensors: 1
+         output T46: MappingShape[Chip: 1, Cluster: R64 / 32, Slice: W / 32 % 256, Element: (R64 % 32, W / 8192)], 2097152 B, raw_i32, sram
+         source: unknown
+         total bytes: 2097152
+       caused by: strides([4, 134217728, 4194304, 4, 0, 0, 0, 0]) is not aligned by 8 SequencerConfig { iteration_config: IterationConfig { limits: [1, 2, 32, 1024, 1, 1, 1, 1] }, indexer_config: Indexer { base: 0, strides: [4, 134217728, 4194304, 4, 0, 0, 0, 0] } }
+  --> src/ops_greedy_r64.rs:90:75
+   |
+90 |     let words:DmTensor<i32,Chip,Cluster,Rows,m![R64%32,W/8192]>=ban_words.to_dm(&mut device.tdma);
+   |                                                                           ^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 1 compiled, 230 not matching ops_greedy_r64
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 17 warnings emitted

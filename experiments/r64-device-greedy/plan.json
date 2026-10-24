@@ -1,0 +1,16 @@
+{
+  "source_commit": "86a2336",
+  "objective": "Replace full vocabulary PCIe/CPU greedy scans with generic device reduction over exact blocked BF16 logits; root owns output-policy/Generation wiring.",
+  "semantics": "Finite values ordered by exact BF16-derived signed integer key, preserving+0>-0 and lowest token-ID ties. Arbitrary per-row packed bans; all-banned falls back to unmasked argmax. Any nonfinite code explicitly returns fallback flag for original CPU sampler, including +/-Inf and anyNaN.",
+  "inputs": "BlockedLogits; ban_words:i32[W/32,R64] 2MiB with1meaningbanned; fixed negative tokenIDs:i32[W], bit positions:i32[W%32].",
+  "result": "i32[R64,GreedyField=8], fields0maskedmax(-65536 iff all banned),1masked negativeID,2unmasked negativeID,3maxabsBF16code(>=0x7f80 requiresCPUfallback); fields4..7unused.",
+  "mechanism": "Two-stage signed-key max then negative-ID max, no34-bit packing. Two16-query groups per cluster; one-query mask and winner tiles. Whole logits32MiB read onNPU,2MiB packed arbitrary bans,2KiB result onCPU.",
+  "validation": "Nonzero all64 row CPU total_cmp reference, arbitrary dense/sparse masks, allbanned, exactties/lowestID, signedzero, finite BF16 extremes/subnormals, nonfinite fallback flags. Warm kernel and small-result PCIe timing. No benchmark/input specialization; root dispatch only.",
+  "compile_repairs": [
+    "I32 intra max requires Way4 then pad back to Way8.",
+    "Ban word HBM load retains query packet; TU scalar-padded transpose and VRF broadcast avoid illegal 4-byte scalar TDMA broadcasts.",
+    "A single LogicBitOr Mode11 initializes the word stream, avoiding duplicate BitAnd hardware use.",
+    "Two 16-query groups per cluster bound simultaneous key/candidate DM temporaries.",
+    "One-query mask/ID tiles keep live VRF below 8KiB, including overlapping operands."
+  ]
+}

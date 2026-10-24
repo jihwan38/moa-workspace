@@ -1,0 +1,40 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/r64-io)
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0502]: cannot borrow `raw` as mutable because it is also borrowed as immutable
+  --> src/ops_greedy_r64.rs:86:62
+   |
+80 |     device.main.begin(raw.view()).fetch::<m![R64%32,W/8192,W/8%4],m![W%8]>()
+   |                       --- immutable borrow occurs here
+...
+86 |         .vector_final().commit_trim::<m![W%8]>().commit_view(raw.view_mut());
+   |                                                  ----------- ^^^^^^^^^^^^^^ mutable borrow occurs here
+   |                                                  |
+   |                                                  immutable borrow later used by call
+
+error[E0502]: cannot borrow `keys` as mutable because it is also borrowed as immutable
+   --> src/ops_greedy_r64.rs:121:26
+    |
+116 |         device.main.begin(keys.view().tile::<m![R64%32],2,m![R64%32=2#32,W/8192,W%32]>(tile*2))
+    |                           ---- immutable borrow occurs here
+...
+121 |             .commit_view(keys.view_mut().tile::<m![R64%32],2,m![R64%32=2#{!}32,W/8192,W%32]>(tile*2));
+    |              ----------- ^^^^^^^^^^^^^^^ mutable borrow occurs here
+    |              |
+    |              immutable borrow later used by call
+
+For more information about this error, try `rustc --explain E0502`.
+warning: `furiosa-opt-gemma4` (lib) generated 2 warnings
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors; 2 warnings emitted

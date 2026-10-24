@@ -1,0 +1,77 @@
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `vector_intra_slice_reduce` found for struct `VectorTensor<'_, Main, ..., i32, ..., ..., ..., ..., ..., ..., IntraFirst, ..., Way8>` in the current scope
+  --> src/ops_greedy_r64.rs:17:10
+   |
+13 |       let partial:DmTensor<i32,Chip,Cluster,Rows,m![R64%32,1#8]>=device.main.begin(input.view())
+   |  ________________________________________________________________-
+14 | |         .fetch::<m![R64%32,W/8192,W/8%4],m![W%8]>()
+15 | |         .collect::<m![R64%32,W/8192,W/8%4],m![W%8]>()
+16 | |         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+17 | |         .vector_intra_slice_reduce::<W,m![R64%32],m![1#8]>(IntraSliceReduceOpI32::Max)
+   | |         -^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `VectorTensor<'_, Main, ..., i32, ..., ..., ..., ..., ..., ..., IntraFirst, ..., Way8>`
+   | |_________|
+   |
+   |
+   = note: the method was found for
+           - `furiosa_opt_std::prelude::VectorTensor<'l, T, S, f32, Chip, Cluster, Slice, Time, Packet, Stash, VE_ORDER, furiosa_opt_std::prelude::stage::Standalone, furiosa_opt_std::::engine::vector::tensor::vector_tensor::{impl#21}::{constant#0}>`
+           - `furiosa_opt_std::prelude::VectorTensor<'l, T, S, i32, Chip, Cluster, Slice, Time, Packet, Stash, VE_ORDER, furiosa_opt_std::prelude::stage::Standalone, furiosa_opt_std::::engine::vector::tensor::vector_tensor::{impl#20}::{constant#0}>`
+   = note: the full name for the type has been written to '/round2/r64-io/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-34e6c686e5f91da9.long-type-7002721348531715087.txt'
+   = note: consider using `--verbose` to print the full type name to the console
+
+error[E0034]: multiple applicable items in scope
+  --> src/ops_greedy_r64.rs:21:10
+   |
+21 |         .vector_inter_slice_reduce::<Reduced,m![R64%32]>(InterSliceReduceOpI32::Max)
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^ multiple `vector_inter_slice_reduce` found
+   |
+   = note: candidate #1 is defined in an impl for the type `furiosa_opt_std::prelude::VectorInitTensor<'l, T, f32, Chip, Cluster, Slice, Time, Packet>`
+   = note: candidate #2 is defined in an impl for the type `furiosa_opt_std::prelude::VectorInitTensor<'l, T, i32, Chip, Cluster, Slice, Time, Packet>`
+
+error[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope
+    --> src/ops_greedy_r64.rs:93:66
+     |
+  92 |           let words:DmTensor<i32,Chip,Cluster,Rows,m![R64%32=2,W/8192,W%32]>=words.view()
+     |                                                                              -----
+     |                                                                              |
+     |  ____________________________________________________________________________method `to_dm` is available on `&furiosa_opt_std::prelude::DmTensor<i32, furiosa_opt_std::prelude::Broadcast<1>, furiosa_opt_std::prelude::Stride<furiosa_opt_std::prelude::Symbol<axes::R64>, furiosa_opt_std::prelude::Broadcast<32>>, furiosa_opt_std::prelude::Modulo<furiosa_opt_std::prelude::Stride<furiosa_opt_std::prelude::Symbol<axes::W>, furiosa_opt_std::prelude::Broadcast<32>>, furiosa_opt_std::prelude::Broadcast<256>>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Modulo<furiosa_opt_std::prelude::Symbol<axes::R64>, furiosa_opt_std::prelude::Broadcast<32>>, furiosa_opt_std::prelude::Stride<furiosa_opt_std::prelude::Symbol<axes::W>, furiosa_opt_std::prelude::Broadcast<8192>>>>`
+     | |
+  93 | |             .tile::<m![R64%32],2,m![R64%32=2#32,W/8192]>(tile*2).to_dm(&mut device.tdma);
+     | |_________________________________________________________________-^^^^^
+     |
+help: there is a method `to_dm_view` with a similar name, but with different arguments
+    --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory.rs:1039:5
+     |
+1039 | /     pub fn to_dm_view<Chip2: M, Cluster2: M, Slice2: M, Element2: M>(
+1040 | |         self,
+1041 | |         _dma: &mut DmaContext<{ Dma::Tensor }, B>,
+1042 | |         mut dst: DmTensorViewMut<'l, D, Chip2, Cluster2, Slice2, Element2, B>,
+1043 | |     ) {
+     | |_____^
+     = note: the full name for the type has been written to '/round2/r64-io/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-34e6c686e5f91da9.long-type-2850690533900618785.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+
+error[E0034]: multiple applicable items in scope
+   --> src/ops_greedy_r64.rs:100:14
+    |
+100 |             .vector_logic(LogicBinaryOpI32::LogicRightShift,&shift)
+    |              ^^^^^^^^^^^^ multiple `vector_logic` found
+    |
+    = note: candidate #1 is defined in an impl for the type `furiosa_opt_std::prelude::VectorTensor<'l, T, S, f32, Chip, Cluster, Slice, Time, Packet, Stash, VE_ORDER, FS, furiosa_opt_std::::engine::vector::tensor::vector_tensor::{impl#14}::{constant#0}>`
+    = note: candidate #2 is defined in an impl for the type `furiosa_opt_std::prelude::VectorTensor<'l, T, S, i32, Chip, Cluster, Slice, Time, Packet, Stash, VE_ORDER, FS, furiosa_opt_std::::engine::vector::tensor::vector_tensor::{impl#13}::{constant#0}>`
+
+Some errors have detailed explanations: E0034, E0599.
+For more information about an error, try `rustc --explain E0034`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 4 previous errors; 2 warnings emitted
