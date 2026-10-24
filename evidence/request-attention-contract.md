@@ -82,3 +82,14 @@ per-token byte addresses. Actual39 live rows/159744 outputs remain bit-exact,
 with future invariance, sparse updates, reverse migration and inactive zeros.
 Warm16-row attention is181.8..183.1us (cluster-token-gather534..547us; original
 replicated-cluster1079..1082us). These are isolated kernel timings.
+
+Preferred full implementation after Arena317747: sourceafeac3b in
+`ops_request_full_clusters::{full_attention_first_page_b16,
+full_attention_next_page_b16,full_attention_divide_b16}`. All three argument
+contracts are unchanged. Host changes only those function paths; full page
+metadata, padded running statistics, commits and migration helpers stay intact.
+Actual35 live rows/286720 outputs are bit-exact to scalar, including ragged
+pages,3-row update, reverse migration and16->3->16 active counts. Paired warmed
+firstpage: original59.94..61.27us, clusters47.43..48.51us. Nextpage cold overhead
+is separate, and whole-model host ownership transitions remain an independent
+validation. Freeze these kernels until whole-model profiling identifies a cost.

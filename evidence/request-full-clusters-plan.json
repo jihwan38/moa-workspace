@@ -12,5 +12,24 @@
     "src/ops_request_full_clusters.rs": "7b7d9a4fdf9cc5784142743680aeecc7c381d7cc0d1d91d6bc65651e799e71d7",
     "src/bin/test_request_full_clusters.rs": "361433a7dad5140242c0ec048b4394d908f0dc83ecf920d95ac2b6ae86b5c66d"
   },
-  "compile_status": "Compiled. Source key slice mapping is[B%8,1#2,Tf/32] because interslice reduced Tf must be innermost. Probe measures paired original/clustered warmed first-page kernels; next pages preserve original exact recurrence."
+  "compile_status": "Compiled. Source key slice mapping is[B%8,1#2,Tf/32] because interslice reduced Tf must be innermost. Probe measures paired original/clustered warmed first-page kernels; next pages preserve original exact recurrence.",
+  "npu": {
+    "job": 317747,
+    "source_commit": "afeac3b",
+    "result": "PASS35 live rows/286720 outputs bit-exact to scalar; ragged pages, sparse3-row updates, reverse page migration, inactive zeros16->3->16.",
+    "paired_warm_first_page_us": {
+      "original": [
+        59.942,
+        61.272,
+        60.602
+      ],
+      "clusters": [
+        48.491,
+        48.511,
+        47.432
+      ]
+    },
+    "decision": "Adopt clustered first/next/divide paths after host integration. Warmfirstpage latency19..22% lower than original; this is not a whole-model result.",
+    "limitation": "Nextpage first launches include cold overhead; paired warm measurement only directly compares firstpage kernels."
+  }
 }
