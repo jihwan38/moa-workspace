@@ -31,6 +31,8 @@ pub mod ops_output_r64_parallel;
 pub mod ops_output_r64_parallel_gather;
 pub mod ops_output_p128_parallel_gather;
 pub mod ops_qkv_r64_blocked;
+pub mod ops_qkv_r64_trf32;
+pub mod ops_qkv_p128_trf32;
 pub mod ops_geglu_direct_r64;
 pub mod ops_native_fp8_r64;
 pub mod ops_native_fp8_p256;

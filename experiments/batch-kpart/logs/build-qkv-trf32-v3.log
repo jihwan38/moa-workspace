@@ -1,0 +1,47 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_query_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_qkv_p128_trf32::project_query_batch: visa: while lowering TensorUnit
+       caused by: configuring the transpose engine
+       caused by: Transpose: output packet beyond max_in_rows (4) must be `1 # n` pure padding, got: P128 / 4 % 16 = 8 % 4
+ --> src/ops_qkv_p128_trf32.rs:6:1
+  |
+6 | #[device(chip=1)]
+  | ^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_sliding_kv_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_qkv_p128_trf32::project_sliding_kv_batch: visa: while lowering TensorUnit
+       caused by: configuring the transpose engine
+       caused by: Transpose: output packet beyond max_in_rows (4) must be `1 # n` pure padding, got: P128 / 4 % 16 = 8 % 4
+  --> src/ops_qkv_p128_trf32.rs:42:1
+   |
+42 | #[device(chip=1)]
+   | ^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_query_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_query_batch: visa: while lowering TensorUnit
+       caused by: configuring the transpose engine
+       caused by: Transpose: output packet beyond max_in_rows (4) must be `1 # n` pure padding, got: P128 / 4 % 16 = 8 % 4
+  --> src/ops_qkv_p128_trf32.rs:78:1
+   |
+78 | #[device(chip=1)]
+   | ^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_key_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_key_batch: visa: while lowering TensorUnit
+       caused by: configuring the transpose engine
+       caused by: Transpose: output packet beyond max_in_rows (4) must be `1 # n` pure padding, got: P128 / 4 % 16 = 8 % 4
+   --> src/ops_qkv_p128_trf32.rs:114:1
+    |
+114 | #[device(chip=1)]
+    | ^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: could not compile `furiosa-opt-gemma4` (bin "test_p128_qkv_trf32") due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...

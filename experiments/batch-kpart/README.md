@@ -425,3 +425,20 @@ Large DMA spans remain (candidate maximum526652 cycles),so the successful
 reuse change must be combined/tested with root's H-local/L-sharded quantization
 before claiming their gains compose. Source keeps baseline quantization for
 this isolated experiment. Root will integrate the matrix helpers separately.
+
+BF16 QKV temporal-reuse plan afterfa4d51d: eachH960 shard holds32 token
+rows in61440-byte TRF as Lane8 × temporal groups4. Fetch each original BF16
+weight packet once, broadcast to four groups inside the contraction, retain
+the original H960/F32 reduction and BF16 dot boundary before output scale.
+R64 uses one32-row contraction per cluster;P128 uses two32-row contractions.
+Original E4 weights and HBM layout unchanged. Verify all four shapes against
+their prior batch kernels on dyadic/random inputs, independent dyadic/F64
+oracles, then matched ABCBA/ABBA timing before adoption.
+
+All four R64 and P128 QKV32 variants compile. P128's padded32-of64 token
+view cannot fetch low token bits first,so it uses Lane=token/4 and temporal
+group=token%4 to read in natural order. Immediately after the unchanged BF16
+dot cast,a four-row TU transpose restores natural token order. Its output
+packet is token%4 padded16 (not16 live values:that exceeded TE's four-row
+limit). This avoids a full32×H960 BF16 DM copy. Source keeps failed compile
+logs and separate R64/P128 exact-control/CPU-oracle binaries.

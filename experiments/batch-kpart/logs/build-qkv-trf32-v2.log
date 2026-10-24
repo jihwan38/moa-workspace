@@ -1,0 +1,61 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+   Compiling furiosa_opt_gemma4::ops_batch_kpart::project_query_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_r64_trf32::project_query_batch
+   Compiling furiosa_opt_gemma4::ops_batch_r64::project_sliding_kv_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_r64_trf32::project_sliding_kv_batch
+   Compiling furiosa_opt_gemma4::ops_batch_r64::project_full_query_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_query_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_qkv_p128_trf32::project_query_batch: visa: while lowering StoTrf
+       caused by: FetchArgs::fetch_projection()
+       caused by: configuring the fetch sequencer
+       caused by: Fetch: a live input axis is left unread (Time 1, Packet P128 % 64 = 32 # 64)
+ --> src/ops_qkv_p128_trf32.rs:6:1
+  |
+6 | #[device(chip=1)]
+  | ^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling furiosa_opt_gemma4::ops_batch_kpart::project_sliding_kv_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_r64_trf32::project_full_query_batch
+   Compiling furiosa_opt_gemma4::ops_batch_r64::project_full_key_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_r64_trf32::project_full_key_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_sliding_kv_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_qkv_p128_trf32::project_sliding_kv_batch: visa: while lowering StoTrf
+       caused by: FetchArgs::fetch_projection()
+       caused by: configuring the fetch sequencer
+       caused by: Fetch: a live input axis is left unread (Time 1, Packet P128 % 64 = 32 # 64)
+  --> src/ops_qkv_p128_trf32.rs:41:1
+   |
+41 | #[device(chip=1)]
+   | ^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling furiosa_opt_gemma4::ops_batch_kpart::project_full_query_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_query_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_query_batch: visa: while lowering StoTrf
+       caused by: FetchArgs::fetch_projection()
+       caused by: configuring the fetch sequencer
+       caused by: Fetch: a live input axis is left unread (Time 1, Packet P128 % 64 = 32 # 64)
+  --> src/ops_qkv_p128_trf32.rs:76:1
+   |
+76 | #[device(chip=1)]
+   | ^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling furiosa_opt_gemma4::ops_batch_kpart::project_full_key_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_key_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_key_batch: visa: while lowering StoTrf
+       caused by: FetchArgs::fetch_projection()
+       caused by: configuring the fetch sequencer
+       caused by: Fetch: a live input axis is left unread (Time 1, Packet P128 % 64 = 32 # 64)
+   --> src/ops_qkv_p128_trf32.rs:111:1
+    |
+111 | #[device(chip=1)]
+    | ^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: could not compile `furiosa-opt-gemma4` (bin "test_p128_qkv_trf32") due to 4 previous errors
