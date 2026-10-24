@@ -9,5 +9,9 @@
     "Only one prompt state may own shared preparation scratch; independent batched prompts are rejected until completion",
     "Generation advances only after final layer/logits; single generated tokens remain autoregressive"
   ],
-  "next_gate": "compare_resumable_prefill2 0 16 compares independent original scalar prompt logits, everyinterleaved decode step and subsequent pooled all-request step; then1 509 3 forpartial/fullpage boundary and1 1021 3 forringwrap"
+  "next_gate": "Replay compare_resumable_prefill2 0 16, then1 509 3 or1 1021 3",
+  "review": "Attention agent read-only audit passed: prepare overwrites every row; checkpoint restored after a completed layer or Result error; finish reads checkpoint; independent batch/serial decode cannot overwrite it; active prompt guard prevents another prepare.",
+  "build": "SDK0.9 server and compare_resumable_prefill NPU build passed25.74s; frozen source/artifacts b95c4b2.11host tests passed.",
+  "reference_failure": "Root317834/r118:48-layer scheduler probe reached finalprompt after47interleaveddecode steps were exact, but scalarprompt vsB16 differed211988/262144 maxabs0.6875. This is the known distinct causal chunk BF16 grouping, not evidence of a checkpoint defect. The original failing artifact b95c4b2 is preserved.",
+  "repaired_gate": "Strict prompt reference is uninterrupted B16 with identical causal arithmetic. Independent scalar prompt runs against separate one-request KV and its mismatch/max/L2 are reported without asserting bit equality; common prefix is computed with B16. Decode and postpool remain strict comparisons."
 }
