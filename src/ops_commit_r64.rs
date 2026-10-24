@@ -1,4 +1,6 @@
-//! All64 rows must be live. Sliding commits happen only after every query has attended.
+//! Direct R64 commits require 64 live independent requests and distinct request slots.
+//! Decode commits its current K/V before attention. B16 prefix wrappers also serve
+//! prompt chunks, whose sliding commits must follow attention over the immutable old ring.
 use crate::{Chip, axes::{R64, B, Ns, Ds, Df, Ts, Tf}};
 use furiosa_opt_std::prelude::*;
 use crate::{ops_pool_views::Rc64,ops_request_attention::Fc};
