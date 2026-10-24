@@ -11,8 +11,9 @@ planes and retain exactly the original BF16 tree and channel-scale boundary.
 No native quantization, reassociated dot, or host dispatch change is included.
 
 Gate both final outputs and each K1024 partial against dyadic CPU arithmetic,
-then random non-dyadic inputs against unchanged B16 controls and sampled CPU
-F64-dot/BF16-tree reference. Include all16 distinct rows, signed/nonunit scales,
+then nonrepeating randomized inputs against unchanged B16 controls and sampled
+CPU F64-dot/BF16-tree reference. Both domains use bounded dyadic values, so each
+K1024 partial is exactly representable in F32 before its BF16 rounding. Include all16 distinct rows, signed/nonunit scales,
 zero/cancellation cases and two random seeds. MatchedABBA timings determine
 adoption; successful compile or kernel speed alone is not a model result.
 
