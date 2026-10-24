@@ -1,6 +1,8 @@
 //! Per-token dynamic FP8 activation quantization for isolated native-FP4 experiments.
 //! Scale is a power of two: 2^floor(log2(max(abs(x),2^-112))) /128.
 //! Finite BF16 rows map into [-256,256], without saturation; zero rows stay zero.
+//! RNGD vector arithmetic flushes F32 subnormal inputs to signed zero. The
+//! quantized activation contract includes this behavior for |x| < 2^-126.
 use furiosa_opt_std::prelude::*;
 use crate::{Chip, axes::{P128,H,L}};
 type Cluster=m![P128 / 64];
