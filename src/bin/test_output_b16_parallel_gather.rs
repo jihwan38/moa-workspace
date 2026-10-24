@@ -40,18 +40,6 @@ fn partial(b: usize, n: usize, chunk: usize, seed: usize) -> bf16 {
         .sum::<f64>();
     bf16::from_f32(dot as f32)
 }
-fn expected(b: usize, n: usize, chunks: usize, seed: usize) -> bf16 {
-    let mut p: Vec<_> = (0..chunks)
-        .map(|c| partial(b, n, c, seed).to_f32())
-        .collect();
-    while p.len() > 1 {
-        p = p
-            .chunks_exact(2)
-            .map(|v| bf16::from_f32(v[0] + v[1]).to_f32())
-            .collect();
-    }
-    bf16::from_f32(p[0] * scale(n))
-}
 async fn read<E: M>(d: &mut Device, x: &HbmTensor<bf16, Chip, E>) -> Vec<bf16> {
     let h: HostTensor<bf16, E> = x.to_host(&mut d.pdma).await.unwrap();
     h.into_vec()

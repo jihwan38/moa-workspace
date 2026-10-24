@@ -15,3 +15,9 @@ then random non-dyadic inputs against unchanged B16 controls and sampled CPU
 F64-dot/BF16-tree reference. Include all16 distinct rows, signed/nonunit scales,
 zero/cancellation cases and two random seeds. MatchedABBA timings determine
 adoption; successful compile or kernel speed alone is not a model result.
+
+Initial16cd993 device compile rejected the inherited one-iteration16-row sum
+loop: a full-width no-op tile must have literal index0, not16*loop_variable even
+when the loop range is0..1. The repair removes those three one-iteration loops
+and uses constantzero for full-width views. Dot tile loops remain two B8 rows;
+no arithmetic, mapping or rounding changes are made.

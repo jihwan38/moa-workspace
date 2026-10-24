@@ -16,39 +16,32 @@ fn add_partials_wide(
     right: &DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120, B]>,
 ) -> DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120, B]> {
     let mut result: DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120, B]> = DmTensor::new();
-    for chunk in 0..1 {
-        let left: VrfTensor<f32, Chip, Cluster, DownRows, m![H % 120, B = 16]> = device
-            .sub
-            .begin(
-                left.view()
-                    .tile::<m![B], 16, m![H % 120,B = 16 # 16]>(16 * chunk),
-            )
-            .fetch::<m![H % 120], m![B = 16]>()
-            .fetch_cast::<f32>()
-            .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
-            .to_vrf();
-        device
-            .main
-            .begin(
-                right
-                    .view()
-                    .tile::<m![B], 16, m![H % 120,B = 16 # 16]>(16 * chunk),
-            )
-            .fetch::<m![H % 120], m![B = 16]>()
-            .fetch_cast::<f32>()
-            .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
-            .vector_init()
-            .vector_intra_slice_tag(TagMode::Zero)
-            .vector_clip(ClipBinaryOpF32::Add, &left)
-            .vector_final()
-            .cast::<bf16, m![B = 16 % 8 # 16]>()
-            .commit_trim::<m![B = 16 % 8]>()
-            .commit_view(
-                result
-                    .view_mut()
-                    .tile::<m![B], 16, m![H % 120,B = 16 #{!} 16]>(16 * chunk),
-            );
-    }
+
+    let left: VrfTensor<f32, Chip, Cluster, DownRows, m![H % 120, B = 16]> = device
+        .sub
+        .begin(left.view().tile::<m![B], 16, m![H % 120,B = 16 # 16]>(0))
+        .fetch::<m![H % 120], m![B = 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
+        .to_vrf();
+    device
+        .main
+        .begin(right.view().tile::<m![B], 16, m![H % 120,B = 16 # 16]>(0))
+        .fetch::<m![H % 120], m![B = 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Add, &left)
+        .vector_final()
+        .cast::<bf16, m![B = 16 % 8 # 16]>()
+        .commit_trim::<m![B = 16 % 8]>()
+        .commit_view(
+            result
+                .view_mut()
+                .tile::<m![B], 16, m![H % 120,B = 16 #{!} 16]>(0),
+        );
+
     result
 }
 
@@ -58,42 +51,42 @@ fn add_gathered_pair(
     offset: usize,
 ) -> DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120, B]> {
     let mut result: DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120, B]> = DmTensor::new();
-    for chunk in 0..1 {
-        let left: VrfTensor<f32, Chip, Cluster, DownRows, m![H % 120, B = 16]> = device
-            .sub
-            .begin(
-                input
-                    .view()
-                    .tile::<m![Qs / 1024], 1, m![1 # 4,H%120,B]>(offset)
-                    .tile::<m![B], 16, m![H % 120 # 480,B = 16 # 16]>(16 * chunk),
-            )
-            .fetch::<m![H % 120], m![B = 16]>()
-            .fetch_cast::<f32>()
-            .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
-            .to_vrf();
-        device
-            .main
-            .begin(
-                input
-                    .view()
-                    .tile::<m![Qs / 1024], 1, m![1 # 4,H%120,B]>(offset + 1)
-                    .tile::<m![B], 16, m![H % 120 # 480,B = 16 # 16]>(16 * chunk),
-            )
-            .fetch::<m![H % 120], m![B = 16]>()
-            .fetch_cast::<f32>()
-            .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
-            .vector_init()
-            .vector_intra_slice_tag(TagMode::Zero)
-            .vector_clip(ClipBinaryOpF32::Add, &left)
-            .vector_final()
-            .cast::<bf16, m![B = 16 % 8 # 16]>()
-            .commit_trim::<m![B = 16 % 8]>()
-            .commit_view(
-                result
-                    .view_mut()
-                    .tile::<m![B], 16, m![H % 120,B = 16 #{!} 16]>(16 * chunk),
-            );
-    }
+
+    let left: VrfTensor<f32, Chip, Cluster, DownRows, m![H % 120, B = 16]> = device
+        .sub
+        .begin(
+            input
+                .view()
+                .tile::<m![Qs / 1024], 1, m![1 # 4,H%120,B]>(offset)
+                .tile::<m![B], 16, m![H % 120 # 480,B = 16 # 16]>(0),
+        )
+        .fetch::<m![H % 120], m![B = 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
+        .to_vrf();
+    device
+        .main
+        .begin(
+            input
+                .view()
+                .tile::<m![Qs / 1024], 1, m![1 # 4,H%120,B]>(offset + 1)
+                .tile::<m![B], 16, m![H % 120 # 480,B = 16 # 16]>(0),
+        )
+        .fetch::<m![H % 120], m![B = 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Add, &left)
+        .vector_final()
+        .cast::<bf16, m![B = 16 % 8 # 16]>()
+        .commit_trim::<m![B = 16 % 8]>()
+        .commit_view(
+            result
+                .view_mut()
+                .tile::<m![B], 16, m![H % 120,B = 16 #{!} 16]>(0),
+        );
+
     result
 }
 
@@ -249,42 +242,42 @@ fn add_gathered_pair_full(
     offset: usize,
 ) -> DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120, B]> {
     let mut result: DmTensor<bf16, Chip, Cluster, DownRows, m![H % 120, B]> = DmTensor::new();
-    for chunk in 0..1 {
-        let left: VrfTensor<f32, Chip, Cluster, DownRows, m![H % 120, B = 16]> = device
-            .sub
-            .begin(
-                input
-                    .view()
-                    .tile::<m![Qf / 1024], 1, m![1 # 8,H%120,B]>(offset)
-                    .tile::<m![B], 16, m![H % 120 # 960,B = 16 # 16]>(16 * chunk),
-            )
-            .fetch::<m![H % 120], m![B = 16]>()
-            .fetch_cast::<f32>()
-            .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
-            .to_vrf();
-        device
-            .main
-            .begin(
-                input
-                    .view()
-                    .tile::<m![Qf / 1024], 1, m![1 # 8,H%120,B]>(offset + 1)
-                    .tile::<m![B], 16, m![H % 120 # 960,B = 16 # 16]>(16 * chunk),
-            )
-            .fetch::<m![H % 120], m![B = 16]>()
-            .fetch_cast::<f32>()
-            .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
-            .vector_init()
-            .vector_intra_slice_tag(TagMode::Zero)
-            .vector_clip(ClipBinaryOpF32::Add, &left)
-            .vector_final()
-            .cast::<bf16, m![B = 16 % 8 # 16]>()
-            .commit_trim::<m![B = 16 % 8]>()
-            .commit_view(
-                result
-                    .view_mut()
-                    .tile::<m![B], 16, m![H % 120,B = 16 #{!} 16]>(16 * chunk),
-            );
-    }
+
+    let left: VrfTensor<f32, Chip, Cluster, DownRows, m![H % 120, B = 16]> = device
+        .sub
+        .begin(
+            input
+                .view()
+                .tile::<m![Qf / 1024], 1, m![1 # 8,H%120,B]>(offset)
+                .tile::<m![B], 16, m![H % 120 # 960,B = 16 # 16]>(0),
+        )
+        .fetch::<m![H % 120], m![B = 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
+        .to_vrf();
+    device
+        .main
+        .begin(
+            input
+                .view()
+                .tile::<m![Qf / 1024], 1, m![1 # 8,H%120,B]>(offset + 1)
+                .tile::<m![B], 16, m![H % 120 # 960,B = 16 # 16]>(0),
+        )
+        .fetch::<m![H % 120], m![B = 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H % 120, B = 16 / 8], m![B = 16 % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Add, &left)
+        .vector_final()
+        .cast::<bf16, m![B = 16 % 8 # 16]>()
+        .commit_trim::<m![B = 16 % 8]>()
+        .commit_view(
+            result
+                .view_mut()
+                .tile::<m![B], 16, m![H % 120,B = 16 #{!} 16]>(0),
+        );
+
     result
 }
 
