@@ -15,5 +15,11 @@
   "repair_r16": {
     "change": "Four R16 groups,8 local requests. K+V=256KiB together, V gather declared before QK, enabling early DMA overlap. Two four-query dot/reduction tiles; softmax128 live slices.",
     "reason": "Largest group allowing simultaneous resident K/V and all scratch within512KiB. Targets observed loss of V overlap; not an arbitrary width sweep."
+  },
+  "actual_r16": {
+    "job": 317988,
+    "correctness": "All scalar/control exact, future/sparse/active transitions pass",
+    "timing": "762..769us vs714..716us frozen R8; reject adoption",
+    "decision": "Stop query-width variants. Original R8 remains production candidate; move to independently profile-supported blocked LM output."
   }
 }
