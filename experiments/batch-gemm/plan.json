@@ -1,0 +1,15 @@
+{
+  "id": "R2-BG01",
+  "source_commit": "8faa2422caa34c5742b89043b42d8d2ebf0c5b5c",
+  "comparison": "official serial BF16 projection arithmetic; E154 is a separate optimized E2E control",
+  "scope": "true shared-weight B16 projection with B8 contraction lanes, followed by prompt-parallel FFN",
+  "removed_work": "15 redundant matrix fetch/decode preparations per 16 prompt rows, relative to serial baseline",
+  "added_work": "B16 activation replication, two full-TRF B8 preparations, output transposition and retained BF16 boundaries",
+  "precision": "initial prototype uses BF16 input and BF16-expanded original E4 weights, with original BF16 dot boundary before channel scaling",
+  "first_gate": "compile full-H3840 Q4096 B16 projection and inspect output/operand coverage; NPU oracle and paired timing required before integration claims",
+  "sources": [
+    "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/contraction-engine/index.html",
+    "https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/register-files.html"
+  ],
+  "status": "SDK0.9 host+device compile passed; hardware correctness and performance pending"
+}
