@@ -245,3 +245,17 @@ DownWeight aliases/startup conversion as P128, changing only B16 matrix HBM
 input layout. This permits one blocked FP8 model copy for both paths. Require
 all61440 final output bits equal to row-major B16 FP8 and matched ABBA timing;
 startup permutation already has its separate117964800-value proof.
+
+Arena317898/r160 direct-GeGLU:all491520 final bits match blocked-only FP8;
+blocked1.215–1.221ms→direct1.0868–1.0870ms,about10.6%. Arena317902/r165
+B16 blocked:all61440 bits match;0.525–0.526ms→0.420–0.425ms,about20%.
+Both paths share the same blocked model tensors. Root's physical cycle traces
+confirm partition-local quantization had no meaningful measured gain; R64
+therefore retains the validated original quantization/redistribution pipeline.
+
+R64 plan afterbc64d0f:64 live queries,32 per cluster,four B8 contractions.
+Reuse all original QKV tensors and the single blocked FP8 FFN model copy.
+QKV copies H960 arithmetic; FFN copies proven blocked/direct-GeGLU arithmetic.
+Compare all R64 FFN output bits with the first64 rows of P128, padding the
+remaining independent P128 rows with zero. Distinct R64 query and Rc64 cache
+slot axes prevent accidental query/cache ownership conflation.
