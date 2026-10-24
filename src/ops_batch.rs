@@ -900,3 +900,104 @@ pub fn project_full_output_batch(
     let p0p1p2p3p4p5p6p7 = add_output_partials_batch(device, &p0p1p2p3, &p4p5p6p7);
     scale_output_batch(device, &p0p1p2p3p4p5p6p7, scale, output);
 }
+
+// Isolated output-transfer experiments: identical arithmetic, contiguous output DMA.
+#[device(chip = 1)]
+pub fn project_query_batch_rowmajor(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![B, H]>,
+    weight: &HbmTensor<f8e4m3, Chip, m![Qs, H]>,
+    scale: &HbmTensor<bf16, Chip, m![Qs]>,
+    output: &mut HbmTensor<bf16, Chip, m![B, Qs]>,
+) {
+    let input: DmTensor<bf16, Chip, Cluster, QRows, m![B, H]> = input.to_dm(&mut device.tdma);
+    let weight: DmTensor<f8e4m3, Chip, Cluster, QRows, m![Qs % 16, H]> =
+        weight.to_dm(&mut device.tdma);
+    let weight: DmTensor<bf16, Chip, Cluster, QRows, m![Qs % 16, H]> = device
+        .main
+        .begin(weight.view())
+        .fetch::<m![Qs % 16, H / 16], m![H % 16]>()
+        .fetch_table_lookup::<bf16>()
+        .collect::<m![Qs % 16, H / 16], m![H % 16]>()
+        .commit_trim::<m![H % 16]>()
+        .commit();
+
+    let scale: DmTensor<bf16, Chip, Cluster, QRows, m![Qs % 16]> = scale.to_dm(&mut device.tdma);
+    let scale: VrfTensor<f32, Chip, Cluster, QRows, m![Qs % 16]> = device
+        .sub
+        .begin(scale.view())
+        .fetch::<m![1], m![Qs % 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![Qs / 8 % 2], m![Qs % 8]>()
+        .to_vrf();
+    let mut result: DmTensor<bf16, Chip, Cluster, QRows, m![Qs % 16, B]> = DmTensor::new();
+    for chunk in 0..2 {
+        let x: TrfTensor<bf16, Chip, Cluster, QRows, m![B = 8], m![H]> = device
+            .sub
+            .begin(input.view().tile::<m![B], 8, m![B = 8 # 16, H]>(chunk * 8))
+            .fetch::<m![B = 8, H / 16], m![H % 16]>()
+            .collect::<m![B = 8, H / 16], m![H % 16]>()
+            .to_trf();
+        let dot: DmTensor<bf16, Chip, Cluster, QRows, m![Qs % 16, B = 8]> = device
+            .main
+            .begin(weight.view())
+            .fetch::<m![Qs % 16, H / 16], m![H % 16]>()
+            .collect::<m![Qs % 16, H / 16], m![H % 16]>()
+            .contract_outer::<m![Qs % 16, H / 32], m![H % 32], _, _, _>(&x)
+            .contract_packet::<m![1]>()
+            .contract_time::<m![Qs % 16]>()
+            .contract_lane::<m![Qs % 16], m![B = 8]>(LaneMode::Interleaved)
+            .cast::<bf16, m![B = 8 # 16]>()
+            .commit_trim::<m![B = 8]>()
+            .commit();
+        device
+            .main
+            .begin(dot.view())
+            .fetch::<m![Qs % 16], m![B = 8]>()
+            .fetch_cast::<f32>()
+            .collect::<m![Qs % 16], m![B = 8]>()
+            .vector_init()
+            .vector_intra_slice_tag(TagMode::Zero)
+            .vector_narrow_split::<m![Qs % 16, B = 8 / 4], m![B = 8 % 4]>()
+            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)
+            .vector_widen_concat::<m![Qs % 16], m![B = 8]>()
+            .vector_final()
+            .cast::<bf16, m![B = 8 # 16]>()
+            .commit_trim::<m![B = 8]>()
+            .commit_view(
+                result
+                    .view_mut()
+                    .tile::<m![B], 8, m![Qs % 16, B = 8 #{!} 16]>(chunk * 8),
+            );
+    }
+    let result: DmTensor<bf16,Chip,Cluster,QRows,m![B,Qs % 16]> = device.main.begin(result.view())
+        .fetch::<m![Qs % 16],m![B]>().collect::<m![Qs % 16],m![B]>()
+        .transpose::<m![Qs / 4 % 4,B],m![Qs % 4 # 16]>()
+        .commit_trim::<m![Qs % 4]>().commit();
+    result.view().to_hbm_view(&mut device.tdma,output.view_mut());
+}
+#[device(chip = 1)]
+pub fn batch_ffn_rowmajor(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![B, H]>,
+    up_weight: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+    gate_weight: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+    down_weight: &HbmTensor<f4e2m1, Chip, m![H, L]>,
+    up_scale: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
+    gate_scale: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
+    down_scale: &HbmTensor<f8e4m3, Chip, m![H, L / 16]>,
+    up_global_scale: &HbmTensor<f32, Chip, m![1]>,
+    gate_global_scale: &HbmTensor<f32, Chip, m![1]>,
+    down_global_scale: &HbmTensor<f32, Chip, m![1]>,
+    output: &mut HbmTensor<bf16, Chip, m![B, H]>,
+) {
+    let up = upgate_batch(device, input, up_weight, up_scale);
+    let gate = upgate_batch(device, input, gate_weight, gate_scale);
+    let hidden = geglu_batch(device, &up, &gate, up_global_scale, gate_global_scale);
+    let out = down_batch(device, &hidden, down_weight, down_scale, down_global_scale);
+    let out: DmTensor<bf16,Chip,Cluster,DownRows,m![B,H % 120]> = device.main.begin(out.view())
+        .fetch::<m![H % 120],m![B]>().collect::<m![H % 120],m![B]>()
+        .transpose::<m![H / 4 % 30,B],m![H % 4 # 16]>()
+        .commit_trim::<m![H % 4]>().commit();
+    out.view().to_hbm_view(&mut device.tdma,output.view_mut());
+}
