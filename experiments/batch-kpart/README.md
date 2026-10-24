@@ -211,3 +211,9 @@ to row-major FP8. Matched warm row-major1.3625–1.3635ms→blocked
 Direct-GeGLU variant compiles; its independent change is still awaiting NPU
 bit-equivalence/timing. Compiler cycle estimates remain hypotheses: root's
 partition-local quantization reduced estimated cycles without a measured gain.
+
+B16 blocked-storage plan after7137db5: reuse exactly the same UpWeight and
+DownWeight aliases/startup conversion as P128, changing only B16 matrix HBM
+input layout. This permits one blocked FP8 model copy for both paths. Require
+all61440 final output bits equal to row-major B16 FP8 and matched ABBA timing;
+startup permutation already has its separate117964800-value proof.
