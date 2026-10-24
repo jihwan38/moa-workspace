@@ -3,5 +3,23 @@
   "actual_control": "318019: all16.7M F32 exact; typed extracted107.8..118.8ms, typed bulk81.5..83.1ms. Previous read timing incorrectly included HostTensor.into_vec CPU decoding.",
   "mechanism": "HostTensor.into_inner().into_buf moves packed byte storage, bypassing BufStorage.to_vec per-element Scalar::load. Inline BF16 decode uses u16LE<<16 and exactly matches half quiet-NaN rule. Bulk CPU loop visits vocabulary block before each8-row worker group, reducing repeated sparse source-page scans.",
   "proof": "All65536 raw BF16 encodings compared bitwise to SDK, including signedzero, infinities, signaling/quiet NaNs. Actual model16.7M output F32 bit equivalence. Separate transfer-await, unpack, conversion timings. Four variants and reverse order; workers<=8.",
-  "scope": "No Model/Worker edits; pure host helper and standalone probe."
+  "scope": "No Model/Worker edits; pure host helper and standalone probe.",
+  "actual": {
+    "job": 318024,
+    "source_commit": "76019ab",
+    "sha256": "4875559056637f00accc810c5df65e1c9b4de9b275ff58e4a08be35a1f9c8366",
+    "proof": "All65536 BF16 encodings match SDK exact quiet-NaN behavior; each typed/raw scalar/bulk path returns16,777,216 F32 bits exactly.",
+    "timing_lines": [
+      "RAW_READ_SAMPLE variant=0 total_ms=129.438519 launch_transfer_ms=30.020412 materialize_ms=32.765722 convert_reorder_ms=66.637358",
+      "RAW_READ_SAMPLE variant=1 total_ms=107.711836 launch_transfer_ms=36.078326 materialize_ms=57.946742 convert_reorder_ms=9.746040",
+      "RAW_READ_SAMPLE variant=2 total_ms=89.499909 launch_transfer_ms=27.314157 materialize_ms=0.003947 convert_reorder_ms=62.152532",
+      "RAW_READ_SAMPLE variant=3 total_ms=33.905033 launch_transfer_ms=23.356836 materialize_ms=0.002920 convert_reorder_ms=6.020887",
+      "RAW_READ_SAMPLE variant=3 total_ms=34.220539 launch_transfer_ms=23.364077 materialize_ms=0.002501 convert_reorder_ms=6.558907",
+      "RAW_READ_SAMPLE variant=2 total_ms=85.072033 launch_transfer_ms=22.962454 materialize_ms=0.003187 convert_reorder_ms=62.075407",
+      "RAW_READ_SAMPLE variant=1 total_ms=95.040987 launch_transfer_ms=23.475478 materialize_ms=57.752869 convert_reorder_ms=9.913944",
+      "RAW_READ_SAMPLE variant=0 total_ms=136.893195 launch_transfer_ms=29.523716 materialize_ms=33.062918 convert_reorder_ms=74.290758",
+      "RAW_READ_PASS typed_extract=[129.438519, 136.893195] typed_bulk=[107.711836, 95.04098699999999] raw_extract=[89.499909, 85.072033] raw_bulk=[33.905033, 34.220539] workers=8"
+    ],
+    "adoption": "Use host.into_inner().into_buf() and host_logit_bytes pure helpers for CPU fallback. Raw bulk avoids per-element SDK materialization and64 extraction launches, but still has real transfer/allocation/conversion cost. Device greedy argmax is next independent optimization."
+  }
 }
