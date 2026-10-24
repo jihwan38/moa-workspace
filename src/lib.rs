@@ -48,3 +48,5 @@ pub mod ops_prefill_tiles_reference;
 
 pub mod ops_sliding_wide;
 
+
+pub mod ops_head_wide;
