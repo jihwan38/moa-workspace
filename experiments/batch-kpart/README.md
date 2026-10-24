@@ -292,3 +292,11 @@ activation/result buffers may exceed512KiB per-slice DM live allocation, so
 first compile before any host integration. Require all983040 output bits equal
 to two P128 calls on the same256 inputs. ABBA batches compare one P256 call
 with two P128 calls and matched total output bytes, reporting launch/read scope.
+
+Original-E4 QKV storage plan after09078a1: isolate R64 Qs projection with
+startup permutation [Qs/64,H/960,Qs%64,H%960]. This turns64 separate960-byte
+HBM pieces per slice into one61440-byte tile, preserving every provided E4
+weight, BF16 expansion, H960 dot/reduction and scale boundary. Require all
+15728640 permuted bytes match CPU indices on two inputs, all262144 projection
+outputs match canonical R64 bits, independent dyadic/F64 gates, and matched
+ABBA timing. No model integration or other QKV shapes before measured benefit.

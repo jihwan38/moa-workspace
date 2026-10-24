@@ -1,0 +1,25 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+error[E0599]: no method named `to_bits` found for struct `furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_query_blocked.rs:21:170
+   |
+21 |   let mut permfails=0;for ng in 0..64{for kg in 0..4{for n in 0..64{for k in 0..960{let dst=(((ng*4+kg)*64+n)*960)+k;let src=(ng*64+n)*H::SIZE+kg*960+k;if permuted[dst].to_bits()!...
+   |                                                                                                                                                                          ^^^^^^^ method not found in `furiosa_opt_std::prelude::f8e4m3`
+...
+37 | probe!(query,Qs,project_query_batch);
+   | ------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `probe` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `to_bits` found for struct `furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_query_blocked.rs:21:189
+   |
+21 |   let mut permfails=0;for ng in 0..64{for kg in 0..4{for n in 0..64{for k in 0..960{let dst=(((ng*4+kg)*64+n)*960)+k;let src=(ng*64+n)*H::SIZE+kg*960+k;if permuted[dst].to_bits()!=ws[src].to_bits(){...
+   |                                                                                                                                                                                             ^^^^^^^ method not found in `furiosa_opt_std::prelude::f8e4m3`
+...
+37 | probe!(query,Qs,project_query_batch);
+   | ------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `probe` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `furiosa-opt-gemma4` (bin "test_r64_query_blocked") due to 2 previous errors
