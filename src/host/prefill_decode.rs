@@ -218,7 +218,7 @@ impl Prefill {
         .await?;
         self.record_profile("sliding.qkv", &mut profile_mark);
         launch(
-            ep::sliding_heads_b16,
+            crate::ops_head_batch::sliding_heads_b16,
             (
                 device,
                 &self.q_raw_s,
@@ -331,7 +331,7 @@ impl Prefill {
         .await?;
         self.record_profile("full.qkv", &mut profile_mark);
         launch(
-            ep::full_heads_b16,
+            crate::ops_head_batch::full_heads_b16,
             (
                 device,
                 &self.q_raw_f,
