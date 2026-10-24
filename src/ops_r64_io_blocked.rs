@@ -77,7 +77,7 @@ pub fn logits_batch(
 
 /// Extract logical request row0..63 into canonical vocabulary order.
 #[device(chip=1)]
-pub fn extract_logits_row(
+pub fn extract_logits_row_spm_control(
     device:&mut Device,
     input:&HbmTensor<bf16,Chip,BlockedLogits>,
     row_index:&HbmTensor<i32,Chip,m![1]>,
@@ -90,5 +90,22 @@ pub fn extract_logits_row(
     let row:DmTensor<bf16,Chip,Cluster,Rows,m![W/16384,W%32]>=input
         .gather::<m![R64],m![W/8192,W/32%256,W%32]>()
         .by_positions::<m![1]>(&index).to_dm(&mut device.tdma);
+    row.view().to_hbm_view(&mut device.tdma,out.view_mut());
+}
+
+/// Gather one logical row using its offset within each64-row vocabulary block.
+/// `row_byte_offset[0]` is logical_row*32*sizeof(bf16), so valid values0,64,...,4032.
+#[device(chip=1)]
+pub fn extract_logits_row(
+    device:&mut Device,
+    input:&HbmTensor<bf16,Chip,BlockedLogits>,
+    row_byte_offset:&HbmTensor<i32,Chip,m![1]>,
+    out:&mut HbmTensor<bf16,Chip,m![W]>,
+){
+    type Cluster=m![W/8192%2];
+    type Rows=m![W/32%256];
+    let row:DmTensor<bf16,Chip,Cluster,Rows,m![W/16384,W%32]>=input
+        .gather::<m![R64],m![W/8192,W/32%256,W%32]>()
+        .by_byte_offsets(row_byte_offset).to_dm(&mut device.tdma);
     row.view().to_hbm_view(&mut device.tdma,out.view_mut());
 }

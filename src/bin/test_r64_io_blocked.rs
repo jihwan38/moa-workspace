@@ -45,10 +45,20 @@ async fn main()->Result<(),Box<dyn std::error::Error>> {
  let mut scalar=HostTensor::<bf16,m![W]>::zero().to_hbm(&mut device.pdma).await?;
  let mut row_indices=Vec::new();let mut row_offsets=Vec::new();
  for row in 0..64 {
-  let offset=HostTensor::<i32,m![1]>::from_vec([row as i32]).to_hbm(&mut device.pdma).await?;
+  let offset=HostTensor::<i32,m![1]>::from_vec([(row*64) as i32]).to_hbm(&mut device.pdma).await?;
   launch(blocked::extract_logits_row,(&mut device,&output,&offset,&mut scalar)).await?;
   let values=scalar.to_host::<m![W]>(&mut device.pdma).await?.into_vec();
-  assert!(values.iter().zip(&got[row*W::SIZE..(row+1)*W::SIZE]).all(|(a,b)|a.to_bits()==b.to_bits()));
+  let diffs:Vec<_>=values.iter().zip(&got[row*W::SIZE..(row+1)*W::SIZE]).enumerate().filter(|(_, (a,b))|a.to_bits()!=b.to_bits()).collect();
+  for (n,(a,b)) in diffs.iter().take(8){eprintln!("EXTRACT_DIFF row={row} col={n} got_bits={:04x} expected_bits={:04x}",a.to_bits(),b.to_bits());}
+  println!("BLOCKED_ROW_EXACT row={row} differences={}",diffs.len());assert!(diffs.is_empty());
+  if row==0 || row==32 {
+   let logical=HostTensor::<i32,m![1]>::from_vec([row as i32]).to_hbm(&mut device.pdma).await?;
+   launch(blocked::extract_logits_row_spm_control,(&mut device,&output,&logical,&mut scalar)).await?;
+   let legacy=scalar.to_host::<m![W]>(&mut device.pdma).await?.into_vec();
+   let differences:Vec<_>=legacy.iter().zip(&values).enumerate().filter(|(_, (a,b))|a.to_bits()!=b.to_bits()).collect();
+   println!("SPM_CONTROL_DIAGNOSTIC row={row} differences={}",differences.len());
+   for (n,(a,b)) in differences.iter().take(8){println!("SPM_CONTROL_DIFF row={row} col={n} got_bits={:04x} expected_bits={:04x}",a.to_bits(),b.to_bits());}
+  }
   row_indices.push(offset);
   row_offsets.push(HostTensor::<i32,m![1]>::from_vec([(row*W::SIZE*2)as i32]).to_hbm(&mut device.pdma).await?);
  }
