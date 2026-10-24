@@ -100,3 +100,18 @@ all150 dequantization streams and shortens contraction tile loops, but expands
 FFN weight HBM4.4495GiB→15.8203GiB. Candidate must be bit-exact to packed H960
 for491520 varied-exponent results, and improve matched warm ABBA timing before
 any full loader work. H960 whole-model numerical drift remains a separate gate.
+
+B16 exact predecode plan afterc900306:share a B8-per-cluster full-H activation
+cache across up/gate; use two30-row BF16 weight tiles per projection. Down
+loads the full120×1920 BF16 shard after activation has moved to TRF. Reuse the
+exact cluster GeGLU and eight-way down reduction, with no H960 reassociation.
+The same predecoded model weights serve wide and decode paths. Require all
+61440 random outputs bit-exact to packed cluster control, then matched ABBA.
+This is an isolated kernel experiment; model storage/loader is unchanged.
+
+Arena317756 stage profile:split/fused gate passed; fused3.01ms,upgate+GeGLU
+1.584ms,down1.798ms including the documented extra stage IO. Arena317766
+predecoded P128:all491520 outputs bit-exact,packed3.043ms→predecoded2.736ms
+(about10%). Additional15.82GiB FFN weight storage is not adopted on this result.
+The modest gain revises the hypothesis that per-launch weight expansion alone
+dominates; down input repartition/contraction remains substantial.

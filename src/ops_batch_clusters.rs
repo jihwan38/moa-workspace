@@ -194,7 +194,7 @@ fn scale_upgate_batch(
         .commit()
 }
 
-fn geglu_batch(
+pub(crate) fn geglu_batch(
     device: &mut Device,
     up: &DmTensor<bf16, Chip, Cluster, UpRows, m![L % 60, {Row}]>,
     gate: &DmTensor<bf16, Chip, Cluster, UpRows, m![L % 60, {Row}]>,
