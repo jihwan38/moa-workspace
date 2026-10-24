@@ -25,3 +25,14 @@ The two-stage gather/broadcast and cached-down variants compile successfully.
 validated control, then samples control/up/down/both/both/down/up/control.
 Every sample performs three launches and one identical P128 read, divided by
 three. Compile/build passed; hardware equality and timing are pending root.
+
+A second up/gate candidate, `batch_ffn_up32`, avoids Switch broadcast. It caches
+32 local rows (245760 bytes), loads/dequantizes each12-row FP4 weight tile, and
+serves four B8 contractions from that cache. Two such superchunks cover the64
+local rows. This is the largest power-of-two cache fitting alongside the BF16
+weight tile and scratch;64 local rows alone need491520 bytes. Compared with the
+initial P128 kernel, aggregate activation DM writes fall by five, while original
+weight bytes/dequantization are performed twice per128 rows. The combined
+`batch_ffn_up32_down_cached` keeps the same cached-down variant.
+`test_wide_cache32` uses the same exact-output and symmetric timing protocol.
+Both variants and their executable compile; hardware results are pending root.
