@@ -518,7 +518,7 @@ impl WidePrefill {
             .await?;
         }
         scratch.record_optional_profile("wide.sliding.qkv", &mut mark);
-        self.sliding_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn).await
+        self.sliding_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn, false).await
     }
 
     async fn sliding_after_qkv(
@@ -531,6 +531,7 @@ impl WidePrefill {
         segments: &[Segment],
         scratch: &mut Prefill,
         include_ffn: bool,
+        defer_output: bool,
     ) -> Result<()> {
         let mut mark = scratch.profile_mark();
         let ring = state.blocks.sliding;
@@ -710,6 +711,10 @@ impl WidePrefill {
             }
         }
         scratch.record_optional_profile("wide.sliding.attention_dispatch", &mut mark);
+        if defer_output {
+            debug_assert!(!include_ffn);
+            return Ok(());
+        }
         launch(
             crate::ops_output_p128_parallel_gather::project_sliding_output_batch,
             (
@@ -783,7 +788,7 @@ impl WidePrefill {
             .await?;
         }
         scratch.record_optional_profile("wide.full.qkv", &mut mark);
-        self.full_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn).await
+        self.full_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn, false).await
     }
 
     async fn full_after_qkv(
@@ -796,6 +801,7 @@ impl WidePrefill {
         segments: &[Segment],
         scratch: &mut Prefill,
         include_ffn: bool,
+        defer_output: bool,
     ) -> Result<()> {
         let mut mark = scratch.profile_mark();
         let page = state.start_position / Tf::SIZE;
@@ -1029,6 +1035,10 @@ impl WidePrefill {
             }
         }
         scratch.record_optional_profile("wide.full.attention_dispatch", &mut mark);
+        if defer_output {
+            debug_assert!(!include_ffn);
+            return Ok(());
+        }
         launch(
             crate::ops_output_p128_parallel_gather::project_full_output_batch,
             (
