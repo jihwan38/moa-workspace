@@ -224,7 +224,7 @@ impl Prefill {
         .await?;
         self.record_profile("sliding.input_norm", &mut profile_mark);
         launch(
-            ops_batch::project_query_batch,
+            crate::ops_batch_clusters::project_query_clusters,
             (
                 device,
                 &self.norm,
@@ -286,13 +286,13 @@ impl Prefill {
                 .sliding(device, &self.k_s, &self.v_s, k, v)
                 .await?;
             launch(
-                pool_ops::sliding_attention_b16,
+                crate::ops_request_attention_rings::sliding_attention_b16,
                 (
                     device,
                     &self.q_s,
                     &*k,
                     &*v,
-                    &metadata.sliding_offsets,
+                    &metadata.ring_offsets,
                     &metadata.sliding_mask,
                     &mut self.attn_s,
                 ),

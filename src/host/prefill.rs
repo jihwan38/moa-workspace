@@ -294,7 +294,7 @@ impl Prefill {
         .await?;
         self.record_profile("sliding.input_norm", &mut profile_mark);
         launch(
-            ops_batch::project_query_batch,
+            crate::ops_batch_clusters::project_query_clusters,
             (
                 device,
                 &self.norm,
@@ -546,7 +546,7 @@ impl Prefill {
         .await?;
         self.record_profile("ffn.pre_norm", &mut profile_mark);
         launch(
-            ops_batch::batch_ffn,
+            crate::ops_batch_clusters::batch_ffn_clusters,
             (
                 device,
                 &self.norm,
