@@ -67,9 +67,18 @@ struct TokenProgress {
     last: Option<Instant>,
     tokens: usize,
     max_gap: Duration,
+    deadline_overruns: usize,
+    max_deadline_overrun: Duration,
 }
 impl TokenProgress {
     fn emitted(&mut self, now: Instant) {
+        if let Some(deadline) = self.deadline(DECODE_CREDIT_TARGET, DECODE_GAP_SOFTCAP) {
+            if now > deadline {
+                self.deadline_overruns += 1;
+                self.max_deadline_overrun =
+                    self.max_deadline_overrun.max(now.duration_since(deadline));
+            }
+        }
         self.first.get_or_insert(now);
         if let Some(last) = self.last {
             self.max_gap = self.max_gap.max(now.saturating_duration_since(last));
@@ -128,7 +137,7 @@ impl SessionTiming {
             .map(|t| ms(finished.saturating_duration_since(t)) / (self.progress.tokens - 1) as f64)
             .unwrap_or(0.0);
         eprintln!(
-            "SCHED_REQ id={} p={} q={:.1} first={:.1} own={:.1} dw={:.1}/{} pw={:.1} host={:.1} n={} avg={:.2} maxgap={:.1} credited={}",
+            "SCHED_REQ id={} p={} q={:.1} first={:.1} own={:.1} dw={:.1}/{} pw={:.1} host={:.1} n={} avg={:.2} maxgap={:.1} over={}/{:.1} credited={}",
             self.id,
             self.prompt_tokens,
             ms(self.admitted.saturating_duration_since(self.received)),
@@ -143,6 +152,8 @@ impl SessionTiming {
             self.progress.tokens,
             average,
             ms(self.progress.max_gap),
+            self.progress.deadline_overruns,
+            ms(self.progress.max_deadline_overrun),
             self.credited
         );
     }
@@ -1739,6 +1750,7 @@ mod tests {
             last: Some(start + Duration::from_millis(30)),
             tokens: 2,
             max_gap: Duration::from_millis(30),
+            ..TokenProgress::default()
         };
         let now = start + Duration::from_millis(100);
         assert!(!cadence.prompt_fits(now, 1, 1));
@@ -1757,6 +1769,7 @@ mod tests {
             last: Some(start + Duration::from_millis(50)),
             tokens: 1,
             max_gap: Duration::ZERO,
+            ..TokenProgress::default()
         };
         assert_eq!(
             cadence.earned_prompt_fits(now, &[&fast, &newly_ready], 1, DECODE_GAP_SOFTCAP),
@@ -1773,6 +1786,7 @@ mod tests {
             last: Some(start + Duration::from_millis(90)),
             tokens: 100,
             max_gap: Duration::ZERO,
+            ..TokenProgress::default()
         };
         let now = start + Duration::from_millis(100);
         assert_eq!(
@@ -1914,5 +1928,22 @@ mod tests {
         assert_eq!(trace.prompt[0].calls, 0);
         assert_eq!(trace.prompt[1].calls, 2);
         assert_eq!(trace.credited.calls, 1);
+    }
+
+    #[test]
+    fn output_trace_records_overdue_average_and_gap_deadlines() {
+        let start = Instant::now();
+        let mut progress = TokenProgress::default();
+        progress.emitted(start);
+        assert_eq!(progress.deadline_overruns, 0);
+        progress.tokens = 1;
+        progress.emitted(start + Duration::from_millis(100));
+        assert_eq!(progress.deadline_overruns, 1);
+        assert_eq!(progress.max_deadline_overrun, Duration::from_millis(10));
+        progress.tokens = 100;
+        progress.emitted(start + Duration::from_millis(270));
+        assert_eq!(progress.deadline_overruns, 2);
+        assert_eq!(progress.max_deadline_overrun, Duration::from_millis(20));
+        assert_eq!(progress.max_gap, Duration::from_millis(170));
     }
 }
