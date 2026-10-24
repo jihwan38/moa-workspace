@@ -87,6 +87,8 @@ async fn main() -> Result<()> {
                 model
                     .forward_sequences_native_qkv(&mut d, &seq, &mut ws)
                     .await?
+            } else if n == P128::SIZE {
+                model.forward_sequences_bf16_qkv(&mut d, &seq, &mut ws).await?
             } else {
                 model.forward_sequences(&mut d, &seq, &mut ws).await?
             };

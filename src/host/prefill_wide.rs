@@ -5,8 +5,6 @@ use crate::ops_sliding_wide::Pk128;
 use crate::ops_prefill_tiles as tiles;
 
 pub(crate) struct WidePrefill {
-    // Explicit complete-call diagnostic only; normal/resumable dispatch stays BF16.
-    use_native_qkv: bool,
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
     qkv_scale: HbmTensor<f32, Chip, m![P128, 1 # 8]>,
     x: HbmTensor<bf16, Chip, m![P128, H]>,
@@ -38,6 +36,7 @@ pub(crate) struct PreparedWide {
     start_position: usize,
     count: usize,
     logits: bool,
+    native_qkv: bool,
     next_layer: usize,
     segments: Vec<Segment>,
     native: Option<NativeMetadata>,
@@ -111,7 +110,6 @@ impl WidePrefill {
             );
         }
         Ok(Self {
-            use_native_qkv: false,
             qkv_input: HostTensor::<f8e4m3, m![P128,H]>::zero().to_hbm(&mut device.pdma).await?,
             qkv_scale: HostTensor::<f32, m![P128,1#8]>::zero().to_hbm(&mut device.pdma).await?,
             x: zero!(m![P128, H]),
@@ -262,6 +260,7 @@ impl WidePrefill {
             start_position: sequence.start_position,
             count,
             logits: sequence.inputs.last().unwrap().logits,
+            native_qkv: false,
             next_layer: 0,
             segments,
             native,
@@ -361,8 +360,8 @@ impl WidePrefill {
         self.finish(device, weights, &state, ws, scratch).await
     }
 
-    /// Isolated numerical diagnostic; the selector is restored even when execution fails.
-    /// The complete call holds &mut self, so it cannot overlap a resumable prompt.
+    /// Isolated numerical diagnostic; precision belongs to this prepared execution.
+    /// Dropping or failing the future cannot change a later prompt's precision.
     pub(crate) async fn run_native_qkv(
         &mut self,
         device: &mut Device,
@@ -371,11 +370,24 @@ impl WidePrefill {
         ws: &mut Workspace,
         scratch: &mut Prefill,
     ) -> Result<()> {
-        let previous = self.use_native_qkv;
-        self.use_native_qkv = true;
-        let result = self.run(device, weights, sequence, ws, scratch).await;
-        self.use_native_qkv = previous;
-        result
+        self.run_with_qkv(device, weights, sequence, ws, scratch, true).await
+    }
+
+    pub(crate) async fn run_bf16_qkv(
+        &mut self, device: &mut Device, weights: &Weights, sequence: &Sequence<'_>,
+        ws: &mut Workspace, scratch: &mut Prefill,
+    ) -> Result<()> {
+        self.run_with_qkv(device, weights, sequence, ws, scratch, false).await
+    }
+
+    async fn run_with_qkv(
+        &mut self, device: &mut Device, weights: &Weights, sequence: &Sequence<'_>,
+        ws: &mut Workspace, scratch: &mut Prefill, native: bool,
+    ) -> Result<()> {
+        let mut state = self.prepare(device, weights, sequence, scratch, ws.is_canonical()).await?;
+        state.native_qkv = native;
+        while !self.advance_layer(device, weights, &mut state, ws, scratch).await? {}
+        self.finish(device, weights, &state, ws, scratch).await
     }
 
     async fn normalize(
@@ -457,7 +469,7 @@ impl WidePrefill {
         let mut mark = scratch.profile_mark();
         self.normalize(device, &layer.input_norm, scratch).await?;
         scratch.record_optional_profile("wide.sliding.input_norm", &mut mark);
-        if self.use_native_qkv {
+        if state.native_qkv {
             launch(crate::ops_qkv_native_prequant::quantize_input,
                 (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
             launch(crate::ops_qkv_native_prequant::project_query_quantized,
@@ -717,7 +729,7 @@ impl WidePrefill {
         let mut mark = scratch.profile_mark();
         self.normalize(device, &layer.input_norm, scratch).await?;
         scratch.record_optional_profile("wide.full.input_norm", &mut mark);
-        if self.use_native_qkv {
+        if state.native_qkv {
             launch(crate::ops_qkv_native_prequant::quantize_input,
                 (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
             launch(crate::ops_qkv_native_prequant::project_full_query_quantized,
