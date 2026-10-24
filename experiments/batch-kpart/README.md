@@ -149,3 +149,11 @@ Compiled total: 1,459,380 -> 1,057,900 cycles. This is a compiler estimate,
 not NPU timing. Whole-FFN bit equality and ABBA timing are required before adoption.
 The probe includes zero and signed-subnormal BF16 rows in addition to random
 finite rows. Baseline module and the frozen c007 server are unchanged.
+
+Partition quantization NPU317887/r148: all491520 FFN bits equal, including
+zero and signed-subnormal rows. Measured base1.421–1.424ms versus
+partition1.414–1.423ms: no meaningful improvement, so not adopted.
+Actual trace317901/r164 confirms Task2,457,703→2,432,305cycles. The BF16
+intermediate repartition costs519,198cycles versus compiler99,932, replacing
+the expected saving with a more expensive transfer. Operator spans can overlap;
+their durations must not be summed into elapsed time.

@@ -70,3 +70,5 @@ pub mod ops_sliding_wide;
 pub mod ops_head_wide;
 pub mod ops_full_wide;
 pub mod ops_commit_wide;
+
+pub mod ops_r64_io;
