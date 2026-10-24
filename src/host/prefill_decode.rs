@@ -19,11 +19,13 @@ impl Prefill {
         sequences: &[Sequence<'_>],
         ws: &mut Workspace,
         logits: &mut [Logits],
+        output_rows: &[usize],
     ) -> Result<()> {
         let count = sequences.len();
         if count < 2
             || count > B::SIZE
-            || logits.len() != count
+            || output_rows.len() != count
+            || output_rows.iter().any(|&row| row >= logits.len())
             || sequences.iter().any(|s| s.inputs.len() != 1)
         {
             return Err("invalid independent-request batch".into());
@@ -148,7 +150,7 @@ impl Prefill {
                             device,
                             &self.logits_batch,
                             &offsets[row].logits,
-                            &mut logits[row],
+                            &mut logits[output_rows[row]],
                         ),
                     )
                     .await?;

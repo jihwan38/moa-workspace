@@ -56,6 +56,8 @@ impl Worker {
         let mut free: Vec<_> = (0..CAPACITY * Workspace::blocks_for(CONTEXT))
             .rev()
             .collect();
+        let mut prefer_prefill = false;
+        let mut next_prefill_ring = 0;
         loop {
             let incoming: Vec<_> = if sessions.is_empty() {
                 let Ok(job) = jobs.recv() else { break };
@@ -90,7 +92,13 @@ impl Worker {
             if sessions.is_empty() {
                 continue;
             }
-            for session in &mut sessions {
+            let available: Vec<_> = sessions
+                .iter()
+                .map(|s| (s.blocks.sliding, s.generation.input_count(PREFILL_CHUNK)))
+                .collect();
+            let selected = select_work(&available, &mut prefer_prefill, &mut next_prefill_ring);
+            for &index in &selected {
+                let session = &mut sessions[index];
                 let (_, position) = session.generation.input();
                 let count = session.generation.input_count(PREFILL_CHUNK);
                 while session.blocks.full.len() < Workspace::blocks_for(position + count) {
@@ -102,17 +110,17 @@ impl Worker {
             }
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 self.runtime.block_on(async {
-                    let chunks: Vec<_> = sessions
+                    let chunks: Vec<_> = selected
                         .iter()
-                        .map(|session| session.generation.inputs(PREFILL_CHUNK))
+                        .map(|&index| sessions[index].generation.inputs(PREFILL_CHUNK))
                         .collect();
                     let sequences: Vec<_> = chunks
                         .iter()
-                        .zip(&sessions)
-                        .map(|((inputs, start_position), session)| Sequence {
+                        .zip(&selected)
+                        .map(|((inputs, start_position), &index)| Sequence {
                             inputs,
                             start_position: *start_position,
-                            blocks: &session.blocks,
+                            blocks: &sessions[index].blocks,
                         })
                         .collect();
                     let outputs = self
@@ -143,8 +151,13 @@ impl Worker {
                     return;
                 }
             };
-            let mut row = 0;
+            let mut session_index = 0;
             sessions.retain_mut(|session| {
+                let index = session_index;
+                session_index += 1;
+                let Some(row) = selected.iter().position(|&selected| selected == index) else {
+                    return true;
+                };
                 let count = session.generation.input_count(PREFILL_CHUNK);
                 let result = session
                     .generation
@@ -160,7 +173,6 @@ impl Worker {
                                 })
                                 .is_ok()
                     });
-                row += 1;
                 let event = match result {
                     Ok(None) => return true,
                     Ok(Some(output)) => StreamEvent::Done(output),
@@ -172,5 +184,71 @@ impl Worker {
                 false
             });
         }
+    }
+}
+
+/// Emit a ready decode batch before running another prompt chunk. A single
+/// prompt chunk alternates with decode batches so continued arrivals cannot
+/// serialize all active decode requests behind a whole round of prefill.
+fn select_work(
+    available: &[(usize, usize)],
+    prefer_prefill: &mut bool,
+    next_ring: &mut usize,
+) -> Vec<usize> {
+    let singletons: Vec<_> = available
+        .iter()
+        .enumerate()
+        .filter_map(|(index, (_, count))| (*count == 1).then_some(index))
+        .collect();
+    let prefill = available
+        .iter()
+        .enumerate()
+        .filter(|(_, (_, count))| *count > 1)
+        .min_by_key(|(_, (ring, _))| (*ring + CAPACITY - *next_ring) % CAPACITY)
+        .map(|(index, _)| index);
+    if !singletons.is_empty() && (!*prefer_prefill || prefill.is_none()) {
+        *prefer_prefill = true;
+        singletons
+    } else if let Some(index) = prefill {
+        *next_ring = (available[index].0 + 1) % CAPACITY;
+        *prefer_prefill = false;
+        vec![index]
+    } else {
+        Vec::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn ready_decode_requests_stay_batched_while_prompt_progresses() {
+        let work = [(2, 1), (7, 16), (12, 1)];
+        let mut prefer = false;
+        let mut ring = 0;
+        assert_eq!(select_work(&work, &mut prefer, &mut ring), vec![0, 2]);
+        assert_eq!(select_work(&work, &mut prefer, &mut ring), vec![1]);
+        assert_eq!(select_work(&work, &mut prefer, &mut ring), vec![0, 2]);
+    }
+    #[test]
+    fn prompt_round_robin_uses_stable_ring_ids_across_session_removal() {
+        let mut prefer = false;
+        let mut ring = 0;
+        assert_eq!(
+            select_work(&[(8, 16), (2, 16), (15, 3)], &mut prefer, &mut ring),
+            vec![1]
+        );
+        assert_eq!(
+            select_work(&[(8, 16), (15, 3)], &mut prefer, &mut ring),
+            vec![0]
+        );
+        assert_eq!(
+            select_work(&[(8, 16), (15, 3)], &mut prefer, &mut ring),
+            vec![1]
+        );
+        assert_eq!(
+            select_work(&[(8, 16), (1, 16)], &mut prefer, &mut ring),
+            vec![1]
+        );
     }
 }
