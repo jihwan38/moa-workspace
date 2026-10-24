@@ -1,0 +1,10 @@
+{
+  "baseline": "R64 actual BF16 activation Qs/Ps/Qf ops_qkv_r64_trf32 andPf ops_batch_r64",
+  "source_basis": "P128native prequant validated private-independent6publicsuites c023",
+  "change": "Quantize64rows once and FP8 contract, token32percluster; preserveH960F32reductionandBF16dot/channelscale boundaries",
+  "removed_work": "BF16activation matrix work replacedFP8 matrix",
+  "added_work": "1 rowquant launch and .25MB FP8 activation/.002MBscale HBM exchange",
+  "numerical_change": "FP8activation quantization, requiresall6publicaccuracybeforeadoption; no kernelpassqualityclaim",
+  "gate": "3seedCPUquantbytes/F64quantizeddot oracle all4shapes, report BF16deviation, ABBAcombinedsliding3/full2 inclquant",
+  "next_if_faster": "isolated hostintegration then6publicquality; defaultproductionunchanged"
+}

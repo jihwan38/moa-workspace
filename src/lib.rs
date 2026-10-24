@@ -91,3 +91,8 @@ pub mod ops_greedy_r64;
 pub mod ops_r64_lm_partitioned;
 
 pub mod ops_native_fp8_b16_staged;
+
+pub mod ops_query_r64_native_fp8;
+pub mod ops_qkv_r64_native_prequant;
+pub mod ops_qkv_r64_trf32;
+pub mod ops_batch_r64;
