@@ -37,5 +37,78 @@ async fn main() {
     );
     check::<m![Rc64, Ts, Ns, Ds]>(&mut d, sliding.last().unwrap()).await;
     check::<m![Fc, Tf, Df]>(&mut d, full.last().unwrap()).await;
-    println!("PASS returned pools remain live with all22GiB allocated");
+    // Returned tensors from repeated launches must own distinct allocations.
+    let ring_elements = Ts::SIZE * Ns::SIZE * Ds::SIZE;
+    let ring_marker =
+        HostTensor::<bf16, m![Ts, Ns, Ds]>::from_vec(vec![bf16::from_f32(1.0); ring_elements])
+            .to_hbm(&mut d.pdma)
+            .await
+            .unwrap();
+    let ring_offset =
+        HostTensor::<i32, m![1]>::from_vec([((Rc64::SIZE - 1) * ring_elements * 2) as i32])
+            .to_hbm(&mut d.pdma)
+            .await
+            .unwrap();
+    launch(
+        furiosa_opt_gemma4::ops_pool_offsets::write_ring,
+        (&mut d, &ring_marker, &ring_offset, &mut sliding[0]),
+    )
+    .await
+    .unwrap();
+    let mut ring_read = HostTensor::<bf16, m![Ts, Ns, Ds]>::zero()
+        .to_hbm(&mut d.pdma)
+        .await
+        .unwrap();
+    launch(
+        furiosa_opt_gemma4::ops_pool_offsets::read_ring,
+        (&mut d, &sliding[0], &ring_offset, &mut ring_read),
+    )
+    .await
+    .unwrap();
+    let values: HostTensor<bf16, m![Ts, Ns, Ds]> = ring_read.to_host(&mut d.pdma).await.unwrap();
+    assert!(
+        values
+            .into_vec()
+            .iter()
+            .all(|v| v.to_bits() == bf16::from_f32(1.0).to_bits())
+    );
+    check::<m![Rc64, Ts, Ns, Ds]>(&mut d, sliding.last().unwrap()).await;
+    let page_elements = Tf::SIZE * Df::SIZE;
+    let page_marker =
+        HostTensor::<bf16, m![Tf, Df]>::from_vec(vec![bf16::from_f32(2.0); page_elements])
+            .to_hbm(&mut d.pdma)
+            .await
+            .unwrap();
+    let page_offset =
+        HostTensor::<i32, m![1]>::from_vec([((Fc::SIZE - 1) * page_elements * 2) as i32])
+            .to_hbm(&mut d.pdma)
+            .await
+            .unwrap();
+    launch(
+        furiosa_opt_gemma4::ops_pool_offsets::write_page,
+        (&mut d, &page_marker, &page_offset, &mut full[0]),
+    )
+    .await
+    .unwrap();
+    let mut page_read = HostTensor::<bf16, m![Tf, Df]>::zero()
+        .to_hbm(&mut d.pdma)
+        .await
+        .unwrap();
+    launch(
+        furiosa_opt_gemma4::ops_pool_offsets::read_page,
+        (&mut d, &full[0], &page_offset, &mut page_read),
+    )
+    .await
+    .unwrap();
+    let values: HostTensor<bf16, m![Tf, Df]> = page_read.to_host(&mut d.pdma).await.unwrap();
+    assert!(
+        values
+            .into_vec()
+            .iter()
+            .all(|v| v.to_bits() == bf16::from_f32(2.0).to_bits())
+    );
+    check::<m![Fc, Tf, Df]>(&mut d, full.last().unwrap()).await;
+    println!(
+        "PASS returned pools remain live with all22GiB allocated; distinct mutable allocations"
+    );
 }
