@@ -15,9 +15,18 @@ use crate::{
 use furiosa_opt_std::prelude::*;
 use ops_sliding_batch::Bk;
 
+#[path = "prefill_decode.rs"]
+mod decode;
+
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub(crate) struct Prefill {
+    logits_batch: HbmTensor<bf16, Chip, m![B, W]>,
+    decode_q_f: HbmTensor<bf16, Chip, m![Gf, Df]>,
+    decode_max_f: HbmTensor<f32, Chip, m![Gf]>,
+    decode_sum_f: HbmTensor<f32, Chip, m![Gf]>,
+    decode_attn_f: HbmTensor<bf16, Chip, m![Gf, Df]>,
+
     x: HbmTensor<bf16, Chip, m![B, H]>,
     norm: HbmTensor<bf16, Chip, m![B, H]>,
     projected: HbmTensor<bf16, Chip, m![B, H]>,
@@ -51,6 +60,11 @@ impl Prefill {
             };
         }
         Ok(Self {
+            logits_batch: zero!(bf16, m![B, W]),
+            decode_q_f: zero!(bf16, m![Gf, Df]),
+            decode_max_f: zero!(f32, m![Gf]),
+            decode_sum_f: zero!(f32, m![Gf]),
+            decode_attn_f: zero!(bf16, m![Gf, Df]),
             x: zero!(bf16, m![B, H]),
             norm: zero!(bf16, m![B, H]),
             projected: zero!(bf16, m![B, H]),

@@ -92,5 +92,14 @@
     "mask_tests": "2 tests passed; exact absolute sliding history around1024/2048wrap and fullpagefuture masks",
     "hardware_component_evidence": "Root job317592 RMS exact versus independent f64, partialprefix and slidingwrap sentinel exact; root317595 attention14cases and12future-invariance cases; full model remains unmeasured",
     "next_gate": "compare_prefill diagnostic compares actual48layer final logits with separate serial/batched KV pools; root schedules NPU and fullpublic workload"
+  },
+  "independent_decode": {
+    "graph": "2..16 singleton request rows -> B16embedding/norm/QKV/heads -> perrequest attention+KV withexistingpool -> B16O/FFN -> B16finalnorm/vocab -> requestlogitrowextraction",
+    "removed_work": "Repeated QKV/O/FFN/vocab weightreads across active request rows",
+    "preserved_work": "Attention remains one request at a time; no wholeKVpacking, cross-requestreuse or cacheformat change",
+    "dispatch": "All inputsequences contain exactly one row; batchsize2..16; independent of performanceflags",
+    "capacity": "Worker admission increased4->16 with same8192-position perrequest capacity",
+    "host_check": "cargo check --bin server passed SDK0.9",
+    "next_gate": "compare_decode_batch actualmodel differential, distinctrequests/prompts/positions/pages/rings; root NPU then mixedpublicaccuracy and throughput"
   }
 }
