@@ -76,3 +76,5 @@ pub mod ops_full_wide;
 pub mod ops_commit_wide;
 
 pub mod ops_r64_io;
+
+pub mod ops_r64_io_streamed;
