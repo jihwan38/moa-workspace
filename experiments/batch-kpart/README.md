@@ -501,3 +501,20 @@ physical slots =7680B/slice, plus live scales); moving scales into matrix helper
 scope did not eliminate the allocator failure, likely because invariants are
 retained across iterations. Use960-value direct GeGLU tiles to reduce the VRF
 operand to3840B. Logs preserve both rejected compile attempts. Arithmetic unchanged.
+
+
+P512 fused4ac14b4: Arena318047 exact both variants on1966080 outputs, but reject
+performance: staged baseline3.083ms, fused hybrid3.216ms, all-output3.486ms.
+Root actualP128 whole-model FFN core averaged.721ms×48 in318048, so standalone
+stagedP512 no longer beats the current fourP128 production calls. Stop P512 variants.
+
+R64 next experiment: two kernels, shared original blocked weights. Output-cluster
+up/gate reads BF16[R64,H] into four seeded H960 slices, obtains exact full-row FP8
+scales, broadcasts contiguous FP8 tiles to UpParts and runs both projections with
+one64-token TRF. Exact GeGLU writes BF16[R64,L]. Output-cluster down reads this full
+hidden row into16 seeded L960 slices, quantizes per row, broadcasts FP8 to DownParts,
+and projects/down-scales. Weight reads177MB vs354MB; the hidden HBM boundary adds
+about4MB. No quantized activation HBM stages or across-cluster reduction. Control
+is a frozen copy of root ops_native_fp8_r64_local_reuse::batch_ffn_partitioned_input,
+measured~.54ms previously; actual matched timing is required. All245760 output bits
+must match before adoption. Source arithmetics/quantization/boundaries unchanged.
