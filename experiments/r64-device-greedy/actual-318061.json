@@ -1,0 +1,33 @@
+{
+  "tested_source": "486cc13",
+  "job": 318061,
+  "log": "/round2/runs/r293-device-greedy-ftz-fallback-submit/arena.log",
+  "binary": "/round2/r64-io/target/release/test_greedy_r64",
+  "sha256": "09c5173733cfa204d030ede420b16d6a932b3c0262807a3153e17d4075940b41",
+  "result": "PASS all64rows,45normalfinite exactdevice-selection rows,19explicitfallback rows",
+  "coverage": [
+    "65280 finite BF16 CPU total_cmp ordering patterns",
+    "Arbitrary sparse/dense packed bans and full-ban fallback",
+    "Only one allowed ID, first/last/32/8192 boundaries, both physical clusters",
+    "Lowest-ID ties and signedzeros",
+    "Smallest/largest BF16 subnormals, maskedtinymaximum vsnormalunmasked, all-bannedtinymaximum",
+    "Positive/negative infinity, quiet/signaling signedNaNs, allNaNs"
+  ],
+  "timing": {
+    "warm_kernel_ms": [
+      0.4167436666666667,
+      0.415927,
+      0.41564400000000007,
+      0.41488733333333333
+    ],
+    "result_read_2KiB_ms": [
+      0.117113,
+      0.115152,
+      0.111212,
+      0.11435200000000001
+    ],
+    "initial_typed_ban_upload_ms": 2.119,
+    "scope": "Isolated kernel launch/wait andsmallPCIe read; banpacking/update andfullmodelworker transition notincluded."
+  },
+  "adoption": "Kernel ABI ready; root integrates onlygreedyrequestedrows. RequireoriginalCPU sampler fornonfinite orselectedzero/subnormalmaximum, andallstochasticconfigs. Fullmodel/APIcorrectness andofficialthroughput remain separate gates."
+}

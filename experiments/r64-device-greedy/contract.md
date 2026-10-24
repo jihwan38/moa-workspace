@@ -1,4 +1,4 @@
-# Generic greedy reduction draft contract
+# Generic greedy reduction contract
 
 `ops_greedy_r64::greedy_argmax_r64` consumes exactly the blocked BF16 logits from
 `ops_r64_io_blocked::logits_batch`. No model input, benchmark, token identity, or
@@ -49,5 +49,7 @@ second integer maximum implements lowest-ID ties. Any unsupported nonfinite or z
 numeric ordering is explicitly deferred to the original host conversion and
 sampler; it is never silently replaced with a floating-point Max reduction.
 
-This file specifies the draft ABI. Compile success and actual NPU oracle/timing
-results are recorded separately; this contract alone is not a runtime proof.
+Actual NPU job318061 passed this ABI on all64 testrows, including45 exact device
+selections and19 deliberately triggered fallback rows. See `actual-318061.json`
+for source/binary provenance and timing. Full-model Worker integration is a
+separate validation gate.
