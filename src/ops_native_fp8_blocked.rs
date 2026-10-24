@@ -225,6 +225,46 @@ pub fn batch_ffn(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,H]>,
     result.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
 
+#[device(chip = 1)]
+pub fn batch_ffn_direct_geglu(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,H]>,
+    up:&HbmTensor<f8e4m3,Chip,UpWeight>,gate:&HbmTensor<f8e4m3,Chip,UpWeight>,down:&HbmTensor<f8e4m3,Chip,DownWeight>,
+    up_dequant:&HbmTensor<f32,Chip,m![L]>,gate_dequant:&HbmTensor<f32,Chip,m![L]>,down_dequant:&HbmTensor<f32,Chip,m![H]>,
+    up_global:&HbmTensor<f32,Chip,m![1]>,gate_global:&HbmTensor<f32,Chip,m![1]>,down_global:&HbmTensor<f32,Chip,m![1]>,
+    output:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
+    let input:DmTensor<bf16,Chip,Cluster,QuantRows,m![H]>=input.to_dm(&mut device.tdma);
+    let (input,xscale)=quantize_hidden(device,&input);
+    let input:DmTensor<f8e4m3,Chip,Cluster,UpParts,m![P128 % 64,H % 960]>=input.to_dm(&mut device.tdma);
+    let xscale:DmTensor<f32,Chip,Cluster,UpRows,m![P128 % 64,1 # 8]>=xscale.to_dm(&mut device.tdma);
+    let xscale=pack_up_scales(device,&xscale);
+    let up=matrix_up(device,&input,&xscale,up,up_dequant);
+    let gate=matrix_up(device,&input,&xscale,gate,gate_dequant);
+    let hidden=crate::ops_geglu_direct::geglu(device,&up,&gate,up_global,gate_global);
+    let hidden:DmTensor<bf16,Chip,Cluster,UpRows,m![P128 % 64,L % 240]>=device.main.begin(hidden.view())
+        .fetch::<m![P128 / 16 % 4,L % 240],m![P128 % 16]>().collect::<m![P128 / 16 % 4,L % 240],m![P128 % 16]>()
+        .transpose::<m![P128 / 16 % 4,L / 4 % 60,P128 % 16],m![L % 4 # 16]>().commit_trim::<m![L % 4]>().commit();
+    let hidden:DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>=hidden.to_dm(&mut device.tdma);
+    let (hidden,hscale)=quantize_ffn(device,&hidden);
+    let hidden:DmTensor<f8e4m3,Chip,Cluster,DownParts,m![P128 % 64,L % 960]>=hidden.to_dm(&mut device.tdma);
+    let hscale:DmTensor<f32,Chip,Cluster,DownRows,m![P128 % 64,1 # 8]>=hscale.to_dm(&mut device.tdma);
+    let hscale=pack_down_scales(device,&hscale);
+    let result=matrix_down(device,&hidden,&hscale,down,down_dequant);
+    let global:DmTensor<f32,Chip,Cluster,DownRows,m![1 # 8]>=down_global.to_dm(&mut device.tdma);
+    let global:VrfTensor<f32,Chip,Cluster,DownRows,m![1 # 8]>=device.sub.begin(global.view())
+        .fetch::<m![1],m![1 # 8]>().collect::<m![1],m![1 # 8]>().to_vrf();
+    let result:DmTensor<bf16,Chip,Cluster,DownRows,m![H % 240,P128 % 64]>=device.main.begin(result.view())
+        .fetch::<m![H % 240,P128 / 8 % 8],m![P128 % 8]>().fetch_cast::<f32>()
+        .collect::<m![H % 240,P128 / 8 % 8],m![P128 % 8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![H % 240,P128 / 4 % 16],m![P128 % 4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&global)
+        .vector_widen_concat::<m![H % 240,P128 / 8 % 8],m![P128 % 8]>()
+        .vector_final().cast::<bf16,m![P128 % 8 # 16]>().commit_trim::<m![P128 % 8]>().commit();
+    let result:DmTensor<bf16,Chip,Cluster,DownRows,m![P128 % 64,H % 240]>=device.main.begin(result.view())
+        .fetch::<m![P128 / 16 % 4,H % 240],m![P128 % 16]>().collect::<m![P128 / 16 % 4,H % 240],m![P128 % 16]>()
+        .transpose::<m![P128 / 16 % 4,H / 4 % 60,P128 % 16],m![H % 4 # 16]>().commit_trim::<m![H % 4]>().commit();
+    result.view().to_hbm_view(&mut device.tdma,output.view_mut());
+}
+
 /// Startup-only copy: two clusters each own128 distinct weight tiles, with no duplicate values.
 #[device(chip = 1)]
 pub fn reblock_up(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![L,H]>,output:&mut HbmTensor<f8e4m3,Chip,UpWeight>) {

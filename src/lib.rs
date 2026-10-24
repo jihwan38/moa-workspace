@@ -25,6 +25,7 @@ pub mod ops_native_fp8;
 pub mod ops_batch_down960;
 pub mod ops_native_fp8_b16;
 pub mod ops_native_fp8_blocked;
+pub mod ops_geglu_direct;
 pub mod ops_batch_kpart16;
 pub mod ops_audio;
 pub mod ops_prefill;
