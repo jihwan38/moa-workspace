@@ -362,3 +362,10 @@ passes. Matched ABBA control[0.437694,0.423136]ms versus gathered parallel
 [0.198380,0.194981]ms, about54% improvement. The concurrent-dot mechanism
 is validated; the earlier partial-axis VRU implementation remains rejected.
 Next full O uses eight gathered planes and the same BF16 tree8→4→2→1.
+
+Arena317986/r229 full O:all1966080 isolated partial values match CPU and
+245760 final output bits match on dyadic/random inputs. Control
+[0.783718,0.746654]ms→parallel gather[0.222893,0.219208]ms,about71%.
+Sliding repeat0.4247→0.1908ms. Next P128 mapping retains the same concurrent
+K1024 partials and exact BF16 tree, with64 token rows per cluster and eight
+B8 contractions. Original P128 serial O remains the differential control.
