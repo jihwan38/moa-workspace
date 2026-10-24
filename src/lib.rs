@@ -56,3 +56,6 @@ pub mod ops_pool_views;
 pub mod ops_request_sliding_r64;
 pub mod ops_request_full_r64;
 pub mod ops_head_r64;
+pub mod ops_sliding_wide_pool;
+pub mod ops_full_wide_pool;
+pub mod ops_commit_wide_pool;
