@@ -1,11 +1,11 @@
 {
   "candidate": "Canonical64-slot KV with bounded256 full pages",
   "control": "51fdefc exact B16/Rc16 pool plus separate legacy KV, resumable prompt layers",
-  "status": "Read-only implementation audit and failed direct-view ABI feasibility check complete; stable runtime unchanged",
+  "status": "Host-view approach rejected after two distinct actual failures; canonical production ABI uses wholepool+byteoffset gather/scatter",
   "storage": "New canonical sliding[ Rc64=64,Ts,Ns,Ds ] and existing full[ Fc=256,Tf,Df ], one K andV tensor per layer. Querybatch R64 is a separate64axis to avoid aliasing selected rows with storage slots.",
-  "host": "Add explicit Workspace::new_canonical64 and pooled KvCache variants; preserve default baseline constructor. View methods borrow ring/page windows. C1 and prompt entrypoints accept views; joint decode uses pool offsets. Remove owner/migration logic only for canonical constructor.",
-  "admission": "Reserve blocks_for(prompt_ids.len+max_new_tokens) from256 global pages before admitting a request. Queue while page reservation or one of64rings unavailable. Retain reservation across all prompt layer yields and decode; release exactly once on completion/error. This prevents on-demand allocation deadlock when all admitted long prompts need another page.",
-  "abi_finding": "SDK0.9 HbmTensorView has correct Buffer-window binding and DeviceSend, but actual compile rejects view arguments for old &HbmTensor signatures. Add explicit view ABI entrypoints; do not fake owned aliases through private runtime APIs.",
+  "host": "Add explicit Workspace::new_canonical64 and canonical KV variants; preserve default baseline constructor. C1 and prompt entrypoints take complete Rc64/Fc256 pool handles plus base byte offsets. Joint decode uses existing proven pooled attention addressing. No ownership domain migration for canonical constructor.",
+  "admission": "Epoch-bearing private Reservation owns enough pages for prompt+max_new_tokens before admission.64slot and256page limits independent. Three CPU tests pass exhaustion/progress,all64shortrequests,atomicNone/oversize,andold-epoch release afteridenticalslot/pagesreuse.",
+  "abi_finding": "Unpadded tile failed host mapping validation317890. Padded tile constructed successfully, but317917 runtime required fullphysicalpaddedspan afterbufferbaseoffset and rejected ring31 BufferTooSmall. SDK has no public HBM unpad. Stop hostview approach; no private ABI alias workaround.",
   "gates": [
     "Compile and NPU sentinel test for immutable and mutable ring/page views, including last physical slot and untouched neighbors",
     "CanonicalB16 model comparisons across singleton, jointdecode, resumableprompt, ringreuse and fullpage boundaries",
