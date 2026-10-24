@@ -168,9 +168,10 @@ fn matrix_down(device:&mut Device,input:&DmTensor<f8e4m3,Chip,Cluster,DownParts,
 // until quantized; redistribute FP8 as contiguous [L240,P64] blocks, avoiding
 // both the full-row BF16 materialization and tiny strided P-major FP8 transfers.
 type MaxRows=m![1 #256];
+type MaxParts=m![1 #4,L/240];
 fn quantize_shards(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,UpRows,m![P128 %64,L %240]>)
  ->(DmTensor<f8e4m3,Chip,Cluster,DownParts,m![P128 %64,L %960]>,DmTensor<f32,Chip,Cluster,DownRows,m![P128 %64]>) {
- let amax:DmTensor<f32,Chip,Cluster,MaxRows,m![P128 %64,1 #8]>=device.main.begin(x.view())
+ let amax:DmTensor<f32,Chip,Cluster,UpRows,m![P128 %64,1 #8]>=device.main.begin(x.view())
   .fetch::<m![P128 %64,L /16 %15],m![L %16]>().fetch_cast::<f32>()
   .collect::<m![P128 %64,L /8 %30],m![L %8]>()
   .vector_init().vector_intra_slice_tag(TagMode::Zero)
@@ -179,7 +180,11 @@ fn quantize_shards(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,UpRows,m![P1
   .vector_intra_slice_reduce::<L,m![P128 %64],m![1 #4]>(IntraSliceReduceOpF32::Max)
   .vector_widen_pad::<m![1 #8]>()
   .vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)
-  .vector_inter_slice_reduce::<MaxRows,m![P128 %64]>(InterSliceReduceOpF32::Max)
+  .vector_final().commit_trim::<m![1 #8]>().commit();
+ let amax:DmTensor<f32,Chip,Cluster,MaxParts,m![P128 %64,1 #8]>=amax.to_dm(&mut device.tdma);
+ let amax:DmTensor<f32,Chip,Cluster,MaxRows,m![P128 %64,1 #8]>=device.main.begin(amax.view())
+  .fetch::<m![P128 %64],m![1 #8]>().collect::<m![P128 %64],m![1 #8]>()
+  .vector_init().vector_inter_slice_reduce::<MaxRows,m![P128 %64]>(InterSliceReduceOpF32::Max)
   .vector_final().commit_trim::<m![1 #8]>().commit();
  let scale:DmTensor<f32,Chip,Cluster,MaxRows,m![P128 %64,1 #8]>=device.main.begin(amax.view())
   .fetch::<m![P128 %64],m![1 #8]>().collect::<m![P128 %64],m![1 #8]>()
