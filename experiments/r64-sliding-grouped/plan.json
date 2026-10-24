@@ -1,0 +1,9 @@
+{
+  "source_commit": "c6c3abe",
+  "control": "ops_request_sliding_r64::sliding_attention_r64, actual317920 exact scalar; integrated317966 warm ~.749ms per layer",
+  "problem": "Eight R8 groups repeat index roundtrip, Q/K/V transfers and full softmax pipeline. KeyRows uses256 live slices but softmax [R64%4,Ns,Gs,1#4] uses64 live slices. Four local query TRF and interslice reduction reach64KiB/8KiB limits.",
+  "candidate": "Two R32 groups, two clusters with16 queries each. Gather K/V once per group. Resident K is16*32*256*2=262144 bytes/PE. Tile four local queries for exact QK dot, transpose/V dot and32-way BF16 partial reduction; merge all16 score rows before softmax to use256 live slices. Gathered K dies before V. Transpose only four V rows at a time.",
+  "removed": "6 of8 full softmax group pipelines,6 K and6 V gather setups,6 indexDM/HBM roundtrips; same512MiB logical K+V read and original arithmetic.",
+  "validation": "Profile frozen control with FURIOSA_OPT_PROFILE=trace and dynamic subscriber; exact all64 scalar controls including physical first/middle/last slots,positions0..8191,future invariance,sparse updates/inactive rows. ABBA old/new warm launches. Root dispatch only.",
+  "next_action": "Adopt only if full exact parity and useful measured reduction; preserve source even if no gain."
+}
