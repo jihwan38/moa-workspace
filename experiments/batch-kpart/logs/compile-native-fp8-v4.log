@@ -1,0 +1,42 @@
+   Compiling [1/2] ops_native_fp8::project_up_scaled
+error: furiosa-opt: ops_native_fp8::project_up_scaled: visa: while verifying DmaCommand
+       caused by: verification of operator failed:
+       DmaCommand
+       inner: DmaCommand: dram -> sram
+       -- assigned_pe: None --
+       src0: [P128_1=64:4, anonymbroadcast(2)_1=8:0, anonymbroadcast(3)_1=2:0, None=1:32], Dram(chip=0, in_chip=0x0)
+       dst0: [P128_1=64:32, anonymbroadcast(2)_1=8:16777216, anonymbroadcast(3)_1=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src1: [P128_1=64:4, anonymbroadcast(2)_1=8:0, anonymbroadcast(3)_1=2:0, None=1:32], Dram(chip=0, in_chip=0x0)
+       dst1: [P128_1=64:32, anonymbroadcast(2)_1=8:16777216, anonymbroadcast(3)_1=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src2: [P128_1=64:4, anonymbroadcast(2)_1=8:0, anonymbroadcast(3)_1=2:0, None=1:32], Dram(chip=0, in_chip=0x0)
+       dst2: [P128_1=64:32, anonymbroadcast(2)_1=8:16777216, anonymbroadcast(3)_1=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src3: [P128_1=64:4, anonymbroadcast(2)_1=8:0, anonymbroadcast(3)_1=2:0, None=1:32], Dram(chip=0, in_chip=0x0)
+       dst3: [P128_1=64:32, anonymbroadcast(2)_1=8:16777216, anonymbroadcast(3)_1=2:134217728, None=1:32], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)
+       src4: [P128_1=64:4, anonymbroadcast(2)_1=8:0, anonymbroadcast(3)_1=2:0, None=1:32], Dram(chip=0, in_chip=0x100)
+       dst4: [P128_1=64:32, anonymbroadcast(2)_1=8:16777216, anonymbroadcast(3)_1=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src5: [P128_1=64:4, anonymbroadcast(2)_1=8:0, anonymbroadcast(3)_1=2:0, None=1:32], Dram(chip=0, in_chip=0x100)
+       dst5: [P128_1=64:32, anonymbroadcast(2)_1=8:16777216, anonymbroadcast(3)_1=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src6: [P128_1=64:4, anonymbroadcast(2)_1=8:0, anonymbroadcast(3)_1=2:0, None=1:32], Dram(chip=0, in_chip=0x100)
+       dst6: [P128_1=64:32, anonymbroadcast(2)_1=8:16777216, anonymbroadcast(3)_1=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src7: [P128_1=64:4, anonymbroadcast(2)_1=8:0, anonymbroadcast(3)_1=2:0, None=1:32], Dram(chip=0, in_chip=0x100)
+       dst7: [P128_1=64:32, anonymbroadcast(2)_1=8:16777216, anonymbroadcast(3)_1=2:134217728, None=1:32], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)
+       
+       name: 
+       
+       input tensors: 1
+         input T1: MappingShape[Chip: 1, Element: P128], 512 B, f32, dram
+         source: unknown
+         total bytes: 512
+       output tensors: 1
+         output T6: MappingShape[Chip: 1, Cluster: P128 / 64, Slice: (L / 240, 1 # 4), Element: (P128 % 64, 1 # 8)], 1048576 B, f32, sram
+         source: unknown
+         total bytes: 1048576
+       caused by: strides([32, 0, 4, 0, 0, 0, 0, 0]) is not aligned by 8 SequencerConfig { iteration_config: IterationConfig { limits: [1, 16, 64, 1, 1, 1, 1, 1] }, indexer_config: Indexer { base: 0, strides: [32, 0, 4, 0, 0, 0, 0, 0] } }
+   --> src/ops_native_fp8.rs:160:77
+    |
+160 |     let xscale:DmTensor<f32,Chip,Cluster,UpRows,m![P128 % 64,1 # 8]>=xscale.to_dm(&mut device.tdma);
+    |                                                                             ^^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [2/2] ops_native_fp8::batch_ffn
+    Finished 2 compiled, 60 not matching ops_native_fp8::project_up_scaled, ops_native_fp8::batch_ffn
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error

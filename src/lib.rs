@@ -19,6 +19,7 @@ pub mod ops_batch_kpart;
 pub mod ops_batch_down960;
 pub mod ops_batch_native4;
 pub mod ops_batch_prepack8;
+pub mod ops_native_fp8;
 pub mod ops_batch_kpart16;
 pub mod ops_batch_kpart_bf16;
 pub mod ops_batch_clusters;

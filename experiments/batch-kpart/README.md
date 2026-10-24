@@ -166,3 +166,21 @@ relativeL2=5.05e-6,zero tolerance failures;512 sampled F64 dots exact.
 30-row and6-row native variants are bit-exact to one another, taking~0.92ms
 and~1.17ms respectively. Final warm weighted-BF16 comparison~1.006ms; the
 first1.634ms sample was an outlier. No full-model native4 adoption followed.
+
+Scaled native matrix/fullFFN plan after016cb2f: per-token activation quantizers
+copy verified0d5a253 formula as internal DM helpers (F32 subnormal FTZ follows
+hardware). Native F32 dot multiplies token dequant scale then output-row weight
+dequant scale before BF16; original global scale is afterward. Existing GeGLU
+and BF16 boundaries remain. Hidden activations are transposed before DM
+redistribution to avoid two-byte strided transfers; no HBM intermediates are
+required. Independent scaled-matrix scalar checks precede honest full-FFN error
+statistics and warm timing versus packed L960 control, then whole-model gate.
+
+Startup prepack Arena317852 passed all117964800 emitted E4 values including
+signed zeros and all row scales. Reconstructed-weight NRMSE≈0.02364.
+Up160ms/down191ms included downloading each full60MB result, not pure startup
+kernel time. FullFFN matrix checks sample1024 independent F64 dots for each
+postscaled up/down mapping. FullFFN reports bit differences, strict old-tolerance
+failures, relativeL2 and max error against packed L960; finite values and a broad
+relativeL2<0.2 catch gross defects, not model quality. This approximate path is
+explicitly UNVALIDATED for whole-model accuracy pending root's gate.
