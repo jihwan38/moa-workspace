@@ -259,3 +259,21 @@ QKV copies H960 arithmetic; FFN copies proven blocked/direct-GeGLU arithmetic.
 Compare all R64 FFN output bits with the first64 rows of P128, padding the
 remaining independent P128 rows with zero. Distinct R64 query and Rc64 cache
 slot axes prevent accidental query/cache ownership conflation.
+
+R64 frozen source37ae696/352780a passed all three NPU gates. Arena317928/r178
+FFN:245760 values bit-exact to P128 prefix; R64 0.7658–0.7706ms versus padded
+P128 1.165–1.172ms. Each timing includes five launches plus its output read/5;
+the P128 read is twice as large, so this is not matched output-transfer volume.
+Arena317929/r179 O projections:245760 independent dyadic CPU outputs exact
+for each shape, sliding0.471ms/full0.764ms (five launches plus one read/5).
+Arena317934/r181 QKV:all four shapes exact against P128 for both dyadic and
+varied-exponent inputs;950272 dyadic CPU outputs and512 F64 scalar samples
+per shape exact. Full-query0.283–0.286ms/full-key0.169–0.174ms; remaining
+timings are in the root run log. These are kernel gates, not R64 model accuracy.
+
+R64 direct-O plan after352780a: preserve every1024-column BF16 partial dot,
+the exact BF16 binary sum tree and output scale. Read each P16 sum operand
+as a padded DM view directly into the existing vector stream, removing two
+DM tile copies per add node. Existing entry points remain controls; require
+all output bits equal on varied inputs and independent dyadic CPU oracles,
+then matched-output ABBA timing. No weight or numerical-format changes.
