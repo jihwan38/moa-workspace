@@ -45,3 +45,19 @@ exact cached P128 FFN, reports bit differences/max errors, and fails beyond
 `0.02+0.01*abs(reference)`. Both FFN and all Q/K wrappers compile; the FFN hardware
 probe and subsequent whole-model comparison are pending root. Original wide
 kernels remain available unchanged for that comparison.
+
+Audit correction after Arena317733: the original query test's independent
+dyadic oracle accidentally read the full-H control output. Its H960 random
+differential comparison and timing were valid, but its reported H960 dyadic
+independent proof is withdrawn. The test is fixed and `test_kpart_qkv` explicitly
+checks both variants for Qs, Ps, Qf, and Pf against a seeded exact dyadic oracle,
+then checks full varied-exponent tensors against each other and512 output
+coordinates against independent F64 dot products. Distinct channel scales and
+nonperiodic K values cover shard boundaries and all output/cluster layouts.
+
+Arena317730 H960 FFN:491520 outputs,4640 bit differences,zero failures at the
+documented tolerance,max_abs0.0078125,max_rel0.03662; warm4.66ms→3.116ms.
+Arena317733 whole-model513 tokens:1753ms versus B16 3903ms and previous exact
+P128 2661ms, but relativeL2=0.045957,max_abs1.875,argmax100→2946. This is not an
+accepted model correctness result. The corrected all-projection oracle gates
+bug investigation before any accuracy evaluation or adoption.

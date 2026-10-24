@@ -45,7 +45,7 @@ async fn main() {
     .unwrap();
     let start = std::time::Instant::now();
     launch(
-        ops_batch_wide::project_query_batch,
+        ops_batch_kpart::project_query_batch,
         (&mut device, &x, &w, &s, &mut out),
     )
     .await
