@@ -23,7 +23,10 @@ pub struct Worker {
     model: Model,
     workspace: Workspace,
     tokenizer: Tokenizer,
+    greedy: super::greedy::GreedySelector,
 }
+
+enum SampleOutput { Logits(Vec<f32>), Greedy(usize) }
 
 struct Session {
     generation: Generation,
@@ -83,7 +86,7 @@ impl Worker {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let runtime = tokio::runtime::Builder::new_current_thread().build()?;
         let mut device = Device::new(crate::ops::embed_token.topology())?;
-        let (model, workspace) = runtime.block_on(async {
+        let (model, workspace, greedy) = runtime.block_on(async {
             let started = std::time::Instant::now();
             let weights = load::load_weights(&mut device).await?;
             eprintln!("startup.weights_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
@@ -98,7 +101,8 @@ impl Worker {
             let started = std::time::Instant::now();
             let model = Model::new(&mut device, weights, &mut workspace).await?;
             eprintln!("startup.model_scratch_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
-            Ok::<_, Box<dyn std::error::Error>>((model, workspace))
+            let greedy = super::greedy::GreedySelector::new(&mut device).await?;
+            Ok::<_, Box<dyn std::error::Error>>((model, workspace, greedy))
         })?;
         Ok(Self {
             runtime,
@@ -106,6 +110,7 @@ impl Worker {
             model,
             workspace,
             tokenizer,
+            greedy,
         })
     }
 
@@ -277,7 +282,7 @@ impl Worker {
                         } else {
                             Vec::new()
                         };
-                        return Ok(Some(vec![logits]));
+                        return Ok(Some(vec![SampleOutput::Logits(logits)]));
                     }
                     let outputs = self
                         .model
@@ -285,19 +290,39 @@ impl Worker {
                         .await?;
                     let logits = match outputs {
                         ForwardOutput::Blocked64(output, live) => {
-                            let host = output.to_host::<crate::ops_r64_io_blocked::BlockedLogits>(&mut self.device.pdma).await?;
-                            let bytes = host.into_inner().into_buf();
-                            let workers = std::thread::available_parallelism().map_or(1, usize::from);
-                            crate::host_logit_bytes::decode_blocked_r64(&bytes, live, workers)
+                            let all_greedy = selected.iter().zip(&chunks).all(|(&index,(inputs,_))|
+                                !inputs.last().unwrap().logits || sessions[index].generation.sampling_config().is_greedy());
+                            if all_greedy {
+                                let bans: Vec<_> = selected.iter().zip(&chunks).map(|(&index,(inputs,_))|
+                                    inputs.last().unwrap().logits.then(||sessions[index].generation.banned_tokens())).collect();
+                                let tokens = self.greedy.select(&mut self.device, output, &bans).await?;
+                                let mut result = Vec::with_capacity(live);
+                                for row in 0..live {
+                                    result.push(if !chunks[row].0.last().unwrap().logits {
+                                        SampleOutput::Logits(Vec::new())
+                                    } else if let Some(token) = tokens[row] {
+                                        SampleOutput::Greedy(token)
+                                    } else {
+                                        SampleOutput::Logits(self.greedy.read_fallback(&mut self.device, output, row).await?)
+                                    });
+                                }
+                                result
+                            } else {
+                                let host = output.to_host::<crate::ops_r64_io_blocked::BlockedLogits>(&mut self.device.pdma).await?;
+                                let bytes = host.into_inner().into_buf();
+                                let workers = std::thread::available_parallelism().map_or(1, usize::from);
+                                crate::host_logit_bytes::decode_blocked_r64(&bytes, live, workers)
+                                    .into_iter().map(SampleOutput::Logits).collect()
+                            }
                         }
                         ForwardOutput::Rows(outputs) => {
                             let mut logits = Vec::with_capacity(outputs.len());
                             for (output, (inputs, _)) in outputs.iter().zip(&chunks) {
-                                logits.push(if inputs.last().expect("nonempty input chunk").logits {
+                                logits.push(SampleOutput::Logits(if inputs.last().expect("nonempty input chunk").logits {
                                     read_logits(&mut self.device, output).await?
                                 } else {
                                     Vec::new()
-                                });
+                                }));
                             }
                             logits
                         }
@@ -340,9 +365,7 @@ impl Worker {
                     return true;
                 };
                 let count = session.generation.input_count(PREFILL_CHUNK);
-                let result = session
-                    .generation
-                    .advance_inputs(count, &logits[row], |delta| {
+                let emit = |delta| {
                         !session.stream
                             || session
                                 .events
@@ -353,7 +376,11 @@ impl Worker {
                                     }
                                 })
                                 .is_ok()
-                    });
+                    };
+                let result = match &logits[row] {
+                    SampleOutput::Logits(logits) => session.generation.advance_inputs(count, logits, emit),
+                    SampleOutput::Greedy(token) => session.generation.advance_inputs_greedy(count, *token, emit),
+                };
                 let event = match result {
                     Ok(None) => return true,
                     Ok(Some(output)) => StreamEvent::Done(output),
