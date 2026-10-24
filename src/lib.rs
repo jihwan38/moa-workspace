@@ -59,3 +59,6 @@ pub mod ops_head_r64;
 pub mod ops_sliding_wide_pool;
 pub mod ops_full_wide_pool;
 pub mod ops_commit_wide_pool;
+pub mod ops_sliding_prompt_pool;
+pub mod ops_attention_pool;
+pub mod ops_commit_r64;
