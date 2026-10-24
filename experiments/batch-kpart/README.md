@@ -354,3 +354,11 @@ This distinguishes dot failure from gather/add failure if the device stalls.
 Arena317962/r208 direct-P16 O passed all final bits/CPU oracles. Sliding
 control0.423–0.442ms/direct160.398–0.404ms;full0.769–0.797/0.720–0.732ms.
 Direct8 was0.411–0.447/0.731–0.785ms in the sameABC-CBA run.
+
+Arena317977/r224 gathered parallel sliding O:983040 isolated BF16 partial
+dots exactly match CPU;245760 final outputs match canonical bits on both
+dyadic and varied-exponent inputs, and independent dyadic BF16-tree oracle
+passes. Matched ABBA control[0.437694,0.423136]ms versus gathered parallel
+[0.198380,0.194981]ms, about54% improvement. The concurrent-dot mechanism
+is validated; the earlier partial-axis VRU implementation remains rejected.
+Next full O uses eight gathered planes and the same BF16 tree8→4→2→1.
