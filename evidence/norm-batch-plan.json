@@ -1,0 +1,22 @@
+{
+  "source_control": "129ade8 plus passing head evidence",
+  "control": "ops_prefill row-loop hidden RMSNorm/residual/gate with original shared helpers",
+  "complete_change": "Place B rows and their eight 480-element hidden fragments across slices; perform identical local sum/3840 then inter-slice sum, EPS and sqrt. Normalize all rows once; preserve BF16 norm before residual add and BF16 add before layer gate.",
+  "removed_work": "Sixteen repeated normalization and residual passes per kernel, and hidden broadcast before HBMs consumed by batched GEMMs.",
+  "added_work": "B-labelled shard placement; no new arithmetic or changed reduction grouping.",
+  "validation": "Compile then NPU exact comparison to original scalar helpers on nonzero independent rows, varied norm weights/residuals/gate, zero/tiny EPS rows. Root measures complete model cost.",
+  "next_decision": "Replace three ops_prefill launch paths only after exact correctness checks pass.",
+  "compiled_kernels": [
+    "rmsnorm_b16",
+    "post_attention_b16",
+    "post_feedforward_b16",
+    "reference_norm_row"
+  ],
+  "probe_binary": "target/release/test_norm_batch",
+  "probe_sha256": "2266e90646449acae8e4e05ef3ec667ce8c36f127509734b0f0deeeb2d535a8f",
+  "source_sha256": {
+    "src/ops_norm_batch.rs": "a9a45bd4691bc0b7f1fa1430670a534019a6086e8462283cbfd3aae2a4e7d00a",
+    "src/bin/test_norm_batch.rs": "991b7fc0199d518749e27800f971b459ab4575a3bbcabf718b2ac9263dc3ab03"
+  },
+  "npu_execution": "Pending root dispatch"
+}
