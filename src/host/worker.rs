@@ -16,6 +16,8 @@ use std::time::{Duration, Instant};
 pub const CAPACITY: usize = crate::axes::B::SIZE;
 /// Prompt plus generated positions allowed per request.
 pub const CONTEXT: usize = 8192;
+/// Enable only after the grouped model and HTTP correctness gates pass.
+const GROUP_PREFILL_ENABLED: bool = false;
 
 pub struct Worker {
     runtime: tokio::runtime::Runtime,
@@ -26,7 +28,10 @@ pub struct Worker {
     greedy: super::greedy::GreedySelector,
 }
 
-enum SampleOutput { Logits(Vec<f32>), Greedy(usize) }
+enum SampleOutput {
+    Logits(Vec<f32>),
+    Greedy(usize),
+}
 
 struct Session {
     generation: Generation,
@@ -43,28 +48,55 @@ struct Pending {
     stream: bool,
 }
 
+#[derive(Clone, Copy)]
+struct ReadyInput {
+    ring: usize,
+    position: usize,
+    count: usize,
+}
+
+impl ReadyInput {
+    fn groupable(self) -> bool {
+        self.count == crate::axes::P128::SIZE
+            && self.position % crate::axes::Tf::SIZE + self.count <= crate::axes::Tf::SIZE
+    }
+}
+
 /// Spend the interval between decode rounds on complete prompt layers. A single
 /// layer always remains eligible after a decode so slow rounds cannot starve it.
 /// Measurements include host logit reads, sampling and response event emission.
 struct DecodeCadence {
     last: Option<(Instant, usize)>,
     costs: [Duration; crate::axes::R64::SIZE + 1],
-    prompt_cost: Duration,
+    // A single layer must not erase the measured cost of a four-request layer.
+    prompt_cost: [Duration; 2],
 }
 impl DecodeCadence {
     fn new() -> Self {
-        Self { last: None, costs: [Duration::ZERO; crate::axes::R64::SIZE + 1], prompt_cost: Duration::from_millis(8) }
+        Self {
+            last: None,
+            costs: [Duration::ZERO; crate::axes::R64::SIZE + 1],
+            prompt_cost: [Duration::from_millis(8), Duration::from_millis(16)],
+        }
     }
-    fn prompt_fits(&self, now: Instant, ready: usize) -> bool {
-        if ready == 0 { return true; }
-        let Some((last, width)) = self.last else { return false; };
+    fn prompt_fits(&self, now: Instant, ready: usize, prompt_width: usize) -> bool {
+        if ready == 0 {
+            return true;
+        }
+        let Some((last, width)) = self.last else {
+            return false;
+        };
         // An unseen width must run once before using its measured cost.
-        width == ready && self.costs[ready] != Duration::ZERO
-            && now.saturating_duration_since(last) + self.prompt_cost + self.costs[ready]
+        width == ready
+            && self.costs[ready] != Duration::ZERO
+            && now.saturating_duration_since(last)
+                + self.prompt_cost[usize::from(prompt_width == 4)]
+                + self.costs[ready]
                 <= Duration::from_millis(90)
     }
-    fn observe_prompt(&mut self, elapsed: Duration) {
-        self.prompt_cost = elapsed.max(self.prompt_cost.mul_f64(0.9));
+    fn observe_prompt(&mut self, elapsed: Duration, width: usize) {
+        let cost = &mut self.prompt_cost[usize::from(width == 4)];
+        *cost = elapsed.max(cost.mul_f64(0.9));
     }
     fn observe_decode(&mut self, finished: Instant, width: usize, elapsed: Duration) {
         self.costs[width] = elapsed.max(self.costs[width].mul_f64(0.9));
@@ -89,7 +121,10 @@ impl Worker {
         let (model, workspace, greedy) = runtime.block_on(async {
             let started = std::time::Instant::now();
             let weights = load::load_weights(&mut device).await?;
-            eprintln!("startup.weights_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
+            eprintln!(
+                "startup.weights_ms={:.3}",
+                started.elapsed().as_secs_f64() * 1000.0
+            );
             let started = std::time::Instant::now();
             let mut workspace = if canonical {
                 Workspace::new_canonical64(&mut device, &weights, CONTEXT, crate::axes::R64::SIZE)
@@ -97,10 +132,19 @@ impl Worker {
             } else {
                 Workspace::new(&mut device, &weights, CONTEXT, CAPACITY).await?
             };
-            eprintln!("startup.workspace_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
+            eprintln!(
+                "startup.workspace_ms={:.3}",
+                started.elapsed().as_secs_f64() * 1000.0
+            );
             let started = std::time::Instant::now();
-            let model = Model::new(&mut device, weights, &mut workspace).await?;
-            eprintln!("startup.model_scratch_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
+            let mut model = Model::new(&mut device, weights, &mut workspace).await?;
+            if GROUP_PREFILL_ENABLED && canonical {
+                model.prepare_group_scratch(&mut device).await?;
+            }
+            eprintln!(
+                "startup.model_scratch_ms={:.3}",
+                started.elapsed().as_secs_f64() * 1000.0
+            );
             let greedy = super::greedy::GreedySelector::new(&mut device).await?;
             Ok::<_, Box<dyn std::error::Error>>((model, workspace, greedy))
         })?;
@@ -210,21 +254,46 @@ impl Worker {
             }
             let available: Vec<_> = sessions
                 .iter()
-                .map(|s| (s.blocks.sliding, s.generation.input_count(PREFILL_CHUNK)))
+                .map(|s| ReadyInput {
+                    ring: s.blocks.sliding,
+                    position: s.generation.input().1,
+                    count: s.generation.input_count(PREFILL_CHUNK),
+                })
                 .collect();
-            let active_ring = self.model.active_prefill_ring();
-            let ready = available.iter().filter(|(ring, count)| *count == 1 && Some(*ring) != active_ring).count();
+            let active_rings = self.model.active_prefill_rings();
+            let group_enabled = GROUP_PREFILL_ENABLED && canonical;
+            let ready = available
+                .iter()
+                .filter(|input| input.count == 1 && !active_rings.contains(&input.ring))
+                .count();
+            let prompt_width = pending_prompt(
+                capacity,
+                &available,
+                next_prefill_ring,
+                &active_rings,
+                group_enabled,
+            )
+            .len();
             // Keep all ready decoders together, while allowing several short
             // prompt layers inside the time left before their next round.
-            prefer_prefill |= cadence.prompt_fits(Instant::now(), ready);
+            prefer_prefill |= cadence.prompt_fits(Instant::now(), ready, prompt_width);
             let selected = select_work_in(
                 capacity,
                 &available,
                 &mut prefer_prefill,
                 &mut next_prefill_ring,
-                active_ring,
+                &active_rings,
+                group_enabled,
             );
-            let decode_width = if selected.iter().all(|&i| available[i].1 == 1 && Some(available[i].0) != active_ring) { selected.len() } else { 0 };
+            let decode_width = if selected
+                .iter()
+                .all(|&i| available[i].count == 1 && !active_rings.contains(&available[i].ring))
+            {
+                selected.len()
+            } else {
+                0
+            };
+            let grouped = selected.len() == 4 && decode_width == 0;
             let work_started = Instant::now();
             for &index in &selected {
                 let session = &mut sessions[index];
@@ -260,12 +329,43 @@ impl Worker {
                             blocks: &sessions[index].blocks,
                         })
                         .collect();
+                    if grouped {
+                        if active_rings.is_empty() {
+                            self.model
+                                .start_prefill_group(
+                                    &mut self.device,
+                                    &sequences,
+                                    &mut self.workspace,
+                                )
+                                .await?;
+                        }
+                        let Some(outputs) = self
+                            .model
+                            .advance_prefill_group(&mut self.device, &mut self.workspace)
+                            .await?
+                        else {
+                            return Ok(None);
+                        };
+                        if outputs.len() != sequences.len() {
+                            return Err("grouped output count does not match its requests".into());
+                        }
+                        let mut logits = Vec::with_capacity(outputs.len());
+                        for (output, sequence) in outputs.iter().zip(&sequences) {
+                            logits.push(SampleOutput::Logits(
+                                if sequence.inputs.last().unwrap().logits {
+                                    read_logits(&mut self.device, output).await?
+                                } else {
+                                    Vec::new()
+                                },
+                            ));
+                        }
+                        return Ok(Some(logits));
+                    }
                     if sequences.len() == 1
-                        && (self.model.active_prefill_ring() == Some(sequences[0].blocks.sliding)
-                            || (self.model.active_prefill_ring().is_none()
-                                && sequences[0].inputs.len() > 1))
+                        && (active_rings.as_slice() == [sequences[0].blocks.sliding]
+                            || (active_rings.is_empty() && sequences[0].inputs.len() > 1))
                     {
-                        if self.model.active_prefill_ring().is_none() {
+                        if active_rings.is_empty() {
                             self.model
                                 .start_prefill(&mut self.device, &sequences[0], &mut self.workspace)
                                 .await?;
@@ -290,12 +390,30 @@ impl Worker {
                         .await?;
                     let logits = match outputs {
                         ForwardOutput::Blocked64(output, live) => {
-                            let all_greedy = selected.iter().zip(&chunks).all(|(&index,(inputs,_))|
-                                !inputs.last().unwrap().logits || sessions[index].generation.sampling_config().is_greedy());
+                            if live != selected.len() {
+                                return Err(
+                                    "blocked output count does not match its requests".into()
+                                );
+                            }
+                            let all_greedy =
+                                selected.iter().zip(&chunks).all(|(&index, (inputs, _))| {
+                                    !inputs.last().unwrap().logits
+                                        || sessions[index].generation.sampling_config().is_greedy()
+                                });
                             if all_greedy {
-                                let bans: Vec<_> = selected.iter().zip(&chunks).map(|(&index,(inputs,_))|
-                                    inputs.last().unwrap().logits.then(||sessions[index].generation.banned_tokens())).collect();
-                                let tokens = self.greedy.select(&mut self.device, output, &bans).await?;
+                                let bans: Vec<_> = selected
+                                    .iter()
+                                    .zip(&chunks)
+                                    .map(|(&index, (inputs, _))| {
+                                        inputs
+                                            .last()
+                                            .unwrap()
+                                            .logits
+                                            .then(|| sessions[index].generation.banned_tokens())
+                                    })
+                                    .collect();
+                                let tokens =
+                                    self.greedy.select(&mut self.device, output, &bans).await?;
                                 let mut result = Vec::with_capacity(live);
                                 for row in 0..live {
                                     result.push(if !chunks[row].0.last().unwrap().logits {
@@ -303,26 +421,42 @@ impl Worker {
                                     } else if let Some(token) = tokens[row] {
                                         SampleOutput::Greedy(token)
                                     } else {
-                                        SampleOutput::Logits(self.greedy.read_fallback(&mut self.device, output, row).await?)
+                                        SampleOutput::Logits(
+                                            self.greedy
+                                                .read_fallback(&mut self.device, output, row)
+                                                .await?,
+                                        )
                                     });
                                 }
                                 result
                             } else {
-                                let host = output.to_host::<crate::ops_r64_io_blocked::BlockedLogits>(&mut self.device.pdma).await?;
+                                let host = output
+                                    .to_host::<crate::ops_r64_io_blocked::BlockedLogits>(
+                                        &mut self.device.pdma,
+                                    )
+                                    .await?;
                                 let bytes = host.into_inner().into_buf();
-                                let workers = std::thread::available_parallelism().map_or(1, usize::from);
+                                let workers =
+                                    std::thread::available_parallelism().map_or(1, usize::from);
                                 crate::host_logit_bytes::decode_blocked_r64(&bytes, live, workers)
-                                    .into_iter().map(SampleOutput::Logits).collect()
+                                    .into_iter()
+                                    .map(SampleOutput::Logits)
+                                    .collect()
                             }
                         }
                         ForwardOutput::Rows(outputs) => {
+                            if outputs.len() != selected.len() {
+                                return Err("model output count does not match its requests".into());
+                            }
                             let mut logits = Vec::with_capacity(outputs.len());
                             for (output, (inputs, _)) in outputs.iter().zip(&chunks) {
-                                logits.push(SampleOutput::Logits(if inputs.last().expect("nonempty input chunk").logits {
-                                    read_logits(&mut self.device, output).await?
-                                } else {
-                                    Vec::new()
-                                }));
+                                logits.push(SampleOutput::Logits(
+                                    if inputs.last().expect("nonempty input chunk").logits {
+                                        read_logits(&mut self.device, output).await?
+                                    } else {
+                                        Vec::new()
+                                    },
+                                ));
                             }
                             logits
                         }
@@ -330,17 +464,28 @@ impl Worker {
                     Ok::<_, Box<dyn std::error::Error>>(Some(logits))
                 })
             }));
-            let logits = match result {
-                Ok(Ok(Some(logits))) => logits,
-                Ok(Ok(None)) => {
-                    cadence.observe_prompt(work_started.elapsed());
+            let completed = match result {
+                Ok(Ok(outputs)) => complete_work(
+                    &mut sessions,
+                    &selected,
+                    outputs.as_deref(),
+                    &mut reservations,
+                    &mut free,
+                    &mut rings,
+                )
+                .map_err(str::to_owned),
+                Ok(Err(error)) => Err(error.to_string()),
+                Err(_) => Err("generation panicked; worker is offline".to_owned()),
+            };
+            match completed {
+                Ok(false) => {
+                    cadence.observe_prompt(work_started.elapsed(), selected.len());
                     continue;
                 }
-                failed => {
-                    let message = match failed {
-                        Ok(Err(error)) => error.to_string(),
-                        _ => "generation panicked; worker is offline".to_owned(),
-                    };
+                Ok(true) => {}
+                Err(message) => {
+                    // Any partially executed prompt layer makes the entire model
+                    // unusable. Release every live reservation only as we go offline.
                     for session in &mut sessions {
                         let _ = session.events.send(StreamEvent::Error(message.clone()));
                         if let Some(reservation) = session.reservation.take() {
@@ -356,58 +501,121 @@ impl Worker {
                     }
                     return;
                 }
-            };
-            let mut session_index = 0;
-            sessions.retain_mut(|session| {
-                let index = session_index;
-                session_index += 1;
-                let Some(row) = selected.iter().position(|&selected| selected == index) else {
-                    return true;
-                };
-                let count = session.generation.input_count(PREFILL_CHUNK);
-                let emit = |delta: Delta<'_>| {
-                        !session.stream
-                            || session
-                                .events
-                                .send(match delta {
-                                    Delta::Content(text) => StreamEvent::Delta(text.to_owned()),
-                                    Delta::Reasoning(text) => {
-                                        StreamEvent::ReasoningDelta(text.to_owned())
-                                    }
-                                })
-                                .is_ok()
-                    };
-                let result = match &logits[row] {
-                    SampleOutput::Logits(logits) => session.generation.advance_inputs(count, logits, emit),
-                    SampleOutput::Greedy(token) => session.generation.advance_inputs_greedy(count, *token, emit),
-                };
-                let event = match result {
-                    Ok(None) => return true,
-                    Ok(Some(output)) => StreamEvent::Done(output),
-                    Err(error) => StreamEvent::Error(error.to_string()),
-                };
-                let _ = session.events.send(event);
-                if let Some(reservation) = session.reservation.take() {
-                    reservations
-                        .as_mut()
-                        .unwrap()
-                        .release(reservation)
-                        .expect("completed session owns reservation");
-                } else {
-                    free.append(&mut session.blocks.full);
-                    rings.push(session.blocks.sliding);
-                }
-                false
-            });
+            }
             let finished = Instant::now();
             let elapsed = finished.duration_since(work_started);
             if decode_width > 0 {
                 cadence.observe_decode(finished, decode_width, elapsed);
             } else {
-                cadence.observe_prompt(elapsed);
+                cadence.observe_prompt(elapsed, selected.len());
             }
         }
     }
+}
+
+/// Completion is atomic with respect to output shape. A layer yield retains
+/// every session and reservation, even if its stream receiver has disconnected.
+fn complete_work(
+    sessions: &mut Vec<Session>,
+    selected: &[usize],
+    outputs: Option<&[SampleOutput]>,
+    reservations: &mut Option<PageReservations>,
+    free: &mut Vec<usize>,
+    rings: &mut Vec<usize>,
+) -> Result<bool, &'static str> {
+    let Some(outputs) = outputs else {
+        return Ok(false);
+    };
+    if outputs.len() != selected.len() || selected.is_empty() {
+        return Err("model output count does not match its requests");
+    }
+    if selected
+        .iter()
+        .enumerate()
+        .any(|(row, &index)| index >= sessions.len() || selected[..row].contains(&index))
+    {
+        return Err("model output mapping does not identify distinct live requests");
+    }
+    let mut session_index = 0;
+    sessions.retain_mut(|session| {
+        let index = session_index;
+        session_index += 1;
+        let Some(row) = selected.iter().position(|&selected| selected == index) else {
+            return true;
+        };
+        let count = session.generation.input_count(PREFILL_CHUNK);
+        let emit = |delta: Delta<'_>| {
+            !session.stream
+                || session
+                    .events
+                    .send(match delta {
+                        Delta::Content(text) => StreamEvent::Delta(text.to_owned()),
+                        Delta::Reasoning(text) => StreamEvent::ReasoningDelta(text.to_owned()),
+                    })
+                    .is_ok()
+        };
+        let result = match &outputs[row] {
+            SampleOutput::Logits(logits) => session.generation.advance_inputs(count, logits, emit),
+            SampleOutput::Greedy(token) => session
+                .generation
+                .advance_inputs_greedy(count, *token, emit),
+        };
+        let event = match result {
+            Ok(None) => return true,
+            Ok(Some(output)) => StreamEvent::Done(output),
+            Err(error) => StreamEvent::Error(error.to_string()),
+        };
+        let _ = session.events.send(event);
+        if let Some(reservation) = session.reservation.take() {
+            reservations
+                .as_mut()
+                .unwrap()
+                .release(reservation)
+                .expect("completed session owns reservation");
+        } else {
+            free.append(&mut session.blocks.full);
+            rings.push(session.blocks.sliding);
+        }
+        false
+    });
+    Ok(true)
+}
+
+/// Resolve active rows in Model order after unrelated sessions may have left.
+/// For a new group, the oldest four prompt requests must all be eligible. A
+/// short tail keeps its turn instead of being repeatedly bypassed by full chunks.
+fn pending_prompt(
+    capacity: usize,
+    available: &[ReadyInput],
+    next_ring: usize,
+    active: &[usize],
+    group_enabled: bool,
+) -> Vec<usize> {
+    if !active.is_empty() {
+        return active
+            .iter()
+            .map(|ring| {
+                available
+                    .iter()
+                    .position(|input| input.ring == *ring)
+                    .expect("active prefill retains its session and KV allocation")
+            })
+            .collect();
+    }
+    let mut pending: Vec<_> = available
+        .iter()
+        .enumerate()
+        .filter_map(|(index, input)| (input.count > 1).then_some(index))
+        .collect();
+    pending
+        .sort_unstable_by_key(|&index| (available[index].ring + capacity - next_ring) % capacity);
+    let group = group_enabled
+        && pending.len() >= 4
+        && pending[..4]
+            .iter()
+            .all(|&index| available[index].groupable());
+    pending.truncate(if group { 4 } else { 1 });
+    pending
 }
 
 /// Start prompt chunks in stable ring order. The caller may extend prompt service
@@ -415,49 +623,31 @@ impl Worker {
 /// prompt layers and ready decode batches so neither kind of work can starve.
 fn select_work_in(
     capacity: usize,
-    available: &[(usize, usize)],
+    available: &[ReadyInput],
     prefer_prefill: &mut bool,
     next_ring: &mut usize,
-    active_prefill_ring: Option<usize>,
+    active: &[usize],
+    group_enabled: bool,
 ) -> Vec<usize> {
-    if let Some(ring) = active_prefill_ring {
-        let pending = available
-            .iter()
-            .position(|(candidate, _)| *candidate == ring)
-            .expect("active prefill retains its session and KV allocation");
-        let ready: Vec<_> = available
-            .iter()
-            .enumerate()
-            .filter_map(|(index, (_, count))| (index != pending && *count == 1).then_some(index))
-            .collect();
-        if !ready.is_empty() && !*prefer_prefill {
-            *prefer_prefill = true;
-            return ready;
+    let pending = pending_prompt(capacity, available, *next_ring, active, group_enabled);
+    let ready: Vec<_> = available
+        .iter()
+        .enumerate()
+        .filter_map(|(index, input)| {
+            (input.count == 1 && !active.contains(&input.ring)).then_some(index)
+        })
+        .collect();
+    if !ready.is_empty() && (!*prefer_prefill || pending.is_empty()) {
+        *prefer_prefill = true;
+        return ready;
+    }
+    if let Some(&last) = pending.last() {
+        if active.is_empty() {
+            *next_ring = (available[last].ring + 1) % capacity;
         }
         *prefer_prefill = false;
-        return vec![pending];
     }
-    let singletons: Vec<_> = available
-        .iter()
-        .enumerate()
-        .filter_map(|(index, (_, count))| (*count == 1).then_some(index))
-        .collect();
-    let prefill = available
-        .iter()
-        .enumerate()
-        .filter(|(_, (_, count))| *count > 1)
-        .min_by_key(|(_, (ring, _))| (*ring + capacity - *next_ring) % capacity)
-        .map(|(index, _)| index);
-    if !singletons.is_empty() && (!*prefer_prefill || prefill.is_none()) {
-        *prefer_prefill = true;
-        singletons
-    } else if let Some(index) = prefill {
-        *next_ring = (available[index].0 + 1) % capacity;
-        *prefer_prefill = false;
-        vec![index]
-    } else {
-        Vec::new()
-    }
+    pending
 }
 
 #[cfg(test)]
@@ -467,59 +657,90 @@ fn select_work(
     next_ring: &mut usize,
     active_prefill_ring: Option<usize>,
 ) -> Vec<usize> {
+    let work: Vec<_> = available
+        .iter()
+        .map(|&(ring, count)| ReadyInput {
+            ring,
+            position: 0,
+            count,
+        })
+        .collect();
     select_work_in(
         CAPACITY,
-        available,
+        &work,
         prefer_prefill,
         next_ring,
-        active_prefill_ring,
+        active_prefill_ring.as_slice(),
+        false,
     )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn ready_inputs(inputs: &[(usize, usize)]) -> Vec<ReadyInput> {
+        inputs
+            .iter()
+            .map(|&(ring, count)| ReadyInput {
+                ring,
+                position: 0,
+                count,
+            })
+            .collect()
+    }
     #[test]
     fn measured_decode_budget_fits_multiple_prompt_layers_and_reserves_next_round() {
         let start = Instant::now();
         let mut cadence = DecodeCadence::new();
-        assert!(!cadence.prompt_fits(start, 4));
-        assert!(cadence.prompt_fits(start, 0));
-        cadence.prompt_cost = Duration::from_millis(3);
+        assert!(!cadence.prompt_fits(start, 4, 1));
+        assert!(cadence.prompt_fits(start, 0, 1));
+        cadence.prompt_cost[0] = Duration::from_millis(3);
         cadence.observe_decode(start, 4, Duration::from_millis(30));
-        assert!(cadence.prompt_fits(start + Duration::from_millis(55), 4));
-        assert!(!cadence.prompt_fits(start + Duration::from_millis(58), 4));
-        assert!(!cadence.prompt_fits(start, 5), "changed width needs its own observation");
+        assert!(cadence.prompt_fits(start + Duration::from_millis(55), 4, 1));
+        assert!(!cadence.prompt_fits(start + Duration::from_millis(58), 4, 1));
+        assert!(
+            !cadence.prompt_fits(start, 5, 1),
+            "changed width needs its own observation"
+        );
         cadence.observe_decode(start, 64, Duration::from_millis(110));
-        assert!(!cadence.prompt_fits(start, 64), "slow decode gets no extra prompt layers");
+        assert!(
+            !cadence.prompt_fits(start, 64, 1),
+            "slow decode gets no extra prompt layers"
+        );
     }
     #[test]
     fn a_slow_prompt_quantum_reduces_the_remaining_decode_budget() {
         let start = Instant::now();
         let mut cadence = DecodeCadence::new();
         cadence.observe_decode(start, 2, Duration::from_millis(30));
-        assert!(cadence.prompt_fits(start + Duration::from_millis(40), 2));
-        cadence.observe_prompt(Duration::from_millis(25));
-        assert!(!cadence.prompt_fits(start + Duration::from_millis(40), 2));
+        assert!(cadence.prompt_fits(start + Duration::from_millis(40), 2, 1));
+        cadence.observe_prompt(Duration::from_millis(25), 1);
+        assert!(!cadence.prompt_fits(start + Duration::from_millis(40), 2, 1));
     }
     #[test]
     fn canonical64_scheduler_visits_high_slots_and_keeps_all_ready_decoders() {
         let mut prefer = true;
         let mut next = 62;
-        let work = [(31, 128), (63, 128), (7, 1)];
+        let work = ready_inputs(&[(31, 128), (63, 128), (7, 1)]);
         assert_eq!(
-            select_work_in(64, &work, &mut prefer, &mut next, None),
+            select_work_in(64, &work, &mut prefer, &mut next, &[], false),
             vec![1]
         );
         assert_eq!(next, 0);
         prefer = true;
         assert_eq!(
-            select_work_in(64, &work, &mut prefer, &mut next, None),
+            select_work_in(64, &work, &mut prefer, &mut next, &[], false),
             vec![0]
         );
-        let all: Vec<_> = (0..64).map(|ring| (ring, 1)).collect();
+        let all: Vec<_> = (0..64)
+            .map(|ring| ReadyInput {
+                ring,
+                position: 0,
+                count: 1,
+            })
+            .collect();
         assert_eq!(
-            select_work_in(64, &all, &mut prefer, &mut next, None),
+            select_work_in(64, &all, &mut prefer, &mut next, &[], false),
             (0..64).collect::<Vec<_>>()
         );
     }
@@ -575,5 +796,303 @@ mod tests {
             select_work(&[(8, 16), (1, 16)], &mut prefer, &mut ring, None),
             vec![1]
         );
+    }
+    #[test]
+    fn grouped_prompt_cost_survives_interleaved_single_prompt_measurements() {
+        let start = Instant::now();
+        let mut cadence = DecodeCadence::new();
+        cadence.observe_decode(start, 4, Duration::from_millis(30));
+        cadence.observe_prompt(Duration::from_millis(16), 4);
+        for _ in 0..10 {
+            cadence.observe_prompt(Duration::from_millis(2), 1);
+        }
+        assert!(cadence.prompt_fits(start + Duration::from_millis(50), 4, 1));
+        assert!(!cadence.prompt_fits(start + Duration::from_millis(50), 4, 4));
+    }
+
+    #[test]
+    fn group_selection_keeps_cyclic_order_and_short_or_cross_page_tails_get_their_turn() {
+        let mut work = ready_inputs(&[(31, 128), (63, 128), (7, 128), (2, 128), (9, 1)]);
+        let mut prefer = true;
+        let mut next = 62;
+        assert_eq!(
+            select_work_in(64, &work, &mut prefer, &mut next, &[], true),
+            vec![1, 3, 2, 0]
+        );
+        assert_eq!(next, 32);
+        // A pending short tail in the next four must not be skipped to fill a group.
+        work.insert(
+            3,
+            ReadyInput {
+                ring: 1,
+                position: 509,
+                count: 3,
+            },
+        );
+        assert_eq!(pending_prompt(64, &work, 62, &[], true), vec![1]);
+        assert_eq!(pending_prompt(64, &work, 0, &[], true), vec![3]);
+        work.remove(3);
+        work[0].position = 449; // Synthetic malformed chunk: the model must not group across a page.
+        assert_eq!(pending_prompt(64, &work, 62, &[], true), vec![1]);
+        work[0].position = 384;
+        assert_eq!(pending_prompt(64, &work, 62, &[], true), vec![1, 3, 2, 0]);
+        assert_eq!(pending_prompt(64, &work, 62, &[], false), vec![1]);
+        assert_eq!(pending_prompt(64, &work[..3], 62, &[], true), vec![1]);
+    }
+
+    fn tokenizer() -> &'static Tokenizer {
+        static TOKENIZER: std::sync::OnceLock<Tokenizer> = std::sync::OnceLock::new();
+        TOKENIZER.get_or_init(|| {
+            let mut names: Vec<_> = (0..107).map(|i| format!("token{i}")).collect();
+            for (id, text) in [
+                (0, "[UNK]"),
+                (1, "<eos>"),
+                (2, "prompt"),
+                (3, "a"),
+                (4, "b"),
+                (5, "c"),
+                (6, "d"),
+                (50, "<tool>"),
+                (100, "<|channel>"),
+                (101, "<channel|>"),
+                (106, "<end>"),
+            ] {
+                names[id] = text.into();
+            }
+            let vocab: serde_json::Map<_, _> = names
+                .into_iter()
+                .enumerate()
+                .map(|(id, name)| (name, serde_json::json!(id)))
+                .collect();
+            let definition = serde_json::json!({"version":"1.0", "added_tokens":[],
+                "model":{"type":"WordLevel", "unk_token":"[UNK]", "vocab":vocab},
+                "decoder":{"type":"Fuse"}});
+            let path = std::env::temp_dir().join(format!(
+                "moa-worker-test-{}-{}.json",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            std::fs::write(&path, serde_json::to_vec(&definition).unwrap()).unwrap();
+            let tokenizer = Tokenizer::new(&path).unwrap();
+            std::fs::remove_file(path).unwrap();
+            tokenizer
+        })
+    }
+
+    fn session(
+        pool: &mut PageReservations,
+        prompt: usize,
+        max: usize,
+    ) -> (Session, mpsc::Receiver<StreamEvent>) {
+        let request = crate::host::generate::GenerationRequest {
+            prompt_ids: vec![2; prompt],
+            soft_at: vec![None; prompt],
+            image: None,
+            audio: None,
+            max_new_tokens: max,
+            sampling: crate::host::sampling::SamplingConfig::DEFAULT,
+            stop_strings: vec![],
+            separate_reasoning: false,
+            ignore_eos: false,
+        };
+        let reservation = pool.try_reserve(prompt + max).unwrap().unwrap();
+        let (events, receiver) = mpsc::channel();
+        (
+            Session {
+                generation: Generation::new(tokenizer(), request, CONTEXT).unwrap(),
+                blocks: reservation.blocks.clone(),
+                reservation: Some(reservation),
+                events,
+                stream: true,
+            },
+            receiver,
+        )
+    }
+
+    fn ready_sessions(sessions: &[Session]) -> Vec<ReadyInput> {
+        sessions
+            .iter()
+            .map(|s| ReadyInput {
+                ring: s.blocks.sliding,
+                position: s.generation.input().1,
+                count: s.generation.input_count(PREFILL_CHUNK),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn incomplete_outputs_cannot_advance_or_release_any_group_member() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (mut sessions, _receivers): (Vec<_>, Vec<_>) = (0..4)
+            .map(|_| session(pool.as_mut().unwrap(), 128, 4))
+            .unzip();
+        let selected = [3, 1, 0, 2];
+        let mut free = vec![];
+        let mut rings = vec![];
+        let partial = vec![
+            SampleOutput::Greedy(3),
+            SampleOutput::Greedy(4),
+            SampleOutput::Greedy(5),
+        ];
+        assert!(
+            complete_work(
+                &mut sessions,
+                &selected,
+                Some(&partial),
+                &mut pool,
+                &mut free,
+                &mut rings
+            )
+            .is_err()
+        );
+        assert_eq!(sessions.len(), 4);
+        assert!(
+            sessions
+                .iter()
+                .all(|s| s.generation.input().1 == 0 && s.reservation.is_some())
+        );
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 252);
+        assert!(free.is_empty() && rings.is_empty());
+    }
+
+    #[test]
+    fn cancelled_stream_retains_group_reservation_until_complete_outputs_arrive() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (mut sessions, receivers): (Vec<_>, Vec<_>) = (0..4)
+            .map(|_| session(pool.as_mut().unwrap(), 128, 4))
+            .unzip();
+        let mut receivers: Vec<_> = receivers.into_iter().map(Some).collect();
+        drop(receivers[2].take());
+        let selected = [3, 1, 0, 2];
+        let mut free = vec![];
+        let mut rings = vec![];
+        assert!(
+            !complete_work(
+                &mut sessions,
+                &selected,
+                None,
+                &mut pool,
+                &mut free,
+                &mut rings
+            )
+            .unwrap()
+        );
+        assert_eq!(sessions.len(), 4);
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 252);
+        assert!(
+            sessions
+                .iter()
+                .all(|s| s.generation.input().1 == 0 && s.reservation.is_some())
+        );
+        let outputs = [
+            SampleOutput::Greedy(3),
+            SampleOutput::Greedy(4),
+            SampleOutput::Greedy(5),
+            SampleOutput::Greedy(6),
+        ];
+        assert!(
+            complete_work(
+                &mut sessions,
+                &selected,
+                Some(&outputs),
+                &mut pool,
+                &mut free,
+                &mut rings
+            )
+            .unwrap()
+        );
+        assert_eq!(
+            sessions
+                .iter()
+                .map(|s| (s.blocks.sliding, s.generation.input().0.token))
+                .collect::<Vec<_>>(),
+            vec![(0, 5), (1, 4), (3, 3)]
+        );
+        assert!(sessions.iter().all(|s| s.generation.input().1 == 128));
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 253);
+        assert!(free.is_empty() && rings.is_empty());
+    }
+
+    #[test]
+    fn active_group_keeps_row_identity_after_an_interleaved_decoder_finishes() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (mut sessions, _receivers): (Vec<_>, Vec<_>) = [128, 1, 256, 128, 256]
+            .into_iter()
+            .map(|prompt| session(pool.as_mut().unwrap(), prompt, 3))
+            .unzip();
+        // The group is deliberately stored in a different order from the session vector.
+        let active = [4, 0, 3, 2];
+        let mut prefer = false;
+        let mut next = 5;
+        let mut free = vec![];
+        let mut rings = vec![];
+        let ready = ready_sessions(&sessions);
+        let decode = select_work_in(64, &ready, &mut prefer, &mut next, &active, true);
+        assert_eq!(decode, vec![1]);
+        complete_work(
+            &mut sessions,
+            &decode,
+            Some(&[SampleOutput::Greedy(1)]),
+            &mut pool,
+            &mut free,
+            &mut rings,
+        )
+        .unwrap();
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 252);
+        let ready = ready_sessions(&sessions);
+        let resumed = select_work_in(64, &ready, &mut prefer, &mut next, &active, true);
+        assert_eq!(resumed, vec![3, 0, 2, 1]);
+        assert_eq!(
+            next, 5,
+            "layer resumes cannot rotate the chunk-level cursor"
+        );
+        assert!(
+            !complete_work(
+                &mut sessions,
+                &resumed,
+                None,
+                &mut pool,
+                &mut free,
+                &mut rings
+            )
+            .unwrap()
+        );
+        let outputs = [
+            SampleOutput::Logits(vec![]),
+            SampleOutput::Greedy(3),
+            SampleOutput::Greedy(4),
+            SampleOutput::Logits(vec![]),
+        ];
+        complete_work(
+            &mut sessions,
+            &resumed,
+            Some(&outputs),
+            &mut pool,
+            &mut free,
+            &mut rings,
+        )
+        .unwrap();
+        for session in &sessions {
+            assert_eq!(session.generation.input().1, 128);
+            let token = session.generation.input().0.token;
+            assert_eq!(
+                token,
+                match session.blocks.sliding {
+                    0 => 3,
+                    3 => 4,
+                    _ => 2,
+                }
+            );
+        }
+        // Completed prompt rows decode together; intermediate chunks keep their turn.
+        let work = ready_sessions(&sessions);
+        assert_eq!(
+            select_work_in(64, &work, &mut prefer, &mut next, &[], true),
+            vec![0, 2]
+        );
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 252);
     }
 }

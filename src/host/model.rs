@@ -157,7 +157,19 @@ impl Model {
         }
         blocks
     }
-    /// Diagnostic candidate: four full P128 chunks share QKV weight reads and blocked P512 FFN.
+    /// Allocate the optional grouped prompt workspace before serving requests.
+    /// Diagnostics may still allocate lazily in `start_prefill_group`.
+    pub async fn prepare_group_scratch(
+        &mut self,
+        device: &mut Device,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if self.group.is_none() {
+            self.group = Some(GroupPrefill::new(device).await?);
+        }
+        Ok(())
+    }
+
+    /// Four full P128 chunks share QKV weight reads and blocked P512 FFN.
     /// Keep all four reservations until advance_prefill_group returns four final outputs.
     pub async fn start_prefill_group(
         &mut self,
@@ -178,9 +190,7 @@ impl Model {
             validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
             validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
         }
-        if self.group.is_none() {
-            self.group = Some(GroupPrefill::new(device).await?);
-        }
+        self.prepare_group_scratch(device).await?;
         self.active_group = Some(
             self.group
                 .as_mut()
