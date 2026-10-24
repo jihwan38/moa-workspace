@@ -460,3 +460,23 @@ launch cost. No model/score adoption before hardware result.
 P512 buildv1: padded L1920-of15360 direct operand view cannot split its live
 axis in Fetch. As in the proven directP16 O path, fetch the whole live L1920
 packet, then Collect splits it into vector flits. Failure log retained.
+
+
+P512 staged hardware gate: root Arena318035/r270, sourceee3b6a8, all1966080
+outputs exactly match four P128 blocked/direct calls, including zero/subnormal
+input rows. Warm per512rows: fourP128 B8 4.455ms, fourP128 TRF64 3.942ms,
+five-stage P512 2.865ms. Timing includes3batches plus matched output bytes /3,
+control4reads vsP512one read. This is a29% gain versus the TRF64 control in the
+same job. Root's newer local-quantization+TRF64 P128 measured .8025ms separately
+(3.21ms×four), so the stronger production comparison is still needed; cross-job
+subtraction is not a controlled measurement. No whole-model or score claim.
+
+Next exact variant: retain the staged HBM API but partition output channels
+across clusters. Up Cluster=L/7680, slices=[L/120%64,H/960]; down
+Cluster=H/1920,slices=[H/120%16,L/960]. Each slice loads an existing blocked
+weight's contiguous120-row half (115200B) once, streams all512 token rows in
+eight64-row tiles, and writes its half of output channels. Three projection
+weight transfers total177MB instead354MB; input replication is similar and
+matrix loop count doubles with half local channel rows. No cross-cluster DM
+reduction is required because stages use HBM. Gate every final output bit against
+both token-cluster P512 and P128 controls before timing; retain baseline module.
