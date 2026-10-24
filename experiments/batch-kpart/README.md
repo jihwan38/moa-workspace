@@ -526,3 +526,19 @@ source. Diagnostics dump quantizer seed FP8/scales separately from every output-
 row-group replication, against an independent CPU FTZ/power2 quantizer. Additional
 prequantized upgate/down wrappers bypass seeded placement and compare each stage
 before testing the full original control. Native QKV work is held until repair.
+
+R64 seed diagnosis, root318073/r303: seed FP8 bytes and scales are exact for
+both H and L quantizers, but only destination output-group0 was populated by
+DmTensor::to_dm; allother group copies/scales are invalid. Counts: H copies
+30809363/31457280 mismatches, scales8064/8192; L copies29337186/31457280,
+scales1920/2048. This was not a semantic pass despite diagnostic exit0. Root
+318075/r306 confirms CPU-prequantized upgate+down equals the original control on
+all245760 outputs, isolating the defect to replication, not projection arithmetic.
+
+Explicit per-group DmTensorViewMut::slice_tile copies were attempted; the public
+SDK API exists but NPU lowering rejects Partitioning tiles as unsupported.
+Preserve failed source/log. A separate SwitchConfig::CustomBroadcast{ring_size:256}
+variant explicitly routes seed H/L partitions to every output-row group and
+replicates scale vectors. It compiles. Its byte oracle requires all seed/copy
+values/scales exact for two distinct consecutive inputs and asserts on every
+mismatch. Timing is still unknown; prior whole-row Switch variants were slow.
