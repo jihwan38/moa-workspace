@@ -18,5 +18,6 @@
   ],
   "next_gate": "compare_resumable_prefill2 0 128: every decode logit after each of48layers, final prompt logit, and subsequent shared pooled decode must match uninterrupted control exactly; repeat1decoder and512/1024 boundary starts. Root owns NPU execution.",
   "review": "Attention agent read-only audit found no ownership/yield defect: pending Generation does not advance on None, independent decode cannot alias ring/pages, layer resume restores Blocks, and B16 scratch is fully replaced before use. Caller must retain the same Workspace until completion.",
-  "actual_p128": "Root317800/r103 passed all48interleaved decode steps, final prompt and subsequent3-request pooled step exactly. Uninterrupted524.629ms; resumable layer total515.616ms, maximum11.771ms. Decode warm~103ms still exceeds strict TPOT budget before other work."
+  "actual_p128": "Root317800/r103 passed all48interleaved decode steps, final prompt and subsequent3-request pooled step exactly. Uninterrupted524.629ms; resumable layer total515.616ms, maximum11.771ms. Decode warm~103ms still exceeds strict TPOT budget before other work.",
+  "actual_p128_boundary": "Root317814/r109 C2 start896 count128 passed all48interleaved decode, finalprompt and postpool exactly. Uninterrupted530.192ms, prepare3.952ms, quanta525.717ms total, maximum12.668ms."
 }
