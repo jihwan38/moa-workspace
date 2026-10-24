@@ -20,6 +20,8 @@ Initial e9fc3ec host compile rejected f8e4m3::to_bits (not an SDK API).
 The diagnostic compares decoded F32 bits instead, a one-to-one representation
 for the finite E4 domain here including signed zero. No kernel change.
 
-Pre-NPU source audit caught padded-scale host decoding: SDK HostTensor::into_vec
-returns logical elements, so [P128,1#8] indexes by row b, not physical b*8.
-Fixed the diagnostic only; the kernel ABI and native math are unchanged.
+Pre-NPU source audit incorrectly followed SDK documentation describing into_vec
+as logical. Actual NPU318079/r310 then returned1024 physical elements for
+[P128,1#8], failing the diagnostic length assertion before any quant/projection
+comparison. Restore physical b*8 indexing and assert1024. Kernel source/math
+is unchanged; r310 supplies no arithmetic or timing evidence.

@@ -111,14 +111,14 @@ async fn main() {
         let hostq = hostq.into_vec();
         let hostxs: HostTensor<f32, m![P128,1#8]> = xs.to_host(&mut d.pdma).await.unwrap();
         let hostxs = hostxs.into_vec();
-        assert_eq!(hostxs.len(), P128::SIZE); // SDK into_vec omits physical padding.
+        assert_eq!(hostxs.len(), P128::SIZE * 8); // Actual padded NPU HostTensor retains physical slots.
         let qdiff = hostq
             .iter()
             .zip(&cpu_q)
             .filter(|(a, b)| a.to_f32().to_bits() != b.to_f32().to_bits())
             .count();
         let sdiff = (0..P128::SIZE)
-            .filter(|&b| hostxs[b].to_bits() != cpu_scale[b].to_bits())
+            .filter(|&b| hostxs[b * 8].to_bits() != cpu_scale[b].to_bits())
             .count();
         println!(
             "seed={seed} quantized_values={} q_raw_differences={qdiff} scale_raw_differences={sdiff}",
