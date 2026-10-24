@@ -5,6 +5,10 @@ use crate::ops_sliding_wide::Pk128;
 use crate::ops_prefill_tiles as tiles;
 
 pub(crate) struct WidePrefill {
+    // Explicit complete-call diagnostic only; normal/resumable dispatch stays BF16.
+    use_native_qkv: bool,
+    qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
+    qkv_scale: HbmTensor<f32, Chip, m![P128, 1 # 8]>,
     x: HbmTensor<bf16, Chip, m![P128, H]>,
     norm: HbmTensor<bf16, Chip, m![P128, H]>,
     projected: HbmTensor<bf16, Chip, m![P128, H]>,
@@ -107,6 +111,9 @@ impl WidePrefill {
             );
         }
         Ok(Self {
+            use_native_qkv: false,
+            qkv_input: HostTensor::<f8e4m3, m![P128,H]>::zero().to_hbm(&mut device.pdma).await?,
+            qkv_scale: HostTensor::<f32, m![P128,1#8]>::zero().to_hbm(&mut device.pdma).await?,
             x: zero!(m![P128, H]),
             norm: zero!(m![P128, H]),
             projected: zero!(m![P128, H]),
@@ -354,6 +361,23 @@ impl WidePrefill {
         self.finish(device, weights, &state, ws, scratch).await
     }
 
+    /// Isolated numerical diagnostic; the selector is restored even when execution fails.
+    /// The complete call holds &mut self, so it cannot overlap a resumable prompt.
+    pub(crate) async fn run_native_qkv(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        sequence: &Sequence<'_>,
+        ws: &mut Workspace,
+        scratch: &mut Prefill,
+    ) -> Result<()> {
+        let previous = self.use_native_qkv;
+        self.use_native_qkv = true;
+        let result = self.run(device, weights, sequence, ws, scratch).await;
+        self.use_native_qkv = previous;
+        result
+    }
+
     async fn normalize(
         &mut self,
         device: &mut Device,
@@ -433,39 +457,50 @@ impl WidePrefill {
         let mut mark = scratch.profile_mark();
         self.normalize(device, &layer.input_norm, scratch).await?;
         scratch.record_optional_profile("wide.sliding.input_norm", &mut mark);
-        launch(
-            crate::ops_qkv_p128_trf32::project_query_batch,
-            (
-                device,
-                &self.norm,
-                &layer.q_weight,
-                &layer.q_weight_scale,
-                &mut self.q_s,
-            ),
-        )
-        .await?;
-        launch(
-            crate::ops_qkv_p128_trf32::project_sliding_kv_batch,
-            (
-                device,
-                &self.norm,
-                &layer.k_weight,
-                &layer.k_weight_scale,
-                &mut self.k_s,
-            ),
-        )
-        .await?;
-        launch(
-            crate::ops_qkv_p128_trf32::project_sliding_kv_batch,
-            (
-                device,
-                &self.norm,
-                &layer.v_weight,
-                &layer.v_weight_scale,
-                &mut self.v_s,
-            ),
-        )
-        .await?;
+        if self.use_native_qkv {
+            launch(crate::ops_qkv_native_prequant::quantize_input,
+                (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
+            launch(crate::ops_qkv_native_prequant::project_query_quantized,
+                (device, &self.qkv_input, &self.qkv_scale, &layer.q_weight, &layer.q_weight_scale, &mut self.q_s)).await?;
+            launch(crate::ops_qkv_native_prequant::project_sliding_kv_quantized,
+                (device, &self.qkv_input, &self.qkv_scale, &layer.k_weight, &layer.k_weight_scale, &mut self.k_s)).await?;
+            launch(crate::ops_qkv_native_prequant::project_sliding_kv_quantized,
+                (device, &self.qkv_input, &self.qkv_scale, &layer.v_weight, &layer.v_weight_scale, &mut self.v_s)).await?;
+        } else {
+            launch(
+                crate::ops_qkv_p128_trf32::project_query_batch,
+                (
+                    device,
+                    &self.norm,
+                    &layer.q_weight,
+                    &layer.q_weight_scale,
+                    &mut self.q_s,
+                ),
+            )
+            .await?;
+            launch(
+                crate::ops_qkv_p128_trf32::project_sliding_kv_batch,
+                (
+                    device,
+                    &self.norm,
+                    &layer.k_weight,
+                    &layer.k_weight_scale,
+                    &mut self.k_s,
+                ),
+            )
+            .await?;
+            launch(
+                crate::ops_qkv_p128_trf32::project_sliding_kv_batch,
+                (
+                    device,
+                    &self.norm,
+                    &layer.v_weight,
+                    &layer.v_weight_scale,
+                    &mut self.v_s,
+                ),
+            )
+            .await?;
+        }
         scratch.record_optional_profile("wide.sliding.qkv", &mut mark);
         let ring = state.blocks.sliding;
         if let Some(meta) = &state.native {
@@ -682,28 +717,37 @@ impl WidePrefill {
         let mut mark = scratch.profile_mark();
         self.normalize(device, &layer.input_norm, scratch).await?;
         scratch.record_optional_profile("wide.full.input_norm", &mut mark);
-        launch(
-            crate::ops_qkv_p128_trf32::project_full_query_batch,
-            (
-                device,
-                &self.norm,
-                &layer.q_weight,
-                &layer.q_weight_scale,
-                &mut self.q_f,
-            ),
-        )
-        .await?;
-        launch(
-            crate::ops_qkv_p128_trf32::project_full_key_batch,
-            (
-                device,
-                &self.norm,
-                &layer.k_weight,
-                &layer.k_weight_scale,
-                &mut self.k_f,
-            ),
-        )
-        .await?;
+        if self.use_native_qkv {
+            launch(crate::ops_qkv_native_prequant::quantize_input,
+                (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
+            launch(crate::ops_qkv_native_prequant::project_full_query_quantized,
+                (device, &self.qkv_input, &self.qkv_scale, &layer.q_weight, &layer.q_weight_scale, &mut self.q_f)).await?;
+            launch(crate::ops_qkv_native_prequant::project_full_key_quantized,
+                (device, &self.qkv_input, &self.qkv_scale, &layer.k_weight, &layer.k_weight_scale, &mut self.k_f)).await?;
+        } else {
+            launch(
+                crate::ops_qkv_p128_trf32::project_full_query_batch,
+                (
+                    device,
+                    &self.norm,
+                    &layer.q_weight,
+                    &layer.q_weight_scale,
+                    &mut self.q_f,
+                ),
+            )
+            .await?;
+            launch(
+                crate::ops_qkv_p128_trf32::project_full_key_batch,
+                (
+                    device,
+                    &self.norm,
+                    &layer.k_weight,
+                    &layer.k_weight_scale,
+                    &mut self.k_f,
+                ),
+            )
+            .await?;
+        }
         scratch.record_optional_profile("wide.full.qkv", &mut mark);
         let page = state.start_position / Tf::SIZE;
         let blocks = &state.blocks.full;

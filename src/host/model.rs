@@ -67,6 +67,7 @@ enum Dispatch {
     Serial,
     Automatic,
     WideDiagnostic,
+    NativeQkvDiagnostic,
     Decode64Diagnostic,
 }
 impl Dispatch {
@@ -75,7 +76,7 @@ impl Dispatch {
             && match self {
                 Self::Serial => false,
                 Self::Automatic => sequence.inputs.len() == crate::axes::P128::SIZE,
-                Self::WideDiagnostic => true,
+                Self::WideDiagnostic | Self::NativeQkvDiagnostic => true,
                 Self::Decode64Diagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
             }
     }
@@ -307,6 +308,18 @@ impl Model {
         Ok(&self.logits[..sequences.len()])
     }
 
+    /// Numerical diagnostic: only P128 Q/K/V consume materialized FP8 activations.
+    /// Default dispatch and the BF16 P128 control remain unchanged.
+    pub async fn forward_sequences_native_qkv(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::NativeQkvDiagnostic, false).await?;
+        Ok(&self.logits[..sequences.len()])
+    }
+
     /// Diagnostic route retaining R64 numerical arithmetic even for a partial batch.
     /// Useful for verifying row regrouping and scheduler ownership independently of
     /// the scalar/B16 numerical differences. Production chooses from live count.
@@ -422,7 +435,9 @@ impl Model {
             workspace.blocks.sliding = sequence.blocks.sliding;
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
             let result = async {
-                if dispatch.use_wide(sequence) {
+                if dispatch == Dispatch::NativeQkvDiagnostic && dispatch.use_wide(sequence) {
+                    self.wide.run_native_qkv(device, &self.weights, sequence, workspace, &mut self.prefill).await?;
+                } else if dispatch.use_wide(sequence) {
                     self.wide
                         .run(
                             device,
