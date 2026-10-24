@@ -54,14 +54,20 @@ impl Worker {
         let runtime = tokio::runtime::Builder::new_current_thread().build()?;
         let mut device = Device::new(crate::ops::embed_token.topology())?;
         let (model, workspace) = runtime.block_on(async {
+            let started = std::time::Instant::now();
             let weights = load::load_weights(&mut device).await?;
+            eprintln!("startup.weights_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
+            let started = std::time::Instant::now();
             let mut workspace = if canonical {
                 Workspace::new_canonical64(&mut device, &weights, CONTEXT, crate::axes::R64::SIZE)
                     .await?
             } else {
                 Workspace::new(&mut device, &weights, CONTEXT, CAPACITY).await?
             };
+            eprintln!("startup.workspace_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
+            let started = std::time::Instant::now();
             let model = Model::new(&mut device, weights, &mut workspace).await?;
+            eprintln!("startup.model_scratch_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
             Ok::<_, Box<dyn std::error::Error>>((model, workspace))
         })?;
         Ok(Self {

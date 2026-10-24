@@ -393,7 +393,7 @@ impl WidePrefill {
         self.normalize(device, pre, scratch).await?;
         scratch.record_profile("wide.ffn.pre_norm", &mut mark);
         launch(
-            crate::ops_native_fp8_blocked::batch_ffn_direct_geglu,
+            crate::ops_native_fp8_sharded::batch_ffn_partitioned_input,
             (
                 device,
                 &self.norm,
@@ -634,7 +634,7 @@ impl WidePrefill {
         }
         scratch.record_profile("wide.sliding.head_attention_tiles", &mut mark);
         launch(
-            linear::project_sliding_output_batch,
+            crate::ops_output_p128_parallel_gather::project_sliding_output_batch,
             (
                 device,
                 &self.attn_s,
@@ -909,7 +909,7 @@ impl WidePrefill {
         }
         scratch.record_profile("wide.full.head_attention_tiles", &mut mark);
         launch(
-            linear::project_full_output_batch,
+            crate::ops_output_p128_parallel_gather::project_full_output_batch,
             (
                 device,
                 &self.attn_f,

@@ -123,3 +123,7 @@ pub mod ops_r64_io_bandoutput;
 pub mod ops_output_r64_parallel_gather;
 
 pub mod ops_native_fp8_r64_sharded;
+
+pub mod ops_output_p128_parallel_gather;
+
+pub mod ops_native_fp8_sharded;
