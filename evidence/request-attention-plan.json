@@ -12,7 +12,7 @@
     "src/ops_request_attention.rs": "4eb2690c8fcaa6e5fd6dae6c40dce9d8d993215efe49c71adab8796d9bbd1944",
     "src/bin/test_request_full.rs": "6a992d33fdc2cb3d8f02200df98b7028f97d20558065095f99690b1b77fd3bc7"
   },
-  "compile_status": "Full first/next/divide, forward full/sliding bridge, reverse full bridge and N=3 full/sliding scatter compiled. Other prefix variants and reverse sliding bridge await full module compile.",
+  "compile_status": "Full first/next/divide, both forward/reverse bridge pairs, N=3 full/sliding scatter, N=7 sliding scatter and pooled sliding compiled. Remaining scatter prefix variants await full module compile.",
   "full_npu": {
     "job": 317685,
     "source_commit": "034d3c9",
@@ -32,5 +32,13 @@
     "built_probe_sha256": "9fef65a525b6cb72bdb8609b393792426f1aff9a9a6ce2142da7357f0ee666f4",
     "result": "All35 live request outputs (286720 elements) bit-exact to scalar;16\u21923\u219216 counts, ragged pages, inactive-page numerator preservation, inactive output zeros,3-row sparse KV updates and reverse page migration pass.",
     "limitation": "Initial launch timings include warm/cold effects and are not whole-model measurements."
-  }
+  },
+  "sliding_probe_binary": "target/release/test_request_sliding",
+  "sliding_probe_sha256": "9c6f57fa0aed1b75012d1ab9efa730796526d7eaa9ef4fe328ef1b3f0db9e05e",
+  "sliding_source_sha256": {
+    "src/ops_request_attention.rs": "0f693da6fa7b3b3e3587cb06846fa12fa72b3c43aba09406ea62c4102727ce49",
+    "src/bin/test_request_sliding.rs": "380b2af39000a9c80be958d9de6d605c9e0ef2e69a972d828028cc6c06d44dc0"
+  },
+  "sliding_mechanism": "One device image executes four B4 tiles. Each tile keeps original 32-key BF16 value partials and original 32-way sum tree. Composite Rc,Ts byte-offset gather directly reads distinct rings. Four tiny contiguous index temporaries are required because gather accepts an owner, not a tiled HBM view.",
+  "sliding_validation": "Compiled prototype and probe. Root dispatch pending. Probe compares scalar bit parity for sixteen distinct permuted rings at positions0..8191, masked huge future K/V invariance, seven-row sparse KV updates, exact reverse migration and inactive zeros across16->7->16 batches."
 }
