@@ -1,4 +1,4 @@
-Independent-request pooled attention (initial full path)
+Independent-request pooled attention
 
 Public pool axes are `ops_request_attention::{Rc=16,Fc=256}`. Sliding K/V storage
 is `[Rc,Ts,Ns,Ds]`; full K/V storage is `[Fc,Tf,Df]`. Fc supports the current
@@ -36,4 +36,24 @@ The initial probe verifies full attention against repaired scalar attention for
 16 independent histories, different lengths and permuted physical page indices.
 It also verifies ragged-page state preservation,3-row updates, reverse migration,
 finite-zero inactive outputs and16→3→16 batches. No whole-model speed claim follows
-from this kernel probe. Sliding pooled attention is still in implementation.
+from this kernel probe. Actual full probe Arena317685 passed with all live outputs
+bit-exact to scalar. Sliding compiled; its actual device validation is pending.
+
+Sliding `sliding_attention_b16` arguments:
+`device, q[B,Ns,Gs,Ds], pool_k[Rc,Ts,Ns,Ds], pool_v[Rc,Ts,Ns,Ds],
+kv_byte_offsets:i32[B,Ts], visibility:f32[B,Ts], out[B,Ns,Gs,Ds]`.
+Each offset equals `(physical_ring*1024 + physical_slot)*2048*2`; all offsets
+must be legal, including inactive rows. Visibility uses exactly1/0. Before the
+ring fills, slots up to the request position are visible; after position1023 all
+1024 slots are visible. Commit current decode KV before attention. An inactive
+row has an all-zero mask and produces finite-zero output.
+
+The sliding image executes four B4 tiles, retaining the original32-key BF16
+value partials and32-way interslice sum. Each K/V tile occupies64KiB per slice.
+Four small index tiles are materialized in contiguous HBM because SDK gather
+requires an owning HbmTensor rather than a tiled HBM view. No cache duplication
+or request computation reuse happens inside attention.
+
+Host ownership must survive batch shrink/growth and singleton fallback. After
+pooled decode, either keep subsequent decode in pools or reverse-copy dirty
+slots/pages before any legacy path. New request position0 resets ownership.
