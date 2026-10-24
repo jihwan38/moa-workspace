@@ -312,16 +312,16 @@ impl WidePrefill {
         self.normalize(device, pre, scratch).await?;
         scratch.record_profile("wide.ffn.pre_norm", &mut mark);
         launch(
-            crate::ops_batch_down960::batch_ffn,
+            crate::ops_native_fp8::batch_ffn,
             (
                 device,
                 &self.norm,
-                &weights.up_weight_packed,
-                &weights.gate_weight_packed,
-                &weights.down_weight_packed,
-                &weights.up_weight_scale,
-                &weights.gate_weight_scale,
-                &weights.down_weight_scale,
+                &weights.native_fp8.up,
+                &weights.native_fp8.gate,
+                &weights.native_fp8.down,
+                &weights.native_fp8.up_dequant,
+                &weights.native_fp8.gate_dequant,
+                &weights.native_fp8.down_dequant,
                 &weights.up_global_scale,
                 &weights.gate_global_scale,
                 &weights.down_global_scale,
