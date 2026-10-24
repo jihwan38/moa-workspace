@@ -26,6 +26,8 @@ pub(crate) struct Decode64 {
 
     x: HbmTensor<bf16, Chip, m![R64, H]>,
     norm: HbmTensor<bf16, Chip, m![R64, H]>,
+    qkv_input: HbmTensor<f8e4m3, Chip, m![R64, H]>,
+    qkv_scale: HbmTensor<f32, Chip, m![R64, 1 # 8]>,
     projected: HbmTensor<bf16, Chip, m![R64, H]>,
     q_raw_s: HbmTensor<bf16, Chip, m![R64, Qs]>,
     k_raw_s: HbmTensor<bf16, Chip, m![R64, Ps]>,
@@ -114,6 +116,8 @@ impl Decode64 {
             logits_batch: zero!(bf16, crate::ops_r64_io_blocked::BlockedLogits),
             x: zero!(bf16, m![R64, H]),
             norm: zero!(bf16, m![R64, H]),
+            qkv_input: zero!(f8e4m3, m![R64, H]),
+            qkv_scale: zero!(f32, m![R64, 1 # 8]),
             projected: zero!(bf16, m![R64, H]),
             q_raw_s: zero!(bf16, m![R64, Qs]),
             k_raw_s: zero!(bf16, m![R64, Ps]),
@@ -294,11 +298,14 @@ impl Decode64 {
         )
         .await?;
         self.record_profile("r64.sliding.input_norm", &mut profile_mark);
+        launch(crate::ops_qkv_r64_native_prequant::quantize_input,
+            (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
         launch(
-            crate::ops_qkv_r64_trf32::project_query_batch,
+            crate::ops_qkv_r64_native_prequant::project_query_quantized,
             (
                 device,
-                &self.norm,
+                &self.qkv_input,
+                &self.qkv_scale,
                 &layer.q_weight,
                 &layer.q_weight_scale,
                 &mut self.q_raw_s,
@@ -306,10 +313,11 @@ impl Decode64 {
         )
         .await?;
         launch(
-            crate::ops_qkv_r64_trf32::project_sliding_kv_batch,
+            crate::ops_qkv_r64_native_prequant::project_sliding_kv_quantized,
             (
                 device,
-                &self.norm,
+                &self.qkv_input,
+                &self.qkv_scale,
                 &layer.k_weight,
                 &layer.k_weight_scale,
                 &mut self.k_raw_s,
@@ -317,10 +325,11 @@ impl Decode64 {
         )
         .await?;
         launch(
-            crate::ops_qkv_r64_trf32::project_sliding_kv_batch,
+            crate::ops_qkv_r64_native_prequant::project_sliding_kv_quantized,
             (
                 device,
-                &self.norm,
+                &self.qkv_input,
+                &self.qkv_scale,
                 &layer.v_weight,
                 &layer.v_weight_scale,
                 &mut self.v_raw_s,
@@ -445,11 +454,14 @@ impl Decode64 {
         )
         .await?;
         self.record_profile("r64.full.input_norm", &mut profile_mark);
+        launch(crate::ops_qkv_r64_native_prequant::quantize_input,
+            (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
         launch(
-            crate::ops_qkv_r64_trf32::project_full_query_batch,
+            crate::ops_qkv_r64_native_prequant::project_full_query_quantized,
             (
                 device,
-                &self.norm,
+                &self.qkv_input,
+                &self.qkv_scale,
                 &layer.q_weight,
                 &layer.q_weight_scale,
                 &mut self.q_raw_f,
@@ -457,10 +469,11 @@ impl Decode64 {
         )
         .await?;
         launch(
-            linear::project_full_key_batch,
+            crate::ops_qkv_r64_native_prequant::project_full_key_quantized,
             (
                 device,
-                &self.norm,
+                &self.qkv_input,
+                &self.qkv_scale,
                 &layer.k_weight,
                 &layer.k_weight_scale,
                 &mut self.k_raw_f,

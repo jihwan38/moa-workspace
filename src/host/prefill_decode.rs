@@ -225,11 +225,14 @@ impl Prefill {
         )
         .await?;
         self.record_profile("sliding.input_norm", &mut profile_mark);
+        launch(crate::ops_qkv_b16_native_prequant::quantize_input,
+            (device, &self.norm, &mut self.native_q_input, &mut self.native_qkv_scale)).await?;
         launch(
-            crate::ops_batch_kpart16::project_query_batch,
+            crate::ops_qkv_b16_native_prequant::project_query_quantized,
             (
                 device,
-                &self.norm,
+                &self.native_q_input,
+                &self.native_qkv_scale,
                 &layer.q_weight,
                 &layer.q_weight_scale,
                 &mut self.q_raw_s,
@@ -237,10 +240,11 @@ impl Prefill {
         )
         .await?;
         launch(
-            crate::ops_batch_kpart16::project_sliding_kv_batch,
+            crate::ops_qkv_b16_native_prequant::project_sliding_kv_quantized,
             (
                 device,
-                &self.norm,
+                &self.native_q_input,
+                &self.native_qkv_scale,
                 &layer.k_weight,
                 &layer.k_weight_scale,
                 &mut self.k_raw_s,
@@ -248,10 +252,11 @@ impl Prefill {
         )
         .await?;
         launch(
-            crate::ops_batch_kpart16::project_sliding_kv_batch,
+            crate::ops_qkv_b16_native_prequant::project_sliding_kv_quantized,
             (
                 device,
-                &self.norm,
+                &self.native_q_input,
+                &self.native_qkv_scale,
                 &layer.v_weight,
                 &layer.v_weight_scale,
                 &mut self.v_raw_s,
@@ -396,11 +401,14 @@ impl Prefill {
         )
         .await?;
         self.record_profile("full.input_norm", &mut profile_mark);
+        launch(crate::ops_qkv_b16_native_prequant::quantize_input,
+            (device, &self.norm, &mut self.native_q_input, &mut self.native_qkv_scale)).await?;
         launch(
-            crate::ops_batch_kpart16::project_full_query_batch,
+            crate::ops_qkv_b16_native_prequant::project_full_query_quantized,
             (
                 device,
-                &self.norm,
+                &self.native_q_input,
+                &self.native_qkv_scale,
                 &layer.q_weight,
                 &layer.q_weight_scale,
                 &mut self.q_raw_f,
@@ -408,10 +416,11 @@ impl Prefill {
         )
         .await?;
         launch(
-            crate::ops_batch_kpart16::project_full_key_batch,
+            crate::ops_qkv_b16_native_prequant::project_full_key_quantized,
             (
                 device,
-                &self.norm,
+                &self.native_q_input,
+                &self.native_qkv_scale,
                 &layer.k_weight,
                 &layer.k_weight_scale,
                 &mut self.k_raw_f,
