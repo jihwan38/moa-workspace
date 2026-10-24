@@ -1,0 +1,25 @@
+{
+  "source": "bbe58aa",
+  "actual_controls": {
+    "streamed": "317948: all16777216bits exact+512CPU;18.294..18.518ms vs4B1613.713..13.733ms",
+    "query_cluster16_vocab_rows": "317925 exact;17.1..17.4ms"
+  },
+  "invariants": "Original BF16 weights, fullH dot contraction and dotBF16 before F32 divide/tanh/multiply and finalBF16 unchanged. Retain proven embedding/extraction. No host edits.",
+  "candidate_A": {
+    "name": "switch_input",
+    "change": "Vocabclusters,32vocabrows/PE/16bands. Load all64 inputs once to8 H/480-sharded source slices(local64*480*2=61440B); each B8 uses existing two-stage Switch gather then directTRF broadcast.",
+    "removed": "128 HBM-to-replicated-DM activation transfers",
+    "retained": "Required TRF broadcast, matrix contraction and2GB weightread",
+    "capacity": "Input61,440+gather61,440+weight245,760+result65,536+band4,096+small intermediates <512KiB; finaltranspose lifetime followsweightdrop.",
+    "status": "Compiled, NPU run deferred: same two-stage Switch path was exact but157.4ms vs12.9ms control in317662. Preserve draft; do not repeat knownslow mechanism withoutnew evidence."
+  },
+  "candidate_B": {
+    "name": "band_output",
+    "change": "Queryclusters32rows each; residentinput32H245760B; residentweight32H245760B. Store eachband output immediately toHBM, omittingfull65536Bresult.32bands instead64.",
+    "removed": "Half band setup/matmul descriptor loops and fullresultbuffer/finalglobaltranspose",
+    "retained": "4GB duplicatedweightreads, exactfullH dot, logical outputbytes",
+    "capacity": "491520B input+weight, plus2KBbandresult/2KBtranspose/smallintermediates <512KiB.",
+    "status": "Compiled draft, fixed bandcount64\u219232 beforeprobe; test this candidate first."
+  },
+  "validation": "Compile and compare everylogit bit to4 originalB16, sampled512F64dots and allrowextraction. ABBA matched3iteration warmtiming, optional NPUcycles collection afternormaltiming. Root dispatch only."
+}

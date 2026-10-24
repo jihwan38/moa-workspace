@@ -78,3 +78,6 @@ pub mod ops_commit_wide;
 pub mod ops_r64_io;
 
 pub mod ops_r64_io_streamed;
+
+pub mod ops_r64_io_switchinput;
+pub mod ops_r64_io_bandoutput;
