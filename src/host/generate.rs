@@ -171,6 +171,7 @@ pub struct GenerationOutput {
 /// One conversation's progress, independent of the order in which requests run.
 pub struct Generation {
     request: GenerationRequest,
+    banned_tokens: HashSet<usize>,
     phase: Phase,
     stream: DecodeStream,
     channel: Channel,
@@ -210,7 +211,14 @@ impl Generation {
             )
             .into());
         }
+        let mut banned_tokens: HashSet<usize> = SUPPRESSED_TOKENS.into_iter().collect();
+        if request.ignore_eos {
+            // Suppressing channel markers keeps all requested generated tokens visible.
+            banned_tokens.extend(EOS_TOKENS);
+            banned_tokens.extend([CHANNEL_OPEN_TOKEN, CHANNEL_CLOSE_TOKEN]);
+        }
         Ok(Self {
+            banned_tokens,
             stream: tokenizer.decode_stream(
                 &request
                     .prompt_ids
@@ -299,14 +307,17 @@ impl Generation {
         }
     }
 
-    /// Consume an actually computed chunk. Intermediate prompt rows do not sample
-    /// or emit tokens; the final prompt row and every decode row use `advance`.
-    pub fn advance_inputs(
-        &mut self,
-        count: usize,
-        logits: &[f32],
-        on_delta: impl FnMut(Delta) -> bool,
-    ) -> Result<Option<GenerationOutput>, Box<dyn std::error::Error>> {
+    /// The unmodified per-request sampling policy for an external selector.
+    pub fn sampling_config(&self) -> &SamplingConfig {
+        &self.request.sampling
+    }
+
+    /// Immutable request bans, shared by CPU sampling and external greedy selection.
+    pub fn banned_tokens(&self) -> &HashSet<usize> {
+        &self.banned_tokens
+    }
+
+    fn phase_after_inputs(&self, count: usize) -> Result<Phase, Box<dyn std::error::Error>> {
         if count == 0 {
             return Err("cannot advance an empty input chunk".into());
         }
@@ -315,21 +326,67 @@ impl Generation {
                 if count > self.request.prompt_ids.len() - position {
                     return Err("input chunk exceeds the remaining prompt".into());
                 }
-                self.phase = Phase::Prompt(position + count - 1);
+                Ok(Phase::Prompt(position + count - 1))
             }
-            Phase::Decode(_) if count != 1 => {
-                return Err("decode needs exactly one sampled input".into());
-            }
-            Phase::Complete => return Err("generation is already complete".into()),
-            _ => {}
+            Phase::Decode(_) if count != 1 => Err("decode needs exactly one sampled input".into()),
+            Phase::Complete => Err("generation is already complete".into()),
+            phase => Ok(phase),
         }
+    }
+
+    /// Consume an actually computed chunk. Intermediate prompt rows do not sample
+    /// or emit tokens; the final prompt row and every decode row use `advance`.
+    pub fn advance_inputs(
+        &mut self,
+        count: usize,
+        logits: &[f32],
+        on_delta: impl FnMut(Delta) -> bool,
+    ) -> Result<Option<GenerationOutput>, Box<dyn std::error::Error>> {
+        self.phase = self.phase_after_inputs(count)?;
         self.advance(logits, on_delta)
+    }
+
+    /// Consume the exact greedy result of a computed chunk without downloading its logits.
+    /// The caller must apply `banned_tokens()` and the same tie order as CPU sampling.
+    /// This accepts only a final prompt chunk or one decode input. Invalid selections
+    /// leave all generation state unchanged; stochastic requests keep `advance_inputs`.
+    pub fn advance_inputs_greedy(
+        &mut self,
+        count: usize,
+        token: usize,
+        on_delta: impl FnMut(Delta) -> bool,
+    ) -> Result<Option<GenerationOutput>, Box<dyn std::error::Error>> {
+        let phase = self.phase_after_inputs(count)?;
+        if !self.request.sampling.is_greedy() {
+            return Err("external greedy selection requires greedy sampling".into());
+        }
+        if self.request.max_new_tokens == 0
+            || matches!(phase, Phase::Prompt(pos) if pos + 1 < self.request.prompt_ids.len())
+        {
+            return Err("this input does not consume a selected token".into());
+        }
+        if token >= W::SIZE || self.banned_tokens.contains(&token) {
+            return Err("selected token is outside the vocabulary or banned".into());
+        }
+        self.phase = phase;
+        self.advance_selected(|_, _| token, on_delta)
     }
 
     /// Consume the logits of the pending input (empty if `wants_logits` was false).
     pub fn advance(
         &mut self,
         logits: &[f32],
+        on_delta: impl FnMut(Delta) -> bool,
+    ) -> Result<Option<GenerationOutput>, Box<dyn std::error::Error>> {
+        self.advance_selected(
+            |config, banned| sample(logits, config, banned, &mut rand::rng()),
+            on_delta,
+        )
+    }
+
+    fn advance_selected(
+        &mut self,
+        select: impl FnOnce(&SamplingConfig, &HashSet<usize>) -> usize,
         mut on_delta: impl FnMut(Delta) -> bool,
     ) -> Result<Option<GenerationOutput>, Box<dyn std::error::Error>> {
         let phase = std::mem::replace(&mut self.phase, Phase::Complete);
@@ -345,14 +402,7 @@ impl Generation {
             self.phase = Phase::Prompt(pos + 1);
             return Ok(None);
         }
-        let mut banned: HashSet<usize> = SUPPRESSED_TOKENS.into_iter().collect();
-        if self.request.ignore_eos {
-            // Channel tokens are banned too: text in the reasoning channel is not part of the
-            // answer, so it would shorten the visible output.
-            banned.extend(EOS_TOKENS);
-            banned.extend([CHANNEL_OPEN_TOKEN, CHANNEL_CLOSE_TOKEN]);
-        }
-        let next = sample(logits, &self.request.sampling, &banned, &mut rand::rng());
+        let next = select(&self.request.sampling, &self.banned_tokens);
         if EOS_TOKENS.contains(&next) {
             return Ok(Some(self.finish(FinishReason::Stop, &mut on_delta)));
         }
@@ -540,5 +590,232 @@ mod chunk_tests {
         assert_eq!(prompt_chunk_count(0, 128, PREFILL_CHUNK), 128);
         assert_eq!(prompt_chunk_count(500, 140, PREFILL_CHUNK), 12);
         assert_eq!(prompt_chunk_count(0, 512, 8), 8);
+    }
+}
+
+#[cfg(test)]
+mod selected_token_tests {
+    use super::*;
+    use std::sync::OnceLock;
+
+    fn tokenizer() -> &'static Tokenizer {
+        static TOKENIZER: OnceLock<Tokenizer> = OnceLock::new();
+        TOKENIZER.get_or_init(|| {
+            let mut names: Vec<_> = (0..107).map(|i| format!("token{i}")).collect();
+            for (id, text) in [
+                (0, "[UNK]"),
+                (1, "<eos>"),
+                (2, "prompt"),
+                (3, "a"),
+                (4, "b"),
+                (5, "S"),
+                (6, "TO"),
+                (7, "P"),
+                (8, "analysis\n"),
+                (9, "why"),
+                (10, "answer"),
+                (50, "<tool>"),
+                (100, CHANNEL_OPEN_TEXT),
+                (101, CHANNEL_CLOSE_TEXT),
+                (106, "<end>"),
+            ] {
+                names[id] = text.to_owned();
+            }
+            let vocab: serde_json::Map<_, _> = names
+                .into_iter()
+                .enumerate()
+                .map(|(id, name)| (name, serde_json::json!(id)))
+                .collect();
+            let definition = serde_json::json!({"version":"1.0", "added_tokens":[],
+                "model":{"type":"WordLevel", "unk_token":"[UNK]", "vocab":vocab},
+                "decoder":{"type":"Fuse"}});
+            let path = std::env::temp_dir().join(format!(
+                "moa-generation-test-{}-{}.json",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            std::fs::write(&path, serde_json::to_vec(&definition).unwrap()).unwrap();
+            let tokenizer = Tokenizer::new(&path).unwrap();
+            std::fs::remove_file(path).unwrap();
+            tokenizer
+        })
+    }
+    fn request(max: usize, stops: &[&str], reasoning: bool) -> GenerationRequest {
+        GenerationRequest {
+            prompt_ids: vec![2; 3],
+            soft_at: vec![None; 3],
+            image: None,
+            audio: None,
+            max_new_tokens: max,
+            sampling: SamplingConfig::DEFAULT,
+            stop_strings: stops.iter().map(|s| s.to_string()).collect(),
+            separate_reasoning: reasoning,
+            ignore_eos: false,
+        }
+    }
+    fn run(
+        external: bool,
+        max: usize,
+        stops: &[&str],
+        reasoning: bool,
+        tokens: &[usize],
+        cancel_after: usize,
+    ) -> (GenerationOutput, Vec<(bool, String)>) {
+        let mut g = Generation::new(tokenizer(), request(max, stops, reasoning), 256).unwrap();
+        let mut events = Vec::new();
+        for (step, &token) in tokens.iter().enumerate() {
+            let mut callback = |delta: Delta<'_>| {
+                events.push(match delta {
+                    Delta::Content(s) => (false, s.to_owned()),
+                    Delta::Reasoning(s) => (true, s.to_owned()),
+                });
+                events.len() < cancel_after
+            };
+            let count = if step == 0 { 3 } else { 1 };
+            let out = if external {
+                g.advance_inputs_greedy(count, token, &mut callback)
+            } else {
+                let mut logits = vec![-1.0; 107];
+                logits[token] = 1.0;
+                g.advance_inputs(count, &logits, &mut callback)
+            }
+            .unwrap();
+            if let Some(out) = out {
+                return (out, events);
+            }
+            assert_eq!(g.input().0.token, token);
+            assert_eq!(g.input().1, 3 + g.output.completion_tokens - 1);
+        }
+        panic!("test token sequence did not finish generation");
+    }
+    fn same(
+        a: &(GenerationOutput, Vec<(bool, String)>),
+        b: &(GenerationOutput, Vec<(bool, String)>),
+    ) {
+        assert_eq!(
+            (
+                &a.0.text,
+                &a.0.reasoning,
+                a.0.prompt_tokens,
+                a.0.completion_tokens,
+                a.0.finish_reason,
+                &a.1
+            ),
+            (
+                &b.0.text,
+                &b.0.reasoning,
+                b.0.prompt_tokens,
+                b.0.completion_tokens,
+                b.0.finish_reason,
+                &b.1
+            )
+        );
+    }
+    #[test]
+    fn selected_tokens_preserve_stop_overlap_eos_length_and_cancellation() {
+        for (max, stops, tokens, cancel) in [
+            (32, vec!["STOP"], vec![3, 5, 6, 7], usize::MAX),
+            (32, vec![], vec![3, 4, EOS_TOKEN], usize::MAX),
+            (2, vec![], vec![3, 4], usize::MAX),
+            (32, vec![], vec![3], 1),
+        ] {
+            let cpu = run(false, max, &stops, false, &tokens, cancel);
+            let selected = run(true, max, &stops, false, &tokens, cancel);
+            same(&cpu, &selected);
+            assert_eq!(selected.0.prompt_tokens, 3);
+            if !stops.is_empty() {
+                assert_eq!(selected.0.text, "a");
+                assert_eq!(selected.0.completion_tokens, 3);
+                assert_eq!(selected.0.finish_reason, FinishReason::Stop);
+                assert_eq!(selected.1, vec![(false, "a".into())]);
+            }
+        }
+    }
+    #[test]
+    fn selected_tokens_preserve_reasoning_channel_and_marker_suppression() {
+        let tokens = [
+            CHANNEL_OPEN_TOKEN,
+            8,
+            9,
+            CHANNEL_CLOSE_TOKEN,
+            10,
+            END_OF_TURN_TOKEN,
+        ];
+        let cpu = run(false, 32, &[], true, &tokens, usize::MAX);
+        let selected = run(true, 32, &[], true, &tokens, usize::MAX);
+        same(&cpu, &selected);
+        assert_eq!(selected.0.reasoning, "why");
+        assert_eq!(selected.0.text, "answer");
+        assert_eq!(
+            selected.1,
+            vec![(true, "why".into()), (false, "answer".into())]
+        );
+    }
+    #[test]
+    fn rejected_external_selection_keeps_phase_and_sampling_fallback() {
+        let mut req = request(4, &[], false);
+        req.ignore_eos = true;
+        let mut g = Generation::new(tokenizer(), req, 256).unwrap();
+        assert!(g.sampling_config().is_greedy());
+        assert_eq!(g.banned_tokens().len(), 7);
+        for (count, token) in [
+            (0, 3),
+            (4, 3),
+            (1, 3),
+            (3, W::SIZE),
+            (3, EOI_TOKEN),
+            (3, EOA_TOKEN),
+            (3, EOS_TOKEN),
+            (3, CHANNEL_OPEN_TOKEN),
+        ] {
+            assert!(g.advance_inputs_greedy(count, token, |_| true).is_err());
+            assert_eq!(g.input().1, 0);
+            assert_eq!(g.output.completion_tokens, 0);
+        }
+        assert!(g.advance_inputs(2, &[], |_| true).unwrap().is_none());
+        assert_eq!(g.input().1, 2);
+        assert!(g.advance_inputs_greedy(1, 3, |_| true).unwrap().is_none());
+        assert_eq!(g.input().1, 3);
+        assert_eq!(g.output.completion_tokens, 1);
+        assert!(g.advance_inputs_greedy(2, 4, |_| true).is_err());
+        assert_eq!(g.input().0.token, 3);
+
+        let mut req = request(1, &[], false);
+        req.sampling.temperature = 1.0;
+        req.sampling.top_k = 1;
+        let mut g = Generation::new(tokenizer(), req, 256).unwrap();
+        assert!(!g.sampling_config().is_greedy());
+        assert!(g.advance_inputs_greedy(3, 3, |_| true).is_err());
+        assert_eq!(g.input().1, 0);
+        let out = g
+            .advance_inputs(3, &[-1.0, -1.0, -1.0, 2.0], |_| true)
+            .unwrap()
+            .unwrap();
+        assert_eq!(out.text, "a");
+        assert_eq!(out.finish_reason, FinishReason::Length);
+    }
+    #[test]
+    fn zero_completion_and_intermediate_prompt_never_consume_a_selection() {
+        let mut g = Generation::new(tokenizer(), request(0, &[], false), 256).unwrap();
+        assert!(g.advance_inputs_greedy(3, 3, |_| true).is_err());
+        assert_eq!(g.input().1, 0);
+        let out = g.advance(&[], |_| true).unwrap().unwrap();
+        assert_eq!(out.completion_tokens, 0);
+        assert!(out.text.is_empty());
+        assert!(g.advance_inputs_greedy(1, 3, |_| true).is_err());
+        let mut config = SamplingConfig::DEFAULT;
+        for (temperature, greedy) in [
+            (0.0, true),
+            (-0.0, true),
+            (-1.0, true),
+            (1.0, false),
+            (f32::NAN, false),
+        ] {
+            config.temperature = temperature;
+            assert_eq!(config.is_greedy(), greedy);
+        }
     }
 }

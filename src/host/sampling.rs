@@ -9,6 +9,11 @@ pub struct SamplingConfig {
 }
 
 impl SamplingConfig {
+    /// Exactly the branch used by `sample`; NaN temperature remains stochastic.
+    pub fn is_greedy(&self) -> bool {
+        self.temperature <= 0.0
+    }
+
     pub const DEFAULT: Self = Self {
         temperature: 0.0,
         top_k: 64,
@@ -18,7 +23,7 @@ impl SamplingConfig {
 
 pub fn sample(logits: &[f32], config: &SamplingConfig, banned: &HashSet<usize>, rng: &mut impl Rng) -> usize {
     assert!(!logits.is_empty(), "sample requires at least one logit");
-    if config.temperature <= 0.0 {
+    if config.is_greedy() {
         return argmax(logits, banned);
     }
     let temperature = config.temperature;
