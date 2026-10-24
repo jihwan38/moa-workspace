@@ -1,0 +1,27 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/attention)
+error[E0283]: type annotations needed
+  --> src/bin/test_head_batch.rs:54:68
+   |
+54 |  HostTensor::<i32,Mp>::from_vec(pos.iter().map(|p|(p*dim*2)as i32).collect()).to_hbm(&mut d.pdma).await.unwrap()
+   |  ------------------------------                                    ^^^^^^^ cannot infer type of the type parameter `B` declared on the method `collect`
+   |  |
+   |  required by a bound introduced by this call
+   |
+   = note: the type must implement `std::iter::IntoIterator`
+note: required by a bound in `furiosa_opt_std::prelude::HostTensor::<D, Element, B>::from_vec`
+  --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory.rs:86:32
+   |
+86 |     pub fn from_vec(data: impl IntoIterator<Item = D>) -> Self {
+   |                                ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `HostTensor::<D, Element, B>::from_vec`
+help: consider specifying the generic argument
+   |
+54 |  HostTensor::<i32,Mp>::from_vec(pos.iter().map(|p|(p*dim*2)as i32).collect::<Vec<_>>()).to_hbm(&mut d.pdma).await.unwrap()
+   |                                                                           ++++++++++
+help: consider removing this method call, as the receiver has type `std::iter::Map<std::slice::Iter<'_, usize>, {closure@src/bin/test_head_batch.rs:54:48: 54:51}>` and `std::iter::Map<std::slice::Iter<'_, usize>, {closure@src/bin/test_head_batch.rs:54:48: 54:51}>: std::iter::IntoIterator` trivially holds
+   |
+54 -  HostTensor::<i32,Mp>::from_vec(pos.iter().map(|p|(p*dim*2)as i32).collect()).to_hbm(&mut d.pdma).await.unwrap()
+54 +  HostTensor::<i32,Mp>::from_vec(pos.iter().map(|p|(p*dim*2)as i32)).to_hbm(&mut d.pdma).await.unwrap()
+   |
+
+For more information about this error, try `rustc --explain E0283`.
+error: could not compile `furiosa-opt-gemma4` (bin "test_head_batch") due to 1 previous error
