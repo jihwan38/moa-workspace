@@ -184,3 +184,12 @@ postscaled up/down mapping. FullFFN reports bit differences, strict old-toleranc
 failures, relativeL2 and max error against packed L960; finite values and a broad
 relativeL2<0.2 catch gross defects, not model quality. This approximate path is
 explicitly UNVALIDATED for whole-model accuracy pending root's gate.
+
+Arena317869/r130 fused P128 FP8 result:1024 scaled-up F64 scalar samples
+bit-exact; scaled-down had1 bit difference,max_abs3.05e-5,zero tolerance
+failures. Full491520-value FFN comparison had477835 bit differences,zero
+nonfinite values,relativeL2=0.0578963. This is real quantization error, not an
+exact model path. Matched warm packed-L9602.407–2.413ms versus fusedFP8
+1.397–1.410ms (three launches plus one identical result read, divided by3).
+Root is integrating for actual-model accuracy validation; no official score
+or model quality claim follows from these kernel results.
