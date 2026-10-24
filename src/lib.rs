@@ -78,3 +78,5 @@ pub mod ops_r64_io;
 pub mod ops_request_sliding_r64;
 pub mod ops_request_full_r64;
 pub mod ops_head_r64;
+
+pub mod ops_r64_io_bandoutput;

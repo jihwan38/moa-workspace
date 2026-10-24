@@ -344,7 +344,7 @@ pub(crate) enum PoolOffsets {
     },
 }
 impl PoolOffsets {
-    async fn new(device: &mut Device, sequences: &[Sequence<'_>]) -> Result<Self> {
+    pub(crate) async fn new(device: &mut Device, sequences: &[Sequence<'_>]) -> Result<Self> {
         let sliding: Vec<_> = sequences
             .iter()
             .map(|s| {
@@ -834,10 +834,19 @@ impl PoolOffsets {
 }
 
 fn sliding_vectors(sequences: &[Sequence<'_>]) -> (Vec<i32>, Vec<f32>) {
+    sliding_vectors_rows(B::SIZE, sequences)
+}
+fn full_page_vectors(sequences: &[Sequence<'_>], page: usize) -> (Vec<i32>, Vec<f32>, Vec<f32>) {
+    full_page_vectors_rows(B::SIZE, sequences, page)
+}
+pub(crate) fn sliding_vectors_rows(
+    rows: usize,
+    sequences: &[Sequence<'_>],
+) -> (Vec<i32>, Vec<f32>) {
     let count = sequences.len();
-    let mut offsets = Vec::with_capacity(B::SIZE);
-    let mut mask = Vec::with_capacity(B::SIZE * Ts::SIZE);
-    for row in 0..B::SIZE {
+    let mut offsets = Vec::with_capacity(rows);
+    let mut mask = Vec::with_capacity(rows * Ts::SIZE);
+    for row in 0..rows {
         let sequence = &sequences[row.min(count - 1)];
         offsets.push((sequence.blocks.sliding * Ts::SIZE * Ns::SIZE * Ds::SIZE * 2) as i32);
         for slot in 0..Ts::SIZE {
@@ -853,12 +862,16 @@ fn sliding_vectors(sequences: &[Sequence<'_>]) -> (Vec<i32>, Vec<f32>) {
     (offsets, mask)
 }
 
-fn full_page_vectors(sequences: &[Sequence<'_>], page: usize) -> (Vec<i32>, Vec<f32>, Vec<f32>) {
+pub(crate) fn full_page_vectors_rows(
+    rows: usize,
+    sequences: &[Sequence<'_>],
+    page: usize,
+) -> (Vec<i32>, Vec<f32>, Vec<f32>) {
     let count = sequences.len();
-    let mut offsets = Vec::with_capacity(B::SIZE);
-    let mut mask = Vec::with_capacity(B::SIZE * Tf::SIZE);
-    let mut active = Vec::with_capacity(B::SIZE * 8);
-    for row in 0..B::SIZE {
+    let mut offsets = Vec::with_capacity(rows);
+    let mut mask = Vec::with_capacity(rows * Tf::SIZE);
+    let mut active = Vec::with_capacity(rows * 8);
+    for row in 0..rows {
         let sequence = &sequences[row.min(count - 1)];
         let last = sequence.start_position / Tf::SIZE;
         let live = row < count && page <= last;
