@@ -37,3 +37,5 @@ pub const LOGIT_SOFTCAP: f32 = 30.0;
 pub const EPS: f32 = 1e-6;
 
 pub mod ops_request_attention_clusters;
+
+pub mod ops_request_attention_rings;
