@@ -39,6 +39,7 @@ pub mod ops_native_fp8_r64_local_control;
 pub mod ops_native_fp8_r64_split;
 pub mod ops_native_fp8_r64_split_explicit;
 pub mod ops_native_fp8_r64_split_switch;
+pub mod ops_native_fp8_r64_split_switch_direct;
 pub mod ops_native_fp8_r64_split_partition;
 pub mod ops_native_fp8_p256;
 pub mod ops_native_fp8_p512;

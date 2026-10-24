@@ -556,3 +556,11 @@ repeats quantization across output groups, unlike the production L-sharded hidde
 quantizer; the saved weight traffic does not guarantee a win. Frozen full probe
 compares all245760 bits to the actual localquant+TRF production control, then
 10-batch matched ABBA and optional physical spans.
+
+Direct Switch-to-TRF variant: after seeded quantization, route FP8 packets from
+4/16 seed slices through Switch→Collect→TRF64 directly, bypassing the full
+output-group DM activation write and subsequent TRF read. Scale vectors retain
+explicit Switch-to-DM replication. Both up/gate reuse the same TRF. This compiles;
+full probe compares original control, repaired Switch-to-DM stages, and direct
+Switch-to-TRF stages on every245760 output bit, then symmetric10-batch timings.
+The routing and token temporal order still require the full numerical gate.
