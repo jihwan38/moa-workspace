@@ -298,7 +298,7 @@ impl GroupPrefill {
         .await?;
         scratch.record_optional_profile("group.ffn.gate", &mut mark);
         launch(
-            crate::ops_native_fp8_p512_blocks::geglu_quantize,
+            crate::ops_native_fp8_p512_blocks_sharded::geglu_quantize,
             (
                 device,
                 &self.up,

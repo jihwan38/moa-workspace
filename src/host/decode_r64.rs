@@ -249,7 +249,7 @@ impl Decode64 {
             .await?;
             self.record_profile("r64.logits.norm", &mut profile_mark);
             launch(
-                crate::ops_r64_io_blocked::logits_batch,
+                crate::ops_r64_lm_partitioned::logits_batch,
                 (
                     device,
                     &self.norm,
