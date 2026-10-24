@@ -579,3 +579,19 @@ quantization, retains177MB weight reads, and adds~3.7MB standalone quantizer HBM
 IO plus two launch calls. Full probe compares two consecutive distinct input
 cases,245760 final bits each, against the frozen production control before matched
 ABBA10batches and optional physical spans. No source weight/precision changes.
+
+Direct Switch-to-TRF a76228f root318098/r323: both repaired variants exactly
+matched245760 outputs, but both reject. Control.5278–.5344ms, Switch DM
+1.3947–1.3976ms, directTRF1.3734–1.3827ms. Removing the output-group activation
+DM write/read saves only~1–2%, far from recovering the gap. Physical profile
+still has two~985000-counter-duration TuExec operations per cluster in either
+Switch variant; direct routing did not remove that dominant cost. Original
+control Task duration~957000 vs sums~2610000/2580000 for the two Switch stages.
+Counter clock conversion is unverified; compare reported durations only within
+this job. Compact extracted spans are in r64-switch-profile-summary.json.
+
+Four-stage HBM d0964f3 root318104/r327: two distinct inputs each245760 bits exact,
+but reject speed:.6257–.6321ms vs.5192–.5235ms actual production control. Stop
+R64 output-cluster variations. Parent next authorizes one physically blocked
+P512 activation/output experiment with component attribution and actual four
+current-P128 localquant+TRF calls as control; batch width remains fixed512.
