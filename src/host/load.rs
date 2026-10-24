@@ -7,6 +7,7 @@ use crate::axes::{Aa, Df, Ds, Dummy2, H, L, Mv, Ov, Pf, Ps, Pv, Qf, Qs, Rv, W};
 use crate::{Chip, LAYERS};
 
 pub(crate) struct MlpWeights {
+    pub native_fp8: super::native_fp8_weights::NativeFp8Weights,
     pub up_weight_packed: HbmTensor<f4e2m1, Chip, m![L, H]>,
     pub gate_weight_packed: HbmTensor<f4e2m1, Chip, m![L, H]>,
     pub down_weight_packed: HbmTensor<f4e2m1, Chip, m![H, L]>,
@@ -238,7 +239,12 @@ async fn load_mlp(
     let (down_weight_packed, down_weight_scale, down_global_scale) =
         load_mlp_projection::<m![H, L], m![H, L / 16]>(device, tensors, prefix, "down_proj", [H::SIZE, L::SIZE])
             .await?;
+    let native_fp8 = super::native_fp8_weights::NativeFp8Weights::from_packed(
+        device, &up_weight_packed, &gate_weight_packed, &down_weight_packed,
+        &up_weight_scale, &gate_weight_scale, &down_weight_scale,
+    ).await?;
     Ok(MlpWeights {
+        native_fp8,
         up_weight_packed,
         gate_weight_packed,
         down_weight_packed,

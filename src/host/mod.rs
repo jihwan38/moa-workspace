@@ -11,3 +11,5 @@ pub mod worker;
 pub(crate) mod prefill;
 mod prefill_masks;
 pub(crate) mod request_pool;
+
+pub(crate) mod native_fp8_weights;
