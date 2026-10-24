@@ -40,5 +40,32 @@
     "src/bin/test_request_sliding.rs": "380b2af39000a9c80be958d9de6d605c9e0ef2e69a972d828028cc6c06d44dc0"
   },
   "sliding_mechanism": "One device image executes four B4 tiles. Each tile keeps original 32-key BF16 value partials and original 32-way sum tree. Composite Rc,Ts byte-offset gather directly reads distinct rings. Four tiny contiguous index temporaries are required because gather accepts an owner, not a tiled HBM view.",
-  "sliding_validation": "Compiled prototype and probe. Root dispatch pending. Probe compares scalar bit parity for sixteen distinct permuted rings at positions0..8191, masked huge future K/V invariance, seven-row sparse KV updates, exact reverse migration and inactive zeros across16->7->16 batches."
+  "sliding_validation": "Actual Arena317713 passed:39 live row comparisons (159744 outputs) all bit-exact to repaired scalar attention. Positions0..8191, masked huge future K/V invariance, seven-row sparse KV updates, exact reverse migration and inactive zeros across16->7->16 batches.",
+  "sliding_npu": {
+    "job": 317713,
+    "source_commit": "08f72c0",
+    "submission_provenance": "Run started on8e463ce with uncommitted sliding source;08f72c0 freezes that source. Binary has not been rebuilt since submission.",
+    "status": {
+      "id": 317713,
+      "owner": "jihwan38",
+      "mine": true,
+      "name": "beef_r2_pool_sliding",
+      "status": "SUCCEEDED",
+      "created_at": "2026-10-24T20:06:27Z",
+      "started_at": "2026-10-24T20:06:27Z",
+      "finished_at": "2026-10-24T20:06:28Z",
+      "duration_sec": 1.19529626,
+      "exit_code": 0,
+      "device_id": null
+    },
+    "built_probe_sha256": "9c6f57fa0aed1b75012d1ab9efa730796526d7eaa9ef4fe328ef1b3f0db9e05e",
+    "warm_launch_us": [
+      1081.26,
+      1080.8,
+      1082.14,
+      1078.92
+    ],
+    "result": "Actual Arena317713 passed:39 live row comparisons (159744 outputs) all bit-exact to repaired scalar attention. Positions0..8191, masked huge future K/V invariance, seven-row sparse KV updates, exact reverse migration and inactive zeros across16->7->16 batches.",
+    "limitation": "Current image always computes all16 rows even for count7. Four B4 loop tiles cost about1.08ms total, offering little speed benefit over16 scalar launches. Whole-model integration remains independently gated."
+  }
 }
