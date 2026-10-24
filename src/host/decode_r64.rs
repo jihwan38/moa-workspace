@@ -337,6 +337,21 @@ impl Decode64 {
             return Err("sliding layer has wrong pool kind".into());
         };
         self.commit_sliding(device, metadata, k, v).await?;
+        if metadata.sliding_prefix512 {
+        launch(
+            crate::ops_request_sliding_r64_prefix512::sliding_attention_r64,
+            (
+                device,
+                &self.q_s,
+                &*k,
+                &*v,
+                &metadata.ring_offsets,
+                &metadata.sliding_mask,
+                &mut self.attn_s,
+            ),
+        )
+        .await?;
+        } else {
         launch(
             crate::ops_request_sliding_r64::sliding_attention_r64,
             (
@@ -350,6 +365,7 @@ impl Decode64 {
             ),
         )
         .await?;
+        }
         self.record_profile("r64.sliding.attention", &mut profile_mark);
         launch(
             crate::ops_output_r64_parallel_gather::project_sliding_output_batch,

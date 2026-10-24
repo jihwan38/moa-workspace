@@ -18,6 +18,7 @@ pub(crate) struct Step64 {
     pub full_offsets: HbmTensor<i32, Chip, m![R64]>,
     pub sliding_offsets: HbmTensor<i32, Chip, m![R64]>,
     pub live: usize,
+    pub sliding_prefix512: bool,
     pub segments: Vec<PoolOffsets>,
 }
 impl Step64 {
@@ -92,6 +93,7 @@ impl Step64 {
             full_offsets,
             sliding_offsets,
             live,
+            sliding_prefix512: sequences.iter().all(|s| s.start_position < 512),
             segments,
         })
     }
