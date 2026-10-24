@@ -4,6 +4,7 @@ use super::{audio::AudioFrames, generate::SoftToken, image::ImagePatches, load, 
 use crate::{Chip, axes::W};
 use furiosa_opt_std::prelude::*;
 
+use super::prefill::Prefill;
 use runtime::{Blocks, Workspace};
 pub type Logits = HbmTensor<bf16, Chip, m![W]>;
 
@@ -28,6 +29,7 @@ pub struct Sequence<'a> {
 pub struct Model {
     weights: load::Weights,
     decode: runtime::Decode,
+    prefill: Prefill,
     logits: Vec<Logits>,
 }
 
@@ -48,6 +50,7 @@ impl Model {
         Ok(Self {
             weights,
             decode: workspace.begin_decode(device).await?,
+            prefill: Prefill::new(device).await?,
             logits,
         })
     }
@@ -79,13 +82,35 @@ impl Model {
     }
 
     /// Compute one consecutive sequence per request, returning its last logits.
-    /// This initial backend preserves the original token-wise arithmetic. It is
-    /// also the correctness fallback for the layer-wise prefill backend.
+    /// Multi-token page-local chunks use layer-wise B16 execution. Singleton
+    /// or externally supplied larger sequences retain token-wise execution.
     pub async fn forward_sequences(
         &mut self,
         device: &mut Device,
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
+    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.forward_sequences_inner(device, sequences, workspace, true)
+            .await
+    }
+
+    /// Explicit diagnostic control: identical request inputs and original token-wise kernels.
+    pub async fn forward_sequences_serial(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.forward_sequences_inner(device, sequences, workspace, false)
+            .await
+    }
+
+    async fn forward_sequences_inner(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+        use_prefill: bool,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
         if sequences.len() > self.logits.len() {
             return Err("too many request sequences".into());
@@ -98,9 +123,15 @@ impl Model {
             workspace.blocks.sliding = sequence.blocks.sliding;
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
             let result = async {
-                for (offset, input) in sequence.inputs.iter().enumerate() {
-                    self.step(device, input, sequence.start_position + offset, workspace)
+                if use_prefill && Prefill::supports(sequence) {
+                    self.prefill
+                        .run(device, &self.weights, sequence, workspace)
                         .await?;
+                } else {
+                    for (offset, input) in sequence.inputs.iter().enumerate() {
+                        self.step(device, input, sequence.start_position + offset, workspace)
+                            .await?;
+                    }
                 }
                 Ok::<_, Box<dyn std::error::Error>>(())
             }

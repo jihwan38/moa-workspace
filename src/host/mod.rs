@@ -7,3 +7,6 @@ pub mod runtime;
 pub mod sampling;
 pub mod tokenizer;
 pub mod worker;
+
+pub(crate) mod prefill;
+mod prefill_masks;
