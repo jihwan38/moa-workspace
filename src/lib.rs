@@ -119,3 +119,5 @@ pub mod ops_full_wide_pool;
 
 pub mod ops_commit_wide_pool;
 pub mod ops_r64_io_bandoutput;
+
+pub mod ops_prompt_pair_io;
