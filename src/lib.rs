@@ -12,8 +12,8 @@ pub mod api;
 pub mod axes;
 pub mod host;
 pub mod ops;
-pub mod ops_audio;
 pub mod ops_attention;
+pub mod ops_audio;
 pub mod ops_decode;
 pub mod ops_head_batch;
 pub mod ops_norm_batch;
@@ -29,3 +29,5 @@ pub const LAYERS: usize = 48;
 pub const EMBED_SCALE: f32 = 61.967_734;
 pub const LOGIT_SOFTCAP: f32 = 30.0;
 pub const EPS: f32 = 1e-6;
+
+pub mod ops_request_attention_clusters;
