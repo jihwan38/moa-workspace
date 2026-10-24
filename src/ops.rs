@@ -1,8 +1,8 @@
 use furiosa_opt_std::prelude::*;
 
 use crate::axes::*;
-use crate::device::layout::{self, Cluster, Replicated, Slice};
-use crate::device::{full, shared, sliding};
+use crate::device_e154::layout::{self, Cluster, Replicated, Slice};
+use crate::device_e154::{full, shared, sliding};
 use crate::{Chip, EMBED_SCALE, LOGIT_SOFTCAP};
 
 #[device(chip = 1)]

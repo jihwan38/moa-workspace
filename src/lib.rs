@@ -21,6 +21,7 @@ pub mod ops_sliding_batch;
 pub mod ops_vision;
 
 pub(crate) mod device;
+pub(crate) mod device_e154;
 
 pub type Chip = m![1];
 
