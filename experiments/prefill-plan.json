@@ -57,5 +57,31 @@
     "expression": "HbmTensor<B,H>.view().tile::<B,1,H>(15)",
     "error": "split produces H # 61440, requested H is an unpad, not tile",
     "decision": "Keep explicit padded row mapping for device DMA; dense HBM host alias not available through tile alone."
+  },
+  "epilogue_compile": {
+    "source_parent": "b06c29f",
+    "compile": "cargo furiosa-opt build --release --bin prefill_epilogue_probe; SDK 0.9.0; passed",
+    "tested_device_graph": [
+      "B16 row-preserving RMS",
+      "post-attention RMS and residual",
+      "post-FFN RMS, residual, layer gate",
+      "sliding/full head norms and original RoPE arithmetic",
+      "valid3 prefix KV scatter; sliding wrap sentinel probe compiled"
+    ],
+    "hardware_status": "Not run; root schedules NPU probe",
+    "failures_preserved": [
+      {
+        "error": "device const VALID unconstrained by DeviceFn args",
+        "repair": "Fixed device wrappers; generic helper only; validity determines compact index shape"
+      },
+      {
+        "error": "LowLevelReshape: tiled view unsupported",
+        "repair": "Materialize table row with DM-to-DM copy; do not unpad a tiled DM alias"
+      },
+      {
+        "error": "scatter index list B=1 #16 padded",
+        "repair": "One compact index tensor B=VALID and one contiguous payload prefix per scatter"
+      }
+    ]
   }
 }

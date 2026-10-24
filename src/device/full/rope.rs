@@ -24,6 +24,21 @@ pub(crate) fn apply_rope(
         .by_byte_offsets(rope_offset)
         .to_dm(&mut device.tdma);
 
+    apply_rope_values(device, q, k, &cos, &sin)
+}
+
+/// Apply the original rotary arithmetic to already gathered table rows.
+/// Shared by scalar decode and B16 prompt preparation.
+pub(crate) fn apply_rope_values(
+    device: &mut Device,
+    q: &DmTensor<bf16, Chip, Cluster, Slice, m![Gf, Df]>,
+    k: &DmTensor<bf16, Chip, Cluster, Slice, m![Df]>,
+    cos: &DmTensor<bf16, Chip, Cluster, Slice, m![Df]>,
+    sin: &DmTensor<bf16, Chip, Cluster, Slice, m![Df]>,
+) -> (
+    DmTensor<bf16, Chip, Cluster, Slice, m![Gf, Df]>,
+    DmTensor<bf16, Chip, Cluster, Slice, m![Df]>,
+) {
     let cos: DmTensor<bf16, Chip, Cluster, Slice, m![Df]> = cos.to_dm(&mut device.tdma);
     let sin: DmTensor<bf16, Chip, Cluster, Slice, m![Df]> = sin.to_dm(&mut device.tdma);
 
@@ -83,7 +98,11 @@ pub(crate) fn apply_rope(
         .fetch::<m![1], m![Df = 256]>()
         .collect::<m![Df = 256 / 16], m![Df = 256 % 16]>()
         .commit_trim::<m![Df = 256 % 16]>()
-        .commit_view(rotate_half_k.view_mut().tile::<m![Df], 256, m![Df = 256 #{!} 512]>(256));
+        .commit_view(
+            rotate_half_k
+                .view_mut()
+                .tile::<m![Df], 256, m![Df = 256 #{!} 512]>(256),
+        );
 
     device
         .main
@@ -91,7 +110,11 @@ pub(crate) fn apply_rope(
         .fetch::<m![1], m![Df = 256]>()
         .collect::<m![Df = 256 / 16], m![Df = 256 % 16]>()
         .commit_trim::<m![Df = 256 % 16]>()
-        .commit_view(rotate_half_k.view_mut().tile::<m![Df], 256, m![Df = 256 #{!} 512]>(0));
+        .commit_view(
+            rotate_half_k
+                .view_mut()
+                .tile::<m![Df], 256, m![Df = 256 #{!} 512]>(0),
+        );
 
     let mut result_q: DmTensor<bf16, Chip, Cluster, Slice, m![Gf, Df]> = DmTensor::new();
 
@@ -113,7 +136,11 @@ pub(crate) fn apply_rope(
 
         let q_sin: DmTensor<f32, Chip, Cluster, Slice, m![Df]> = device
             .main
-            .begin(rotate_half_q.view().tile::<m![Gf], 1, m![Gf = 1 # 16, Df]>(g))
+            .begin(
+                rotate_half_q
+                    .view()
+                    .tile::<m![Gf], 1, m![Gf = 1 # 16, Df]>(g),
+            )
             .fetch::<m![Df / 16], m![Df % 16]>()
             .fetch_cast::<f32>()
             .collect::<m![Df / 8], m![Df % 8]>()
@@ -144,7 +171,11 @@ pub(crate) fn apply_rope(
             .vector_final()
             .cast::<bf16, m![Df % 8 # 16]>()
             .commit_trim::<m![Df % 8]>()
-            .commit_view(result_q.view_mut().tile::<m![Gf], 1, m![Gf = 1 #{!} 16, Df]>(g));
+            .commit_view(
+                result_q
+                    .view_mut()
+                    .tile::<m![Gf], 1, m![Gf = 1 #{!} 16, Df]>(g),
+            );
     }
 
     let k_cos: DmTensor<f32, Chip, Cluster, Slice, m![Df]> = device

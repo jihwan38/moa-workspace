@@ -14,6 +14,7 @@ pub mod host;
 pub mod ops;
 pub mod ops_batch_io;
 pub mod ops_audio;
+pub mod ops_prefill;
 pub mod ops_vision;
 
 pub(crate) mod device;

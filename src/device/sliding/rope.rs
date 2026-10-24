@@ -26,8 +26,25 @@ pub(crate) fn apply_rope(
         .by_byte_offsets(rope_offset)
         .to_dm(&mut device.tdma);
 
-    let cos: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Ds]> = cos.to_dm(&mut device.tdma);
-    let sin: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Ds]> = sin.to_dm(&mut device.tdma);
+    apply_rope_values(device, q, k, &cos, &sin)
+}
+
+/// Apply the original rotary arithmetic to already gathered table rows.
+/// Shared by scalar decode and B16 prompt preparation.
+pub(crate) fn apply_rope_values(
+    device: &mut Device,
+    q: &DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]>,
+    k: &DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]>,
+    cos: &DmTensor<bf16, Chip, Cluster, Slice, m![Ds]>,
+    sin: &DmTensor<bf16, Chip, Cluster, Slice, m![Ds]>,
+) -> (
+    DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]>,
+    DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]>,
+) {
+    let cos: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Ds]> =
+        cos.to_dm(&mut device.tdma);
+    let sin: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Ds]> =
+        sin.to_dm(&mut device.tdma);
 
     let cos_vrf: VrfTensor<f32, Chip, Cluster, KvHeadsAcrossSlices, m![Ds]> = device
         .sub
@@ -48,7 +65,8 @@ pub(crate) fn apply_rope(
     let first_half_q = q.view().tile::<m![Ds], 128, m![Gs, Ds = 128 # 256]>(0);
     let second_half_q = q.view().tile::<m![Ds], 128, m![Gs, Ds = 128 # 256]>(128);
 
-    let mut rotate_half_q: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Gs, Ds]> = DmTensor::new();
+    let mut rotate_half_q: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Gs, Ds]> =
+        DmTensor::new();
 
     device
         .main
@@ -77,7 +95,8 @@ pub(crate) fn apply_rope(
     let first_half_k = k.view().tile::<m![Ds], 128, m![Ds = 128 # 256]>(0);
     let second_half_k = k.view().tile::<m![Ds], 128, m![Ds = 128 # 256]>(128);
 
-    let mut rotate_half_k: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Ds]> = DmTensor::new();
+    let mut rotate_half_k: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Ds]> =
+        DmTensor::new();
 
     device
         .main
@@ -85,7 +104,11 @@ pub(crate) fn apply_rope(
         .fetch::<m![1], m![Ds = 128]>()
         .collect::<m![Ds = 128 / 16], m![Ds = 128 % 16]>()
         .commit_trim::<m![Ds = 128 % 16]>()
-        .commit_view(rotate_half_k.view_mut().tile::<m![Ds], 128, m![Ds = 128 #{!} 256]>(128));
+        .commit_view(
+            rotate_half_k
+                .view_mut()
+                .tile::<m![Ds], 128, m![Ds = 128 #{!} 256]>(128),
+        );
 
     device
         .main
@@ -93,7 +116,11 @@ pub(crate) fn apply_rope(
         .fetch::<m![1], m![Ds = 128]>()
         .collect::<m![Ds = 128 / 16], m![Ds = 128 % 16]>()
         .commit_trim::<m![Ds = 128 % 16]>()
-        .commit_view(rotate_half_k.view_mut().tile::<m![Ds], 128, m![Ds = 128 #{!} 256]>(0));
+        .commit_view(
+            rotate_half_k
+                .view_mut()
+                .tile::<m![Ds], 128, m![Ds = 128 #{!} 256]>(0),
+        );
 
     let q_cos: DmTensor<f32, Chip, Cluster, KvHeadsAcrossSlices, m![Gs, Ds]> = device
         .main
@@ -199,7 +226,10 @@ pub(crate) fn apply_rope(
         .main
         .begin(result_q.view())
         .fetch::<m![1], m![Gs, Ds]>()
-        .switch::<Slice, m![Ns]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })
+        .switch::<Slice, m![Ns]>(SwitchConfig::Broadcast1 {
+            slice1: 8,
+            slice0: 1,
+        })
         .collect::<m![Ns, Gs, Ds / 16], m![Ds % 16]>()
         .commit_trim::<m![Ds % 16]>()
         .commit();
@@ -208,7 +238,10 @@ pub(crate) fn apply_rope(
         .main
         .begin(result_k.view())
         .fetch::<m![1], m![Ds]>()
-        .switch::<Slice, m![Ns]>(SwitchConfig::Broadcast1 { slice1: 8, slice0: 1 })
+        .switch::<Slice, m![Ns]>(SwitchConfig::Broadcast1 {
+            slice1: 8,
+            slice0: 1,
+        })
         .collect::<m![Ns, Ds / 16], m![Ds % 16]>()
         .commit_trim::<m![Ds % 16]>()
         .commit();
