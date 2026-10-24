@@ -16,6 +16,16 @@ pub(crate) struct WidePrefill {
     attn_f: HbmTensor<bf16, Chip, m![P128, Gf, Df]>,
     tile_indices: Vec<HbmTensor<i32, Chip, m![1]>>,
 }
+/// Everything needed after embedding preparation is owned; no request/media
+/// references survive a scheduling yield. Wide tensors remain in WidePrefill.
+pub(crate) struct PreparedWide {
+    pub(crate) blocks: runtime::Blocks,
+    start_position: usize,
+    count: usize,
+    logits: bool,
+    next_layer: usize,
+    segments: Vec<Segment>,
+}
 struct Segment {
     rope_s: HbmTensor<i32, Chip, m![B]>,
     rope_f: HbmTensor<i32, Chip, m![B]>,
@@ -63,14 +73,13 @@ impl WidePrefill {
             && sequence.start_position / Tf::SIZE
                 == (sequence.start_position + count - 1) / Tf::SIZE
     }
-    pub(crate) async fn run(
+    pub(crate) async fn prepare(
         &mut self,
         device: &mut Device,
         weights: &Weights,
         sequence: &Sequence<'_>,
-        ws: &mut Workspace,
         scratch: &mut Prefill,
-    ) -> Result<()> {
+    ) -> Result<PreparedWide> {
         if !Self::supports(sequence) {
             return Err("unsupported P128 prompt shape".into());
         }
@@ -161,20 +170,60 @@ impl WidePrefill {
             });
         }
         scratch.record_profile("wide.prepare", &mut mark);
-        for (index, layer) in weights.layers.iter().enumerate() {
-            match layer {
-                Layer::Sliding(layer) => {
-                    self.sliding(device, ws, index, layer, sequence, &segments, scratch)
-                        .await?
-                }
-                Layer::Full(layer) => {
-                    self.full(device, ws, index, layer, sequence, &segments, scratch)
-                        .await?
-                }
+        Ok(PreparedWide {
+            blocks: sequence.blocks.clone(),
+            start_position: sequence.start_position,
+            count,
+            logits: sequence.inputs.last().unwrap().logits,
+            next_layer: 0,
+            segments,
+        })
+    }
+
+    /// A complete layer is the scheduling quantum. B16 temporary tensors may be
+    /// overwritten by another request after this returns; persistent P128 x and
+    /// the request's own KV are sufficient to resume the next layer.
+    pub(crate) async fn advance_layer(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        state: &mut PreparedWide,
+        ws: &mut Workspace,
+        scratch: &mut Prefill,
+    ) -> Result<bool> {
+        let index = state.next_layer;
+        let layer = weights
+            .layers
+            .get(index)
+            .ok_or("prefill layers already complete")?;
+        match layer {
+            Layer::Sliding(layer) => {
+                self.sliding(device, ws, index, layer, state, &state.segments, scratch)
+                    .await?
+            }
+            Layer::Full(layer) => {
+                self.full(device, ws, index, layer, state, &state.segments, scratch)
+                    .await?
             }
         }
-        mark = std::time::Instant::now();
-        if sequence.inputs.last().unwrap().logits {
+        state.next_layer += 1;
+        Ok(state.next_layer == weights.layers.len())
+    }
+
+    pub(crate) async fn finish(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        state: &PreparedWide,
+        ws: &mut Workspace,
+        scratch: &mut Prefill,
+    ) -> Result<()> {
+        if state.next_layer != weights.layers.len() {
+            return Err("prefill logits requested before all layers finished".into());
+        }
+        let count = state.count;
+        let mut mark = std::time::Instant::now();
+        if state.logits {
             let tile = (count - 1) / B::SIZE;
             launch(
                 tiles::load_hidden_tile,
@@ -206,6 +255,22 @@ impl WidePrefill {
         }
         scratch.record_profile("wide.logits", &mut mark);
         Ok(())
+    }
+
+    pub(crate) async fn run(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        sequence: &Sequence<'_>,
+        ws: &mut Workspace,
+        scratch: &mut Prefill,
+    ) -> Result<()> {
+        let mut state = self.prepare(device, weights, sequence, scratch).await?;
+        while !self
+            .advance_layer(device, weights, &mut state, ws, scratch)
+            .await?
+        {}
+        self.finish(device, weights, &state, ws, scratch).await
     }
 
     async fn normalize(
@@ -280,7 +345,7 @@ impl WidePrefill {
         ws: &mut Workspace,
         index: usize,
         layer: &SlidingLayer,
-        sequence: &Sequence<'_>,
+        state: &PreparedWide,
         segments: &[Segment],
         scratch: &mut Prefill,
     ) -> Result<()> {
@@ -321,7 +386,7 @@ impl WidePrefill {
         )
         .await?;
         scratch.record_profile("wide.sliding.qkv", &mut mark);
-        let ring = sequence.blocks.sliding;
+        let ring = state.blocks.sliding;
         let (k, v) = ws.kv_cache[index].as_sliding_mut();
         for (tile, segment) in segments.iter().enumerate() {
             let tile = &self.tile_indices[tile];
@@ -421,7 +486,7 @@ impl WidePrefill {
         ws: &mut Workspace,
         index: usize,
         layer: &FullLayer,
-        sequence: &Sequence<'_>,
+        state: &PreparedWide,
         segments: &[Segment],
         scratch: &mut Prefill,
     ) -> Result<()> {
@@ -451,8 +516,8 @@ impl WidePrefill {
         )
         .await?;
         scratch.record_profile("wide.full.qkv", &mut mark);
-        let page = sequence.start_position / Tf::SIZE;
-        let blocks = &sequence.blocks.full;
+        let page = state.start_position / Tf::SIZE;
+        let blocks = &state.blocks.full;
         let (k, v) = ws.kv_cache[index].as_full_mut();
         for (tile, segment) in segments.iter().enumerate() {
             let tile = &self.tile_indices[tile];

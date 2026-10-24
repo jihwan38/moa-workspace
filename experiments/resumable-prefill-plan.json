@@ -1,0 +1,21 @@
+{
+  "candidate": "Request-owned resumable P128 prefill",
+  "control": "944b2d6 exact uninterrupted P128 with native normalization",
+  "execution": [
+    "start_prefill validates and migrates only the request KV to legacy, encodes embeddings and owns cloned Blocks plus segment metadata",
+    "advance_prefill executes exactly one complete model layer, persisting P128 x and the layer cursor",
+    "Worker alternates the active prompt layer with all independent ready decode rows; other prompt chunks wait until this chunk completes",
+    "Each layer resume restores the active Blocks mapping. B16 decode may overwrite all B16 temporary tensors because no B16 tensor survives the complete-layer boundary",
+    "After the last layer, final logits are computed and the worker advances exactly the completed prompt rows"
+  ],
+  "ownership": "Only one in-flight wide chunk; Model rejects new wide use and any forwarded ring/full-page alias while pending. No media borrows survive preparation and no request computation is shared.",
+  "removed_work": "No complete128-token prefill chunk blocks a ready decode batch; interleaving adds only host loop/admission overhead between layers",
+  "remaining_limit": "Kernel or full-layer duration is not preemptible. First media encoding and final sampling/copy can still exceed a target quantum; measure actual duration, do not infer SLO compliance.",
+  "host_checks": "11 host tests passed, including active-ring scheduling with singleton requests and other pending prompts",
+  "draft_repairs": [
+    "Singleton decode while a different prefill was active initially selected the resume branch; fixed by checking the selected physical ring matches the active ring",
+    "Diagnostic initially accessed private Weights.layers; use the public model LAYERS constant"
+  ],
+  "next_gate": "compare_resumable_prefill2 0 128: every decode logit after each of48layers, final prompt logit, and subsequent shared pooled decode must match uninterrupted control exactly; repeat1decoder and512/1024 boundary starts. Root owns NPU execution.",
+  "review": "Attention agent read-only audit found no ownership/yield defect: pending Generation does not advance on None, independent decode cannot alias ring/pages, layer resume restores Blocks, and B16 scratch is fully replaced before use. Caller must retain the same Workspace until completion."
+}

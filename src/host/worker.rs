@@ -96,7 +96,12 @@ impl Worker {
                 .iter()
                 .map(|s| (s.blocks.sliding, s.generation.input_count(PREFILL_CHUNK)))
                 .collect();
-            let selected = select_work(&available, &mut prefer_prefill, &mut next_prefill_ring);
+            let selected = select_work(
+                &available,
+                &mut prefer_prefill,
+                &mut next_prefill_ring,
+                self.model.active_prefill_ring(),
+            );
             for &index in &selected {
                 let session = &mut sessions[index];
                 let (_, position) = session.generation.input();
@@ -123,6 +128,30 @@ impl Worker {
                             blocks: &sessions[index].blocks,
                         })
                         .collect();
+                    if sequences.len() == 1
+                        && (self.model.active_prefill_ring() == Some(sequences[0].blocks.sliding)
+                            || (self.model.active_prefill_ring().is_none()
+                                && sequences[0].inputs.len() == crate::axes::P128::SIZE))
+                    {
+                        if self.model.active_prefill_ring().is_none() {
+                            self.model
+                                .start_prefill(&mut self.device, &sequences[0], &mut self.workspace)
+                                .await?;
+                        }
+                        let Some(output) = self
+                            .model
+                            .advance_prefill(&mut self.device, &mut self.workspace)
+                            .await?
+                        else {
+                            return Ok(None);
+                        };
+                        let logits = if sequences[0].inputs.last().unwrap().logits {
+                            read_logits(&mut self.device, output).await?
+                        } else {
+                            Vec::new()
+                        };
+                        return Ok(Some(vec![logits]));
+                    }
                     let outputs = self
                         .model
                         .forward_sequences(&mut self.device, &sequences, &mut self.workspace)
@@ -135,11 +164,12 @@ impl Worker {
                             Vec::new()
                         });
                     }
-                    Ok::<_, Box<dyn std::error::Error>>(logits)
+                    Ok::<_, Box<dyn std::error::Error>>(Some(logits))
                 })
             }));
             let logits = match result {
-                Ok(Ok(logits)) => logits,
+                Ok(Ok(Some(logits))) => logits,
+                Ok(Ok(None)) => continue,
                 failed => {
                     let message = match failed {
                         Ok(Err(error)) => error.to_string(),
@@ -194,7 +224,25 @@ fn select_work(
     available: &[(usize, usize)],
     prefer_prefill: &mut bool,
     next_ring: &mut usize,
+    active_prefill_ring: Option<usize>,
 ) -> Vec<usize> {
+    if let Some(ring) = active_prefill_ring {
+        let pending = available
+            .iter()
+            .position(|(candidate, _)| *candidate == ring)
+            .expect("active prefill retains its session and KV allocation");
+        let ready: Vec<_> = available
+            .iter()
+            .enumerate()
+            .filter_map(|(index, (_, count))| (index != pending && *count == 1).then_some(index))
+            .collect();
+        if !ready.is_empty() && !*prefer_prefill {
+            *prefer_prefill = true;
+            return ready;
+        }
+        *prefer_prefill = false;
+        return vec![pending];
+    }
     let singletons: Vec<_> = available
         .iter()
         .enumerate()
@@ -222,32 +270,55 @@ fn select_work(
 mod tests {
     use super::*;
     #[test]
+    fn active_wide_chunk_yields_to_decode_and_keeps_other_prompts_pending() {
+        let work = [(2, 1), (7, 128), (12, 1), (5, 128)];
+        let mut prefer = false;
+        let mut ring = 8;
+        assert_eq!(
+            select_work(&work, &mut prefer, &mut ring, Some(7)),
+            vec![0, 2]
+        );
+        assert_eq!(select_work(&work, &mut prefer, &mut ring, Some(7)), vec![1]);
+        assert_eq!(
+            select_work(&work, &mut prefer, &mut ring, Some(7)),
+            vec![0, 2]
+        );
+        assert_eq!(
+            select_work(&[(7, 128), (5, 128)], &mut prefer, &mut ring, Some(7)),
+            vec![0]
+        );
+        assert_eq!(
+            ring, 8,
+            "layer resumes must not advance chunk-level round robin"
+        );
+    }
+    #[test]
     fn ready_decode_requests_stay_batched_while_prompt_progresses() {
         let work = [(2, 1), (7, 16), (12, 1)];
         let mut prefer = false;
         let mut ring = 0;
-        assert_eq!(select_work(&work, &mut prefer, &mut ring), vec![0, 2]);
-        assert_eq!(select_work(&work, &mut prefer, &mut ring), vec![1]);
-        assert_eq!(select_work(&work, &mut prefer, &mut ring), vec![0, 2]);
+        assert_eq!(select_work(&work, &mut prefer, &mut ring, None), vec![0, 2]);
+        assert_eq!(select_work(&work, &mut prefer, &mut ring, None), vec![1]);
+        assert_eq!(select_work(&work, &mut prefer, &mut ring, None), vec![0, 2]);
     }
     #[test]
     fn prompt_round_robin_uses_stable_ring_ids_across_session_removal() {
         let mut prefer = false;
         let mut ring = 0;
         assert_eq!(
-            select_work(&[(8, 16), (2, 16), (15, 3)], &mut prefer, &mut ring),
+            select_work(&[(8, 16), (2, 16), (15, 3)], &mut prefer, &mut ring, None),
             vec![1]
         );
         assert_eq!(
-            select_work(&[(8, 16), (15, 3)], &mut prefer, &mut ring),
+            select_work(&[(8, 16), (15, 3)], &mut prefer, &mut ring, None),
             vec![0]
         );
         assert_eq!(
-            select_work(&[(8, 16), (15, 3)], &mut prefer, &mut ring),
+            select_work(&[(8, 16), (15, 3)], &mut prefer, &mut ring, None),
             vec![1]
         );
         assert_eq!(
-            select_work(&[(8, 16), (1, 16)], &mut prefer, &mut ring),
+            select_work(&[(8, 16), (1, 16)], &mut prefer, &mut ring, None),
             vec![1]
         );
     }
