@@ -57,6 +57,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let layers = furiosa_opt_gemma4::LAYERS;
     let mut control_ws = Workspace::new(&mut device, &weights, capacity, requests).await?;
     let mut candidate_ws = Workspace::new(&mut device, &weights, capacity, requests).await?;
+    // Original scalar prompt arithmetic is an independent numerical diagnostic.
+    // Keep its KV separate: replaying into the same sliding ring could overwrite
+    // history needed by an earlier query near a wrap. One request skips pool allocation.
+    let mut scalar_ws = if count <= B::SIZE {
+        Some(Workspace::new(&mut device, &weights, capacity, 1).await?)
+    } else {
+        None
+    };
     let blocks: Vec<_> = (0..requests)
         .map(|r| Blocks {
             full: (r * pages..(r + 1) * pages).collect(),
@@ -88,6 +96,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             model
                 .forward_sequences(&mut device, &sequences, &mut candidate_ws)
                 .await?;
+            if r == 0 {
+                if let Some(scalar_ws) = &mut scalar_ws {
+                    model
+                        .forward_sequences(&mut device, &sequences, scalar_ws)
+                        .await?;
+                }
+            }
             position += len;
         }
     }
@@ -99,10 +114,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         start_position: start,
         blocks: &blocks[0],
     };
+    let scalar_prompt = if let Some(scalar_ws) = &mut scalar_ws {
+        let outputs = model
+            .forward_sequences_serial(&mut device, std::slice::from_ref(&sequence), scalar_ws)
+            .await?;
+        Some(read_logits(&mut device, &outputs[0]).await?)
+    } else {
+        None
+    };
     let begin = std::time::Instant::now();
     let outputs = if count <= B::SIZE {
         model
-            .forward_sequences_serial(
+            .forward_sequences(
                 &mut device,
                 std::slice::from_ref(&sequence),
                 &mut control_ws,
@@ -119,6 +142,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let control_ms = begin.elapsed().as_secs_f64() * 1000.0;
     let expected_prompt = read_logits(&mut device, &outputs[0]).await?;
+    if let Some(scalar) = &scalar_prompt {
+        assert!(scalar.iter().all(|value| value.is_finite()));
+        let mismatches = scalar
+            .iter()
+            .zip(&expected_prompt)
+            .filter(|(a, b)| a != b)
+            .count();
+        let max_abs = scalar
+            .iter()
+            .zip(&expected_prompt)
+            .map(|(a, b)| (a - b).abs())
+            .fold(0.0f32, f32::max);
+        let diff_sq: f64 = scalar
+            .iter()
+            .zip(&expected_prompt)
+            .map(|(a, b)| f64::from(a - b).powi(2))
+            .sum();
+        let ref_sq: f64 = scalar.iter().map(|a| f64::from(*a).powi(2)).sum();
+        println!(
+            "reported_only_scalar_vs_b16 mismatches={mismatches}/{} max_abs={max_abs} relative_l2={:.8} prefix=shared_b16",
+            scalar.len(),
+            (diff_sq / ref_sq.max(1e-30)).sqrt()
+        );
+    }
     let prepare = std::time::Instant::now();
     model
         .start_prefill(&mut device, &sequence, &mut candidate_ws)
