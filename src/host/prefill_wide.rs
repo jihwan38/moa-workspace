@@ -212,55 +212,26 @@ impl WidePrefill {
         &mut self,
         device: &mut Device,
         weight: &HbmTensor<bf16, Chip, m![H]>,
-        scratch: &mut Prefill,
+        _scratch: &mut Prefill,
     ) -> Result<()> {
-        for tile in &self.tile_indices {
-            launch(
-                tiles::load_hidden_tile,
-                (device, &self.x, tile, &mut scratch.x),
-            )
-            .await?;
-            launch(
-                crate::ops_norm_batch::rmsnorm_b16,
-                (device, &scratch.x, weight, &mut scratch.norm),
-            )
-            .await?;
-            launch(
-                tiles::store_hidden_tile,
-                (device, &scratch.norm, tile, &mut self.norm),
-            )
-            .await?;
-        }
+        launch(
+            crate::ops_norm_wide::rmsnorm_p128,
+            (device, &self.x, weight, &mut self.norm),
+        )
+        .await?;
         Ok(())
     }
     async fn post_attention(
         &mut self,
         device: &mut Device,
         weight: &HbmTensor<bf16, Chip, m![H]>,
-        scratch: &mut Prefill,
+        _scratch: &mut Prefill,
     ) -> Result<()> {
-        for tile in &self.tile_indices {
-            launch(
-                tiles::load_hidden_tile,
-                (device, &self.x, tile, &mut scratch.x),
-            )
-            .await?;
-            launch(
-                tiles::load_hidden_tile,
-                (device, &self.projected, tile, &mut scratch.projected),
-            )
-            .await?;
-            launch(
-                crate::ops_norm_batch::post_attention_b16,
-                (device, &scratch.projected, weight, &mut scratch.x),
-            )
-            .await?;
-            launch(
-                tiles::store_hidden_tile,
-                (device, &scratch.x, tile, &mut self.x),
-            )
-            .await?;
-        }
+        launch(
+            crate::ops_norm_wide::post_attention_p128,
+            (device, &self.projected, weight, &mut self.x),
+        )
+        .await?;
         Ok(())
     }
     async fn ffn(
@@ -274,7 +245,7 @@ impl WidePrefill {
     ) -> Result<()> {
         let mut mark = std::time::Instant::now();
         self.normalize(device, pre, scratch).await?;
-        scratch.record_profile("wide.ffn.pre_norm_tiles", &mut mark);
+        scratch.record_profile("wide.ffn.pre_norm", &mut mark);
         launch(
             linear::batch_ffn,
             (
@@ -294,29 +265,12 @@ impl WidePrefill {
         )
         .await?;
         scratch.record_profile("wide.ffn.core", &mut mark);
-        for tile in &self.tile_indices {
-            launch(
-                tiles::load_hidden_tile,
-                (device, &self.x, tile, &mut scratch.x),
-            )
-            .await?;
-            launch(
-                tiles::load_hidden_tile,
-                (device, &self.projected, tile, &mut scratch.projected),
-            )
-            .await?;
-            launch(
-                crate::ops_norm_batch::post_feedforward_b16,
-                (device, &scratch.projected, post, gate, &mut scratch.x),
-            )
-            .await?;
-            launch(
-                tiles::store_hidden_tile,
-                (device, &scratch.x, tile, &mut self.x),
-            )
-            .await?;
-        }
-        scratch.record_profile("wide.ffn.post_norm_tiles", &mut mark);
+        launch(
+            crate::ops_norm_wide::post_feedforward_p128,
+            (device, &self.projected, post, gate, &mut self.x),
+        )
+        .await?;
+        scratch.record_profile("wide.ffn.post_norm", &mut mark);
         Ok(())
     }
 
@@ -332,7 +286,7 @@ impl WidePrefill {
     ) -> Result<()> {
         let mut mark = std::time::Instant::now();
         self.normalize(device, &layer.input_norm, scratch).await?;
-        scratch.record_profile("wide.sliding.input_norm_tiles", &mut mark);
+        scratch.record_profile("wide.sliding.input_norm", &mut mark);
         launch(
             linear::project_query_batch,
             (
@@ -450,7 +404,7 @@ impl WidePrefill {
         scratch.record_profile("wide.sliding.output", &mut mark);
         self.post_attention(device, &layer.post_attention_norm, scratch)
             .await?;
-        scratch.record_profile("wide.sliding.post_attention_tiles", &mut mark);
+        scratch.record_profile("wide.sliding.post_attention", &mut mark);
         self.ffn(
             device,
             &layer.mlp,
@@ -473,7 +427,7 @@ impl WidePrefill {
     ) -> Result<()> {
         let mut mark = std::time::Instant::now();
         self.normalize(device, &layer.input_norm, scratch).await?;
-        scratch.record_profile("wide.full.input_norm_tiles", &mut mark);
+        scratch.record_profile("wide.full.input_norm", &mut mark);
         launch(
             linear::project_full_query_batch,
             (
@@ -592,7 +546,7 @@ impl WidePrefill {
         scratch.record_profile("wide.full.output", &mut mark);
         self.post_attention(device, &layer.post_attention_norm, scratch)
             .await?;
-        scratch.record_profile("wide.full.post_attention_tiles", &mut mark);
+        scratch.record_profile("wide.full.post_attention", &mut mark);
         self.ffn(
             device,
             &layer.mlp,
