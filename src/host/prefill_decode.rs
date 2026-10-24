@@ -1,8 +1,9 @@
 //! Independent request rows share matrix-weight reads; attention addresses each
 //! request's existing KV allocation and never packs or reuses another request's KV.
 use super::super::model::Logits;
+use super::super::request_pool::{PoolCache, PooledStep};
 use super::*;
-use crate::ops_decode;
+use crate::{ops_decode, ops_request_attention as pool_ops};
 
 struct RowOffsets {
     row: HbmTensor<i32, Chip, m![1]>,
@@ -31,6 +32,26 @@ impl Prefill {
         {
             return Err("invalid independent-request batch".into());
         }
+        let distinct = super::super::request_pool::independent_sequences(sequences);
+        let pooled = if distinct && ws.request_pool.is_some() {
+            let pool = ws.request_pool.as_mut().unwrap();
+            for sequence in sequences {
+                pool.ensure_pool(
+                    device,
+                    &mut ws.kv_cache,
+                    sequence.blocks,
+                    sequence.start_position,
+                )
+                .await?;
+            }
+            Some(PooledStep::new(device, sequences).await?)
+        } else {
+            for sequence in sequences {
+                ws.ensure_legacy(device, sequence.blocks, sequence.start_position)
+                    .await?;
+            }
+            None
+        };
         let token_offsets = HostTensor::<i32, m![B]>::from_vec(
             (0..B::SIZE)
                 .map(|r| (sequences[r.min(count - 1)].inputs[0].token * H::SIZE * 2) as i32)
@@ -119,12 +140,30 @@ impl Prefill {
         for (index, layer) in weights.layers.iter().enumerate() {
             match layer {
                 Layer::Sliding(layer) => {
-                    self.decode_sliding(device, ws, index, layer, &rope_s, sequences, &offsets)
-                        .await?
+                    self.decode_sliding(
+                        device,
+                        ws,
+                        index,
+                        layer,
+                        &rope_s,
+                        sequences,
+                        &offsets,
+                        pooled.as_ref(),
+                    )
+                    .await?
                 }
                 Layer::Full(layer) => {
-                    self.decode_full(device, ws, index, layer, &rope_f, sequences, &offsets)
-                        .await?
+                    self.decode_full(
+                        device,
+                        ws,
+                        index,
+                        layer,
+                        &rope_f,
+                        sequences,
+                        &offsets,
+                        pooled.as_ref(),
+                    )
+                    .await?
                 }
             }
         }
@@ -175,6 +214,7 @@ impl Prefill {
         rope: &HbmTensor<i32, Chip, m![B]>,
         sequences: &[Sequence<'_>],
         offsets: &[RowOffsets],
+        pooled: Option<&PooledStep>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         launch(
@@ -236,25 +276,49 @@ impl Prefill {
         )
         .await?;
         self.record_profile("sliding.heads_rope", &mut profile_mark);
-        let (k, v) = ws.kv_cache[index].as_sliding_mut();
-        for (row, sequence) in sequences.iter().enumerate() {
-            let ring = sequence.blocks.sliding;
+        if let Some(metadata) = pooled {
+            let PoolCache::Sliding { k, v } = &mut ws.request_pool.as_mut().unwrap().layers[index]
+            else {
+                return Err("sliding layer has wrong pool kind".into());
+            };
+            metadata
+                .commits
+                .sliding(device, &self.k_s, &self.v_s, k, v)
+                .await?;
             launch(
-                ops_decode::sliding_attention_row,
+                pool_ops::sliding_attention_b16,
                 (
                     device,
                     &self.q_s,
-                    &self.k_s,
-                    &self.v_s,
-                    &offsets[row].row,
-                    &offsets[row].kv_s,
-                    &mut k[ring],
-                    &mut v[ring],
-                    &ws.mask_s[sequence.start_position.min(Ts::SIZE - 1)],
+                    &*k,
+                    &*v,
+                    &metadata.sliding_offsets,
+                    &metadata.sliding_mask,
                     &mut self.attn_s,
                 ),
             )
             .await?;
+        } else {
+            let (k, v) = ws.kv_cache[index].as_sliding_mut();
+            for (row, sequence) in sequences.iter().enumerate() {
+                let ring = sequence.blocks.sliding;
+                launch(
+                    ops_decode::sliding_attention_row,
+                    (
+                        device,
+                        &self.q_s,
+                        &self.k_s,
+                        &self.v_s,
+                        &offsets[row].row,
+                        &offsets[row].kv_s,
+                        &mut k[ring],
+                        &mut v[ring],
+                        &ws.mask_s[sequence.start_position.min(Ts::SIZE - 1)],
+                        &mut self.attn_s,
+                    ),
+                )
+                .await?;
+            }
         }
         self.record_profile("sliding.attention", &mut profile_mark);
         launch(
@@ -299,6 +363,7 @@ impl Prefill {
         rope: &HbmTensor<i32, Chip, m![B]>,
         sequences: &[Sequence<'_>],
         offsets: &[RowOffsets],
+        pooled: Option<&PooledStep>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         launch(
@@ -348,59 +413,94 @@ impl Prefill {
         )
         .await?;
         self.record_profile("full.heads_rope", &mut profile_mark);
-        let (k, v) = ws.kv_cache[index].as_full_mut();
-        for (row, sequence) in sequences.iter().enumerate() {
-            let position = sequence.start_position;
-            let page = position / Tf::SIZE;
-            let blocks = &sequence.blocks.full;
-            launch(
-                ops_decode::full_commit_row,
-                (
-                    device,
-                    &self.q_f,
-                    &self.k_f,
-                    &self.v_f,
-                    &offsets[row].row,
-                    &offsets[row].kv_f,
-                    &mut k[blocks[page]],
-                    &mut v[blocks[page]],
-                    &mut self.decode_q_f,
-                ),
-            )
-            .await?;
-            for current in 0..=page {
-                let mask = if current == page {
-                    &ws.mask_f_diag[position % Tf::SIZE]
-                } else {
-                    &ws.mask_f_line
-                };
+        if let Some(metadata) = pooled {
+            let PoolCache::Full { k, v } = &mut ws.request_pool.as_mut().unwrap().layers[index]
+            else {
+                return Err("full layer has wrong pool kind".into());
+            };
+            metadata
+                .commits
+                .full(device, &self.k_f, &self.v_f, k, v)
+                .await?;
+            for (page_index, page) in metadata.pages.iter().enumerate() {
                 let args = (
                     &mut *device,
-                    &self.decode_q_f,
-                    &k[blocks[current]],
-                    &v[blocks[current]],
-                    mask,
-                    &mut self.decode_max_f,
-                    &mut self.decode_sum_f,
-                    &mut self.decode_attn_f,
+                    &self.q_f,
+                    &*k,
+                    &*v,
+                    &page.offsets,
+                    &page.mask,
+                    &page.active,
+                    &mut self.max_f,
+                    &mut self.sum_f,
+                    &mut self.attn_f,
                 );
-                if current == 0 {
-                    launch(ops::full_attention_first_page, args).await?;
+                if page_index == 0 {
+                    launch(pool_ops::full_attention_first_page_b16, args).await?;
                 } else {
-                    launch(ops::full_attention_page, args).await?;
+                    launch(pool_ops::full_attention_next_page_b16, args).await?;
                 }
             }
             launch(
-                ops_decode::full_divide_pack_row,
-                (
-                    device,
-                    &self.decode_attn_f,
-                    &self.decode_sum_f,
-                    &offsets[row].row,
-                    &mut self.divided_f,
-                ),
+                pool_ops::full_attention_divide_b16,
+                (device, &self.attn_f, &self.sum_f, &mut self.divided_f),
             )
             .await?;
+        } else {
+            let (k, v) = ws.kv_cache[index].as_full_mut();
+            for (row, sequence) in sequences.iter().enumerate() {
+                let position = sequence.start_position;
+                let page = position / Tf::SIZE;
+                let blocks = &sequence.blocks.full;
+                launch(
+                    ops_decode::full_commit_row,
+                    (
+                        device,
+                        &self.q_f,
+                        &self.k_f,
+                        &self.v_f,
+                        &offsets[row].row,
+                        &offsets[row].kv_f,
+                        &mut k[blocks[page]],
+                        &mut v[blocks[page]],
+                        &mut self.decode_q_f,
+                    ),
+                )
+                .await?;
+                for current in 0..=page {
+                    let mask = if current == page {
+                        &ws.mask_f_diag[position % Tf::SIZE]
+                    } else {
+                        &ws.mask_f_line
+                    };
+                    let args = (
+                        &mut *device,
+                        &self.decode_q_f,
+                        &k[blocks[current]],
+                        &v[blocks[current]],
+                        mask,
+                        &mut self.decode_max_f,
+                        &mut self.decode_sum_f,
+                        &mut self.decode_attn_f,
+                    );
+                    if current == 0 {
+                        launch(ops::full_attention_first_page, args).await?;
+                    } else {
+                        launch(ops::full_attention_page, args).await?;
+                    }
+                }
+                launch(
+                    ops_decode::full_divide_pack_row,
+                    (
+                        device,
+                        &self.decode_attn_f,
+                        &self.decode_sum_f,
+                        &offsets[row].row,
+                        &mut self.divided_f,
+                    ),
+                )
+                .await?;
+            }
         }
         self.record_profile("full.attention", &mut profile_mark);
         launch(

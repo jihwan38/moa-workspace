@@ -1,0 +1,33 @@
+{
+  "candidate": "Independent-request pooled attention host path",
+  "source": "c475e93; kernel contracts034d3c9; repaired scalar attention73a4959",
+  "control": "Validated B16 shared-matrix decode with per-request legacy attention, actual-model317617 exact12request-steps",
+  "execution_graph": [
+    "Workspace startup allocates fixed Rc16/Fc256 KV pools only when request count and total physical pages fit those limits",
+    "Each physical request ring records whether legacy buffers or pooled buffers hold authoritative KV",
+    "Before first pooled decode, copy that request's legacy sliding rings and allocated full pages once for all48layers",
+    "B16QKV and head preparation -> valid-prefix pooled KV scatter -> one pooled sliding attention or ragged full-page sweep -> B16O/FFN",
+    "Before scalar or prompt fallback at position>0, copy authoritative pooled KV back once; position0 resets ownership for a new request without using prior history",
+    "Retain independent request logit rows and existing worker admission/page ownership"
+  ],
+  "removed_work": "Per-request attention launches and row gather/pack loops inside every decoder layer; no wholeKV packing on each step",
+  "added_work": "An additional fixed pool allocation, one-time domain migrations, per-step visibility/offset tensors, and per-ring ownership metadata",
+  "invariants": [
+    "Live rows select distinct request ring slots; aliasing batches retain the legacy path",
+    "Only live-prefix current K/V rows scatter; padded rows cannot overwrite another request",
+    "Ragged full-page rows have legal read addresses, zero visibility, and explicit inactive state so all-masked pages cannot perturb earlier attention",
+    "All full-page IDs remain caller-owned Blocks.full physical allocations",
+    "Owner state changes after successful full migration; failure propagates and terminates the worker as before",
+    "Pool allocation occurs during startup, avoiding multi-GiB allocation on the first generated token",
+    "Generic larger Workspace configurations preserve the existing path when Fc/Rc limits do not fit"
+  ],
+  "next_gate": "Compile and exact actual-model comparisons across many-to-one-to-many active batch transitions, ragged histories and position0 ring reuse, then public mixed accuracy and TTFT/TPOT measurements. Root owns NPU execution.",
+  "status": "Hostpoolstartup,ownershipbridges,pooledsliding/fullattention,globalindependent-sequencegateandactual-modeltransitionprobeimplemented",
+  "validation": {
+    "host": "cargo check server+compare_pool_transitions passed;9hosttests passed includingraggedmetadata and overlappingfullpagedefense",
+    "device_build": "SDK0.9 server+compare_pool_transitions NPUbuild passed27.79s; finalglobalaliasgate driverrebuildpassed22.85s",
+    "review": "Attentionagentread-onlyownershipauditpassed; full-page-disjointgateaddedglobally soaliasedsequences retain originalsequentialordering",
+    "kernel_proofs": "Root317685 fullragged16requests exact;317713 slidingall16positions0..8191,futureinvariance,7rowupdatesandmigration exact",
+    "next_actual_model": "compare_pool_transitions4 2:all->one->all->ring0newposition0->all->forcedlegacyall; reportsalllogitsandprofile, assertsbitexact"
+  }
+}
