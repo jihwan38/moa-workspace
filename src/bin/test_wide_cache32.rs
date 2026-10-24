@@ -66,7 +66,7 @@ async fn main() {
         upload(&mut device, vec![0; P128::SIZE * H::SIZE * 2]).await;
     let start = std::time::Instant::now();
     launch(
-        ops_batch_wide::batch_ffn,
+        ops_batch_wide::batch_ffn_staged_control,
         (
             &mut device,
             &input,
@@ -89,10 +89,10 @@ async fn main() {
     let actual = actual.into_vec();
     let mut failures=[0usize;4];
     for variant in 1..4 {
-        match variant {0 => { launch(ops_batch_wide::batch_ffn,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); },
+        match variant {0 => { launch(ops_batch_wide::batch_ffn_staged_control,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); },
 1 => { launch(ops_batch_wide::batch_ffn_up32,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); },
 2 => { launch(ops_batch_wide::batch_ffn_down_cached,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); },
-3 => { launch(ops_batch_wide::batch_ffn_up32_down_cached,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); }, _=>unreachable!()}
+3 => { launch(ops_batch_wide::batch_ffn,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); }, _=>unreachable!()}
         let got:HostTensor<bf16,m![P128,H]>=output.to_host(&mut device.pdma).await.unwrap();
         for (i,(expected,got)) in actual.iter().zip(got.into_vec()).enumerate() {
             if expected.to_bits()!=got.to_bits() {
@@ -104,10 +104,10 @@ async fn main() {
     let mut times:[Vec<f64>;4]=std::array::from_fn(|_|Vec::new());
     for variant in [0,1,2,3,3,2,1,0] {
         let start=std::time::Instant::now();
-        for _ in 0..3 {match variant {0 => { launch(ops_batch_wide::batch_ffn,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); },
+        for _ in 0..3 {match variant {0 => { launch(ops_batch_wide::batch_ffn_staged_control,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); },
 1 => { launch(ops_batch_wide::batch_ffn_up32,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); },
 2 => { launch(ops_batch_wide::batch_ffn_down_cached,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); },
-3 => { launch(ops_batch_wide::batch_ffn_up32_down_cached,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); }, _=>unreachable!()}}
+3 => { launch(ops_batch_wide::batch_ffn,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); }, _=>unreachable!()}}
         let _:HostTensor<bf16,m![P128,H]>=output.to_host(&mut device.pdma).await.unwrap();
         times[variant].push(start.elapsed().as_secs_f64()*1000.0/3.0);
     }
