@@ -1,0 +1,9 @@
+{
+  "control": "actualops_output_p128_parallel_gather4completedlaunches",
+  "change": "read/decode originalE4weight intoBF16DM onceoutside4input/outputs, same arithmetic",
+  "removed": "3/4weightHBMreadsandE4BF16lookups,3hostlaunches",
+  "added": "longerresidentBF16weightlifetime;compilerDMcapacitymustfit",
+  "correctness": "2seeds4distinctinputs2permutations bothsliding/fullallfinalBF16bitsexact toprovencontrol",
+  "timing": "ABBA10completedsets nohostread; actualkernelprofileoptional",
+  "host_followup": "Onlyiffaster: defer eachrowO/postnormuntilall4attentionscomplete, then4Oandperrowpostnorm; chronologicalKVunchanged"
+}
