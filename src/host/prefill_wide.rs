@@ -260,7 +260,7 @@ impl WidePrefill {
             start_position: sequence.start_position,
             count,
             logits: sequence.inputs.last().unwrap().logits,
-            native_qkv: false,
+            native_qkv: count == P128::SIZE,
             next_layer: 0,
             segments,
             native,
