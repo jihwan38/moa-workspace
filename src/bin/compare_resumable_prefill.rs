@@ -1,6 +1,8 @@
 //! Compare uninterrupted wide prefill with one-layer quanta interleaved with
 //! independent decode. Args: decode requests(default2), prompt start(default0),
 //! chunk length(default128). All logits and a subsequent pooled step must match.
+//! Decode controls use the same pooled arithmetic in an independent workspace.
+//! The scalar E154 versus H960 batched path is a separate numerical comparison.
 use furiosa_opt_gemma4::{
     axes::*,
     host::{
@@ -233,7 +235,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             })
             .collect();
         let controls = model
-            .forward_sequences_serial(&mut device, &sequences, &mut control_ws)
+            .forward_sequences(&mut device, &sequences, &mut control_ws)
             .await?;
         let mut expected = Vec::new();
         for control in controls {
@@ -274,7 +276,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .collect();
     let outputs = model
-        .forward_sequences_serial(&mut device, &sequences, &mut control_ws)
+        .forward_sequences(&mut device, &sequences, &mut control_ws)
         .await?;
     let mut expected = Vec::new();
     for output in outputs {

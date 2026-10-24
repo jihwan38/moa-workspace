@@ -217,3 +217,10 @@ DownWeight aliases/startup conversion as P128, changing only B16 matrix HBM
 input layout. This permits one blocked FP8 model copy for both paths. Require
 all61440 final output bits equal to row-major B16 FP8 and matched ABBA timing;
 startup permutation already has its separate117964800-value proof.
+
+Native c009 scheduler probe317945 initially failed at the first independent decode:
+its oracle invoked scalar E154 while the candidate used H960 batched QKV, so it
+mixed numerical-path changes with the scheduling invariant. The corrected strict
+oracle uses the same pooled decode arithmetic in the independent control workspace;
+scalar prompt diagnostics and ownership rejection checks remain separate. This is
+not a scheduler pass until the corrected48-layer interleave gate runs.
