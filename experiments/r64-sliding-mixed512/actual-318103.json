@@ -1,0 +1,33 @@
+{
+  "tested_source": "c353bfe",
+  "job": 318103,
+  "log": "/round2/runs/r324-r64-mixed512-submit/arena.log",
+  "binary": "/round2/attention/target/release/test_request_sliding_r64_mixed512",
+  "sha256": "aae475d256644bed283e715d98e21704c1e58d4d0db43941e66fd6c2f0bf75bb",
+  "result": "PASS all256policies,67108864bitexact outputvalues; originalscalarallshort/alllong controls, causalfinitefuturepoison,sparse7updates,64->7->64.",
+  "warm_abba": [
+    "MIXED_TIMING policy=00 full_us=[714.7596666666667, 713.4126666666666] mixed_us=[723.8600000000001, 709.2959999999999]",
+    "MIXED_TIMING policy=ff full_us=[708.0093333333334, 712.8796666666667] mixed_us=[481.37833333333333, 466.93800000000005]",
+    "MIXED_TIMING policy=55 full_us=[708.533, 715.0300000000001] mixed_us=[600.8773333333334, 586.7673333333333]",
+    "MIXED_TIMING policy=80 full_us=[706.6526666666667, 713.2926666666667] mixed_us=[693.5693333333334, 678.0723333333334]"
+  ],
+  "adoption": {
+    "entrypoint": "crate::ops_request_sliding_r64_mixed512::sliding_attention_r64",
+    "args": "OriginalR64q,time-majorpoolK/V,ringoffsets,visibilitymask, thenHbmScalar<i32>short_groups beforeout. Policy0..255,bitgselectsprefix512forrows8g..8g+7.",
+    "host_policy": "Initializeu8=255, clearrow/8 bitforeachlive start_position>=512. Emptygroupssafeasprefix. ReuseStep64scalaracrossall40slidinglayers; staticfullfor0,staticprefixfor255,mixedotherwise.",
+    "scope": "Isolatedkernel exact/performancegate only; real-prefix actualmodelprobe988d457 suppliedseparately."
+  },
+  "host_audit": {
+    "root_head": "614f09a",
+    "request_pool_r64_sha256": "58f7b0df6cf709a4cf019e0cf47ae26e96611cd753bed8ccbf502877a47d4f6a",
+    "decode_r64_sha256": "7a660d94ac05a482da56d00fc997344fe1cecc0890db37e6a10d4ad2e4327e9e",
+    "findings": [
+      "Step64live1..64 validatedbeforemaskfold, makingu8shiftbound safe.",
+      "511eligible,512andwrappedpositionsineligible; paddedrows mask0andemptygroupsprefix safe.",
+      "OnlymixedpoliciesallocateoneHbmScalar; sameimmutableStep64metadata reusedalllayers.",
+      "ff/staticprefix,Some/mixed,else0/staticfull consistentwithconstructor.",
+      "CurrentKVcommittedbeforeallattentionvariants; noKVoffset/layoutchange."
+    ],
+    "result": "No concreteownership/dispatchissue found; NPUwholemodelgate remainsrequired."
+  }
+}
