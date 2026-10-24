@@ -171,10 +171,12 @@ fn attention_weighted_values(
     let attention_weights: DmTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Tf % 32]> =
         attention_weights.to_dm(&mut device.tdma);
 
-    let v: DmTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Tf % 32, Df]> = v
+    let v: DmTensor<bf16, Chip, Cluster, m![Tf / 2], m![Tf % 2, Df]> = v
         .gather::<m![Fc], m![Tf, Df]>()
         .by_byte_offsets(base)
         .to_dm(&mut device.tdma);
+    let v: DmTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Tf % 32, Df]> =
+        v.to_dm(&mut device.tdma);
     let v: DmTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Df, Tf % 32]> = device
         .main
         .begin(v.view())
