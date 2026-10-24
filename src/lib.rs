@@ -21,6 +21,7 @@ pub mod ops_batch_native4;
 pub mod ops_batch_prepack8;
 pub mod ops_native_fp8;
 pub mod ops_native_fp8_b16;
+pub mod ops_native_fp8_b16_blocked;
 pub mod ops_native_fp8_blocked;
 pub mod ops_geglu_direct;
 pub mod ops_batch_kpart16;
