@@ -542,3 +542,17 @@ variant explicitly routes seed H/L partitions to every output-row group and
 replicates scale vectors. It compiles. Its byte oracle requires all seed/copy
 values/scales exact for two distinct consecutive inputs and asserts on every
 mismatch. Timing is still unknown; prior whole-row Switch variants were slow.
+
+Explicit Switch routing eb86dba passed root Arena318091/r315: seed values,
+all31457280 replicated FP8 values per H/L test, and all scale copies were exact
+for both consecutive distinct inputs. Assertions enforce this gate. Thus padded
+seed copying is repaired; unlike prior diagnostic exit0 this is a true semantic
+pass. Full FFN929005d accuracy and speed remain pending.
+
+The direct partition-local fallback avoids replication altogether: every output
+row group reads BF16 input and independently computes the same full-row amax.
+HBM input traffic is126MB across the two stages plus177MB weights. This also
+repeats quantization across output groups, unlike the production L-sharded hidden
+quantizer; the saved weight traffic does not guarantee a win. Frozen full probe
+compares all245760 bits to the actual localquant+TRF production control, then
+10-batch matched ABBA and optional physical spans.
