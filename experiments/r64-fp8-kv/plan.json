@@ -1,0 +1,21 @@
+{
+  "source_control": "775fb79",
+  "change": "Isolated E4 per-token/head power-of-two quantized K/V pools; dequantize to BF16 before unchanged R8 attention contractions and reductions. No production pool or host changes.",
+  "removed_work": "BF16 K+V full64 512MiB/layer becomes E4 256MiB + padded scales32MiB; 43.75% fewer pool bytes.",
+  "added_work": "Two per-R8 scale gathers and E4-table/F32 power2 multiplication/BF16 reconstruction. Quantization on cache append required in production, not included in attention timing; full-ring quantizer only probe setup.",
+  "correctness": [
+    "CPU E4 nearest-even converter versus SDK on all BF16 normalized patterns",
+    "Device quantizer versus CPU bytes including zero/subnormal/dynamic scale cases",
+    "All64 attention outputs exact versus BF16 dequantized-pool control",
+    "Independent F64 CPU softmax reference on selected heads and complete positions",
+    "Original BF16 attention error distribution, future finite poison invariance, sparse active rows",
+    "ABBA warmed launch-only and optional NPU profile, preserving exact control"
+  ],
+  "adoption": "Requires measured attention win and separate full-model quality/official gates; no production adoption from this probe alone.",
+  "compile_notes": [
+    "compile1: gather of scalar-live padded F32 scale failed 8-byte DMA alignment (4-byte stride); fixed by gathering 8 repeated LIVE scale values, selecting first only after DMA. Bytes stay32 per token/head.",
+    "compile2/3: all three device entries compile; full attention/quantizer/copy helper.",
+    "build1: host generic to_host required explicit Mp type; fixed without device change.",
+    "build2: complete executable compiled; CPU independent nearest-even LUT matched SDK on34562 normalized BF16 patterns."
+  ]
+}
