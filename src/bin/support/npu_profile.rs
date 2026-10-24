@@ -11,6 +11,7 @@ impl tracing::field::Visit for Fields {
  fn record_debug(&mut self,f:&tracing::field::Field,v:&dyn std::fmt::Debug){self.0.insert(f.name().into(),format!("{v:?}").into());}
 }
 impl tracing::Subscriber for Collector {
+ fn register_callsite(&self,m:&'static tracing::Metadata<'static>)->tracing::subscriber::Interest { if m.target()=="span::npu" {tracing::subscriber::Interest::sometimes()} else {tracing::subscriber::Interest::never()} }
  fn enabled(&self,m:&tracing::Metadata<'_>)->bool {m.target()=="span::npu" && self.enabled.load(Ordering::Relaxed)}
  fn new_span(&self,a:&tracing::span::Attributes<'_>)->tracing::span::Id {
   if self.enabled(a.metadata()) {let mut f=Fields::default();a.record(&mut f);println!("NPU_SPAN {}",serde_json::Value::Object(f.0));}
