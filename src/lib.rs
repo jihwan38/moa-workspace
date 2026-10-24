@@ -78,3 +78,9 @@ pub mod ops_commit_wide;
 pub mod ops_r64_io;
 
 pub mod ops_native_fp8_sharded;
+
+pub mod ops_geglu_direct_r64;
+
+pub mod ops_native_fp8_r64;
+
+pub mod ops_native_fp8_r64_sharded;
