@@ -55,3 +55,4 @@ pub mod ops_commit_wide;
 pub mod ops_pool_views;
 pub mod ops_request_sliding_r64;
 pub mod ops_request_full_r64;
+pub mod ops_head_r64;
