@@ -51,3 +51,5 @@ pub mod ops_request_full_clusters;
 pub mod ops_norm_wide;
 
 pub mod ops_quant_native8;
+
+pub mod ops_batch_prepack8;

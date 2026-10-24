@@ -45,3 +45,30 @@ exact cached P128 FFN, reports bit differences/max errors, and fails beyond
 `0.02+0.01*abs(reference)`. Both FFN and all Q/K wrappers compile; the FFN hardware
 probe and subsequent whole-model comparison are pending root. Original wide
 kernels remain available unchanged for that comparison.
+
+
+Startup FP8 prepack plan afterf830b4a:original FP4×E4 blockscale expands to
+the exact baseline BF16 value; calculate per-output-row amax, choose
+weight_dequant_scale=2^floor(log2(max(amax,2^-112)))/128, and emit E4 q.
+Reconstruct q×scale. Up/gate have30 rows/slice and five-row scale-dequant
+tiles; down has8 rows/slice and two-row tiles. Globals are excluded. Verify
+every emitted E4 byte and F32 scale against an independent CPU formula before
+using the tensors. This is approximate weight quantization and needs full-model
+accuracy validation; original weights remain the only source of model data.
+
+The initial down placement padded a named240-slice H axis to256 and failed
+DMA common-axis factorization. Final down startup placement uses64 output
+groups per cluster,30 rows/group, and15 two-row passes. Each pass has aligned
+8-byte F32 scale output and small DM buffers; source values are unchanged.
+Up and down startup kernels and the every-value CPU probe now compile.
+
+Arena317831 activation quantizers passed every H/L E4 output and per-row F32
+scale against the independent CPU formula including RNGD F32 subnormal flush
+to signed zero. Weight FP4×E4 products are normal F32 except signed zero.
+Arena317828 packed L960 down candidate:97 bit differences among491520,zero
+tolerance failures,max_abs0.0078125;3.068ms→2.396ms.
+Arena317813 native original-FP4 projection:46 differences among1966080,
+relativeL2=5.05e-6,zero tolerance failures;512 sampled F64 dots exact.
+30-row and6-row native variants are bit-exact to one another, taking~0.92ms
+and~1.17ms respectively. Final warm weighted-BF16 comparison~1.006ms; the
+first1.634ms sample was an outlier. No full-model native4 adoption followed.
