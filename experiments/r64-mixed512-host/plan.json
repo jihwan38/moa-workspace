@@ -1,0 +1,20 @@
+{
+  "purpose": "Choose prefix512 independently per group of eight active decode rows, keeping full attention arithmetic and cache ABI",
+  "kernel_commit": "c353bfe",
+  "kernel_job": 318103,
+  "kernel_exact_values": 67108864,
+  "kernel_policies": 256,
+  "kernel_half_short_us": [
+    586.767,
+    600.877
+  ],
+  "kernel_control_us": [
+    708.533,
+    715.03
+  ],
+  "metadata": "8-bit policy once per Step64; upload scalar only for mixed policy; reuse across all40 sliding layers",
+  "invariant": "A group uses prefix512 only if all live positions are<512; padded rows remain fully masked; ringwrap never qualifies",
+  "dispatch": "0 staticfull,255 staticprefix,other runtime mixed",
+  "host_audit": "e2e_evidence read-only audit passed constructor, allocation, dispatch and commit order",
+  "full_model_gate": "pending real17request pairedhistories and B16/R64 all-logit parity"
+}

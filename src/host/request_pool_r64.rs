@@ -18,7 +18,8 @@ pub(crate) struct Step64 {
     pub full_offsets: HbmTensor<i32, Chip, m![R64]>,
     pub sliding_offsets: HbmTensor<i32, Chip, m![R64]>,
     pub live: usize,
-    pub sliding_prefix512: bool,
+    pub sliding_short_groups: u8,
+    pub sliding_group_policy: Option<HbmScalar<i32>>,
     pub segments: Vec<PoolOffsets>,
 }
 impl Step64 {
@@ -86,6 +87,12 @@ impl Step64 {
                 segments.push(PoolOffsets::new(device, chunk).await?);
             }
         }
+        let sliding_short_groups = sliding_short_group_mask(sequences.iter().map(|s| s.start_position));
+        let sliding_group_policy = if sliding_short_groups != 0 && sliding_short_groups != 255 {
+            Some(HbmScalar::from_host(i32::from(sliding_short_groups), &mut device.pdma).await?)
+        } else {
+            None
+        };
         Ok(Self {
             ring_offsets,
             sliding_mask,
@@ -93,8 +100,34 @@ impl Step64 {
             full_offsets,
             sliding_offsets,
             live,
-            sliding_prefix512: sequences.iter().all(|s| s.start_position < 512),
+            sliding_short_groups,
+            sliding_group_policy,
             segments,
         })
+    }
+}
+
+/// A group can omit the upper half only when every live row is before position512.
+/// Padded rows are fully masked, so groups without a live row may use the prefix.
+fn sliding_short_group_mask(positions: impl IntoIterator<Item = usize>) -> u8 {
+    positions.into_iter().enumerate().fold(255, |mask, (row, position)| {
+        if position >= 512 { mask & !(1 << (row / 8)) } else { mask }
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sliding_short_group_mask;
+
+    #[test]
+    fn prefix_policy_tracks_live_group_boundaries_and_ring_wrap() {
+        assert_eq!(sliding_short_group_mask([511; 64]), 255);
+        assert_eq!(sliding_short_group_mask([512; 64]), 0);
+        assert_eq!(sliding_short_group_mask([1024; 64]), 0);
+        assert_eq!(sliding_short_group_mask([128; 17]), 255);
+        assert_eq!(sliding_short_group_mask([512; 17]), 248);
+        let mut p = [0; 64];
+        for row in [7, 8, 31, 63] { p[row] = 512; }
+        assert_eq!(sliding_short_group_mask(p), 0b01110100);
     }
 }

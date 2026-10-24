@@ -146,3 +146,5 @@ pub mod ops_greedy_r64;
 pub mod ops_output_b16_parallel_gather;
 
 pub mod ops_request_sliding_r64_prefix512;
+
+pub mod ops_request_sliding_r64_mixed512;
