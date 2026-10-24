@@ -369,3 +369,41 @@ Arena317986/r229 full O:all1966080 isolated partial values match CPU and
 Sliding repeat0.4247→0.1908ms. Next P128 mapping retains the same concurrent
 K1024 partials and exact BF16 tree, with64 token rows per cluster and eight
 B8 contractions. Original P128 serial O remains the differential control.
+
+Temporal TRF reuse plan afterf40687c: SDK0.9.0 limits Lane to1/2/4/8,
+but permits extra temporal axes in TRF Element and innermost stream broadcast
+axes in contract_outer. Store all64 local FP8 token rows as Lane=P%8,
+Element=[P/8%8,K960] (61440B) and broadcast each weightK64 packet over
+P/8%8 inside the contraction, preserving each token's K-reduction order.
+The64 live accumulator values fit1024-element capacity. This replaces eight
+separate B8 TRF loads/contractions and repeated SRAM weight fetches with one
+stream; does not change HBM weights or arithmetic/quantization. First exact
+projection compile, then full FFN bit-equivalence and ABBA, with an up-only
+variant to distinguish up/gate savings from down savings. No speed assumed.
+
+Hardware/utilization audit (SDK0.9.0, actual source and official sources):
+[Furiosa specifications](https://developer.furiosa.ai/latest/en/overview/rngd.html)
+state512TFLOP/s FP8,256TFLOP/s BF16,1.0GHz and1.5TB/s HBM. The
+[ISCA2024 paper, §IV-C](https://furiosa.ai/download/FuriosaAI-tensor-contraction-processor-isca24)
+describes eight DPEs per slice,64 FP8 values per DPE input, temporal reuse
+through the feed unit, and1024 accumulators. Current Lane8/K64 fills these
+widths; there is no unsupported Lane64 shortcut. SDK lower verifier
+`verify/engine/collect.rs:182` restricts Lane to1/2/4/8, while
+`verify/engine/contraction/outer/stream_adapter.rs` permits an innermost
+broadcast Time axis. TRF Lane8 × tokenGroups8 × K960 =61440B fits64KiB.
+The new projection compiles with this exact temporal-broadcast arrangement.
+
+From our model shapes, P128's three FFN matrices perform
+2×128×3840×15360×3=45.2984832GFLOP. At0.947ms this is47.83TFLOP/s,
+not30GFLOP/step. Our existing two token-owning clusters each read every
+weight, totaling2×3×3840×15360=353894400 bytes per FFN. At1.5TB/s,
+weight traffic alone has an optimistic0.23593ms floor and caps this mapping
+at192TFLOP/s before activation traffic. This is a bound, not a measured rate.
+Peak512TFLOP/s is therefore not the achievable roof of this storage mapping.
+The observed0.947ms leaves room above the weight-only floor, but a10× FFN
+gain would require changing the traffic mapping as well. Root's r222 actual
+profile separates task spans from overlapping DMA/TU spans; summed span
+durations must not be interpreted as serial wall time. TRF temporal reuse
+addresses repeated SRAM fetch and command work; HBM and redistribution
+remain independent limits. Current full-FFN probe includes root's opt-in
+physical-cycle collector after untimed correctness and normal ABC-CBA timing.
