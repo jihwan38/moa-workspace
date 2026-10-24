@@ -143,3 +143,4 @@ pub mod ops_qkv_p128_trf32;
 pub mod ops_prepack_alloc;
 
 pub mod ops_greedy_r64;
+pub mod ops_output_b16_parallel_gather;
