@@ -42,25 +42,9 @@ fn store_tile<Payload: M, PayloadSlices:M, Elements:M>(
         .from_dm(&mut device.tdma, tile);
 }
 
-#[device(chip = 1)]
-pub fn load_hidden_tile(
-    device: &mut Device,
-    source: &HbmTensor<bf16, Chip, m![P128, H]>,
-    tile_index: &HbmTensor<i32, Chip, m![1]>,
-    output: &mut HbmTensor<bf16, Chip, m![B, H]>,
-) {
-    load_tile::<m![H],m![H/240],m![H%240]>(device, source, tile_index, output);
-}
-
-#[device(chip = 1)]
-pub fn store_hidden_tile(
-    device: &mut Device,
-    source: &HbmTensor<bf16, Chip, m![B, H]>,
-    tile_index: &HbmTensor<i32, Chip, m![1]>,
-    output: &mut HbmTensor<bf16, Chip, m![P128, H]>,
-) {
-    store_tile::<m![H],m![H/240],m![H%240]>(device, source, tile_index, output);
-}
+// The original hidden copy is faster/neutral in paired ABBA measurements.
+// Reexport the exact tested entrypoints; all external call signatures stay fixed.
+pub use crate::ops_prefill_tiles_reference::{load_hidden_tile,store_hidden_tile};
 
 #[device(chip = 1)]
 pub fn load_query_sliding_tile(
