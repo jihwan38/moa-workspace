@@ -3,7 +3,7 @@
 use furiosa_opt_gemma4::{
     Chip,
     axes::{B, H, Qs},
-    ops_batch,
+    ops_batch, ops_batch_broadcast,
 };
 use furiosa_opt_std::prelude::*;
 
@@ -87,4 +87,26 @@ async fn main() {
         elapsed.as_secs_f64() * 1000.0
     );
     assert_eq!(failures, 0);
+    let mut expected = vec![];
+    let mut control_times = vec![];
+    let mut broadcast_times = vec![];
+    for optimized in [false, true, true, false, true, false, false, true] {
+        let start = std::time::Instant::now();
+        for _ in 0..10 {
+            if optimized {
+                launch(ops_batch_broadcast::project_query_broadcast, (&mut device, &x, &w, &s, &mut out)).await.unwrap();
+            } else {
+                launch(ops_batch::project_query_batch, (&mut device, &x, &w, &s, &mut out)).await.unwrap();
+            }
+        }
+        let elapsed_us = start.elapsed().as_secs_f64() * 1e6 / 10.0;
+        let values = out.to_host::<m![B, Qs]>(&mut device.pdma).await.unwrap().into_vec();
+        let bits: Vec<_> = values.iter().map(|v| v.to_bits()).collect();
+        if expected.is_empty() { expected = bits; } else { assert_eq!(bits, expected); }
+        if optimized { broadcast_times.push(elapsed_us); } else { control_times.push(elapsed_us); }
+    }
+    println!("BROADCAST_QUERY_RESULT {}", serde_json::json!({
+        "values": actual.len(), "mismatches": 0, "control_us": control_times,
+        "broadcast_us": broadcast_times, "scope": "mean10hostlaunchwait,excludePDMAread"
+    }));
 }
