@@ -14,7 +14,7 @@ type QRows = m![Qs / 16];
 /// Raw sliding-query projection, matching the baseline's BF16 dot boundary
 /// followed by per-output-channel scaling. Input must already be RMS-normalized.
 #[device(chip = 1)]
-pub fn project_query_batch(
+pub fn project_query_batch_strided_control(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![B, H]>,
     weight: &HbmTensor<f8e4m3, Chip, m![Qs, H]>,
@@ -389,7 +389,7 @@ fn down_batch(
 /// Complete feedforward core for 16 already-normalized activation rows.
 /// Norms, residual addition and layer gating are intentionally caller epilogues.
 #[device(chip = 1)]
-pub fn batch_ffn(
+pub fn batch_ffn_strided_control(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![B, H]>,
     up_weight: &HbmTensor<f4e2m1, Chip, m![L, H]>,
@@ -483,9 +483,11 @@ pub fn project_sliding_kv_batch(
                     .tile::<m![B], 8, m![Ps % 8, B = 8 #{!} 16]>(chunk * 8),
             );
     }
-    result
-        .view()
-        .to_hbm_view(&mut device.tdma, output.view_mut());
+    let result: DmTensor<bf16,Chip,Cluster,m![Ps / 8 # 256],m![B,Ps % 8]> = device.main.begin(result.view())
+        .fetch::<m![Ps % 8],m![B]>().collect::<m![Ps % 8],m![B]>()
+        .transpose::<m![Ps / 4 % 2,B],m![Ps % 4 # 16]>()
+        .commit_trim::<m![Ps % 4]>().commit();
+    result.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
 
 /// Raw batched attention projection, matching the baseline's BF16 dot boundary
@@ -561,9 +563,11 @@ pub fn project_full_query_batch(
                     .tile::<m![B], 8, m![Qf % 32, B = 8 #{!} 16]>(chunk * 8),
             );
     }
-    result
-        .view()
-        .to_hbm_view(&mut device.tdma, output.view_mut());
+    let result: DmTensor<bf16,Chip,Cluster,m![Qf / 32 # 256],m![B,Qf % 32]> = device.main.begin(result.view())
+        .fetch::<m![Qf % 32],m![B]>().collect::<m![Qf % 32],m![B]>()
+        .transpose::<m![Qf / 4 % 8,B],m![Qf % 4 # 16]>()
+        .commit_trim::<m![Qf % 4]>().commit();
+    result.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
 
 /// Raw batched attention projection, matching the baseline's BF16 dot boundary
@@ -639,9 +643,11 @@ pub fn project_full_key_batch(
                     .tile::<m![B], 8, m![Pf % 8, B = 8 #{!} 16]>(chunk * 8),
             );
     }
-    result
-        .view()
-        .to_hbm_view(&mut device.tdma, output.view_mut());
+    let result: DmTensor<bf16,Chip,Cluster,m![Pf / 8 # 256],m![B,Pf % 8]> = device.main.begin(result.view())
+        .fetch::<m![Pf % 8],m![B]>().collect::<m![Pf % 8],m![B]>()
+        .transpose::<m![Pf / 4 % 2,B],m![Pf % 4 # 16]>()
+        .commit_trim::<m![Pf % 4]>().commit();
+    result.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
 
 /// Test-only callable control: unmodified official serial feedforward core.
@@ -903,7 +909,7 @@ pub fn project_full_output_batch(
 
 // Isolated output-transfer experiments: identical arithmetic, contiguous output DMA.
 #[device(chip = 1)]
-pub fn project_query_batch_rowmajor(
+pub fn project_query_batch(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![B, H]>,
     weight: &HbmTensor<f8e4m3, Chip, m![Qs, H]>,
@@ -977,7 +983,7 @@ pub fn project_query_batch_rowmajor(
     result.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
 #[device(chip = 1)]
-pub fn batch_ffn_rowmajor(
+pub fn batch_ffn(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![B, H]>,
     up_weight: &HbmTensor<f4e2m1, Chip, m![L, H]>,
