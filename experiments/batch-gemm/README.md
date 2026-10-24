@@ -41,3 +41,18 @@ https://developer.furiosa.ai/furiosa-opt/book/computing-tensors/register-files.h
 B8 × H3840 × BF16 fits full TRF capacity; B16 does not. Decode and weight HBM
 transfer occur outside the B8 loop. Larger batches can reuse this placement by
 adding B8 iterations, subject to DM capacity and actual hardware measurements.
+
+Hardware result, root Arena317587:
+
+* source4a7f256;65536 outputs checked, zero bit mismatches.
+* launch+download1.060ms, a single cold kernel probe.
+* raw log: `/round2/runs/r006-b16-query-oracle-submit/arena.log`.
+
+The remaining raw Q/K projections now compile at actual model sizes. Full Q
+uses the baseline32-byte E4 fetch packet to avoid a fetch-stride lowering error.
+The output projections accept canonical head shapes, preserve per1024-column
+BF16 dot rounding and the BF16 pairwise summation tree, and explicitly transpose
+into row-major DM before output DMA. Both sliding and full O wrappers compile;
+O hardware correctness is pending. A failed initial HBM-view clone lowering is
+retained in `ops_batch_output_v15.rs`; each partial now creates its own metadata
+view from the original HBM tensor, without calling non-primitive Clone on device.
