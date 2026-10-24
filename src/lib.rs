@@ -18,6 +18,8 @@ pub mod ops_batch_predecoded;
 pub mod ops_batch_wide;
 pub mod ops_batch_clusters;
 pub mod ops_batch_kpart;
+pub mod ops_batch_kpart16;
+pub mod ops_batch_clusters;
 pub mod ops_audio;
 pub mod ops_prefill;
 pub mod ops_prefill_tiles;
