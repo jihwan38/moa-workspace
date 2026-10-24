@@ -66,7 +66,7 @@ async fn main() {
         upload(&mut device, vec![0; B::SIZE * H::SIZE * 2]).await;
     let start = std::time::Instant::now();
     launch(
-        ops_batch::batch_ffn,
+        ops_batch::batch_ffn_strided_control,
         (
             &mut device,
             &input,
@@ -87,7 +87,7 @@ async fn main() {
     let actual: HostTensor<bf16, m![B, H]> = output.to_host(&mut device.pdma).await.unwrap();
     let cold_ms = start.elapsed().as_secs_f64() * 1000.0;
     let actual = actual.into_vec();
-    launch(ops_batch::batch_ffn_rowmajor,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap();
+    launch(ops_batch::batch_ffn,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap();
     let changed:HostTensor<bf16,m![B,H]>=output.to_host(&mut device.pdma).await.unwrap();
     let mismatch=actual.iter().zip(changed.into_vec()).filter(|(a,b)| a.to_bits()!=b.to_bits()).count();
     assert_eq!(mismatch,0,"rowmajor FFN changed arithmetic");
@@ -95,8 +95,8 @@ async fn main() {
     for variant in [0,1,1,0,0,1,1,0] {
         let start=std::time::Instant::now();
         for _ in 0..5 {
-            if variant==0 { launch(ops_batch::batch_ffn,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); }
-            else { launch(ops_batch::batch_ffn_rowmajor,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); }
+            if variant==0 { launch(ops_batch::batch_ffn_strided_control,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); }
+            else { launch(ops_batch::batch_ffn,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap(); }
         }
         let _:HostTensor<bf16,m![B,H]>=output.to_host(&mut device.pdma).await.unwrap();
         times[variant].push(start.elapsed().as_secs_f64()*1000.0/5.0);
@@ -111,9 +111,9 @@ async fn query_probe(device:&mut Device) {
     let w:HbmTensor<f8e4m3,Chip,m![Qs,H]>=HostTensor::<f8e4m3,m![Qs,H]>::from_vec((0..Qs::SIZE*H::SIZE).map(|i|f8e4m3::from_f32((word(i,41)%33)as f32/32.0-0.5))).to_hbm(&mut device.pdma).await.unwrap();
     let s:HbmTensor<bf16,Chip,m![Qs]>=HostTensor::<bf16,m![Qs]>::from_vec((0..Qs::SIZE).map(|i|bf16::from_f32(((word(i,43)%8)+1)as f32/16.0))).to_hbm(&mut device.pdma).await.unwrap();
     let mut output:HbmTensor<bf16,Chip,m![B,Qs]>=upload(device,vec![0;B::SIZE*Qs::SIZE*2]).await;
-    launch(ops_batch::project_query_batch,(device,&x,&w,&s,&mut output)).await.unwrap();
+    launch(ops_batch::project_query_batch_strided_control,(device,&x,&w,&s,&mut output)).await.unwrap();
     let original:HostTensor<bf16,m![B,Qs]>=output.to_host(&mut device.pdma).await.unwrap();
-    launch(ops_batch::project_query_batch_rowmajor,(device,&x,&w,&s,&mut output)).await.unwrap();
+    launch(ops_batch::project_query_batch,(device,&x,&w,&s,&mut output)).await.unwrap();
     let changed:HostTensor<bf16,m![B,Qs]>=output.to_host(&mut device.pdma).await.unwrap();
     let mismatch=original.into_vec().iter().zip(changed.into_vec()).filter(|(a,b)|a.to_bits()!=b.to_bits()).count();
     assert_eq!(mismatch,0,"rowmajor query changed arithmetic");
@@ -121,8 +121,8 @@ async fn query_probe(device:&mut Device) {
     for variant in [0,1,1,0,0,1,1,0] {
         let start=std::time::Instant::now();
         for _ in 0..5 {
-            if variant==0 { launch(ops_batch::project_query_batch,(device,&x,&w,&s,&mut output)).await.unwrap(); }
-            else { launch(ops_batch::project_query_batch_rowmajor,(device,&x,&w,&s,&mut output)).await.unwrap(); }
+            if variant==0 { launch(ops_batch::project_query_batch_strided_control,(device,&x,&w,&s,&mut output)).await.unwrap(); }
+            else { launch(ops_batch::project_query_batch,(device,&x,&w,&s,&mut output)).await.unwrap(); }
         }
         let _:HostTensor<bf16,m![B,Qs]>=output.to_host(&mut device.pdma).await.unwrap();
         times[variant].push(start.elapsed().as_secs_f64()*1000.0/5.0);
