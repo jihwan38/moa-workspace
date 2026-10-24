@@ -137,7 +137,7 @@ pub async fn read_logits(
     logits: &HbmTensor<bf16, Chip, m![W]>,
 ) -> Result<Vec<f32>, Box<dyn std::error::Error>> {
     let logits: HostTensor<bf16, m![W]> = logits.to_host(&mut device.pdma).await?;
-    Ok(logits.into_vec().into_iter().map(bf16::to_f32).collect())
+    Ok(crate::host_logit_bytes::decode_bf16_le(&logits.into_inner().into_buf()))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

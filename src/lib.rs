@@ -121,11 +121,20 @@ pub mod ops_commit_wide_pool;
 pub mod ops_r64_io_bandoutput;
 
 pub mod ops_prompt_pair_io;
-
 pub mod ops_native_fp8_p256;
 pub mod ops_geglu_direct_p256;
 pub mod ops_zero_pool;
-
 pub mod ops_prompt_pair_io_rows;
-
 pub mod ops_prepack_alloc;
+pub mod ops_output_r64_parallel_gather;
+pub mod ops_native_fp8_r64_sharded;
+pub mod ops_output_p128_parallel_gather;
+pub mod ops_native_fp8_sharded;
+pub mod ops_r64_io_blocked;
+pub mod ops_native_fp8_trf64;
+pub mod ops_native_fp8_local_reuse;
+pub mod host_logit_bytes;
+pub mod ops_native_fp8_r64_local_reuse;
+pub mod ops_qkv_r64_trf32;
+pub mod ops_qkv_p128_trf32;
+

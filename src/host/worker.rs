@@ -6,7 +6,7 @@ use std::{collections::VecDeque, sync::mpsc};
 use crate::api::worker::{Job, StreamEvent};
 use crate::host::generate::{Delta, Generation, PREFILL_CHUNK, read_logits};
 use crate::host::load;
-use crate::host::model::{Model, Sequence};
+use crate::host::model::{ForwardOutput, Model, Sequence};
 use crate::host::runtime::{Blocks, Workspace};
 use crate::host::tokenizer::Tokenizer;
 use furiosa_opt_std::prelude::*;
@@ -41,10 +41,9 @@ struct Pending {
 
 impl Worker {
     pub fn new(tokenizer: Tokenizer) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::new_with_storage(tokenizer, false)
+        Self::new_with_storage(tokenizer, true)
     }
-    /// Candidate constructor with one canonical KV pool and R64 request capacity.
-    /// The default constructor remains the reproducible legacy control.
+    /// Canonical KV pool and R64 request capacity, also used by the HTTP worker.
     pub fn new_canonical64(tokenizer: Tokenizer) -> Result<Self, Box<dyn std::error::Error>> {
         Self::new_with_storage(tokenizer, true)
     }
@@ -55,14 +54,20 @@ impl Worker {
         let runtime = tokio::runtime::Builder::new_current_thread().build()?;
         let mut device = Device::new(crate::ops::embed_token.topology())?;
         let (model, workspace) = runtime.block_on(async {
+            let started = std::time::Instant::now();
             let weights = load::load_weights(&mut device).await?;
+            eprintln!("startup.weights_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
+            let started = std::time::Instant::now();
             let mut workspace = if canonical {
                 Workspace::new_canonical64(&mut device, &weights, CONTEXT, crate::axes::R64::SIZE)
                     .await?
             } else {
                 Workspace::new(&mut device, &weights, CONTEXT, CAPACITY).await?
             };
+            eprintln!("startup.workspace_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
+            let started = std::time::Instant::now();
             let model = Model::new(&mut device, weights, &mut workspace).await?;
+            eprintln!("startup.model_scratch_ms={:.3}", started.elapsed().as_secs_f64()*1000.0);
             Ok::<_, Box<dyn std::error::Error>>((model, workspace))
         })?;
         Ok(Self {
@@ -238,16 +243,27 @@ impl Worker {
                     }
                     let outputs = self
                         .model
-                        .forward_sequences(&mut self.device, &sequences, &mut self.workspace)
+                        .forward_outputs(&mut self.device, &sequences, &mut self.workspace)
                         .await?;
-                    let mut logits = Vec::with_capacity(outputs.len());
-                    for (output, (inputs, _)) in outputs.iter().zip(&chunks) {
-                        logits.push(if inputs.last().expect("nonempty input chunk").logits {
-                            read_logits(&mut self.device, output).await?
-                        } else {
-                            Vec::new()
-                        });
-                    }
+                    let logits = match outputs {
+                        ForwardOutput::Blocked64(output, live) => {
+                            let host = output.to_host::<crate::ops_r64_io_blocked::BlockedLogits>(&mut self.device.pdma).await?;
+                            let bytes = host.into_inner().into_buf();
+                            let workers = std::thread::available_parallelism().map_or(1, usize::from);
+                            crate::host_logit_bytes::decode_blocked_r64(&bytes, live, workers)
+                        }
+                        ForwardOutput::Rows(outputs) => {
+                            let mut logits = Vec::with_capacity(outputs.len());
+                            for (output, (inputs, _)) in outputs.iter().zip(&chunks) {
+                                logits.push(if inputs.last().expect("nonempty input chunk").logits {
+                                    read_logits(&mut self.device, output).await?
+                                } else {
+                                    Vec::new()
+                                });
+                            }
+                            logits
+                        }
+                    };
                     Ok::<_, Box<dyn std::error::Error>>(Some(logits))
                 })
             }));

@@ -2,7 +2,7 @@
 //! Wide and decode batches have independent axes and scratch ownership.
 use super::*;
 use crate::ops_sliding_wide::Pk128;
-use crate::{ops_batch_kpart as linear, ops_prefill_tiles as tiles};
+use crate::ops_prefill_tiles as tiles;
 
 #[path = "prefill_pair.rs"]
 pub(crate) mod pair;
@@ -396,7 +396,7 @@ impl WidePrefill {
         self.normalize(device, pre, scratch).await?;
         scratch.record_profile("wide.ffn.pre_norm", &mut mark);
         launch(
-            crate::ops_native_fp8_blocked::batch_ffn_direct_geglu,
+            crate::ops_native_fp8_local_reuse::batch_ffn_partitioned_input,
             (
                 device,
                 &self.norm,
@@ -438,7 +438,7 @@ impl WidePrefill {
         self.normalize(device, &layer.input_norm, scratch).await?;
         scratch.record_profile("wide.sliding.input_norm", &mut mark);
         launch(
-            linear::project_query_batch,
+            crate::ops_qkv_p128_trf32::project_query_batch,
             (
                 device,
                 &self.norm,
@@ -449,7 +449,7 @@ impl WidePrefill {
         )
         .await?;
         launch(
-            linear::project_sliding_kv_batch,
+            crate::ops_qkv_p128_trf32::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -460,7 +460,7 @@ impl WidePrefill {
         )
         .await?;
         launch(
-            linear::project_sliding_kv_batch,
+            crate::ops_qkv_p128_trf32::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -638,7 +638,7 @@ impl WidePrefill {
         }
         scratch.record_profile("wide.sliding.head_attention_tiles", &mut mark);
         launch(
-            linear::project_sliding_output_batch,
+            crate::ops_output_p128_parallel_gather::project_sliding_output_batch,
             (
                 device,
                 &self.attn_s,
@@ -679,7 +679,7 @@ impl WidePrefill {
         self.normalize(device, &layer.input_norm, scratch).await?;
         scratch.record_profile("wide.full.input_norm", &mut mark);
         launch(
-            linear::project_full_query_batch,
+            crate::ops_qkv_p128_trf32::project_full_query_batch,
             (
                 device,
                 &self.norm,
@@ -690,7 +690,7 @@ impl WidePrefill {
         )
         .await?;
         launch(
-            linear::project_full_key_batch,
+            crate::ops_qkv_p128_trf32::project_full_key_batch,
             (
                 device,
                 &self.norm,
@@ -916,7 +916,7 @@ impl WidePrefill {
         }
         scratch.record_profile("wide.full.head_attention_tiles", &mut mark);
         launch(
-            linear::project_full_output_batch,
+            crate::ops_output_p128_parallel_gather::project_full_output_batch,
             (
                 device,
                 &self.attn_f,
