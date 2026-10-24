@@ -1,0 +1,8 @@
+{
+  "source_commit": "98c5360",
+  "control": "ops_request_sliding_r64::sliding_attention_r64, eightR8 groups; priorR16/R32 widths exact butslower",
+  "change": "Separate HeadMajorPool=[Rc64,Ns,Ts,Ds] entrypoint. Identical query grouping, DM maps, BF16 dots/partials, softmax and reductions. Only HBMpoolaxisorder and gather/scatterdomain change. Probe allocates one extra layer forA/B, no production pool or host edits.",
+  "mechanism": "EachPE32-key head tile becomes16KiBcontiguous ratherthan32x512B reads at4096B stride. Same bytes; seeks fewerfragmentedHBM transfers. Tokencommit scatters8x512B instead4096Bcontiguous, negligiblecomparedwholeKVread.",
+  "checks": "All64 outputs bitexact frozenR8 andoriginalscalar atpositions0..8191, arbitrary physicalslotperm, futureKVinvariance,sparse7rowupdates,64->7->64; optionalNPUprofile; warmABBA excludingmigration.",
+  "adoption_gate": "Meaningful measuredgain withbitexactness required before proposing allproductionwriters/adapters to newlayout. No duplicationof20GiBproductionpool."
+}
