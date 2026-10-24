@@ -211,9 +211,9 @@ fn quantize_shards(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,UpRows,m![P1
   .commit_trim::<m![P128 %8]>().commit();
  let q:DmTensor<f8e4m3,Chip,Cluster,DownParts,m![L %960,P128 %64]>=q.to_dm(&mut device.tdma);
  let q:DmTensor<f8e4m3,Chip,Cluster,DownParts,m![P128 %64,L %960]>=device.main.begin(q.view())
-  .fetch::<m![P128 /32 %2,L %960],m![P128 %32]>()
-  .collect::<m![P128 /32 %2,L %960],m![P128 %32]>()
-  .transpose::<m![P128 /32 %2,L /8 %120,P128 %32],m![L %8 #32]>()
+  .fetch::<m![P128 /16 %4,L %960],m![P128 %16 #32]>()
+  .collect::<m![P128 /16 %4,L %960],m![P128 %16 #32]>()
+  .transpose::<m![P128 /16 %4,L /8 %120,P128 %16],m![L %8 #32]>()
   .commit_trim::<m![L %8]>().commit();
  let scale:DmTensor<f32,Chip,Cluster,DownRows,m![P128 %64,1 #8]>=scale.to_dm(&mut device.tdma);
  (q,pack_down_scales(device,&scale))
