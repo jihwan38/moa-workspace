@@ -4,8 +4,8 @@ use super::{audio::AudioFrames, generate::SoftToken, image::ImagePatches, load, 
 use crate::{Chip, axes::W};
 use furiosa_opt_std::prelude::*;
 
-use super::prefill::Prefill;
 pub use super::prefill::StageTiming;
+use super::prefill::{Prefill, wide::WidePrefill};
 use runtime::{Blocks, Workspace};
 pub type Logits = HbmTensor<bf16, Chip, m![W]>;
 
@@ -31,6 +31,7 @@ pub struct Model {
     weights: load::Weights,
     decode: runtime::Decode,
     prefill: Prefill,
+    wide: Option<WidePrefill>,
     logits: Vec<Logits>,
 }
 
@@ -60,6 +61,7 @@ impl Model {
             weights,
             decode: workspace.begin_decode(device).await?,
             prefill: Prefill::new(device).await?,
+            wide: None,
             logits,
         })
     }
@@ -99,7 +101,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
-        self.forward_sequences_inner(device, sequences, workspace, true)
+        self.forward_sequences_inner(device, sequences, workspace, true, false)
             .await
     }
 
@@ -110,7 +112,18 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
-        self.forward_sequences_inner(device, sequences, workspace, false)
+        self.forward_sequences_inner(device, sequences, workspace, false, false)
+            .await
+    }
+
+    /// Explicit P128 correctness/performance candidate, separate from server dispatch.
+    pub async fn forward_sequences_wide(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.forward_sequences_inner(device, sequences, workspace, true, true)
             .await
     }
 
@@ -120,6 +133,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
         use_prefill: bool,
+        use_wide: bool,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
         if sequences.len() > self.logits.len() {
             return Err("too many request sequences".into());
@@ -162,7 +176,22 @@ impl Model {
             workspace.blocks.sliding = sequence.blocks.sliding;
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
             let result = async {
-                if use_prefill && Prefill::supports(sequence) {
+                if use_wide && WidePrefill::supports(sequence) {
+                    if self.wide.is_none() {
+                        self.wide = Some(WidePrefill::new(device).await?);
+                    }
+                    self.wide
+                        .as_mut()
+                        .unwrap()
+                        .run(
+                            device,
+                            &self.weights,
+                            sequence,
+                            workspace,
+                            &mut self.prefill,
+                        )
+                        .await?;
+                } else if use_prefill && Prefill::supports(sequence) {
                     self.prefill
                         .run(device, &self.weights, sequence, workspace)
                         .await?;
