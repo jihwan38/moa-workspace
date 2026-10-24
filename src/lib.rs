@@ -51,3 +51,8 @@ pub mod ops_head_wide_tile;
 pub mod ops_prefill_tiles_reference;
 
 pub mod ops_pool_views;
+
+pub mod ops_cache_views;
+pub mod ops_sliding_prompt_views;
+pub mod ops_attention_views;
+pub mod ops_prefill_cache_views;
