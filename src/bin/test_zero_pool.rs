@@ -14,11 +14,11 @@ async fn check<Mp: M>(d: &mut Device, x: &HbmTensor<bf16, Chip, Mp>) {
 async fn main() {
     let mut d = Device::new(op::zero_sliding_pool.topology()).unwrap();
     let now = std::time::Instant::now();
-    let s = launch(op::zero_sliding_pool, (&mut d,)).await.unwrap();
+    let s = launch(op::zero_sliding_pool, &mut d).await.unwrap();
     println!("first_sliding_ms={:.3}", now.elapsed().as_secs_f64() * 1e3);
     check::<m![Rc64, Ts, Ns, Ds]>(&mut d, &s).await;
     let now = std::time::Instant::now();
-    let f = launch(op::zero_full_pool, (&mut d,)).await.unwrap();
+    let f = launch(op::zero_full_pool, &mut d).await.unwrap();
     println!("first_full_ms={:.3}", now.elapsed().as_secs_f64() * 1e3);
     check::<m![Fc, Tf, Df]>(&mut d, &f).await;
     drop((s, f));
@@ -26,10 +26,10 @@ async fn main() {
     let mut sliding = Vec::new();
     let mut full = Vec::new();
     for _ in 0..80 {
-        sliding.push(launch(op::zero_sliding_pool, (&mut d,)).await.unwrap());
+        sliding.push(launch(op::zero_sliding_pool, &mut d).await.unwrap());
     }
     for _ in 0..16 {
-        full.push(launch(op::zero_full_pool, (&mut d,)).await.unwrap());
+        full.push(launch(op::zero_full_pool, &mut d).await.unwrap());
     }
     println!(
         "canonical_22GiB_alloc_fill_ms={:.3}",
