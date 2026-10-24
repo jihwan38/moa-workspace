@@ -1,0 +1,11 @@
+{
+  "candidate": "Exact prompt sliding and independent-request full attention cluster adoption",
+  "source": "Prompt sliding72d6bb9; request fullafeac3b",
+  "changes": [
+    "B16 and P128 prompt attention calls ops_sliding_prompt_clusters::sliding_attention_b16 with unchanged B/Bk inputs",
+    "Pooled decode full-page first/next/divide calls ops_request_full_clusters with unchanged request offsets, masks, active slots, and padded stats"
+  ],
+  "proof": "Root317783 prompt sliding749568 valid outputs exact across8boundaries+7futureperturbations; root317747 pooled full35rows286720values exact across ragged pages, updates, migration and16->3->16",
+  "performance_scope": "Kernel-only prompt sliding median~124->92us; full first page~60->48us. Whole-model gate remains required.",
+  "next_gate": "Root interleaved prefill actual-model probe and public HTTP candidate"
+}

@@ -424,7 +424,7 @@ impl WidePrefill {
             )
             .await?;
             launch(
-                ops_sliding_batch::sliding_attention_b16,
+                crate::ops_sliding_prompt_clusters::sliding_attention_b16,
                 (
                     device,
                     &scratch.q_s,
