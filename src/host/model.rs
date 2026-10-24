@@ -5,7 +5,10 @@ use crate::{Chip, axes::W};
 use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
-use super::prefill::{Prefill, wide::WidePrefill};
+use super::prefill::{
+    Prefill,
+    wide::{PreparedWide, WidePrefill},
+};
 use runtime::{Blocks, Workspace};
 pub type Logits = HbmTensor<bf16, Chip, m![W]>;
 
@@ -32,6 +35,7 @@ pub struct Model {
     decode: runtime::Decode,
     prefill: Prefill,
     wide: WidePrefill,
+    active_prefill: Option<PreparedWide>,
     logits: Vec<Logits>,
 }
 
@@ -81,8 +85,74 @@ impl Model {
             decode: workspace.begin_decode(device).await?,
             prefill: Prefill::new(device).await?,
             wide: WidePrefill::new(device).await?,
+            active_prefill: None,
             logits,
         })
+    }
+
+    /// Physical ring currently owning the persistent P128 tensors, if any.
+    pub fn active_prefill_ring(&self) -> Option<usize> {
+        self.active_prefill
+            .as_ref()
+            .map(|state| state.blocks.sliding)
+    }
+
+    /// Prepare one request's embeddings and masks without advancing Generation.
+    /// Only one wide chunk can be in flight; independent request decode may run
+    /// between subsequent complete-layer advances. Retain the same Workspace
+    /// until completion; its request allocation remains owned by the caller.
+    pub async fn start_prefill(
+        &mut self,
+        device: &mut Device,
+        sequence: &Sequence<'_>,
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if self.active_prefill.is_some() {
+            return Err("another wide prefill is in progress".into());
+        }
+        validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+        if !WidePrefill::supports(sequence) {
+            return Err("resumable prefill requires a page-local wide chunk".into());
+        }
+        workspace
+            .ensure_legacy(device, sequence.blocks, sequence.start_position)
+            .await?;
+        self.active_prefill = Some(
+            self.wide
+                .prepare(device, &self.weights, sequence, &mut self.prefill)
+                .await?,
+        );
+        Ok(())
+    }
+
+    /// Run one complete layer. A result is returned only after all layers and
+    /// the requested final logits complete; the caller may then advance input.
+    pub async fn advance_prefill(
+        &mut self,
+        device: &mut Device,
+        workspace: &mut Workspace,
+    ) -> Result<Option<&Logits>, Box<dyn std::error::Error>> {
+        let state = self
+            .active_prefill
+            .as_mut()
+            .ok_or("no resumable prefill is active")?;
+        workspace.blocks.clone_from(&state.blocks);
+        if !self
+            .wide
+            .advance_layer(device, &self.weights, state, workspace, &mut self.prefill)
+            .await?
+        {
+            return Ok(None);
+        }
+        std::mem::swap(&mut self.logits[0], &mut workspace.logits);
+        let result = self
+            .wide
+            .finish(device, &self.weights, state, workspace, &mut self.prefill)
+            .await;
+        std::mem::swap(&mut self.logits[0], &mut workspace.logits);
+        result?;
+        self.active_prefill = None;
+        Ok(Some(&self.logits[0]))
     }
 
     /// Append each input to its history and return one logits buffer per input, in input order.
@@ -158,6 +228,22 @@ impl Model {
         }
         for sequence in sequences {
             validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+        }
+        if let Some(active) = &self.active_prefill {
+            for sequence in sequences {
+                if active.blocks.sliding == sequence.blocks.sliding
+                    || active
+                        .blocks
+                        .full
+                        .iter()
+                        .any(|page| sequence.blocks.full.contains(page))
+                {
+                    return Err("request aliases the active prefill KV allocation".into());
+                }
+                if dispatch.use_wide(sequence) {
+                    return Err("wide scratch is owned by the active prefill".into());
+                }
+            }
         }
         let singletons: Vec<usize> = sequences
             .iter()
