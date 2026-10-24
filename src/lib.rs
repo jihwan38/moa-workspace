@@ -41,3 +41,5 @@ pub mod ops_request_attention_clusters;
 pub mod ops_request_attention_rings;
 
 pub mod ops_request_full_clusters;
+
+pub mod ops_norm_wide;
