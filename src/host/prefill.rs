@@ -95,6 +95,13 @@ impl Prefill {
             })
             .collect()
     }
+    /// No clock read when profiling is disabled on ordinary serving calls.
+    fn profile_mark(&self) -> Option<std::time::Instant> {
+        self.profile.as_ref().map(|_| std::time::Instant::now())
+    }
+    fn record_optional_profile(&mut self, stage: &'static str, last: &mut Option<std::time::Instant>) {
+        if let Some(last) = last { self.record_profile(stage, last); }
+    }
     fn record_profile(&mut self, stage: &'static str, last: &mut std::time::Instant) {
         if let Some(profile) = &mut self.profile {
             let now = std::time::Instant::now();
