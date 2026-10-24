@@ -1,0 +1,21 @@
+{
+  "source_control": "b003711",
+  "control": "original per-request attention with separately allocated KV caches",
+  "complete_change": "Gather one request row from batched QKV, commit that row only to its selected cache, run original attention, pack output into B16 storage; full attention uses scalar scratch between pages and divides while packing.",
+  "removed_work": "Host row extraction/packing and extra copy launches between batched projections and serial attention.",
+  "added_work": "Small QKV row gather/scatter and temporary device HBM row scratch; no complete KV cache packing or cross-request reuse.",
+  "validation": "Compile row-index SPM gathers; NPU compare independent requests with different positions and KV values to original per-row attention, including cache byte equality and inactive output-row preservation.",
+  "next_decision": "Integrate with host batched decode GEMMs after exact wrapper tests; measure complete decode throughput before changing KV allocation.",
+  "compiled_kernels": [
+    "sliding_attention_row",
+    "full_commit_row",
+    "full_divide_pack_row"
+  ],
+  "probe_binary": "target/release/test_decode_rows",
+  "probe_sha256": "0d4a71488ee2638336cfa969bd968cfdaa3d77e564bbaae1c61839942f09ddb0",
+  "source_sha256": {
+    "src/ops_decode.rs": "6ae762099a251fa8fa18a7121c15147b3f970c58e3c1c0a6bdba2f2b25831104",
+    "src/bin/test_decode_rows.rs": "ce39f99639e0ecdf9276f3b8df6f7e37aea038fb3e05b3127818f2b07bad3a56"
+  },
+  "npu_execution": "Pending root dispatch"
+}
