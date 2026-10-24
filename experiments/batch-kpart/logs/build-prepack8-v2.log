@@ -1,0 +1,11 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+   Compiling furiosa_opt_gemma4::ops_batch_prepack8::prepack_up
+   Compiling furiosa_opt_gemma4::ops_batch_prepack8::prepack_down
+error: furiosa-opt: furiosa_opt_gemma4::ops_batch_prepack8::prepack_down: visa: src RngdShape { region: Dram, chip: [], cluster: [Dummy=2], pe: [Dummy=4], dmn: [Dummy=2], slice: [Dummy=32], local: [H_1=3840:15360, L_1=15360:1], padded_tail_size: 1 }, dst RngdShape { region: Sram, chip: [], cluster: [H_1920=2], pe: [H_512=4], dmn: [H_256=2], slice: [H_8=32], local: [H_1=8:15360, L_1=15360:1], padded_tail_size: 1 }
+       caused by: cannot factorize common axis H
+  --> src/ops_batch_prepack8.rs:73:79
+   |
+73 |     let packed:DmTensor<f4e2m1,Chip,DownCluster,DownSlice,m![H % 8,L]>=packed.to_dm(&mut device.tdma);
+   |                                                                               ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `furiosa-opt-gemma4` (bin "test_prepack8") due to 1 previous error
