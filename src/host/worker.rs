@@ -10,6 +10,7 @@ use crate::host::model::{ForwardOutput, Model, Sequence};
 use crate::host::runtime::{Blocks, Workspace};
 use crate::host::tokenizer::Tokenizer;
 use furiosa_opt_std::prelude::*;
+use std::time::{Duration, Instant};
 
 /// Requests computed together; more wait in the queue.
 pub const CAPACITY: usize = crate::axes::B::SIZE;
@@ -37,6 +38,35 @@ struct Pending {
     positions: usize,
     events: mpsc::Sender<StreamEvent>,
     stream: bool,
+}
+
+/// Spend the interval between decode rounds on complete prompt layers. A single
+/// layer always remains eligible after a decode so slow rounds cannot starve it.
+/// Measurements include host logit reads, sampling and response event emission.
+struct DecodeCadence {
+    last: Option<(Instant, usize)>,
+    costs: [Duration; crate::axes::R64::SIZE + 1],
+    prompt_cost: Duration,
+}
+impl DecodeCadence {
+    fn new() -> Self {
+        Self { last: None, costs: [Duration::ZERO; crate::axes::R64::SIZE + 1], prompt_cost: Duration::from_millis(8) }
+    }
+    fn prompt_fits(&self, now: Instant, ready: usize) -> bool {
+        if ready == 0 { return true; }
+        let Some((last, width)) = self.last else { return false; };
+        // An unseen width must run once before using its measured cost.
+        width == ready && self.costs[ready] != Duration::ZERO
+            && now.saturating_duration_since(last) + self.prompt_cost + self.costs[ready]
+                <= Duration::from_millis(90)
+    }
+    fn observe_prompt(&mut self, elapsed: Duration) {
+        self.prompt_cost = elapsed.max(self.prompt_cost.mul_f64(0.9));
+    }
+    fn observe_decode(&mut self, finished: Instant, width: usize, elapsed: Duration) {
+        self.costs[width] = elapsed.max(self.costs[width].mul_f64(0.9));
+        self.last = Some((finished, width));
+    }
 }
 
 impl Worker {
@@ -97,6 +127,7 @@ impl Worker {
             .rev()
             .collect();
         let mut prefer_prefill = false;
+        let mut cadence = DecodeCadence::new();
         let mut next_prefill_ring = 0;
         loop {
             let incoming: Vec<_> = if sessions.is_empty() && pending.is_empty() {
@@ -176,13 +207,20 @@ impl Worker {
                 .iter()
                 .map(|s| (s.blocks.sliding, s.generation.input_count(PREFILL_CHUNK)))
                 .collect();
+            let active_ring = self.model.active_prefill_ring();
+            let ready = available.iter().filter(|(ring, count)| *count == 1 && Some(*ring) != active_ring).count();
+            // Keep all ready decoders together, while allowing several short
+            // prompt layers inside the time left before their next round.
+            prefer_prefill |= cadence.prompt_fits(Instant::now(), ready);
             let selected = select_work_in(
                 capacity,
                 &available,
                 &mut prefer_prefill,
                 &mut next_prefill_ring,
-                self.model.active_prefill_ring(),
+                active_ring,
             );
+            let decode_width = if selected.iter().all(|&i| available[i].1 == 1 && Some(available[i].0) != active_ring) { selected.len() } else { 0 };
+            let work_started = Instant::now();
             for &index in &selected {
                 let session = &mut sessions[index];
                 let (_, position) = session.generation.input();
@@ -269,7 +307,10 @@ impl Worker {
             }));
             let logits = match result {
                 Ok(Ok(Some(logits))) => logits,
-                Ok(Ok(None)) => continue,
+                Ok(Ok(None)) => {
+                    cadence.observe_prompt(work_started.elapsed());
+                    continue;
+                }
                 failed => {
                     let message = match failed {
                         Ok(Err(error)) => error.to_string(),
@@ -331,14 +372,20 @@ impl Worker {
                 }
                 false
             });
+            let finished = Instant::now();
+            let elapsed = finished.duration_since(work_started);
+            if decode_width > 0 {
+                cadence.observe_decode(finished, decode_width, elapsed);
+            } else {
+                cadence.observe_prompt(elapsed);
+            }
         }
     }
 }
 
-/// Start prompt chunks in stable ring order. While one chunk is active, alternate
-/// its next complete layer with ready independent decode requests; keep other
-/// prompts pending until that chunk finishes. With no active chunk, alternate
-/// ready decode with the next prompt so neither kind of work can starve.
+/// Start prompt chunks in stable ring order. The caller may extend prompt service
+/// while the measured decode deadline permits it. Otherwise alternate complete
+/// prompt layers and ready decode batches so neither kind of work can starve.
 fn select_work_in(
     capacity: usize,
     available: &[(usize, usize)],
@@ -405,6 +452,29 @@ fn select_work(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn measured_decode_budget_fits_multiple_prompt_layers_and_reserves_next_round() {
+        let start = Instant::now();
+        let mut cadence = DecodeCadence::new();
+        assert!(!cadence.prompt_fits(start, 4));
+        assert!(cadence.prompt_fits(start, 0));
+        cadence.prompt_cost = Duration::from_millis(3);
+        cadence.observe_decode(start, 4, Duration::from_millis(30));
+        assert!(cadence.prompt_fits(start + Duration::from_millis(55), 4));
+        assert!(!cadence.prompt_fits(start + Duration::from_millis(58), 4));
+        assert!(!cadence.prompt_fits(start, 5), "changed width needs its own observation");
+        cadence.observe_decode(start, 64, Duration::from_millis(110));
+        assert!(!cadence.prompt_fits(start, 64), "slow decode gets no extra prompt layers");
+    }
+    #[test]
+    fn a_slow_prompt_quantum_reduces_the_remaining_decode_budget() {
+        let start = Instant::now();
+        let mut cadence = DecodeCadence::new();
+        cadence.observe_decode(start, 2, Duration::from_millis(30));
+        assert!(cadence.prompt_fits(start + Duration::from_millis(40), 2));
+        cadence.observe_prompt(Duration::from_millis(25));
+        assert!(!cadence.prompt_fits(start + Duration::from_millis(40), 2));
+    }
     #[test]
     fn canonical64_scheduler_visits_high_slots_and_keeps_all_ready_decoders() {
         let mut prefer = true;
