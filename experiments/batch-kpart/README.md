@@ -136,3 +136,16 @@ scale rows before splitting because60 E4 bytes violate DMA alignment. This
 changes the16-way F32 reduction tree and doubles four-row dequant streams
 30→60; compare491520 outputs against H960-up/L1920-down with tolerance and
 matched ABBA. No loader change and no model storage growth.
+
+## Root partition-local FP8 quantization prototype (2026-10-24 UTC)
+
+`ops_native_fp8_partition::batch_ffn` preserves the fused FP8 arithmetic but
+quantizes in H960/L960 contraction partitions. Per-token amax reduces across
+all H/L shards; scales use the same power-of-two floor and FTZ contract.
+The baseline schedule spends 289,644 cycles each redistributing quantized
+hidden and intermediate activations. The new layout replaces those with an
+83,806-cycle HBM input load and a 99,932-cycle BF16 intermediate redistribution.
+Compiled total: 1,459,380 -> 1,057,900 cycles. This is a compiler estimate,
+not NPU timing. Whole-FFN bit equality and ABBA timing are required before adoption.
+The probe includes zero and signed-subnormal BF16 rows in addition to random
+finite rows. Baseline module and the frozen c007 server are unchanged.
