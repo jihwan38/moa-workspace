@@ -42,12 +42,17 @@ pub fn logits_batch(device:&mut Device,input:&HbmTensor<bf16,Chip,m![R64,H]>,wei
     .vector_final().cast::<bf16,m![R64%32%8#16]>().commit_trim::<m![R64%32%8]>()
     .commit_view(result.view_mut().tile::<m![R64/32],1,m![W%64,1#{!}2,R64%32]>(chunk));
   }
-  let result:DmTensor<bf16,Chip,Cluster,Rows,m![W/32%2,R64,W%32]>=device.main.begin(result.view())
-   .fetch::<m![W/32%2,W%32,R64/16],m![R64%16]>()
-   .collect::<m![W/32%2,W%32,R64/16],m![R64%16]>()
-   .transpose::<m![W/32%2,R64/16,W/4%8,R64%16],m![W%4#16]>()
-   .commit_trim::<m![W%4]>().commit();
-  result.view().to_hbm_view(&mut device.tdma,out.view_mut()
-   .tile::<m![W/8192],1,m![1#{!}32,W/32%256,R64,W%32]>(band));
+  // Transpose each W32 band separately so its whole R64xW32 payload is contiguous.
+  for half in 0..2 {
+   let tile:DmTensor<bf16,Chip,Cluster,Rows,m![R64,W%32]>=device.main
+    .begin(result.view().tile::<m![W/32%2],1,m![1#2,W%32,R64]>(half))
+    .fetch::<m![W%32,R64/16],m![R64%16]>()
+    .collect::<m![W%32,R64/16],m![R64%16]>()
+    .transpose::<m![R64/16,W/4%8,R64%16],m![W%4#16]>()
+    .commit_trim::<m![W%4]>().commit();
+   tile.view().to_hbm_view(&mut device.tdma,out.view_mut()
+    .tile::<m![W/8192],1,m![1#{!}32,W/32%256,R64,W%32]>(band)
+    .tile::<m![W/32%2],1,m![1#{!}32,W/64%128,1#{!}2,R64,W%32]>(half));
+  }
  }
 }
