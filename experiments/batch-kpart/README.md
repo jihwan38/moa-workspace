@@ -83,3 +83,12 @@ and one stage result read. Stage measurements include additional intermediate
 HBM write/read and differing download sizes, so they are upper-bound component
 estimates, not an additive decomposition of fused runtime. This separates the
 remaining down cost from up/gate scale-dequantization and contraction work.
+
+
+Packed L960 down plan after83ae467:split down K15360 over16 slices rather
+than8, cutting local activation cache245760B to122880B and output-group
+activation replication32→16. FP4 weights stay packed; four60-row tiles expand
+scale rows before splitting because60 E4 bytes violate DMA alignment. This
+changes the16-way F32 reduction tree and doubles four-row dequant streams
+30→60; compare491520 outputs against H960-up/L1920-down with tolerance and
+matched ABBA. No loader change and no model storage growth.
