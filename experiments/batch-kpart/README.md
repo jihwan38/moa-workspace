@@ -91,3 +91,12 @@ the corrected all-shape independent/differential gates to B16 and compares
 ABBA timing against original replicated-B16 QKV (not the newer Qs-only split
 cluster control). No speed claim can be made versus the newer Qs control from
 that benchmark alone.
+
+Predecoded H960 plan (control4140445): replace each original FP4×E4 product
+with exactly the same BF16 stored in HBM; retain globals post-dot. Up/gate use
+two120-row BF16 tiles, each230400B, beside122880B of cached input. Down uses
+three40-row BF16 tiles, each153600B, beside245760B of cached input. This removes
+all150 dequantization streams and shortens contraction tile loops, but expands
+FFN weight HBM4.4495GiB→15.8203GiB. Candidate must be bit-exact to packed H960
+for491520 varied-exponent results, and improve matched warm ABBA timing before
+any full loader work. H960 whole-model numerical drift remains a separate gate.
