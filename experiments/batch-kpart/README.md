@@ -623,3 +623,18 @@ as the remaining cost. Current probe gates final1966080 bits against actualfour
 P128 control, plus every raw blocked input/hidden FP8 and up/gate BF16 permutation.
 It then measures symmetric complete FFN runs and each of the five stages for
 row-major/input-blocked/input+output-blocked; optional physical spans follow.
+
+Blocked P5124bd8b07 root318138/r333: all final1966080 bits and every raw blocked
+FP8/BF16 permutation exact. Four currentP1282.812–2.821ms; rowmajorP512
+2.517–2.522ms; input-only2.665–2.669ms(reject); input+output blocks1.989–1.992ms
+(~29.4% gain). Blocked up/gate~.50–.51ms each, down.548ms, quantH.0726ms.
+GeGLU+quantL regresses.160→.320ms due fragmented blocked consumer reads.
+
+Next isolated sharded consumer keeps the exact ABI/arithmetic/weights and reads
+L240-blocked up/gate into256 live slices per cluster: [L/960,token64/4] with
+local[token4,L960]. Each source reads four contiguous token4/L240 blocks. GeGLU
+uses two token2/L960 tiles; row amax reduces16 channel partitions; FP8 writes
+contiguous token4/L960 blocks directly. Small maxima/scales transpose across
+slices; every quantized byte/scale must pass candidate-before-control tests on
+two distinct inputs to rule out stale or incomplete broadcast. No new matrix
+arithmetic; completed-launch ABBA determines whether consumer placement helps.

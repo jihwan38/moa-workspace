@@ -48,6 +48,7 @@ pub mod ops_native_fp8_p256;
 pub mod ops_native_fp8_p512;
 pub mod ops_native_fp8_p512_inputblocks;
 pub mod ops_native_fp8_p512_blocks;
+pub mod ops_native_fp8_p512_blocks_sharded;
 pub mod ops_native_fp8_p512_cluster;
 pub mod ops_native_fp8_p512_fused;
 pub mod ops_native_fp8_trf64;
