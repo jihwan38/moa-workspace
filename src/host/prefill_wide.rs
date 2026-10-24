@@ -157,7 +157,7 @@ impl WidePrefill {
         if !Self::supports(sequence) {
             return Err("unsupported P128 prompt shape".into());
         }
-        let mut mark = std::time::Instant::now();
+        let mut mark = scratch.profile_mark();
         let count = sequence.inputs.len();
         for tile in 0..self.tile_indices.len() {
             let offsets = HostTensor::<i32, m![B]>::from_vec(
@@ -252,7 +252,7 @@ impl WidePrefill {
         } else {
             None
         };
-        scratch.record_profile("wide.prepare", &mut mark);
+        scratch.record_optional_profile("wide.prepare", &mut mark);
         Ok(PreparedWide {
             blocks: sequence.blocks.clone(),
             start_position: sequence.start_position,
@@ -306,7 +306,7 @@ impl WidePrefill {
             return Err("prefill logits requested before all layers finished".into());
         }
         let count = state.count;
-        let mut mark = std::time::Instant::now();
+        let mut mark = scratch.profile_mark();
         if state.logits {
             let tile = (count - 1) / B::SIZE;
             launch(
@@ -337,7 +337,7 @@ impl WidePrefill {
             )
             .await?;
         }
-        scratch.record_profile("wide.logits", &mut mark);
+        scratch.record_optional_profile("wide.logits", &mut mark);
         Ok(())
     }
 
@@ -392,9 +392,9 @@ impl WidePrefill {
         gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
         scratch: &mut Prefill,
     ) -> Result<()> {
-        let mut mark = std::time::Instant::now();
+        let mut mark = scratch.profile_mark();
         self.normalize(device, pre, scratch).await?;
-        scratch.record_profile("wide.ffn.pre_norm", &mut mark);
+        scratch.record_optional_profile("wide.ffn.pre_norm", &mut mark);
         launch(
             crate::ops_native_fp8_local_reuse::batch_ffn_partitioned_input,
             (
@@ -413,13 +413,13 @@ impl WidePrefill {
             ),
         )
         .await?;
-        scratch.record_profile("wide.ffn.core", &mut mark);
+        scratch.record_optional_profile("wide.ffn.core", &mut mark);
         launch(
             crate::ops_norm_wide::post_feedforward_p128,
             (device, &self.projected, post, gate, &mut self.x),
         )
         .await?;
-        scratch.record_profile("wide.ffn.post_norm", &mut mark);
+        scratch.record_optional_profile("wide.ffn.post_norm", &mut mark);
         Ok(())
     }
 
@@ -434,9 +434,9 @@ impl WidePrefill {
         scratch: &mut Prefill,
         include_ffn: bool,
     ) -> Result<()> {
-        let mut mark = std::time::Instant::now();
+        let mut mark = scratch.profile_mark();
         self.normalize(device, &layer.input_norm, scratch).await?;
-        scratch.record_profile("wide.sliding.input_norm", &mut mark);
+        scratch.record_optional_profile("wide.sliding.input_norm", &mut mark);
         launch(
             crate::ops_qkv_p128_trf32::project_query_batch,
             (
@@ -470,7 +470,7 @@ impl WidePrefill {
             ),
         )
         .await?;
-        scratch.record_profile("wide.sliding.qkv", &mut mark);
+        scratch.record_optional_profile("wide.sliding.qkv", &mut mark);
         let ring = state.blocks.sliding;
         if let Some(meta) = &state.native {
             launch(
@@ -491,6 +491,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            scratch.record_optional_profile("wide.sliding.heads", &mut mark);
             if ws.is_canonical() {
                 let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else { unreachable!() };
             // All queries use the immutable old ring; committing sooner evicts keys
@@ -511,6 +512,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            scratch.record_optional_profile("wide.sliding.attention", &mut mark);
             launch(
                 crate::ops_commit_wide_pool::commit_sliding_kv_p128,
                 (
@@ -523,6 +525,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            scratch.record_optional_profile("wide.sliding.kv_commit", &mut mark);
             } else {
                 let (k, v) = ws.kv_cache[index].as_sliding_mut();
             // All queries use the immutable old ring; committing sooner evicts keys
@@ -542,6 +545,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            scratch.record_optional_profile("wide.sliding.attention", &mut mark);
             launch(
                 crate::ops_commit_wide::commit_sliding_kv_p128,
                 (
@@ -554,6 +558,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            scratch.record_optional_profile("wide.sliding.kv_commit", &mut mark);
             }
         } else {
             for (tile, segment) in segments.iter().enumerate() {
@@ -577,6 +582,7 @@ impl WidePrefill {
                     ),
                 )
                 .await?;
+            scratch.record_optional_profile("wide.sliding.heads", &mut mark);
                 if ws.is_canonical() {
                     let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
                         unreachable!()
@@ -597,10 +603,12 @@ impl WidePrefill {
                         ),
                     )
                     .await?;
+            scratch.record_optional_profile("wide.sliding.attention", &mut mark);
                     segment
                         .commits
                         .sliding_pool(device, &scratch.k_s, &scratch.v_s, &mut *k, &mut *v)
                         .await?;
+            scratch.record_optional_profile("wide.sliding.kv_commit", &mut mark);
                 } else {
                     let (k, v) = ws.kv_cache[index].as_sliding_mut();
                     launch(
@@ -618,6 +626,7 @@ impl WidePrefill {
                         ),
                     )
                     .await?;
+            scratch.record_optional_profile("wide.sliding.attention", &mut mark);
                     segment
                         .commits
                         .sliding(
@@ -628,15 +637,17 @@ impl WidePrefill {
                             &mut v[ring],
                         )
                         .await?;
+            scratch.record_optional_profile("wide.sliding.kv_commit", &mut mark);
                 }
                 launch(
                     tiles::store_heads_sliding_tile,
                     (device, &scratch.attn_s, tile, &mut self.attn_s),
                 )
                 .await?;
+            scratch.record_optional_profile("wide.sliding.tile_store", &mut mark);
             }
         }
-        scratch.record_profile("wide.sliding.head_attention_tiles", &mut mark);
+        scratch.record_optional_profile("wide.sliding.attention_dispatch", &mut mark);
         launch(
             crate::ops_output_p128_parallel_gather::project_sliding_output_batch,
             (
@@ -648,10 +659,10 @@ impl WidePrefill {
             ),
         )
         .await?;
-        scratch.record_profile("wide.sliding.output", &mut mark);
+        scratch.record_optional_profile("wide.sliding.output", &mut mark);
         self.post_attention(device, &layer.post_attention_norm, scratch)
             .await?;
-        scratch.record_profile("wide.sliding.post_attention", &mut mark);
+        scratch.record_optional_profile("wide.sliding.post_attention", &mut mark);
         if include_ffn {
             self.ffn(
                 device,
@@ -675,9 +686,9 @@ impl WidePrefill {
         scratch: &mut Prefill,
         include_ffn: bool,
     ) -> Result<()> {
-        let mut mark = std::time::Instant::now();
+        let mut mark = scratch.profile_mark();
         self.normalize(device, &layer.input_norm, scratch).await?;
-        scratch.record_profile("wide.full.input_norm", &mut mark);
+        scratch.record_optional_profile("wide.full.input_norm", &mut mark);
         launch(
             crate::ops_qkv_p128_trf32::project_full_query_batch,
             (
@@ -700,7 +711,7 @@ impl WidePrefill {
             ),
         )
         .await?;
-        scratch.record_profile("wide.full.qkv", &mut mark);
+        scratch.record_optional_profile("wide.full.qkv", &mut mark);
         let page = state.start_position / Tf::SIZE;
         let blocks = &state.blocks.full;
         if let Some(meta) = &state.native {
@@ -721,6 +732,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            scratch.record_optional_profile("wide.full.heads", &mut mark);
             if ws.is_canonical() {
                 let runtime::KvCache::FullCanonical { k, v } = &mut ws.kv_cache[index] else { unreachable!() };
             // This chunk fits one page; these writes cannot evict prior valid keys.
@@ -736,6 +748,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            scratch.record_optional_profile("wide.full.kv_commit", &mut mark);
             for current in 0..=page {
                 let mask = if current == page {
                     &meta.full_mask
@@ -755,8 +768,10 @@ impl WidePrefill {
                 );
                 if current == 0 {
                     launch(crate::ops_full_wide_pool::full_attention_first_page_p128, args).await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
                 } else {
                     launch(crate::ops_full_wide_pool::full_attention_next_page_p128, args).await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
                 }
             }
             } else {
@@ -774,6 +789,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            scratch.record_optional_profile("wide.full.kv_commit", &mut mark);
             for current in 0..=page {
                 let mask = if current == page {
                     &meta.full_mask
@@ -792,8 +808,10 @@ impl WidePrefill {
                 );
                 if current == 0 {
                     launch(crate::ops_full_wide::full_attention_first_page_p128, args).await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
                 } else {
                     launch(crate::ops_full_wide::full_attention_next_page_p128, args).await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
                 }
             }
             }
@@ -802,6 +820,7 @@ impl WidePrefill {
                 (device, &self.accum_f, &self.sum_f, &mut self.attn_f),
             )
             .await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
         } else {
             for (tile, segment) in segments.iter().enumerate() {
                 let tile = &self.tile_indices[tile];
@@ -823,6 +842,7 @@ impl WidePrefill {
                     ),
                 )
                 .await?;
+            scratch.record_optional_profile("wide.full.heads", &mut mark);
                 if ws.is_canonical() {
                     let runtime::KvCache::FullCanonical { k, v } = &mut ws.kv_cache[index] else {
                         unreachable!()
@@ -831,6 +851,7 @@ impl WidePrefill {
                         .commits
                         .full_pool(device, &scratch.k_f, &scratch.v_f, &mut *k, &mut *v)
                         .await?;
+            scratch.record_optional_profile("wide.full.kv_commit", &mut mark);
                     for current in 0..=page {
                         let mask = if current == page {
                             &segment.full_mask
@@ -854,12 +875,14 @@ impl WidePrefill {
                                 args,
                             )
                             .await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
                         } else {
                             launch(
                                 crate::ops_attention_pool::full_attention_next_page_b16,
                                 args,
                             )
                             .await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
                         }
                     }
                 } else {
@@ -874,6 +897,7 @@ impl WidePrefill {
                             &mut v[blocks[page]],
                         )
                         .await?;
+            scratch.record_optional_profile("wide.full.kv_commit", &mut mark);
                     for current in 0..=page {
                         let mask = if current == page {
                             &segment.full_mask
@@ -892,8 +916,10 @@ impl WidePrefill {
                         );
                         if current == 0 {
                             launch(ops_attention::full_attention_first_page_b16, args).await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
                         } else {
                             launch(ops_attention::full_attention_next_page_b16, args).await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
                         }
                     }
                 }
@@ -907,14 +933,16 @@ impl WidePrefill {
                     ),
                 )
                 .await?;
+            scratch.record_optional_profile("wide.full.attention", &mut mark);
                 launch(
                     tiles::store_heads_full_tile,
                     (device, &scratch.divided_f, tile, &mut self.attn_f),
                 )
                 .await?;
+            scratch.record_optional_profile("wide.full.tile_store", &mut mark);
             }
         }
-        scratch.record_profile("wide.full.head_attention_tiles", &mut mark);
+        scratch.record_optional_profile("wide.full.attention_dispatch", &mut mark);
         launch(
             crate::ops_output_p128_parallel_gather::project_full_output_batch,
             (
@@ -926,10 +954,10 @@ impl WidePrefill {
             ),
         )
         .await?;
-        scratch.record_profile("wide.full.output", &mut mark);
+        scratch.record_optional_profile("wide.full.output", &mut mark);
         self.post_attention(device, &layer.post_attention_norm, scratch)
             .await?;
-        scratch.record_profile("wide.full.post_attention", &mut mark);
+        scratch.record_optional_profile("wide.full.post_attention", &mut mark);
         if include_ffn {
             self.ffn(
                 device,

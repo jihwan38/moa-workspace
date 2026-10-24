@@ -130,11 +130,11 @@ impl PairPrefill {
                 &l.layer_scalar,
             ),
         };
-        let mut mark = std::time::Instant::now();
+        let mut mark = scratch.profile_mark();
         for row in &mut self.rows {
             row.normalize(device, pre, scratch).await?;
         }
-        scratch.record_profile("pair.ffn.pre_norm", &mut mark);
+        scratch.record_optional_profile("pair.ffn.pre_norm", &mut mark);
         launch(
             pair_io::pack_hidden_pair,
             (
@@ -147,7 +147,7 @@ impl PairPrefill {
             ),
         )
         .await?;
-        scratch.record_profile("pair.ffn.pack", &mut mark);
+        scratch.record_optional_profile("pair.ffn.pack", &mut mark);
         launch(
             crate::ops_native_fp8_p256::batch_ffn,
             (
@@ -166,7 +166,7 @@ impl PairPrefill {
             ),
         )
         .await?;
-        scratch.record_profile("pair.ffn.core", &mut mark);
+        scratch.record_optional_profile("pair.ffn.core", &mut mark);
         let [a, b] = &mut self.rows;
         launch(
             pair_io::unpack_hidden_pair,
@@ -180,7 +180,7 @@ impl PairPrefill {
             ),
         )
         .await?;
-        scratch.record_profile("pair.ffn.unpack", &mut mark);
+        scratch.record_optional_profile("pair.ffn.unpack", &mut mark);
         for row in &mut self.rows {
             launch(
                 crate::ops_norm_wide::post_feedforward_p128,
@@ -188,7 +188,7 @@ impl PairPrefill {
             )
             .await?;
         }
-        scratch.record_profile("pair.ffn.post_norm", &mut mark);
+        scratch.record_optional_profile("pair.ffn.post_norm", &mut mark);
         for current in &mut state.states {
             current.next_layer += 1;
         }
