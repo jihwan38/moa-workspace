@@ -5,6 +5,7 @@ use furiosa_opt_gemma4::{
     ops_batch_down960, ops_batch_prepack8, ops_native_fp8, ops_native_fp8_partition,
 };
 use furiosa_opt_std::prelude::*;
+#[path="support/npu_profile.rs"] mod npu_profile;
 
 fn word(i: usize, seed: u64) -> u64 {
     let mut x = (i as u64).wrapping_add(seed);
@@ -44,6 +45,8 @@ async fn global(device: &mut Device, v: f32) -> HbmTensor<f32, Chip, m![1]> {
 }
 #[tokio::main]
 async fn main() {
+    let collector=npu_profile::Collector::default();
+    tracing::subscriber::set_global_default(collector.clone()).unwrap();
     let mut device = Device::new(ops_batch_down960::batch_ffn.topology()).unwrap();
     let values: Vec<bf16> = (0..P128::SIZE * H::SIZE)
         .map(|i| { let row=i/H::SIZE; if row%16==0 {bf16::from_bits(0)} else if row%16==1 {bf16::from_bits(if i%2==0 {1} else {0x8001})} else {bf16::from_f32((((word(i,11)>>40) as f32 / 16777216.0)*2.0-1.0)*4.0*2f32.powi(-((word(i,13)%9)as i32)))} })
@@ -95,6 +98,14 @@ async fn main() {
         }
         let _:HostTensor<bf16,m![P128,H]>=output.to_host(&mut device.pdma).await.unwrap();
         times[variant].push(start.elapsed().as_secs_f64()*1000.0/3.0);
+    }
+    if std::env::var_os("FURIOSA_OPT_PROFILE").is_some() {
+        collector.enable(true);
+        println!("NPU_PHASE baseline");
+        launch(ops_native_fp8::batch_ffn,(&mut device,&input,&qu,&qg,&qd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();
+        println!("NPU_PHASE partition");
+        launch(ops_native_fp8_partition::batch_ffn,(&mut device,&input,&qu,&qg,&qd,&su,&sg,&sd,&ug,&gg,&dg,&mut output)).await.unwrap();
+        collector.enable(false);
     }
     println!("P128PartitionFP8FFN checked={} bit_differences={bitdiff} tolerance_failures={failures} max_abs={max_abs} max_rel={max_rel} cold_control_ms={cold_ms:.3} base_FP8_ms={:?} partition_FP8_ms={:?} scope=3launches+1read_divided_by3",actual.len(),times[0],times[1]);
     let nrmse=(err2/ref2.max(1e-30)).sqrt();println!("approximate_FFN relative_l2={nrmse} nonfinite={nonfinite} full_model_accuracy=UNVALIDATED");assert_eq!(nonfinite,0);assert_eq!(bitdiff,0,"partition quantization changed FP8 output bits");
