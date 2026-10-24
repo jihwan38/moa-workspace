@@ -348,7 +348,7 @@ impl Prefill {
         self.record_profile("sliding.heads_rope", &mut profile_mark);
         let (k, v) = ws.kv_cache[index].as_sliding_mut();
         launch(
-            ops_sliding_batch::sliding_attention_b16,
+            crate::ops_sliding_prompt_clusters::sliding_attention_b16,
             (
                 device,
                 &self.q_s,
