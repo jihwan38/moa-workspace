@@ -46,6 +46,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut mismatches = 0usize;
     let mut scalar_us = 0u128;
     for b in 0..B::SIZE {
+        let offset: HbmTensor<i32, Chip, m![1]> = HostTensor::<i32,m![1]>::from_vec(
+            [(b * W::SIZE * 2) as i32]
+        ).to_hbm(&mut device.pdma).await?;
+        launch(ops_batch_io::extract_logits_row, (&mut device, &batch, &offset, &mut scalar)).await?;
+        let extracted = scalar.to_host::<m![W]>(&mut device.pdma).await?.into_vec();
+        for n in 0..W::SIZE {
+            if extracted[n].to_bits() != got[b*W::SIZE+n].to_bits() {
+                return Err(format!("logit row extraction mismatch at {b},{n}").into());
+            }
+        }
         let x: HbmTensor<bf16, Chip, m![H]> = HostTensor::<bf16,m![H]>::from_vec(
             (0..H::SIZE).map(|h| hidden(b,h))
         ).to_hbm(&mut device.pdma).await?;
