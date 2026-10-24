@@ -1,0 +1,17 @@
+{
+  "source_control": "991c5f1 plus passing scalar causal mask evidence",
+  "control": "sixteen independent scalar attention launches with separate request KV storage",
+  "complete_change": "Use contiguous sliding Rc16/full Fc256 pools, dynamic per-row physical slot/page indices, and one batch attention launch. Keep causal1/0 masks, explicit ragged-page exp masking and zero EPS for inactive pages. Preserve scalar dot/value BF16 boundaries and request ownership.",
+  "removed_work": "Fifteen host launches and repeated per-request instruction setup per attention layer/page; no cross-request reuse of model computation.",
+  "added_work": "Pool/index storage and decode/prefill migration bridge; data traffic remains proportional to sixteen independent KV histories.",
+  "validation": "Compile full pool path first; NPU compare distinct requests against scalar reference including different page counts, permuted pool indices, inactive rows and masked stale keys. Then sliding tiled ring path and exact KV bridge checks.",
+  "decision": "Root measures complete batched decode; keep initial pool mirror separate from authoritative legacy caches until scheduler transition is correct.",
+  "full_probe_binary": "target/release/test_request_full",
+  "full_probe_sha256": "9fef65a525b6cb72bdb8609b393792426f1aff9a9a6ce2142da7357f0ee666f4",
+  "source_sha256": {
+    "src/ops_request_attention.rs": "4eb2690c8fcaa6e5fd6dae6c40dce9d8d993215efe49c71adab8796d9bbd1944",
+    "src/bin/test_request_full.rs": "6a992d33fdc2cb3d8f02200df98b7028f97d20558065095f99690b1b77fd3bc7"
+  },
+  "compile_status": "Full first/next/divide, forward full/sliding bridge, reverse full bridge and N=3 full/sliding scatter compiled. Other prefix variants and reverse sliding bridge await full module compile.",
+  "full_npu": "Pending root dispatch"
+}
