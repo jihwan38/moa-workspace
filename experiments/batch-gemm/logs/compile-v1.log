@@ -1,0 +1,9 @@
+   Compiling [1/1] ops_batch::project_query_batch
+error: furiosa-opt: ops_batch::project_query_batch: mir: Collect time mismatch. Expected: (Qs % 16, 1 # 2), got: Qs % 16
+  --> src/ops_batch.rs:72:14
+   |
+72 |             .commit_view(result.view_mut().tile::<m![B], 8, m![Qs % 16, B = 8 #{!} 16]>(chunk * 8));
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 1 compiled, 15 not matching ops_batch::project_query_batch
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error
