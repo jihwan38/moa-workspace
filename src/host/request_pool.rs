@@ -229,7 +229,7 @@ pub(crate) struct FullPage {
     pub active: HbmTensor<f32, Chip, m![B,1 # 8]>,
 }
 pub(crate) struct PooledStep {
-    pub sliding_offsets: HbmTensor<i32, Chip, m![B, Ts]>,
+    pub ring_offsets: HbmTensor<i32, Chip, m![B]>,
     pub sliding_mask: HbmTensor<f32, Chip, m![B, Ts]>,
     pub pages: Vec<FullPage>,
     pub commits: PoolOffsets,
@@ -240,8 +240,8 @@ impl PooledStep {
         if count == 0 || count > B::SIZE {
             return Err("invalid pooled batch width".into());
         }
-        let (sliding_offsets, sliding_mask) = sliding_vectors(sequences);
-        let sliding_offsets = HostTensor::<i32, m![B, Ts]>::from_vec(sliding_offsets)
+        let (ring_offsets, sliding_mask) = sliding_vectors(sequences);
+        let ring_offsets = HostTensor::<i32, m![B]>::from_vec(ring_offsets)
             .to_hbm(&mut device.pdma)
             .await?;
         let sliding_mask = HostTensor::<f32, m![B, Ts]>::from_vec(sliding_mask)
@@ -268,7 +268,7 @@ impl PooledStep {
             });
         }
         Ok(Self {
-            sliding_offsets,
+            ring_offsets,
             sliding_mask,
             pages,
             commits: PoolOffsets::new(device, sequences).await?,
@@ -710,15 +710,13 @@ impl PoolOffsets {
 
 fn sliding_vectors(sequences: &[Sequence<'_>]) -> (Vec<i32>, Vec<f32>) {
     let count = sequences.len();
-    let mut sliding_offsets = Vec::with_capacity(B::SIZE * Ts::SIZE);
-    let mut sliding_mask = Vec::with_capacity(B::SIZE * Ts::SIZE);
+    let mut offsets = Vec::with_capacity(B::SIZE);
+    let mut mask = Vec::with_capacity(B::SIZE * Ts::SIZE);
     for row in 0..B::SIZE {
         let sequence = &sequences[row.min(count - 1)];
+        offsets.push((sequence.blocks.sliding * Ts::SIZE * Ns::SIZE * Ds::SIZE * 2) as i32);
         for slot in 0..Ts::SIZE {
-            sliding_offsets.push(
-                ((sequence.blocks.sliding * Ts::SIZE + slot) * Ns::SIZE * Ds::SIZE * 2) as i32,
-            );
-            sliding_mask.push(
+            mask.push(
                 if row < count && slot <= sequence.start_position.min(Ts::SIZE - 1) {
                     1.0
                 } else {
@@ -727,7 +725,7 @@ fn sliding_vectors(sequences: &[Sequence<'_>]) -> (Vec<i32>, Vec<f32>) {
             );
         }
     }
-    (sliding_offsets, sliding_mask)
+    (offsets, mask)
 }
 
 fn full_page_vectors(sequences: &[Sequence<'_>], page: usize) -> (Vec<i32>, Vec<f32>, Vec<f32>) {
@@ -798,9 +796,8 @@ mod tests {
         for row in 0..B::SIZE {
             for slot in 0..Ts::SIZE {
                 assert_eq!(
-                    offsets[row * Ts::SIZE + slot],
-                    ((blocks[row.min(3)].sliding * Ts::SIZE + slot) * Ns::SIZE * Ds::SIZE * 2)
-                        as i32
+                    offsets[row],
+                    (blocks[row.min(3)].sliding * Ts::SIZE * Ns::SIZE * Ds::SIZE * 2) as i32
                 );
                 assert_eq!(
                     visibility[row * Ts::SIZE + slot],
