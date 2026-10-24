@@ -3,7 +3,15 @@ use furiosa_opt_std::prelude::*;
 
 const MASKED: f32 = -1e30;
 pub(super) fn full_mask(start: usize, count: usize) -> Vec<f32> {
-    (0..B::SIZE)
+    full_mask_rows(start, count, B::SIZE)
+}
+
+/// Per-query additive masks for a page-local chunk. Padding repeats the last
+/// live query, so an unused row still has a finite softmax denominator.
+pub(super) fn full_mask_rows(start: usize, count: usize, rows: usize) -> Vec<f32> {
+    assert!(count > 0 && count <= rows);
+    assert!(start % Tf::SIZE + count <= Tf::SIZE);
+    (0..rows)
         .flat_map(|row| {
             (0..Tf::SIZE).map(move |col| {
                 if col <= (start + row.min(count - 1)) % Tf::SIZE {
@@ -17,9 +25,16 @@ pub(super) fn full_mask(start: usize, count: usize) -> Vec<f32> {
 }
 
 pub(super) fn sliding_masks(start: usize, count: usize) -> (Vec<f32>, Vec<f32>) {
-    let mut old = Vec::with_capacity(B::SIZE * Ts::SIZE);
-    let mut chunk = Vec::with_capacity(B::SIZE * B::SIZE);
-    for row in 0..B::SIZE {
+    sliding_masks_rows(start, count, B::SIZE)
+}
+
+/// The ring still contains only history before `start`; current chunk K/V stays
+/// separate until every query has attended. `rows` may be B16 or P128.
+pub(super) fn sliding_masks_rows(start: usize, count: usize, rows: usize) -> (Vec<f32>, Vec<f32>) {
+    assert!(count > 0 && count <= rows && rows <= Ts::SIZE);
+    let mut old = Vec::with_capacity(rows * Ts::SIZE);
+    let mut chunk = Vec::with_capacity(rows * rows);
+    for row in 0..rows {
         let row = row.min(count - 1);
         let position = start + row;
         let lower = position.saturating_sub(Ts::SIZE - 1);
@@ -40,7 +55,7 @@ pub(super) fn sliding_masks(start: usize, count: usize) -> (Vec<f32>, Vec<f32>) 
                 MASKED
             });
         }
-        for key in 0..B::SIZE {
+        for key in 0..rows {
             chunk.push(if key <= row && key < count {
                 0.0
             } else {
@@ -101,6 +116,41 @@ mod tests {
                         mask[row * Tf::SIZE + col] == 0.0,
                         (start / Tf::SIZE) * Tf::SIZE + col <= start + row.min(count - 1)
                     );
+                }
+            }
+        }
+    }
+    #[test]
+    fn p128_masks_preserve_absolute_history_and_ignore_padding() {
+        let rows = 128;
+        for start in [0usize, 384, 896, 1024, 2048, 8064] {
+            for count in [1usize, 17, 127, 128] {
+                let (old, chunk) = sliding_masks_rows(start, count, rows);
+                let full = full_mask_rows(start, count, rows);
+                for row in 0..rows {
+                    let position = start + row.min(count - 1);
+                    let mut expected = vec![false; Ts::SIZE];
+                    for prior in start.saturating_sub(Ts::SIZE)..start {
+                        if position - prior < Ts::SIZE {
+                            expected[prior % Ts::SIZE] = true;
+                        }
+                    }
+                    for slot in 0..Ts::SIZE {
+                        assert_eq!(old[row * Ts::SIZE + slot] == 0.0, expected[slot]);
+                    }
+                    for key in 0..rows {
+                        assert_eq!(
+                            chunk[row * rows + key] == 0.0,
+                            key < count && start + key <= position
+                        );
+                    }
+                    for column in 0..Tf::SIZE {
+                        let key_position = start / Tf::SIZE * Tf::SIZE + column;
+                        assert_eq!(
+                            full[row * Tf::SIZE + column] == 0.0,
+                            key_position <= position
+                        );
+                    }
                 }
             }
         }
