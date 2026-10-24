@@ -1,0 +1,39 @@
+warning: unused imports: `Df`, `Ds`, `Gf`, `Gs`, and `Ns`
+ --> src/ops_batch_wide.rs:4:46
+  |
+4 | use crate::{Chip,axes::{P128,H,L,Qs,Ps,Qf,Pf,Ns,Gs,Ds,Gf,Df}};
+  |                                              ^^ ^^ ^^ ^^ ^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: type alias `UpRows` is never used
+ --> src/ops_batch_wide.rs:6:6
+  |
+6 | type UpRows=m![L / 60];
+  |      ^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: type alias `DownColumns` is never used
+ --> src/ops_batch_wide.rs:7:6
+  |
+7 | type DownColumns=m![H / 120,L / 1920];
+  |      ^^^^^^^^^^^
+
+warning: type alias `DownRows` is never used
+ --> src/ops_batch_wide.rs:8:6
+  |
+8 | type DownRows=m![H / 120,1 # 8];
+  |      ^^^^^^^^
+
+   Compiling [1/1] ops_batch_wide::project_query_batch
+error: furiosa-opt: ops_batch_wide::project_query_batch: visa: while lowering TensorUnit
+       caused by: configuring the transpose engine
+       caused by: Transpose: cannot place in_rows in Time ((Qs % 16, P128 / 16 % 4)) consistently with OutTime ((Qs / 4 % 4, P128 % 64)) | OutPacket (Qs % 4 # 16)
+  --> src/ops_batch_wide.rs:53:38
+   |
+53 |         .commit_trim::<m![Qs % 4]>().commit();
+   |                                      ^^^^^^^^
+
+    Finished 1 compiled, 29 not matching ops_batch_wide::project_query_batch
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 4 warnings emitted

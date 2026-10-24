@@ -1,1 +1,13 @@
-{"id":"R2-BP01","source_commit":"3666ea0","control":"hardware-validated row-major B16 FFN computing BF16(FP4*E4) ondevice","change":"precompute identical BF16 weights once beforekernel; fetch15up/gate or30down rows perpass, reuseeachweighttileacrosstwoB8chunks","removed_work":"FP4lookup and perblockF32weightscaling on everyrequest","added_work":"fourtimesHBMweightbytes, fourweighttiles, repeatedB8TRFpreparationpereachtile","precision":"BF16dequant weights exactlyrepresentable; originaldotBF16/globalBF16/GELU/down8wayreduction boundaries preserved","correctness_gate":"all61440outputs bitexact versus packed rowmajorcontrol","measurement_gate":"sameABBA warmfive-launch+one-read scope","memory_plan":"fullBF16model20.02059GiB; KV0.4375GiB/request at8192ctx; hostdecodeone118MBprojectionatatime anddroporiginaldeviceweight+scales beforeintegration; hardwarecapacitynotyetverified","status":"prototype"}
+{
+  "id": "R2-BP01",
+  "source_commit": "3666ea0",
+  "control": "hardware-validated row-major B16 FFN computing BF16(FP4*E4) ondevice",
+  "change": "precompute identical BF16 weights once beforekernel; fetch15up/gate or30down rows perpass, reuseeachweighttileacrosstwoB8chunks",
+  "removed_work": "FP4lookup and perblockF32weightscaling on everyrequest",
+  "added_work": "fourtimesHBMweightbytes, fourweighttiles, repeatedB8TRFpreparationpereachtile",
+  "precision": "BF16dequant weights exactlyrepresentable; originaldotBF16/globalBF16/GELU/down8wayreduction boundaries preserved",
+  "correctness_gate": "all61440outputs bitexact versus packed rowmajorcontrol",
+  "measurement_gate": "sameABBA warmfive-launch+one-read scope",
+  "memory_plan": "fullBF16model20.02059GiB; KV0.4375GiB/request at8192ctx; hostdecodeone118MBprojectionatatime anddroporiginaldeviceweight+scales beforeintegration; hardwarecapacitynotyetverified",
+  "status": "Arena317619 exact pass; only~10% kernel gain; noBF16hostloaderadoption"
+}
