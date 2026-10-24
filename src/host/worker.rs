@@ -365,7 +365,7 @@ impl Worker {
                     return true;
                 };
                 let count = session.generation.input_count(PREFILL_CHUNK);
-                let emit = |delta| {
+                let emit = |delta: Delta<'_>| {
                         !session.stream
                             || session
                                 .events
