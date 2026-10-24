@@ -717,6 +717,49 @@ impl Prefill {
         self.record_profile("ffn.post_norm_residual_gate", &mut profile_mark);
         Ok(())
     }
+    // Independent decode shares the same FP8 arithmetic already used by R64.
+    async fn ffn_native(
+        &mut self,
+        device: &mut Device,
+        weights: &MlpWeights,
+        pre: &HbmTensor<bf16, Chip, m![H]>,
+        post: &HbmTensor<bf16, Chip, m![H]>,
+        gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
+    ) -> Result<()> {
+        let mut profile_mark = std::time::Instant::now();
+        launch(
+            crate::ops_norm_batch::rmsnorm_b16,
+            (device, &self.x, pre, &mut self.norm),
+        )
+        .await?;
+        self.record_profile("ffn.pre_norm", &mut profile_mark);
+        launch(
+            crate::ops_native_fp8_b16_blocked::batch_ffn,
+            (
+                device,
+                &self.norm,
+                &weights.native_fp8.up,
+                &weights.native_fp8.gate,
+                &weights.native_fp8.down,
+                &weights.native_fp8.up_dequant,
+                &weights.native_fp8.gate_dequant,
+                &weights.native_fp8.down_dequant,
+                &weights.up_global_scale,
+                &weights.gate_global_scale,
+                &weights.down_global_scale,
+                &mut self.projected,
+            ),
+        )
+        .await?;
+        self.record_profile("ffn.core", &mut profile_mark);
+        launch(
+            crate::ops_norm_batch::post_feedforward_b16,
+            (device, &self.projected, post, gate, &mut self.x),
+        )
+        .await?;
+        self.record_profile("ffn.post_norm_residual_gate", &mut profile_mark);
+        Ok(())
+    }
 }
 
 enum CommitOffsets {

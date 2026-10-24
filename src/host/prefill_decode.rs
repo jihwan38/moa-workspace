@@ -368,7 +368,7 @@ impl Prefill {
         )
         .await?;
         self.record_profile("sliding.post_attention", &mut profile_mark);
-        self.ffn(
+        self.ffn_native(
             device,
             &layer.mlp,
             &layer.pre_feedforward_norm,
@@ -599,7 +599,7 @@ impl Prefill {
         )
         .await?;
         self.record_profile("full.post_attention", &mut profile_mark);
-        self.ffn(
+        self.ffn_native(
             device,
             &layer.mlp,
             &layer.pre_feedforward_norm,
