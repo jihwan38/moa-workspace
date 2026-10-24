@@ -1,19 +1,28 @@
 //! Every packed byte/scalar bit against unchanged prepack and blocking kernels.
-use furiosa_opt_gemma4::{Chip, axes::{H,L}, ops_prepack_alloc as candidate,
-    ops_batch_prepack8 as control, ops_native_fp8_blocked as block};
+use furiosa_opt_gemma4::{
+    Chip,
+    axes::{H, L},
+    ops_batch_prepack8 as control, ops_native_fp8_blocked as block, ops_prepack_alloc as candidate,
+};
 use furiosa_opt_std::prelude::*;
-fn mix(i:usize,seed:u64)->u64 {
-    let mut x=(i as u64).wrapping_add(seed);x=(x^(x>>30)).wrapping_mul(0xbf58476d1ce4e5b9);
-    x=(x^(x>>27)).wrapping_mul(0x94d049bb133111eb);x^(x>>31)
+fn mix(i: usize, seed: u64) -> u64 {
+    let mut x = (i as u64).wrapping_add(seed);
+    x = (x ^ (x >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
+    x = (x ^ (x >> 27)).wrapping_mul(0x94d049bb133111eb);
+    x ^ (x >> 31)
 }
-async fn bytes<D:MaterializableScalar,E:M>(d:&mut Device,x:&HbmTensor<D,Chip,E>)->Vec<u8> {
-    let host:HostTensor<D,E>=x.to_host(&mut d.pdma).await.unwrap();
+async fn bytes<D: MaterializableScalar, E: M>(
+    d: &mut Device,
+    x: &HbmTensor<D, Chip, E>,
+) -> Vec<u8> {
+    let host: HostTensor<D, E> = x.to_host(&mut d.pdma).await.unwrap();
     host.into_inner().into_buf()
 }
-fn exact(label:&str,a:&[u8],b:&[u8]) {
-    assert_eq!(a.len(),b.len());
-    let mismatch=a.iter().zip(b).filter(|(a,b)|a!=b).count();
-    println!("{label}: bytes={} mismatches={mismatch}",a.len());assert_eq!(mismatch,0);
+fn exact(label: &str, a: &[u8], b: &[u8]) {
+    assert_eq!(a.len(), b.len());
+    let mismatch = a.iter().zip(b).filter(|(a, b)| a != b).count();
+    println!("{label}: bytes={} mismatches={mismatch}", a.len());
+    assert_eq!(mismatch, 0);
 }
 macro_rules! probe { ($name:ident,$out:ident,$kin:ident,$pack:ident,$reblock:ident,$layout:ty)=>{
 async fn $name(d:&mut Device) {
@@ -44,12 +53,13 @@ async fn $name(d:&mut Device) {
         if let Some((old,expected))=&previous { exact("retained_previous_allocation",expected,&bytes(d,old).await); }
         previous=Some((blocked,expected));
     }
-}}
-probe!(up,L,H,prepack_up,reblock_up,block::UpWeight);
-probe!(down,H,L,prepack_down,reblock_down,block::DownWeight);
+}}}
+probe!(up, L, H, prepack_up, reblock_up, block::UpWeight);
+probe!(down, H, L, prepack_down, reblock_down, block::DownWeight);
 #[tokio::main]
 async fn main() {
-    let mut d=Device::new(candidate::prepack_up.topology()).unwrap();
-    up(&mut d).await;down(&mut d).await;
+    let mut d = Device::new(candidate::prepack_up.topology()).unwrap();
+    up(&mut d).await;
+    down(&mut d).await;
     println!("PASS returned FP8 prepack and blocked allocations; all bytes exact");
 }
