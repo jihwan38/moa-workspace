@@ -8,7 +8,7 @@ use furiosa_opt_std::prelude::*;
 use crate::Chip;
 use crate::axes::{B, H, Pf, Ps, Qf, Qs};
 
-type Cluster = m![1 # 2];
+pub(crate) type Cluster = m![1 # 2];
 type QRows = m![Qs / 16];
 
 /// Raw sliding-query projection, matching the baseline's BF16 dot boundary
@@ -87,9 +87,9 @@ pub fn project_query_batch_strided_control(
 }
 
 use crate::axes::{Df, Ds, Gf, Gs, L, Ns};
-type UpRows = m![L / 60];
-type DownColumns = m![H / 120, L / 1920];
-type DownRows = m![H / 120, 1 # 8];
+pub(crate) type UpRows = m![L / 60];
+pub(crate) type DownColumns = m![H / 120, L / 1920];
+pub(crate) type DownRows = m![H / 120, 1 # 8];
 
 fn upgate_batch(
     device: &mut Device,
@@ -207,7 +207,7 @@ fn scale_upgate_batch(
         .commit()
 }
 
-fn geglu_batch(
+pub(crate) fn geglu_batch(
     device: &mut Device,
     up: &DmTensor<bf16, Chip, Cluster, UpRows, m![L % 60, B]>,
     gate: &DmTensor<bf16, Chip, Cluster, UpRows, m![L % 60, B]>,
