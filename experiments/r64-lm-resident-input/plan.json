@@ -19,7 +19,7 @@
     "removed": "Half band setup/matmul descriptor loops and fullresultbuffer/finalglobaltranspose",
     "retained": "4GB duplicatedweightreads, exactfullH dot, logical outputbytes",
     "capacity": "491520B input+weight, plus2KBbandresult/2KBtranspose/smallintermediates <512KiB.",
-    "status": "Compiled draft, fixed bandcount64\u219232 beforeprobe; test this candidate first."
+    "status": "Actual NPU 317959 passed all 16,777,216 logits bit-exact, 245,760 embeddings exact, 512 CPU dot samples exact. Native64 9.852633/9.851826 ms vs four B16 13.776848/13.761768 ms. Recommend integration; whole-model gate remains separate."
   },
   "validation": "Compile and compare everylogit bit to4 originalB16, sampled512F64dots and allrowextraction. ABBA matched3iteration warmtiming, optional NPUcycles collection afternormaltiming. Root dispatch only."
 }
