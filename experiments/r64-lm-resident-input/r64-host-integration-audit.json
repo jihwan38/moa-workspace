@@ -1,0 +1,36 @@
+{
+  "scope": "Read-only source audit, not an NPU or model correctness result",
+  "host_commit": "7d1b0ee",
+  "integration_commit": "a9616bc",
+  "finding": "No blocking ownership, native P128 byte-address, or cache-commit ordering defect found in inspected code.",
+  "host_invariants": [
+    "Worker tracks sessions+pending at or below request capacity, reserves validated complete prompt+generation position budget before execution, retains non-Clone epoch token through prompt-layer yields, and releases it on completion and model/generation error.",
+    "R64 metadata uses absolute cache addresses and logical RoPE. Full attention iterates through maximum current logical page; ragged/padded rows have explicit zero active and visibility masks.",
+    "Only all64 live rows use direct commit. Partial live counts extract matching B16 source tiles and scatter only each segment live prefix.",
+    "Active prompt ring/page alias checks precede R64 dispatch. Output rows are restored by original singleton indices."
+  ],
+  "integration_invariants": [
+    "NativeMetadata adds physical slot/page bases to scatter offsets only for canonical storage. Legacy owned caches receive relative offsets.",
+    "WidePrefill::supports requires all rows stay in one512-token page, so native128 full offsets share one physical page.",
+    "Sliding native attention completes against unchanged old ring before128 writes. Full native writes new positions before attention, then applies causal row masks.",
+    "Partial wide path preserves chronological B16 attention and live-prefix commits.",
+    "Scalar ops_cache_pools imports device_e154 and preserves ops.rs E154 sharded RMS/native QKV before whole-pool scatter."
+  ],
+  "remaining_gates": [
+    "Actual request histories regrouped64->17->1->31 and physical remapping, active prompt interleave, reused physical slot at position0.",
+    "Integrated E154 legacy-vs-canonical same-schedule model check; upstream scalar host probes alone do not cover E154 scalar restoration.",
+    "Public/official accuracy across R64/B16/scalar numerical transitions. Do not assume those different schedules are bit-exact."
+  ],
+  "host_files_sha256": {
+    "src/host/decode_r64.rs": "12361890734b76f8662e2e6bf66af271b9081ba349c8cf2a0caf1e6be68eea11",
+    "src/host/request_pool_r64.rs": "a943c27768123e3a814e84b28e11f90438f0bdd67603abe1970c2f12759d2efc",
+    "src/host/model.rs": "61a1618ef7d09f4f3adf7bdf5f86dcb9e72bf798aca231a9ddf4db0c9c7411d0",
+    "src/host/worker.rs": "305dc082ccc543901474fbc0d0024f927564403afdbca0617c3a2c9626998e82",
+    "src/host/admission.rs": "1f50750506841203e9f11f1013a22ece5cb9fd3eb60f394bec617508fb2584bc"
+  },
+  "integration_files_sha256": {
+    "src/host/prefill_wide.rs": "1d0448b825946c6fc71243b055574874ea2cf96d9205208ee70f9b5b4db6baa0",
+    "src/ops_cache_pools.rs": "d9ffc175b7cb11535a8a75da0c3c372ecb2378576cbaa9ee167538d7958fb801",
+    "src/host/model.rs": "61a1618ef7d09f4f3adf7bdf5f86dcb9e72bf798aca231a9ddf4db0c9c7411d0"
+  }
+}
