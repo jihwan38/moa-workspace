@@ -62,3 +62,4 @@ pub mod ops_commit_wide_pool;
 pub mod ops_sliding_prompt_pool;
 pub mod ops_attention_pool;
 pub mod ops_commit_r64;
+pub mod ops_request_sliding_b16_rc64;
