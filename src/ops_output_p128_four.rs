@@ -124,7 +124,7 @@ pub fn project_sliding_output_four(device:&mut Device,a:&HbmTensor<bf16,Chip,m![
  weight:&HbmTensor<f8e4m3,Chip,m![H,Qs]>,scale:&HbmTensor<bf16,Chip,m![H]>,ao:&mut HbmTensor<bf16,Chip,m![P128,H]>,
  bo:&mut HbmTensor<bf16,Chip,m![P128,H]>,
  co:&mut HbmTensor<bf16,Chip,m![P128,H]>,
- do:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
+ out_d:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
 
     let packed:DmTensor<f8e4m3,Chip,Cluster,Parts,m![H%120,Qs%1024]>=weight.to_dm(&mut device.tdma);
     let weight:DmTensor<bf16,Chip,Cluster,Parts,m![H%120,Qs%1024]>=device.main.begin(packed.view())
@@ -133,7 +133,7 @@ pub fn project_sliding_output_four(device:&mut Device,a:&HbmTensor<bf16,Chip,m![
     project_sliding_one(device,a,&weight,scale,ao);
     project_sliding_one(device,b,&weight,scale,bo);
     project_sliding_one(device,c,&weight,scale,co);
-    project_sliding_one(device,d,&weight,scale,do);
+    project_sliding_one(device,d,&weight,scale,out_d);
 }
 
 fn project_full_one(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,Gf,Df]>,
@@ -173,7 +173,7 @@ pub fn project_full_output_four(device:&mut Device,a:&HbmTensor<bf16,Chip,m![P12
  weight:&HbmTensor<f8e4m3,Chip,m![H,Qf]>,scale:&HbmTensor<bf16,Chip,m![H]>,ao:&mut HbmTensor<bf16,Chip,m![P128,H]>,
  bo:&mut HbmTensor<bf16,Chip,m![P128,H]>,
  co:&mut HbmTensor<bf16,Chip,m![P128,H]>,
- do:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
+ out_d:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
 
     let packed:DmTensor<f8e4m3,Chip,Cluster,FullParts,m![H%120,Qf%1024]>=weight.to_dm(&mut device.tdma);
     let weight:DmTensor<bf16,Chip,Cluster,FullParts,m![H%120,Qf%1024]>=device.main.begin(packed.view())
@@ -182,5 +182,5 @@ pub fn project_full_output_four(device:&mut Device,a:&HbmTensor<bf16,Chip,m![P12
     project_full_one(device,a,&weight,scale,ao);
     project_full_one(device,b,&weight,scale,bo);
     project_full_one(device,c,&weight,scale,co);
-    project_full_one(device,d,&weight,scale,do);
+    project_full_one(device,d,&weight,scale,out_d);
 }
