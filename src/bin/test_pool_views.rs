@@ -35,10 +35,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .await?;
     for slot in [0usize, 31, 63] {
         // Tile one contiguous slot, then remove only its unit-length axis.
-        let view: HbmTensorView<'_, bf16, Chip, m![Ts, Ns, Ds]> = unsafe {
+        let view: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]> = unsafe {
             rings
                 .view()
-                .tile::<m![Rc64], 1, m![Rc64 = 1, Ts, Ns, Ds]>(slot)
+                .tile::<m![Rc64], 1, m![Rc64 = 1 # 64, Ts, Ns, Ds]>(slot)
                 .reshape()
         };
         launch(op::read_ring, (&mut device, view, &mut output)).await?;
@@ -57,10 +57,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             HostTensor::<bf16, m![Ts, Ns, Ds]>::from_vec(replacement.clone())
                 .to_hbm(&mut device.pdma)
                 .await?;
-        let view: HbmTensorViewMut<'_, bf16, Chip, m![Ts, Ns, Ds]> = unsafe {
+        let view: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]> = unsafe {
             rings
                 .view_mut()
-                .tile::<m![Rc64], 1, m![Rc64 = 1, Ts, Ns, Ds]>(slot)
+                .tile::<m![Rc64], 1, m![Rc64 = 1 #{!} 64, Ts, Ns, Ds]>(slot)
                 .reshape()
         };
         launch(op::write_ring, (&mut device, &input, view)).await?;
@@ -89,10 +89,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .to_hbm(&mut device.pdma)
         .await?;
     for page in [0usize, 127, 255] {
-        let view: HbmTensorView<'_, bf16, Chip, m![Tf, Df]> = unsafe {
+        let view: HbmTensorView<'_, bf16, Chip, m![Tf # 131072, Df]> = unsafe {
             pages
                 .view()
-                .tile::<m![Fc], 1, m![Fc = 1, Tf, Df]>(page)
+                .tile::<m![Fc], 1, m![Fc = 1 # 256, Tf, Df]>(page)
                 .reshape()
         };
         launch(op::read_page, (&mut device, view, &mut output)).await?;
@@ -111,10 +111,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             HostTensor::<bf16, m![Tf, Df]>::from_vec(replacement.clone())
                 .to_hbm(&mut device.pdma)
                 .await?;
-        let view: HbmTensorViewMut<'_, bf16, Chip, m![Tf, Df]> = unsafe {
+        let view: HbmTensorViewMut<'_, bf16, Chip, m![Tf #{!} 131072, Df]> = unsafe {
             pages
                 .view_mut()
-                .tile::<m![Fc], 1, m![Fc = 1, Tf, Df]>(page)
+                .tile::<m![Fc], 1, m![Fc = 1 #{!} 256, Tf, Df]>(page)
                 .reshape()
         };
         launch(op::write_page, (&mut device, &input, view)).await?;
