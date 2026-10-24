@@ -392,7 +392,7 @@ impl WidePrefill {
         self.normalize(device, pre, scratch).await?;
         scratch.record_profile("wide.ffn.pre_norm", &mut mark);
         launch(
-            crate::ops_native_fp8::batch_ffn,
+            crate::ops_native_fp8_blocked::batch_ffn_direct_geglu,
             (
                 device,
                 &self.norm,
