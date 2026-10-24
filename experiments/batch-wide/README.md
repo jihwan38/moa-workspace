@@ -27,3 +27,16 @@ kernel-level tests, not full-model correctness or benchmark throughput claims.
 At this commit, P128 query and FFN compile and both hardware probe executables
 build. Hardware correctness and speed are pending root's coordinated Arena
 runs. O wrappers and their independent validation follow separately.
+
+Root Arena317636/317637 results: query checked524288 values exactly and measured
+1.189ms warm. FFN checked491520 values exactly, but P128 took12.78–12.83ms versus
+10.38–10.41ms for eight B16 calls. P128 FFN is therefore a correctness control,
+not an adopted performance improvement. The primary remaining mechanism is
+repeated activation replication/repartition for each weight-row tile. Component
+probes and cached/sharded input placement are the next tests.
+
+Both canonical O wrappers now compile. P16 add-partial tiles are staged into
+contiguous DM before F32 VRF fetch because a direct padded DM-view fetch fails
+SDK lowering (v9/v11 failures preserved). `test_wide_output` independently checks
+both491520-element outputs against the baseline1024-column BF16 rounding tree.
+Its compiled hardware probe is pending root.
