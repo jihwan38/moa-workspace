@@ -33,3 +33,5 @@ pub const EPS: f32 = 1e-6;
 pub mod ops_request_attention_clusters;
 
 pub mod ops_request_attention_rings;
+
+pub mod ops_request_full_clusters;
