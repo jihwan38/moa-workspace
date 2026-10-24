@@ -2,7 +2,7 @@
 //! Wide and decode batches have independent axes and scratch ownership.
 use super::*;
 use crate::ops_sliding_wide::Pk128;
-use crate::{ops_batch_kpart as linear, ops_prefill_tiles as tiles};
+use crate::ops_prefill_tiles as tiles;
 
 pub(crate) struct WidePrefill {
     x: HbmTensor<bf16, Chip, m![P128, H]>,
@@ -434,7 +434,7 @@ impl WidePrefill {
         self.normalize(device, &layer.input_norm, scratch).await?;
         scratch.record_profile("wide.sliding.input_norm", &mut mark);
         launch(
-            linear::project_query_batch,
+            crate::ops_qkv_p128_trf32::project_query_batch,
             (
                 device,
                 &self.norm,
@@ -445,7 +445,7 @@ impl WidePrefill {
         )
         .await?;
         launch(
-            linear::project_sliding_kv_batch,
+            crate::ops_qkv_p128_trf32::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -456,7 +456,7 @@ impl WidePrefill {
         )
         .await?;
         launch(
-            linear::project_sliding_kv_batch,
+            crate::ops_qkv_p128_trf32::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -672,7 +672,7 @@ impl WidePrefill {
         self.normalize(device, &layer.input_norm, scratch).await?;
         scratch.record_profile("wide.full.input_norm", &mut mark);
         launch(
-            linear::project_full_query_batch,
+            crate::ops_qkv_p128_trf32::project_full_query_batch,
             (
                 device,
                 &self.norm,
@@ -683,7 +683,7 @@ impl WidePrefill {
         )
         .await?;
         launch(
-            linear::project_full_key_batch,
+            crate::ops_qkv_p128_trf32::project_full_key_batch,
             (
                 device,
                 &self.norm,
