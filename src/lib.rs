@@ -84,3 +84,5 @@ pub mod ops_geglu_direct_r64;
 pub mod ops_native_fp8_r64;
 
 pub mod ops_native_fp8_r64_sharded;
+
+pub mod ops_native_fp8_local_reuse;
