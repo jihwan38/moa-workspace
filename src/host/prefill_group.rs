@@ -1,6 +1,7 @@
-//! Four independent full P128 prompts share only the FFN matrix pass.
+//! Four independent P128 prompts share QKV weight loads and a blocked P512 FFN pass.
 //! Each request keeps its own chronological attention, hidden state, positions and KV.
 use super::*;
+use crate::ops_batch_layouts::{P512H960, P512L240, P512L960};
 use crate::ops_prompt_group_io as group_io;
 pub(crate) struct GroupPrefill {
     rows: [WidePrefill; 4],
@@ -10,11 +11,11 @@ pub(crate) struct GroupPrefill {
     second: HbmTensor<i32, Chip, m![1]>,
     third: HbmTensor<i32, Chip, m![1]>,
     fourth: HbmTensor<i32, Chip, m![1]>,
-    q_input: HbmTensor<f8e4m3, Chip, m![P512, H]>,
+    q_input: HbmTensor<f8e4m3, Chip, P512H960>,
     input_scale: HbmTensor<f32, Chip, m![P512]>,
-    up: HbmTensor<bf16, Chip, m![P512, L]>,
-    gate: HbmTensor<bf16, Chip, m![P512, L]>,
-    q_hidden: HbmTensor<f8e4m3, Chip, m![P512, L]>,
+    up: HbmTensor<bf16, Chip, P512L240>,
+    gate: HbmTensor<bf16, Chip, P512L240>,
+    q_hidden: HbmTensor<f8e4m3, Chip, P512L960>,
     hidden_scale: HbmTensor<f32, Chip, m![P512]>,
 }
 pub(crate) struct PreparedGroup {
@@ -59,11 +60,11 @@ impl GroupPrefill {
             second: offset!(1),
             third: offset!(2),
             fourth: offset!(3),
-            q_input: zero!(f8e4m3, m![P512, H]),
+            q_input: zero!(f8e4m3, P512H960),
             input_scale: zero!(f32, m![P512]),
-            up: zero!(bf16, m![P512, L]),
-            gate: zero!(bf16, m![P512, L]),
-            q_hidden: zero!(f8e4m3, m![P512, L]),
+            up: zero!(bf16, P512L240),
+            gate: zero!(bf16, P512L240),
+            q_hidden: zero!(f8e4m3, P512L960),
             hidden_scale: zero!(f32, m![P512]),
         })
     }
@@ -117,13 +118,90 @@ impl GroupPrefill {
             .layers
             .get(index)
             .ok_or("grouped prefill layers already complete")?;
+        let mut mark = scratch.profile_mark();
+        let input_norm = match layer {
+            Layer::Sliding(l) => &l.input_norm,
+            Layer::Full(l) => &l.input_norm,
+        };
+        for row in &mut self.rows {
+            row.normalize(device, input_norm, scratch).await?;
+            launch(
+                crate::ops_qkv_native_four::quantize_input,
+                (device, &row.norm, &mut row.qkv_input, &mut row.qkv_scale),
+            )
+            .await?;
+        }
+        scratch.record_optional_profile("group.qkv.norm_quantize", &mut mark);
+        let [a, b, c, d] = &mut self.rows;
+        macro_rules! project_four {
+            ($kernel:path, $weight:expr, $scale:expr, $field:ident) => {
+                launch(
+                    $kernel,
+                    (
+                        device,
+                        &a.qkv_input,
+                        &a.qkv_scale,
+                        &b.qkv_input,
+                        &b.qkv_scale,
+                        &c.qkv_input,
+                        &c.qkv_scale,
+                        &d.qkv_input,
+                        &d.qkv_scale,
+                        $weight,
+                        $scale,
+                        &mut a.$field,
+                        &mut b.$field,
+                        &mut c.$field,
+                        &mut d.$field,
+                    ),
+                )
+                .await?
+            };
+        }
+        match layer {
+            Layer::Sliding(l) => {
+                project_four!(
+                    crate::ops_qkv_native_four::project_query_four,
+                    &l.q_weight,
+                    &l.q_weight_scale,
+                    q_s
+                );
+                project_four!(
+                    crate::ops_qkv_native_four::project_sliding_kv_four,
+                    &l.k_weight,
+                    &l.k_weight_scale,
+                    k_s
+                );
+                project_four!(
+                    crate::ops_qkv_native_four::project_sliding_kv_four,
+                    &l.v_weight,
+                    &l.v_weight_scale,
+                    v_s
+                );
+            }
+            Layer::Full(l) => {
+                project_four!(
+                    crate::ops_qkv_native_four::project_full_query_four,
+                    &l.q_weight,
+                    &l.q_weight_scale,
+                    q_f
+                );
+                project_four!(
+                    crate::ops_qkv_native_four::project_full_key_four,
+                    &l.k_weight,
+                    &l.k_weight_scale,
+                    k_f
+                );
+            }
+        }
+        scratch.record_optional_profile("group.qkv.projections", &mut mark);
         for row in 0..4 {
             let current = &state.states[row];
             ws.blocks.clone_from(&current.blocks);
             match layer {
                 Layer::Sliding(layer) => {
                     self.rows[row]
-                        .sliding(
+                        .sliding_after_qkv(
                             device,
                             ws,
                             index,
@@ -137,7 +215,7 @@ impl GroupPrefill {
                 }
                 Layer::Full(layer) => {
                     self.rows[row]
-                        .full(
+                        .full_after_qkv(
                             device,
                             ws,
                             index,
@@ -188,13 +266,13 @@ impl GroupPrefill {
         .await?;
         scratch.record_optional_profile("group.ffn.pack", &mut mark);
         launch(
-            crate::ops_native_fp8_p512::quantize_hidden,
+            crate::ops_native_fp8_p512_blocks::quantize_hidden,
             (device, &self.norm, &mut self.q_input, &mut self.input_scale),
         )
         .await?;
         scratch.record_optional_profile("group.ffn.quantize_hidden", &mut mark);
         launch(
-            crate::ops_native_fp8_p512::project_up_scaled,
+            crate::ops_native_fp8_p512_blocks::project_up_scaled,
             (
                 device,
                 &self.q_input,
@@ -207,7 +285,7 @@ impl GroupPrefill {
         .await?;
         scratch.record_optional_profile("group.ffn.up", &mut mark);
         launch(
-            crate::ops_native_fp8_p512::project_up_scaled,
+            crate::ops_native_fp8_p512_blocks::project_up_scaled,
             (
                 device,
                 &self.q_input,
@@ -220,7 +298,7 @@ impl GroupPrefill {
         .await?;
         scratch.record_optional_profile("group.ffn.gate", &mut mark);
         launch(
-            crate::ops_native_fp8_p512::geglu_quantize,
+            crate::ops_native_fp8_p512_blocks::geglu_quantize,
             (
                 device,
                 &self.up,
@@ -234,7 +312,7 @@ impl GroupPrefill {
         .await?;
         scratch.record_optional_profile("group.ffn.geglu_quantize", &mut mark);
         launch(
-            crate::ops_native_fp8_p512::project_down_scaled,
+            crate::ops_native_fp8_p512_blocks::project_down_scaled,
             (
                 device,
                 &self.q_hidden,

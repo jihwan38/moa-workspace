@@ -521,6 +521,21 @@ impl WidePrefill {
             .await?;
         }
         scratch.record_optional_profile("wide.sliding.qkv", &mut mark);
+        self.sliding_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn).await
+    }
+
+    async fn sliding_after_qkv(
+        &mut self,
+        device: &mut Device,
+        ws: &mut Workspace,
+        index: usize,
+        layer: &SlidingLayer,
+        state: &PreparedWide,
+        segments: &[Segment],
+        scratch: &mut Prefill,
+        include_ffn: bool,
+    ) -> Result<()> {
+        let mut mark = scratch.profile_mark();
         let ring = state.blocks.sliding;
         if let Some(meta) = &state.native {
             launch(
@@ -771,6 +786,21 @@ impl WidePrefill {
             .await?;
         }
         scratch.record_optional_profile("wide.full.qkv", &mut mark);
+        self.full_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn).await
+    }
+
+    async fn full_after_qkv(
+        &mut self,
+        device: &mut Device,
+        ws: &mut Workspace,
+        index: usize,
+        layer: &FullLayer,
+        state: &PreparedWide,
+        segments: &[Segment],
+        scratch: &mut Prefill,
+        include_ffn: bool,
+    ) -> Result<()> {
+        let mut mark = scratch.profile_mark();
         let page = state.start_position / Tf::SIZE;
         let blocks = &state.blocks.full;
         if let Some(meta) = &state.native {

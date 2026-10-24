@@ -1,4 +1,5 @@
-//! Four optimized P128 controls versus staged P512 FFN, with optional R64 interleave.
+//! Four native-QKV P128 controls versus retained QKV weights + blocked P512 FFN.
+//! Optional R64 interleave verifies scratch/ownership independently of native precision.
 //! Args: four starts(default896/384/0/128), then interleave0/1(default0).
 use furiosa_opt_gemma4::{
     host::{
@@ -30,7 +31,7 @@ fn check(label: &str, a: &[f32], b: &[f32]) {
         max = max.max((a - b).abs());
     }
     println!("{label} mismatches={n}/{} max_abs={max}", a.len());
-    assert_eq!(n, 0, "grouped prompt changed original P128 arithmetic");
+    assert_eq!(n, 0, "grouped prompt changed native P128 arithmetic");
 }
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -92,7 +93,7 @@ async fn main() -> Result<()> {
     for r in 0..4 {
         let now = std::time::Instant::now();
         let out = model
-            .forward_sequences(
+            .forward_sequences_native_qkv(
                 &mut d,
                 &[Sequence {
                     inputs: &prompts[r],

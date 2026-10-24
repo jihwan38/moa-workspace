@@ -235,7 +235,7 @@ impl Model {
         Ok(Some(&self.logits[..2]))
     }
 
-    /// Diagnostic candidate: four distinct full P128 chunks share a P512 FFN pass.
+    /// Diagnostic candidate: four full P128 chunks share QKV weight reads and blocked P512 FFN.
     /// Keep all four reservations until advance_prefill_group returns four final outputs.
     pub async fn start_prefill_group(
         &mut self,
@@ -245,6 +245,9 @@ impl Model {
     ) -> Result<(), Box<dyn std::error::Error>> {
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
+        }
+        if sequences.len() > self.logits.len() {
+            return Err("too many grouped request sequences".into());
         }
         if !workspace.is_canonical() || !GroupPrefill::supports(sequences) {
             return Err("grouped prefill needs canonical independent128-token chunks".into());
@@ -265,6 +268,9 @@ impl Model {
         );
         Ok(())
     }
+    /// A completed layer is the only safe yield point. On an execution error or
+    /// an aborted in-flight future, discard this model/workspace; do not retry
+    /// a partially updated group. The caller retains all four allocations.
     pub async fn advance_prefill_group(
         &mut self,
         device: &mut Device,
