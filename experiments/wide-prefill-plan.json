@@ -26,5 +26,21 @@
     "job": 317628,
     "correctness": "491520hidden+1048576full-queryBF16valuesexact acrossall8groups",
     "scope": "Tiletransferonly, notP128fullmodel"
+  },
+  "runtime_candidate": {
+    "activation": "Explicit Model.forward_sequences_wide diagnostic only; normalModel/Worker remainB16 andno serverflags",
+    "control": "compare_prefill TOKENS wide comparesP128withB16chunksusingseparateKVpools; defaultdiagnostic stillB16versusscalar",
+    "implementation": "src/host/prefill_wide.rs; P128QKV/O/FFNonceperlayer,B16norm/head/attentionsegmentsinchronologicalorder,cachecommitonlyliveprefix,fullpage512cap,originalmediaencoders",
+    "compile": "cargo check compare_prefill passed; fullNPUcompilepassed1m20s forwide kernels/tileadapters; finaldiagnosticdriver rebuildpassed8.67s",
+    "performance_hold": "RootP128FFNkernel~12.8msversuseightB16~10.4ms despiteexact491520outputs; widequery~1.189msversuseightB16~2ms. Do notadoptserverbeforeimprovementandactualmodelmeasurement.",
+    "source_dependencies": [
+      "d0e27d7",
+      "a2765c3",
+      "fb7c6de",
+      "129ade8",
+      "aa4afda",
+      "382982f"
+    ],
+    "next_gate": "RootNPUcompare128wide and127wide; iffullmodelexact,screen513/1025page/ringboundaries. Measurewide.*stages; candidateperformanceonly,noscoreclaim."
   }
 }
