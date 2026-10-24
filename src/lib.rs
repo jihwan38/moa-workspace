@@ -129,3 +129,5 @@ pub mod ops_output_p128_parallel_gather;
 pub mod ops_native_fp8_sharded;
 
 pub mod ops_r64_io_blocked;
+
+pub mod ops_zero_pool;
