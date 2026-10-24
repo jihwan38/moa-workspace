@@ -83,3 +83,5 @@ pub mod ops_r64_io_switchinput;
 pub mod ops_r64_io_bandoutput;
 
 pub mod ops_r64_io_blocked;
+
+pub mod host_logit_bytes;

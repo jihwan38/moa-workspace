@@ -1,0 +1,7 @@
+{
+  "source_commit": "45f25b0",
+  "actual_control": "318019: all16.7M F32 exact; typed extracted107.8..118.8ms, typed bulk81.5..83.1ms. Previous read timing incorrectly included HostTensor.into_vec CPU decoding.",
+  "mechanism": "HostTensor.into_inner().into_buf moves packed byte storage, bypassing BufStorage.to_vec per-element Scalar::load. Inline BF16 decode uses u16LE<<16 and exactly matches half quiet-NaN rule. Bulk CPU loop visits vocabulary block before each8-row worker group, reducing repeated sparse source-page scans.",
+  "proof": "All65536 raw BF16 encodings compared bitwise to SDK, including signedzero, infinities, signaling/quiet NaNs. Actual model16.7M output F32 bit equivalence. Separate transfer-await, unpack, conversion timings. Four variants and reverse order; workers<=8.",
+  "scope": "No Model/Worker edits; pure host helper and standalone probe."
+}
