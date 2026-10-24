@@ -553,6 +553,12 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            #[cfg(feature = "kv-e4-quality")]
+            launch(
+                crate::ops_kv_e4::roundtrip_p128,
+                (device, &mut self.head_k_s, &mut self.head_v_s),
+            ).await?;
+
             scratch.record_optional_profile("wide.sliding.heads", &mut mark);
             if ws.is_canonical() {
                 let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else { unreachable!() };
@@ -644,6 +650,12 @@ impl WidePrefill {
                     ),
                 )
                 .await?;
+                #[cfg(feature = "kv-e4-quality")]
+                launch(
+                    crate::ops_kv_e4::roundtrip_b16,
+                    (device, &mut scratch.k_s, &mut scratch.v_s),
+                ).await?;
+
             scratch.record_optional_profile("wide.sliding.heads", &mut mark);
                 if ws.is_canonical() {
                     let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {

@@ -163,3 +163,7 @@ pub mod ops_prompt_group_io;
 pub mod ops_r64_lm_partitioned;
 
 pub mod ops_native_fp8_p512_blocks_sharded;
+
+// Isolated quality experiment; disabled unless explicitly built with this feature.
+pub mod ops_kv_e4;
+pub mod ops_request_sliding_r64_fp8_scales;

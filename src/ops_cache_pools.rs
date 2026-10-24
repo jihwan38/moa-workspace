@@ -46,6 +46,21 @@ pub fn sliding_project_qkv(
 
     let (q, k) = sliding::rope::apply_rope(device, &q, &k, rope_offset, cos, sin);
 
+    // Reconstruct the same per-token/head E4 representation used by the isolated
+    // compressed cache. Q is unchanged; both cache writers see rounded K/V.
+    #[cfg(feature = "kv-e4-quality")]
+    let k = {
+        type CodecRows = m![Ns,1 # 32];
+        let k: DmTensor<bf16, Chip, Cluster, CodecRows, m![1, Ds]> = k.to_dm(&mut device.tdma);
+        crate::ops_kv_e4::roundtrip::<Cluster, CodecRows, m![1]>(device, &k)
+    };
+    #[cfg(feature = "kv-e4-quality")]
+    let v = {
+        type CodecRows = m![Ns,1 # 32];
+        let v: DmTensor<bf16, Chip, Cluster, CodecRows, m![1, Ds]> = v.to_dm(&mut device.tdma);
+        crate::ops_kv_e4::roundtrip::<Cluster, CodecRows, m![1]>(device, &v)
+    };
+
     q.view().to_hbm_view(&mut device.tdma, q_out.view_mut());
     k_cache
         .view_mut()

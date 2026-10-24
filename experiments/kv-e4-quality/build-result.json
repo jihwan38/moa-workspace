@@ -1,0 +1,43 @@
+{
+  "base_commit": "9616852d38033be7f73a56bb1a14cd3980bee3f3",
+  "feature": "kv-e4-quality",
+  "default_enabled": false,
+  "checks": {
+    "default_cargo_check": "PASS",
+    "feature_cargo_check": "PASS",
+    "feature_device_server_build": "PASS; release profile finished in 3m 40s"
+  },
+  "binary": "/round2/kv-quality/target/release/server",
+  "binary_sha256": "4f5eb9c48d129c84b686d73cba0c40f2fe9289bfb12f2bd026b17da47a3bf154",
+  "binary_bytes": 26259328,
+  "source_sha256": {
+    "Cargo.toml": "59a00b2cb644b36f6020abaf701ea64dabe70bde3b6dcf9c88643892d7e8f761",
+    "src/lib.rs": "50a63b8bb535a22d3d27799cd0514a84ae32ba0da0fc063b68feada644eeaa4e",
+    "src/ops_kv_e4.rs": "0c2d571bc45547a45942b5887cdfe6acd64acd55037843626d1833c70fe5c79e",
+    "src/ops_request_sliding_r64_fp8_scales.rs": "59944d0b08864d8749502d47ae62ed71d5caa5d10f4ca9651ab253695fc6ead0",
+    "src/ops.rs": "f622ab7be82c9bbafe4b345ea1d841553ec7da727f3a79b5972ff73950081413",
+    "src/ops_cache_pools.rs": "14aa650934cbebdb3f0725577f3fdbe5ba6ea204e1e429c856e5b0dd4b351e7d",
+    "src/host/prefill.rs": "2df333eb8dd9631aca274cbc6d1a215c5f351bd08b86dadda9ad75cb14ca7116",
+    "src/host/prefill_decode.rs": "2813cd41a3681369f8b115435817ae00eb717b12f30ef10597790d6d2d619c13",
+    "src/host/prefill_wide.rs": "fb0c4a988f4ab7b814ea8aa0a44c15ab75f48a23a1a1ba946a751ff29677dee3",
+    "src/host/decode_r64.rs": "1ad5e9e2b25cf82c4cedd465c1b115218c19bca1ba849920dd5157784ad33a23"
+  },
+  "codec_hardware_gate": {
+    "arena_job": 318232,
+    "log": "/round2/runs/r370-e4-commit-submit/arena.log",
+    "roundtrip_exact_bf16_values": 856064,
+    "pool_and_neighbor_exact_bytes": 603979776,
+    "source": "round2/attention b296d2c",
+    "evidence": "round2/attention 88cbf23"
+  },
+  "independent_source_review": {
+    "reviewer": "/root/batch_kernels",
+    "result": "All seven active producer paths are hooked before their first K/V consumer; no concrete coverage bug found. Scalar host callers are runtime.rs:626 and :666. Grouped prompts inherit the WidePrefill continuation hooks; ops_cache_views has no host callers.",
+    "scope": "Source coverage only; not model quality."
+  },
+  "limitations": [
+    "No whole-model or public accuracy result yet.",
+    "The feature server stores reconstructed BF16 and adds codec launches; its latency cannot establish compressed-cache speed.",
+    "Build/freezing tools must preserve the explicit Cargo feature."
+  ]
+}

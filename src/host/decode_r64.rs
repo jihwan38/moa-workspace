@@ -346,6 +346,12 @@ impl Decode64 {
             ),
         )
         .await?;
+        #[cfg(feature = "kv-e4-quality")]
+        launch(
+            crate::ops_kv_e4::roundtrip_r64,
+            (device, &mut self.k_s, &mut self.v_s),
+        ).await?;
+
         self.record_profile("r64.sliding.heads_rope", &mut profile_mark);
         let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
             return Err("sliding layer has wrong pool kind".into());

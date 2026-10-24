@@ -1,0 +1,47 @@
+{
+  "base": "9616852",
+  "codec_source": "round2/attention b296d2c; hardware evidence 88cbf23",
+  "mode": "Cargo feature kv-e4-quality, disabled by default. The quality candidate uniformly roundtrips all sliding K/V after head normalization and RoPE. Q and full attention are unchanged.",
+  "sites": [
+    {
+      "file": "src/host/prefill.rs",
+      "producer": "crate::ops_head_batch::sliding_heads_b16",
+      "codec": "roundtrip_b16"
+    },
+    {
+      "file": "src/host/prefill_decode.rs",
+      "producer": "crate::ops_head_batch::sliding_heads_b16",
+      "codec": "roundtrip_b16"
+    },
+    {
+      "file": "src/host/decode_r64.rs",
+      "producer": "crate::ops_head_r64::sliding_heads_r64",
+      "codec": "roundtrip_r64"
+    },
+    {
+      "file": "src/host/prefill_wide.rs",
+      "producer": "crate::ops_head_wide::sliding_heads_p128",
+      "codec": "roundtrip_p128"
+    },
+    {
+      "file": "src/host/prefill_wide.rs",
+      "producer": "crate::ops_head_wide_tile::sliding_heads_from_wide_tile",
+      "codec": "roundtrip_b16"
+    },
+    {
+      "file": "src/ops_cache_pools.rs",
+      "producer": "sliding_project_qkv after apply_rope, before pool scatter"
+    },
+    {
+      "file": "src/ops.rs",
+      "producer": "sliding_project_qkv after apply_rope, before legacy scatter"
+    }
+  ],
+  "equivalence": "Current chunk K/V is rounded before prompt attention and cache commit. Future cache reads see the reconstructed BF16 representation used by the compressed-pool consumer. The existing BF16 pool remains the only persistent cache; E4 values and scales are temporary DM tensors.",
+  "gates": [
+    "All four codec widths and fused R64 append passed CPU byte checks in Arena 318232.",
+    "Default and feature host checks passed; feature server device build passed.",
+    "Fresh-history whole-model and public accuracy gates remain required. Sharp synthetic attention cases show substantial BF16-versus-E4 drift. This BF16 roundtrip server cannot measure compressed-pool throughput."
+  ],
+  "build": "cargo furiosa-opt build --release --features kv-e4-quality --bin server; isolated worktree with no prior baseline kernel cache"
+}

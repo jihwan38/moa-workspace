@@ -277,6 +277,12 @@ impl Prefill {
             ),
         )
         .await?;
+        #[cfg(feature = "kv-e4-quality")]
+        launch(
+            crate::ops_kv_e4::roundtrip_b16,
+            (device, &mut self.k_s, &mut self.v_s),
+        ).await?;
+
         self.record_profile("sliding.heads_rope", &mut profile_mark);
         if ws.is_canonical() {
             let metadata = pooled.ok_or("canonical decode requires independent rows")?;
