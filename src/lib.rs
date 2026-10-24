@@ -131,3 +131,7 @@ pub mod ops_native_fp8_sharded;
 pub mod ops_r64_io_blocked;
 
 pub mod ops_zero_pool;
+
+pub mod ops_native_fp8_trf64;
+pub mod ops_native_fp8_local_reuse;
+pub mod host_logit_bytes;
