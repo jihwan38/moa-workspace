@@ -13,5 +13,22 @@
     "src/ops_head_batch.rs": "5b49c896da20f05cfe10c9a11870d2fec7fb6ae38364be1fd5c179383260c5e2",
     "src/bin/test_head_wide_tile.rs": "283e6e3fc7039a0a19b9b94cd148dc9efe04620728709d458cc22247fbee5afc"
   },
-  "compile_status": "Both directwidehead kernels and originalB16controls compile.2,228,224-output exactoracle pendingroot."
+  "compile_status": "Both directwidehead kernels and originalB16controls compile.2,228,224-output exactoracle pendingroot.",
+  "npu": {
+    "job": 317801,
+    "source_commit": "921c746",
+    "result": "All2,228,224 Q/K/V outputs bit-exact to originalB16 heads over all8tiles; distinctnonzero rows,zero/tinyhead cases andRoPEpositions0..32767 pass.",
+    "warm_timings": {
+      "sliding": {
+        "original_head_only_median_us": 28.4845,
+        "direct_head_with_tile_median_us": 29.255000000000003
+      },
+      "full": {
+        "original_head_only_median_us": 29.866,
+        "direct_head_with_tile_median_us": 30.2705
+      }
+    },
+    "limitation": "Original head-only timings exclude2/3 standalone rawtileload kernels. Direct entrypoints incur~1us extra vsheadalone, but eliminate those host/kernel/HBMtransfer stages. Wholemodelmeasurement required to quantify total improvement.",
+    "decision": "Host mayreplace rawtileloads+headcall withsingle directwideheadcall, preservingB16normalized scratch andattentioncommitorder."
+  }
 }
