@@ -208,7 +208,7 @@ pub fn insert_hidden_row(
     byte_offset: &HbmTensor<i32, Chip, m![1]>,
     batch: &mut HbmTensor<bf16, Chip, m![R64, H]>,
 ) {
-    let row: DmTensor<bf16, Chip, Cluster, m![H / 15], m![H % 15]> = source.to_dm(&mut device.tdma);
+    let row: DmTensor<bf16, Chip, m![1 # 2], m![1 # 256], m![H]> = source.to_dm(&mut device.tdma);
     batch
         .view_mut()
         .scatter::<m![R64], m![H]>()
