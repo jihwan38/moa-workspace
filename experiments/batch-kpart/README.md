@@ -518,3 +518,11 @@ about4MB. No quantized activation HBM stages or across-cluster reduction. Contro
 is a frozen copy of root ops_native_fp8_r64_local_reuse::batch_ffn_partitioned_input,
 measured~.54ms previously; actual matched timing is required. All245760 output bits
 must match before adoption. Source arithmetics/quantization/boundaries unchanged.
+
+R64 two-stage9d40b81 failed root Arena318065/r298:245519/245760 final outputs
+mismatched. Zero input row yielded large nonzero outputs, so this is a correctness
+bug, not acceptable quantization drift. No timing/adoption. Preserve original
+source. Diagnostics dump quantizer seed FP8/scales separately from every output-
+row-group replication, against an independent CPU FTZ/power2 quantizer. Additional
+prequantized upgate/down wrappers bypass seeded placement and compare each stage
+before testing the full original control. Native QKV work is held until repair.

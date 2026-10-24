@@ -287,3 +287,98 @@ pub fn down(device:&mut Device,input:&HbmTensor<bf16,Chip,m![R64,L]>,
             .transpose::<m![R64/16,H/4%30,R64%16],m![H%4#16]>().commit_trim::<m![H%4]>().commit();
     result.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
+
+#[device(chip=1)]
+pub fn debug_up_quant(device:&mut Device,input:&HbmTensor<bf16,Chip,m![R64,H]>,
+    seed_q:&mut HbmTensor<f8e4m3,Chip,m![L/7680,R64,H]>,seed_s:&mut HbmTensor<f32,Chip,m![L/7680,R64]>,
+    copies_q:&mut HbmTensor<f8e4m3,Chip,m![L/120,R64,H]>,copies_s:&mut HbmTensor<f32,Chip,m![L/120,R64]>) {
+    let input:DmTensor<bf16,Chip,UpCluster,UpSeedParts,m![R64,H%960]>=input.to_dm(&mut device.tdma);
+    let (q,scale)=quantize_up_seed(device,&input);
+    q.view().to_hbm_view(&mut device.tdma,seed_q.view_mut());
+    scale.view().to_hbm_view(&mut device.tdma,seed_s.view_mut());
+    let q:DmTensor<f8e4m3,Chip,UpCluster,UpParts,m![R64,H%960]>=q.to_dm(&mut device.tdma);
+    let scale:DmTensor<f32,Chip,UpCluster,UpRows,m![R64]>=scale.to_dm(&mut device.tdma);
+    q.view().to_hbm_view(&mut device.tdma,copies_q.view_mut());
+    scale.view().to_hbm_view(&mut device.tdma,copies_s.view_mut());
+}
+
+#[device(chip=1)]
+pub fn debug_down_quant(device:&mut Device,input:&HbmTensor<bf16,Chip,m![R64,L]>,
+    seed_q:&mut HbmTensor<f8e4m3,Chip,m![H/1920,R64,L]>,seed_s:&mut HbmTensor<f32,Chip,m![H/1920,R64]>,
+    copies_q:&mut HbmTensor<f8e4m3,Chip,m![H/120,R64,L]>,copies_s:&mut HbmTensor<f32,Chip,m![H/120,R64]>) {
+    let input:DmTensor<bf16,Chip,DownCluster,DownSeedParts,m![R64,L%960]>=input.to_dm(&mut device.tdma);
+    let (q,scale)=quantize_down_seed(device,&input);
+    q.view().to_hbm_view(&mut device.tdma,seed_q.view_mut());
+    scale.view().to_hbm_view(&mut device.tdma,seed_s.view_mut());
+    let q:DmTensor<f8e4m3,Chip,DownCluster,DownParts,m![R64,L%960]>=q.to_dm(&mut device.tdma);
+    let scale:DmTensor<f32,Chip,DownCluster,DownRows,m![R64]>=scale.to_dm(&mut device.tdma);
+    q.view().to_hbm_view(&mut device.tdma,copies_q.view_mut());
+    scale.view().to_hbm_view(&mut device.tdma,copies_s.view_mut());
+}
+
+#[device(chip=1)]
+pub fn upgate_geglu_prequantized(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![R64,H]>, input_scale:&HbmTensor<f32,Chip,m![R64]>,
+    up:&HbmTensor<f8e4m3,Chip,UpWeight>,gate:&HbmTensor<f8e4m3,Chip,UpWeight>,
+    up_dequant:&HbmTensor<f32,Chip,m![L]>,gate_dequant:&HbmTensor<f32,Chip,m![L]>,
+    up_global:&HbmTensor<f32,Chip,m![1]>,gate_global:&HbmTensor<f32,Chip,m![1]>,output:&mut HbmTensor<bf16,Chip,m![R64,L]>) {
+    let input:DmTensor<f8e4m3,Chip,UpCluster,UpParts,m![R64,H%960]>=input.to_dm(&mut device.tdma);
+    let xscale:DmTensor<f32,Chip,UpCluster,UpRows,m![R64]>=input_scale.to_dm(&mut device.tdma);
+    let up:DmTensor<f8e4m3,Chip,UpCluster,UpParts,m![L%120,H%960]>=up.to_dm(&mut device.tdma);
+    let gate:DmTensor<f8e4m3,Chip,UpCluster,UpParts,m![L%120,H%960]>=gate.to_dm(&mut device.tdma);
+    let us:DmTensor<f32,Chip,UpCluster,UpRows,m![L%120]>=up_dequant.to_dm(&mut device.tdma);
+    let gs:DmTensor<f32,Chip,UpCluster,UpRows,m![L%120]>=gate_dequant.to_dm(&mut device.tdma);
+    let x:TrfTensor<f8e4m3,Chip,UpCluster,UpParts,m![R64%8],m![R64/8,H%960]>=device.sub.begin(input.view())
+        .fetch::<m![R64%8,R64/8,H/32%30],m![H%32]>()
+        .collect::<m![R64%8,R64/8,H/32%30],m![H%32]>().to_trf();
+    let a=matrix_tile(device,&x,&up,&xscale,&us);
+    let b=matrix_tile(device,&x,&gate,&xscale,&gs);
+    let hidden=geglu(device,&a,&b,up_global,gate_global);
+    let hidden:DmTensor<bf16,Chip,UpCluster,UpRows,m![R64,L%120]>=device.main.begin(hidden.view())
+        .fetch::<m![R64/16,L%120],m![R64%16]>().collect::<m![R64/16,L%120],m![R64%16]>()
+        .transpose::<m![R64/16,L/4%30,R64%16],m![L%4#16]>().commit_trim::<m![L%4]>().commit();
+    hidden.view().to_hbm_view(&mut device.tdma,output.view_mut());
+}
+
+#[device(chip=1)]
+pub fn down_prequantized(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![R64,L]>, input_scale:&HbmTensor<f32,Chip,m![R64]>,
+    weight:&HbmTensor<f8e4m3,Chip,DownWeight>,weight_dequant_scale:&HbmTensor<f32,Chip,m![H]>,
+    global_scale:&HbmTensor<f32,Chip,m![1]>,output:&mut HbmTensor<bf16,Chip,m![R64,H]>) {
+    let input:DmTensor<f8e4m3,Chip,DownCluster,DownParts,m![R64,L%960]>=input.to_dm(&mut device.tdma);
+    let xscale:DmTensor<f32,Chip,DownCluster,DownRows,m![R64]>=input_scale.to_dm(&mut device.tdma);
+    let weight:DmTensor<f8e4m3,Chip,DownCluster,DownParts,m![H % 120,L % 960]>=weight.to_dm(&mut device.tdma);
+    let ws:DmTensor<f32,Chip,DownCluster,DownRows,m![H % 120]>=weight_dequant_scale.to_dm(&mut device.tdma);
+    let ws:VrfTensor<f32,Chip,DownCluster,DownRows,m![H % 120]>=device.sub.begin(ws.view())
+        .fetch::<m![H / 8 % 15],m![H % 8]>().collect::<m![H / 8 % 15],m![H % 8]>().to_vrf();
+    let global:DmTensor<f32,Chip,DownCluster,DownRows,m![1#8]>=global_scale.to_dm(&mut device.tdma);
+    let global:VrfTensor<f32,Chip,DownCluster,DownRows,m![1#8]>=device.sub.begin(global.view())
+        .fetch::<m![1],m![1#8]>().collect::<m![1],m![1#8]>().to_vrf();
+    let xs:VrfTensor<f32,Chip,DownCluster,DownRows,m![R64]>=device.sub.begin(xscale.view())
+        .fetch::<m![R64/8],m![R64%8]>().collect::<m![R64/8],m![R64%8]>().to_vrf();
+    let x:TrfTensor<f8e4m3,Chip,DownCluster,DownParts,m![R64%8],m![R64/8,L%960]>=device.sub.begin(input.view())
+        .fetch::<m![R64%8,R64/8,L/32%30],m![L%32]>()
+        .collect::<m![R64%8,R64/8,L/32%30],m![L%32]>().to_trf();
+    let result:DmTensor<bf16,Chip,DownCluster,DownRows,m![H%120,R64]>=device.main.begin(weight.view())
+        .fetch::<m![H%120,L/32%30],m![L%32]>().collect::<m![H%120,L/32%30],m![L%32]>()
+        .contract_outer::<m![H%120,L/64%15,R64/8],m![L%64],_,_,_>(&x)
+        .contract_packet::<m![1]>().contract_time::<m![H%120,R64/8]>()
+        .contract_lane::<m![H%120,R64/8],m![R64%8]>(LaneMode::Interleaved)
+        .vector_init().vector_inter_slice_reduce::<DownRows,m![H%120,R64/8]>(InterSliceReduceOpF32::Add)
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![H%120,R64/4],m![R64%4]>()
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)
+        .vector_widen_concat::<m![H%120,R64/8],m![R64%8]>()
+        .vector_final().cast::<bf16,m![R64%8#16]>().commit_trim::<m![R64%8]>().commit();
+        let result:DmTensor<bf16,Chip,DownCluster,DownRows,m![H%120,R64]>=device.main.begin(result.view())
+            .fetch::<m![H%120,R64/8],m![R64%8]>().fetch_cast::<f32>()
+            .collect::<m![H%120,R64/8],m![R64%8]>()
+            .vector_init().vector_intra_slice_tag(TagMode::Zero)
+            .vector_narrow_split::<m![H%120,R64/4],m![R64%4]>()
+            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&global)
+            .vector_widen_concat::<m![H%120,R64/8],m![R64%8]>()
+            .vector_final().cast::<bf16,m![R64%8#16]>().commit_trim::<m![R64%8]>().commit();
+        let result:DmTensor<bf16,Chip,DownCluster,DownRows,m![R64,H%120]>=device.main.begin(result.view())
+            .fetch::<m![R64/16,H%120],m![R64%16]>().collect::<m![R64/16,H%120],m![R64%16]>()
+            .transpose::<m![R64/16,H/4%30,R64%16],m![H%4#16]>().commit_trim::<m![H%4]>().commit();
+    result.view().to_hbm_view(&mut device.tdma,output.view_mut());
+}

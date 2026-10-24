@@ -1,0 +1,100 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_r64_local_control.rs:47:4
+   |
+47 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `furiosa-opt-gemma4` (lib) generated 1 warning
+error[E0599]: no method named `to_bits` found for reference `&&furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_seed_quant.rs:21:103
+   |
+21 | ...erate().filter(|(i,v)|v.to_bits()!=expected[i%expected.len()].to_bits()).count();println!("seed_quant axis={} kind={name} checked...
+   |                            ^^^^^^^ method not found in `&&furiosa_opt_std::prelude::f8e4m3`
+...
+25 | ...plit::debug_up_quant.topology()).unwrap();check!(device,H,L,7680,debug_up_quant);check!(device,L,H,1920,debug_down_quant);}
+   |                                              -------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `check` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `to_bits` found for struct `furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_seed_quant.rs:21:141
+   |
+21 | ...v)|v.to_bits()!=expected[i%expected.len()].to_bits()).count();println!("seed_quant axis={} kind={name} checked={} bitdiff={diff}"...
+   |                                               ^^^^^^^ method not found in `furiosa_opt_std::prelude::f8e4m3`
+...
+25 | ...t.topology()).unwrap();check!(device,H,L,7680,debug_up_quant);check!(device,L,H,1920,debug_down_quant);}
+   |                           -------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `check` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `to_bits` found for reference `&&furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_seed_quant.rs:21:313
+   |
+21 | ...cted[i%expected.len()].to_bits()).count();println!("seed_quant axis={} kind={name} checked={} bitdiff={diff}",stringify!($axis),actual.len());for(i,v)in actual.iter().enumerate().filter(|(i,v)|v.to_bits()!...
+   |                                                                                                                                                                                                       ^^^^^^^ method not found in `&&furiosa_opt_std::prelude::f8e4m3`
+...
+25 | ...();check!(device,H,L,7680,debug_up_quant);check!(device,L,H,1920,debug_down_quant);}
+   |       -------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `check` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `to_bits` found for struct `furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_seed_quant.rs:21:351
+   |
+21 | ...cted[i%expected.len()].to_bits()).count();println!("seed_quant axis={} kind={name} checked={} bitdiff={diff}",stringify!($axis),actual.len());for(i,v)in actual.iter().enumerate().filter(|(i,v)|v.to_bits()!=expected[i%expected.len()].to_bits())...
+   |                                                                                                                                                                                                                                             ^^^^^^^ method not found in `furiosa_opt_std::prelude::f8e4m3`
+...
+25 | ...();check!(device,H,L,7680,debug_up_quant);check!(device,L,H,1920,debug_down_quant);}
+   |       -------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `check` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `to_bits` found for reference `&&furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_seed_quant.rs:21:103
+   |
+21 | ...|v.to_bits()!=expected[i%expected.len()].to_bits()).count();println!("seed_quant axis={} kind={name} checked={} bitdiff={diff}",s...
+   |       ^^^^^^^ method not found in `&&furiosa_opt_std::prelude::f8e4m3`
+...
+25 | ...topology()).unwrap();check!(device,H,L,7680,debug_up_quant);check!(device,L,H,1920,debug_down_quant);}
+   |                                                                ---------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `check` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `to_bits` found for struct `furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_seed_quant.rs:21:141
+   |
+21 | ...ted[i%expected.len()].to_bits()).count();println!("seed_quant axis={} kind={name} checked={} bitdiff={diff}",stringify!($axis),ac...
+   |                          ^^^^^^^ method not found in `furiosa_opt_std::prelude::f8e4m3`
+...
+25 | ...);check!(device,H,L,7680,debug_up_quant);check!(device,L,H,1920,debug_down_quant);}
+   |                                             ---------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `check` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `to_bits` found for reference `&&furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_seed_quant.rs:21:313
+   |
+21 | ...();println!("seed_quant axis={} kind={name} checked={} bitdiff={diff}",stringify!($axis),actual.len());for(i,v)in actual.iter().enumerate().filter(|(i,v)|v.to_bits()!...
+   |                                                                                                                                                                ^^^^^^^ method not found in `&&furiosa_opt_std::prelude::f8e4m3`
+...
+25 | ...t);check!(device,L,H,1920,debug_down_quant);}
+   |       ---------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `check` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `to_bits` found for struct `furiosa_opt_std::prelude::f8e4m3` in the current scope
+  --> src/bin/test_r64_seed_quant.rs:21:351
+   |
+21 | ...();println!("seed_quant axis={} kind={name} checked={} bitdiff={diff}",stringify!($axis),actual.len());for(i,v)in actual.iter().enumerate().filter(|(i,v)|v.to_bits()!=expected[i%expected.len()].to_bits())...
+   |                                                                                                                                                                                                      ^^^^^^^ method not found in `furiosa_opt_std::prelude::f8e4m3`
+...
+25 | ...t);check!(device,L,H,1920,debug_down_quant);}
+   |       ---------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `check` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `furiosa-opt-gemma4` (bin "test_r64_seed_quant") due to 8 previous errors
