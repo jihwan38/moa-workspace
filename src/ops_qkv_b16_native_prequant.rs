@@ -99,8 +99,8 @@ fn finish_sliding_kv(
     let result: DmTensor<bf16, Chip, Cluster, PsRows, m![B % 8, Ps % 32]> = device
         .main
         .begin(result.view())
-        .fetch::<m![B / 8 % 1, Ps % 32], m![B % 8]>()
-        .collect::<m![B / 8 % 1, Ps % 32], m![B % 8]>()
+        .fetch::<m![B / 8 % 1, Ps % 32], m![B % 8 # 16]>()
+        .collect::<m![B / 8 % 1, Ps % 32], m![B % 8 # 16]>()
         .transpose::<m![B / 8 % 1, Ps / 4 % 8, B % 8], m![Ps%4#16]>()
         .commit_trim::<m![Ps % 4]>()
         .commit();
@@ -218,8 +218,8 @@ fn finish_full_query(
     let result: DmTensor<bf16, Chip, Cluster, QfRows, m![B % 8, Qf % 128]> = device
         .main
         .begin(result.view())
-        .fetch::<m![B / 8 % 1, Qf % 128], m![B % 8]>()
-        .collect::<m![B / 8 % 1, Qf % 128], m![B % 8]>()
+        .fetch::<m![B / 8 % 1, Qf % 128], m![B % 8 # 16]>()
+        .collect::<m![B / 8 % 1, Qf % 128], m![B % 8 # 16]>()
         .transpose::<m![B / 8 % 1, Qf / 4 % 32, B % 8], m![Qf%4#16]>()
         .commit_trim::<m![Qf % 4]>()
         .commit();
@@ -337,8 +337,8 @@ fn finish_full_key(
     let result: DmTensor<bf16, Chip, Cluster, PfRows, m![B % 8, Pf % 8]> = device
         .main
         .begin(result.view())
-        .fetch::<m![B / 8 % 1, Pf % 8], m![B % 8]>()
-        .collect::<m![B / 8 % 1, Pf % 8], m![B % 8]>()
+        .fetch::<m![B / 8 % 1, Pf % 8], m![B % 8 # 16]>()
+        .collect::<m![B / 8 % 1, Pf % 8], m![B % 8 # 16]>()
         .transpose::<m![B / 8 % 1, Pf / 4 % 2, B % 8], m![Pf%4#16]>()
         .commit_trim::<m![Pf % 4]>()
         .commit();

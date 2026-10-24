@@ -164,8 +164,8 @@ fn finish_query(
     let result: DmTensor<bf16, Chip, Cluster, Rows, m![B % 8, Qs % 64]> = device
         .main
         .begin(result.view())
-        .fetch::<m![B / 8 % 1, Qs % 64], m![B % 8]>()
-        .collect::<m![B / 8 % 1, Qs % 64], m![B % 8]>()
+        .fetch::<m![B / 8 % 1, Qs % 64], m![B % 8 # 16]>()
+        .collect::<m![B / 8 % 1, Qs % 64], m![B % 8 # 16]>()
         .transpose::<m![B / 8 % 1, Qs / 4 % 16, B % 8], m![Qs%4#16]>()
         .commit_trim::<m![Qs % 4]>()
         .commit();
