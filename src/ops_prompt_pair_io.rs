@@ -5,7 +5,7 @@ use crate::{
 };
 use furiosa_opt_std::prelude::*;
 type Cluster = m![1#2];
-type Shards = m![H / 32];
+type Shards = m![H / 32 # 256];
 fn store(
     device: &mut Device,
     source: &HbmTensor<bf16, Chip, m![P128, H]>,
