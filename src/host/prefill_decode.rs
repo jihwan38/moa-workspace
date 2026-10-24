@@ -131,7 +131,7 @@ impl Prefill {
         profile_mark = std::time::Instant::now();
         if sequences.iter().any(|s| s.inputs[0].logits) {
             launch(
-                ep::rmsnorm_b16,
+                crate::ops_norm_batch::rmsnorm_b16,
                 (device, &self.x, &weights.final_norm, &mut self.norm),
             )
             .await?;
@@ -178,7 +178,7 @@ impl Prefill {
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         launch(
-            ep::rmsnorm_b16,
+            crate::ops_norm_batch::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
         )
         .await?;
@@ -270,7 +270,7 @@ impl Prefill {
         .await?;
         self.record_profile("sliding.output", &mut profile_mark);
         launch(
-            ep::post_attention_b16,
+            crate::ops_norm_batch::post_attention_b16,
             (
                 device,
                 &self.projected,
@@ -302,7 +302,7 @@ impl Prefill {
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         launch(
-            ep::rmsnorm_b16,
+            crate::ops_norm_batch::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
         )
         .await?;
@@ -416,7 +416,7 @@ impl Prefill {
         .await?;
         self.record_profile("full.output", &mut profile_mark);
         launch(
-            ep::post_attention_b16,
+            crate::ops_norm_batch::post_attention_b16,
             (
                 device,
                 &self.projected,
