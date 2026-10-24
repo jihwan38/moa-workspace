@@ -9,3 +9,7 @@ Planned host phase ordering per layer: each request independently computes atten
 Initial device build46e9f0e rejected120 physical slices against the fixed256-slice device config. The repair pads the120 live H/32 shards to256 physical slices; payload addresses and half offsets remain unchanged.
 
 Second compiler stage rejected padded120-way DMA partitioning because its lowerer rounded to128 physical partitions. The revised transfer uses32 live H/120 partitions with an explicit eight-way padded physical axis, matching established DMA layouts. No arithmetic or addressing changes.
+
+Actual I/O proof317989/r232 passed all983,040 BF16 payloads with swapped halves. Warm pack121.548us plus unpack122.729us costs244.277us/layer. Against the measured450us FFN saving, the optimistic net is about206us/layer (~9.9ms per48-layer pair), before host overhead. The newer standalone P128 H-local FFN (.947ms each) would erase this gain if adopted alone; this pair diagnostic deliberately retains the prior P128 baseline for an internally consistent comparison. Production pair dispatch remains disabled.
+
+The model exposes explicit start_prefill_pair/advance_prefill_pair APIs, with two persistent WidePrefill states and an allocation guard covering both sets of KV blocks. Existing single-request advance_layer still executes its full FFN. The paired probe compares against two original P128 native forwards at independent page/ring boundaries; optional same-R64 decode interleaves every layer. Sixteen host tests pass after factoring.

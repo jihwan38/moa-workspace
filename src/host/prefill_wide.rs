@@ -4,6 +4,9 @@ use super::*;
 use crate::ops_sliding_wide::Pk128;
 use crate::{ops_batch_kpart as linear, ops_prefill_tiles as tiles};
 
+#[path = "prefill_pair.rs"]
+pub(crate) mod pair;
+
 pub(crate) struct WidePrefill {
     x: HbmTensor<bf16, Chip, m![P128, H]>,
     norm: HbmTensor<bf16, Chip, m![P128, H]>,
@@ -279,11 +282,11 @@ impl WidePrefill {
             .ok_or("prefill layers already complete")?;
         match layer {
             Layer::Sliding(layer) => {
-                self.sliding(device, ws, index, layer, state, &state.segments, scratch)
+                self.sliding(device, ws, index, layer, state, &state.segments, scratch, true)
                     .await?
             }
             Layer::Full(layer) => {
-                self.full(device, ws, index, layer, state, &state.segments, scratch)
+                self.full(device, ws, index, layer, state, &state.segments, scratch, true)
                     .await?
             }
         }
@@ -429,6 +432,7 @@ impl WidePrefill {
         state: &PreparedWide,
         segments: &[Segment],
         scratch: &mut Prefill,
+        include_ffn: bool,
     ) -> Result<()> {
         let mut mark = std::time::Instant::now();
         self.normalize(device, &layer.input_norm, scratch).await?;
@@ -648,15 +652,17 @@ impl WidePrefill {
         self.post_attention(device, &layer.post_attention_norm, scratch)
             .await?;
         scratch.record_profile("wide.sliding.post_attention", &mut mark);
-        self.ffn(
-            device,
-            &layer.mlp,
-            &layer.pre_feedforward_norm,
-            &layer.post_feedforward_norm,
-            &layer.layer_scalar,
-            scratch,
-        )
-        .await
+        if include_ffn {
+            self.ffn(
+                device,
+                &layer.mlp,
+                &layer.pre_feedforward_norm,
+                &layer.post_feedforward_norm,
+                &layer.layer_scalar,
+                scratch,
+            ).await?;
+        }
+        Ok(())
     }
     async fn full(
         &mut self,
@@ -667,6 +673,7 @@ impl WidePrefill {
         state: &PreparedWide,
         segments: &[Segment],
         scratch: &mut Prefill,
+        include_ffn: bool,
     ) -> Result<()> {
         let mut mark = std::time::Instant::now();
         self.normalize(device, &layer.input_norm, scratch).await?;
@@ -923,14 +930,16 @@ impl WidePrefill {
         self.post_attention(device, &layer.post_attention_norm, scratch)
             .await?;
         scratch.record_profile("wide.full.post_attention", &mut mark);
-        self.ffn(
-            device,
-            &layer.mlp,
-            &layer.pre_feedforward_norm,
-            &layer.post_feedforward_norm,
-            &layer.layer_scalar,
-            scratch,
-        )
-        .await
+        if include_ffn {
+            self.ffn(
+                device,
+                &layer.mlp,
+                &layer.pre_feedforward_norm,
+                &layer.post_feedforward_norm,
+                &layer.layer_scalar,
+                scratch,
+            ).await?;
+        }
+        Ok(())
     }
 }

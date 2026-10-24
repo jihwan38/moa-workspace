@@ -5,6 +5,7 @@ use crate::{Chip, axes::W};
 use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
+use super::prefill::wide::pair::{PairPrefill, PreparedPair};
 use super::prefill::{
     Prefill, PreparedNarrow,
     wide::{PreparedWide, WidePrefill},
@@ -36,6 +37,8 @@ pub struct Model {
     prefill: Prefill,
     decode64: Option<super::decode_r64::Decode64>,
     wide: WidePrefill,
+    pair: Option<PairPrefill>,
+    active_pair: Option<PreparedPair>,
     active_prefill: Option<ActivePrefill>,
     logits: Vec<Logits>,
 }
@@ -113,6 +116,8 @@ impl Model {
                 None
             },
             wide: WidePrefill::new(device).await?,
+            pair: None,
+            active_pair: None,
             active_prefill: None,
             logits,
         })
@@ -123,6 +128,93 @@ impl Model {
         self.active_prefill
             .as_ref()
             .map(|state| state.blocks().sliding)
+            .or_else(|| {
+                self.active_pair
+                    .as_ref()
+                    .map(|state| state.blocks()[0].sliding)
+            })
+    }
+
+    /// Every request allocation held by an active prompt scheduling quantum.
+    pub fn active_prefill_rings(&self) -> Vec<usize> {
+        self.active_allocations()
+            .into_iter()
+            .map(|b| b.sliding)
+            .collect()
+    }
+    fn active_allocations(&self) -> Vec<&Blocks> {
+        let mut blocks = Vec::new();
+        if let Some(active) = &self.active_prefill {
+            blocks.push(active.blocks());
+        }
+        if let Some(active) = &self.active_pair {
+            blocks.extend(active.blocks());
+        }
+        blocks
+    }
+    /// Diagnostic candidate: two distinct full P128 chunks share a P256 FFN pass.
+    /// Keep both reservations until advance_prefill_pair returns two final outputs.
+    pub async fn start_prefill_pair(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() {
+            return Err("another prefill is in progress".into());
+        }
+        if !workspace.is_canonical() || !PairPrefill::supports(sequences) {
+            return Err("paired prefill needs canonical independent128-token chunks".into());
+        }
+        for sequence in sequences {
+            validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+            validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
+        }
+        if self.pair.is_none() {
+            self.pair = Some(PairPrefill::new(device).await?);
+        }
+        self.active_pair = Some(
+            self.pair
+                .as_mut()
+                .unwrap()
+                .prepare(device, &self.weights, sequences, &mut self.prefill)
+                .await?,
+        );
+        Ok(())
+    }
+    pub async fn advance_prefill_pair(
+        &mut self,
+        device: &mut Device,
+        workspace: &mut Workspace,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        let state = self
+            .active_pair
+            .as_mut()
+            .ok_or("no paired prefill is active")?;
+        let pair = self.pair.as_mut().ok_or("paired scratch is missing")?;
+        if !pair
+            .advance_layer(device, &self.weights, state, workspace, &mut self.prefill)
+            .await?
+        {
+            return Ok(None);
+        }
+        for row in 0..2 {
+            std::mem::swap(&mut self.logits[row], &mut workspace.logits);
+            let result = pair
+                .finish(
+                    row,
+                    device,
+                    &self.weights,
+                    state,
+                    workspace,
+                    &mut self.prefill,
+                )
+                .await;
+            std::mem::swap(&mut self.logits[row], &mut workspace.logits);
+            result?;
+        }
+        self.active_pair = None;
+        Ok(Some(&self.logits[..2]))
     }
 
     /// Prepare one request's embeddings and masks without advancing Generation.
@@ -135,7 +227,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if self.active_prefill.is_some() {
+        if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
         validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
@@ -309,16 +401,17 @@ impl Model {
             validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
             validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
         }
-        if let Some(active) = &self.active_prefill {
+        let active = self.active_allocations();
+        if !active.is_empty() {
             for sequence in sequences {
-                if active.blocks().sliding == sequence.blocks.sliding
-                    || active
-                        .blocks()
-                        .full
-                        .iter()
-                        .any(|page| sequence.blocks.full.contains(page))
-                {
-                    return Err("request aliases the active prefill KV allocation".into());
+                if active.iter().any(|blocks| {
+                    blocks.sliding == sequence.blocks.sliding
+                        || blocks
+                            .full
+                            .iter()
+                            .any(|page| sequence.blocks.full.contains(page))
+                }) {
+                    return Err("request aliases an active prefill KV allocation".into());
                 }
                 if dispatch.use_wide(sequence)
                     || (dispatch != Dispatch::Serial && Prefill::supports(sequence))

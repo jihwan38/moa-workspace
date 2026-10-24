@@ -121,3 +121,6 @@ pub mod ops_commit_wide_pool;
 pub mod ops_r64_io_bandoutput;
 
 pub mod ops_prompt_pair_io;
+
+pub mod ops_native_fp8_p256;
+pub mod ops_geglu_direct_p256;
