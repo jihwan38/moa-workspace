@@ -8,8 +8,8 @@ type KvHeadsAcrossSlices = m![1 # 32, Ns];
 
 pub(crate) fn apply_rope(
     device: &mut Device,
-    q: &DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]>,
-    k: &DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]>,
+    q: &DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Gs, Ds]>,
+    k: &DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Ds]>,
     rope_offset: &HbmTensor<i32, Chip, m![1]>,
     cos: &HbmTensor<bf16, Chip, m![E, Ds]>,
     sin: &HbmTensor<bf16, Chip, m![E, Ds]>,
@@ -44,48 +44,6 @@ pub(crate) fn apply_rope(
         .fetch_cast::<f32>()
         .collect::<m![Ds / 8], m![Ds % 8]>()
         .to_vrf();
-
-    let q: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![1 # 8, Gs, Ds]> = device
-        .main
-        .begin(q.view())
-        .fetch::<m![Ns], m![Gs, Ds]>()
-        .switch::<KvHeadsAcrossSlices, m![1 # 8]>(SwitchConfig::InterTranspose {
-            slice1: 8,
-            slice0: 1,
-            time0: 1,
-        })
-        .collect::<m![1 # 8, Gs, Ds / 16], m![Ds % 16]>()
-        .commit_trim::<m![Ds % 16]>()
-        .commit();
-
-    let k: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![1 # 8, Ds]> = device
-        .main
-        .begin(k.view())
-        .fetch::<m![Ns], m![Ds]>()
-        .switch::<KvHeadsAcrossSlices, m![1 # 8]>(SwitchConfig::InterTranspose {
-            slice1: 8,
-            slice0: 1,
-            time0: 1,
-        })
-        .collect::<m![1 # 8, Ds / 16], m![Ds % 16]>()
-        .commit_trim::<m![Ds % 16]>()
-        .commit();
-
-    let q: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Gs, Ds]> = device
-        .main
-        .begin(q.view())
-        .fetch::<m![1], m![Gs, Ds]>()
-        .collect::<m![Gs, Ds / 16], m![Ds % 16]>()
-        .commit_trim::<m![Ds % 16]>()
-        .commit();
-
-    let k: DmTensor<bf16, Chip, Cluster, KvHeadsAcrossSlices, m![Ds]> = device
-        .main
-        .begin(k.view())
-        .fetch::<m![1], m![Ds]>()
-        .collect::<m![Ds / 16], m![Ds % 16]>()
-        .commit_trim::<m![Ds % 16]>()
-        .commit();
 
     let first_half_q = q.view().tile::<m![Ds], 128, m![Gs, Ds = 128 # 256]>(0);
     let second_half_q = q.view().tile::<m![Ds], 128, m![Gs, Ds = 128 # 256]>(128);

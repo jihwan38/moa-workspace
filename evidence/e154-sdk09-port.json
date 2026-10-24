@@ -1,0 +1,109 @@
+{
+  "candidate": "stage2-e154-sdk09-port",
+  "starting_commit": "8faa2422caa34c5742b89043b42d8d2ebf0c5b5c",
+  "source_origin": {
+    "repository": "jihwan38/moa-workspace",
+    "tag": "baseline-e154",
+    "commit": "3f384063f5231e00ad286f365209806e5043fc83"
+  },
+  "comparison_control": "8faa2422caa34c5742b89043b42d8d2ebf0c5b5c",
+  "scope": "Port the adopted E154 single-token QKV/O/FFN combination onto the official Stage 2 SDK 0.9.0 baseline. Preserve its current host, API, per-request KV selection and public device signatures. This is a migrated whole-server control, not a new optimization family.",
+  "execution_change": "Retain E154 native QKV/O, sharded normalization, direct full30 FP4 up/gate/F32 partials and weighted native down. Preserve the original added transfers, scale work and term/reduction arithmetic. Replace only removed SDK gather/scatter syntax with the official 0.9.0 equivalent.",
+  "expected_cost": "Historical kernel gains are hypotheses for this new compiler/server. No E2E throughput or accuracy claim before NPU validation.",
+  "checks": [
+    "Public device signatures equal official 0.9.0",
+    "Non-target ops functions equal official 0.9.0",
+    "Host/API/KV code unchanged",
+    "Five unchanged-upstream helper files equal E154 byte-for-byte",
+    "Changed rope gather and QKV scatter preserve byte offsets and dimensions",
+    "Build complete server with SDK 0.9.0"
+  ],
+  "next_decision": "After compilation root coordinates original Stage 2 public accuracy and mixed-performance tests. Fix a specific source/compiler compatibility error if understood; do not claim hardware correctness from compilation.",
+  "files": {
+    "src/device/shared/mlp.rs": {
+      "upstream_sha256": "72cabc7a1b66bce7d64e329b4b597c0dc2a3dac88a7ae75a60a20364051062cc",
+      "e154_sha256": "838bc4018756ac2096012ccc407fc97294029d9a642dcfa64a77ebbeaf234256",
+      "ported_sha256": "838bc4018756ac2096012ccc407fc97294029d9a642dcfa64a77ebbeaf234256"
+    },
+    "src/device/shared/residual.rs": {
+      "upstream_sha256": "9f765da42c5981d22be72a700d17d328091a7953a7789cd58c02b741ec1efaea",
+      "e154_sha256": "deb29e529440170c97bdd65788ab2d11907e240dba8e7a5c7a2eb68e641eac3e",
+      "ported_sha256": "deb29e529440170c97bdd65788ab2d11907e240dba8e7a5c7a2eb68e641eac3e"
+    },
+    "src/device/shared/rmsnorm.rs": {
+      "upstream_sha256": "8a4f3d4410a656b725f573050ae93d9964c0c928aa264dbffa9328203fc44f3e",
+      "e154_sha256": "e2aa2efffd7cd6e257772c679b8655f42041963ed568688693842a466546bfc2",
+      "ported_sha256": "e2aa2efffd7cd6e257772c679b8655f42041963ed568688693842a466546bfc2"
+    },
+    "src/device/sliding/projection.rs": {
+      "upstream_sha256": "7d55898842b45f42ede939730c15a2bc3d860471481d9b2645b5d9ff06dd8969",
+      "e154_sha256": "e21e207081935b441530e78c56ffbc1731f484c68844fc692ee283815a82f3cd",
+      "ported_sha256": "e21e207081935b441530e78c56ffbc1731f484c68844fc692ee283815a82f3cd"
+    },
+    "src/device/sliding/rmsnorm.rs": {
+      "upstream_sha256": "7ae1bd9751469667e76698beafb71afc6822d95465067b59cb6cbfe0f31b9095",
+      "e154_sha256": "48bce532c0e9c0e39d6f17a6c38b78e34bfb5a00691291849e460b7a9044281f",
+      "ported_sha256": "48bce532c0e9c0e39d6f17a6c38b78e34bfb5a00691291849e460b7a9044281f"
+    },
+    "src/device/sliding/rope.rs": {
+      "upstream_sha256": "584a39e9c6ca4bba00952a4d9f20a5c1280c7b84cc5e3f79d3d5fc66a61c740d",
+      "e154_sha256": "cc23ad726baf191184b8b0ff000516cf38148e04c05b74925ec8a966e80b3c93",
+      "ported_sha256": "dd63f81bf72303ef040d01abf2f578f90bb44c2e75f69daa0ac14d5bc5dcac28"
+    },
+    "src/ops.rs": {
+      "upstream_sha256": "1b809f48b5e49c2a84ce81a86b60085e069d9d0eaece1df47423c435686b77f6",
+      "e154_sha256": "59a4ab6414d362876255caa8f332a01a567efd5ded0afa2d43da7ffe34e3c61e",
+      "ported_sha256": "02dc92eb8983dbbae82d891ed46bdcf189fa4c5a8faf328f4a947e561940c9d2"
+    }
+  },
+  "port_written": true,
+  "source_validation": {
+    "public_device_signatures_unchanged": 10,
+    "non_target_device_functions_unchanged": 7,
+    "target_device_bodies_match_e154_except_sdk_migration": [
+      "decoder_feedforward",
+      "sliding_attention_output",
+      "sliding_project_qkv"
+    ],
+    "five_helper_files_byte_identical_to_e154": true,
+    "rope_matches_e154_except_sdk_gather_migration": true,
+    "changed_tracked_paths_exactly_seven": true,
+    "api_host_kv_interfaces_unmodified": true,
+    "old_gather_scatter_calls_absent": true,
+    "all_e154_sources_match_frozen_tag": true
+  },
+  "server_build": {
+    "command": [
+      "docker",
+      "exec",
+      "-w",
+      "/round2/e154-port",
+      "moa2026-round2",
+      "env",
+      "CARGO_BUILD_JOBS=4",
+      "cargo",
+      "furiosa-opt",
+      "build",
+      "--release",
+      "--bin",
+      "server"
+    ],
+    "started_at": "2026-10-24T19:06:00.189775+00:00",
+    "ended_at": "2026-10-24T19:08:20.162971+00:00",
+    "exit_code": 0,
+    "log": "evidence/e154-sdk09-server-build.log",
+    "log_sha256": "6f109d973de614cb8909b3b736aabb9ba16c4cc8ad335ad1587a7b0e61f61849",
+    "binary_sha256": "4e460d2cc545b156437761d5ced89cf7a38a16e4289a821f267798d0ea1150dd",
+    "binary_bytes": 12906016,
+    "cargo_lock_snapshot": "evidence/e154-sdk09-Cargo.lock",
+    "cargo_lock_sha256": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "cargo_furiosa_opt_version": "0.9.0",
+    "rustc_version": "1.97.0-nightly (f53b654a8 2026-04-30)",
+    "compiled_device_functions": 14,
+    "warnings": "7 existing E154 unused import/helper warnings; no compiler errors."
+  },
+  "hardware_validation": {
+    "executed": false,
+    "reason": "Root coordinates NPU jobs and official submissions. Compilation/source checks do not establish E2E accuracy or performance."
+  }
+}
