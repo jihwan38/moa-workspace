@@ -1,0 +1,309 @@
+{
+  "job": 318177,
+  "source": "48d4ea7",
+  "binary_sha256": "cf334fcbdf4ec27d9517672290b9b24e94e1b6361d3346cbd6d321125742141e",
+  "log": "/home/jihwan38/moa-worktrees/round2/runs/r349-fp8-kv-oracle-submit/arena.log",
+  "result": "Numerical reconstruction gates PASS; performance REJECT. No production adoption.",
+  "correctness": {
+    "device_quantized_values": 8388608,
+    "dequantized_BF16_attention_values": 1048576,
+    "bit_differences": 0,
+    "cpu_explicit_boundary_values": 8448,
+    "cpu_bit_differences": 1,
+    "cpu_max_abs": 2.9802322387695312e-08,
+    "future_poison_and_sparse_64_7_64": "PASS"
+  },
+  "microseconds": {
+    "BF16": [
+      741.222,
+      731.782,
+      708.781,
+      728.413
+    ],
+    "E4": [
+      830.744,
+      802.912,
+      827.234,
+      803.912
+    ]
+  },
+  "trace": {
+    "BF16": {
+      "0": {
+        "Cluster": {
+          "count": 25,
+          "sum_cycles": 49581,
+          "max_cycles": 3096
+        },
+        "DMA": {
+          "count": 80,
+          "sum_cycles": 1139808,
+          "max_cycles": 58051
+        },
+        "Renegade::StoVrf": {
+          "count": 32,
+          "sum_cycles": 32514,
+          "max_cycles": 1662
+        },
+        "Renegade::TuExec": {
+          "count": 112,
+          "sum_cycles": 495231,
+          "max_cycles": 16953
+        },
+        "Task": {
+          "count": 1,
+          "sum_cycles": 1395682,
+          "max_cycles": 1395682
+        }
+      },
+      "1": {
+        "Cluster": {
+          "count": 25,
+          "sum_cycles": 47440,
+          "max_cycles": 3190
+        },
+        "DMA": {
+          "count": 80,
+          "sum_cycles": 1139581,
+          "max_cycles": 58708
+        },
+        "Renegade::StoVrf": {
+          "count": 32,
+          "sum_cycles": 32317,
+          "max_cycles": 1659
+        },
+        "Renegade::TuExec": {
+          "count": 112,
+          "sum_cycles": 494842,
+          "max_cycles": 16951
+        },
+        "Task": {
+          "count": 1,
+          "sum_cycles": 1393704,
+          "max_cycles": 1393704
+        }
+      }
+    },
+    "E4": {
+      "0": {
+        "Cluster": {
+          "count": 33,
+          "sum_cycles": 69436,
+          "max_cycles": 6087
+        },
+        "DMA": {
+          "count": 128,
+          "sum_cycles": 1983163,
+          "max_cycles": 58081
+        },
+        "Renegade::StoTab": {
+          "count": 16,
+          "sum_cycles": 88480,
+          "max_cycles": 5680
+        },
+        "Renegade::StoVrf": {
+          "count": 48,
+          "sum_cycles": 61334,
+          "max_cycles": 2298
+        },
+        "Renegade::TuExec": {
+          "count": 128,
+          "sum_cycles": 812794,
+          "max_cycles": 22287
+        },
+        "Task": {
+          "count": 1,
+          "sum_cycles": 1597306,
+          "max_cycles": 1597306
+        }
+      },
+      "1": {
+        "Cluster": {
+          "count": 33,
+          "sum_cycles": 64811,
+          "max_cycles": 6238
+        },
+        "DMA": {
+          "count": 128,
+          "sum_cycles": 1986302,
+          "max_cycles": 57460
+        },
+        "Renegade::StoTab": {
+          "count": 16,
+          "sum_cycles": 88424,
+          "max_cycles": 5676
+        },
+        "Renegade::StoVrf": {
+          "count": 48,
+          "sum_cycles": 61331,
+          "max_cycles": 2298
+        },
+        "Renegade::TuExec": {
+          "count": 128,
+          "sum_cycles": 811966,
+          "max_cycles": 22289
+        },
+        "Task": {
+          "count": 1,
+          "sum_cycles": 1594943,
+          "max_cycles": 1594943
+        }
+      }
+    }
+  },
+  "compiler_gather_attribution": [
+    {
+      "key": "@0.45",
+      "source": "--> src/ops_request_sliding_r64_fp8.rs:225:87\n\nscale_v\n.gather::<m![Rc64], m![Ts, Ns, Scale8]>()\n.by_byte_offsets(&scale_index)\n.to_dm(&mut device.tdma)",
+      "properties": {
+        "name": "",
+        "operation_context": "TensorDma([CompletionId(1), CompletionId(2)])",
+        "lir_instruction_index": "0.29",
+        "lir_lifetime": "[2797, 20199)",
+        "begin_profile_id": "Some((62, trace))",
+        "end_profile_id": "Some((63, trace))"
+      },
+      "first_iteration_estimate": {
+        "lifetime": {
+          "begin": 4955,
+          "end": 22357
+        },
+        "iteration_index": [
+          0
+        ],
+        "resources": [
+          "DmaEngine"
+        ],
+        "util": {
+          "total_util": 0.08866797,
+          "base_util": 0.08866797,
+          "efficiency": 1.0
+        }
+      },
+      "output": {
+        "properties": {
+          "name": "",
+          "buffer_type": "sram",
+          "shape": "",
+          "element_type": "f32",
+          "size": "2097152"
+        }
+      }
+    },
+    {
+      "key": "@0.56",
+      "source": "--> src/ops_request_sliding_r64_fp8.rs:175:87\n\nscale_k\n.gather::<m![Rc64], m![Ts, Ns, Scale8]>()\n.by_byte_offsets(&scale_index)\n.to_dm(&mut device.tdma)",
+      "properties": {
+        "name": "",
+        "operation_context": "TensorDma([CompletionId(0), CompletionId(1)])",
+        "lir_instruction_index": "0.34",
+        "lir_lifetime": "[20954, 38356)",
+        "begin_profile_id": "Some((76, trace))",
+        "end_profile_id": "Some((77, trace))"
+      },
+      "first_iteration_estimate": {
+        "lifetime": {
+          "begin": 23112,
+          "end": 40514
+        },
+        "iteration_index": [
+          0
+        ],
+        "resources": [
+          "DmaEngine"
+        ],
+        "util": {
+          "total_util": 0.08866797,
+          "base_util": 0.08866797,
+          "efficiency": 1.0
+        }
+      },
+      "output": {
+        "properties": {
+          "name": "",
+          "buffer_type": "sram",
+          "shape": "",
+          "element_type": "f32",
+          "size": "2097152"
+        }
+      }
+    },
+    {
+      "key": "@0.69",
+      "source": "--> src/ops_request_sliding_r64_fp8.rs:171:85\n\npool_k\n.gather::<m![Rc64], m![Ts, Ns, Ds]>()\n.by_byte_offsets(&index)\n.to_dm(&mut device.tdma)",
+      "properties": {
+        "name": "",
+        "operation_context": "TensorDma([CompletionId(2), CompletionId(3)])",
+        "lir_instruction_index": "0.39",
+        "lir_lifetime": "[38356, 53203)",
+        "begin_profile_id": "Some((84, trace))",
+        "end_profile_id": "Some((85, trace))"
+      },
+      "first_iteration_estimate": {
+        "lifetime": {
+          "begin": 40514,
+          "end": 55361
+        },
+        "iteration_index": [
+          0
+        ],
+        "resources": [
+          "DmaEngine"
+        ],
+        "util": {
+          "total_util": 0.8309423,
+          "base_util": 0.8309423,
+          "efficiency": 1.0
+        }
+      },
+      "output": {
+        "properties": {
+          "name": "",
+          "buffer_type": "sram",
+          "shape": "",
+          "element_type": "f8_e4",
+          "size": "16777216"
+        }
+      }
+    },
+    {
+      "key": "@0.84",
+      "source": "--> src/ops_request_sliding_r64_fp8.rs:221:85\n\npool_v\n.gather::<m![Rc64], m![Ts, Ns, Ds]>()\n.by_byte_offsets(&index)\n.to_dm(&mut device.tdma)",
+      "properties": {
+        "name": "",
+        "operation_context": "TensorDma([CompletionId(0), CompletionId(1)])",
+        "lir_instruction_index": "0.45",
+        "lir_lifetime": "[54041, 68888)",
+        "begin_profile_id": "Some((100, trace))",
+        "end_profile_id": "Some((101, trace))"
+      },
+      "first_iteration_estimate": {
+        "lifetime": {
+          "begin": 56205,
+          "end": 71052
+        },
+        "iteration_index": [
+          0
+        ],
+        "resources": [
+          "DmaEngine"
+        ],
+        "util": {
+          "total_util": 0.8309423,
+          "base_util": 0.8309423,
+          "efficiency": 1.0
+        }
+      },
+      "output": {
+        "properties": {
+          "name": "",
+          "buffer_type": "sram",
+          "shape": "",
+          "element_type": "f8_e4",
+          "size": "16777216"
+        }
+      }
+    }
+  ],
+  "conclusion": "New scale gathers have 8.87% estimated DMA utilization: 2MiB output costs17402 estimatedcycles versus16MiB E4 cache14847cycles at83.09%. No spill/reload operator in schedule. Additional per-group E4 tableloads and full-width vector reconstruction also addcost. Try onlyhead-major scale storage tofix small strided scale packets; data layout and math unchanged."
+}

@@ -75,3 +75,5 @@ pub mod ops_request_sliding_r64_prefix512;
 pub mod ops_request_sliding_r64_mixed512;
 
 pub mod ops_request_sliding_r64_fp8;
+
+pub mod ops_request_sliding_r64_fp8_scales;
