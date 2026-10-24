@@ -285,7 +285,7 @@ impl Prefill {
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         launch(
-            ep::rmsnorm_b16,
+            crate::ops_norm_batch::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
         )
         .await?;
@@ -376,7 +376,7 @@ impl Prefill {
         .await?;
         self.record_profile("sliding.output", &mut profile_mark);
         launch(
-            ep::post_attention_b16,
+            crate::ops_norm_batch::post_attention_b16,
             (
                 device,
                 &self.projected,
@@ -410,7 +410,7 @@ impl Prefill {
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         launch(
-            ep::rmsnorm_b16,
+            crate::ops_norm_batch::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
         )
         .await?;
@@ -507,7 +507,7 @@ impl Prefill {
         .await?;
         self.record_profile("full.output", &mut profile_mark);
         launch(
-            ep::post_attention_b16,
+            crate::ops_norm_batch::post_attention_b16,
             (
                 device,
                 &self.projected,
@@ -536,7 +536,7 @@ impl Prefill {
         gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
-        launch(ep::rmsnorm_b16, (device, &self.x, pre, &mut self.norm)).await?;
+        launch(crate::ops_norm_batch::rmsnorm_b16, (device, &self.x, pre, &mut self.norm)).await?;
         self.record_profile("ffn.pre_norm", &mut profile_mark);
         launch(
             ops_batch::batch_ffn,
@@ -558,7 +558,7 @@ impl Prefill {
         .await?;
         self.record_profile("ffn.core", &mut profile_mark);
         launch(
-            ep::post_feedforward_b16,
+            crate::ops_norm_batch::post_feedforward_b16,
             (device, &self.projected, post, gate, &mut self.x),
         )
         .await?;
