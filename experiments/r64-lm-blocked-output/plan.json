@@ -1,0 +1,10 @@
+{
+  "source_commit": "f4f1e17",
+  "control": "298e094 canonical bandoutput actual317959 exact9.85ms vs4B1613.77ms",
+  "profile": "r221 actual:65 DMA spans/cluster, alternating32 weight loads and32 canonical output stores. Output store32*~.25M cycles~8.2M,42% of19.65M task; DMA sum16.26M cycles includes overlap and is not wall time.",
+  "change": "Keep exact full-H dot, allBF16 boundaries, resident32 input/weight, and32bands. Store eachband in Wband,Rcluster,Wslice,Rlocal,Wpacket order so eachslice writes2048 contiguous bytes instead32 separate64-byte fragments. Add extraction restoring original vocabulary order for any logical row.",
+  "abi": "BlockedLogits=m![W/8192,W/32%256,R64,W%32]; row_index:i32[1] logical0..63",
+  "validation": "All16.7M blocked entries decoded onCPU vs4B16 and canonical R64; all64 extracted rows exact;512 independent F64 dot samples. ABC/CBA warm timing includes projection and separate64-row extraction. Optional profile only after correctness/timing. Root dispatch only.",
+  "retained": "Existing canonical bandoutput, embedding/extraction modules unchanged.",
+  "compile_repair": "SDK gather requires indexed R64 axis consecutive. Original Rcluster before Wslice split R64 into nonconsecutive pieces. Place Wslice before full R64; each cluster still writes32*32bf16=2048 contiguous bytes per slice, and extraction can gather logical R64 directly."
+}

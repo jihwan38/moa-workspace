@@ -81,3 +81,5 @@ pub mod ops_r64_io_streamed;
 
 pub mod ops_r64_io_switchinput;
 pub mod ops_r64_io_bandoutput;
+
+pub mod ops_r64_io_blocked;
