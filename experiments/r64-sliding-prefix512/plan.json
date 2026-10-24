@@ -1,0 +1,13 @@
+{
+  "source_commit": "03c49ce",
+  "control": "ops_request_sliding_r64::sliding_attention_r64 full1024 unchangedR8 groups",
+  "change": "New explicit prefix512 variant; existing time-major pool ABI. Read onlyfirst512K/V wheneveryactive queryposition<512/unwrapped. Keepfull1024mask/softmax/sum andoriginal32-keyBF16partials. Zero-fill omittedpartialplanes beforeoriginal32-way reduction.",
+  "mechanism": "Actualtrace largeK/Vgathers~65.7%oftaskcycles; halveKVbytes withoutquery-width orproductionpoollayoutchange. Full1024softmax retainedforarithmeticcompatibility.",
+  "precondition": "Everyactive row hasunwrapped position0..511; allmask entries>=512 are0. Otherpositionsuseoldfullring. Allinactive rowszero.",
+  "validation": "All64bitexact vsfull1024andoriginalscalar at0,31,255,510,511,1,127,256; poisonallfuturetailfinite; sparse7updates and64->7->64; warmABBA andoptionalNPUtrace. Nootherwindowsuntilmeasured512win.",
+  "compile_repairs": [
+    "HBM views have no gather; use Indexed=[Rc64,Ts/512],payload=[Ts%512,Ns,Ds] withunchangedringbasebyteoffsets.",
+    "Sparse keyplanes useTs/32%16#32; Resize notation mismatchesgatherpayload.",
+    "SDK partition-axis slice_tile andmutableviewreshape lacklowering. Zero-filledowned DM tensor is same-wire reshaped tofirst16liveBottom-paddedplanes, copied, thenreshapedbackfull32. Allphysicalsliceindices/elementstrides identical; nooffsetshift oralias."
+  ]
+}

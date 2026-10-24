@@ -1,0 +1,9 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/attention)
+   Compiling furiosa_opt_gemma4::ops_request_sliding_r64_prefix512::sliding_attention_r64
+error: furiosa-opt: furiosa_opt_gemma4::ops_request_sliding_r64_prefix512::sliding_attention_r64: mir: gather output (R64 / 4 % 2, Ns, Ts / 32 = 16 # 32, R64 % 4, Ts % 32, Ds) cannot hold payload (Ts % 512, Ns, Ds) once per entry of domain R64 % 8: a stream segment has no compatible memory to match
+   --> src/ops_request_sliding_r64_prefix512.rs:166:14
+    |
+166 |             .to_dm(&mut device.tdma);
+    |              ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `furiosa-opt-gemma4` (bin "test_request_sliding_r64_prefix512") due to 1 previous error

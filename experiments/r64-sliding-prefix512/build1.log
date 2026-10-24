@@ -1,0 +1,75 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/attention)
+error[E0599]: no method named `gather` found for struct `HbmTensorView<'l, D, Chip, Element, B>` in the current scope
+   --> src/ops_request_sliding_r64_prefix512.rs:165:14
+    |
+163 |           let k: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Ts % 32, Ds]> = pool_k
+    |                                                                                     ------
+    |                                                                                     |
+    |  ___________________________________________________________________________________method `gather` is available on `&furiosa_opt_std::prelude::HbmTensor<furiosa_opt_std::prelude::bf16, furiosa_opt_std::prelude::Broadcast<1>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<Rc64>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<axes::Ts>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<axes::Ns>, furiosa_opt_std::prelude::Symbol<axes::Ds>>>>>`
+    | |
+164 | |             .view().tile::<m![Ts],512,m![Rc64,Ts=512#1024,Ns,Ds]>(0)
+165 | |             .gather::<m![Rc64], m![Ts=512#1024, Ns, Ds]>()
+    | |             -^^^^^^ this is an associated function, not a method
+    | |_____________|
+    |
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in the trait `furiosa_opt_std::backend::Backend`
+   --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/backend/mod.rs:224:5
+    |
+224 | /     fn gather<D: MaterializableScalar, Src: M, IndexedAxis: M, Dst: M, Idx: M>(
+225 | |         src: &Self::Storage<D>,
+226 | |         dst: &mut Self::Storage<D>,
+227 | |         index: &Self::Storage<i32>,
+...   |
+231 | |         unit: IndexUnit,
+232 | |     );
+    | |______^
+    = note: the full name for the type has been written to '/round2/attention/target/release/deps/furiosa_opt_gemma4-0a1899fbc0840197.long-type-4934086851378665613.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+help: use associated function syntax instead
+    |
+163 -         let k: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Ts % 32, Ds]> = pool_k
+164 -             .view().tile::<m![Ts],512,m![Rc64,Ts=512#1024,Ns,Ds]>(0)
+165 -             .gather::<m![Rc64], m![Ts=512#1024, Ns, Ds]>()
+163 +         let k: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Ts % 32, Ds]> = HbmTensorView<'_, furiosa_opt_std::prelude::bf16, furiosa_opt_std::prelude::Broadcast<1>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<Rc64>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Padding<furiosa_opt_std::prelude::Resize<furiosa_opt_std::prelude::Symbol<axes::Ts>, furiosa_opt_std::prelude::Broadcast<512>>, furiosa_opt_std::prelude::Broadcast<1024>, Top>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<axes::Ns>, furiosa_opt_std::prelude::Symbol<axes::Ds>>>>>::gather()
+    |
+
+error[E0599]: no method named `gather` found for struct `HbmTensorView<'l, D, Chip, Element, B>` in the current scope
+   --> src/ops_request_sliding_r64_prefix512.rs:216:14
+    |
+214 |           let v: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Ts % 32, Ds]> = pool_v
+    |                                                                                     ------
+    |                                                                                     |
+    |  ___________________________________________________________________________________method `gather` is available on `&furiosa_opt_std::prelude::HbmTensor<furiosa_opt_std::prelude::bf16, furiosa_opt_std::prelude::Broadcast<1>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<Rc64>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<axes::Ts>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<axes::Ns>, furiosa_opt_std::prelude::Symbol<axes::Ds>>>>>`
+    | |
+215 | |             .view().tile::<m![Ts],512,m![Rc64,Ts=512#1024,Ns,Ds]>(0)
+216 | |             .gather::<m![Rc64], m![Ts=512#1024, Ns, Ds]>()
+    | |             -^^^^^^ this is an associated function, not a method
+    | |_____________|
+    |
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+note: the candidate is defined in the trait `furiosa_opt_std::backend::Backend`
+   --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/backend/mod.rs:224:5
+    |
+224 | /     fn gather<D: MaterializableScalar, Src: M, IndexedAxis: M, Dst: M, Idx: M>(
+225 | |         src: &Self::Storage<D>,
+226 | |         dst: &mut Self::Storage<D>,
+227 | |         index: &Self::Storage<i32>,
+...   |
+231 | |         unit: IndexUnit,
+232 | |     );
+    | |______^
+    = note: the full name for the type has been written to '/round2/attention/target/release/deps/furiosa_opt_gemma4-0a1899fbc0840197.long-type-8317736182372189531.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+help: use associated function syntax instead
+    |
+214 -         let v: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Ts % 32, Ds]> = pool_v
+215 -             .view().tile::<m![Ts],512,m![Rc64,Ts=512#1024,Ns,Ds]>(0)
+216 -             .gather::<m![Rc64], m![Ts=512#1024, Ns, Ds]>()
+214 +         let v: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Ts % 32, Ds]> = HbmTensorView<'_, furiosa_opt_std::prelude::bf16, furiosa_opt_std::prelude::Broadcast<1>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<Rc64>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Padding<furiosa_opt_std::prelude::Resize<furiosa_opt_std::prelude::Symbol<axes::Ts>, furiosa_opt_std::prelude::Broadcast<512>>, furiosa_opt_std::prelude::Broadcast<1024>, Top>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<axes::Ns>, furiosa_opt_std::prelude::Symbol<axes::Ds>>>>>::gather()
+    |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors

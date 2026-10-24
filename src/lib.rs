@@ -69,3 +69,5 @@ pub mod ops_request_sliding_r64_grouped;
 pub mod ops_request_sliding_r64_prefetch;
 
 pub mod ops_request_sliding_r64_headmajor;
+
+pub mod ops_request_sliding_r64_prefix512;
