@@ -1,0 +1,61 @@
+{
+  "candidate": "R2-P1",
+  "source_commit": "8faa2422caa34c5742b89043b42d8d2ebf0c5b5c",
+  "control": "Unmodified upstream Stage 2 server on SDK 0.9.0; E154 is a separate decode-control port",
+  "scope": "Whole prompt execution and request scheduling, followed by layer-wise batched projection and FFN integration",
+  "actual_call_path": [
+    "src/api/worker.rs constructs host::worker::Worker; src/api remains unchanged",
+    "Generation owns all prompt token IDs, per-position soft-token descriptors, and each request's image/audio data",
+    "Worker asks Generation for up to 16 consecutive prompt positions or exactly one autoregressive decode position",
+    "Worker allocates full-attention Blocks through the last position of the chunk; sliding ring remains request-owned",
+    "Model::forward_sequences computes each request's complete sequence and returns one logits buffer per request",
+    "Generation::advance_inputs advances only actually computed positions and samples only at the final prompt/decode position"
+  ],
+  "first_variant": {
+    "name": "serial-chunk-control",
+    "kernel_change": "None; sequences execute the original token-wise Model::step in position order",
+    "removed_work": "Per-position worker iteration, batch-vector construction, and admission-loop overhead within one prompt chunk",
+    "added_work": "Explicit borrowed input vectors and sequence validation",
+    "performance_claim": "None. This is a correctness-preserving integration interface, not the batched compute implementation."
+  },
+  "batched_execution_graph": [
+    "Prepare row-major bf16 activations [B=16,H=3840] from text embeddings or original per-request image/audio encoders",
+    "For each decoder layer: row-wise input RMS, joint Q/K/V projections, original head normalization and RoPE",
+    "Causal attention with request-specific positions and Blocks, then joint O projection, post-attention RMS and residual",
+    "Row-wise pre-FFN RMS, joint up/gate projection and GeGLU, joint down projection, post-FFN RMS, residual and layer gate",
+    "Repeat through all 48 layers; compute logits only for the final prompt row when requested"
+  ],
+  "ownership_and_storage": {
+    "weights": "Model-owned read-only HBM tensors shared across requests as model parameters",
+    "activations": "Bounded B16 HBM scratch; no activations or encoder outputs reused between requests",
+    "full_kv": "Workspace pool; physical page IDs from each Sequence.blocks, allocated through chunk end",
+    "sliding_kv": "One ring per active request; a later chunk row must not overwrite history needed by an earlier query",
+    "sliding_initial_fallback": "Commit row KV and evaluate that row's attention before committing the next row",
+    "sliding_batched_target": "Keep current-chunk K/V separate from the old ring, attend causally, then commit the chunk",
+    "media": "Input.soft retains exact original token index and borrows only the owning request's media"
+  },
+  "invariants": [
+    "No src/api modifications",
+    "No dependence on ignore_eos or other accuracy/performance classification",
+    "No cross-request KV or encoder-output reuse",
+    "Only final sequence input may request logits; every earlier input still updates its causal computation",
+    "Decode always consumes one previously sampled token",
+    "Full attention page and sliding ring boundaries preserve original semantics",
+    "Errors restore the workspace/logits ownership swap before propagating",
+    "Prompt chunks stop at full-cache page boundaries so every live row visits the same full-attention pages."
+  ],
+  "validation": [
+    "Host compile and sequence boundary/state tests",
+    "Serial-chunk control versus upstream outputs for text, image, and audio",
+    "Chunk lengths 1,15,16,17 and boundaries around full page 512 and sliding ring 1024",
+    "Batched projected values and final logits versus the serial control on identical inputs",
+    "Full mixed public workload TTFT, TPOT and generated tokens/s on NPU before any speed claim"
+  ],
+  "next_decision": "After the serial interface compiles, integrate one compiled batched FFN/projection primitive; a backend failure selects a concrete mapping/API repair rather than a parameter sweep. Root owns NPU jobs and official submissions.",
+  "host_alias_probe": {
+    "result": "Failed as expected from SDK mapping validation; no NPU job",
+    "expression": "HbmTensor<B,H>.view().tile::<B,1,H>(15)",
+    "error": "split produces H # 61440, requested H is an unpad, not tile",
+    "decision": "Keep explicit padded row mapping for device DMA; dense HBM host alias not available through tile alone."
+  }
+}

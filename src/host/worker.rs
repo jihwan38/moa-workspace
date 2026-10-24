@@ -3,9 +3,9 @@
 use std::sync::mpsc;
 
 use crate::api::worker::{Job, StreamEvent};
-use crate::host::generate::{Delta, Generation, read_logits};
+use crate::host::generate::{Delta, Generation, PREFILL_CHUNK, read_logits};
 use crate::host::load;
-use crate::host::model::Model;
+use crate::host::model::{Model, Sequence};
 use crate::host::runtime::{Blocks, Workspace};
 use crate::host::tokenizer::Tokenizer;
 use furiosa_opt_std::prelude::*;
@@ -53,11 +53,16 @@ impl Worker {
         let mut sessions = Vec::<Session>::new();
         let mut rings: Vec<_> = (0..CAPACITY).rev().collect();
         // Every admitted request can reach its limit without reclaiming another request's KV.
-        let mut free: Vec<_> = (0..CAPACITY * Workspace::blocks_for(CONTEXT)).rev().collect();
+        let mut free: Vec<_> = (0..CAPACITY * Workspace::blocks_for(CONTEXT))
+            .rev()
+            .collect();
         loop {
             let incoming: Vec<_> = if sessions.is_empty() {
                 let Ok(job) = jobs.recv() else { break };
-                std::iter::once(job).chain(jobs.try_iter()).take(CAPACITY).collect()
+                std::iter::once(job)
+                    .chain(jobs.try_iter())
+                    .take(CAPACITY)
+                    .collect()
             } else {
                 jobs.try_iter().take(CAPACITY - sessions.len()).collect()
             };
@@ -87,7 +92,8 @@ impl Worker {
             }
             for session in &mut sessions {
                 let (_, position) = session.generation.input();
-                while session.blocks.full.len() < Workspace::blocks_for(position + 1) {
+                let count = session.generation.input_count(PREFILL_CHUNK);
+                while session.blocks.full.len() < Workspace::blocks_for(position + count) {
                     session
                         .blocks
                         .full
@@ -96,16 +102,26 @@ impl Worker {
             }
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 self.runtime.block_on(async {
-                    let (inputs, positions): (Vec<_>, Vec<_>) =
-                        sessions.iter().map(|session| session.generation.input()).unzip();
-                    let blocks: Vec<_> = sessions.iter().map(|session| &session.blocks).collect();
+                    let chunks: Vec<_> = sessions
+                        .iter()
+                        .map(|session| session.generation.inputs(PREFILL_CHUNK))
+                        .collect();
+                    let sequences: Vec<_> = chunks
+                        .iter()
+                        .zip(&sessions)
+                        .map(|((inputs, start_position), session)| Sequence {
+                            inputs,
+                            start_position: *start_position,
+                            blocks: &session.blocks,
+                        })
+                        .collect();
                     let outputs = self
                         .model
-                        .forward(&mut self.device, &inputs, &positions, &blocks, &mut self.workspace)
+                        .forward_sequences(&mut self.device, &sequences, &mut self.workspace)
                         .await?;
                     let mut logits = Vec::with_capacity(outputs.len());
-                    for (output, session) in outputs.iter().zip(&sessions) {
-                        logits.push(if session.generation.wants_logits() {
+                    for (output, (inputs, _)) in outputs.iter().zip(&chunks) {
+                        logits.push(if inputs.last().expect("nonempty input chunk").logits {
                             read_logits(&mut self.device, output).await?
                         } else {
                             Vec::new()
@@ -129,16 +145,21 @@ impl Worker {
             };
             let mut row = 0;
             sessions.retain_mut(|session| {
-                let result = session.generation.advance(&logits[row], |delta| {
-                    !session.stream
-                        || session
-                            .events
-                            .send(match delta {
-                                Delta::Content(text) => StreamEvent::Delta(text.to_owned()),
-                                Delta::Reasoning(text) => StreamEvent::ReasoningDelta(text.to_owned()),
-                            })
-                            .is_ok()
-                });
+                let count = session.generation.input_count(PREFILL_CHUNK);
+                let result = session
+                    .generation
+                    .advance_inputs(count, &logits[row], |delta| {
+                        !session.stream
+                            || session
+                                .events
+                                .send(match delta {
+                                    Delta::Content(text) => StreamEvent::Delta(text.to_owned()),
+                                    Delta::Reasoning(text) => {
+                                        StreamEvent::ReasoningDelta(text.to_owned())
+                                    }
+                                })
+                                .is_ok()
+                    });
                 row += 1;
                 let event = match result {
                     Ok(None) => return true,

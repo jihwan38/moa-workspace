@@ -1,8 +1,8 @@
 use crate::Chip;
-use crate::axes::W;
+use crate::axes::{B, Tf, W};
 use crate::host::audio::AudioFrames;
 use crate::host::image::ImagePatches;
-use crate::host::model::{Input, Model};
+use crate::host::model::{Input, Model, Sequence};
 use crate::host::runtime::{Blocks, Workspace};
 use crate::host::sampling::{SamplingConfig, sample};
 use crate::host::tokenizer::Tokenizer;
@@ -23,6 +23,8 @@ const CHANNEL_OPEN_TEXT: &str = "<|channel>";
 const CHANNEL_CLOSE_TEXT: &str = "<channel|>";
 
 pub const DEFAULT_MAX_NEW_TOKENS: usize = 300;
+/// Prompt positions dispatched together. Generated tokens remain autoregressive.
+pub const PREFILL_CHUNK: usize = B::SIZE;
 pub const BOI_TOKEN: usize = 255999;
 pub const IMAGE_TOKEN: usize = 258880;
 pub const EOI_TOKEN: usize = 258882;
@@ -59,10 +61,14 @@ pub fn splice_multimodal_tokens(
     let image_markers = ids.iter().filter(|&&id| id == IMAGE_TOKEN).count();
     let audio_markers = ids.iter().filter(|&&id| id == AUDIO_TOKEN).count();
     if image.is_some() && image_markers != 1 {
-        return Err(format!("expected one image placeholder, found {image_markers}"));
+        return Err(format!(
+            "expected one image placeholder, found {image_markers}"
+        ));
     }
     if audio.is_some() && audio_markers != 1 {
-        return Err(format!("expected one audio placeholder, found {audio_markers}"));
+        return Err(format!(
+            "expected one audio placeholder, found {audio_markers}"
+        ));
     }
 
     let image_len = image.map_or(0, |value| value.pixels.len());
@@ -188,7 +194,12 @@ impl Generation {
         if request.prompt_ids.is_empty() {
             return Err("prompt produced no tokens".into());
         }
-        if request.prompt_ids.len().saturating_add(request.max_new_tokens) > capacity {
+        if request
+            .prompt_ids
+            .len()
+            .saturating_add(request.max_new_tokens)
+            > capacity
+        {
             return Err(format!("prompt plus generation exceeds {capacity} positions").into());
         }
         if request.prompt_ids.len() != request.soft_at.len() {
@@ -200,7 +211,13 @@ impl Generation {
             .into());
         }
         Ok(Self {
-            stream: tokenizer.decode_stream(&request.prompt_ids.iter().map(|&id| id as u32).collect::<Vec<_>>()),
+            stream: tokenizer.decode_stream(
+                &request
+                    .prompt_ids
+                    .iter()
+                    .map(|&id| id as u32)
+                    .collect::<Vec<_>>(),
+            ),
             output: GenerationOutput {
                 text: String::new(),
                 reasoning: String::new(),
@@ -247,6 +264,66 @@ impl Generation {
     /// Whether the pending input produces logits that `advance` needs.
     pub fn wants_logits(&self) -> bool {
         self.request.max_new_tokens > 0 && self.input().0.logits
+    }
+
+    /// Number of consecutive inputs available without sampling another token.
+    pub fn input_count(&self, limit: usize) -> usize {
+        assert!(limit > 0, "an input chunk must have positive capacity");
+        match self.phase {
+            Phase::Prompt(position) => limit
+                .min(self.request.prompt_ids.len() - position)
+                .min(Tf::SIZE - position % Tf::SIZE),
+            Phase::Decode(_) => 1,
+            Phase::Complete => unreachable!("completed requests have no input"),
+        }
+    }
+
+    /// Borrow the next prompt chunk, or one generated token. Media descriptors
+    /// stay attached to their original positions and are not shared across requests.
+    pub fn inputs(&self, limit: usize) -> (Vec<Input<'_>>, usize) {
+        let count = self.input_count(limit);
+        if let Phase::Prompt(position) = self.phase {
+            let inputs = (position..position + count)
+                .map(|index| Input {
+                    token: self.request.prompt_ids[index],
+                    soft: self.request.soft_at[index],
+                    logits: index + 1 == self.request.prompt_ids.len(),
+                    image: self.request.image.as_ref(),
+                    audio: self.request.audio.as_ref(),
+                })
+                .collect();
+            (inputs, position)
+        } else {
+            let (input, position) = self.input();
+            (vec![input], position)
+        }
+    }
+
+    /// Consume an actually computed chunk. Intermediate prompt rows do not sample
+    /// or emit tokens; the final prompt row and every decode row use `advance`.
+    pub fn advance_inputs(
+        &mut self,
+        count: usize,
+        logits: &[f32],
+        on_delta: impl FnMut(Delta) -> bool,
+    ) -> Result<Option<GenerationOutput>, Box<dyn std::error::Error>> {
+        if count == 0 {
+            return Err("cannot advance an empty input chunk".into());
+        }
+        match self.phase {
+            Phase::Prompt(position) => {
+                if count > self.request.prompt_ids.len() - position {
+                    return Err("input chunk exceeds the remaining prompt".into());
+                }
+                self.phase = Phase::Prompt(position + count - 1);
+            }
+            Phase::Decode(_) if count != 1 => {
+                return Err("decode needs exactly one sampled input".into());
+            }
+            Phase::Complete => return Err("generation is already complete".into()),
+            _ => {}
+        }
+        self.advance(logits, on_delta)
     }
 
     /// Consume the logits of the pending input (empty if `wants_logits` was false).
@@ -339,7 +416,8 @@ impl Generation {
                         self.emitted = cut;
                         return Ok(Some(FinishReason::Stop));
                     }
-                    let safe = self.output.text.len() - pending_stop_overlap(&self.output.text, &stops);
+                    let safe =
+                        self.output.text.len() - pending_stop_overlap(&self.output.text, &stops);
                     if safe > self.emitted {
                         let keep = on_delta(Delta::Content(&self.output.text[self.emitted..safe]));
                         self.emitted = safe;
@@ -359,7 +437,11 @@ impl Generation {
         Ok(None)
     }
 
-    fn finish(&mut self, reason: FinishReason, on_delta: &mut impl FnMut(Delta) -> bool) -> GenerationOutput {
+    fn finish(
+        &mut self,
+        reason: FinishReason,
+        on_delta: &mut impl FnMut(Delta) -> bool,
+    ) -> GenerationOutput {
         if self.emitted < self.output.text.len() {
             let _ = on_delta(Delta::Content(&self.output.text[self.emitted..]));
         }
@@ -386,22 +468,32 @@ pub async fn generate(
     let empty = request.max_new_tokens == 0;
     let mut generation = Generation::new(tokenizer, request, workspace.capacity())?;
     if empty {
-        return Ok(generation.advance(&[], &mut on_delta)?.expect("empty request finishes"));
+        return Ok(generation
+            .advance(&[], &mut on_delta)?
+            .expect("empty request finishes"));
     }
     let blocks = Blocks {
         full: (0..Workspace::blocks_for(workspace.capacity())).collect(),
         sliding: 0,
     };
     loop {
-        let wants = generation.wants_logits();
-        let (input, position) = generation.input();
-        let outputs = model.forward(device, &[input], &[position], &[&blocks], workspace).await?;
+        let (inputs, start_position) = generation.inputs(PREFILL_CHUNK);
+        let count = inputs.len();
+        let wants = inputs.last().expect("nonempty input chunk").logits;
+        let sequence = Sequence {
+            inputs: &inputs,
+            start_position,
+            blocks: &blocks,
+        };
+        let outputs = model
+            .forward_sequences(device, &[sequence], workspace)
+            .await?;
         let logits = if wants {
             read_logits(device, &outputs[0]).await?
         } else {
             Vec::new()
         };
-        if let Some(output) = generation.advance(&logits, &mut on_delta)? {
+        if let Some(output) = generation.advance_inputs(count, &logits, &mut on_delta)? {
             return Ok(output);
         }
     }
