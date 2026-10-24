@@ -564,3 +564,18 @@ explicit Switch-to-DM replication. Both up/gate reuse the same TRF. This compile
 full probe compares original control, repaired Switch-to-DM stages, and direct
 Switch-to-TRF stages on every245760 output bit, then symmetric10-batch timings.
 The routing and token temporal order still require the full numerical gate.
+
+R64 Switch-to-DM FFN929005d passed245760bits in Arena318094/r318, but reject:
+1.406–1.414ms vs.538–.541ms control. Direct partition-local bbb31da passed245760
+bits in318095/r319 but also reject:.656–.657ms vs.530–.535ms control.
+
+Next bounded mechanism is supported by root's native Qs stage measurement:
+quantization17us +HBM-fed core139us, two launches176–178us versus fused DM279us.
+Use four R64 stages: row quantize BF16[R64,H] to HBM FP8/scales; already-exact
+prequantized output-cluster up/gate+GeGLU to BF16[R64,L]; row quantize hidden to
+HBM FP8/scales; already-exact prequantized output-cluster down. This quantizes
+each row once, reads63MB FP8 matrix inputs instead126MB BF16 with repeated
+quantization, retains177MB weight reads, and adds~3.7MB standalone quantizer HBM
+IO plus two launch calls. Full probe compares two consecutive distinct input
+cases,245760 final bits each, against the frozen production control before matched
+ABBA10batches and optional physical spans. No source weight/precision changes.
