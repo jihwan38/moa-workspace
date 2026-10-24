@@ -1,0 +1,16 @@
+{
+  "source_control": "c1e0163 attention branch;B16 hiddennormaa4afda/Arena317633 exact;P128axis4470796",
+  "control": "Host runs8B16 tiles with separate input/output DMA launches for each RMSnorm or residual epilogue. Actual513token model profile reports roughly440ms in four normstage categories.",
+  "complete_change": "Direct P128 HBM kernels, clusterP128/64, slice[P128/2%32,H/480], element[P128%2,H%480]. Preserve480-element local sum,divideby3840,8-way F32interslice sum,EPS,sqrt; BF16norm before residualadd andBF16add before gate.",
+  "removed_work": "Eight host dispatch cycles and scratch tile transfers perstage; original perrow arithmetic is preserved.",
+  "added_work": "Two independent rows perphysicalPE, direct row-major P128load/store.",
+  "validation": "ActualNPU comparison against original16row batch kernels overall8tiles, independent CPUdouble RMS checks, two seeds, zero/tiny rows, signed residuals andpositive/negative gates. Record warmed kernels and relevant limits separately from modelperformance.",
+  "decision": "Root integrates only after exact NPU oracle, then measures same wholemodelprefix.",
+  "binary": "target/release/test_norm_wide",
+  "binary_sha256": "6611f9c4cbce9b3325eb201ff8736af3693dad1c63a1fd046fdf8ab3eb506977",
+  "source_sha256": {
+    "src/ops_norm_wide.rs": "436240bc48ac7bf17b3068de5df458fd89034407ab3442b9440702fe69d0eff4",
+    "src/bin/test_norm_wide.rs": "1e60fdf3a1dd22cb2080078970f6579be9696b7f1325569c4b663eb34953e696"
+  },
+  "compile_status": "Allthree P128 device functions and originalB16 controls compile. ActualNPU proof pending parent."
+}
