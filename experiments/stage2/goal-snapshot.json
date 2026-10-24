@@ -1,0 +1,121 @@
+{
+  "goal": "BEEF final top-3 in MOA2026 Stage2",
+  "status": "active",
+  "deadline_aoe": "2026-10-25T23:59:00-12:00",
+  "deadline_kst": "2026-10-26T20:59:00+09:00",
+  "started_at_utc": "2026-10-24T19:01:18Z",
+  "upstream_commit": "8faa2422caa34c5742b89043b42d8d2ebf0c5b5c",
+  "sdk": "0.9.0",
+  "historical_control": {
+    "id": "E154",
+    "commit": "3f384063f5231e00ad286f365209806e5043fc83",
+    "path": "/home/jihwan38/moa-workspace"
+  },
+  "current_valid_submission": null,
+  "official_submission_quota": {
+    "used_last_24h": 0,
+    "limit": 4
+  },
+  "latest_leaderboard": {
+    "checked_at_utc": "2026-10-24T18:56:52Z",
+    "top1_tps": 920.4217138992959,
+    "top3_tps": 782.2774590750657,
+    "beef_rank": null
+  },
+  "authentication": {
+    "github": "jihwan38 ADMIN private workspace, WRITE final repo",
+    "submitter": "BEEF Stage2 advanced, valid",
+    "arena": "jihwan38 reauthenticated"
+  },
+  "final_repository": "micro2026-moa/stage2-final-beef",
+  "attendance": "awaiting user fact",
+  "worktrees": {
+    "server": "round2/top3",
+    "e154-port": "round2/e154-port",
+    "prefill": "round2/prefill",
+    "batch-kernels": "round2/batch-kernels",
+    "attention": "round2/attention",
+    "io": "round2/batch-io"
+  },
+  "current_work": {
+    "root": "NPU E154 control, B16 embedding/LM-head, integration/submissions",
+    "e2e_evidence": "B16 causal sliding/full attention",
+    "round2_path": "explicit prompt chunks and host batched execution",
+    "batch_kernels": "B16 weight-reusing projection and FFN"
+  },
+  "verification": {
+    "e154_model_accuracy": false,
+    "mixed_workload_performance": false,
+    "official_score": false,
+    "final_top3": false
+  },
+  "completed": [
+    "Isolated round2 workspace and container SDK0.9.0",
+    "Arena reauthentication",
+    "Unmodified official whole server compiled",
+    "E154 full-server port compiled (039670f, integrated f515855)",
+    "Shared B16 axis (2f4ddcd)"
+  ],
+  "baseline_binary_sha256": "79ff994a27b5555fad4ed86f621527e446d4adf382cbed5789afe5baf2283e77",
+  "e154_port_binary_sha256": "4e460d2cc545b156437761d5ced89cf7a38a16e4289a821f267798d0ea1150dd",
+  "updated_at_utc": "2026-10-24T19:38:10.301235+00:00",
+  "public_control_accuracy": {
+    "mmlu": "2/2",
+    "vqav2": "2/2",
+    "gsm8k": "2/2",
+    "fleurs_en": "2/2",
+    "fleurs_ko": "2/2",
+    "ifeval": "pending"
+  },
+  "control_latency": {
+    "test": "256 text, C1, 2 requests, no warmup",
+    "ttft_ms": 6102.1232,
+    "tpot_ms": 30.98,
+    "generated_tps": 7.9485856,
+    "passes_4s_ttft": false,
+    "official_score": false
+  },
+  "hardware_checks": {
+    "B16_query": {
+      "job": 317587,
+      "values": 65536,
+      "bit_differences": 0
+    },
+    "B16_embedding": {
+      "job": 317593,
+      "values": 122880,
+      "bit_differences": 0
+    },
+    "B16_ffn": {
+      "job": 317596,
+      "values": 61440,
+      "bit_differences": 0,
+      "batch_warm_ms": 1.945
+    },
+    "B16_attention": {
+      "job": 317595,
+      "passed": true,
+      "future_key_invariance": "exact",
+      "is_model_accuracy": false
+    },
+    "B16_epilogues": {
+      "job": 317592,
+      "rms_max_abs": 0,
+      "partial_and_ring_KV": "exact"
+    },
+    "B16_logits": {
+      "job": 317602,
+      "values": 4194304,
+      "bit_differences": 0,
+      "warm_ms": 44.536,
+      "decision": "on-chip output transpose to remove 2-byte strided DMA"
+    }
+  },
+  "candidate": "c002-joint-transpose",
+  "next_costs": [
+    "P128 packed weight reuse across prompt rows",
+    "parallel head RMSNorm/RoPE",
+    "parallel hidden RMSNorm and epilogues",
+    "bounded mixed prompt/decode dispatch"
+  ]
+}
