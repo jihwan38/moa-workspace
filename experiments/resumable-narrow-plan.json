@@ -1,0 +1,13 @@
+{
+  "candidate": "Layer-resumable B16 prompt tails",
+  "control": "4716601 P128-resumable server with monolithic B16 tails",
+  "change": "Preallocate one additional120KiB hidden[B,H] checkpoint. PreparedNarrow owns requestBlocks, positions, RoPE/masks, valid-prefix commit metadata and layercursor. Swap x/checkpoint handles before and after a full layer; decode retains distinct x. Final logits read checkpoint directly.",
+  "invariants": [
+    "All16 hidden rows are overwritten on prepare, including padded rows",
+    "The checkpoint is not read or written by independent request decode",
+    "Layer cursor advances only after success; swap restores handles on Result errors",
+    "Only one prompt state may own shared preparation scratch; independent batched prompts are rejected until completion",
+    "Generation advances only after final layer/logits; single generated tokens remain autoregressive"
+  ],
+  "next_gate": "compare_resumable_prefill2 0 16 compares independent original scalar prompt logits, everyinterleaved decode step and subsequent pooled all-request step; then1 509 3 forpartial/fullpage boundary and1 1021 3 forringwrap"
+}

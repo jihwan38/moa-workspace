@@ -30,6 +30,22 @@ pub struct StageTiming {
     pub milliseconds: f64,
 }
 
+/// Request-owned metadata for a short prompt chunk. Hidden values are retained
+/// in Prefill::prompt_x between layers, independent of decode's x scratch.
+pub(crate) struct PreparedNarrow {
+    pub(crate) blocks: runtime::Blocks,
+    start: usize,
+    count: usize,
+    logits: bool,
+    next_layer: usize,
+    rope_s: HbmTensor<i32, Chip, m![B]>,
+    rope_f: HbmTensor<i32, Chip, m![B]>,
+    old_mask: HbmTensor<f32, Chip, m![B, Ts]>,
+    chunk_mask: HbmTensor<f32, Chip, m![B, Bk]>,
+    mask_full: HbmTensor<f32, Chip, m![B, Tf]>,
+    commits: CommitOffsets,
+}
+
 pub(crate) struct Prefill {
     profile: Option<std::collections::BTreeMap<&'static str, (usize, std::time::Duration)>>,
     logits_batch: HbmTensor<bf16, Chip, m![B, W]>,
@@ -39,6 +55,7 @@ pub(crate) struct Prefill {
     decode_attn_f: HbmTensor<bf16, Chip, m![Gf, Df]>,
 
     x: HbmTensor<bf16, Chip, m![B, H]>,
+    prompt_x: HbmTensor<bf16, Chip, m![B, H]>,
     norm: HbmTensor<bf16, Chip, m![B, H]>,
     projected: HbmTensor<bf16, Chip, m![B, H]>,
     q_raw_s: HbmTensor<bf16, Chip, m![B, Qs]>,
@@ -103,6 +120,7 @@ impl Prefill {
             decode_sum_f: zero!(f32, m![Gf]),
             decode_attn_f: zero!(bf16, m![Gf, Df]),
             x: zero!(bf16, m![B, H]),
+            prompt_x: zero!(bf16, m![B, H]),
             norm: zero!(bf16, m![B, H]),
             projected: zero!(bf16, m![B, H]),
             q_raw_s: zero!(bf16, m![B, Qs]),
@@ -133,13 +151,12 @@ impl Prefill {
             && sequence.start_position / Tf::SIZE == (sequence.start_position + n - 1) / Tf::SIZE
     }
 
-    pub(crate) async fn run(
+    pub(crate) async fn prepare(
         &mut self,
         device: &mut Device,
         weights: &Weights,
         sequence: &Sequence<'_>,
-        ws: &mut Workspace,
-    ) -> Result<()> {
+    ) -> Result<PreparedNarrow> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequence.inputs.len();
         if !Self::supports(sequence) {
@@ -216,46 +233,92 @@ impl Prefill {
             .await?;
         let commits = CommitOffsets::new(device, start, count).await?;
         self.record_profile("prepare.prompt", &mut profile_mark);
-        for (index, layer) in weights.layers.iter().enumerate() {
-            match layer {
-                Layer::Sliding(layer) => {
-                    self.sliding(
-                        device,
-                        ws,
-                        index,
-                        layer,
-                        &rope_s,
-                        &old_mask,
-                        &chunk_mask,
-                        &commits,
-                        sequence.blocks.sliding,
-                    )
-                    .await?
-                }
-                Layer::Full(layer) => {
-                    self.full(
-                        device,
-                        ws,
-                        index,
-                        layer,
-                        &rope_f,
-                        &mask_full,
-                        &commits,
-                        start / Tf::SIZE,
-                        &sequence.blocks.full,
-                    )
-                    .await?
-                }
+        std::mem::swap(&mut self.x, &mut self.prompt_x);
+        Ok(PreparedNarrow {
+            blocks: sequence.blocks.clone(),
+            start,
+            count,
+            logits: sequence.inputs.last().unwrap().logits,
+            next_layer: 0,
+            rope_s,
+            rope_f,
+            old_mask,
+            chunk_mask,
+            mask_full,
+            commits,
+        })
+    }
+
+    pub(crate) async fn advance_layer(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        state: &mut PreparedNarrow,
+        ws: &mut Workspace,
+    ) -> Result<bool> {
+        let index = state.next_layer;
+        let layer = weights
+            .layers
+            .get(index)
+            .ok_or("prefill layers already complete")?;
+        // Exchange handles, not tensor contents. Decode can freely overwrite x
+        // after this complete layer returns; its saved prompt hidden is separate.
+        std::mem::swap(&mut self.x, &mut self.prompt_x);
+        let result = match layer {
+            Layer::Sliding(layer) => {
+                self.sliding(
+                    device,
+                    ws,
+                    index,
+                    layer,
+                    &state.rope_s,
+                    &state.old_mask,
+                    &state.chunk_mask,
+                    &state.commits,
+                    state.blocks.sliding,
+                )
+                .await
             }
+            Layer::Full(layer) => {
+                self.full(
+                    device,
+                    ws,
+                    index,
+                    layer,
+                    &state.rope_f,
+                    &state.mask_full,
+                    &state.commits,
+                    state.start / Tf::SIZE,
+                    &state.blocks.full,
+                )
+                .await
+            }
+        };
+        std::mem::swap(&mut self.x, &mut self.prompt_x);
+        result?;
+        state.next_layer += 1;
+        Ok(state.next_layer == weights.layers.len())
+    }
+
+    pub(crate) async fn finish(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        state: &PreparedNarrow,
+        ws: &mut Workspace,
+    ) -> Result<()> {
+        if state.next_layer != weights.layers.len() {
+            return Err("prefill logits requested before all layers finished".into());
         }
-        profile_mark = std::time::Instant::now();
-        if sequence.inputs.last().unwrap().logits {
+        let count = state.count;
+        let mut profile_mark = std::time::Instant::now();
+        if state.logits {
             let offset = HostTensor::<i32, m![1]>::from_vec([((count - 1) * H::SIZE * 2) as i32])
                 .to_hbm(&mut device.pdma)
                 .await?;
             launch(
                 ep::extract_hidden_row,
-                (device, &self.x, &offset, &mut self.last),
+                (device, &self.prompt_x, &offset, &mut self.last),
             )
             .await?;
             launch(
@@ -272,6 +335,18 @@ impl Prefill {
             self.record_profile("logits.scalar", &mut profile_mark);
         }
         Ok(())
+    }
+
+    pub(crate) async fn run(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        sequence: &Sequence<'_>,
+        ws: &mut Workspace,
+    ) -> Result<()> {
+        let mut state = self.prepare(device, weights, sequence).await?;
+        while !self.advance_layer(device, weights, &mut state, ws).await? {}
+        self.finish(device, weights, &state, ws).await
     }
 
     async fn sliding(

@@ -131,7 +131,7 @@ impl Worker {
                     if sequences.len() == 1
                         && (self.model.active_prefill_ring() == Some(sequences[0].blocks.sliding)
                             || (self.model.active_prefill_ring().is_none()
-                                && sequences[0].inputs.len() == crate::axes::P128::SIZE))
+                                && sequences[0].inputs.len() > 1))
                     {
                         if self.model.active_prefill_ring().is_none() {
                             self.model
