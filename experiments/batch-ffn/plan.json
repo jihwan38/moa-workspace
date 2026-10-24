@@ -1,0 +1,11 @@
+{
+  "id": "R2-BF01",
+  "source_commit": "4a7f256",
+  "control": "official baseline BF16 FFN core, per-token",
+  "change": "B16 full FFN core using B8 contraction lanes, cached original FP4 expanded to E4 and two BF16-scaled weight passes; down retains L1920 partition and eight-way F32 reduction",
+  "removed_work": "15 repeated HBM weight transfers and FP4->E4 decodes per16rows, 14 repeated scaled BF16 weight builds",
+  "added_work": "B16 activation storage, two B8 TRF/weight-scaling passes, distributed activation permutation before down",
+  "correctness_gate": "compile then independent deterministic FFN oracle/full-model root validation",
+  "measurement_gate": "actual hardware timing versus16serial FFN invocations; no compile-derived speed claim",
+  "status": "full FFN and serial differential host+device executable compile passed; hardware pending"
+}
