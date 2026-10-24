@@ -6,7 +6,7 @@ use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
 use super::prefill::{
-    Prefill,
+    Prefill, PreparedNarrow,
     wide::{PreparedWide, WidePrefill},
 };
 use runtime::{Blocks, Workspace};
@@ -35,8 +35,21 @@ pub struct Model {
     decode: runtime::Decode,
     prefill: Prefill,
     wide: WidePrefill,
-    active_prefill: Option<PreparedWide>,
+    active_prefill: Option<ActivePrefill>,
     logits: Vec<Logits>,
+}
+
+enum ActivePrefill {
+    Wide(PreparedWide),
+    Narrow(PreparedNarrow),
+}
+impl ActivePrefill {
+    fn blocks(&self) -> &Blocks {
+        match self {
+            Self::Wide(state) => &state.blocks,
+            Self::Narrow(state) => &state.blocks,
+        }
+    }
 }
 
 /// Diagnostic partial-wide dispatch stays explicit; production runs wide only
@@ -90,15 +103,15 @@ impl Model {
         })
     }
 
-    /// Physical ring currently owning the persistent P128 tensors, if any.
+    /// Physical ring currently owning a persistent prompt checkpoint, if any.
     pub fn active_prefill_ring(&self) -> Option<usize> {
         self.active_prefill
             .as_ref()
-            .map(|state| state.blocks.sliding)
+            .map(|state| state.blocks().sliding)
     }
 
     /// Prepare one request's embeddings and masks without advancing Generation.
-    /// Only one wide chunk can be in flight; independent request decode may run
+    /// Only one prompt chunk can be in flight; independent request decode may run
     /// between subsequent complete-layer advances. Retain the same Workspace
     /// until completion; its request allocation remains owned by the caller.
     pub async fn start_prefill(
@@ -108,20 +121,28 @@ impl Model {
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
         if self.active_prefill.is_some() {
-            return Err("another wide prefill is in progress".into());
+            return Err("another prefill is in progress".into());
         }
         validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
-        if !WidePrefill::supports(sequence) {
-            return Err("resumable prefill requires a page-local wide chunk".into());
+        if !WidePrefill::supports(sequence) && !Prefill::supports(sequence) {
+            return Err("resumable prefill requires a page-local multi-token chunk".into());
         }
         workspace
             .ensure_legacy(device, sequence.blocks, sequence.start_position)
             .await?;
-        self.active_prefill = Some(
-            self.wide
-                .prepare(device, &self.weights, sequence, &mut self.prefill)
-                .await?,
-        );
+        self.active_prefill = Some(if WidePrefill::supports(sequence) {
+            ActivePrefill::Wide(
+                self.wide
+                    .prepare(device, &self.weights, sequence, &mut self.prefill)
+                    .await?,
+            )
+        } else {
+            ActivePrefill::Narrow(
+                self.prefill
+                    .prepare(device, &self.weights, sequence)
+                    .await?,
+            )
+        });
         Ok(())
     }
 
@@ -136,19 +157,35 @@ impl Model {
             .active_prefill
             .as_mut()
             .ok_or("no resumable prefill is active")?;
-        workspace.blocks.clone_from(&state.blocks);
-        if !self
-            .wide
-            .advance_layer(device, &self.weights, state, workspace, &mut self.prefill)
-            .await?
-        {
+        workspace.blocks.clone_from(state.blocks());
+        let complete = match state {
+            ActivePrefill::Wide(state) => {
+                self.wide
+                    .advance_layer(device, &self.weights, state, workspace, &mut self.prefill)
+                    .await?
+            }
+            ActivePrefill::Narrow(state) => {
+                self.prefill
+                    .advance_layer(device, &self.weights, state, workspace)
+                    .await?
+            }
+        };
+        if !complete {
             return Ok(None);
         }
         std::mem::swap(&mut self.logits[0], &mut workspace.logits);
-        let result = self
-            .wide
-            .finish(device, &self.weights, state, workspace, &mut self.prefill)
-            .await;
+        let result = match state {
+            ActivePrefill::Wide(state) => {
+                self.wide
+                    .finish(device, &self.weights, state, workspace, &mut self.prefill)
+                    .await
+            }
+            ActivePrefill::Narrow(state) => {
+                self.prefill
+                    .finish(device, &self.weights, state, workspace)
+                    .await
+            }
+        };
         std::mem::swap(&mut self.logits[0], &mut workspace.logits);
         result?;
         self.active_prefill = None;
@@ -231,17 +268,19 @@ impl Model {
         }
         if let Some(active) = &self.active_prefill {
             for sequence in sequences {
-                if active.blocks.sliding == sequence.blocks.sliding
+                if active.blocks().sliding == sequence.blocks.sliding
                     || active
-                        .blocks
+                        .blocks()
                         .full
                         .iter()
                         .any(|page| sequence.blocks.full.contains(page))
                 {
                     return Err("request aliases the active prefill KV allocation".into());
                 }
-                if dispatch.use_wide(sequence) {
-                    return Err("wide scratch is owned by the active prefill".into());
+                if dispatch.use_wide(sequence)
+                    || (dispatch != Dispatch::Serial && Prefill::supports(sequence))
+                {
+                    return Err("prompt scratch is owned by the active prefill".into());
                 }
             }
         }

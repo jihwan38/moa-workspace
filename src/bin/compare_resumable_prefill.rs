@@ -43,11 +43,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start: usize = args.get(2).map_or("0", String::as_str).parse()?;
     let count: usize = args.get(3).map_or("128", String::as_str).parse()?;
     if !(1..B::SIZE).contains(&decoders)
-        || !(17..=P128::SIZE).contains(&count)
+        || !(2..=P128::SIZE).contains(&count)
         || start / Tf::SIZE != (start + count - 1) / Tf::SIZE
         || start + count + 64 > 8192
     {
-        return Err("decoders1..15; page-local prompt17..128; end<=8128".into());
+        return Err("decoders1..15; page-local prompt2..128; end<=8128".into());
     }
     let requests = decoders + 1;
     let capacity = start + count + 64;
@@ -100,13 +100,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         blocks: &blocks[0],
     };
     let begin = std::time::Instant::now();
-    let outputs = model
-        .forward_sequences_wide(
-            &mut device,
-            std::slice::from_ref(&sequence),
-            &mut control_ws,
-        )
-        .await?;
+    let outputs = if count <= B::SIZE {
+        model
+            .forward_sequences_serial(
+                &mut device,
+                std::slice::from_ref(&sequence),
+                &mut control_ws,
+            )
+            .await?
+    } else {
+        model
+            .forward_sequences_wide(
+                &mut device,
+                std::slice::from_ref(&sequence),
+                &mut control_ws,
+            )
+            .await?
+    };
     let control_ms = begin.elapsed().as_secs_f64() * 1000.0;
     let expected_prompt = read_logits(&mut device, &outputs[0]).await?;
     let prepare = std::time::Instant::now();
@@ -130,6 +140,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .await
             .is_err()
+    );
+    let unrelated_prompt = [input(1, 3, false), input(1, 4, true)];
+    let unrelated_sequence = [Sequence {
+        inputs: &unrelated_prompt,
+        start_position: 3,
+        blocks: &blocks[1],
+    }];
+    assert!(
+        model
+            .forward_sequences(&mut device, &unrelated_sequence, &mut candidate_ws)
+            .await
+            .is_err(),
+        "another batched prompt must not overwrite a pending checkpoint"
     );
     let mut positions: Vec<_> = (0..requests)
         .map(|r| if r == 0 { start + count } else { 2 + r % 3 })
