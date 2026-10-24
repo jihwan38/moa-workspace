@@ -1,7 +1,7 @@
 //! Two independent full P128 prompts share only the FFN matrix pass.
 //! Each request keeps its own chronological attention, hidden state, positions and KV.
 use super::*;
-use crate::ops_prompt_pair_io as pair_io;
+use crate::ops_prompt_pair_io_rows as pair_io;
 pub(crate) struct PairPrefill {
     rows: [WidePrefill; 2],
     norm: HbmTensor<bf16, Chip, m![P256, H]>,

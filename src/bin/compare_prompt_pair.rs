@@ -174,6 +174,7 @@ async fn main() -> Result<()> {
         }
     }
     assert!(model.active_prefill_rings().is_empty());
+    let profile = model.take_stage_profile();
     // A new token must observe the completed prompt KV in both physical layouts.
     let next: Vec<_> = (0..2).map(|r| [input(r, starts[r] + 128, true)]).collect();
     let control: Vec<_> = (0..2)
@@ -203,7 +204,7 @@ async fn main() -> Result<()> {
             &read_logits(&mut d, row).await?,
         );
     }
-    for stage in model.take_stage_profile() {
+    for stage in profile {
         println!(
             "stage={} calls={} ms={:.3}",
             stage.stage, stage.calls, stage.milliseconds
