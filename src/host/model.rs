@@ -443,6 +443,31 @@ impl Model {
         Ok(&self.logits[..sequences.len()])
     }
 
+    /// Compute one actual R64 step, then compare both vocabulary heads on its identical final norm.
+    /// Returned raw buffers use BlockedLogits order; KV advances exactly once.
+    /// This explicit diagnostic always reruns the original head as its reference.
+    pub async fn compare_lm_projections(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<(Vec<u8>, Vec<u8>, [f64; 2]), Box<dyn std::error::Error>> {
+        if sequences.is_empty() || sequences.iter().any(|s| s.inputs.len() != 1 || !s.inputs[0].logits) {
+            return Err("LM comparison requires single-token rows with requested logits".into());
+        }
+        let blocked = self.forward_sequences_inner(device, sequences, workspace, Dispatch::Decode64Diagnostic, true).await?;
+        if !blocked { return Err("LM comparison requires a canonical R64 output".into()); }
+        let decode = self.decode64.as_mut().ok_or("R64 scratch missing")?;
+        let mut raw = [Vec::new(), Vec::new()];
+        let mut milliseconds = [0.0; 2];
+        for mode in 0..2 {
+            let start = std::time::Instant::now();
+            let output = decode.reproject_lm(device, &self.weights, mode == 1).await?;
+            milliseconds[mode] = start.elapsed().as_secs_f64() * 1000.0;
+            raw[mode] = output.to_host::<crate::ops_r64_io_blocked::BlockedLogits>(&mut device.pdma)
+                .await?.into_inner().into_buf();
+        }
+        let [control, candidate] = raw;
+        Ok((control, candidate, milliseconds))
+    }
+
     async fn forward_sequences_inner(
         &mut self,
         device: &mut Device,

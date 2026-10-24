@@ -49,6 +49,20 @@ impl Decode64 {
     pub(crate) fn blocked_logits(&self) -> &HbmTensor<bf16, Chip, crate::ops_r64_io_blocked::BlockedLogits> {
         &self.logits_batch
     }
+    /// Diagnostic projection from the final norm retained by the immediately preceding R64 step.
+    /// This does not touch KV or choose serving behavior.
+    pub(crate) async fn reproject_lm(
+        &mut self, device: &mut Device, weights: &Weights, partitioned: bool,
+    ) -> Result<&HbmTensor<bf16, Chip, crate::ops_r64_io_blocked::BlockedLogits>> {
+        if partitioned {
+            launch(crate::ops_r64_lm_partitioned::logits_batch,
+                (device, &self.norm, &weights.embedding_table, &mut self.logits_batch)).await?;
+        } else {
+            launch(crate::ops_r64_io_blocked::logits_batch,
+                (device, &self.norm, &weights.embedding_table, &mut self.logits_batch)).await?;
+        }
+        Ok(&self.logits_batch)
+    }
     pub(crate) fn begin_profile(&mut self) {
         self.profile = Some(Default::default());
     }
