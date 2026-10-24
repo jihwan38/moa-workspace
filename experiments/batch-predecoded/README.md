@@ -29,3 +29,8 @@ The original FFN FP4+E4 allocations occupy4.44946GiB and must be released during
 actual integration. Host RAM is16GiB, so decoding the whole model into host RAM
 at once is invalid. Hardware HBM capacity has not yet been verified by this
 experiment. No loader or serving model uses the BF16 weights yet.
+
+Root Arena317619 checked all61440 values bit-exact. Warm time improved only from
+approximately1.34ms to1.21ms. That gain does not justify the additional model
+storage for this experiment, so the serving loader is unchanged. The next
+measured mechanism is wide packed-weight reuse, recorded under `batch-wide`.
