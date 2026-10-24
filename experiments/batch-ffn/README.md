@@ -26,3 +26,13 @@ validation is pending root. Failed direct-DMA source/log is retained as v1.
 docker exec -w /round2/batch-kernels moa2026-round2 env CARGO_BUILD_JOBS=4 \
   cargo furiosa-opt build --release --bin test_batch_ffn
 ```
+
+Hardware result, root Arena317596:
+
+* source3e36f99, binary SHA2563f6e5a989592773abde3829f52d94ceb630512bd4b6c1bbce2a17f24f76ad7e4
+*61440 values checked; zero bit differences and zero tolerance failures.
+* batch cold2.302ms; warm1.945ms; serial16 launch+read32.072ms.
+* raw log: `/round2/runs/r014-b16-ffn-probe-submit/arena.log`.
+
+The timing scopes differ in read count; these numbers establish feasibility and
+identify remaining work, but are not a paired E2E throughput measurement.

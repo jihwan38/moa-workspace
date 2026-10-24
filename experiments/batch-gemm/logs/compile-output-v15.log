@@ -1,0 +1,36 @@
+warning: function `Qs_output_partial_batch` should have a snake case name
+   --> src/ops_batch.rs:539:4
+    |
+539 | fn Qs_output_partial_batch(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `qs_output_partial_batch`
+    |
+    = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `Qf_output_partial_batch` should have a snake case name
+   --> src/ops_batch.rs:592:4
+    |
+592 | fn Qf_output_partial_batch(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `qf_output_partial_batch`
+
+   Compiling [1/2] ops_batch::project_sliding_output_batch
+error: furiosa-opt: ops_batch::project_sliding_output_batch: mir: Unknown type: furiosa_opt_std::backend::npu::HostBuf
+   --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory.rs:397:5
+    |
+395 | #[derive(Debug, Clone)]
+    |                 ----- in this derive macro expansion
+396 | pub struct HbmTensorView<'l, D: Scalar, Chip: M, Element: M, B: Backend = CurrentBackend> {
+397 |     inner: TensorView<'l, D, Pair<Chip, Element>, B>,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [2/2] ops_batch::project_full_output_batch
+error: furiosa-opt: ops_batch::project_full_output_batch: mir: Unknown type: furiosa_opt_std::backend::npu::HostBuf
+   --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory.rs:397:5
+    |
+395 | #[derive(Debug, Clone)]
+    |                 ----- in this derive macro expansion
+396 | pub struct HbmTensorView<'l, D: Scalar, Chip: M, Element: M, B: Backend = CurrentBackend> {
+397 |     inner: TensorView<'l, D, Pair<Chip, Element>, B>,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 2 compiled, 21 not matching ops_batch::project_sliding_output_batch, ops_batch::project_full_output_batch
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors; 2 warnings emitted
