@@ -17,6 +17,7 @@ pub mod ops_batch;
 pub mod ops_batch_broadcast;
 pub mod ops_batch_clusters;
 pub mod ops_native8;
+pub mod ops_native8_wide;
 pub mod ops_audio;
 pub mod ops_prefill;
 pub mod ops_prefill_tiles;
