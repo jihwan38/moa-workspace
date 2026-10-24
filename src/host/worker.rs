@@ -247,7 +247,7 @@ impl Worker {
                         .await?;
                     let logits = match outputs {
                         ForwardOutput::Blocked64(output, live) => {
-                            let host = output.to_host(&mut self.device.pdma).await?;
+                            let host = output.to_host::<crate::ops_r64_io_blocked::BlockedLogits>(&mut self.device.pdma).await?;
                             let bytes = host.into_inner().into_buf();
                             let workers = std::thread::available_parallelism().map_or(1, usize::from);
                             crate::host_logit_bytes::decode_blocked_r64(&bytes, live, workers)

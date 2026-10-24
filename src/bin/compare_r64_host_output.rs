@@ -107,7 +107,7 @@ async fn main() -> Result<()> {
                 let values = if pass == 1 && sequences.len() > 16 {
                     match model.forward_outputs(&mut device, &sequences, &mut ws).await? {
                         ForwardOutput::Blocked64(output, live) => {
-                            let host = output.to_host(&mut device.pdma).await?;
+                            let host = output.to_host::<furiosa_opt_gemma4::ops_r64_io_blocked::BlockedLogits>(&mut device.pdma).await?;
                             let bytes = host.into_inner().into_buf();
                             furiosa_opt_gemma4::host_logit_bytes::decode_blocked_r64(&bytes, live, 8)
                         }
