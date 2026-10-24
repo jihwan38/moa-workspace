@@ -34,6 +34,7 @@ pub struct Model {
     weights: load::Weights,
     decode: runtime::Decode,
     prefill: Prefill,
+    decode64: Option<super::decode_r64::Decode64>,
     wide: WidePrefill,
     active_prefill: Option<ActivePrefill>,
     logits: Vec<Logits>,
@@ -59,6 +60,7 @@ enum Dispatch {
     Serial,
     Automatic,
     WideDiagnostic,
+    Decode64Diagnostic,
 }
 impl Dispatch {
     fn use_wide(self, sequence: &Sequence<'_>) -> bool {
@@ -67,6 +69,7 @@ impl Dispatch {
                 Self::Serial => false,
                 Self::Automatic => sequence.inputs.len() == crate::axes::P128::SIZE,
                 Self::WideDiagnostic => true,
+                Self::Decode64Diagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
             }
     }
 }
@@ -75,9 +78,16 @@ impl Model {
     /// Diagnostics only: collect host-observed durations of batched execution stages.
     pub fn begin_stage_profile(&mut self) {
         self.prefill.begin_profile();
+        if let Some(decode) = &mut self.decode64 {
+            decode.begin_profile();
+        }
     }
     pub fn take_stage_profile(&mut self) -> Vec<StageTiming> {
-        self.prefill.take_profile()
+        let mut stages = self.prefill.take_profile();
+        if let Some(decode) = &mut self.decode64 {
+            stages.extend(decode.take_profile());
+        }
+        stages
     }
 
     pub async fn new(
@@ -97,6 +107,11 @@ impl Model {
             weights,
             decode: workspace.begin_decode(device).await?,
             prefill: Prefill::new(device).await?,
+            decode64: if workspace.is_canonical() {
+                Some(super::decode_r64::Decode64::new(device).await?)
+            } else {
+                None
+            },
             wide: WidePrefill::new(device).await?,
             active_prefill: None,
             logits,
@@ -264,6 +279,22 @@ impl Model {
             .await
     }
 
+    /// Diagnostic route retaining R64 numerical arithmetic even for a partial batch.
+    /// Useful for verifying row regrouping and scheduler ownership independently of
+    /// the scalar/B16 numerical differences. Production chooses from live count.
+    pub async fn forward_sequences_r64(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        if !workspace.is_canonical() {
+            return Err("R64 requires canonical KV storage".into());
+        }
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::Decode64Diagnostic)
+            .await
+    }
+
     async fn forward_sequences_inner(
         &mut self,
         device: &mut Device,
@@ -301,9 +332,16 @@ impl Model {
             .enumerate()
             .filter_map(|(row, s)| (s.inputs.len() == 1).then_some(row))
             .collect();
-        let batched_singletons = dispatch != Dispatch::Serial
-            && (2..=crate::axes::B::SIZE).contains(&singletons.len())
-            && super::request_pool::independent_sequences(sequences);
+        let independent = super::request_pool::independent_sequences(sequences);
+        let use_r64 = workspace.is_canonical()
+            && independent
+            && (1..=crate::axes::R64::SIZE).contains(&singletons.len())
+            && (dispatch == Dispatch::Decode64Diagnostic
+                || (dispatch != Dispatch::Serial && singletons.len() > crate::axes::B::SIZE));
+        let batched_singletons = use_r64
+            || (dispatch != Dispatch::Serial
+                && independent
+                && (2..=crate::axes::B::SIZE).contains(&singletons.len()));
         if batched_singletons {
             let rows: Vec<_> = singletons
                 .iter()
@@ -313,16 +351,31 @@ impl Model {
                     blocks: sequences[row].blocks,
                 })
                 .collect();
-            self.prefill
-                .decode_batch(
-                    device,
-                    &self.weights,
-                    &rows,
-                    workspace,
-                    &mut self.logits,
-                    &singletons,
-                )
-                .await?;
+            if use_r64 {
+                self.decode64
+                    .as_mut()
+                    .ok_or("R64 scratch was not allocated for this model")?
+                    .run(
+                        device,
+                        &self.weights,
+                        &rows,
+                        workspace,
+                        &mut self.logits,
+                        &singletons,
+                    )
+                    .await?;
+            } else {
+                self.prefill
+                    .decode_batch(
+                        device,
+                        &self.weights,
+                        &rows,
+                        workspace,
+                        &mut self.logits,
+                        &singletons,
+                    )
+                    .await?;
+            }
         }
         for (row, sequence) in sequences.iter().enumerate() {
             if batched_singletons && sequence.inputs.len() == 1 {
