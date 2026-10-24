@@ -7,3 +7,5 @@ First dependency: exact pack/unpack of two [P128,H] hidden tensors into one [P25
 Planned host phase ordering per layer: each request independently computes attention/post-attention, both normalize for FFN, pack, one P256 FFN using shared model weights, unpack, each request independently applies post-FFN norm/residual/gate. Distinct rings/full pages remain owned for the entire group; only matrices share weight reads. Default dispatch remains unchanged until paired full-model and interleaving gates pass.
 
 Initial device build46e9f0e rejected120 physical slices against the fixed256-slice device config. The repair pads the120 live H/32 shards to256 physical slices; payload addresses and half offsets remain unchanged.
+
+Second compiler stage rejected padded120-way DMA partitioning because its lowerer rounded to128 physical partitions. The revised transfer uses32 live H/120 partitions with an explicit eight-way padded physical axis, matching established DMA layouts. No arithmetic or addressing changes.

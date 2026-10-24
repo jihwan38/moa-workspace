@@ -5,15 +5,15 @@ use crate::{
 };
 use furiosa_opt_std::prelude::*;
 type Cluster = m![1#2];
-type Shards = m![H / 32 # 256];
+type Shards = m![H / 120, 1 # 8];
 fn store(
     device: &mut Device,
     source: &HbmTensor<bf16, Chip, m![P128, H]>,
     base: &HbmTensor<i32, Chip, m![1]>,
     out: &mut HbmTensor<bf16, Chip, m![P256, H]>,
 ) {
-    let x: DmTensor<bf16, Chip, Cluster, Shards, m![P128, H % 32]> = source.to_dm(&mut device.tdma);
-    let x: DmTensor<bf16, Chip, Cluster, Shards, m![P256 % 128, H % 32]> = unsafe { x.reshape() };
+    let x: DmTensor<bf16, Chip, Cluster, Shards, m![P128, H % 120]> = source.to_dm(&mut device.tdma);
+    let x: DmTensor<bf16, Chip, Cluster, Shards, m![P256 % 128, H % 120]> = unsafe { x.reshape() };
     out.view_mut()
         .scatter::<m![P256 / 128], m![P256 % 128, H]>()
         .by_byte_offsets(base.view())
@@ -25,11 +25,11 @@ fn load(
     base: &HbmTensor<i32, Chip, m![1]>,
     out: &mut HbmTensor<bf16, Chip, m![P128, H]>,
 ) {
-    let x: DmTensor<bf16, Chip, Cluster, Shards, m![P256 % 128, H % 32]> = source
+    let x: DmTensor<bf16, Chip, Cluster, Shards, m![P256 % 128, H % 120]> = source
         .gather::<m![P256 / 128], m![P256 % 128, H]>()
         .by_byte_offsets(base)
         .to_dm(&mut device.tdma);
-    let x: DmTensor<bf16, Chip, Cluster, Shards, m![P128, H % 32]> = unsafe { x.reshape() };
+    let x: DmTensor<bf16, Chip, Cluster, Shards, m![P128, H % 120]> = unsafe { x.reshape() };
     x.view().to_hbm_view(&mut device.tdma, out.view_mut());
 }
 #[device(chip = 1)]
