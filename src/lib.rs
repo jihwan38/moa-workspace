@@ -16,6 +16,7 @@ pub mod ops_batch;
 pub mod ops_batch_predecoded;
 pub mod ops_batch_wide;
 pub mod ops_batch_kpart;
+pub mod ops_batch_down960;
 pub mod ops_batch_kpart16;
 pub mod ops_batch_kpart_bf16;
 pub mod ops_batch_clusters;

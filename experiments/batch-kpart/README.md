@@ -115,3 +115,11 @@ predecoded P128:all491520 outputs bit-exact,packed3.043ms→predecoded2.736ms
 (about10%). Additional15.82GiB FFN weight storage is not adopted on this result.
 The modest gain revises the hypothesis that per-launch weight expansion alone
 dominates; down input repartition/contraction remains substantial.
+
+Packed L960 down plan after83ae467:split down K15360 over16 slices rather
+than8, cutting local activation cache245760B to122880B and output-group
+activation replication32→16. FP4 weights stay packed; four60-row tiles expand
+scale rows before splitting because60 E4 bytes violate DMA alignment. This
+changes the16-way F32 reduction tree and doubles four-row dequant streams
+30→60; compare491520 outputs against H960-up/L1920-down with tolerance and
+matched ABBA. No loader change and no model storage growth.
