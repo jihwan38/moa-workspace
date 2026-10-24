@@ -38,3 +38,5 @@ pub const LAYERS: usize = 48;
 pub const EMBED_SCALE: f32 = 61.967_734;
 pub const LOGIT_SOFTCAP: f32 = 30.0;
 pub const EPS: f32 = 1e-6;
+
+pub mod ops_request_attention_clusters;
