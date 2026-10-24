@@ -1174,3 +1174,101 @@ pub fn batch_ffn_cached(
     let hidden = geglu_wide(device, &up, &gate, ug, gg);
     down_cached(device, &hidden, down, ds, dg, output);
 }
+
+//32 local rows are the largest power-of-two cache that fits alongside a BF16
+//weight tile and scratch in512KiB DM.64 rows alone would consume491520 bytes.
+fn upgate_cached32(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,H]>,
+    packed:&HbmTensor<f4e2m1,Chip,m![L,H]>,scale:&HbmTensor<f8e4m3,Chip,m![L,H / 16]>)
+    ->DmTensor<bf16,Chip,Cluster,UpRows,m![L % 60,P128 % 64]> {
+    let scale:DmTensor<f8e4m3,Chip,Cluster,UpRows,m![L % 60,H / 16]>=scale.to_dm(&mut device.tdma);
+    let mut result:DmTensor<bf16,Chip,Cluster,UpRows,m![L % 60,P128 % 64]>=DmTensor::new();
+    for half in 0..2 {
+        let input:DmTensor<bf16,Chip,Cluster,UpRows,m![P128 % 64 = 32,H]>=input.view()
+            .tile::<m![P128 % 64],32,m![P128 / 64,P128 % 64 = 32 # 64,H]>(32*half).to_dm(&mut device.tdma);
+        for pass in 0..5 {
+            let packed:DmTensor<f4e2m1,Chip,Cluster,UpRows,m![L % 60 = 12,H]>=packed.view()
+                .tile::<m![L % 60],12,m![L / 60,L % 60 = 12 # 60,H]>(12*pass).to_dm(&mut device.tdma);
+            let mut weights:DmTensor<bf16,Chip,Cluster,UpRows,m![L % 60 = 12,H]>=DmTensor::new();
+            for part in 0..3 {
+                let decoded:DmTensor<f8e4m3,Chip,Cluster,UpRows,m![L % 60 = 4,H]>=device.main
+                    .begin(packed.view().tile::<m![L % 60 = 12],4,m![L % 60 = 12 = 4 # 12,H]>(4*part))
+                    .fetch::<m![L % 60 = 4],m![H]>().fetch_table_lookup::<f8e4m3>()
+                    .collect::<m![L % 60 = 4,H / 32],m![H % 32]>().commit_trim::<m![H % 32]>().commit();
+                let scales:VrfTensor<f32,Chip,Cluster,UpRows,m![L % 60 = 4,H / 16]>=device.sub
+                    .begin(scale.view().tile::<m![L % 60],4,m![L % 60 = 4 # 60,H / 16]>(12*pass+4*part))
+                    .fetch::<m![L % 60 = 4],m![H / 16]>().fetch_cast::<f32>()
+                    .collect::<m![L % 60 = 4,H / 128],m![H / 16 % 8]>().to_vrf();
+                device.main.begin(decoded.view())
+                    .fetch::<m![L % 60 = 4,H / 32],m![H % 32]>().fetch_cast::<f32>()
+                    .collect::<m![L % 60 = 4,H / 8],m![H % 8]>()
+                    .vector_init().vector_intra_slice_tag(TagMode::Zero)
+                    .vector_narrow_split::<m![L % 60 = 4,H / 4],m![H % 4]>()
+                    .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&scales)
+                    .vector_widen_concat::<m![L % 60 = 4,H / 8],m![H % 8]>()
+                    .vector_final().cast::<bf16,m![H % 8 # 16]>().commit_trim::<m![H % 8]>()
+                    .commit_view(weights.view_mut().tile::<m![L % 60 = 12],4,m![L % 60 = 12 = 4 #{!} 12,H]>(4*part));
+            }
+            let mut partial:DmTensor<bf16,Chip,Cluster,UpRows,m![L % 60 = 12,P128 % 64 = 32]>=DmTensor::new();
+            for chunk in 0..4 {
+                let x:TrfTensor<bf16,Chip,Cluster,UpRows,m![P128 % 64 = 32 = 8],m![H]>=device.sub
+                    .begin(input.view().tile::<m![P128 % 64 = 32],8,m![P128 % 64 = 32 = 8 # 32,H]>(8*chunk))
+                    .fetch::<m![P128 % 64 = 32 = 8,H / 16],m![H % 16]>()
+                    .collect::<m![P128 % 64 = 32 = 8,H / 16],m![H % 16]>().to_trf();
+                device.main.begin(weights.view())
+                    .fetch::<m![L % 60 = 12,H / 16],m![H % 16]>()
+                    .collect::<m![L % 60 = 12,H / 16],m![H % 16]>()
+                    .contract_outer::<m![L % 60 = 12,H / 32],m![H % 32],_,_,_>(&x)
+                    .contract_packet::<m![1]>().contract_time::<m![L % 60 = 12]>()
+                    .contract_lane::<m![L % 60 = 12],m![P128 % 64 = 32 = 8]>(LaneMode::Interleaved)
+                    .cast::<bf16,m![P128 % 64 = 32 = 8 # 16]>().commit_trim::<m![P128 % 64 = 32 = 8]>()
+                    .commit_view(partial.view_mut().tile::<m![P128 % 64 = 32],8,m![L % 60 = 12,P128 % 64 = 32 = 8 #{!} 32]>(8*chunk));
+            }
+            partial.view().to_dm_view(&mut device.tdma,result.view_mut()
+                .tile::<m![P128 % 64],32,m![L % 60,P128 % 64 = 32 #{!} 64]>(32*half)
+                .tile::<m![L % 60],12,m![L % 60 = 12 #{!} 60,P128 % 64 = 32 #{!} 64]>(12*pass));
+        }
+    }
+    result
+}
+
+#[device(chip = 1)]
+pub fn batch_ffn_up32(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![P128, H]>,
+    up: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+    gate: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+    down: &HbmTensor<f4e2m1, Chip, m![H, L]>,
+    us: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
+    gs: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
+    ds: &HbmTensor<f8e4m3, Chip, m![H, L / 16]>,
+    ug: &HbmTensor<f32, Chip, m![1]>,
+    gg: &HbmTensor<f32, Chip, m![1]>,
+    dg: &HbmTensor<f32, Chip, m![1]>,
+    output: &mut HbmTensor<bf16, Chip, m![P128, H]>,
+) {
+    let up = upgate_cached32(device, input, up, us);
+    let gate = upgate_cached32(device, input, gate, gs);
+    let hidden = geglu_wide(device, &up, &gate, ug, gg);
+    down_wide(device, &hidden, down, ds, dg, output);
+}
+
+#[device(chip = 1)]
+pub fn batch_ffn_up32_down_cached(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![P128, H]>,
+    up: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+    gate: &HbmTensor<f4e2m1, Chip, m![L, H]>,
+    down: &HbmTensor<f4e2m1, Chip, m![H, L]>,
+    us: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
+    gs: &HbmTensor<f8e4m3, Chip, m![L, H / 16]>,
+    ds: &HbmTensor<f8e4m3, Chip, m![H, L / 16]>,
+    ug: &HbmTensor<f32, Chip, m![1]>,
+    gg: &HbmTensor<f32, Chip, m![1]>,
+    dg: &HbmTensor<f32, Chip, m![1]>,
+    output: &mut HbmTensor<bf16, Chip, m![P128, H]>,
+) {
+    let up = upgate_cached32(device, input, up, us);
+    let gate = upgate_cached32(device, input, gate, gs);
+    let hidden = geglu_wide(device, &up, &gate, ug, gg);
+    down_cached(device, &hidden, down, ds, dg, output);
+}
