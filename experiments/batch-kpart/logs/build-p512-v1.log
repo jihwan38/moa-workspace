@@ -1,0 +1,45 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+warning: unused import: `ops_native_fp8`
+ --> src/bin/test_p512_ffn.rs:5:25
+  |
+5 |     ops_batch_prepack8, ops_native_fp8, ops_native_fp8_blocked, ops_native_fp8_p512, ops_native_fp8_trf64,
+  |                         ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unnecessary parentheses around block return value
+  --> src/bin/test_p512_ffn.rs:51:9
+   |
+51 |         ((((word(i,11)>>40) as f32 / 16777216.0)*2.0-1.0)*4.0*2f32.powi(-((word(i,13)%9)as i32)))})
+   |         ^                                                                                       ^
+   |
+   = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+   |
+51 -         ((((word(i,11)>>40) as f32 / 16777216.0)*2.0-1.0)*4.0*2f32.powi(-((word(i,13)%9)as i32)))})
+51 +         (((word(i,11)>>40) as f32 / 16777216.0)*2.0-1.0)*4.0*2f32.powi(-((word(i,13)%9)as i32))})
+   |
+
+   Compiling furiosa_opt_gemma4::ops_batch_prepack8::prepack_up
+   Compiling furiosa_opt_gemma4::ops_batch_prepack8::prepack_down
+   Compiling furiosa_opt_gemma4::ops_native_fp8_blocked::reblock_up
+   Compiling furiosa_opt_gemma4::ops_native_fp8_blocked::reblock_down
+   Compiling furiosa_opt_gemma4::ops_native_fp8_blocked::batch_ffn_direct_geglu
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512::quantize_hidden
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512::project_up_scaled
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512::geglu_quantize
+error: furiosa-opt: furiosa_opt_gemma4::ops_native_fp8_p512::geglu_quantize: visa: while lowering TensorUnit
+       caused by: FetchArgs::fetch_projection()
+       caused by: configuring the fetch sequencer
+       caused by: Fetch: a live input axis is left unread (Time 1, Packet L = 1920 # 15360)
+   --> src/ops_native_fp8_p512.rs:258:1
+    |
+258 | #[device(chip=1)]
+    | ^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512::project_down_scaled
+   Compiling furiosa_opt_gemma4::ops_native_fp8_trf64::batch_ffn
+warning: `furiosa-opt-gemma4` (bin "test_p512_ffn") generated 2 warnings
+error: could not compile `furiosa-opt-gemma4` (bin "test_p512_ffn") due to 1 previous error; 2 warnings emitted

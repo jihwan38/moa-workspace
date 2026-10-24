@@ -442,3 +442,21 @@ dot cast,a four-row TU transpose restores natural token order. Its output
 packet is token%4 padded16 (not16 live values:that exceeded TE's four-row
 limit). This avoids a full32×H960 BF16 DM copy. Source keeps failed compile
 logs and separate R64/P128 exact-control/CPU-oracle binaries.
+
+
+P512 staged FFN experiment (base50039c0 + axis2a969b9): compare four existing
+P128 blocked/direct FFN calls with quantize_hidden, two project_up_scaled calls,
+geglu_quantize, project_down_scaled. Each blocked weight is read once per cluster,
+held across four64-token tiles using the exact gated TRF64 temporal packet reuse.
+Each slice holds230400B weight +61440B input +30720B BF16 result (+transpose),
+rather than all256 local token rows. GeGLU uses token-sharded1920-channel tiles;
+its BF16 global-scale and final BF16 boundaries precede the unchanged row quantizer.
+Weights and FP8 scales are shared unchanged. Matrix input HBM replication is about
+377.5MB/512rows across allthree matrices; stage IO is additional. Weight transfer
+falls1.416GB to354MB vsfourP128 calls, but actual speed is unproven. Gate all1966080
+output bits vsfourP128, then compare matched ABBA total-output reads and full staged
+launch cost. No model/score adoption before hardware result.
+
+P512 buildv1: padded L1920-of15360 direct operand view cannot split its live
+axis in Fetch. As in the proven directP16 O path, fetch the whole live L1920
+packet, then Collect splits it into vector flits. Failure log retained.
