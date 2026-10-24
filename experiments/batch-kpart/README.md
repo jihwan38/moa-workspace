@@ -300,3 +300,18 @@ weight, BF16 expansion, H960 dot/reduction and scale boundary. Require all
 15728640 permuted bytes match CPU indices on two inputs, all262144 projection
 outputs match canonical R64 bits, independent dyadic/F64 gates, and matched
 ABBA timing. No model integration or other QKV shapes before measured benefit.
+
+Arena r192 direct-O:245760 output bits exact for each shape on both dyadic
+and varied-exponent inputs; both independent dyadic CPU oracles pass. Sliding
+control0.415–0.443ms versus direct0.399–0.409ms; full control0.752–0.776ms
+versus direct0.7126–0.7143ms, matched five-launch/read ABBA. Modest real gain.
+A bounded direct-P16 follow-up retains two loop iterations: fetch the whole
+16-wide padded live axis before collect splits it into8-wide vector packets,
+addressing the original compiler error instead of adding two B8 iterations.
+Compare control/direct8/direct16 bits and timings before any adoption.
+
+Arena317947/r194 P256 FFN:all983040 output bits match two P128 direct-GeGLU
+calls. Per256 rows, two-P1282.161–2.170ms versus P2561.715–1.716ms,about20.8%.
+Scope is five batches plus matched total output bytes/5; control uses two
+output reads and candidate one. Same blocked weight tensors and quantization.
+This is an isolated FFN gain; no P256 host/model result follows from it.
