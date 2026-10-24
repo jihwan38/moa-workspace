@@ -193,3 +193,10 @@ exact model path. Matched warm packed-L9602.407–2.413ms versus fusedFP8
 1.397–1.410ms (three launches plus one identical result read, divided by3).
 Root is integrating for actual-model accuracy validation; no official score
 or model quality claim follows from these kernel results.
+
+B16 native FP8 plan afterca4abc9:share the same prepacked model tensors with
+P128; use one B8 tile per cluster, existing B8 GeGLU, and per-token activation
+quantization with identical scale semantics. Preserve P128 source. Check1024
+scaled-matrix F64 samples each and report full61440-value FFN error against
+exact split-cluster packed control, followed by matched ABBA. Approximate
+model accuracy remains a separate root gate.
