@@ -83,3 +83,11 @@ and one stage result read. Stage measurements include additional intermediate
 HBM write/read and differing download sizes, so they are upper-bound component
 estimates, not an additive decomposition of fused runtime. This separates the
 remaining down cost from up/gate scale-dequantization and contraction work.
+
+Arena317750 B16 H960 FFN:803 bit differences among61440 outputs,zero tolerance
+failures,max_abs0.0078125. Runtime0.957ms versus exact cluster control0.883ms.
+This is a measured regression and is not adopted. `test_kpart16_qkv` applies
+the corrected all-shape independent/differential gates to B16 and compares
+ABBA timing against original replicated-B16 QKV (not the newer Qs-only split
+cluster control). No speed claim can be made versus the newer Qs control from
+that benchmark alone.
