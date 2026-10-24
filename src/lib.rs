@@ -15,6 +15,7 @@ pub mod ops;
 pub mod ops_batch_io;
 pub mod ops_batch;
 pub mod ops_batch_wide;
+pub mod ops_batch_clusters;
 pub mod ops_audio;
 pub mod ops_prefill;
 pub mod ops_prefill_tiles;
