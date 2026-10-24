@@ -139,3 +139,5 @@ pub mod host_logit_bytes;
 pub mod ops_native_fp8_r64_local_reuse;
 pub mod ops_qkv_r64_trf32;
 pub mod ops_qkv_p128_trf32;
+
+pub mod ops_prepack_alloc;
