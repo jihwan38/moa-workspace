@@ -69,3 +69,16 @@ tiles across two clusters with four local requests each. Arena317736 passed all
 39 scalar row comparisons and cache invariants, with warm534..547us versus
 1079..1082us for the replicated-cluster control. A separate ring-gather candidate
 changes index shape to[B] but remains unvalidated at this point.
+
+Preferred sliding implementation after Arena317738:
+`ops_request_attention_rings::sliding_attention_b16(device,q,pool_k,pool_v,
+ring_byte_offsets:i32[B],visibility:f32[B,Ts],out)`. Sourcefaa33ce.
+All tensor shapes except offsets match the preceding versions. Each offset is
+`physical_ring*1024*2048*2`. The pool payload must retain contiguous
+`[Ts,Ns,Ds]` storage per ring, as already declared. Padded rows use any legal
+ring base and an all-zero visibility mask. Sparse current-token commit functions
+and their offsets are unchanged. Host uploads16 ring bases instead of16384
+per-token byte addresses. Actual39 live rows/159744 outputs remain bit-exact,
+with future invariance, sparse updates, reverse migration and inactive zeros.
+Warm16-row attention is181.8..183.1us (cluster-token-gather534..547us; original
+replicated-cluster1079..1082us). These are isolated kernel timings.
