@@ -87,3 +87,5 @@ pub mod ops_r64_io_blocked;
 pub mod host_logit_bytes;
 
 pub mod ops_greedy_r64;
+
+pub mod ops_r64_lm_partitioned;

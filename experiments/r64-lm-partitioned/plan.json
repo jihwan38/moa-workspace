@@ -1,0 +1,13 @@
+{
+  "control": "ops_r64_io_blocked::logits_batch (~5.73ms)",
+  "mechanism": "Shard vocabulary across bothclusters and H acrossfour slices; all64tokenrows,TRF32. Eachweight read once insteadtwice; F32partialreductionbeforeBF16dotboundary",
+  "traffic_bytes": {
+    "control_weights": 4026531840,
+    "candidate_weights": 2013265920,
+    "control_input_distributed": 125829120,
+    "candidate_input_distributed": 62914560
+  },
+  "precision": "BF16inputandweightsunchanged; changedF32sumassociation; mustmeasureall16.7Mlogitdelta andargmaxparity, independentF64oracles; noexactnessclaimbeforegate",
+  "output": "sameBlockedLogitsABI, nohostchanges",
+  "next": "compile thenbounded synthetic/dyadic/realmodelgate"
+}
