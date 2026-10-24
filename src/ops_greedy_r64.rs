@@ -1,4 +1,4 @@
-//! Generic finite greedy selection; nonfinite rows explicitly request CPU fallback.
+//! Generic greedy selection; nonfinite or zero/subnormal maxima request CPU fallback.
 use furiosa_opt_std::prelude::*;
 use crate::{Chip,axes::{R64,W},ops_r64_io_blocked::BlockedLogits};
 axes![GreedyField=8];
@@ -85,7 +85,7 @@ fn greedy_group(
         .vector_logic(LogicBinaryOpI32::BitAnd,0x7fffi32)
         .vector_logic(LogicBinaryOpI32::BitXor,Stash)
         .vector_final().commit_trim::<m![W%8]>().commit();
-    let unmasked_max=max_per_row(device,&keys);
+    let unmasked_max=max_per_row(device,&keys);write_stat(device,&unmasked_max,out,4,group);
     let negative_ids:DmTensor<i32,Chip,Cluster,Rows,m![W/8192,W%32]>=negative_token_ids.to_dm(&mut device.tdma);
     let unmasked_ids=winning_ids(device,&keys,&unmasked_max,&negative_ids);write_stat(device,&unmasked_ids,out,2,group);
     let words:DmTensor<i32,Chip,Cluster,Rows,m![W/8192,R64%32=16]>=ban_words.view().tile::<m![R64%32],16,m![W/32,R64/32,R64%32=16#32]>(group*16).to_dm(&mut device.tdma);

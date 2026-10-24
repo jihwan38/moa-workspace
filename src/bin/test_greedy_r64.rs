@@ -24,14 +24,16 @@ fn bits(row:usize,n:usize)->u16 {
   25=>if n==8191{0x007f}else{0x0001},
   26=>if n==8192{0x807e}else{0x807f},
   27=>if n==W::SIZE-1{0xff7e}else{0xff7f},
-  28..=63=>{let special=[0,31,32,8191,8192,W::SIZE-1][row%6];if n==special||n==(special+16384)%W::SIZE{0x7f7f}else{random&0xff7e}},
+  28=>if n==0{0x3f80}else if n==8192{0x007f}else{0x0001},
+  29=>if n==W::SIZE-1{0x007f}else{0x0001},
+  30..=63=>{let special=[0,31,32,8191,8192,W::SIZE-1][row%6];if n==special||n==(special+16384)%W::SIZE{0x7f7f}else{random&0xff7e}},
   _=>random,
  }
 }
 fn banned(row:usize,n:usize)->bool{match row {
  0..=5|16..=27=>false,6=>true,7=>n!=12345,8=>n==31,9=>n==0,
  10=>n%2==0,11=>n%32!=31,12=>n%8192!=8191,13=>n!=W::SIZE-1,
- 14=>n!=0,15=>true,_=>hash((row*W::SIZE+n)as u64+9163)%7==0,
+ 14=>n!=0,15|29=>true,28=>n==0,_=>hash((row*W::SIZE+n)as u64+9163)%7==0,
 }}
 fn key(bits:u16)->i32{let raw=bits as i16 as i32;raw^((raw>>15)&0x7fff)}
 fn oracle(row:usize)->(usize,usize,i32,u16){
@@ -71,14 +73,19 @@ async fn main()->Result<(),Box<dyn std::error::Error>> {
  let mut fallback=0;
  for row in 0..R64::SIZE {
   let result=&got[row*8..row*8+8];let (selected,unmasked,maximum,abs)=expected[row];
-  let flag=result[3]>=0x7f80;assert_eq!(flag,abs>=0x7f80,"nonfinite flag row={row} fields={result:?} expected_abs={abs}");
-  if flag {fallback+=1;println!("GREEDY_FALLBACK row={row} fields={result:?} CPU_selected={selected}");continue;}
+  let selected_key=if result[0]==-65536{result[4]}else{result[0]};
+  let nonfinite=result[3]>=0x7f80;
+  assert_eq!(nonfinite,abs>=0x7f80,"nonfinite flag row={row} fields={result:?} expected_abs={abs}");
+  let flag=nonfinite||(-1..=0).contains(&selected_key);
+  let expected_fallback=abs>=0x7f80||(bits(row,selected)&0x7fff)<0x80;
+  assert_eq!(flag,expected_fallback,"fallback row={row} fields={result:?} selected_bits={:04x}",bits(row,selected));
+  if flag {fallback+=1;println!("GREEDY_FALLBACK row={row} fields={result:?} CPU_selected={selected} nonfinite={nonfinite} zero_or_subnormal_max={}",(-1..=0).contains(&selected_key));continue;}
   let actual=if result[0]==-65536{-result[2]}else{-result[1]};
   println!("GREEDY_FINITE row={row} selected={actual} expected={selected} fields={result:?}");
   assert_eq!(result[0],maximum,"masked max row={row}");assert_eq!(actual as usize,selected,"selected row={row}");
   assert_eq!(-result[2],unmasked as i32,"unmasked row={row}");assert_eq!(result[3],abs as i32,"maxabs row={row}");
  }
- println!("GREEDY_ORACLE_PASS rows=64 finite={} explicit_nonfinite_fallback={fallback} arbitrary_bans_allbanned_ties_signedzero_subnormals=true",64-fallback);
+ println!("GREEDY_ORACLE_PASS rows=64 finite={} explicit_nonfinite_or_zero_max_fallback={fallback} arbitrary_bans_allbanned_ties_signedzero_subnormals=true",64-fallback);
  let mut kernel=Vec::new();let mut small_read=Vec::new();
  for _ in 0..4 {
   let start=std::time::Instant::now();for _ in 0..3{launch(greedy::greedy_argmax_r64,(&mut device,&logits,&ban_words,&ids,&shifts,&mut out)).await?;}
