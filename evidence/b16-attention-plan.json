@@ -1,0 +1,35 @@
+{
+  "candidate": "b16-causal-attention",
+  "starting_commit": "b79300f",
+  "control": "official SDK0.9 per-row attention, plus strict CPU causal reference",
+  "complete_change": "Process 16 query rows against shared K/V in one device image. Distribute score/softmax rows over B*Gf slices, retain shared K/V contraction layouts and BF16 cast boundaries. Apply additive causal mask before maximum so newly written future chunk keys cannot affect earlier rows. Sliding will separately retain old ring and current-chunk K/V until all outputs are computed.",
+  "removed_work": "Repeated host launches and shared K/V preparation across query rows.",
+  "added_work": "Row redistribution, additive mask traffic, batched scratch, and sliding current-chunk merge. No speedup is claimed before NPU measurements.",
+  "first_validation": "Compile full B16 page attention, compare all output rows to CPU and old per-row references on actual hardware, then check 512/1024 boundaries and stale-ring isolation.",
+  "decisions": {
+    "adoption": "defer until NPU correctness and complete-path performance",
+    "tuning": "only concrete compatibility or correctness repairs",
+    "research": "prefill joint attention"
+  },
+  "compiled_kernels": [
+    "full_attention_first_page_b16",
+    "full_attention_next_page_b16",
+    "full_attention_divide_b16",
+    "sliding_attention_b16"
+  ],
+  "probe_binary": "target/release/test_attention_b16",
+  "probe_sha256": "1f0918dda895e4db0b5e63c420b74a0a8f520cedbd9faeb3f6167a409780ae36",
+  "source_sha256": {
+    "src/ops_attention.rs": "dc929650202807b50fdab9c9c0cee7470cc5bcd1beba2894d686e4d625d7c2f7",
+    "src/ops_sliding_batch.rs": "e0f97f7405994caab8a49de30529a9796e26391bfd9d4a3ebf35b11ecd5e76bf",
+    "src/bin/test_attention_b16.rs": "02e8bfdb5fb4cbedd531835f737c2ae270e45a537b5b2c0c099c1705632e8d34",
+    "src/lib.rs": "ceb19304324a70c10a6c92714707eba9324c6e574170d9a71e0cfa2b7141f1fc"
+  },
+  "npu_execution": "Pending root dispatch; no runtime/performance evidence yet",
+  "compile_fixes": [
+    "explicit commit_trim for scalar vector results",
+    "padded [B,Gf,1#8] running scalar HBM storage for DMA read alignment",
+    "use widen_concat for scalar 8->4->8 FP paths",
+    "preserve fetch_cast time ordering for current-value vector reduction"
+  ]
+}

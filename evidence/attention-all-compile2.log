@@ -1,0 +1,16 @@
+   Compiling [1/4] ops_attention::full_attention_first_page_b16
+   Compiling [2/4] ops_attention::full_attention_next_page_b16
+error: furiosa-opt: ops_attention::full_attention_next_page_b16: visa: while lowering TensorUnit
+       caused by: commit: input does not match pipeline
+       caused by: kernel-declared shape does not match the shape the pipeline delivers.
+         declared: [ Chip: [] | Cluster: [[[]+1]=2] | InSlice: [[[]+7]=8] ] (1)
+         pipeline: [ Chip: [] | Cluster: [[[]+1]=2] | InSlice: [[[]+15]=16] ] (1)
+   --> src/ops_attention.rs:154:52
+    |
+154 |         .vector_final().commit_trim::<m![1 # 8]>().commit();
+    |                                                    ^^^^^^^^
+
+   Compiling [3/4] ops_attention::full_attention_divide_b16
+   Compiling [4/4] ops_sliding_batch::sliding_attention_b16
+    Finished 4 compiled, 15 not matching ops_attention, ops_sliding_batch
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error
