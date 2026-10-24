@@ -46,6 +46,9 @@ pub(crate) struct Decode64 {
 }
 
 impl Decode64 {
+    pub(crate) fn blocked_logits(&self) -> &HbmTensor<bf16, Chip, crate::ops_r64_io_blocked::BlockedLogits> {
+        &self.logits_batch
+    }
     pub(crate) fn begin_profile(&mut self) {
         self.profile = Some(Default::default());
     }
@@ -125,6 +128,7 @@ impl Decode64 {
         ws: &mut Workspace,
         logits: &mut [Logits],
         output_rows: &[usize],
+        extract_rows: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -189,11 +193,11 @@ impl Decode64 {
                 )
                 .await?;
             }
-            offsets.push(
+            if extract_rows { offsets.push(
                 HostTensor::<i32, m![1]>::from_vec([(row * 32 * 2) as i32])
                     .to_hbm(&mut device.pdma)
                     .await?,
-            );
+            ); }
         }
         let rope_s = HostTensor::<i32, m![R64]>::from_vec(
             (0..R64::SIZE)
@@ -242,7 +246,7 @@ impl Decode64 {
             .await?;
             self.record_profile("r64.logits.projection", &mut profile_mark);
             for (row, sequence) in sequences.iter().enumerate() {
-                if sequence.inputs[0].logits {
+                if extract_rows && sequence.inputs[0].logits {
                     launch(
                         crate::ops_r64_io_blocked::extract_logits_row,
                         (

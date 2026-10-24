@@ -6,7 +6,7 @@ use std::{collections::VecDeque, sync::mpsc};
 use crate::api::worker::{Job, StreamEvent};
 use crate::host::generate::{Delta, Generation, PREFILL_CHUNK, read_logits};
 use crate::host::load;
-use crate::host::model::{Model, Sequence};
+use crate::host::model::{ForwardOutput, Model, Sequence};
 use crate::host::runtime::{Blocks, Workspace};
 use crate::host::tokenizer::Tokenizer;
 use furiosa_opt_std::prelude::*;
@@ -243,16 +243,27 @@ impl Worker {
                     }
                     let outputs = self
                         .model
-                        .forward_sequences(&mut self.device, &sequences, &mut self.workspace)
+                        .forward_outputs(&mut self.device, &sequences, &mut self.workspace)
                         .await?;
-                    let mut logits = Vec::with_capacity(outputs.len());
-                    for (output, (inputs, _)) in outputs.iter().zip(&chunks) {
-                        logits.push(if inputs.last().expect("nonempty input chunk").logits {
-                            read_logits(&mut self.device, output).await?
-                        } else {
-                            Vec::new()
-                        });
-                    }
+                    let logits = match outputs {
+                        ForwardOutput::Blocked64(output, live) => {
+                            let host = output.to_host(&mut self.device.pdma).await?;
+                            let bytes = host.into_inner().into_buf();
+                            let workers = std::thread::available_parallelism().map_or(1, usize::from);
+                            crate::host_logit_bytes::decode_blocked_r64(&bytes, live, workers)
+                        }
+                        ForwardOutput::Rows(outputs) => {
+                            let mut logits = Vec::with_capacity(outputs.len());
+                            for (output, (inputs, _)) in outputs.iter().zip(&chunks) {
+                                logits.push(if inputs.last().expect("nonempty input chunk").logits {
+                                    read_logits(&mut self.device, output).await?
+                                } else {
+                                    Vec::new()
+                                });
+                            }
+                            logits
+                        }
+                    };
                     Ok::<_, Box<dyn std::error::Error>>(Some(logits))
                 })
             }));

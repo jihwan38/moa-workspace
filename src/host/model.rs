@@ -12,6 +12,13 @@ use super::prefill::{
 use runtime::{Blocks, Workspace};
 pub type Logits = HbmTensor<bf16, Chip, m![W]>;
 
+/// Physical output of the current computation. Only input rows requesting logits
+/// are valid, just as with `forward_sequences`; blocked rows retain request order.
+pub enum ForwardOutput<'a> {
+    Rows(&'a [Logits]),
+    Blocked64(&'a HbmTensor<bf16, Chip, crate::ops_r64_io_blocked::BlockedLogits>, usize),
+}
+
 /// One request's next token. `logits` is false for prompt tokens whose output is discarded.
 pub struct Input<'a> {
     pub token: usize,
@@ -253,8 +260,27 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
-        self.forward_sequences_inner(device, sequences, workspace, Dispatch::Automatic)
-            .await
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::Automatic, false)
+            .await?;
+        Ok(&self.logits[..sequences.len()])
+    }
+
+    /// Preserve the native R64 output layout for a caller that consumes host logits
+    /// or device-selected tokens. The ordinary API still materializes scalar rows.
+    pub async fn forward_outputs(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        let blocked = self.forward_sequences_inner(
+            device, sequences, workspace, Dispatch::Automatic, true,
+        ).await?;
+        Ok(if blocked {
+            ForwardOutput::Blocked64(self.decode64.as_ref().unwrap().blocked_logits(), sequences.len())
+        } else {
+            ForwardOutput::Rows(&self.logits[..sequences.len()])
+        })
     }
 
     /// Explicit diagnostic control: identical request inputs and original token-wise kernels.
@@ -264,8 +290,9 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
-        self.forward_sequences_inner(device, sequences, workspace, Dispatch::Serial)
-            .await
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::Serial, false)
+            .await?;
+        Ok(&self.logits[..sequences.len()])
     }
 
     /// Explicit P128 correctness/performance candidate, separate from server dispatch.
@@ -275,8 +302,9 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
-        self.forward_sequences_inner(device, sequences, workspace, Dispatch::WideDiagnostic)
-            .await
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::WideDiagnostic, false)
+            .await?;
+        Ok(&self.logits[..sequences.len()])
     }
 
     /// Diagnostic route retaining R64 numerical arithmetic even for a partial batch.
@@ -291,8 +319,9 @@ impl Model {
         if !workspace.is_canonical() {
             return Err("R64 requires canonical KV storage".into());
         }
-        self.forward_sequences_inner(device, sequences, workspace, Dispatch::Decode64Diagnostic)
-            .await
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::Decode64Diagnostic, false)
+            .await?;
+        Ok(&self.logits[..sequences.len()])
     }
 
     async fn forward_sequences_inner(
@@ -301,7 +330,8 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
         dispatch: Dispatch,
-    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        prefer_blocked: bool,
+    ) -> Result<bool, Box<dyn std::error::Error>> {
         if sequences.len() > self.logits.len() {
             return Err("too many request sequences".into());
         }
@@ -342,6 +372,9 @@ impl Model {
             || (dispatch != Dispatch::Serial
                 && independent
                 && (2..=crate::axes::B::SIZE).contains(&singletons.len()));
+        // Mixed prompt/decode calls retain the existing scalar-row contract.
+        let blocked = prefer_blocked && use_r64 && singletons.len() == sequences.len()
+            && sequences.iter().any(|s| s.inputs[0].logits);
         if batched_singletons {
             let rows: Vec<_> = singletons
                 .iter()
@@ -362,6 +395,7 @@ impl Model {
                         workspace,
                         &mut self.logits,
                         &singletons,
+                        !blocked,
                     )
                     .await?;
             } else {
@@ -414,7 +448,7 @@ impl Model {
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
             result?;
         }
-        Ok(&self.logits[..sequences.len()])
+        Ok(blocked)
     }
 
     async fn step(
