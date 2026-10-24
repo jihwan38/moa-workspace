@@ -22,7 +22,7 @@ pub(crate) struct Decode64 {
     tile_indices: Vec<HbmTensor<i32, Chip, m![1]>>,
 
     profile: Option<std::collections::BTreeMap<&'static str, (usize, std::time::Duration)>>,
-    logits_batch: HbmTensor<bf16, Chip, m![R64, W]>,
+    logits_batch: HbmTensor<bf16, Chip, crate::ops_r64_io_blocked::BlockedLogits>,
 
     x: HbmTensor<bf16, Chip, m![R64, H]>,
     norm: HbmTensor<bf16, Chip, m![R64, H]>,
@@ -94,7 +94,7 @@ impl Decode64 {
             v_tile_f: zero!(bf16, m![B, Df]),
             tile_indices,
             profile: None,
-            logits_batch: zero!(bf16, m![R64, W]),
+            logits_batch: zero!(bf16, crate::ops_r64_io_blocked::BlockedLogits),
             x: zero!(bf16, m![R64, H]),
             norm: zero!(bf16, m![R64, H]),
             projected: zero!(bf16, m![R64, H]),
@@ -190,7 +190,7 @@ impl Decode64 {
                 .await?;
             }
             offsets.push(
-                HostTensor::<i32, m![1]>::from_vec([(row * W::SIZE * 2) as i32])
+                HostTensor::<i32, m![1]>::from_vec([(row * 32 * 2) as i32])
                     .to_hbm(&mut device.pdma)
                     .await?,
             );
@@ -231,7 +231,7 @@ impl Decode64 {
             .await?;
             self.record_profile("r64.logits.norm", &mut profile_mark);
             launch(
-                crate::ops_r64_io_bandoutput::logits_batch,
+                crate::ops_r64_io_blocked::logits_batch,
                 (
                     device,
                     &self.norm,
@@ -244,7 +244,7 @@ impl Decode64 {
             for (row, sequence) in sequences.iter().enumerate() {
                 if sequence.inputs[0].logits {
                     launch(
-                        io::extract_logits_row,
+                        crate::ops_r64_io_blocked::extract_logits_row,
                         (
                             device,
                             &self.logits_batch,
