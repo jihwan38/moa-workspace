@@ -19,3 +19,7 @@ Full-model and public accuracy gates are mandatory before adoption.
 Initial e9fc3ec host compile rejected f8e4m3::to_bits (not an SDK API).
 The diagnostic compares decoded F32 bits instead, a one-to-one representation
 for the finite E4 domain here including signed zero. No kernel change.
+
+Pre-NPU source audit caught padded-scale host decoding: SDK HostTensor::into_vec
+returns logical elements, so [P128,1#8] indexes by row b, not physical b*8.
+Fixed the diagnostic only; the kernel ABI and native math are unchanged.
