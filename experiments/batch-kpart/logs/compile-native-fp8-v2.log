@@ -1,0 +1,42 @@
+   Compiling [1/2] ops_native_fp8::project_up_scaled
+   Compiling [2/2] ops_native_fp8::batch_ffn
+error: furiosa-opt: ops_native_fp8::batch_ffn: visa: while verifying DmaCommand
+       caused by: verification of operator failed:
+       DmaCommand
+       inner: DmaCommand: sram -> sram
+       -- assigned_pe: None --
+       src0: [anonymbroadcast(4)_1=2:0, anonymbroadcast(3)_1=8:0, P128_1=32:4194304, P128_32=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst0: [anonymbroadcast(4)_1=2:134217728, anonymbroadcast(3)_1=8:16777216, P128_1=32:4, P128_32=2:128, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src1: [anonymbroadcast(4)_1=2:0, anonymbroadcast(3)_1=8:0, P128_1=32:4194304, P128_32=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst1: [anonymbroadcast(4)_1=2:134217728, anonymbroadcast(3)_1=8:16777216, P128_1=32:4, P128_32=2:128, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src2: [anonymbroadcast(4)_1=2:0, anonymbroadcast(3)_1=8:0, P128_1=32:4194304, P128_32=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst2: [anonymbroadcast(4)_1=2:134217728, anonymbroadcast(3)_1=8:16777216, P128_1=32:4, P128_32=2:128, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src3: [anonymbroadcast(4)_1=2:0, anonymbroadcast(3)_1=8:0, P128_1=32:4194304, P128_32=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst3: [anonymbroadcast(4)_1=2:134217728, anonymbroadcast(3)_1=8:16777216, P128_1=32:4, P128_32=2:128, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=0, pe=3, dmn=0, slice=0, in_slice=0x0)
+       src4: [anonymbroadcast(4)_1=2:0, anonymbroadcast(3)_1=8:0, P128_1=32:4194304, P128_32=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst4: [anonymbroadcast(4)_1=2:134217728, anonymbroadcast(3)_1=8:16777216, P128_1=32:4, P128_32=2:128, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       src5: [anonymbroadcast(4)_1=2:0, anonymbroadcast(3)_1=8:0, P128_1=32:4194304, P128_32=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst5: [anonymbroadcast(4)_1=2:134217728, anonymbroadcast(3)_1=8:16777216, P128_1=32:4, P128_32=2:128, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=1, dmn=0, slice=0, in_slice=0x0)
+       src6: [anonymbroadcast(4)_1=2:0, anonymbroadcast(3)_1=8:0, P128_1=32:4194304, P128_32=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst6: [anonymbroadcast(4)_1=2:134217728, anonymbroadcast(3)_1=8:16777216, P128_1=32:4, P128_32=2:128, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=2, dmn=0, slice=0, in_slice=0x0)
+       src7: [anonymbroadcast(4)_1=2:0, anonymbroadcast(3)_1=8:0, P128_1=32:4194304, P128_32=2:134217728, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=0, dmn=0, slice=0, in_slice=0x0)
+       dst7: [anonymbroadcast(4)_1=2:134217728, anonymbroadcast(3)_1=8:16777216, P128_1=32:4, P128_32=2:128, anonymdma_tail(0)_1=1:4], Sram(chip=0, cluster=1, pe=3, dmn=0, slice=0, in_slice=0x0)
+       
+       name: 
+       
+       input tensors: 1
+         input T13: MappingShape[Chip: 1, Cluster: P128 / 64, Slice: P128 % 64 # 256, Element: 1 # 8], 16384 B, f32, sram
+         source: unknown
+         total bytes: 16384
+       output tensors: 1
+         output T17: MappingShape[Chip: 1, Cluster: P128 / 64, Slice: (L / 240, 1 # 4), Element: P128 % 64], 131072 B, f32, sram
+         source: unknown
+         total bytes: 131072
+       caused by: strides([4, 128, 4, 16777216, 0, 0, 0, 0]) is not aligned by 8 SequencerConfig { iteration_config: IterationConfig { limits: [1, 2, 32, 16, 1, 1, 1, 1] }, indexer_config: Indexer { base: 0, strides: [4, 128, 4, 16777216, 0, 0, 0, 0] } }
+   --> src/ops_native_fp8.rs:168:71
+    |
+168 |     let xscale:DmTensor<f32,Chip,Cluster,UpRows,m![P128 % 64]>=xscale.to_dm(&mut device.tdma);
+    |                                                                       ^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 2 compiled, 60 not matching ops_native_fp8::project_up_scaled, ops_native_fp8::batch_ffn
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error

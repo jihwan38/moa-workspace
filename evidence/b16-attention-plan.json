@@ -25,7 +25,42 @@
     "src/bin/test_attention_b16.rs": "02e8bfdb5fb4cbedd531835f737c2ae270e45a537b5b2c0c099c1705632e8d34",
     "src/lib.rs": "ceb19304324a70c10a6c92714707eba9324c6e574170d9a71e0cfa2b7141f1fc"
   },
-  "npu_execution": "Pending root dispatch; no runtime/performance evidence yet",
+  "npu_execution": {
+    "job": 317595,
+    "status": "SUCCEEDED",
+    "duration_sec": 3.488021858,
+    "exit_code": 0,
+    "source_commit": "15253e1",
+    "binary_sha256": "1f0918dda895e4db0b5e63c420b74a0a8f520cedbd9faeb3f6167a409780ae36",
+    "metrics": {
+      "full_CPU": {
+        "cases": 6,
+        "elements": 663552,
+        "max_nrms": 0.0001313,
+        "max_abs": 0.0004883
+      },
+      "full_serial-last": {
+        "cases": 6,
+        "elements": 49152,
+        "max_nrms": 0.0037664,
+        "max_abs": 0.0078125
+      },
+      "sliding_CPU": {
+        "cases": 8,
+        "elements": 376832,
+        "max_nrms": 0.0001018,
+        "max_abs": 0.0002441
+      },
+      "sliding_serial-last": {
+        "cases": 8,
+        "elements": 32768,
+        "max_nrms": 0.0040411,
+        "max_abs": 0.0039062
+      }
+    },
+    "exact_future_key_invariance_cases": 12,
+    "limitation": "Kernel correctness evidence only; duration includes CPU references/uploads and is not attention latency or whole-model throughput."
+  },
   "compile_fixes": [
     "explicit commit_trim for scalar vector results",
     "padded [B,Gf,1#8] running scalar HBM storage for DMA read alignment",

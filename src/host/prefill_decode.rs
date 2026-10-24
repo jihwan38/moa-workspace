@@ -226,7 +226,7 @@ impl Prefill {
         .await?;
         self.record_profile("sliding.input_norm", &mut profile_mark);
         launch(
-            crate::ops_batch_clusters::project_query_clusters,
+            crate::ops_batch_kpart16::project_query_batch,
             (
                 device,
                 &self.norm,
@@ -237,7 +237,7 @@ impl Prefill {
         )
         .await?;
         launch(
-            ops_batch::project_sliding_kv_batch,
+            crate::ops_batch_kpart16::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -248,7 +248,7 @@ impl Prefill {
         )
         .await?;
         launch(
-            ops_batch::project_sliding_kv_batch,
+            crate::ops_batch_kpart16::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -397,7 +397,7 @@ impl Prefill {
         .await?;
         self.record_profile("full.input_norm", &mut profile_mark);
         launch(
-            ops_batch::project_full_query_batch,
+            crate::ops_batch_kpart16::project_full_query_batch,
             (
                 device,
                 &self.norm,
@@ -408,7 +408,7 @@ impl Prefill {
         )
         .await?;
         launch(
-            ops_batch::project_full_key_batch,
+            crate::ops_batch_kpart16::project_full_key_batch,
             (
                 device,
                 &self.norm,

@@ -1,0 +1,17 @@
+   Compiling [1/3] ops_native_fp8_blocked::batch_ffn
+   Compiling [2/3] ops_native_fp8_blocked::reblock_up
+error: furiosa-opt: ops_native_fp8_blocked::reblock_up: mir: DmTensor T127's cluster extent 1 does not match the device config (cluster = 2); a DM allocation must span the whole device. Pick a device config whose cluster matches (a mapping/config mismatch, not an element-size problem).
+   --> src/ops_native_fp8_blocked.rs:231:79
+    |
+231 |     let weights:DmTensor<f8e4m3,Chip,m![1],UpParts,m![L % 240,H % 960]>=input.to_dm(&mut device.tdma);
+    |                                                                               ^^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [3/3] ops_native_fp8_blocked::reblock_down
+error: furiosa-opt: ops_native_fp8_blocked::reblock_down: mir: DmTensor T130's cluster extent 1 does not match the device config (cluster = 2); a DM allocation must span the whole device. Pick a device config whose cluster matches (a mapping/config mismatch, not an element-size problem).
+   --> src/ops_native_fp8_blocked.rs:236:81
+    |
+236 |     let weights:DmTensor<f8e4m3,Chip,m![1],DownParts,m![H % 240,L % 960]>=input.to_dm(&mut device.tdma);
+    |                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 3 compiled, 68 not matching ops_native_fp8_blocked::reblock_up, ops_native_fp8_blocked::reblock_down, ops_native_fp8_blocked::batch_ffn
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors

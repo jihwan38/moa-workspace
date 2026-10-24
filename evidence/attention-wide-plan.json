@@ -1,0 +1,19 @@
+{
+  "source_control": "d93010b; chronological8B16promptsegments withexactclusteroptimization72d6bb9",
+  "control": "PerP128layer,8headlaunches,8attentionlaunches and8oldringK/Vreadpairs, withcommitsbetweensegments. OldK+Vlogicalsize8MiB, currentP128K+V1MiB. PhysicalDMAtrafficdependsbroadcast, so no multipliedpadding-byteclaim.",
+  "complete_change": "NativeP128sliding keepsoldringimmutable, readsoldK/Vonce peractivecluster, attendsall128queries againstoldringplusseparate128newkeys. ClusterP128/64;oldquerytimeP128%64 withNs\u00d732keygroup slices;softmax4queries/head/slice. Chunkkeys use32-keyBF16partials and4-wayreduction. Separatefull/nativeheads followafterthisproof.",
+  "removed_work": "7attentionlaunches and repeatedoldcacheload/transpose perP128layer; noeliminationofrequiredquery/key/value arithmetic.",
+  "added_work": "Largerscorebuffers (P128\u00d716heads\u00d71024oldkeys) and128-keycausalmask. SharingoldKVuses64querytimeaxispercluster ratherthan8hostB16loops.",
+  "numerics": "Old32-keypartials/tree preserved; current128splitintofour32-keyBF16partials differsfromchronological16-key currentchunkpartition. Notbitexactclaim; requiresCPUoracle, causal/window invariance, measuredNRMSEvs8B16, actualmodelaccuracy gate.",
+  "validation": "NonzeroCPUreferenceonrepresentativequeries/heads; actualallrowsvschronological8B16;futureperturbationexact; start0/384/512/896/1024/partial cases, paddedrowsnotcommitted. ParentcontrolsNPUdispatch andwholemodelquality.",
+  "host_contract": {
+    "q_out": "bf16[P128,Ns,Gs,Ds]",
+    "new_k_v": "bf16[P128,Ns,Ds]",
+    "old_k_v": "bf16[Ts,Ns,Ds]",
+    "old_mask": "f32[P128,Ts],0/-1e30",
+    "chunk_mask": "f32[P128,Pk128],0/-1e30;Pk128=128",
+    "commit": "afterallslidingqueriesfinish; production128scatterhelper, partialdiagnostics existingB16liveprefixcommits",
+    "full": "q/out[P128,Gf,Df],newK/V[P128,Df], masks[P128,Tf], stats[P128,Gf,1#8]; fullcurrentpagecancommitallliverowsupfront"
+  },
+  "cost_gate": "Compareactualnativekernel againstsum8warmedB16attentioncalls, reportmaskupload/hostcommits separately. Originalr076head_attentionmerged~363ms/4chunks40layers cannotisolatespeedupbyitself."
+}

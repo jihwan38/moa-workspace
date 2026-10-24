@@ -2,8 +2,8 @@
 //! Numerical operations match the scalar control; no cache copy or host window is used.
 use crate::Chip;
 use crate::axes::*;
-use crate::device::layout::{self, Cluster, Replicated, Slice};
-use crate::device::{full, shared, sliding};
+use crate::device_e154::layout::{self, Cluster, Replicated, Slice};
+use crate::device_e154::{full, shared, sliding};
 use crate::ops_pool_views::Rc64;
 use crate::ops_request_attention::Fc;
 use furiosa_opt_std::prelude::*;
@@ -32,28 +32,17 @@ pub fn sliding_project_qkv(
     v_cache: &mut HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
     q_out: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
 ) {
-    let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = x.to_dm(&mut device.tdma);
-    let x = shared::rmsnorm::normalize(device, &x, input_rms_weight);
-
-    let x: DmTensor<bf16, Chip, Cluster, Replicated, m![H]> = layout::broadcast_hidden(device, &x);
-
-    let q: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> =
-        sliding::projection::project_query(device, &x, q_weight, q_weight_scale);
-    let (k, v) = sliding::projection::project_key_value(
-        device,
-        &x,
-        k_weight,
-        v_weight,
-        k_weight_scale,
-        v_weight_scale,
+    let x: DmTensor<bf16, Chip, m![2], m![1 # 32, H / 480], m![H % 480]> = x.to_dm(&mut device.tdma);
+    let x = shared::rmsnorm::normalize_sharded_inter_slice(device, &x, input_rms_weight);
+    let (q, k, v) = sliding::projection::project_qkv_native(
+        device, &x, q_weight, k_weight, v_weight,
+        q_weight_scale, k_weight_scale, v_weight_scale,
     );
 
-    let q: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> =
+    let q: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Gs, Ds]> =
         sliding::rmsnorm::normalize_query(device, &q, q_rms_weight);
-    let k: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]> =
-        sliding::rmsnorm::normalize_key(device, &k, k_rms_weight);
-    let v: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]> =
-        sliding::rmsnorm::normalize_value(device, &v);
+    let k: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> = sliding::rmsnorm::normalize_key(device, &k, k_rms_weight);
+    let v: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> = sliding::rmsnorm::normalize_value(device, &v);
 
     let (q, k) = sliding::rope::apply_rope(device, &q, &k, rope_offset, cos, sin);
 
@@ -63,6 +52,7 @@ pub fn sliding_project_qkv(
         .scatter::<m![Rc64, Ts], m![Ns, Ds]>()
         .by_byte_offsets(kv_offset.view())
         .from_dm(&mut device.tdma, k);
+    let v: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Ds]> = v.to_dm(&mut device.tdma);
     v_cache
         .view_mut()
         .scatter::<m![Rc64, Ts], m![Ns, Ds]>()
@@ -99,12 +89,9 @@ pub fn full_project_qkv(
     let k_raw: DmTensor<bf16, Chip, Cluster, Slice, m![Df]> =
         full::projection::project_key(device, &x, k_weight, k_weight_scale);
 
-    let q: DmTensor<bf16, Chip, Cluster, Slice, m![Gf, Df]> =
-        full::rmsnorm::normalize_query(device, &q, q_rms_weight);
-    let v: DmTensor<bf16, Chip, Cluster, Slice, m![Df]> =
-        full::rmsnorm::normalize_value(device, &k_raw);
-    let k: DmTensor<bf16, Chip, Cluster, Slice, m![Df]> =
-        full::rmsnorm::normalize_key(device, &k_raw, k_rms_weight);
+    let q: DmTensor<bf16, Chip, Cluster, Slice, m![Gf, Df]> = full::rmsnorm::normalize_query(device, &q, q_rms_weight);
+    let v: DmTensor<bf16, Chip, Cluster, Slice, m![Df]> = full::rmsnorm::normalize_value(device, &k_raw);
+    let k: DmTensor<bf16, Chip, Cluster, Slice, m![Df]> = full::rmsnorm::normalize_key(device, &k_raw, k_rms_weight);
 
     let (q, k) = full::rope::apply_rope(device, &q, &k, rope_offset, cos, sin);
 

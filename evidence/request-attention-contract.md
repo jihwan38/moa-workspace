@@ -37,7 +37,10 @@ The initial probe verifies full attention against repaired scalar attention for
 It also verifies ragged-page state preservation,3-row updates, reverse migration,
 finite-zero inactive outputs and16→3→16 batches. No whole-model speed claim follows
 from this kernel probe. Actual full probe Arena317685 passed with all live outputs
-bit-exact to scalar. Sliding compiled; its actual device validation is pending.
+bit-exact to scalar. Sliding Arena317713 also passed:39 live row comparisons
+(159744 output values), future invariance,7-row updates and exact reverse migration.
+Its current whole16-row warm launch takes about1.08ms; kernel correctness does not
+imply a throughput improvement over scalar attention.
 
 Sliding `sliding_attention_b16` arguments:
 `device, q[B,Ns,Gs,Ds], pool_k[Rc,Ts,Ns,Ds], pool_v[Rc,Ts,Ns,Ds],
