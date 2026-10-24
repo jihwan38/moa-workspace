@@ -79,6 +79,7 @@ impl WidePrefill {
         weights: &Weights,
         sequence: &Sequence<'_>,
         scratch: &mut Prefill,
+        canonical: bool,
     ) -> Result<PreparedWide> {
         if !Self::supports(sequence) {
             return Err("unsupported P128 prompt shape".into());
@@ -166,7 +167,13 @@ impl WidePrefill {
                 full_mask: HostTensor::<f32, m![B, Tf]>::from_vec(full_mask(start, valid))
                     .to_hbm(&mut device.pdma)
                     .await?,
-                commits: CommitOffsets::new(device, start, valid).await?,
+                commits: CommitOffsets::new(
+                    device,
+                    start,
+                    valid,
+                    canonical.then_some(sequence.blocks),
+                )
+                .await?,
             });
         }
         scratch.record_profile("wide.prepare", &mut mark);
@@ -265,7 +272,9 @@ impl WidePrefill {
         ws: &mut Workspace,
         scratch: &mut Prefill,
     ) -> Result<()> {
-        let mut state = self.prepare(device, weights, sequence, scratch).await?;
+        let mut state = self
+            .prepare(device, weights, sequence, scratch, ws.is_canonical())
+            .await?;
         while !self
             .advance_layer(device, weights, &mut state, ws, scratch)
             .await?
@@ -387,7 +396,6 @@ impl WidePrefill {
         .await?;
         scratch.record_profile("wide.sliding.qkv", &mut mark);
         let ring = state.blocks.sliding;
-        let (k, v) = ws.kv_cache[index].as_sliding_mut();
         for (tile, segment) in segments.iter().enumerate() {
             let tile = &self.tile_indices[tile];
             launch(
@@ -409,31 +417,58 @@ impl WidePrefill {
                 ),
             )
             .await?;
-            launch(
-                crate::ops_sliding_prompt_clusters::sliding_attention_b16,
-                (
-                    device,
-                    &scratch.q_s,
-                    &k[ring],
-                    &v[ring],
-                    &scratch.k_s,
-                    &scratch.v_s,
-                    &segment.old_mask,
-                    &segment.chunk_mask,
-                    &mut scratch.attn_s,
-                ),
-            )
-            .await?;
-            segment
-                .commits
-                .sliding(
-                    device,
-                    &scratch.k_s,
-                    &scratch.v_s,
-                    &mut k[ring],
-                    &mut v[ring],
+            if ws.is_canonical() {
+                let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
+                    unreachable!()
+                };
+                launch(
+                    crate::ops_sliding_prompt_pool::sliding_attention_b16,
+                    (
+                        device,
+                        &scratch.q_s,
+                        &*k,
+                        &*v,
+                        &ws.cache_ring_offsets[ring],
+                        &scratch.k_s,
+                        &scratch.v_s,
+                        &segment.old_mask,
+                        &segment.chunk_mask,
+                        &mut scratch.attn_s,
+                    ),
                 )
                 .await?;
+                segment
+                    .commits
+                    .sliding_pool(device, &scratch.k_s, &scratch.v_s, &mut *k, &mut *v)
+                    .await?;
+            } else {
+                let (k, v) = ws.kv_cache[index].as_sliding_mut();
+                launch(
+                    crate::ops_sliding_prompt_clusters::sliding_attention_b16,
+                    (
+                        device,
+                        &scratch.q_s,
+                        &k[ring],
+                        &v[ring],
+                        &scratch.k_s,
+                        &scratch.v_s,
+                        &segment.old_mask,
+                        &segment.chunk_mask,
+                        &mut scratch.attn_s,
+                    ),
+                )
+                .await?;
+                segment
+                    .commits
+                    .sliding(
+                        device,
+                        &scratch.k_s,
+                        &scratch.v_s,
+                        &mut k[ring],
+                        &mut v[ring],
+                    )
+                    .await?;
+            }
             launch(
                 tiles::store_heads_sliding_tile,
                 (device, &scratch.attn_s, tile, &mut self.attn_s),
@@ -504,7 +539,6 @@ impl WidePrefill {
         scratch.record_profile("wide.full.qkv", &mut mark);
         let page = state.start_position / Tf::SIZE;
         let blocks = &state.blocks.full;
-        let (k, v) = ws.kv_cache[index].as_full_mut();
         for (tile, segment) in segments.iter().enumerate() {
             let tile = &self.tile_indices[tile];
             launch(
@@ -525,36 +559,78 @@ impl WidePrefill {
                 ),
             )
             .await?;
-            segment
-                .commits
-                .full(
-                    device,
-                    &scratch.k_f,
-                    &scratch.v_f,
-                    &mut k[blocks[page]],
-                    &mut v[blocks[page]],
-                )
-                .await?;
-            for current in 0..=page {
-                let mask = if current == page {
-                    &segment.full_mask
-                } else {
-                    &scratch.full_line_mask
+            if ws.is_canonical() {
+                let runtime::KvCache::FullCanonical { k, v } = &mut ws.kv_cache[index] else {
+                    unreachable!()
                 };
-                let args = (
-                    &mut *device,
-                    &scratch.q_f,
-                    &k[blocks[current]],
-                    &v[blocks[current]],
-                    mask,
-                    &mut scratch.max_f,
-                    &mut scratch.sum_f,
-                    &mut scratch.attn_f,
-                );
-                if current == 0 {
-                    launch(ops_attention::full_attention_first_page_b16, args).await?;
-                } else {
-                    launch(ops_attention::full_attention_next_page_b16, args).await?;
+                segment
+                    .commits
+                    .full_pool(device, &scratch.k_f, &scratch.v_f, &mut *k, &mut *v)
+                    .await?;
+                for current in 0..=page {
+                    let mask = if current == page {
+                        &segment.full_mask
+                    } else {
+                        &scratch.full_line_mask
+                    };
+                    let args = (
+                        &mut *device,
+                        &scratch.q_f,
+                        &*k,
+                        &*v,
+                        &ws.cache_page_offsets[blocks[current]],
+                        mask,
+                        &mut scratch.max_f,
+                        &mut scratch.sum_f,
+                        &mut scratch.attn_f,
+                    );
+                    if current == 0 {
+                        launch(
+                            crate::ops_attention_pool::full_attention_first_page_b16,
+                            args,
+                        )
+                        .await?;
+                    } else {
+                        launch(
+                            crate::ops_attention_pool::full_attention_next_page_b16,
+                            args,
+                        )
+                        .await?;
+                    }
+                }
+            } else {
+                let (k, v) = ws.kv_cache[index].as_full_mut();
+                segment
+                    .commits
+                    .full(
+                        device,
+                        &scratch.k_f,
+                        &scratch.v_f,
+                        &mut k[blocks[page]],
+                        &mut v[blocks[page]],
+                    )
+                    .await?;
+                for current in 0..=page {
+                    let mask = if current == page {
+                        &segment.full_mask
+                    } else {
+                        &scratch.full_line_mask
+                    };
+                    let args = (
+                        &mut *device,
+                        &scratch.q_f,
+                        &k[blocks[current]],
+                        &v[blocks[current]],
+                        mask,
+                        &mut scratch.max_f,
+                        &mut scratch.sum_f,
+                        &mut scratch.attn_f,
+                    );
+                    if current == 0 {
+                        launch(ops_attention::full_attention_first_page_b16, args).await?;
+                    } else {
+                        launch(ops_attention::full_attention_next_page_b16, args).await?;
+                    }
                 }
             }
             launch(

@@ -134,13 +134,19 @@ impl Model {
         self.active_prefill = Some(if WidePrefill::supports(sequence) {
             ActivePrefill::Wide(
                 self.wide
-                    .prepare(device, &self.weights, sequence, &mut self.prefill)
+                    .prepare(
+                        device,
+                        &self.weights,
+                        sequence,
+                        &mut self.prefill,
+                        workspace.is_canonical(),
+                    )
                     .await?,
             )
         } else {
             ActivePrefill::Narrow(
                 self.prefill
-                    .prepare(device, &self.weights, sequence)
+                    .prepare(device, &self.weights, sequence, workspace.is_canonical())
                     .await?,
             )
         });

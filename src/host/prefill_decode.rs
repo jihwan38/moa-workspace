@@ -33,7 +33,9 @@ impl Prefill {
             return Err("invalid independent-request batch".into());
         }
         let distinct = super::super::request_pool::independent_sequences(sequences);
-        let pooled = if distinct && ws.request_pool.is_some() {
+        let pooled = if distinct && ws.is_canonical() {
+            Some(PooledStep::new(device, sequences).await?)
+        } else if distinct && ws.request_pool.is_some() {
             let pool = ws.request_pool.as_mut().unwrap();
             for sequence in sequences {
                 pool.ensure_pool(
@@ -276,7 +278,29 @@ impl Prefill {
         )
         .await?;
         self.record_profile("sliding.heads_rope", &mut profile_mark);
-        if let Some(metadata) = pooled {
+        if ws.is_canonical() {
+            let metadata = pooled.ok_or("canonical decode requires independent rows")?;
+            let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
+                return Err("sliding layer has wrong pool kind".into());
+            };
+            metadata
+                .commits
+                .sliding_canonical(device, &self.k_s, &self.v_s, k, v)
+                .await?;
+            launch(
+                crate::ops_request_sliding_b16_rc64::sliding_attention_b16,
+                (
+                    device,
+                    &self.q_s,
+                    &*k,
+                    &*v,
+                    &metadata.ring_offsets,
+                    &metadata.sliding_mask,
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+        } else if let Some(metadata) = pooled {
             let PoolCache::Sliding { k, v } = &mut ws.request_pool.as_mut().unwrap().layers[index]
             else {
                 return Err("sliding layer has wrong pool kind".into());
@@ -413,7 +437,48 @@ impl Prefill {
         )
         .await?;
         self.record_profile("full.heads_rope", &mut profile_mark);
-        if let Some(metadata) = pooled {
+        if ws.is_canonical() {
+            let metadata = pooled.ok_or("canonical decode requires independent rows")?;
+            let runtime::KvCache::FullCanonical { k, v } = &mut ws.kv_cache[index] else {
+                return Err("full layer has wrong pool kind".into());
+            };
+            metadata
+                .commits
+                .full(device, &self.k_f, &self.v_f, k, v)
+                .await?;
+            for (page_index, page) in metadata.pages.iter().enumerate() {
+                let args = (
+                    &mut *device,
+                    &self.q_f,
+                    &*k,
+                    &*v,
+                    &page.offsets,
+                    &page.mask,
+                    &page.active,
+                    &mut self.max_f,
+                    &mut self.sum_f,
+                    &mut self.attn_f,
+                );
+                if page_index == 0 {
+                    launch(
+                        crate::ops_request_full_clusters::full_attention_first_page_b16,
+                        args,
+                    )
+                    .await?;
+                } else {
+                    launch(
+                        crate::ops_request_full_clusters::full_attention_next_page_b16,
+                        args,
+                    )
+                    .await?;
+                }
+            }
+            launch(
+                crate::ops_request_full_clusters::full_attention_divide_b16,
+                (device, &self.attn_f, &self.sum_f, &mut self.divided_f),
+            )
+            .await?;
+        } else if let Some(metadata) = pooled {
             let PoolCache::Full { k, v } = &mut ws.request_pool.as_mut().unwrap().layers[index]
             else {
                 return Err("full layer has wrong pool kind".into());
