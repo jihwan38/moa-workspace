@@ -123,3 +123,20 @@ scale rows before splitting because60 E4 bytes violate DMA alignment. This
 changes the16-way F32 reduction tree and doubles four-row dequant streams
 30→60; compare491520 outputs against H960-up/L1920-down with tolerance and
 matched ABBA. No loader change and no model storage growth.
+
+Native FP4 plan after29eeda9: use caller's E4 activation and per-token F32
+power-of-two scale with the provided FP4 weights and E4 blockscales. H960
+shards limit six-row/B8 blockdot to60 blocks. Contract retains each16-element
+block, applies its original scale in the vector stage, reduces H locally and
+across4 slices, then applies xscale before the BF16 dot boundary. No BF16
+weight requantization or expanded model storage. Arithmetic regrouping remains,
+and single-term activation quantization needs a separate full-model accuracy
+gate. First matrix probe reconstructs FP8×xscale as BF16 for the existing exact
+weight kernel, also checks sampled F64 scalar dots, and measures warm ABBA.
+
+Both native4 shapes compile. Because H960 has only60 blocks,30 scale rows fit
+30×64×4=7680B VRF; the probe compares this8-iteration row tiling against the
+initial40-iteration six-row shape. This reduces command/loop repetition while
+preserving the same dot/blockscale/reduction computation. Native activation
+input is generated directly and its exact E4×power-of-two reconstruction is
+the BF16 reference, so this kernel gate excludes activation quantization error.
