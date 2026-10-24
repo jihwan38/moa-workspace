@@ -100,6 +100,34 @@
     "dispatch": "All inputsequences contain exactly one row; batchsize2..16; independent of performanceflags",
     "capacity": "Worker admission increased4->16 with same8192-position perrequest capacity",
     "host_check": "cargo check --bin server passed SDK0.9",
-    "next_gate": "compare_decode_batch actualmodel differential, distinctrequests/prompts/positions/pages/rings; root NPU then mixedpublicaccuracy and throughput"
+    "next_gate": "compare_decode_batch actualmodel differential, distinctrequests/prompts/positions/pages/rings; root NPU then mixedpublicaccuracy and throughput",
+    "actual_npu": {
+      "job": 317617,
+      "requests": 4,
+      "steps": 3,
+      "correctness": "Everylogit exactly matches serial control for all4requests x3steps; maxabs0 andrelativeL2zero",
+      "timing": "Before row-major transfer optimization: ~293ms batchedstep vs~467ms originalscalar4; ~13.6 generatedtokens/s inthisisolateddiagnostic",
+      "scope": "Actualweights48layer decoder diagnostic, notofficialmixedscore"
+    }
+  },
+  "stage_profile": {
+    "activation": "Explicit Model.begin_stage_profile()/take_stage_profile() in diagnostic binaries only; no server flags or behavioral selection",
+    "groups": [
+      "prepare",
+      "QKV",
+      "input RMS",
+      "head RMS+RoPE",
+      "attention+KV",
+      "O",
+      "postattentionRMS+residual",
+      "FFN preRMS",
+      "FFN core",
+      "FFN postRMS+residual+gate",
+      "finalRMS",
+      "vocabulary",
+      "logit extraction"
+    ],
+    "measurement": "Host-observed awaitedlaunch durations, warmsteps from compare_decode_batch; stages sum to corresponding batchedcall excluding small uninstrumented host bookkeeping",
+    "kernel_version": "3666ea0 row-major transfer optimization integrated; true batchheadnorm awaiting parity before adoption"
   }
 }

@@ -30,6 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         sliding: 0,
     };
     let mut model = Model::new(&mut device, weights, &mut serial).await?;
+    model.begin_stage_profile();
     let mut control = Vec::new();
     let mut candidate = Vec::new();
     let mut serial_time = std::time::Duration::ZERO;
@@ -98,5 +99,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         top(&control),
         top(&candidate)
     );
+    for stage in model.take_stage_profile() {
+        println!(
+            "stage={} calls={} total_ms={:.3}",
+            stage.stage, stage.calls, stage.milliseconds
+        );
+    }
     Ok(())
 }
