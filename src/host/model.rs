@@ -193,7 +193,8 @@ impl Model {
     }
 
     /// Append each input to its history and return one logits buffer per input, in input order.
-    /// Buffers of inputs with `logits == false` are stale. The reference runs rows serially.
+    /// Buffers of inputs with `logits == false` are stale. Independent requests
+    /// may share matrix and attention launches while retaining separate histories.
     pub async fn forward(
         &mut self,
         device: &mut Device,
@@ -219,8 +220,9 @@ impl Model {
     }
 
     /// Compute one consecutive sequence per request, returning its last logits.
-    /// Page-local128-token chunks share wide matrix weights; shorter chunks use
-    /// B16, and independent singleton requests share a B16 decode step.
+    /// Page-local128-token chunks share wide matrix weights; chunks of2..16 use
+    /// B16, and independent singleton requests share a B16 decode step. Other
+    /// caller-supplied shapes retain token-wise execution.
     pub async fn forward_sequences(
         &mut self,
         device: &mut Device,
