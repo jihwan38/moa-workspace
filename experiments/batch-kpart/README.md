@@ -157,3 +157,33 @@ Actual trace317901/r164 confirms Task2,457,703→2,432,305cycles. The BF16
 intermediate repartition costs519,198cycles versus compiler99,932, replacing
 the expected saving with a more expensive transfer. Operator spans can overlap;
 their durations must not be summed into elapsed time.
+B16 native FP8 plan afterca4abc9:share the same prepacked model tensors with
+P128; use one B8 tile per cluster, existing B8 GeGLU, and per-token activation
+quantization with identical scale semantics. Preserve P128 source. Check1024
+scaled-matrix F64 samples each and report full61440-value FFN error against
+exact split-cluster packed control, followed by matched ABBA. Approximate
+model accuracy remains a separate root gate.
+
+Blocked-storage plan afterc5808b5: raw native FP8 schedule shows weight DMA
+~116k cycles versus all eight contractions~60k. Row-major HBM causes240
+strided960-byte pieces per slice. Reblock startup weights into
+[L/240,H/960,L%240,H%960], and down analogously, so each live slice loads
+230400 contiguous bytes. Startup uses one cluster and256 slices. Same FP8
+values, scales, activation quantization and all arithmetic; only HBM layout
+changes. Require all up/down weight values to match the independent CPU index
+permutation and491520 final output bits equal to current fused FP8 before
+matched ABBA timing. P128 original path stays available.
+
+Arena317876 B16 native FP8:1024-sample scaled-matrix gates passed;61440 full
+FFN outputs finite with relativeL2=0.05720 versus exact packed cluster. Runtime
+0.882–0.889ms→0.521–0.529ms. Quantization error remains a model-level gate.
+Fused P128 schedule now identifies two quantized activation redistributions
+at289644 cycles each and GeGLU's three sets of tile copies at194760 cycles.
+Root owns direct partition-local quantization; this worktree's immediate
+blocked-weight variant changes only weight layout.
+
+Default8-PE SDK topology rejects DM cluster extent1. Reblock startup therefore
+splits output groups between two clusters,128 valid tiles each padded with an
+anonymous axis to256 physical slices. Every weight is copied once; blocked
+HBM order and live FFN behavior are unchanged. This avoids requiring a second
+4-PE runtime topology only for startup.
