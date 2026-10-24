@@ -16,6 +16,15 @@ pub struct Input<'a> {
     pub audio: Option<&'a AudioFrames>,
 }
 
+/// Consecutive inputs from one request, backed by that request's KV allocation.
+/// Only the last input may request logits; earlier rows still compute their full
+/// causal history. The caller allocates blocks through the end of the sequence.
+pub struct Sequence<'a> {
+    pub inputs: &'a [Input<'a>],
+    pub start_position: usize,
+    pub blocks: &'a Blocks,
+}
+
 pub struct Model {
     weights: load::Weights,
     decode: runtime::Decode,
@@ -30,7 +39,11 @@ impl Model {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let mut logits = Vec::with_capacity(workspace.requests());
         for _ in 0..workspace.requests() {
-            logits.push(HostTensor::<bf16, m![W]>::zero().to_hbm(&mut device.pdma).await?);
+            logits.push(
+                HostTensor::<bf16, m![W]>::zero()
+                    .to_hbm(&mut device.pdma)
+                    .await?,
+            );
         }
         Ok(Self {
             weights,
@@ -49,24 +62,53 @@ impl Model {
         blocks: &[&Blocks],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
-        if inputs.len() > self.logits.len() || inputs.len() != positions.len() || inputs.len() != blocks.len() {
+        if inputs.len() != positions.len() || inputs.len() != blocks.len() {
             return Err("incompatible batch dimensions".into());
         }
-        for (row, ((input, &position), blocks)) in inputs.iter().zip(positions).zip(blocks).enumerate() {
-            if position >= workspace.capacity()
-                || blocks.full.len() * crate::axes::Tf::SIZE <= position
-                || blocks.sliding >= workspace.requests()
-            {
-                return Err("invalid position or blocks".into());
-            }
-            workspace.blocks.full.clone_from(&blocks.full);
-            workspace.blocks.sliding = blocks.sliding;
+        let sequences: Vec<_> = inputs
+            .iter()
+            .zip(positions)
+            .zip(blocks)
+            .map(|((input, &start_position), &blocks)| Sequence {
+                inputs: std::slice::from_ref(input),
+                start_position,
+                blocks,
+            })
+            .collect();
+        self.forward_sequences(device, &sequences, workspace).await
+    }
+
+    /// Compute one consecutive sequence per request, returning its last logits.
+    /// This initial backend preserves the original token-wise arithmetic. It is
+    /// also the correctness fallback for the layer-wise prefill backend.
+    pub async fn forward_sequences(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        if sequences.len() > self.logits.len() {
+            return Err("too many request sequences".into());
+        }
+        for sequence in sequences {
+            validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+        }
+        for (row, sequence) in sequences.iter().enumerate() {
+            workspace.blocks.full.clone_from(&sequence.blocks.full);
+            workspace.blocks.sliding = sequence.blocks.sliding;
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
-            let result = self.step(device, input, position, workspace).await;
+            let result = async {
+                for (offset, input) in sequence.inputs.iter().enumerate() {
+                    self.step(device, input, sequence.start_position + offset, workspace)
+                        .await?;
+                }
+                Ok::<_, Box<dyn std::error::Error>>(())
+            }
+            .await;
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
             result?;
         }
-        Ok(&self.logits[..inputs.len()])
+        Ok(&self.logits[..sequences.len()])
     }
 
     async fn step(
@@ -79,8 +121,13 @@ impl Model {
         let embedding = match input.soft {
             Some(SoftToken::Image(index)) => {
                 let image = input.image.ok_or("image is missing")?;
-                runtime::encode_vision_patch(device, &self.weights, &image.pixels[index], image.positions[index])
-                    .await?
+                runtime::encode_vision_patch(
+                    device,
+                    &self.weights,
+                    &image.pixels[index],
+                    image.positions[index],
+                )
+                .await?
             }
             Some(SoftToken::Audio(index)) => {
                 let audio = input.audio.ok_or("audio is missing")?;
@@ -88,14 +135,194 @@ impl Model {
             }
             None => {
                 self.decode
-                    .run(device, workspace, input.token, &self.weights, position, input.logits)
+                    .run(
+                        device,
+                        workspace,
+                        input.token,
+                        &self.weights,
+                        position,
+                        input.logits,
+                    )
                     .await?;
                 return Ok(());
             }
         };
         self.decode
-            .run_with_embedding(device, workspace, embedding, &self.weights, position, input.logits)
+            .run_with_embedding(
+                device,
+                workspace,
+                embedding,
+                &self.weights,
+                position,
+                input.logits,
+            )
             .await?;
         Ok(())
+    }
+}
+
+fn validate_sequence(
+    sequence: &Sequence<'_>,
+    capacity: usize,
+    requests: usize,
+) -> Result<(), &'static str> {
+    let end = sequence
+        .start_position
+        .checked_add(sequence.inputs.len())
+        .ok_or("sequence position overflow")?;
+    if sequence.inputs.is_empty()
+        || end > capacity
+        || sequence.blocks.full.len() < Workspace::blocks_for(end)
+        || sequence.blocks.sliding >= requests
+    {
+        return Err("invalid sequence positions or blocks");
+    }
+    if sequence.inputs[..sequence.inputs.len() - 1]
+        .iter()
+        .any(|input| input.logits)
+    {
+        return Err("only the last sequence input may request logits");
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn input(logits: bool) -> Input<'static> {
+        Input {
+            token: 7,
+            soft: None,
+            logits,
+            image: None,
+            audio: None,
+        }
+    }
+
+    #[test]
+    fn sequence_crossing_full_page_requires_next_physical_block() {
+        let inputs = [input(false), input(true)];
+        let mut blocks = Blocks {
+            full: vec![5],
+            sliding: 0,
+        };
+        assert!(
+            validate_sequence(
+                &Sequence {
+                    inputs: &inputs,
+                    start_position: 511,
+                    blocks: &blocks
+                },
+                8192,
+                4
+            )
+            .is_err()
+        );
+        blocks.full.push(9);
+        assert!(
+            validate_sequence(
+                &Sequence {
+                    inputs: &inputs,
+                    start_position: 511,
+                    blocks: &blocks
+                },
+                8192,
+                4
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn rejects_discarding_requested_logits_and_out_of_bounds_sequences() {
+        let blocks = Blocks {
+            full: vec![0, 1],
+            sliding: 0,
+        };
+        let wrong = [input(true), input(true)];
+        assert!(
+            validate_sequence(
+                &Sequence {
+                    inputs: &wrong,
+                    start_position: 0,
+                    blocks: &blocks
+                },
+                1024,
+                4
+            )
+            .is_err()
+        );
+        let inputs = [input(false), input(true)];
+        assert!(
+            validate_sequence(
+                &Sequence {
+                    inputs: &inputs,
+                    start_position: 1023,
+                    blocks: &blocks
+                },
+                1024,
+                4
+            )
+            .is_err()
+        );
+        assert!(
+            validate_sequence(
+                &Sequence {
+                    inputs: &inputs,
+                    start_position: usize::MAX,
+                    blocks: &blocks
+                },
+                1024,
+                4
+            )
+            .is_err()
+        );
+        assert!(
+            validate_sequence(
+                &Sequence {
+                    inputs: &[],
+                    start_position: 0,
+                    blocks: &blocks
+                },
+                1024,
+                4
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn accepts_final_partial_chunk_and_rejects_another_requests_ring() {
+        let inputs = [input(false), input(false), input(true)];
+        let mut blocks = Blocks {
+            full: vec![7, 3],
+            sliding: 3,
+        };
+        assert!(
+            validate_sequence(
+                &Sequence {
+                    inputs: &inputs,
+                    start_position: 1021,
+                    blocks: &blocks
+                },
+                1024,
+                4
+            )
+            .is_ok()
+        );
+        blocks.sliding = 4;
+        assert!(
+            validate_sequence(
+                &Sequence {
+                    inputs: &inputs,
+                    start_position: 1021,
+                    blocks: &blocks
+                },
+                1024,
+                4
+            )
+            .is_err()
+        );
     }
 }
