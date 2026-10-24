@@ -35,13 +35,14 @@
     "prefill": "round2/prefill",
     "batch-kernels": "round2/batch-kernels",
     "attention": "round2/attention",
-    "io": "round2/batch-io"
+    "io": "round2/batch-io",
+    "native-ffn": "round2/native-ffn"
   },
   "current_work": {
-    "root": "NPU E154 control, B16 embedding/LM-head, integration/submissions",
-    "e2e_evidence": "B16 causal sliding/full attention",
-    "round2_path": "explicit prompt chunks and host batched execution",
-    "batch_kernels": "B16 weight-reusing projection and FFN"
+    "root": "NativeFP8 prepacked wideFFN speedbound, integrated candidates, frozen NPU dispatch",
+    "e2e_evidence": "P128 hiddennorm and epilogue kernels to remove8B16tile loops",
+    "round2_path": "Pooleddecode transitions with ringgather andB16clusterFFN; exactP128 prompt activation",
+    "batch_kernels": "H960 fullmodel accuracy investigation, B16 QKV and predecodedwideFFN"
   },
   "verification": {
     "e154_model_accuracy": false,
@@ -58,7 +59,7 @@
   ],
   "baseline_binary_sha256": "79ff994a27b5555fad4ed86f621527e446d4adf382cbed5789afe5baf2283e77",
   "e154_port_binary_sha256": "4e460d2cc545b156437761d5ced89cf7a38a16e4289a821f267798d0ea1150dd",
-  "updated_at_utc": "2026-10-24T19:38:10.301235+00:00",
+  "updated_at_utc": "2026-10-24T20:28:03.787225+00:00",
   "public_control_accuracy": {
     "mmlu": "2/2",
     "vqav2": "2/2",
@@ -109,13 +110,188 @@
       "bit_differences": 0,
       "warm_ms": 44.536,
       "decision": "on-chip output transpose to remove 2-byte strided DMA"
+    },
+    "P128_query": {
+      "job": 317636,
+      "values": 524288,
+      "bit_differences": 0,
+      "warm_ms": 1.189
+    },
+    "P128_ffn": {
+      "job": 317637,
+      "values": 491520,
+      "bit_differences": 0,
+      "warm_ms": 12.8,
+      "eightB16_ms": 10.4,
+      "decision": "hold; diagnose repeatedactivationDMbroadcast"
+    },
+    "vectorized_hidden_norm": {
+      "job": 317633,
+      "values": 368640,
+      "bit_differences": 0
+    },
+    "vectorized_head_norm_rope": {
+      "job": 317624,
+      "values": 278528,
+      "bit_differences": 0
+    },
+    "scalar_causal_mask": {
+      "job": 317640,
+      "future_KV_invariance": "exact",
+      "E2Erepeat_pending": false,
+      "E2Erepeat_job": 317643,
+      "E2Erepeat_exact": true
+    },
+    "B16_cluster_ffn": {
+      "job": 317726,
+      "values": 61440,
+      "bit_differences": 0,
+      "control_ms": 1.33,
+      "candidate_ms": 0.856
+    },
+    "P128_cached_ffn": {
+      "job": 317676,
+      "values": 491520,
+      "bit_differences": 0,
+      "control_ms": 13.0,
+      "candidate_ms": 4.63
+    },
+    "P128_cached_model513": {
+      "job": 317715,
+      "exact_logits": 262144,
+      "total_logits": 262144,
+      "control_ms": 4016.45,
+      "candidate_ms": 2661.496
+    },
+    "P128_H960_model513": {
+      "job": 317733,
+      "relative_l2": 0.0459573568,
+      "control_argmax": 100,
+      "candidate_argmax": 2946,
+      "candidate_ms": 1753.116,
+      "adoption": "hold for public accuracy",
+      "all_qkv_independent_oracle_job": 317743
+    },
+    "pooled_sliding_rings": {
+      "job": 317738,
+      "exact_values": 159744,
+      "warm_ms": 0.182,
+      "future_invariance": true,
+      "sparse_update_migration": true
+    },
+    "pooled_full_clusters": {
+      "job": 317747,
+      "exact_values": 286720,
+      "first_page_warm_us": 48,
+      "ragged_pages_migration": true
+    },
+    "B16_H960_ffn": {
+      "job": 317750,
+      "tolerance_failures": 0,
+      "control_ms": 0.883,
+      "candidate_ms": 0.957,
+      "adoption": "reject slower than exact cluster kernel"
+    },
+    "P128_nativeFP8_bound": {
+      "job": 317749,
+      "oracle_samples_per_shape": 1024,
+      "oracle_exact": true,
+      "up_ms": 0.555,
+      "down_ms": 0.327,
+      "quantization_included": false,
+      "is_model_accuracy": false
+    },
+    "P128_native_norm": {
+      "job": 317765,
+      "exact_values": 2949120,
+      "warm_us": 34.0
+    },
+    "P128_native_norm_model513": {
+      "job": 317784,
+      "exact_logits": 262144,
+      "control_ms": 3125.947,
+      "candidate_ms": 2100.722
+    },
+    "pool_model_transitions": {
+      "jobs": [
+        317761,
+        317762
+      ],
+      "capacities": [
+        4,
+        16
+      ],
+      "all_logits_exact": true,
+      "warm_step_ms": [
+        103,
+        107
+      ],
+      "tpot_100ms_gate": false
+    },
+    "prompt_sliding_clusters": {
+      "job": 317783,
+      "exact": true,
+      "control_us": 123,
+      "candidate_us": 90
+    },
+    "B16_QKV_H960": {
+      "job": 317770,
+      "independent_oracle_pass": true,
+      "warm_ms": {
+        "Qs": 0.096,
+        "Ps": 0.08,
+        "Qf": 0.144,
+        "Pf": 0.077
+      },
+      "adoption": "pending full-model accuracy"
+    },
+    "P128_BF16_predecode": {
+      "job": 317766,
+      "exact": true,
+      "control_ms": 3.043,
+      "candidate_ms": 2.736,
+      "adoption": "hold16GiB cost for10pctgain"
+    },
+    "B16_BF16_predecode": {
+      "job": 317777,
+      "exact": true,
+      "control_ms": 0.874,
+      "candidate_ms": 0.911,
+      "adoption": "reject slower"
     }
   },
-  "candidate": "c002-joint-transpose",
+  "candidate": "c004-pool-wide-native-norm",
   "next_costs": [
-    "P128 packed weight reuse across prompt rows",
-    "parallel head RMSNorm/RoPE",
-    "parallel hidden RMSNorm and epilogues",
-    "bounded mixed prompt/decode dispatch"
-  ]
+    "NativeP128 norms and epilogues",
+    "Providedweight prepack avoiding repeatedFP4dequantstreams",
+    "Pooled wholemodel transition validation",
+    "Mixed request throughput and TTFT proof",
+    "Official accuracy and scored submission"
+  ],
+  "last_public_performance": {
+    "candidate": "c003-parallel-norm-causal",
+    "job": 317643,
+    "input": "256text",
+    "concurrency": 1,
+    "requests": 2,
+    "ttft_p90_ms": 1940.319,
+    "tpot_p90_ms": 31.451,
+    "generated_tps": 16.3478,
+    "mixed": false,
+    "official_score": false,
+    "repeat_output_identical": true
+  },
+  "private_checkpoint": {
+    "remote": "jihwan38/moa-workspace",
+    "branch": "round2/top3",
+    "last_pushed": "9834c64"
+  },
+  "candidate_accuracy": {
+    "c001-mmlu": "2/2",
+    "c002-gsm8k": "2/2",
+    "c002-vqav2": "2/2",
+    "c003-ifeval": "2/2",
+    "c003-fleurs_en": "2/2",
+    "c003-fleurs_ko": "2/2"
+  }
 }

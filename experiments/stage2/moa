@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+worktree="${MOA_ROUND2_TREE:-server}"
+case "$worktree" in
+    server|e154-port|prefill|batch-kernels|attention|io) ;;
+    *) echo "Unknown round2 worktree: $worktree" >&2; exit 2 ;;
+esac
+flags=()
+if [[ -t 0 && -t 1 ]]; then flags=(-it); fi
+exec docker exec "${flags[@]}" --workdir "/round2/$worktree" moa2026-round2 "$@"
