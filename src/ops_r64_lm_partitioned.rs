@@ -48,7 +48,7 @@ pub fn logits_batch(device:&mut Device,input:&HbmTensor<bf16,Chip,m![R64,H]>,wei
     .begin(result.view().tile::<m![W/32%2],1,m![1#2,W%32,R64]>(half))
     .fetch::<m![W%32,R64/16],m![R64%16]>()
     .collect::<m![W%32,R64/16],m![R64%16]>()
-    .transpose::<m![R64/16,W/4%8,R64%16],m![W%4#16]>()
+    .transpose::<m![W/4%8,R64],m![W%4#16]>()
     .commit_trim::<m![W%4]>().commit();
    tile.view().to_hbm_view(&mut device.tdma,out.view_mut()
     .tile::<m![W/8192],1,m![1#{!}32,W/32%256,R64,W%32]>(band)
