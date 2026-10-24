@@ -31,8 +31,27 @@ pub struct Model {
     weights: load::Weights,
     decode: runtime::Decode,
     prefill: Prefill,
-    wide: Option<WidePrefill>,
+    wide: WidePrefill,
     logits: Vec<Logits>,
+}
+
+/// Diagnostic partial-wide dispatch stays explicit; production runs wide only
+/// when all128 rows are live. Both paths preserve each request's own history.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Dispatch {
+    Serial,
+    Automatic,
+    WideDiagnostic,
+}
+impl Dispatch {
+    fn use_wide(self, sequence: &Sequence<'_>) -> bool {
+        WidePrefill::supports(sequence)
+            && match self {
+                Self::Serial => false,
+                Self::Automatic => sequence.inputs.len() == crate::axes::P128::SIZE,
+                Self::WideDiagnostic => true,
+            }
+    }
 }
 
 impl Model {
@@ -61,7 +80,7 @@ impl Model {
             weights,
             decode: workspace.begin_decode(device).await?,
             prefill: Prefill::new(device).await?,
-            wide: None,
+            wide: WidePrefill::new(device).await?,
             logits,
         })
     }
@@ -93,15 +112,15 @@ impl Model {
     }
 
     /// Compute one consecutive sequence per request, returning its last logits.
-    /// Multi-token page-local chunks use layer-wise B16 execution. Singleton
-    /// or externally supplied larger sequences retain token-wise execution.
+    /// Page-local128-token chunks share wide matrix weights; shorter chunks use
+    /// B16, and independent singleton requests share a B16 decode step.
     pub async fn forward_sequences(
         &mut self,
         device: &mut Device,
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
-        self.forward_sequences_inner(device, sequences, workspace, true, false)
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::Automatic)
             .await
     }
 
@@ -112,7 +131,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
-        self.forward_sequences_inner(device, sequences, workspace, false, false)
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::Serial)
             .await
     }
 
@@ -123,7 +142,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
-        self.forward_sequences_inner(device, sequences, workspace, true, true)
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::WideDiagnostic)
             .await
     }
 
@@ -132,8 +151,7 @@ impl Model {
         device: &mut Device,
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
-        use_prefill: bool,
-        use_wide: bool,
+        dispatch: Dispatch,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
         if sequences.len() > self.logits.len() {
             return Err("too many request sequences".into());
@@ -146,7 +164,7 @@ impl Model {
             .enumerate()
             .filter_map(|(row, s)| (s.inputs.len() == 1).then_some(row))
             .collect();
-        let batched_singletons = use_prefill
+        let batched_singletons = dispatch != Dispatch::Serial
             && (2..=crate::axes::B::SIZE).contains(&singletons.len())
             && super::request_pool::independent_sequences(sequences);
         if batched_singletons {
@@ -180,13 +198,8 @@ impl Model {
             workspace.blocks.sliding = sequence.blocks.sliding;
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
             let result = async {
-                if use_wide && WidePrefill::supports(sequence) {
-                    if self.wide.is_none() {
-                        self.wide = Some(WidePrefill::new(device).await?);
-                    }
+                if dispatch.use_wide(sequence) {
                     self.wide
-                        .as_mut()
-                        .unwrap()
                         .run(
                             device,
                             &self.weights,
@@ -195,7 +208,7 @@ impl Model {
                             &mut self.prefill,
                         )
                         .await?;
-                } else if use_prefill && Prefill::supports(sequence) {
+                } else if dispatch != Dispatch::Serial && Prefill::supports(sequence) {
                     self.prefill
                         .run(device, &self.weights, sequence, workspace)
                         .await?;
