@@ -1,0 +1,16 @@
+   Compiling [1/2] ops_native_fp8::project_up_scaled
+error: furiosa-opt: ops_native_fp8::project_up_scaled: mir: vector_fp_binary: VRF operand (P128 % 64 = 8, 1 # 8) cannot feed the 4-element packet P128 % 64 = 8 % 4: the indexer reads one access as a single broadcast address or as 4 consecutive elements, and this operand gives it neither. Write the operand with the packet axes innermost and contiguous (change the `collect` / `to_vrf` that produced it), or drop them from it entirely (broadcast). `reshape` cannot fix this: it may not permute axes.
+   --> src/ops_native_fp8.rs:105:14
+    |
+105 |             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling [2/2] ops_native_fp8::batch_ffn
+error: furiosa-opt: ops_native_fp8::batch_ffn: mir: vector_fp_binary: VRF operand (P128 % 64 = 8, 1 # 8) cannot feed the 4-element packet P128 % 64 = 8 % 4: the indexer reads one access as a single broadcast address or as 4 consecutive elements, and this operand gives it neither. Write the operand with the packet axes innermost and contiguous (change the `collect` / `to_vrf` that produced it), or drop them from it entirely (broadcast). `reshape` cannot fix this: it may not permute axes.
+   --> src/ops_native_fp8.rs:105:14
+    |
+105 |             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished 2 compiled, 60 not matching ops_native_fp8::project_up_scaled, ops_native_fp8::batch_ffn
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors
