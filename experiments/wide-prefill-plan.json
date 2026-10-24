@@ -1,0 +1,25 @@
+{
+  "candidate": "P128 prompt matrix reuse with B16 causal tiles",
+  "source": "34bbb58 plus standalone P128 axis d0e27d7",
+  "control": "Validated B16 prompt path; exact independent-request decode diagnostic317617",
+  "execution_graph": [
+    "Keep decode B16 unchanged; use independent P128 activation storage for long prompt chunks",
+    "Prepare P128 hidden rows, normalize in B16 tiles, run each complete Q/K/V projection once across P128 rows",
+    "Process B16 head-normalization/RoPE/attention segments in chronological order and commit each segment KV before the next segment reads history",
+    "Assemble P128 attention output, run one wide O projection, tiled post-norm/residual",
+    "Tiled pre-FFN norm, one wide packed FFN, tiled post-norm/residual/layer gate; repeat all48layers",
+    "Final requested prompt row uses original scalar vocabulary path"
+  ],
+  "expected_removed_work": "Reloading the same QKV/O/FFN weight tile separately for eight B16 prompt chunks",
+  "added_work": "Exact HBM transfers between wide matrix buffers and validated B16 epilogue/attention buffers, plus per-segment host launches",
+  "tile_interface": "ops_prefill_tiles loads/stores one group of16rows selected by unscaled HBM i32 tile_index0..7; uses index gather/scatter and DMA, no arithmetic",
+  "invariants": [
+    "No global B-axis change or accidental increase in decode admission",
+    "Prompt chunks stop at full-attention page512 boundary",
+    "Sliding segments commit chronologically to prevent overwriting a query's needed history",
+    "Partial final segment commits only live rows using existing VALID wrappers",
+    "Each request retains its own KV blocks and media encoders"
+  ],
+  "compile": "SDK0.9 cargo furiosa-opt build --release --bin test_prefill_tiles passed11.23s",
+  "next_gate": "Root NPU exact all8tile roundtrip for hidden and full-query shapes, then actualweights stage profile before complete wide integration"
+}
