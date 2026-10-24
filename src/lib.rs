@@ -125,3 +125,5 @@ pub mod ops_prompt_pair_io;
 pub mod ops_native_fp8_p256;
 pub mod ops_geglu_direct_p256;
 pub mod ops_zero_pool;
+
+pub mod ops_prompt_pair_io_rows;

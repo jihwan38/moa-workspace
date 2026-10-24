@@ -14,3 +14,7 @@ types and assert positive zero; retain the full80/16 pools simultaneously and
 time allocation+initialization, then read the final allocations again. Only
 after actual NPU proof may Workspace canonical constructors adopt this path.
 Model correctness remains covered separately by canonical/interleaving probes.
+
+Compile evidence: f8020d8 needed a single launch argument rather than a1-tuple;
+23c9128 needed mutable `#{!}` padding on the output slot view. 004c966 compiles
+both device-returned pool kernels. No constructor adoption before the NPU gate.

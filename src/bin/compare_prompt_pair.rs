@@ -1,7 +1,6 @@
 //! Same-model two P128 controls versus paired P256 FFN, with optional R64 interleave.
 //! Args: first start(default896), second start(default384), interleave0/1(default0).
 use furiosa_opt_gemma4::{
-    axes::*,
     host::{
         generate::read_logits,
         load,
@@ -175,6 +174,35 @@ async fn main() -> Result<()> {
         }
     }
     assert!(model.active_prefill_rings().is_empty());
+    // A new token must observe the completed prompt KV in both physical layouts.
+    let next: Vec<_> = (0..2).map(|r| [input(r, starts[r] + 128, true)]).collect();
+    let control: Vec<_> = (0..2)
+        .map(|r| Sequence {
+            inputs: &next[r],
+            start_position: starts[r] + 128,
+            blocks: &blocks[r],
+        })
+        .collect();
+    let candidate: Vec<_> = (0..2)
+        .map(|r| Sequence {
+            inputs: &next[r],
+            start_position: starts[r] + 128,
+            blocks: &blocks[62 + r],
+        })
+        .collect();
+    let out = model.forward_sequences(&mut d, &control, &mut ws).await?;
+    let mut after = Vec::new();
+    for row in out {
+        after.push(read_logits(&mut d, row).await?);
+    }
+    let out = model.forward_sequences(&mut d, &candidate, &mut ws).await?;
+    for (r, row) in out.iter().enumerate() {
+        check(
+            &format!("post_pair_decode={r}"),
+            &after[r],
+            &read_logits(&mut d, row).await?,
+        );
+    }
     for stage in model.take_stage_profile() {
         println!(
             "stage={} calls={} ms={:.3}",
