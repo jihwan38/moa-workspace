@@ -1,7 +1,7 @@
 //! P128 prompt matrix work with chronological B16 causal attention segments.
 //! Wide and decode batches have independent axes and scratch ownership.
 use super::*;
-use crate::{ops_batch_wide as linear, ops_prefill_tiles as tiles};
+use crate::{ops_batch_kpart as linear, ops_prefill_tiles as tiles};
 
 pub(crate) struct WidePrefill {
     x: HbmTensor<bf16, Chip, m![P128, H]>,
