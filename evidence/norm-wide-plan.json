@@ -12,5 +12,20 @@
     "src/ops_norm_wide.rs": "436240bc48ac7bf17b3068de5df458fd89034407ab3442b9440702fe69d0eff4",
     "src/bin/test_norm_wide.rs": "1e60fdf3a1dd22cb2080078970f6579be9696b7f1325569c4b663eb34953e696"
   },
-  "compile_status": "Allthree P128 device functions and originalB16 controls compile. ActualNPU proof pending parent."
+  "compile_status": "Allthree P128 device functions and originalB16 controls compile. ActualNPU proof pending parent.",
+  "npu": {
+    "job": 317765,
+    "source_commit": "562ac01",
+    "result": "All2,949,120 RMSnorm/postattention/postFFN outputs bit-exact to originalB16 across2seeds,zero/tinyrows andsignedgates. IndependentCPUdouble comparison passes; maxNRMSE0.00002488, maxAbs0.015625 (expected sparse BF16-boundary differences).",
+    "warm_rmsnorm_us": [
+      34.033,
+      33.96
+    ],
+    "original8xb16_warm_rmsnorm_sum_us": [
+      128.753,
+      122.0
+    ],
+    "limitation": "Original sum excludes host tile load/store launches. Kernel timings are not modelperformance; parent validates actual widepromptintegration.",
+    "decision": "Adopt allthree ops_norm_wide entrypoints with identicalP128input/output contracts."
+  }
 }
