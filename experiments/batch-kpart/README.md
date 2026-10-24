@@ -414,3 +414,14 @@ inputs and both BF16-tree oracles. Sliding serial0.7657–0.7848ms→parallel
 0.3253–0.3286ms;full1.3759–1.3978ms→0.4164–0.4353ms. Matched
 five launches plus one output read divided by5. Exact kernel substitution;
 whole-model integration/latency remains root's separate gate.
+
+Arena318008/r243 temporal TRF64:up/gate-only and all-matrix variants both
+match all491520 control bits. ABC-CBA control1.1305–1.1498ms,up/gate-only
+1.0401–1.0645ms,all-matrix1.0101–1.0148ms. This is a modest~11–12% full
+FFN gain,not8×. Actual cluster0 task spans2007105→1757889 cycles;baseline
+24 StoTrf operations disappear, and three combined matrix TU spans are
+~58905–59097 cycles versus eight~15.7–15.9k spans per baseline matrix.
+Large DMA spans remain (candidate maximum526652 cycles),so the successful
+reuse change must be combined/tested with root's H-local/L-sharded quantization
+before claiming their gains compose. Source keeps baseline quantization for
+this isolated experiment. Root will integrate the matrix helpers separately.
