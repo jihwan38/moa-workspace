@@ -281,7 +281,7 @@ impl Decode64 {
         .await?;
         self.record_profile("r64.sliding.input_norm", &mut profile_mark);
         launch(
-            linear::project_query_batch,
+            crate::ops_qkv_r64_trf32::project_query_batch,
             (
                 device,
                 &self.norm,
@@ -292,7 +292,7 @@ impl Decode64 {
         )
         .await?;
         launch(
-            linear::project_sliding_kv_batch,
+            crate::ops_qkv_r64_trf32::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -303,7 +303,7 @@ impl Decode64 {
         )
         .await?;
         launch(
-            linear::project_sliding_kv_batch,
+            crate::ops_qkv_r64_trf32::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -401,7 +401,7 @@ impl Decode64 {
         .await?;
         self.record_profile("r64.full.input_norm", &mut profile_mark);
         launch(
-            linear::project_full_query_batch,
+            crate::ops_qkv_r64_trf32::project_full_query_batch,
             (
                 device,
                 &self.norm,
@@ -522,7 +522,7 @@ impl Decode64 {
         launch(norm::rmsnorm_r64, (device, &self.x, pre, &mut self.norm)).await?;
         self.record_profile("r64.ffn.pre_norm", &mut profile_mark);
         launch(
-            crate::ops_native_fp8_r64_sharded::batch_ffn_partitioned_input,
+            crate::ops_native_fp8_r64_local_reuse::batch_ffn_partitioned_input,
             (
                 device,
                 &self.norm,
