@@ -6,6 +6,7 @@ use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
 use super::prefill::wide::pair::{PairPrefill, PreparedPair};
+use super::prefill::wide::group::{GroupPrefill, PreparedGroup};
 use super::prefill::{
     Prefill, PreparedNarrow,
     wide::{PreparedWide, WidePrefill},
@@ -46,6 +47,8 @@ pub struct Model {
     wide: WidePrefill,
     pair: Option<PairPrefill>,
     active_pair: Option<PreparedPair>,
+    group: Option<GroupPrefill>,
+    active_group: Option<PreparedGroup>,
     active_prefill: Option<ActivePrefill>,
     logits: Vec<Logits>,
 }
@@ -125,6 +128,8 @@ impl Model {
             wide: WidePrefill::new(device).await?,
             pair: None,
             active_pair: None,
+            group: None,
+            active_group: None,
             active_prefill: None,
             logits,
         })
@@ -140,6 +145,7 @@ impl Model {
                     .as_ref()
                     .map(|state| state.blocks()[0].sliding)
             })
+            .or_else(|| self.active_group.as_ref().map(|state|state.blocks()[0].sliding))
     }
 
     /// Every request allocation held by an active prompt scheduling quantum.
@@ -155,6 +161,9 @@ impl Model {
             blocks.push(active.blocks());
         }
         if let Some(active) = &self.active_pair {
+            blocks.extend(active.blocks());
+        }
+        if let Some(active) = &self.active_group {
             blocks.extend(active.blocks());
         }
         blocks
@@ -222,6 +231,71 @@ impl Model {
         }
         self.active_pair = None;
         Ok(Some(&self.logits[..2]))
+    }
+
+    /// Diagnostic candidate: four distinct full P128 chunks share a P512 FFN pass.
+    /// Keep all four reservations until advance_prefill_group returns four final outputs.
+    pub async fn start_prefill_group(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() {
+            return Err("another prefill is in progress".into());
+        }
+        if !workspace.is_canonical() || !GroupPrefill::supports(sequences) {
+            return Err("grouped prefill needs canonical independent128-token chunks".into());
+        }
+        for sequence in sequences {
+            validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+            validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
+        }
+        if self.group.is_none() {
+            self.group = Some(GroupPrefill::new(device).await?);
+        }
+        self.active_group = Some(
+            self.group
+                .as_mut()
+                .unwrap()
+                .prepare(device, &self.weights, sequences, &mut self.prefill)
+                .await?,
+        );
+        Ok(())
+    }
+    pub async fn advance_prefill_group(
+        &mut self,
+        device: &mut Device,
+        workspace: &mut Workspace,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        let state = self
+            .active_group
+            .as_mut()
+            .ok_or("no grouped prefill is active")?;
+        let group = self.group.as_mut().ok_or("grouped scratch is missing")?;
+        if !group
+            .advance_layer(device, &self.weights, state, workspace, &mut self.prefill)
+            .await?
+        {
+            return Ok(None);
+        }
+        for row in 0..4 {
+            std::mem::swap(&mut self.logits[row], &mut workspace.logits);
+            let result = group
+                .finish(
+                    row,
+                    device,
+                    &self.weights,
+                    state,
+                    workspace,
+                    &mut self.prefill,
+                )
+                .await;
+            std::mem::swap(&mut self.logits[row], &mut workspace.logits);
+            result?;
+        }
+        self.active_group = None;
+        Ok(Some(&self.logits[..4]))
     }
 
     /// Prepare one request's embeddings and masks without advancing Generation.

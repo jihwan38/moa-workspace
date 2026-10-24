@@ -28,3 +28,11 @@ Wide profiling now separates heads, attention, KV commit and optional tile copy
 from existing norm/QKV/O/FFN stages. Optional marks avoid Instant::now entirely
 when profiling is disabled in ordinary wide/paired serving. No kernel dispatch,
 mask, commit order or arithmetic changes are made by profiling.
+
+HOLD after actual attribution318048: current P128 FFN takes34.610ms/48layers,
+about0.721ms each. Four such calls are2.884ms, approximately the baselineP512
+2.865ms before any joins/splits. The fused P512 candidate also lost in its matched
+job. Four-group host/IO/probe source was typechecked but no device build or NPU
+wholemodel job was started. Production grouping remains disabled. Keep this
+bounded diagnostic for a future measured larger-batch dense improvement; do not
+infer throughput improvement from the older plain-TRF64 control.

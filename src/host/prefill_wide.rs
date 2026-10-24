@@ -7,6 +7,9 @@ use crate::ops_prefill_tiles as tiles;
 #[path = "prefill_pair.rs"]
 pub(crate) mod pair;
 
+#[path = "prefill_group.rs"]
+pub(crate) mod group;
+
 pub(crate) struct WidePrefill {
     x: HbmTensor<bf16, Chip, m![P128, H]>,
     norm: HbmTensor<bf16, Chip, m![P128, H]>,
