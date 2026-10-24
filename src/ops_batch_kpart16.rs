@@ -321,7 +321,7 @@ fn geglu_tile(
         .commit()
 }
 
-fn geglu_k4(device:&mut Device,up:&DmTensor<bf16,Chip,Cluster,UpReduced,m![L % 240,B % 8]>,
+pub(crate) fn geglu_k4(device:&mut Device,up:&DmTensor<bf16,Chip,Cluster,UpReduced,m![L % 240,B % 8]>,
     gate:&DmTensor<bf16,Chip,Cluster,UpReduced,m![L % 240,B % 8]>,
     us:&HbmTensor<f32,Chip,m![1]>,gs:&HbmTensor<f32,Chip,m![1]>)
     ->DmTensor<bf16,Chip,Cluster,UpReduced,m![L % 240,B % 8]> {
