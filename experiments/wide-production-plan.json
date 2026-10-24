@@ -1,0 +1,14 @@
+{
+  "candidate": "Exact P128 default prompt dispatch",
+  "control": "B16 prompt chunks with exact clustered matrix kernels",
+  "change": "Generation selects128 live prompt rows when they fit in the current512-token full KV page; shorter tails select at most16. Model preallocates wide scratch at startup and uses wide execution for exactly128 live rows. Explicit partial-wide diagnostic remains available.",
+  "proof": "Root317715 actual513-token48-layer final logits all262144 bit-exact against B16; control4016.45ms versus cached wide2661.496ms. Partial127 and128 also passed exact before this dispatch-only change.",
+  "invariants": [
+    "No earlier requested logits can be discarded",
+    "All media descriptors remain at their original positions",
+    "Blocks cover the entire emitted chunk",
+    "Page and ring crossings preserve each absolute position exactly once"
+  ],
+  "validation": "10 host tests passed including127/128/513/1025 prompts, arbitrary start500/1020, full-page bounds and short limits",
+  "remaining": "Monolithic P128 chunk interrupts decode for roughly0.65s. Next change splits preparation, one full layer, and final logits into resumable request-owned state; no claim this dispatch satisfies TPOT."
+}

@@ -21,7 +21,7 @@
     "Pool allocation occurs during startup, avoiding multi-GiB allocation on the first generated token",
     "Generic larger Workspace configurations preserve the existing path when Fc/Rc limits do not fit"
   ],
-  "next_gate": "Compile and exact actual-model comparisons across many-to-one-to-many active batch transitions, ragged histories and position0 ring reuse, then public mixed accuracy and TTFT/TPOT measurements. Root owns NPU execution.",
+  "next_gate": "Enable exact P128 full prompt chunks and verify HTTP/public behavior; split prompt work into resumable full-layer quanta so active decode requests need not wait for a whole128-token chunk.",
   "status": "Host ownership and optimized kernel wiring ready for root-owned actual-model transition gate",
   "validation": {
     "host": "9 host tests passed after compact ring-base metadata adoption, including ragged pages, padded rows, and overlapping full-page defense",
@@ -29,7 +29,9 @@
     "review": "Attentionagentread-onlyownershipauditpassed; full-page-disjointgateaddedglobally soaliasedsequences retain originalsequentialordering",
     "kernel_proofs": "Root317685 full ragged16 requests exact;317738 whole-ring sliding39 rows/159744 values exact with future invariance, sparse updates and migration;317726 B16 cluster Q/FFN exact",
     "next_actual_model": "compare_pool_transitions4 2:all->one->all->ring0newposition0->all->forcedlegacyall; reportsalllogitsandprofile, assertsbitexact",
-    "performance_scope": "Kernel-only warm sliding181.8\u2013183.1us, FFN~0.856ms; whole-model pool performance still unmeasured"
+    "performance_scope": "Kernel-only warm sliding181.8\u2013183.1us, FFN~0.856ms; whole-model pool performance still unmeasured",
+    "actual_model": "Root Arena317761/r088 and317762/r089 passed every logit bit-exact for4 and16 requests across all->one->all, position0 reuse, and forced legacy migration.",
+    "actual_latency": "Warm C4 about103\u2013105ms; C16 about107ms with125.8ms outlier; initial135ms, singleton shrink119ms including copyback. These are diagnostic model times, not official HTTP TPOT."
   },
   "metadata": "Sliding attention reads one byte base per row, i32[B], pointing to the contiguous physical ring; visibility remains f32[B,Ts]. Sparse current-token commit offsets are independent and live-prefix only."
 }
