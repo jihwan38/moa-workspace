@@ -114,7 +114,7 @@ async fn main() {
         let qdiff = hostq
             .iter()
             .zip(&cpu_q)
-            .filter(|(a, b)| a.to_bits() != b.to_bits())
+            .filter(|(a, b)| a.to_f32().to_bits() != b.to_f32().to_bits())
             .count();
         let sdiff = (0..P128::SIZE)
             .filter(|&b| hostxs[b * 8].to_bits() != cpu_scale[b].to_bits())

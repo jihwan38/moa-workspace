@@ -15,3 +15,7 @@ quantized-input CPU dots must pass independently; BF16-activation control
 error is reported, not asserted zero. Timing includes quantization and layout
 redistribution. No host dispatch or model acceptance follows kernel success.
 Full-model and public accuracy gates are mandatory before adoption.
+
+Initial e9fc3ec host compile rejected f8e4m3::to_bits (not an SDK API).
+The diagnostic compares decoded F32 bits instead, a one-to-one representation
+for the finite E4 domain here including signed zero. No kernel change.
