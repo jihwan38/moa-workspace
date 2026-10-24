@@ -1,0 +1,10 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+   Compiling furiosa_opt_gemma4::ops_output_r64_parallel::project_sliding_output_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_output_r64_parallel::project_sliding_output_batch: visa: while lowering TensorUnit
+       caused by: VRU reduce axes must be innermost in Partitioning, got reduce_labels=[AxisTagLabel { inner: "Qs" }]
+  --> src/ops_output_r64_parallel.rs:62:80
+   |
+62 |         .vector_final().cast::<bf16,m![R64%8#16]>().commit_trim::<m![R64%8]>().commit();
+   |                                                                                ^^^^^^^^
+
+error: could not compile `furiosa-opt-gemma4` (bin "test_r64_output_parallel") due to 1 previous error

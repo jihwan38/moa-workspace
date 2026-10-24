@@ -315,3 +315,25 @@ calls. Per256 rows, two-P1282.161–2.170ms versus P2561.715–1.716ms,about20.8
 Scope is five batches plus matched total output bytes/5; control uses two
 output reads and candidate one. Same blocked weight tensors and quantization.
 This is an isolated FFN gain; no P256 host/model result follows from it.
+
+Parallel-K1024 O plan after2f3aa4e: current O serializes4/8 partial matrices
+on [H/120,1#8] slices. Map sliding partials to [H/120,Qs/1024,1#2], preserving
+each1024-element full dot and BF16 boundary, then pairwise inter-slice adds
+with BF16 casts at4→2→1. Each add combines the same two original BF16 values.
+This exposes independent partial work across slices and avoids four separate
+input/weight launch sequences. Original E4 weights and HBM layout unchanged.
+First sliding-only gate checks every245760 output bit versus original on
+dyadic/random inputs, CPU BF16-tree oracle, and matched ABBA timing. Full O
+will follow only if pairwise mapping is correct and gives a real speed gain.
+
+Arena317957/r201 blocked Qs:all15728640 reordered values pass on both dyadic
+and varied-exponent weights;all262144 output bits per case,dyadic CPU outputs
+and512 F64 samples exact. Row-major[0.210870,0.185773]ms versus blocked
+[0.183383,0.179091]ms:matched final-warm gain about3.6%, so no expansion to
+all QKV shapes or model-memory addition follows yet.
+
+Parallel O initial source padding after Qs failed VRU's requirement that the
+reduced axis be innermost. Compilable placement puts anonymous padding before
+Qs:Parts=[H/120,1#2,Qs/1024],Pairs=[H/120,1#4,Qs/2048],then[H/120,1#8].
+The two stages retain adjacent K pairs and the original BF16 tree; actual
+NPU differential/CPU gates are still required to prove this mapping.
