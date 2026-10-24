@@ -19,6 +19,7 @@ pub mod ops_prefill;
 pub mod ops_prefill_tiles;
 pub mod ops_attention;
 pub mod ops_decode;
+pub mod ops_head_batch;
 pub mod ops_sliding_batch;
 pub mod ops_vision;
 
