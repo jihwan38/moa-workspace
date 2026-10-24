@@ -407,3 +407,10 @@ durations must not be interpreted as serial wall time. TRF temporal reuse
 addresses repeated SRAM fetch and command work; HBM and redistribution
 remain independent limits. Current full-FFN probe includes root's opt-in
 physical-cycle collector after untimed correctness and normal ABC-CBA timing.
+
+Arena r237 P128 parallel O passed1966080 sliding and3932160 full isolated
+CPU partial values,plus491520 final output bits per shape on dyadic/random
+inputs and both BF16-tree oracles. Sliding serial0.7657–0.7848ms→parallel
+0.3253–0.3286ms;full1.3759–1.3978ms→0.4164–0.4353ms. Matched
+five launches plus one output read divided by5. Exact kernel substitution;
+whole-model integration/latency remains root's separate gate.
