@@ -148,6 +148,8 @@ impl Model {
 
     /// Run one complete layer. A result is returned only after all layers and
     /// the requested final logits complete; the caller may then advance input.
+    /// An execution error can leave partial KV writes: discard the model/workspace
+    /// rather than retrying that layer. The HTTP worker already takes itself offline.
     pub async fn advance_prefill(
         &mut self,
         device: &mut Device,
