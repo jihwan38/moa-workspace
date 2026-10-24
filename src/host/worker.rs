@@ -16,8 +16,8 @@ use std::time::{Duration, Instant};
 pub const CAPACITY: usize = crate::axes::B::SIZE;
 /// Prompt plus generated positions allowed per request.
 pub const CONTEXT: usize = 8192;
-/// Enable only after the grouped model and HTTP correctness gates pass.
-const GROUP_PREFILL_ENABLED: bool = false;
+/// Grouped execution uses the same request-owned state as the validated model path.
+const GROUP_PREFILL_ENABLED: bool = true;
 
 pub struct Worker {
     runtime: tokio::runtime::Runtime,
