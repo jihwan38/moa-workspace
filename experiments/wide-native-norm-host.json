@@ -1,0 +1,8 @@
+{
+  "candidate": "Direct P128 norm and residual epilogues",
+  "control": "788848e exact P128 runtime with eight B16 tile load/norm/store loops per stage",
+  "change": "Launch proven ops_norm_wide helpers directly against P128 persistent tensors, removing all hidden-tile traffic around normalization and residual epilogues",
+  "proof": "Root317765: 2,949,120 values bit-exact against B16; source562ac01",
+  "compile_repair": "First host check failed because launch returns furiosa_opt_std::Error while helper returns Box<dyn Error>; use await? plus Ok(()) to retain normal error conversion",
+  "next_gate": "Root actual-model513-token comparison and updated stage timing"
+}

@@ -1,5 +1,5 @@
 use crate::Chip;
-use crate::axes::{B, Tf, W};
+use crate::axes::{B, P128, Tf, W};
 use crate::host::audio::AudioFrames;
 use crate::host::image::ImagePatches;
 use crate::host::model::{Input, Model, Sequence};
@@ -24,7 +24,7 @@ const CHANNEL_CLOSE_TEXT: &str = "<channel|>";
 
 pub const DEFAULT_MAX_NEW_TOKENS: usize = 300;
 /// Prompt positions dispatched together. Generated tokens remain autoregressive.
-pub const PREFILL_CHUNK: usize = B::SIZE;
+pub const PREFILL_CHUNK: usize = P128::SIZE;
 pub const BOI_TOKEN: usize = 255999;
 pub const IMAGE_TOKEN: usize = 258880;
 pub const EOI_TOKEN: usize = 258882;
@@ -270,9 +270,9 @@ impl Generation {
     pub fn input_count(&self, limit: usize) -> usize {
         assert!(limit > 0, "an input chunk must have positive capacity");
         match self.phase {
-            Phase::Prompt(position) => limit
-                .min(self.request.prompt_ids.len() - position)
-                .min(Tf::SIZE - position % Tf::SIZE),
+            Phase::Prompt(position) => {
+                prompt_chunk_count(position, self.request.prompt_ids.len() - position, limit)
+            }
             Phase::Decode(_) => 1,
             Phase::Complete => unreachable!("completed requests have no input"),
         }
@@ -496,5 +496,49 @@ pub async fn generate(
         if let Some(output) = generation.advance_inputs(count, &logits, &mut on_delta)? {
             return Ok(output);
         }
+    }
+}
+
+/// Match the two implemented prompt widths while staying in the current full-KV page.
+/// Short tails use B16 instead of paying for all128 matrix rows.
+fn prompt_chunk_count(position: usize, remaining: usize, limit: usize) -> usize {
+    let available = remaining.min(limit).min(Tf::SIZE - position % Tf::SIZE);
+    if available >= P128::SIZE {
+        P128::SIZE
+    } else {
+        available.min(B::SIZE)
+    }
+}
+
+#[cfg(test)]
+mod chunk_tests {
+    use super::*;
+
+    #[test]
+    fn prompt_chunks_cover_page_and_ring_boundaries_without_skipping_rows() {
+        for (start, len) in [
+            (0, 127),
+            (0, 128),
+            (0, 513),
+            (0, 1025),
+            (500, 140),
+            (1020, 140),
+        ] {
+            let mut position = start;
+            let mut remaining = len;
+            while remaining > 0 {
+                let count = prompt_chunk_count(position, remaining, PREFILL_CHUNK);
+                assert!(count == P128::SIZE || (1..=B::SIZE).contains(&count));
+                assert!(count <= remaining);
+                assert_eq!(position / Tf::SIZE, (position + count - 1) / Tf::SIZE);
+                position += count;
+                remaining -= count;
+            }
+            assert_eq!(position, start + len);
+        }
+        assert_eq!(prompt_chunk_count(0, 127, PREFILL_CHUNK), 16);
+        assert_eq!(prompt_chunk_count(0, 128, PREFILL_CHUNK), 128);
+        assert_eq!(prompt_chunk_count(500, 140, PREFILL_CHUNK), 12);
+        assert_eq!(prompt_chunk_count(0, 512, 8), 8);
     }
 }

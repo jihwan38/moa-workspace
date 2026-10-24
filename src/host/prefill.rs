@@ -15,6 +15,9 @@ use crate::{
 use furiosa_opt_std::prelude::*;
 use ops_sliding_batch::Bk;
 
+#[path = "prefill_wide.rs"]
+pub(crate) mod wide;
+
 #[path = "prefill_decode.rs"]
 mod decode;
 
@@ -291,7 +294,7 @@ impl Prefill {
         .await?;
         self.record_profile("sliding.input_norm", &mut profile_mark);
         launch(
-            ops_batch::project_query_batch,
+            crate::ops_batch_clusters::project_query_clusters,
             (
                 device,
                 &self.norm,
@@ -536,10 +539,14 @@ impl Prefill {
         gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
-        launch(crate::ops_norm_batch::rmsnorm_b16, (device, &self.x, pre, &mut self.norm)).await?;
+        launch(
+            crate::ops_norm_batch::rmsnorm_b16,
+            (device, &self.x, pre, &mut self.norm),
+        )
+        .await?;
         self.record_profile("ffn.pre_norm", &mut profile_mark);
         launch(
-            ops_batch::batch_ffn,
+            crate::ops_batch_clusters::batch_ffn_clusters,
             (
                 device,
                 &self.norm,

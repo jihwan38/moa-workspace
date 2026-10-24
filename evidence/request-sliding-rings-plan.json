@@ -1,0 +1,16 @@
+{
+  "source_control": "b52ec49 cluster split candidate; proven arithmetic08f72c0/Arena317713",
+  "control": "16384 per-token gather entries select64MiB K and64MiB V for16 independent request rings. Original four replicated-cluster gathers dominate schedule.",
+  "complete_change": "Keep cluster split and exact arithmetic, but gather whole contiguous ring payload[Ts,Ns,Ds] from poolRc using one byteoffset per request. Public ring_byte_offsets:i32[B] replaces BxTs token offsets.",
+  "removed_work": "Token-granular gather planning/address overhead and repeated fragmented transfers; contiguous pool memory is already request-major.",
+  "added_work": "No arithmetic or cache change. Host may upload16 ring byteoffsets instead of16384 per-token offsets.",
+  "validation": "Same distinct request bit parity, future invariance, sparse updates/reverse migration and padded zeros. Root measures warmed kernel and adopts only after actual proof.",
+  "scope": "Separate module/probe preserves both previous candidates.",
+  "binary": "target/release/test_request_sliding_rings",
+  "binary_sha256": "6abce018cc231eb7bea7aa5b6149e308a34154aca96b1f1135d7b33b0bec925a",
+  "source_sha256": {
+    "src/ops_request_attention_rings.rs": "6a3a44383470f8e06d3862f84e61da3e8743d5dfa41a9cf5d40398d92d3a9eb9",
+    "src/bin/test_request_sliding_rings.rs": "f7a4ecb82bd58517684ff63ca954eb2bc732374f45e93df2a911c5c320e0dc7f"
+  },
+  "compile_status": "Compiled all required device functions. NPU execution pending root."
+}

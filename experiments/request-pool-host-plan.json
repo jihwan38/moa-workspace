@@ -1,0 +1,37 @@
+{
+  "candidate": "Independent-request pooled attention host path",
+  "source": "6a65c3a host pool ownership; validated B16 clusters52243b2/020aa5c; whole-ring attentionfaa33ce",
+  "control": "Validated B16 shared-matrix decode with per-request legacy attention, actual-model317617 exact12request-steps",
+  "execution_graph": [
+    "Workspace startup allocates fixed Rc16/Fc256 KV pools only when request count and total physical pages fit those limits",
+    "Each physical request ring records whether legacy buffers or pooled buffers hold authoritative KV",
+    "Before first pooled decode, copy that request's legacy sliding rings and allocated full pages once for all48layers",
+    "B16QKV and head preparation -> valid-prefix pooled KV scatter -> one pooled sliding attention or ragged full-page sweep -> B16O/FFN",
+    "Before scalar or prompt fallback at position>0, copy authoritative pooled KV back once; position0 resets ownership for a new request without using prior history",
+    "Retain independent request logit rows and existing worker admission/page ownership"
+  ],
+  "removed_work": "Per-request attention launches and row gather/pack loops inside every decoder layer; no wholeKV packing on each step",
+  "added_work": "An additional fixed pool allocation, one-time domain migrations, per-step visibility/offset tensors, and per-ring ownership metadata",
+  "invariants": [
+    "Live rows select distinct request ring slots; aliasing batches retain the legacy path",
+    "Only live-prefix current K/V rows scatter; padded rows cannot overwrite another request",
+    "Ragged full-page rows have legal read addresses, zero visibility, and explicit inactive state so all-masked pages cannot perturb earlier attention",
+    "All full-page IDs remain caller-owned Blocks.full physical allocations",
+    "Owner state changes after successful full migration; failure propagates and terminates the worker as before",
+    "Pool allocation occurs during startup, avoiding multi-GiB allocation on the first generated token",
+    "Generic larger Workspace configurations preserve the existing path when Fc/Rc limits do not fit"
+  ],
+  "next_gate": "Enable exact P128 full prompt chunks and verify HTTP/public behavior; split prompt work into resumable full-layer quanta so active decode requests need not wait for a whole128-token chunk.",
+  "status": "Host ownership and optimized kernel wiring ready for root-owned actual-model transition gate",
+  "validation": {
+    "host": "9 host tests passed after compact ring-base metadata adoption, including ragged pages, padded rows, and overlapping full-page defense",
+    "device_build": "SDK0.9 server and compare_pool_transitions built after B16 cluster Q/FFN and whole-ring attention adoption; frozen artifacts correspond to the adoption commit",
+    "review": "Attentionagentread-onlyownershipauditpassed; full-page-disjointgateaddedglobally soaliasedsequences retain originalsequentialordering",
+    "kernel_proofs": "Root317685 full ragged16 requests exact;317738 whole-ring sliding39 rows/159744 values exact with future invariance, sparse updates and migration;317726 B16 cluster Q/FFN exact",
+    "next_actual_model": "compare_pool_transitions4 2:all->one->all->ring0newposition0->all->forcedlegacyall; reportsalllogitsandprofile, assertsbitexact",
+    "performance_scope": "Kernel-only warm sliding181.8\u2013183.1us, FFN~0.856ms; whole-model pool performance still unmeasured",
+    "actual_model": "Root Arena317761/r088 and317762/r089 passed every logit bit-exact for4 and16 requests across all->one->all, position0 reuse, and forced legacy migration.",
+    "actual_latency": "Warm C4 about103\u2013105ms; C16 about107ms with125.8ms outlier; initial135ms, singleton shrink119ms including copyback. These are diagnostic model times, not official HTTP TPOT."
+  },
+  "metadata": "Sliding attention reads one byte base per row, i32[B], pointing to the contiguous physical ring; visibility remains f32[B,Ts]. Sparse current-token commit offsets are independent and live-prefix only."
+}

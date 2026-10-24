@@ -1,0 +1,10 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+   Compiling furiosa_opt_gemma4::ops_batch_kpart::batch_ffn
+error: furiosa-opt: furiosa_opt_gemma4::ops_batch_kpart::batch_ffn: visa: src RngdShape { region: Dram, chip: [], cluster: [Dummy=2], pe: [Dummy=4], dmn: [Dummy=2], slice: [Dummy=32], local: [L_1=15360:240, H_16=240:1], padded_tail_size: 1 }, dst RngdShape { region: Sram, chip: [], cluster: [Broadcast=2], pe: [L_3840=4], dmn: [L_1920=2], slice: [L_240=8, H_960=4], local: [L_1=240:64, H_16=64:1], padded_tail_size: 1 }
+       caused by: cannot factorize common axis H
+   --> src/ops_batch_kpart.rs:193:88
+    |
+193 |     let scale:DmTensor<f8e4m3,Chip,Cluster,UpParts,m![L % 240,H / 16 % 60 # 64]>=scale.to_dm(&mut device.tdma);
+    |                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `furiosa-opt-gemma4` (bin "test_kpart_ffn") due to 1 previous error

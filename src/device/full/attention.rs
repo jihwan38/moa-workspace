@@ -25,8 +25,10 @@ fn query_key_scores(
 ) -> DmTensor<bf16, Chip, Cluster, Slice, m![Gf, Tf]> {
     type KvRowsAcrossSlices = m![Tf / 8, 1 # 4];
 
-    let q: DmTensor<bf16, Chip, Cluster, KvRowsAcrossSlices, m![Gf, Df]> = q.to_dm(&mut device.tdma);
-    let k: DmTensor<bf16, Chip, Cluster, KvRowsAcrossSlices, m![Tf % 8, Df]> = k.to_dm(&mut device.tdma);
+    let q: DmTensor<bf16, Chip, Cluster, KvRowsAcrossSlices, m![Gf, Df]> =
+        q.to_dm(&mut device.tdma);
+    let k: DmTensor<bf16, Chip, Cluster, KvRowsAcrossSlices, m![Tf % 8, Df]> =
+        k.to_dm(&mut device.tdma);
     let k_trf: TrfTensor<bf16, Chip, Cluster, KvRowsAcrossSlices, m![Tf % 8], m![Df]> = device
         .sub
         .begin(k.view())
@@ -51,7 +53,10 @@ fn query_key_scores(
         .main
         .begin(qk.view())
         .fetch::<m![Gf], m![Tf % 8 # 16]>()
-        .switch::<Slice, m![Gf, Tf / 8]>(SwitchConfig::Broadcast1 { slice1: 64, slice0: 4 })
+        .switch::<Slice, m![Gf, Tf / 8]>(SwitchConfig::Broadcast1 {
+            slice1: 64,
+            slice0: 4,
+        })
         .collect::<m![Gf, Tf / 8], m![Tf % 8 # 16]>()
         .commit_trim::<m![Tf % 8]>()
         .commit()
@@ -160,7 +165,8 @@ fn attention_weighted_values(
     let attention_weights: DmTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Tf % 32]> =
         attention_weights.to_dm(&mut device.tdma);
 
-    let v: DmTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Tf % 32, Df]> = v.to_dm(&mut device.tdma);
+    let v: DmTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Tf % 32, Df]> =
+        v.to_dm(&mut device.tdma);
     let v: DmTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Df, Tf % 32]> = device
         .main
         .begin(v.view())
@@ -169,12 +175,13 @@ fn attention_weighted_values(
         .transpose::<m![Df / 8, Tf / 4 % 8, Df % 8], m![Tf % 4 # 16]>()
         .commit_trim::<m![Tf % 4]>()
         .commit();
-    let v_trf: TrfTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Df % 8], m![Df / 8, Tf % 32]> = device
-        .sub
-        .begin(v.view())
-        .fetch::<m![Df % 8, Df / 8, Tf / 16 % 2], m![Tf % 16]>()
-        .collect::<m![Df % 8, Df / 8, Tf / 16 % 2], m![Tf % 16]>()
-        .to_trf();
+    let v_trf: TrfTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Df % 8], m![Df / 8, Tf % 32]> =
+        device
+            .sub
+            .begin(v.view())
+            .fetch::<m![Df % 8, Df / 8, Tf / 16 % 2], m![Tf % 16]>()
+            .collect::<m![Df % 8, Df / 8, Tf / 16 % 2], m![Tf % 16]>()
+            .to_trf();
 
     let weighted_sum: DmTensor<bf16, Chip, Cluster, QueryHeadAndRows, m![Df]> = device
         .main
@@ -213,6 +220,7 @@ pub(crate) fn attend_first_page(
     out_hbm: &mut HbmTensor<bf16, Chip, m![Gf, Df]>,
 ) {
     let qk = query_key_scores(device, q, k);
+    let qk = premax_mask(device, &qk, mask);
     let max = row_max(device, &qk);
     let max_vrf = per_head_to_vrf(device, &max);
 
@@ -220,9 +228,13 @@ pub(crate) fn attend_first_page(
     let sum = row_sum(device, &exp);
     let result = attention_weighted_values(device, &exp, v);
 
-    max.view().to_hbm_view(&mut device.tdma, running_max.view_mut());
-    sum.view().to_hbm_view(&mut device.tdma, running_sum.view_mut());
-    result.view().to_hbm_view(&mut device.tdma, out_hbm.view_mut());
+    max.view()
+        .to_hbm_view(&mut device.tdma, running_max.view_mut());
+    sum.view()
+        .to_hbm_view(&mut device.tdma, running_sum.view_mut());
+    result
+        .view()
+        .to_hbm_view(&mut device.tdma, out_hbm.view_mut());
 }
 
 pub(crate) fn attend_next_page(
@@ -236,6 +248,7 @@ pub(crate) fn attend_next_page(
     out_hbm: &mut HbmTensor<bf16, Chip, m![Gf, Df]>,
 ) {
     let qk = query_key_scores(device, q, k);
+    let qk = premax_mask(device, &qk, mask);
     let max = row_max(device, &qk);
 
     let old_max: DmTensor<f32, Chip, Cluster, Slice, m![Gf]> = running_max.to_dm(&mut device.tdma);
@@ -252,7 +265,8 @@ pub(crate) fn attend_next_page(
         .vector_final()
         .commit_trim::<m![Gf % 8]>()
         .commit();
-    max.view().to_hbm_view(&mut device.tdma, running_max.view_mut());
+    max.view()
+        .to_hbm_view(&mut device.tdma, running_max.view_mut());
 
     let rescale: DmTensor<f32, Chip, Cluster, Slice, m![Gf]> = device
         .main
@@ -291,7 +305,8 @@ pub(crate) fn attend_next_page(
         .commit_trim::<m![Gf % 8]>()
         .commit();
 
-    sum.view().to_hbm_view(&mut device.tdma, running_sum.view_mut());
+    sum.view()
+        .to_hbm_view(&mut device.tdma, running_sum.view_mut());
 
     let result = attention_weighted_values(device, &exp, v);
     let result_vrf: VrfTensor<f32, Chip, Cluster, PerQueryHead, m![Df]> = device
@@ -360,5 +375,60 @@ pub(crate) fn divide_by_softmax_sum<Slice: M>(
         .vector_final()
         .cast::<bf16, m![Df % 8 # 16]>()
         .commit_trim::<m![Df % 8]>()
+        .commit()
+}
+
+// Host masks are 1 for visible entries and 0 otherwise. Clamp also accepts the
+// older probe convention (+infinity/0). Mask before maximum so stale, invisible
+// cache contents cannot alter BF16 softmax scaling or another request's result.
+fn premax_mask(
+    device: &mut Device,
+    qk: &DmTensor<bf16, Chip, Cluster, Slice, m![Gf, Tf]>,
+    mask: &HbmTensor<f32, Chip, m![Tf]>,
+) -> DmTensor<bf16, Chip, Cluster, Slice, m![Gf, Tf]> {
+    let mask: DmTensor<f32, Chip, Cluster, Slice, m![Tf]> = mask.to_dm(&mut device.tdma);
+    let bounded: DmTensor<f32, Chip, Cluster, Slice, m![Tf]> = device
+        .main
+        .begin(mask.view())
+        .fetch::<m![Tf / 8], m![Tf % 8]>()
+        .collect::<m![Tf / 8], m![Tf % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Min, 1.0f32)
+        .vector_final()
+        .commit_trim::<m![Tf % 8]>()
+        .commit();
+    let additive: DmTensor<f32, Chip, Cluster, Slice, m![Tf]> = device
+        .main
+        .begin(bounded.view())
+        .fetch::<m![Tf / 8], m![Tf % 8]>()
+        .collect::<m![Tf / 8], m![Tf % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![Tf / 4], m![Tf % 4]>()
+        .vector_fp_binary(FpBinaryOp::SubF, 1.0f32)
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 1e30f32)
+        .vector_widen_concat::<m![Tf / 8], m![Tf % 8]>()
+        .vector_final()
+        .commit_trim::<m![Tf % 8]>()
+        .commit();
+    let additive: VrfTensor<f32, Chip, Cluster, Slice, m![Tf]> = device
+        .sub
+        .begin(additive.view())
+        .fetch::<m![Tf / 8], m![Tf % 8]>()
+        .collect::<m![Tf / 8], m![Tf % 8]>()
+        .to_vrf();
+    device
+        .main
+        .begin(qk.view())
+        .fetch::<m![Gf, Tf / 16], m![Tf % 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![Gf, Tf / 8], m![Tf % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Add, &additive)
+        .vector_final()
+        .cast::<bf16, m![Tf % 8 # 16]>()
+        .commit_trim::<m![Tf % 8]>()
         .commit()
 }

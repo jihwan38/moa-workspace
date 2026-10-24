@@ -160,6 +160,7 @@ pub struct Blocks {
 }
 
 pub struct Workspace {
+    pub(crate) request_pool: Option<super::request_pool::RequestPool>,
     pub(crate) cos_s: HbmTensor<bf16, Chip, m![E, Ds]>,
     pub(crate) sin_s: HbmTensor<bf16, Chip, m![E, Ds]>,
     pub(crate) cos_f: HbmTensor<bf16, Chip, m![E, Df]>,
@@ -179,6 +180,19 @@ pub struct Workspace {
 }
 
 impl Workspace {
+    pub(crate) async fn ensure_legacy(
+        &mut self,
+        device: &mut Device,
+        blocks: &Blocks,
+        position: usize,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(pool) = &mut self.request_pool {
+            pool.ensure_legacy(device, &mut self.kv_cache, blocks, position)
+                .await?;
+        }
+        Ok(())
+    }
+
     /// Context positions per request.
     pub fn capacity(&self) -> usize {
         self.capacity
@@ -241,8 +255,11 @@ impl Workspace {
         let offset_kv_f = zero_offset(device).await?;
         let offset_rope_s = zero_offset(device).await?;
         let offset_rope_f = zero_offset(device).await?;
+        let request_pool =
+            super::request_pool::RequestPool::new(device, weights, capacity, requests).await?;
 
         Ok(Self {
+            request_pool,
             cos_s,
             sin_s,
             cos_f,

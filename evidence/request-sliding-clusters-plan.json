@@ -1,0 +1,17 @@
+{
+  "source_control": "dbb29d1 (pooled sliding source08f72c0, Arena317713 passed)",
+  "control": "Four B4 loops with Cluster replicated1#2; warm1.079..1.082ms for B16",
+  "complete_change": "Separate module: Cluster=B/4%2, localB%4; two B8 HBM tiles. Keep all dot packets,32-key BF16 value partials,32-way interslice sum and softmax tree unchanged. Distinct request halves run on different clusters.",
+  "removed_work": "Duplicated query/cache/matrix work on replicated second cluster and two of four loop iterations.",
+  "added_work": "No new arithmetic; index staging has8 rows per tile instead of4. Total index bytes unchanged.",
+  "validation": "Build isolated test_request_sliding_clusters derived from passed probe. Check original scalar bit parity, inactive rows, masked huge keys, sparse commits and reverse migration. Root compares warmed sameNPU time.",
+  "decision": "Adopt only after exact NPU parity and lower warm latency; retain proven original module.",
+  "binary": "target/release/test_request_sliding_clusters",
+  "binary_sha256": "53c7a8aeb3cc8a15c6e9912047b047e169ae74c82e6999a4c3015a81a1544694",
+  "source_sha256": {
+    "src/ops_request_attention_clusters.rs": "e882835f387a641d51066dc2cbdd748eb2cbe689de636be1c8824b893f520e0b",
+    "src/bin/test_request_sliding_clusters.rs": "3957e068f067fab7f145a2cefb706b130f09b883471d0843fb4392e5f4e28697"
+  },
+  "compile_status": "Compiled. Gather domain must use B%8 to match clustered factorB/4%2 times localB%4; nominalB=8 was rejected.",
+  "schedule_finding": "Original schedule estimates1023792 time units in four gather operators acrossfour loopiterations, versus123684 TUexec. Actual warm1.08ms is consistent with gather dominating. Cluster split removes replicated KV gathers; contiguous ring-payload gather is a separate supported candidate."
+}
