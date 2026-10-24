@@ -606,3 +606,20 @@ backend/npu/function.rs Function::run invokes launch(...).wait().await before
 returning. Initial correctness still downloads every output; optional trace spans
 are collected afterward. This separates DMA/compute stages without attributing
 PCIe reads to a matrix kernel.
+
+Fair P512 attribution4ff5453, root318121/r329: all1966080 bits exact to four
+current P128 calls. Completed-launch timings: fourcurrentP1282.815–2.819ms,
+row-majorP5122.515–2.521ms (~10.7% gain). Individual stages: quantH.0396ms,
+up.840–.844ms, gate.857–.858ms, GeGLU+quantL.1598ms, down.577ms. Matrix cores
+dominate. These timings exclude host reads, unlike earlier2.865ms figures.
+
+Physically blocked P512 experiment has fixed width/arithmetic/weights. Variant2
+blocks FP8 H/L inputs by shared P512H960/P512L960, making each64-token/K960 DMA
+61KB contiguous. Variant3 additionally blocks BF16 up/gate outputs by P512L240,
+making each64-token/L240 store30KB contiguous. Both retain the original row-
+parallel GeGLU/quantizer, so variant3 explicitly measures its potentially fragmented
+consumer reads. A later L-sharded consumer is justified only if this is measured
+as the remaining cost. Current probe gates final1966080 bits against actualfour
+P128 control, plus every raw blocked input/hidden FP8 and up/gate BF16 permutation.
+It then measures symmetric complete FFN runs and each of the five stages for
+row-major/input-blocked/input+output-blocked; optional physical spans follow.

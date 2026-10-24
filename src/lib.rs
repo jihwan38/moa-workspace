@@ -46,6 +46,8 @@ pub mod ops_native_fp8_r64_split_partition;
 pub mod ops_native_fp8_r64_staged;
 pub mod ops_native_fp8_p256;
 pub mod ops_native_fp8_p512;
+pub mod ops_native_fp8_p512_inputblocks;
+pub mod ops_native_fp8_p512_blocks;
 pub mod ops_native_fp8_p512_cluster;
 pub mod ops_native_fp8_p512_fused;
 pub mod ops_native_fp8_trf64;
