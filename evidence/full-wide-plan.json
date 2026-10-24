@@ -1,0 +1,8 @@
+{
+  "source": "7e5ade7",
+  "control": "ops_attention first/next/divide B16; eight slices of same P128 queries",
+  "change": "P128/64 clusters; QK and PV use shared page K/V and 64 query time rows; four queries per softmax slice; same 32-key BF16 partials and 16-way F32 reduction, same per-page recurrence and BF16 rescale/add boundaries",
+  "validation": "allvalid outputs exact vs8B16 originals on page-boundary and multi-page cases; future-key invariance; independent CPU full attention numerical reference inherited but re-evaluated",
+  "contract": "Q/out[P128,Gf,Df], pageK/V[Tf,Df], additive_mask[P128,Tf], stats[P128,Gf,1#8]. Mask has at least one visible key on each consumed row/page; chunks never cross512 boundary. Full live current128 can commit upfront.",
+  "gate": "compiler then root NPU, compare sum8 warmed calls"
+}
