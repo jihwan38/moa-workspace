@@ -1,0 +1,83 @@
+{
+  "source_control": "297a5d0 exactops_prefill_tiles copiedfrom382982f; e9dfe81 latestattentionproof",
+  "control": "Genericload/store usesCluster1#2 andSlice1#256, meaningone livepaddedcluster/slice, not512copies. FullB16payload travels throughthatmapping.",
+  "complete_change": "KeepallpublictileAPIs andindices. Oneactivecluster,16rows x16payloadshards =256liveslices. GenericPayloadSlice/Element maps coverhidden,Q/K,andheadpayloads. IndexSPMscope matchesdata.",
+  "removed_work": "Serializedwholepayload transfer throughone live slice; no unsupportedmultipliedcopybyteclaim.",
+  "added_work": "Distributedsource/destinationmapping andexact axisrenaming betweenB andP128%16.",
+  "validation": "NPUABBA timing againstcopiedoriginalcontrol, CPUrawbyteoracle forselectedtile andallnonselectedrows, all8tileindices inpermutedorder, all7payloadshapes, load/store roundtrip; preservearbitraryBF16bitpatterns.",
+  "decision": "Adopt onlywith exactbyteproof andobservedtimebenefit; compareloadsandstores separately.",
+  "binary": "target/release/test_prefill_tiles_distributed",
+  "binary_sha256": "8725e71bcf987231930add077420ba835e5cbe7382ebb6797c11cb40b8156b91",
+  "source_sha256": {
+    "src/ops_prefill_tiles.rs": "71dbc9cab5b25419a6c718096a3d2606ba4b6242614577fb6498d2fffdcc169f",
+    "src/ops_prefill_tiles_reference.rs": "08a159deef542601a3229f71ff6a522ff2f8646200ba3555adef0f91d8b3ea79",
+    "src/bin/test_prefill_tiles_distributed.rs": "c3fc89093c2a1524d2ee3f5f3a307a56e5fda8f4e727f30bdd98fcf4fe80fd3c"
+  },
+  "compile_status": "Repairedone-activecluster/256liveslices versioncompiledall14candidateentrypoints. Originalcontrols unchanged. ActualNPU proofpendingroot.",
+  "failed_two_cluster_attempt": {
+    "job": 317841,
+    "source_commit": "aea1ff6",
+    "first_difference_index": 30720,
+    "differences": 61437,
+    "diagnosis": "Firsttile7 writesrow8insecondcluster insteadrow120; indexSPMone-livepaddedcluster leavescluster1withoutthetileindex. Domainaxes preventednaiveindexbroadcast. Firstcluster writescorrecthalf.",
+    "decision": "Useoneactivecluster and256livepayloadslices, keepingcontrolindexscope. Stillremovesone-liveslicebottleneck withoutcrossclusterindextransport."
+  },
+  "npu": {
+    "job": 317858,
+    "source_commit": "f81b3fb",
+    "result": "All7payloadshapes x8tileindices rawBF16bits exacttoCPU, withallnonselectedrows preserved.64ABBAwarmedsamples/kernel.",
+    "timings": [
+      {
+        "payload": "hidden",
+        "store_original_us": 19.735,
+        "store_distributed_us": 22.575,
+        "load_original_us": 20.686,
+        "load_distributed_us": 20.645
+      },
+      {
+        "payload": "query_sliding",
+        "store_original_us": 19.435,
+        "store_distributed_us": 18.51,
+        "load_original_us": 20.671,
+        "load_distributed_us": 14.805
+      },
+      {
+        "payload": "key_sliding",
+        "store_original_us": 18.995,
+        "store_distributed_us": 14.521,
+        "load_original_us": 19.735,
+        "load_distributed_us": 14.431
+      },
+      {
+        "payload": "query_full",
+        "store_original_us": 21.655,
+        "store_distributed_us": 14.59,
+        "load_original_us": 23.0,
+        "load_distributed_us": 15.335
+      },
+      {
+        "payload": "key_full",
+        "store_original_us": 18.741,
+        "store_distributed_us": 15.181,
+        "load_original_us": 18.756,
+        "load_distributed_us": 16.25
+      },
+      {
+        "payload": "heads_sliding",
+        "store_original_us": 19.086,
+        "store_distributed_us": 16.995,
+        "load_original_us": 20.636,
+        "load_distributed_us": 17.925
+      },
+      {
+        "payload": "heads_full",
+        "store_original_us": 21.441,
+        "store_distributed_us": 14.291,
+        "load_original_us": 22.77,
+        "load_distributed_us": 15.136
+      }
+    ],
+    "decision": "KeepdistributedrawQKV/headloads/stores; reexporttheexacttestedoriginalhiddenload/storefunctions becausehiddenstore regressed andhiddenloadwasneutral. SamepublicAPI; hiddenfunctionidentityisoriginalcontrol, notnewuntestedimplementation."
+  },
+  "selective_adoption": "Publichiddenload/store reexport originalcontrolfunctions tested317858; allotherfunctions usef81b3fb distributed implementation. Selectiveprobe rebuildpassed. Actualsourcef81b3fb binary hashremainsrecordedabove; newaliasesdo notchangeanydevicefunctionbody."
+}

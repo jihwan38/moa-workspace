@@ -22,6 +22,8 @@ pub mod ops_batch_predecoded;
 pub mod ops_batch_wide;
 pub mod ops_batch_kpart;
 pub mod ops_native_fp8;
+pub mod ops_batch_down960;
+pub mod ops_batch_kpart16;
 pub mod ops_audio;
 pub mod ops_prefill;
 pub mod ops_prefill_tiles;
@@ -54,3 +56,9 @@ pub mod ops_norm_wide;
 pub mod ops_quant_native8;
 
 pub mod ops_batch_prepack8;
+pub mod ops_sliding_prompt_clusters;
+
+pub mod ops_head_wide_tile;
+
+
+pub mod ops_prefill_tiles_reference;

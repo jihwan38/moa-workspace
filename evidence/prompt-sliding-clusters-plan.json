@@ -1,0 +1,16 @@
+{
+  "source_control": "53a73db; originalpromptsliding15253e1 verifiedArena317595",
+  "control": "P128host uses8B16prompt attention calls perlayer. PromptoldKValreadycontiguous; originalCluster1#2 duplicates16query computation.",
+  "complete_change": "Newmodule usesClusterB/8, querytimeB%8, softmaxRows[B%8,Ns,Gs,1#2]. Preserve old32-key BF16partials/32-way reduce, separate current16token arithmetic, additive masks andringcommitdiscipline. Same publicsignature andsharedBkaxis.",
+  "removed_work": "Repeated query-time operations and oversized replicatedQloads acrossclusters; oldsharedKV remainsreadbyeachcluster.",
+  "added_work": "No arithmetic change orhostAPIshapechange.",
+  "validation": "Compare candidate bitexact tooriginalB16 for allvalidrows; retain CPU andscalar-row checks andfutureinvariance around512/1024 including partialchunks. Pairedwarmedkernel timings.",
+  "decision": "Adopt onlyafter exactdeviceproof and lowerlatency; preserveexistingmodule.",
+  "binary": "target/release/test_prompt_sliding_clusters",
+  "binary_sha256": "38ea2a46b4e0f033a57eb1c6084f695ce844d748e3a0cbb19f29c27405240c26",
+  "source_sha256": {
+    "src/ops_sliding_prompt_clusters.rs": "f9ce68edfb42ade42f7347216f1e94d0dcf7018d15ff6e8ab7da5738429008e3",
+    "src/bin/test_prompt_sliding_clusters.rs": "f6613291ea9e8f099966b6d63467de8ec49e89e547c9d51033b6d821fd8b710d"
+  },
+  "compile_status": "Candidate and controls compiled; actual proof pending root."
+}

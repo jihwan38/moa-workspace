@@ -3,7 +3,7 @@
 use super::super::model::Logits;
 use super::super::request_pool::{PoolCache, PooledStep};
 use super::*;
-use crate::{ops_decode, ops_request_attention as pool_ops};
+use crate::ops_decode;
 
 struct RowOffsets {
     row: HbmTensor<i32, Chip, m![1]>,
@@ -224,7 +224,7 @@ impl Prefill {
         .await?;
         self.record_profile("sliding.input_norm", &mut profile_mark);
         launch(
-            crate::ops_batch_clusters::project_query_clusters,
+            crate::ops_batch_kpart16::project_query_batch,
             (
                 device,
                 &self.norm,
@@ -235,7 +235,7 @@ impl Prefill {
         )
         .await?;
         launch(
-            ops_batch::project_sliding_kv_batch,
+            crate::ops_batch_kpart16::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -246,7 +246,7 @@ impl Prefill {
         )
         .await?;
         launch(
-            ops_batch::project_sliding_kv_batch,
+            crate::ops_batch_kpart16::project_sliding_kv_batch,
             (
                 device,
                 &self.norm,
@@ -373,7 +373,7 @@ impl Prefill {
         .await?;
         self.record_profile("full.input_norm", &mut profile_mark);
         launch(
-            ops_batch::project_full_query_batch,
+            crate::ops_batch_kpart16::project_full_query_batch,
             (
                 device,
                 &self.norm,
@@ -384,7 +384,7 @@ impl Prefill {
         )
         .await?;
         launch(
-            ops_batch::project_full_key_batch,
+            crate::ops_batch_kpart16::project_full_key_batch,
             (
                 device,
                 &self.norm,
@@ -436,13 +436,21 @@ impl Prefill {
                     &mut self.attn_f,
                 );
                 if page_index == 0 {
-                    launch(pool_ops::full_attention_first_page_b16, args).await?;
+                    launch(
+                        crate::ops_request_full_clusters::full_attention_first_page_b16,
+                        args,
+                    )
+                    .await?;
                 } else {
-                    launch(pool_ops::full_attention_next_page_b16, args).await?;
+                    launch(
+                        crate::ops_request_full_clusters::full_attention_next_page_b16,
+                        args,
+                    )
+                    .await?;
                 }
             }
             launch(
-                pool_ops::full_attention_divide_b16,
+                crate::ops_request_full_clusters::full_attention_divide_b16,
                 (device, &self.attn_f, &self.sum_f, &mut self.divided_f),
             )
             .await?;

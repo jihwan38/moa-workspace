@@ -1,7 +1,6 @@
 H960-partitioned P128 query (R2-BK01)
-===================================
 
-`ops_batch_kpart::project_query_wide` partitions the contracting H3840 dimension
+`ops_batch_kpart::project_query_batch` partitions the contracting H3840 dimension
 across four H960 slices. Each slice owns64 output channels instead of16, so
 weight bytes and multiply work are unchanged. Each input is replicated across
 64 output groups instead of256, reducing activation DM replication by four.
@@ -21,7 +20,8 @@ Kernel and executable compile. Hardware correctness, numerical differences,
 timing, and subsequent actual-model validation are pending root. The canonical
 serving kernels have not changed.
 
-Root Arena317698 query result: all524288 dyadic outputs exact. Varied-exponent
+Root Arena317698 query result: the independent H960 dyadic claim was withdrawn
+after an oracle-selection bug (see corrected Arena317743 evidence below). Varied-exponent
 comparison had87 bit differences among524288 values, zero tolerance failures,
 maximum absolute error0.25 and maximum relative error0.0125 (near-zero relative
 errors use the documented denominator floor). Warm runtime fell from roughly
@@ -90,3 +90,49 @@ postscaled up/down mapping. FullFFN reports bit differences, strict old-toleranc
 failures, relativeL2 and max error against packed L960; finite values and a broad
 relativeL2<0.2 catch gross defects, not model quality. This approximate path is
 explicitly UNVALIDATED for whole-model accuracy pending root's gate.
+Audit correction after Arena317733: the original query test's independent
+dyadic oracle accidentally read the full-H control output. Its H960 random
+differential comparison and timing were valid, but its reported H960 dyadic
+independent proof is withdrawn. The test is fixed and `test_kpart_qkv` explicitly
+checks both variants for Qs, Ps, Qf, and Pf against a seeded exact dyadic oracle,
+then checks full varied-exponent tensors against each other and512 output
+coordinates against independent F64 dot products. Distinct channel scales and
+nonperiodic K values cover shard boundaries and all output/cluster layouts.
+
+Arena317730 H960 FFN:491520 outputs,4640 bit differences,zero failures at the
+documented tolerance,max_abs0.0078125,max_rel0.03662; warm4.66ms→3.116ms.
+Arena317733 whole-model513 tokens:1753ms versus B16 3903ms and previous exact
+P128 2661ms, but relativeL2=0.045957,max_abs1.875,argmax100→2946. This is not an
+accepted model correctness result. The corrected all-projection oracle gates
+bug investigation before any accuracy evaluation or adoption.
+
+B16 follow-up plan (source9dde843): adapt H960 QKV/up-gate to one B8 row tile
+per cluster, preserving parent's independently proven B8 down helper arithmetic
+from native-ffn020aa5c. This removes three quarters of up/gate activation
+replication versus split-cluster full-H, but introduces four-slice F32 reduction.
+Compare all61,440 FFN outputs against exact baseline, report all numerical
+differences, and measure matched ABBA launches. No serving adoption is implied.
+
+Corrected all-QKV Arena317743:both full-H and H960 variants were exactly equal
+to the independent dyadic oracle for all1,900,544 outputs acrossQs/Ps/Qf/Pf.
+Full random comparisons had relativeL2 around2–3e-5, and512 sampled F64 scalar
+dots per shape matched both variants exactly. No QKV layout/scaling defect was
+observed. This replaces the withdrawn earlier H960 independent-query claim,
+and does not erase the measured whole-model numerical drift.
+
+Stage-profiling plan after Arena317730:expose post-GeGLU asHBM[L,P128], then
+run unchanged cached-down from that tensor. Verify split output is bit-exact to
+fused H960 FFN. Measure fused/upgate+GeGLU/down in ABC-CBA order with5 launches
+and one stage result read. Stage measurements include additional intermediate
+HBM write/read and differing download sizes, so they are upper-bound component
+estimates, not an additive decomposition of fused runtime. This separates the
+remaining down cost from up/gate scale-dequantization and contraction work.
+
+
+Packed L960 down plan after83ae467:split down K15360 over16 slices rather
+than8, cutting local activation cache245760B to122880B and output-group
+activation replication32→16. FP4 weights stay packed; four60-row tiles expand
+scale rows before splitting because60 E4 bytes violate DMA alignment. This
+changes the16-way F32 reduction tree and doubles four-row dequant streams
+30→60; compare491520 outputs against H960-up/L1920-down with tolerance and
+matched ABBA. No loader change and no model storage growth.

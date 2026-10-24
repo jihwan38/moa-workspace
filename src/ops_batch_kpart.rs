@@ -187,7 +187,7 @@ pub use crate::ops_batch_wide::{project_sliding_output_batch,project_full_output
 type UpParts=m![L / 240,H / 960];
 type UpReduced=m![L / 240,1 # 4];
 
-fn upgate_k4(device:&mut Device,input:&DmTensor<bf16,Chip,Cluster,UpParts,m![P128 % 64,H % 960]>,
+pub(crate) fn upgate_k4(device:&mut Device,input:&DmTensor<bf16,Chip,Cluster,UpParts,m![P128 % 64,H % 960]>,
     packed:&HbmTensor<f4e2m1,Chip,m![L,H]>,scale:&HbmTensor<f8e4m3,Chip,m![L,H / 16]>)
     ->DmTensor<bf16,Chip,Cluster,UpReduced,m![L % 240,P128 % 64]> {
     // An H960 shard has60 E4 scale bytes, below DMA's eight-byte tail alignment.
@@ -321,7 +321,7 @@ fn geglu_tile(
         .commit()
 }
 
-fn geglu_k4(device:&mut Device,up:&DmTensor<bf16,Chip,Cluster,UpReduced,m![L % 240,P128 % 64]>,
+pub(crate) fn geglu_k4(device:&mut Device,up:&DmTensor<bf16,Chip,Cluster,UpReduced,m![L % 240,P128 % 64]>,
     gate:&DmTensor<bf16,Chip,Cluster,UpReduced,m![L % 240,P128 % 64]>,
     us:&HbmTensor<f32,Chip,m![1]>,gs:&HbmTensor<f32,Chip,m![1]>)
     ->DmTensor<bf16,Chip,Cluster,UpReduced,m![L % 240,P128 % 64]> {
