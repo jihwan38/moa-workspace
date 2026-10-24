@@ -1,0 +1,27 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/batch-kernels)
+   Compiling furiosa_opt_gemma4::ops_output_r64_parallel_gather::project_sliding_output_batch
+error: furiosa-opt: furiosa_opt_gemma4::ops_output_r64_parallel_gather::project_sliding_output_batch: visa: while verifying IndexAccess
+       caused by: verification of operator failed:
+       IndexAccess
+       axis: stride 1 x 32, window_size: 16
+       name: 
+       
+       input tensors: 2
+         input T28: MappingShape[Chip: 1, Cluster: R64 / 32, Slice: (H / 120, 1 # 8), Element: (H % 120 # 480, R64 % 32)], 15728640 B, bf16, sram
+         source: unknown
+         input T29: [Broadcast=1]|[Broadcast=2]|[Dummy=4]|[], 64 B, raw_u64, spm
+         source: unknown
+         total bytes: 15728704
+       output tensors: 1
+         output T30: MappingShape[Chip: 1, Cluster: R64 / 32, Slice: (H / 120, 1 # 8), Element: (H % 120, R64 % 32 = 16 # 32)], 3932160 B, bf16, sram
+         source: unknown
+         total bytes: 3932160
+       caused by: Output shape mismatch for IndexAccess (expected MappingShape[Chip: 1, Cluster: R64 / 32, Slice: (H / 120, 1 # 8), Element: (H % 120 # 480, R64 % 32 = 16 # 32)], got MappingShape[Chip: 1, Cluster: R64 / 32, Slice: (H / 120, 1 # 8), Element: (H % 120, R64 % 32 = 16 # 32)])
+  --> src/ops_output_r64_parallel_gather.rs:71:1
+   |
+71 | #[device(chip=1)]
+   | ^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `device` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: could not compile `furiosa-opt-gemma4` (bin "test_r64_output_parallel_gather") due to 1 previous error

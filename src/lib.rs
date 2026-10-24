@@ -28,6 +28,7 @@ pub mod ops_batch_r64;
 pub mod ops_output_r64_direct;
 pub mod ops_output_r64_direct16;
 pub mod ops_output_r64_parallel;
+pub mod ops_output_r64_parallel_gather;
 pub mod ops_qkv_r64_blocked;
 pub mod ops_geglu_direct_r64;
 pub mod ops_native_fp8_r64;

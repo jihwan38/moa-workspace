@@ -337,3 +337,20 @@ reduced axis be innermost. Compilable placement puts anonymous padding before
 Qs:Parts=[H/120,1#2,Qs/1024],Pairs=[H/120,1#4,Qs/2048],then[H/120,1#8].
 The two stages retain adjacent K pairs and the original BF16 tree; actual
 NPU differential/CPU gates are still required to prove this mapping.
+
+Arena r210 parallel-O first candidate launch failed:device request unanswered
+for7s, no numerical/timing result. Source retained. Leading hypothesis is the
+partial-axis VRU mapping after reduction, not proven. Separate gather variant
+keeps all four K1024 contractions concurrent but transfers their BF16 results
+as four contiguous7.5KiB planes into each output group, then applies the proven
+direct-P16 addition tree. This avoids the questionable two partial-axis VRU
+stages. Same final differential/CPU/timing probe; if it fails, isolate the dot.
+
+Gather variant compiles after preserving nested-plane padding:leading1#4
+normalizes H%120 to H%120#480, which must remain in the subsequent token
+tile. The frozen probe first launches the concurrent partial dots alone and
+checks all983040 dyadic BF16 partial values, then launches full gathered sums.
+This distinguishes dot failure from gather/add failure if the device stalls.
+Arena317962/r208 direct-P16 O passed all final bits/CPU oracles. Sliding
+control0.423–0.442ms/direct160.398–0.404ms;full0.769–0.797/0.720–0.732ms.
+Direct8 was0.411–0.447/0.731–0.785ms in the sameABC-CBA run.
