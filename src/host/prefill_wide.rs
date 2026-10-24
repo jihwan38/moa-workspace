@@ -391,27 +391,13 @@ impl WidePrefill {
         for (tile, segment) in segments.iter().enumerate() {
             let tile = &self.tile_indices[tile];
             launch(
-                tiles::load_query_sliding_tile,
-                (device, &self.q_s, tile, &mut scratch.q_raw_s),
-            )
-            .await?;
-            launch(
-                tiles::load_key_sliding_tile,
-                (device, &self.k_s, tile, &mut scratch.k_raw_s),
-            )
-            .await?;
-            launch(
-                tiles::load_key_sliding_tile,
-                (device, &self.v_s, tile, &mut scratch.v_raw_s),
-            )
-            .await?;
-            launch(
-                crate::ops_head_batch::sliding_heads_b16,
+                crate::ops_head_wide_tile::sliding_heads_from_wide_tile,
                 (
                     device,
-                    &scratch.q_raw_s,
-                    &scratch.k_raw_s,
-                    &scratch.v_raw_s,
+                    &self.q_s,
+                    &self.k_s,
+                    &self.v_s,
+                    tile,
                     &layer.q_norm,
                     &layer.k_norm,
                     &segment.rope_s,
@@ -522,21 +508,12 @@ impl WidePrefill {
         for (tile, segment) in segments.iter().enumerate() {
             let tile = &self.tile_indices[tile];
             launch(
-                tiles::load_query_full_tile,
-                (device, &self.q_f, tile, &mut scratch.q_raw_f),
-            )
-            .await?;
-            launch(
-                tiles::load_key_full_tile,
-                (device, &self.k_f, tile, &mut scratch.k_raw_f),
-            )
-            .await?;
-            launch(
-                crate::ops_head_batch::full_heads_b16,
+                crate::ops_head_wide_tile::full_heads_from_wide_tile,
                 (
                     device,
-                    &scratch.q_raw_f,
-                    &scratch.k_raw_f,
+                    &self.q_f,
+                    &self.k_f,
+                    tile,
                     &layer.q_norm,
                     &layer.k_norm,
                     &segment.rope_f,
