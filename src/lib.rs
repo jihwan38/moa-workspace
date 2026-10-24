@@ -49,3 +49,5 @@ pub mod ops_request_attention_rings;
 pub mod ops_request_full_clusters;
 
 pub mod ops_norm_wide;
+
+pub mod ops_quant_native8;
