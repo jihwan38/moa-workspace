@@ -1,7 +1,7 @@
 //! H960 FFN differential test; F32 reassociation may change BF16 rounding.
 use furiosa_opt_gemma4::{
     Chip,
-    axes::{H, L, B},
+    axes::{B, H, L},
     ops_batch_clusters, ops_batch_kpart16,
 };
 use furiosa_opt_std::prelude::*;
@@ -46,7 +46,13 @@ async fn global(device: &mut Device, v: f32) -> HbmTensor<f32, Chip, m![1]> {
 async fn main() {
     let mut device = Device::new(ops_batch_clusters::batch_ffn_clusters.topology()).unwrap();
     let values: Vec<bf16> = (0..B::SIZE * H::SIZE)
-        .map(|i| bf16::from_f32((((word(i,11)>>40) as f32 / 16777216.0)*2.0-1.0)*4.0*2f32.powi(-((word(i,13)%9)as i32))))
+        .map(|i| {
+            bf16::from_f32(
+                (((word(i, 11) >> 40) as f32 / 16777216.0) * 2.0 - 1.0)
+                    * 4.0
+                    * 2f32.powi(-((word(i, 13) % 9) as i32)),
+            )
+        })
         .collect();
     let input: HbmTensor<bf16, Chip, m![B, H]> =
         HostTensor::<bf16, m![B, H]>::from_vec(values.iter().copied())
@@ -87,25 +93,100 @@ async fn main() {
     let actual: HostTensor<bf16, m![B, H]> = output.to_host(&mut device.pdma).await.unwrap();
     let cold_ms = start.elapsed().as_secs_f64() * 1000.0;
     let actual = actual.into_vec();
-    launch(ops_batch_kpart16::batch_ffn,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap();
-    let changed:HostTensor<bf16,m![B,H]>=output.to_host(&mut device.pdma).await.unwrap();
-    let mut bitdiff=0;let mut failures=0;let mut max_abs=0f32;let mut max_rel=0f32;
-    for (i,(expected,got)) in actual.iter().zip(changed.into_vec()).enumerate() {
-        if expected.to_bits()!=got.to_bits(){bitdiff+=1;}
-        let e=expected.to_f32();let a=got.to_f32();let error=(e-a).abs();
-        max_abs=max_abs.max(error);max_rel=max_rel.max(error/e.abs().max(0.01));
-        if !a.is_finite() || error>0.02+0.01*e.abs(){if failures<8{eprintln!("i={i} got={a} expected={e}");}failures+=1;}
-    }
-    let mut times=[Vec::<f64>::new(),Vec::<f64>::new()];
-    for variant in [0,1,1,0] {
-        let start=std::time::Instant::now();
-        for _ in 0..3 {
-            if variant==0{launch(ops_batch_clusters::batch_ffn_clusters,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap();}
-            else{launch(ops_batch_kpart16::batch_ffn,(&mut device,&input,&up,&gate,&down,&us,&gs,&ds,&ug,&gg,&dg,&mut output)).await.unwrap();}
+    launch(
+        ops_batch_kpart16::batch_ffn,
+        (
+            &mut device,
+            &input,
+            &up,
+            &gate,
+            &down,
+            &us,
+            &gs,
+            &ds,
+            &ug,
+            &gg,
+            &dg,
+            &mut output,
+        ),
+    )
+    .await
+    .unwrap();
+    let changed: HostTensor<bf16, m![B, H]> = output.to_host(&mut device.pdma).await.unwrap();
+    let mut bitdiff = 0;
+    let mut failures = 0;
+    let mut max_abs = 0f32;
+    let mut max_rel = 0f32;
+    for (i, (expected, got)) in actual.iter().zip(changed.into_vec()).enumerate() {
+        if expected.to_bits() != got.to_bits() {
+            bitdiff += 1;
         }
-        let _:HostTensor<bf16,m![B,H]>=output.to_host(&mut device.pdma).await.unwrap();
-        times[variant].push(start.elapsed().as_secs_f64()*1000.0/3.0);
+        let e = expected.to_f32();
+        let a = got.to_f32();
+        let error = (e - a).abs();
+        max_abs = max_abs.max(error);
+        max_rel = max_rel.max(error / e.abs().max(0.01));
+        if !a.is_finite() || error > 0.02 + 0.01 * e.abs() {
+            if failures < 8 {
+                eprintln!("i={i} got={a} expected={e}");
+            }
+            failures += 1;
+        }
     }
-    println!("BH960FFN checked={} bit_differences={bitdiff} tolerance_failures={failures} max_abs={max_abs} max_rel={max_rel} cold_control_ms={cold_ms:.3} fullH_cluster_ms={:?} H960_ms={:?} scope=3launches+1read_divided_by3",actual.len(),times[0],times[1]);
-    assert_eq!(failures,0);
+    let mut times = [Vec::<f64>::new(), Vec::<f64>::new()];
+    for variant in [0, 1, 1, 0] {
+        let start = std::time::Instant::now();
+        for _ in 0..3 {
+            if variant == 0 {
+                launch(
+                    ops_batch_clusters::batch_ffn_clusters,
+                    (
+                        &mut device,
+                        &input,
+                        &up,
+                        &gate,
+                        &down,
+                        &us,
+                        &gs,
+                        &ds,
+                        &ug,
+                        &gg,
+                        &dg,
+                        &mut output,
+                    ),
+                )
+                .await
+                .unwrap();
+            } else {
+                launch(
+                    ops_batch_kpart16::batch_ffn,
+                    (
+                        &mut device,
+                        &input,
+                        &up,
+                        &gate,
+                        &down,
+                        &us,
+                        &gs,
+                        &ds,
+                        &ug,
+                        &gg,
+                        &dg,
+                        &mut output,
+                    ),
+                )
+                .await
+                .unwrap();
+            }
+        }
+        let _: HostTensor<bf16, m![B, H]> = output.to_host(&mut device.pdma).await.unwrap();
+        times[variant].push(start.elapsed().as_secs_f64() * 1000.0 / 3.0);
+    }
+    println!(
+        "BH960FFN checked={} bit_differences={bitdiff} tolerance_failures={failures} max_abs={max_abs} max_rel={max_rel} cold_control_ms={cold_ms:.3} fullH_cluster_ms={:?} H960_ms={:?} scope=3launches+1read_divided_by3",
+        actual.len(),
+        times[0],
+        times[1]
+    );
+    assert_eq!(failures, 0);
 }

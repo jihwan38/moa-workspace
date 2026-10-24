@@ -351,3 +351,25 @@ pub fn batch_ffn(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,H]>,
     let hidden:DmTensor<bf16,Chip,Cluster,m![L / 60],m![L % 60,P128 % 64]>=hidden.to_dm(&mut device.tdma);
     crate::ops_batch_wide::down_cached(device,&hidden,down,ds,dg,output);
 }
+
+/// Diagnostic stage boundary only: expose the exact post-GeGLU intermediate.
+#[device(chip = 1)]
+pub fn probe_upgate(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,H]>,
+    up:&HbmTensor<f4e2m1,Chip,m![L,H]>,gate:&HbmTensor<f4e2m1,Chip,m![L,H]>,
+    us:&HbmTensor<f8e4m3,Chip,m![L,H / 16]>,gs:&HbmTensor<f8e4m3,Chip,m![L,H / 16]>,
+    ug:&HbmTensor<f32,Chip,m![1]>,gg:&HbmTensor<f32,Chip,m![1]>,
+    output:&mut HbmTensor<bf16,Chip,m![L,P128]>) {
+    let input:DmTensor<bf16,Chip,Cluster,UpParts,m![P128 % 64,H % 960]>=input.to_dm(&mut device.tdma);
+    let up=upgate_k4(device,&input,up,us);
+    let gate=upgate_k4(device,&input,gate,gs);
+    let hidden=geglu_k4(device,&up,&gate,ug,gg);
+    hidden.view().to_hbm_view(&mut device.tdma,output.view_mut());
+}
+/// Diagnostic counterpart; its HBM read is extra work absent from fused FFN.
+#[device(chip = 1)]
+pub fn probe_down(device:&mut Device,input:&HbmTensor<bf16,Chip,m![L,P128]>,
+    down:&HbmTensor<f4e2m1,Chip,m![H,L]>,ds:&HbmTensor<f8e4m3,Chip,m![H,L / 16]>,
+    dg:&HbmTensor<f32,Chip,m![1]>,output:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
+    let input:DmTensor<bf16,Chip,Cluster,m![L / 60],m![L % 60,P128 % 64]>=input.to_dm(&mut device.tdma);
+    crate::ops_batch_wide::down_cached(device,&input,down,ds,dg,output);
+}
