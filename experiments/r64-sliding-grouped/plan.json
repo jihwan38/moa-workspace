@@ -5,5 +5,15 @@
   "candidate": "Two R32 groups, two clusters with16 queries each. Gather K/V once per group. Resident K is16*32*256*2=262144 bytes/PE. Tile four local queries for exact QK dot, transpose/V dot and32-way BF16 partial reduction; merge all16 score rows before softmax to use256 live slices. Gathered K dies before V. Transpose only four V rows at a time.",
   "removed": "6 of8 full softmax group pipelines,6 K and6 V gather setups,6 indexDM/HBM roundtrips; same512MiB logical K+V read and original arithmetic.",
   "validation": "Profile frozen control with FURIOSA_OPT_PROFILE=trace and dynamic subscriber; exact all64 scalar controls including physical first/middle/last slots,positions0..8191,future invariance,sparse updates/inactive rows. ABBA old/new warm launches. Root dispatch only.",
-  "next_action": "Adopt only if full exact parity and useful measured reduction; preserve source even if no gain."
+  "next_action": "Adopt only if full exact parity and useful measured reduction; preserve source even if no gain.",
+  "actual_r32": {
+    "job": 317976,
+    "correctness": "All64 scalar/frozen-control exact; future invariance and64->7->64 pass",
+    "timing": "~755..759us versus~713..715us; reject adoption",
+    "profile": "Softmax TU/VRF counts reduced, but K=256KiB excludes simultaneous V plus scratch. V gather is delayed until after four QK tiles and redistribution. Control prefetches V while QK proceeds. Task1.396M->1.499M cycles."
+  },
+  "repair_r16": {
+    "change": "Four R16 groups,8 local requests. K+V=256KiB together, V gather declared before QK, enabling early DMA overlap. Two four-query dot/reduction tiles; softmax128 live slices.",
+    "reason": "Largest group allowing simultaneous resident K/V and all scratch within512KiB. Targets observed loss of V overlap; not an arbitrary width sweep."
+  }
 }
