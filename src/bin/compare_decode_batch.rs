@@ -108,6 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         for value in logits {
             reference.push(read_logits(&mut device, value).await?);
         }
+        model.begin_stage_profile();
         let now = std::time::Instant::now();
         let logits = model
             .forward_sequences(&mut device, &sequences, &mut batched)
@@ -119,6 +120,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!(
                 "step={step} row={row} position={} control_top={a} candidate_top={b} max_abs={max} relative_l2={l2}",
                 sequences[row].start_position
+            );
+        }
+        for stage in model.take_stage_profile() {
+            println!(
+                "step={step} stage={} calls={} total_ms={:.3}",
+                stage.stage, stage.calls, stage.milliseconds
             );
         }
         println!(

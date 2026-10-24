@@ -21,6 +21,7 @@ impl Prefill {
         logits: &mut [Logits],
         output_rows: &[usize],
     ) -> Result<()> {
+        let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
         if count < 2
             || count > B::SIZE
@@ -114,6 +115,7 @@ impl Prefill {
         )
         .to_hbm(&mut device.pdma)
         .await?;
+        self.record_profile("prepare.decode", &mut profile_mark);
         for (index, layer) in weights.layers.iter().enumerate() {
             match layer {
                 Layer::Sliding(layer) => {
@@ -126,12 +128,14 @@ impl Prefill {
                 }
             }
         }
+        profile_mark = std::time::Instant::now();
         if sequences.iter().any(|s| s.inputs[0].logits) {
             launch(
                 ep::rmsnorm_b16,
                 (device, &self.x, &weights.final_norm, &mut self.norm),
             )
             .await?;
+            self.record_profile("logits.norm", &mut profile_mark);
             launch(
                 ops_batch_io::logits_batch,
                 (
@@ -142,6 +146,7 @@ impl Prefill {
                 ),
             )
             .await?;
+            self.record_profile("logits.projection", &mut profile_mark);
             for (row, sequence) in sequences.iter().enumerate() {
                 if sequence.inputs[0].logits {
                     launch(
@@ -157,6 +162,7 @@ impl Prefill {
                 }
             }
         }
+        self.record_profile("logits.extract", &mut profile_mark);
         Ok(())
     }
 
@@ -170,11 +176,13 @@ impl Prefill {
         sequences: &[Sequence<'_>],
         offsets: &[RowOffsets],
     ) -> Result<()> {
+        let mut profile_mark = std::time::Instant::now();
         launch(
             ep::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
         )
         .await?;
+        self.record_profile("sliding.input_norm", &mut profile_mark);
         launch(
             ops_batch::project_query_batch,
             (
@@ -208,6 +216,7 @@ impl Prefill {
             ),
         )
         .await?;
+        self.record_profile("sliding.qkv", &mut profile_mark);
         launch(
             ep::sliding_heads_b16,
             (
@@ -226,6 +235,7 @@ impl Prefill {
             ),
         )
         .await?;
+        self.record_profile("sliding.heads_rope", &mut profile_mark);
         let (k, v) = ws.kv_cache[index].as_sliding_mut();
         for (row, sequence) in sequences.iter().enumerate() {
             let ring = sequence.blocks.sliding;
@@ -246,6 +256,7 @@ impl Prefill {
             )
             .await?;
         }
+        self.record_profile("sliding.attention", &mut profile_mark);
         launch(
             ops_batch::project_sliding_output_batch,
             (
@@ -257,6 +268,7 @@ impl Prefill {
             ),
         )
         .await?;
+        self.record_profile("sliding.output", &mut profile_mark);
         launch(
             ep::post_attention_b16,
             (
@@ -267,6 +279,7 @@ impl Prefill {
             ),
         )
         .await?;
+        self.record_profile("sliding.post_attention", &mut profile_mark);
         self.ffn(
             device,
             &layer.mlp,
@@ -287,11 +300,13 @@ impl Prefill {
         sequences: &[Sequence<'_>],
         offsets: &[RowOffsets],
     ) -> Result<()> {
+        let mut profile_mark = std::time::Instant::now();
         launch(
             ep::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
         )
         .await?;
+        self.record_profile("full.input_norm", &mut profile_mark);
         launch(
             ops_batch::project_full_query_batch,
             (
@@ -314,6 +329,7 @@ impl Prefill {
             ),
         )
         .await?;
+        self.record_profile("full.qkv", &mut profile_mark);
         launch(
             ep::full_heads_b16,
             (
@@ -331,6 +347,7 @@ impl Prefill {
             ),
         )
         .await?;
+        self.record_profile("full.heads_rope", &mut profile_mark);
         let (k, v) = ws.kv_cache[index].as_full_mut();
         for (row, sequence) in sequences.iter().enumerate() {
             let position = sequence.start_position;
@@ -385,6 +402,7 @@ impl Prefill {
             )
             .await?;
         }
+        self.record_profile("full.attention", &mut profile_mark);
         launch(
             ops_batch::project_full_output_batch,
             (
@@ -396,6 +414,7 @@ impl Prefill {
             ),
         )
         .await?;
+        self.record_profile("full.output", &mut profile_mark);
         launch(
             ep::post_attention_b16,
             (
@@ -406,6 +425,7 @@ impl Prefill {
             ),
         )
         .await?;
+        self.record_profile("full.post_attention", &mut profile_mark);
         self.ffn(
             device,
             &layer.mlp,

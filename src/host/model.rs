@@ -5,6 +5,7 @@ use crate::{Chip, axes::W};
 use furiosa_opt_std::prelude::*;
 
 use super::prefill::Prefill;
+pub use super::prefill::StageTiming;
 use runtime::{Blocks, Workspace};
 pub type Logits = HbmTensor<bf16, Chip, m![W]>;
 
@@ -34,6 +35,14 @@ pub struct Model {
 }
 
 impl Model {
+    /// Diagnostics only: collect host-observed durations of batched execution stages.
+    pub fn begin_stage_profile(&mut self) {
+        self.prefill.begin_profile();
+    }
+    pub fn take_stage_profile(&mut self) -> Vec<StageTiming> {
+        self.prefill.take_profile()
+    }
+
     pub async fn new(
         device: &mut Device,
         weights: load::Weights,
