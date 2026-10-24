@@ -221,7 +221,9 @@ async fn main() -> Result<()> {
                 blocks: &pb[r],
             })
             .collect();
-        let a = collect(&mut model, &mut device, &mut control, &aseq, true).await?;
+        // Both storage variants must use the same arithmetic on each transition.
+        // E154 scalar and H960 B16 projection trees are deliberately different.
+        let a = collect(&mut model, &mut device, &mut control, &aseq, step == 4).await?;
         let b = collect(&mut model, &mut device, &mut candidate, &bseq, step == 4).await?;
         for (i, &r) in selected.iter().enumerate() {
             check(
