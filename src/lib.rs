@@ -58,3 +58,5 @@ pub mod ops_attention_views;
 pub mod ops_prefill_cache_views;
 
 pub mod ops_pool_offsets;
+
+pub mod ops_cache_pools;

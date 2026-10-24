@@ -124,6 +124,7 @@ impl Model {
             return Err("another prefill is in progress".into());
         }
         validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+        validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
         if !WidePrefill::supports(sequence) && !Prefill::supports(sequence) {
             return Err("resumable prefill requires a page-local multi-token chunk".into());
         }
@@ -269,6 +270,7 @@ impl Model {
         }
         for sequence in sequences {
             validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+            validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
         }
         if let Some(active) = &self.active_prefill {
             for sequence in sequences {
@@ -404,6 +406,18 @@ impl Model {
             .await?;
         Ok(())
     }
+}
+
+fn validate_physical_pages(blocks: &Blocks, pages: usize) -> Result<(), &'static str> {
+    let mut seen = std::collections::HashSet::new();
+    if blocks
+        .full
+        .iter()
+        .any(|&page| page >= pages || !seen.insert(page))
+    {
+        return Err("full-attention pages must be valid and distinct");
+    }
+    Ok(())
 }
 
 fn validate_sequence(
