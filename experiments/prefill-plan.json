@@ -83,5 +83,14 @@
         "repair": "One compact index tensor B=VALID and one contiguous payload prefix per scatter"
       }
     ]
+  },
+  "integrated_prefill": {
+    "graph": "Model.forward_sequences -> Prefill.run -> all48layers: norm,Q/K/V,heads+RoPE,causalattention,O,postnorm+residual,prenorm,FFN,postnorm+residual+gate -> finalrowlogits",
+    "dispatch": "Actual sequence shape only: 2..16 consecutive same-page rows. Singleton and arbitrary external larger sequence use original serial control. Explicit forward_sequences_serial diagnostic method.",
+    "host_check": "cargo check --bin server passed",
+    "npu_build": "cargo furiosa-opt build --release --bin server passed in36.81s",
+    "mask_tests": "2 tests passed; exact absolute sliding history around1024/2048wrap and fullpagefuture masks",
+    "hardware_component_evidence": "Root job317592 RMS exact versus independent f64, partialprefix and slidingwrap sentinel exact; root317595 attention14cases and12future-invariance cases; full model remains unmeasured",
+    "next_gate": "compare_prefill diagnostic compares actual48layer final logits with separate serial/batched KV pools; root schedules NPU and fullpublic workload"
   }
 }
