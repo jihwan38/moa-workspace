@@ -4,6 +4,9 @@ use super::*;
 use crate::ops_sliding_wide::Pk128;
 use crate::ops_prefill_tiles as tiles;
 
+#[path = "prefill_group.rs"]
+pub(crate) mod group;
+
 pub(crate) struct WidePrefill {
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
     qkv_scale: HbmTensor<f32, Chip, m![P128, 1 # 8]>,
@@ -285,11 +288,11 @@ impl WidePrefill {
             .ok_or("prefill layers already complete")?;
         match layer {
             Layer::Sliding(layer) => {
-                self.sliding(device, ws, index, layer, state, &state.segments, scratch)
+                self.sliding(device, ws, index, layer, state, &state.segments, scratch, true)
                     .await?
             }
             Layer::Full(layer) => {
-                self.full(device, ws, index, layer, state, &state.segments, scratch)
+                self.full(device, ws, index, layer, state, &state.segments, scratch, true)
                     .await?
             }
         }
@@ -465,6 +468,7 @@ impl WidePrefill {
         state: &PreparedWide,
         segments: &[Segment],
         scratch: &mut Prefill,
+        include_ffn: bool,
     ) -> Result<()> {
         let mut mark = scratch.profile_mark();
         self.normalize(device, &layer.input_norm, scratch).await?;
@@ -514,6 +518,21 @@ impl WidePrefill {
             .await?;
         }
         scratch.record_optional_profile("wide.sliding.qkv", &mut mark);
+        self.sliding_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn).await
+    }
+
+    async fn sliding_after_qkv(
+        &mut self,
+        device: &mut Device,
+        ws: &mut Workspace,
+        index: usize,
+        layer: &SlidingLayer,
+        state: &PreparedWide,
+        segments: &[Segment],
+        scratch: &mut Prefill,
+        include_ffn: bool,
+    ) -> Result<()> {
+        let mut mark = scratch.profile_mark();
         let ring = state.blocks.sliding;
         if let Some(meta) = &state.native {
             launch(
@@ -706,15 +725,17 @@ impl WidePrefill {
         self.post_attention(device, &layer.post_attention_norm, scratch)
             .await?;
         scratch.record_optional_profile("wide.sliding.post_attention", &mut mark);
-        self.ffn(
-            device,
-            &layer.mlp,
-            &layer.pre_feedforward_norm,
-            &layer.post_feedforward_norm,
-            &layer.layer_scalar,
-            scratch,
-        )
-        .await
+        if include_ffn {
+            self.ffn(
+                device,
+                &layer.mlp,
+                &layer.pre_feedforward_norm,
+                &layer.post_feedforward_norm,
+                &layer.layer_scalar,
+                scratch,
+            ).await?;
+        }
+        Ok(())
     }
     async fn full(
         &mut self,
@@ -725,6 +746,7 @@ impl WidePrefill {
         state: &PreparedWide,
         segments: &[Segment],
         scratch: &mut Prefill,
+        include_ffn: bool,
     ) -> Result<()> {
         let mut mark = scratch.profile_mark();
         self.normalize(device, &layer.input_norm, scratch).await?;
@@ -761,6 +783,21 @@ impl WidePrefill {
             .await?;
         }
         scratch.record_optional_profile("wide.full.qkv", &mut mark);
+        self.full_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn).await
+    }
+
+    async fn full_after_qkv(
+        &mut self,
+        device: &mut Device,
+        ws: &mut Workspace,
+        index: usize,
+        layer: &FullLayer,
+        state: &PreparedWide,
+        segments: &[Segment],
+        scratch: &mut Prefill,
+        include_ffn: bool,
+    ) -> Result<()> {
+        let mut mark = scratch.profile_mark();
         let page = state.start_position / Tf::SIZE;
         let blocks = &state.blocks.full;
         if let Some(meta) = &state.native {
@@ -1007,14 +1044,16 @@ impl WidePrefill {
         self.post_attention(device, &layer.post_attention_norm, scratch)
             .await?;
         scratch.record_optional_profile("wide.full.post_attention", &mut mark);
-        self.ffn(
-            device,
-            &layer.mlp,
-            &layer.pre_feedforward_norm,
-            &layer.post_feedforward_norm,
-            &layer.layer_scalar,
-            scratch,
-        )
-        .await
+        if include_ffn {
+            self.ffn(
+                device,
+                &layer.mlp,
+                &layer.pre_feedforward_norm,
+                &layer.post_feedforward_norm,
+                &layer.layer_scalar,
+                scratch,
+            ).await?;
+        }
+        Ok(())
     }
 }

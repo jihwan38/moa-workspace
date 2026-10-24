@@ -151,3 +151,11 @@ pub mod ops_request_sliding_r64_mixed512;
 pub mod ops_query_native_fp8;
 
 pub mod ops_qkv_native_prequant;
+
+pub mod ops_qkv_native_four;
+
+pub mod ops_batch_layouts;
+
+pub mod ops_native_fp8_p512_blocks;
+
+pub mod ops_prompt_group_io;
