@@ -59,6 +59,11 @@ pub(crate) struct Prefill {
     prompt_x: HbmTensor<bf16, Chip, m![B, H]>,
     norm: HbmTensor<bf16, Chip, m![B, H]>,
     projected: HbmTensor<bf16, Chip, m![B, H]>,
+    native_q_input: HbmTensor<f8e4m3, Chip, m![B, H]>,
+    native_input_scale: HbmTensor<f32, Chip, m![B]>,
+    native_hidden: HbmTensor<bf16, Chip, m![B, L]>,
+    native_q_hidden: HbmTensor<f8e4m3, Chip, m![B, L]>,
+    native_hidden_scale: HbmTensor<f32, Chip, m![B]>,
     q_raw_s: HbmTensor<bf16, Chip, m![B, Qs]>,
     k_raw_s: HbmTensor<bf16, Chip, m![B, Ps]>,
     v_raw_s: HbmTensor<bf16, Chip, m![B, Ps]>,
@@ -131,6 +136,11 @@ impl Prefill {
             prompt_x: zero!(bf16, m![B, H]),
             norm: zero!(bf16, m![B, H]),
             projected: zero!(bf16, m![B, H]),
+            native_q_input: zero!(f8e4m3, m![B, H]),
+            native_input_scale: zero!(f32, m![B]),
+            native_hidden: zero!(bf16, m![B, L]),
+            native_q_hidden: zero!(f8e4m3, m![B, L]),
+            native_hidden_scale: zero!(f32, m![B]),
             q_raw_s: zero!(bf16, m![B, Qs]),
             k_raw_s: zero!(bf16, m![B, Ps]),
             v_raw_s: zero!(bf16, m![B, Ps]),
@@ -741,23 +751,26 @@ impl Prefill {
         .await?;
         self.record_profile("ffn.pre_norm", &mut profile_mark);
         launch(
-            crate::ops_native_fp8_b16_blocked::batch_ffn,
-            (
-                device,
-                &self.norm,
-                &weights.native_fp8.up,
-                &weights.native_fp8.gate,
-                &weights.native_fp8.down,
-                &weights.native_fp8.up_dequant,
-                &weights.native_fp8.gate_dequant,
-                &weights.native_fp8.down_dequant,
-                &weights.up_global_scale,
-                &weights.gate_global_scale,
-                &weights.down_global_scale,
-                &mut self.projected,
-            ),
-        )
-        .await?;
+            crate::ops_native_fp8_b16_staged::quantize_hidden,
+            (device, &self.norm, &mut self.native_q_input, &mut self.native_input_scale),
+        ).await?;
+        launch(
+            crate::ops_native_fp8_b16_staged::upgate_geglu_prequantized,
+            (device, &self.native_q_input, &self.native_input_scale,
+             &weights.native_fp8.up, &weights.native_fp8.gate,
+             &weights.native_fp8.up_dequant, &weights.native_fp8.gate_dequant,
+             &weights.up_global_scale, &weights.gate_global_scale, &mut self.native_hidden),
+        ).await?;
+        launch(
+            crate::ops_native_fp8_b16_staged::quantize_ffn,
+            (device, &self.native_hidden, &mut self.native_q_hidden, &mut self.native_hidden_scale),
+        ).await?;
+        launch(
+            crate::ops_native_fp8_b16_staged::down_prequantized,
+            (device, &self.native_q_hidden, &self.native_hidden_scale,
+             &weights.native_fp8.down, &weights.native_fp8.down_dequant,
+             &weights.down_global_scale, &mut self.projected),
+        ).await?;
         self.record_profile("ffn.core", &mut profile_mark);
         launch(
             crate::ops_norm_batch::post_feedforward_b16,

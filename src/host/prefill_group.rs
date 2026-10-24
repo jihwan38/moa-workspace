@@ -7,7 +7,7 @@ use crate::ops_prompt_group_io as group_io;
 pub(crate) struct GroupPrefill {
     rows: [WidePrefill; 4],
     norm: HbmTensor<bf16, Chip, m![P512, H]>,
-    projected: HbmTensor<bf16, Chip, m![P512, H]>,
+    projected: HbmTensor<bf16, Chip, crate::ops_native_fp8_p512_downblocked::Output>,
     zero: HbmTensor<i32, Chip, m![1]>,
     second: HbmTensor<i32, Chip, m![1]>,
     third: HbmTensor<i32, Chip, m![1]>,
@@ -15,7 +15,6 @@ pub(crate) struct GroupPrefill {
     q_input: HbmTensor<f8e4m3, Chip, P512H960>,
     input_scale: HbmTensor<f32, Chip, m![P512]>,
     up: HbmTensor<bf16, Chip, P512L240>,
-    gate: HbmTensor<bf16, Chip, P512L240>,
     q_hidden: HbmTensor<f8e4m3, Chip, P512L960>,
     hidden_scale: HbmTensor<f32, Chip, m![P512]>,
 }
@@ -66,7 +65,7 @@ impl GroupPrefill {
                 WidePrefill::new(device).await?,
             ],
             norm: zero!(bf16, m![P512, H]),
-            projected: zero!(bf16, m![P512, H]),
+            projected: zero!(bf16, crate::ops_native_fp8_p512_downblocked::Output),
             zero: offset!(0),
             second: offset!(1),
             third: offset!(2),
@@ -74,7 +73,6 @@ impl GroupPrefill {
             q_input: zero!(f8e4m3, P512H960),
             input_scale: zero!(f32, m![P512]),
             up: zero!(bf16, P512L240),
-            gate: zero!(bf16, P512L240),
             q_hidden: zero!(f8e4m3, P512L960),
             hidden_scale: zero!(f32, m![P512]),
         })
@@ -361,47 +359,20 @@ impl GroupPrefill {
         .await?;
         scratch.record_optional_profile("group.ffn.quantize_hidden", &mut mark);
         launch(
-            crate::ops_native_fp8_p512_blocks::project_up_scaled,
-            (
-                device,
-                &self.q_input,
-                &self.input_scale,
-                &mlp.native_fp8.up,
-                &mlp.native_fp8.up_dequant,
-                &mut self.up,
-            ),
-        )
-        .await?;
-        scratch.record_optional_profile("group.ffn.up", &mut mark);
+            crate::ops_native_fp8_p512_blocks_fused::project_upgate_geglu,
+            (device, &self.q_input, &self.input_scale, &mlp.native_fp8.up,
+             &mlp.native_fp8.gate, &mlp.native_fp8.up_dequant,
+             &mlp.native_fp8.gate_dequant, &mlp.up_global_scale,
+             &mlp.gate_global_scale, &mut self.up),
+        ).await?;
+        scratch.record_optional_profile("group.ffn.upgate_geglu", &mut mark);
         launch(
-            crate::ops_native_fp8_p512_blocks::project_up_scaled,
-            (
-                device,
-                &self.q_input,
-                &self.input_scale,
-                &mlp.native_fp8.gate,
-                &mlp.native_fp8.gate_dequant,
-                &mut self.gate,
-            ),
-        )
-        .await?;
-        scratch.record_optional_profile("group.ffn.gate", &mut mark);
+            crate::ops_native_fp8_p512_blocks_sharded::quantize_ffn,
+            (device, &self.up, &mut self.q_hidden, &mut self.hidden_scale),
+        ).await?;
+        scratch.record_optional_profile("group.ffn.quantize_ffn", &mut mark);
         launch(
-            crate::ops_native_fp8_p512_blocks_sharded::geglu_quantize,
-            (
-                device,
-                &self.up,
-                &self.gate,
-                &mlp.up_global_scale,
-                &mlp.gate_global_scale,
-                &mut self.q_hidden,
-                &mut self.hidden_scale,
-            ),
-        )
-        .await?;
-        scratch.record_optional_profile("group.ffn.geglu_quantize", &mut mark);
-        launch(
-            crate::ops_native_fp8_p512_blocks::project_down_scaled,
+            crate::ops_native_fp8_p512_downblocked::project_down_scaled,
             (
                 device,
                 &self.q_hidden,
@@ -416,14 +387,10 @@ impl GroupPrefill {
         scratch.record_optional_profile("group.ffn.down", &mut mark);
         let [a, b, c, d] = &mut self.rows;
         launch(
-            group_io::unpack_hidden_group,
+            crate::ops_native_fp8_p512_downblocked::unpack_hidden_group,
             (
                 device,
                 &self.projected,
-                &self.zero,
-                &self.second,
-                &self.third,
-                &self.fourth,
                 &mut a.projected,
                 &mut b.projected,
                 &mut c.projected,

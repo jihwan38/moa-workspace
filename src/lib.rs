@@ -163,3 +163,7 @@ pub mod ops_prompt_group_io;
 pub mod ops_r64_lm_partitioned;
 
 pub mod ops_native_fp8_p512_blocks_sharded;
+
+pub mod ops_native_fp8_b16_staged;
+pub mod ops_native_fp8_p512_downblocked;
+pub mod ops_native_fp8_p512_blocks_fused;

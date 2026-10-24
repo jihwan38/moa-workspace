@@ -148,3 +148,54 @@ pub fn geglu_quantize(device:&mut Device,up:&HbmTensor<bf16,Chip,P512L240>,
             .tile::<m![P512%256],64,m![P512/256,P512%256=64#{!}256]>(64*chunk));
     }
 }
+
+/// Quantize already-computed blocked hidden rows using the same sharded amax.
+#[device(chip=1)]
+pub fn quantize_ffn(device:&mut Device,input:&HbmTensor<bf16,Chip,P512L240>,
+    output:&mut HbmTensor<f8e4m3,Chip,P512L960>,scales:&mut HbmTensor<f32,Chip,m![P512]>) {
+    for chunk in 0..4 {
+        let hidden:DmTensor<bf16,Chip,Cluster,Shards,m![P512%256=64%4,L%960]>=input.view()
+            .tile::<m![P512%256],64,m![P512/256,L/240,P512%256=64#256,L%240]>(64*chunk).to_dm(&mut device.tdma);
+        let amax:DmTensor<f32,Chip,Cluster,Shards,m![P512%256=64%4,1#8]>=device.main.begin(hidden.view())
+            .fetch::<m![P512%256=64%4,L/16%60],m![L%16]>().fetch_cast::<f32>()
+            .collect::<m![P512%256=64%4,L/8%120],m![L%8]>()
+            .vector_init().vector_intra_slice_tag(TagMode::Zero)
+            .vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7fff_ffffi32).vector_reinterpret::<f32>()
+            .vector_narrow_split::<m![P512%256=64%4,L/4%240],m![L%4]>()
+            .vector_intra_slice_reduce::<L,m![P512%256=64%4],m![1#4]>(IntraSliceReduceOpF32::Max)
+            .vector_widen_pad::<m![1#8]>().vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)
+            .vector_final().commit_trim::<m![1#8]>().commit();
+        let amax:DmTensor<f32,Chip,Cluster,MaxParts,m![P512%256=64%4,1#8]>=amax.to_dm(&mut device.tdma);
+        let amax:DmTensor<f32,Chip,Cluster,MaxRows,m![P512%256=64%4,1#8]>=device.main.begin(amax.view())
+            .fetch::<m![P512%256=64%4],m![1#8]>().collect::<m![P512%256=64%4],m![1#8]>()
+            .vector_init().vector_inter_slice_reduce::<MaxRows,m![P512%256=64%4]>(InterSliceReduceOpF32::Max)
+            .vector_final().commit_trim::<m![1#8]>().commit();
+        let scale:DmTensor<f32,Chip,Cluster,MaxRows,m![P512%256=64%4,1#8]>=device.main.begin(amax.view())
+            .fetch::<m![P512%256=64%4],m![1#8]>().collect::<m![P512%256=64%4],m![1#8]>()
+            .vector_init().vector_intra_slice_tag(TagMode::Zero)
+            .vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32).vector_reinterpret::<f32>()
+            .vector_narrow_trim::<m![1#4]>().vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),0.0078125f32)
+            .vector_widen_pad::<m![1#8]>().vector_final().commit_trim::<m![1#8]>().commit();
+        let broadcast:DmTensor<f32,Chip,Cluster,Shards,m![P512%256=64%4,1#8]>=scale.to_dm(&mut device.tdma);
+        let packed:DmTensor<f32,Chip,Cluster,Shards,m![P512%256=64%4]>=device.main.begin(broadcast.view())
+            .fetch::<m![P512%256=64%4],m![1#8]>().collect::<m![P512%256=64%4],m![1#8]>()
+            .transpose::<m![P512%256=64%4/2],m![P512%256=64%4%2#8]>().commit_trim::<m![P512%256=64%4%2]>().commit();
+        let sv:VrfTensor<f32,Chip,Cluster,Shards,m![P512%256=64%4#8]>=device.sub.begin(packed.view())
+            .fetch::<m![1],m![P512%256=64%4#8]>().collect::<m![1],m![P512%256=64%4#8]>().to_vrf();
+        let q:DmTensor<f8e4m3,Chip,Cluster,Shards,m![P512%256=64%4,L%960]>=device.main.begin(hidden.view())
+            .fetch::<m![P512%256=64%4,L/16%60],m![L%16]>().fetch_cast::<f32>()
+            .collect::<m![P512%256=64%4,L/8%120],m![L%8]>()
+            .vector_init().vector_intra_slice_tag(TagMode::Zero)
+            .vector_narrow_split::<m![P512%256=64%4,L/4%240],m![L%4]>()
+            .vector_fp_binary(FpBinaryOp::DivF,&sv)
+            .vector_widen_concat::<m![P512%256=64%4,L/8%120],m![L%8]>().vector_final()
+            .cast::<f8e4m3,m![L%8#32]>().commit_trim::<m![L%8]>().commit();
+        q.view().to_hbm_view(&mut device.tdma,output.view_mut()
+            .tile::<m![P512%256],64,m![P512/256,L/960,P512%256=64#{!}256,L%960]>(64*chunk));
+        let scale:DmTensor<f32,Chip,Cluster,MaxRows,m![P512%256=64%4]>=device.main.begin(scale.view())
+            .fetch::<m![P512%256=64%4],m![1#8]>().collect::<m![P512%256=64%4],m![1#8]>()
+            .transpose::<m![P512%256=64%4/2],m![P512%256=64%4%2#8]>().commit_trim::<m![P512%256=64%4%2]>().commit();
+        scale.view().to_hbm_view(&mut device.tdma,scales.view_mut()
+            .tile::<m![P512%256],64,m![P512/256,P512%256=64#{!}256]>(64*chunk));
+    }
+}
