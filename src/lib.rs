@@ -251,3 +251,5 @@ pub mod ops_decode32_lm;
 pub mod ops_b16_prefix;
 
 pub mod ops_decode32_output;
+
+pub mod ops_sliding_headrows_local_sum;
