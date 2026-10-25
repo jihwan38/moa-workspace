@@ -9,3 +9,5 @@ Building before those gates finish is preparation only. Root may run six public 
 Build uses the original Cargo.toml/lock, fresh-package source capture, a new empty documented FURIOSA_OPT_OUT_DIR, and immediate target/release/server capture. Kernel registry must match all common entries in the verified ON model/packed probes. This independent output directory avoids the observed SDK0.9 constant-only shared-kernel fingerprint collision; preserved a005/a006/a007 artifacts and detailed incident are in fixed-e4-kv-quality-model evidence. The original OFF source remains available there.
 
 Server startup retains physical32 public owning-buffer identity validation before Model::new. No runtime precision toggle exists, so every request history has one precision from token0 and no per-request content routing is introduced. Root alone freezes q022 and dispatches Arena/public tasks.
+
+Here unchanged Q/full means the local producer operations and full-attention implementations are untouched. Later hidden states and full-cache contents can change indirectly after earlier sliding layers; no original full-cache value-equivalence claim is made.
