@@ -129,3 +129,8 @@ pub mod ops_qkv_shared_ingress;
 pub mod ops_qk_shared_ingress;
 
 pub mod ops_output_p128_h64_blocked;
+
+pub mod ops_norm_fused;
+
+pub mod ops_query_native_fp8;
+pub mod ops_batch_layouts;
