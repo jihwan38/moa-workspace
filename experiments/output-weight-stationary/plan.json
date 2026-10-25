@@ -1,0 +1,43 @@
+{
+  "status": "PLAN BEFORE COMPILE; no serving activation",
+  "base": "f45b31448ec512b9226711581dc3574c104c1e17",
+  "control": "c071 ops_output_p128_h64_blocked::project_sliding_output_four and q016 nativeO performance only if this first complete chain succeeds",
+  "hypothesis": "Hold original BF16-decoded sliding O weights in TRF across four P128 inputs; distribute eight output channels per slice across both clusters. Broadcast sharded original BF16 input via main Switch. Preserve K1024 partial BF16 and four-way balanced BF16 tree, then channel-scale BF16. No input quantization. No HBM/cache/owner mutations.",
+  "layout": {
+    "cluster": "H/1920",
+    "parts": "H/8%240 #256",
+    "weight_trf_lane": "H%8",
+    "weight_trf_element": "Qs4096 BF16,65536bytes per slice",
+    "input_dm_parts": "Qs/16,256 slices",
+    "input_dm_element": "P128,Qs%16,4096bytes per slice,replicated two clusters",
+    "main_switch": "inputQs/16 -> outputH/8%240; CustomBroadcast ring256; reconstructP128,Qs/16 in time",
+    "dot_time_retained": "P128,Qs/1024; same K32 packet and32packet accumulation per partial",
+    "partials": "P128,Qs/1024,H%8 local; no K interslice gather",
+    "output": "same canonical P128,H initially; H8fragment DMA cost must be measured"
+  },
+  "removed_work": [
+    "duplicated weights across token clusters",
+    "per-input activation TRF staging",
+    "inter-slice partial gather",
+    "output transpose if laneH output matches canonical"
+  ],
+  "added_work": [
+    "fullK input Switch broadcast across allHparts",
+    "weight TRF load retained across4inputs",
+    "finer16byte output fragments may cost more",
+    "padding16of256 output slices per cluster"
+  ],
+  "nonclaims": [
+    "swapping CE input/RF operands needs independent exact dot tests; exactness not assumed",
+    "TRF reuse/allocation and Switch mapping require actual compile/resource gate",
+    "no latency prediction from source counts",
+    "no model/public jobs before complete micro"
+  ],
+  "gates": [
+    "static host/device compile",
+    "schedule confirms noDramStack/hiddenextraHBM",
+    "independent completeBF16CPUoracle and original same source control including suppliedlayers0/6/46; dyadic plus random cases; immutableweight/input",
+    "fourP128complete wallABBA incldecode+TRF+input+output; currentexact and nativecontrols if appropriate",
+    "only then decide fullmodel scope"
+  ]
+}
