@@ -1,0 +1,31 @@
+{
+  "source_commit": "ccb8fb8994095b578fcdbbd77b54dae529654fee",
+  "base": "05f6f6f5b499010be4fcc2e60cc1b92c0839e7d7",
+  "default_enabled": false,
+  "changed_runtime_sources": [
+    "src/bin/compare_weight_stationary_output.rs",
+    "src/bin/test_full_output_weight_stationary.rs",
+    "src/bin/test_output_weight_stationary.rs",
+    "src/host/model.rs",
+    "src/host/prefill_group.rs",
+    "src/lib.rs",
+    "src/ops_full_output_weight_stationary.rs",
+    "src/ops_output_weight_stationary.rs"
+  ],
+  "unchanged_source_byte_checks": [
+    "src/host/worker.rs",
+    "src/host/startup_cohort.rs",
+    "src/host/decode_r64.rs",
+    "src/host/prefill_decode.rs",
+    "src/host/load.rs"
+  ],
+  "kernel_sha256": {
+    "src/ops_output_weight_stationary.rs": "5dabbb7350d405cdc5c51651b7e176970b9ee4952623f78ef0a31d824722060f",
+    "src/ops_full_output_weight_stationary.rs": "6f94d3caed9ea819b09205cf00364582ffab97bef5669e81a0629223b092f15f"
+  },
+  "scope": "One per-prepared selector chooses both exact output producers. No Worker, cache, dense precision, FFN flag, cursor or final-unpack changes.",
+  "output_ownership": "Host creates four typed mutable views into distinct existing outputs; public device and helpers accept those views by value. Final device stores take the same named view directly without mutable reshape or additional copies.",
+  "control": "Probe explicitly sets original false and candidate true, with composed/preloaded FFN true in both; same actual histories and owner maps, disjoint optional B16/R32 interleaves.",
+  "read_only_review": "e2e_evidence reviewed ccb8fb8/c789975 and found no ownership/reference blocker. Source review is distinct from actual full-model proof.",
+  "device_build": "a121: actual joint server/model/full-micro compile passed in 4m14s. Joint NPU model gate remains pending."
+}
