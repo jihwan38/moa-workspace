@@ -1,6 +1,6 @@
 //! Resource-only approximate group240 F4 weights reconstructed to native E4 DM.
 //! This requires new static quantization; it is not the original NVFP4 model.
-//! Finite F4*E4 products are exactly BF16; original separate DivF and final E4 cast remain.
+//! Group power-of-two scales act on the normalized E4 domain; original row scales remain after dots.
 use furiosa_opt_std::prelude::*;
 use crate::{Chip,axes::{B,H,L}};
 pub use crate::ops_native_fp8_blocked::{UpWeight,DownWeight};
