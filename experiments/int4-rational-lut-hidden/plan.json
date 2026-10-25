@@ -1,0 +1,46 @@
+{
+  "base_commit": "7f48ae7efdeb0e819642978f170a773c74e3f5a3",
+  "contract": "Same actual-validated finiteBF16 FTZ exact-rational q=sign*roundaway(7abs(x)/A), A=max(2^-112,rowamax); separate RN32(A*RN32(1/7)); identical20bitLUT MulF/FpToFxp path",
+  "source_change": "Copy verified compact-scale P512H3840 body with named axisH replaced byL15360 only",
+  "shape": {
+    "rows": 512,
+    "width": 15360,
+    "input_bf16_bytes": 15728640,
+    "output_i32_bytes": 31457280,
+    "scales_f32_bytes": 2048,
+    "table_bytes": 4096,
+    "spm_logical_index_bytes_per_cluster": 1024
+  },
+  "resource_gate": {
+    "full_estimated_cycles_max": 120000,
+    "no_DramStack": true,
+    "require_full_input_and_output_allocations": true,
+    "all_index_LUT_scale_movement_included": true,
+    "no_B16_or_P128_substitution": true,
+    "failure": "Preserve/HOLD without relaxing gate"
+  },
+  "source_oracle": {
+    "path": "src/bin/support/rational_a4_oracle.rs",
+    "sha256": "1b2beeb44d58c1ce98c9c4b04363a14792ac39df67a58c7b87fe6cae336bfec1",
+    "width_generic": "reference(row:&[u16]) already consumes arbitrary full row slices; unchanged quotient/remainder implementation, no reciprocal formula"
+  },
+  "future_device_probe": {
+    "not_authorized_yet": true,
+    "max_runtime_seconds": 70,
+    "cases": 4,
+    "code_comparisons": 31457280,
+    "scale_comparisons": 2048,
+    "permutation_codes": 15728640,
+    "permutation_scales": 1024,
+    "post_all_calls_immutable_bytes": 62930944,
+    "initial_table_bytes": 4096,
+    "kernel_calls": 165,
+    "fixtures": [
+      "128mantissas\u00d74exponents ->512distinct maxima/scales",
+      "signed exacthalves plusBF16neighbors/extrema/floor/FTZ",
+      "two independent full512row/full15360column bijections"
+    ],
+    "timing": "Two20-call complete-quantizer blocks percase; input/table checked aftertiming/profile; setup/readback excluded"
+  },
+  "claims": "Extension of validated contract only. No hidden-width actualspeed, packing, integerconsumer, FFN or modelquality claim until respective gates."
+}
