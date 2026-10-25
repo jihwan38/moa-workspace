@@ -1,0 +1,28 @@
+{
+  "name": "P512_COMPACT_SCALE_SINGLE_AUTHORIZED_VARIANT",
+  "control_commit": "39f7a2ff",
+  "control_cycles": 120424,
+  "control_scale_store_cycles": 101574,
+  "mechanism": "Only replace scalar scale store with exact realDM full32B records toleader, two-rowTU scalar compaction, contiguous256F32 percluster canonical HBM store",
+  "unchanged": [
+    "amax",
+    "indices/SPM/LUT",
+    "multiplier construction",
+    "MulF/FpToFxp codes",
+    "reconstruction scale A*RN32(1/7)",
+    "original full512 control source and schedule"
+  ],
+  "gate": {
+    "complete_estimated_cycles_max": 30000,
+    "no_dram_stack": true,
+    "all512_rows": true,
+    "all_pack_movement_included": true
+  },
+  "next_after_failure": "HOLD; no further variants this turn",
+  "authorization": "Root explicitly authorized ONE named source/resource-only variant after measured101574cycle scalar store; no ELF/Arena/model",
+  "missing_actual_gate": [
+    "All512 logical scale ordering against independent oracle",
+    "All codes/scales plus immutable input/table",
+    "Real device inclusive timing; inputH3840 only"
+  ]
+}
