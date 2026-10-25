@@ -4,14 +4,14 @@ thread_local! {static PROFILE:npu_profile::Collector=npu_profile::Collector::def
 use furiosa_opt_std::prelude::*;
 use furiosa_opt_gemma4::{Chip,axes::*,ops_qkv_weight_stationary as op,ops_qkv_shared_ingress as control};
 fn hash(mut v:u64)->u64 {v=v.wrapping_add(0x9e3779b97f4a7c15);v=(v^(v>>30)).wrapping_mul(0xbf58476d1ce4e5b9);v=(v^(v>>27)).wrapping_mul(0x94d049bb133111eb);v^(v>>31)}
-fn value(i:usize,seed:usize,broad:bool)->f8e4m3 {let h=hash(i as u64+(seed as u64)*719);if broad {f8e4m3::from_le_bytes([h as u8 & 0xfe])}else{f8e4m3::from_f32((h%17)as f32/8.0-1.0)}}
+fn value(i:usize,seed:usize,broad:bool)->f8e4m3 {let h=hash(i as u64+(seed as u64)*719);if broad {f8e4m3::from_le_bytes(&[h as u8 & 0xfe])}else{f8e4m3::from_f32((h%17)as f32/8.0-1.0)}}
 fn blocked(row:usize,col:usize,width:usize,tile:usize)->usize {((row/64*(width/tile)+col/tile)*64+row%64)*tile+col%tile}
 fn provided<E:M,W:M>(layer:usize,name:&str)->(Vec<f8e4m3>,Vec<bf16>){
  let file=std::fs::File::open(furiosa_opt_gemma4::host::load::model_dir().unwrap().join("model.safetensors")).unwrap();let map=unsafe{memmap2::Mmap::map(&file).unwrap()};let s=safetensors::SafeTensors::deserialize(&map).unwrap();let p=format!("model.language_model.layers.{layer}.self_attn.{name}_proj");
  let w=HostTensor::<f8e4m3,W>::from_safetensors(&s.tensor(&format!("{p}.weight")).unwrap()).unwrap().into_vec();let scale=s.tensor(&format!("{p}.weight_scale")).unwrap();assert_eq!(scale.dtype(),safetensors::Dtype::BF16);assert_eq!(scale.shape(),[E::SIZE,1]);(w,HostTensor::<bf16,E>::from_buf(scale.data().to_vec()).into_vec())
 }
 async fn read_bf<E:M>(d:&mut Device,t:&HbmTensor<bf16,Chip,E>)->Vec<bf16>{let v:HostTensor<bf16,E>=t.to_host(&mut d.pdma).await.unwrap();v.into_vec()}
-async fn immutable_e4<E:M>(d:&mut Device,t:&HbmTensor<f8e4m3,Chip,E>,expected:&[f8e4m3]){let v:HostTensor<f8e4m3,E>=t.to_host(&mut d.pdma).await.unwrap();assert!(v.into_vec().iter().zip(expected).all(|(a,b)|a.to_le_bytes()==b.to_le_bytes()));}
+async fn immutable_e4<E:M>(d:&mut Device,t:&HbmTensor<f8e4m3,Chip,E>,expected:&[f8e4m3]){let v:HostTensor<f8e4m3,E>=t.to_host(&mut d.pdma).await.unwrap();assert_eq!(v.into_buf(),f8e4m3::to_buf(expected));}
 async fn poison<E:M>(d:&mut Device)->HbmTensor<bf16,Chip,E>{HostTensor::<bf16,E>::from_vec(vec![bf16::from_f32(f32::NAN);E::SIZE]).to_hbm(&mut d.pdma).await.unwrap()}
 macro_rules! call {($d:ident,$f:path,$x:ident,$xs:ident,$qw:ident,$kw:ident,$vw:ident,$qs:ident,$ks:ident,$vs:ident,$out:ident,$order:ident)=>{{
  let [a,b,c,e]=$out.as_mut_slice() else{unreachable!()};
