@@ -273,3 +273,4 @@ pub mod ops_group_ffn_projection_storegroup;
 pub mod ops_fixed_e4_quality;
 
 pub mod ops_fixed_e4_quality_diagnostic;
+pub mod ops_fixed_e4_roundtrip_probe;
