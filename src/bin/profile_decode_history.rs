@@ -71,6 +71,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 result
             }
+            ForwardOutput::Batch16(output, live) => {
+                assert_eq!(live, width);
+                let selected = selector.select_b16(&mut device, output, &bans).await?;
+                let mut result = Vec::with_capacity(live);
+                for (row, token) in selected.into_iter().enumerate() {
+                    result.push(match token {
+                        Some(t) => t,
+                        None => sample(&selector.read_fallback_b16(&mut device, output, row).await?,
+                            &SamplingConfig::DEFAULT, &banned, &mut rng),
+                    });
+                }
+                result
+            }
             ForwardOutput::Rows(outputs) => {
                 let mut result = Vec::with_capacity(outputs.len());
                 for output in outputs {

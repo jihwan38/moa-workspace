@@ -111,7 +111,7 @@ async fn main() -> Result<()> {
                             let bytes = host.into_inner().into_buf();
                             furiosa_opt_gemma4::host_logit_bytes::decode_blocked_r64(&bytes, live, 8)
                         }
-                        ForwardOutput::Rows(_) => return Err("expected native blocked output".into()),
+                        ForwardOutput::Rows(_) | ForwardOutput::Batch16(_, _) => return Err("expected native blocked output".into()),
                     }
                 } else {
                     let outputs = model.forward_sequences_r64(&mut device, &sequences, &mut ws).await?;

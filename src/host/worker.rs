@@ -839,6 +839,30 @@ impl Worker {
                                     .collect()
                             }
                         }
+                        ForwardOutput::Batch16(output, live) => {
+                            if live != selected.len() {
+                                return Err("B16 output count does not match its requests".into());
+                            }
+                            let bans: Vec<_> = selected.iter().zip(&chunks)
+                                .map(|(&index, (inputs, _))| {
+                                    (inputs.last().unwrap().logits
+                                        && sessions[index].generation.sampling_config().is_greedy())
+                                        .then(|| sessions[index].generation.banned_tokens())
+                                }).collect();
+                            let tokens = self.greedy.select_b16(&mut self.device, output, &bans).await?;
+                            let mut result = Vec::with_capacity(live);
+                            for row in 0..live {
+                                result.push(if !chunks[row].0.last().unwrap().logits {
+                                    SampleOutput::Logits(Vec::new())
+                                } else if let Some(token) = tokens[row] {
+                                    SampleOutput::Greedy(token)
+                                } else {
+                                    SampleOutput::Logits(self.greedy.read_fallback_b16(
+                                        &mut self.device, output, row).await?)
+                                });
+                            }
+                            result
+                        }
                         ForwardOutput::Rows(outputs) => {
                             if outputs.len() != selected.len() {
                                 return Err("model output count does not match its requests".into());

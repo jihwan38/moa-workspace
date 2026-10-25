@@ -1,7 +1,7 @@
 //! Batched model calculation over caller-owned KV blocks.
 
 use super::{audio::AudioFrames, generate::SoftToken, image::ImagePatches, load, runtime};
-use crate::{Chip, axes::W};
+use crate::{Chip, axes::{B, W}};
 use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
@@ -12,6 +12,7 @@ use super::prefill::{
 };
 use runtime::{Blocks, Workspace};
 pub type Logits = HbmTensor<bf16, Chip, m![W]>;
+pub type Batch16Logits = HbmTensor<bf16, Chip, m![B, W]>;
 
 /// Host-observed phase times for a scheduling quantum. These fields are supplied
 /// by the caller, so no timing state survives an aborted model future.
@@ -25,7 +26,15 @@ pub(crate) struct PrefillAdvanceTiming {
 /// are valid, just as with `forward_sequences`; blocked rows retain request order.
 pub enum ForwardOutput<'a> {
     Rows(&'a [Logits]),
+    Batch16(&'a Batch16Logits, usize),
     Blocked64(&'a HbmTensor<bf16, Chip, crate::ops_r64_io_blocked::BlockedLogits>, usize),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum OutputLayout {
+    Rows,
+    Batch16,
+    Blocked64,
 }
 
 /// One request's next token. `logits` is false for prompt tokens whose output is discarded.
@@ -507,7 +516,7 @@ impl Model {
         Ok(&self.logits[..sequences.len()])
     }
 
-    /// Preserve the native R64 output layout for a caller that consumes host logits
+    /// Preserve the native batch output layout for a caller that consumes host logits
     /// or device-selected tokens. The ordinary API still materializes scalar rows.
     pub async fn forward_outputs(
         &mut self,
@@ -515,13 +524,13 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
-        let blocked = self.forward_sequences_inner(
+        let layout = self.forward_sequences_inner(
             device, sequences, workspace, Dispatch::Automatic, true,
         ).await?;
-        Ok(if blocked {
-            ForwardOutput::Blocked64(self.decode64.as_ref().unwrap().blocked_logits(), sequences.len())
-        } else {
-            ForwardOutput::Rows(&self.logits[..sequences.len()])
+        Ok(match layout {
+            OutputLayout::Blocked64 => ForwardOutput::Blocked64(self.decode64.as_ref().unwrap().blocked_logits(), sequences.len()),
+            OutputLayout::Batch16 => ForwardOutput::Batch16(self.prefill.decode_logits(), sequences.len()),
+            OutputLayout::Rows => ForwardOutput::Rows(&self.logits[..sequences.len()]),
         })
     }
 
@@ -626,7 +635,7 @@ impl Model {
             return Err("LM comparison requires single-token rows with requested logits".into());
         }
         let blocked = self.forward_sequences_inner(device, sequences, workspace, Dispatch::Decode64Diagnostic, true).await?;
-        if !blocked { return Err("LM comparison requires a canonical R64 output".into()); }
+        if blocked != OutputLayout::Blocked64 { return Err("LM comparison requires a canonical R64 output".into()); }
         let decode = self.decode64.as_mut().ok_or("R64 scratch missing")?;
         let mut raw = [Vec::new(), Vec::new()];
         let mut milliseconds = [0.0; 2];
@@ -647,8 +656,8 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
         dispatch: Dispatch,
-        prefer_blocked: bool,
-    ) -> Result<bool, Box<dyn std::error::Error>> {
+        prefer_native: bool,
+    ) -> Result<OutputLayout, Box<dyn std::error::Error>> {
         if sequences.len() > self.logits.len() {
             return Err("too many request sequences".into());
         }
@@ -691,8 +700,14 @@ impl Model {
                 && independent
                 && (2..=crate::axes::B::SIZE).contains(&singletons.len()));
         // Mixed prompt/decode calls retain the existing scalar-row contract.
-        let blocked = prefer_blocked && use_r64 && singletons.len() == sequences.len()
-            && sequences.iter().any(|s| s.inputs[0].logits);
+        let output_layout = if prefer_native && batched_singletons
+            && singletons.len() == sequences.len()
+            && sequences.iter().any(|s| s.inputs[0].logits)
+        {
+            if use_r64 { OutputLayout::Blocked64 } else { OutputLayout::Batch16 }
+        } else {
+            OutputLayout::Rows
+        };
         if batched_singletons {
             let rows: Vec<_> = singletons
                 .iter()
@@ -713,7 +728,7 @@ impl Model {
                         workspace,
                         &mut self.logits,
                         &singletons,
-                        !blocked,
+                        output_layout == OutputLayout::Rows,
                     )
                     .await?;
             } else {
@@ -725,6 +740,7 @@ impl Model {
                         workspace,
                         &mut self.logits,
                         &singletons,
+                        output_layout == OutputLayout::Rows,
                     )
                     .await?;
             }
@@ -776,7 +792,7 @@ impl Model {
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
             result?;
         }
-        Ok(blocked)
+        Ok(output_layout)
     }
 
     async fn step(

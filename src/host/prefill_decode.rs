@@ -9,10 +9,14 @@ struct RowOffsets {
     row: HbmTensor<i32, Chip, m![1]>,
     kv_s: HbmTensor<i32, Chip, m![1]>,
     kv_f: HbmTensor<i32, Chip, m![1]>,
-    logits: HbmTensor<i32, Chip, m![1]>,
+    logits: Option<HbmTensor<i32, Chip, m![1]>>,
 }
 
 impl Prefill {
+    pub(crate) fn decode_logits(&self) -> &super::super::model::Batch16Logits {
+        &self.logits_batch
+    }
+
     pub(crate) async fn decode_batch(
         &mut self,
         device: &mut Device,
@@ -21,6 +25,7 @@ impl Prefill {
         ws: &mut Workspace,
         logits: &mut [Logits],
         output_rows: &[usize],
+        materialize_rows: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -119,9 +124,9 @@ impl Prefill {
                 ])
                 .to_hbm(&mut device.pdma)
                 .await?,
-                logits: HostTensor::<i32, m![1]>::from_vec([(row * W::SIZE * 2) as i32])
+                logits: if materialize_rows && input.logits { Some(HostTensor::<i32, m![1]>::from_vec([(row * W::SIZE * 2) as i32])
                     .to_hbm(&mut device.pdma)
-                    .await?,
+                    .await?) } else { None },
             });
         }
         let rope_s = HostTensor::<i32, m![B]>::from_vec(
@@ -189,13 +194,13 @@ impl Prefill {
             .await?;
             self.record_profile("logits.projection", &mut profile_mark);
             for (row, sequence) in sequences.iter().enumerate() {
-                if sequence.inputs[0].logits {
+                if materialize_rows && sequence.inputs[0].logits {
                     launch(
                         ops_batch_io::extract_logits_row,
                         (
                             device,
                             &self.logits_batch,
-                            &offsets[row].logits,
+                            offsets[row].logits.as_ref().expect("materialized row offset"),
                             &mut logits[output_rows[row]],
                         ),
                     )
