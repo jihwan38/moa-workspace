@@ -32,3 +32,5 @@ pub mod b16_metadata_diagnostic;
 pub mod b16_attention_output_diagnostic;
 mod b16_attention_output;
 pub mod group_ffn_epilogue_diagnostic;
+pub mod b16_fixed_e4_kv_diagnostic;
+mod fixed_e4_codec;
