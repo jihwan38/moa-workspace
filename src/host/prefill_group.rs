@@ -30,7 +30,16 @@ impl BlockedQkv {
         })
     }
 }
+struct ProjectionLayerWeights {
+    weight: HbmTensor<f8e4m3, Chip, crate::ops_ffn_projection_clusters::JoinedWeight>,
+    scale: HbmTensor<f32, Chip, crate::ops_ffn_projection_clusters::JoinedScale>,
+}
+struct ProjectionStorage {
+    layers: Vec<ProjectionLayerWeights>,
+    output: HbmTensor<bf16, Chip, crate::ops_ffn_projection_clusters::JoinedOutput>,
+}
 pub(crate) struct GroupPrefill {
+    projection_storage: Option<ProjectionStorage>,
     blocked: [BlockedQkv; 4],
     output_s: [HbmTensor<bf16, Chip, crate::ops_output_p128_h64_blocked::Output>; 4],
     rows: [WidePrefill; 4],
@@ -59,13 +68,13 @@ pub(crate) struct PreparedGroup {
     preload_ffn_globals: bool,
     quarter_postnorm: bool,
     blocked_residual: bool,
-    composed_ffn_epilogue: bool,
+    composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
 }
 /// Exactly two actual P128 execution states; padding has no request metadata.
 pub(crate) struct PreparedTail256 {
     preload_ffn_globals: bool,
-    composed_ffn_epilogue: bool,
+    composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
     states: [PreparedWide; 2],
     owners: usize,
@@ -92,6 +101,16 @@ impl PreparedTail256 {
         self.composed_ffn_epilogue = enabled;
         Ok(())
     }
+    pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("Projection-owned FFN must be selected before the first layer".into());
+        }
+        if enabled && (!self.composed_ffn_epilogue || !self.preload_ffn_globals) {
+            return Err("projection-owned FFN requires the current composed preload route".into());
+        }
+        self.projection_owned_ffn = enabled;
+        Ok(())
+    }
     pub(crate) fn blocks(&self) -> Vec<&runtime::Blocks> {
         if self.owners == 1 { vec![&self.states[0].blocks] }
         else { vec![&self.states[0].blocks, &self.states[1].blocks] }
@@ -105,7 +124,7 @@ impl PreparedTail256 {
 /// Three real chronological quarters; the fourth tensor quarter has no owner.
 pub(crate) struct PreparedTail384 {
     preload_ffn_globals: bool,
-    composed_ffn_epilogue: bool,
+    composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
     states: [PreparedWide; 3],
     owner_first_rows: Vec<usize>,
@@ -133,6 +152,16 @@ impl PreparedTail384 {
         self.composed_ffn_epilogue = enabled;
         Ok(())
     }
+    pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("Projection-owned FFN must be selected before the first layer".into());
+        }
+        if enabled && (!self.composed_ffn_epilogue || !self.preload_ffn_globals) {
+            return Err("projection-owned FFN requires the current composed preload route".into());
+        }
+        self.projection_owned_ffn = enabled;
+        Ok(())
+    }
     pub(crate) fn blocks(&self) -> Vec<&runtime::Blocks> {
         self.owner_first_rows.iter().map(|&row| &self.states[row].blocks).collect()
     }
@@ -155,6 +184,9 @@ impl PreparedThreeOwner512 {
     pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
         self.chunks.composed_ffn_epilogue(enabled)
     }
+    pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.projection_owned_ffn(enabled)
+    }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 3] {
         self.owner_first_rows.map(|row| &self.chunks.states[row].blocks)
     }
@@ -163,14 +195,14 @@ impl PreparedThreeOwner512 {
 struct GroupExecution {
     fused_norms: bool, blocked_output: bool, shard_quant: bool,
     quarter_norm: bool, fused_ffn_core: bool, preload_ffn_globals: bool, quarter_postnorm: bool,
-    blocked_residual: bool, composed_ffn_epilogue: bool,
+    blocked_residual: bool, composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
 }
 impl GroupExecution {
     fn production() -> Self {
         Self { fused_norms:true, blocked_output:true, shard_quant:true,
             quarter_norm:true, fused_ffn_core:true, preload_ffn_globals:true, quarter_postnorm:true,
-            blocked_residual:true, composed_ffn_epilogue:true,
+            blocked_residual:true, composed_ffn_epilogue:true, projection_owned_ffn:false,
             weight_stationary_output:true }
     }
 }
@@ -197,6 +229,9 @@ impl PreparedPrompt384128 {
     pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
         self.chunks.composed_ffn_epilogue(enabled)
     }
+    pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.projection_owned_ffn(enabled)
+    }
     pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
         self.chunks.fused_head_attention(enabled);
     }
@@ -215,6 +250,9 @@ impl PreparedPrompt512 {
     }
     pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
         self.chunks.composed_ffn_epilogue(enabled)
+    }
+    pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.projection_owned_ffn(enabled)
     }
     pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
         self.chunks.fused_head_attention(enabled);
@@ -257,6 +295,16 @@ impl PreparedGroup {
         self.composed_ffn_epilogue = enabled;
         Ok(())
     }
+    pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("Projection-owned FFN must be selected before the first layer".into());
+        }
+        if enabled && (!self.composed_ffn_epilogue || !self.preload_ffn_globals) {
+            return Err("projection-owned FFN requires the current composed preload route".into());
+        }
+        self.projection_owned_ffn = enabled;
+        Ok(())
+    }
     pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
         for state in &mut self.states { state.fused_head_attention = enabled; }
     }
@@ -290,6 +338,22 @@ impl PreparedGroup {
     }
 }
 impl GroupPrefill {
+    pub(crate) fn has_projection_storage(&self) -> bool { self.projection_storage.is_some() }
+    pub(crate) async fn prepare_projection_storage(&mut self, device:&mut Device, weights:&Weights) -> Result<()> {
+        if self.projection_storage.is_some() { return Ok(()); }
+        let mut layers = Vec::with_capacity(weights.layers.len());
+        for layer in &weights.layers {
+            let mlp = match layer { Layer::Sliding(l) => &l.mlp, Layer::Full(l) => &l.mlp };
+            let native = &mlp.native_fp8;
+            let (weight,scale) = launch(crate::ops_ffn_projection_join::join,
+                (&mut *device,&native.up,&native.gate,&native.up_dequant,&native.gate_dequant)).await?;
+            layers.push(ProjectionLayerWeights { weight,scale });
+        }
+        let output = HostTensor::<bf16,crate::ops_ffn_projection_clusters::JoinedOutput>::zero()
+            .to_hbm(&mut device.pdma).await?;
+        self.projection_storage = Some(ProjectionStorage { layers,output });
+        Ok(())
+    }
     pub(crate) async fn new(device: &mut Device) -> Result<Self> {
         macro_rules! zero {
             ($d:ty,$m:ty) => {
@@ -306,6 +370,7 @@ impl GroupPrefill {
             };
         }
         Ok(Self {
+            projection_storage: None,
             blocked: [
                 BlockedQkv::new(device).await?, BlockedQkv::new(device).await?,
                 BlockedQkv::new(device).await?, BlockedQkv::new(device).await?,
@@ -508,7 +573,7 @@ impl GroupPrefill {
             preload_ffn_globals: true,
             quarter_postnorm: true,
             blocked_residual: true,
-            composed_ffn_epilogue: true,
+            composed_ffn_epilogue: true, projection_owned_ffn: false,
             weight_stationary_output: true,
             states: [
                 self.rows[0]
@@ -563,7 +628,7 @@ impl GroupPrefill {
             row.attn_f = HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
                 std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
         }
-        Ok(PreparedTail256 { preload_ffn_globals:true, composed_ffn_epilogue:true,
+        Ok(PreparedTail256 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:false,
             weight_stationary_output:true, owners:sequences.len(), states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
@@ -575,6 +640,7 @@ impl GroupPrefill {
     ) -> Result<bool> {
         let mut execution = GroupExecution::production();
         execution.composed_ffn_epilogue = state.composed_ffn_epilogue;
+        execution.projection_owned_ffn = state.projection_owned_ffn;
         execution.preload_ffn_globals = state.preload_ffn_globals;
         execution.weight_stationary_output = state.weight_stationary_output;
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
@@ -626,7 +692,7 @@ impl GroupPrefill {
             std::iter::repeat_n(padding,P128::SIZE*Ns::SIZE*Gs::SIZE*Ds::SIZE)).to_hbm(&mut device.pdma).await?;
         padding_row.attn_f=HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
             std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
-        Ok(PreparedTail384 { preload_ffn_globals:true, composed_ffn_epilogue:true,
+        Ok(PreparedTail384 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:false,
             weight_stationary_output:true, owner_first_rows, owner_final_rows, states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
@@ -639,6 +705,7 @@ impl GroupPrefill {
     ) -> Result<bool> {
         let mut execution = GroupExecution::production();
         execution.composed_ffn_epilogue = state.composed_ffn_epilogue;
+        execution.projection_owned_ffn = state.projection_owned_ffn;
         execution.preload_ffn_globals = state.preload_ffn_globals;
         execution.weight_stationary_output = state.weight_stationary_output;
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
@@ -718,6 +785,7 @@ impl GroupPrefill {
             fused_ffn_core:state.fused_ffn_core, quarter_postnorm:state.quarter_postnorm,
             blocked_residual:state.uses_blocked_residual(),
             composed_ffn_epilogue:state.composed_ffn_epilogue,
+            projection_owned_ffn:state.projection_owned_ffn,
             preload_ffn_globals:state.preload_ffn_globals,
             weight_stationary_output:state.weight_stationary_output,
         };
@@ -738,6 +806,11 @@ impl GroupPrefill {
             .ok_or("grouped prefill layers already complete")?;
         let mut mark = scratch.profile_mark();
         let blocked_residual = execution.blocked_residual;
+        if execution.projection_owned_ffn && !(execution.composed_ffn_epilogue
+            && blocked_residual && execution.fused_ffn_core && execution.preload_ffn_globals
+            && self.projection_storage.as_ref().is_some_and(|s|s.layers.len()==crate::LAYERS)) {
+            return Err("projection-owned FFN requires prepared storage and the current composed preload route".into());
+        }
         if blocked_residual && index == 0 {
             let [a, b, c, d] = &self.rows;
             launch(crate::ops_norm_blocked_residual::pack_four,
@@ -908,7 +981,24 @@ impl GroupPrefill {
         if execution.composed_ffn_epilogue && blocked_residual && execution.fused_ffn_core {
             let [a, b, c, d] = &self.rows;
             let norms = (post_attention, pre, post, gate);
-            if execution.preload_ffn_globals {
+            if execution.projection_owned_ffn {
+                let storage = self.projection_storage.as_mut().ok_or("joined FFN weights were not prepared")?;
+                let joined = storage.layers.get(index).ok_or("joined FFN layer is missing")?;
+                match layer {
+                    Layer::Sliding(_) => launch(crate::ops_group_ffn_projection::sliding_projection_owned,
+                        (device, (&self.output_s[0],&self.output_s[1],&self.output_s[2],&self.output_s[3]),
+                         norms,&mut self.residual_blocked,&joined.weight,&joined.scale,&mlp.native_fp8.down,
+                         &mlp.native_fp8.down_dequant,&mlp.up_global_scale,&mlp.gate_global_scale,&mlp.down_global_scale,
+                         &mut self.q_input,&mut self.input_scale,&mut storage.output,&mut self.q_hidden,
+                         &mut self.hidden_scale,&mut self.projected)).await?,
+                    Layer::Full(_) => launch(crate::ops_group_ffn_projection::full_projection_owned,
+                        (device,(&a.projected,&b.projected,&c.projected,&d.projected),
+                         norms,&mut self.residual_blocked,&joined.weight,&joined.scale,&mlp.native_fp8.down,
+                         &mlp.native_fp8.down_dequant,&mlp.up_global_scale,&mlp.gate_global_scale,&mlp.down_global_scale,
+                         &mut self.q_input,&mut self.input_scale,&mut storage.output,&mut self.q_hidden,
+                         &mut self.hidden_scale,&mut self.projected)).await?,
+                }
+            } else if execution.preload_ffn_globals {
             match layer {
                 Layer::Sliding(_) => launch(crate::ops_group_ffn_epilogue::sliding_globals,
                     (device, (&self.output_s[0], &self.output_s[1], &self.output_s[2], &self.output_s[3]),

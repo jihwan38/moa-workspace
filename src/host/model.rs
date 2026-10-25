@@ -291,6 +291,38 @@ impl Model {
         Err("no grouped512-density prompt is awaiting its first layer".into())
     }
 
+    /// Experimental startup-only storage preparation. It adds immutable joined
+    /// copies of the existing native UP/GATE tensors; no arithmetic or dispatch
+    /// changes until a prepared execution explicitly opts in before layer zero.
+    pub async fn prepare_projection_owned_ffn(
+        &mut self, device: &mut Device,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() {
+            return Err("joined FFN weights must be prepared with no active prompt".into());
+        }
+        self.prepare_group_scratch(device).await?;
+        self.group.as_mut().unwrap().prepare_projection_storage(device, &self.weights).await
+    }
+
+    /// Default-off, prepared-state-only diagnostic; existing owner validation,
+    /// attention, norms and per-layer completion rules are unchanged.
+    pub fn set_active_prefill_projection_owned_ffn(
+        &mut self, enabled: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if enabled && !self.group.as_ref().is_some_and(|g|g.has_projection_storage()) {
+            return Err("joined FFN weights were not prepared".into());
+        }
+        if let Some(state) = self.active_group.as_mut() { return state.projection_owned_ffn(enabled); }
+        if let Some(state) = self.active_prompt384128.as_mut() { return state.projection_owned_ffn(enabled); }
+        if let Some(state) = self.active_tail256.as_mut() { return state.projection_owned_ffn(enabled); }
+        if let Some(state) = self.active_tail384.as_mut() { return state.projection_owned_ffn(enabled); }
+        if let Some(state) = self.active_three_owner512.as_mut() { return state.projection_owned_ffn(enabled); }
+        if let Some(ActivePrefill::Prompt512(state)) = self.active_prefill.as_mut() {
+            return state.projection_owned_ffn(enabled);
+        }
+        Err("no grouped512-density prompt is awaiting its first layer".into())
+    }
+
     /// Scoped exact FFN-global-load control, enabled for new prepared owner
     /// shapes after model/cache gates. Selection is permitted only before layer0;
     /// no persistent Model or Worker mode survives completion/cancellation.
