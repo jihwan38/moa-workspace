@@ -1,0 +1,19 @@
+{
+  "prior_failure": "a003 2byte implicit DMA transpose alignment",
+  "only_device_change": "Reference HBM operand/output order uses original column layout; original GeGLU helper math unchanged",
+  "wire": "[P128/64,L/240,L%240,P128%64]",
+  "forward": "(((p/64)*64+c/240)*240+c%240)*64+p%64",
+  "inverse_p": "(at/(64*240*64))*64+at%64",
+  "inverse_c": "(at/(64*240)%64)*240+at/64%240",
+  "proof": "Mixed-radix Euclidean quotient/remainders over p<128,c<15360; both maps cover3932160bytes. Runtime independent full one-write coverage and inverse equality on supplied same-dot inputs; all outside timers.",
+  "byte_identical_candidates_controls_oracles": [
+    "src/ops_int4_group960_projection.rs",
+    "src/i4_group960_raw_adapter.rs",
+    "src/ops_group_ffn_projection_storegroup.rs",
+    "src/ops_int4_ffn_bridges.rs",
+    "src/ops_int4_rational_fused_pack.rs",
+    "src/bin/support/int4_group960_fixture.rs",
+    "src/bin/support/rational_a4_oracle.rs"
+  ],
+  "no_numerical_guard_changes": true
+}

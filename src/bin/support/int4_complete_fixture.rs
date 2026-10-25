@@ -29,6 +29,22 @@ pub fn sliding(canonical:&[u8])->[Vec<u8>;4]{
             out[at*2..at*2+2].copy_from_slice(&canonical[source..source+2]);}}
         assert!(seen.into_iter().all(|x|x));out})
 }
+/// Native original-P128 GeGLU wire order [P/64,L/240,L%240,P%64].
+/// (p,c) -> (((p/64)*64+c/240)*240+c%240)*64+p%64.
+pub fn reference_column_tile(canonical:&[u8])->Vec<u8>{
+    assert_eq!(canonical.len(),128*EXPANDED*2);let mut out=vec![0;canonical.len()];let mut seen=vec![false;128*EXPANDED];
+    for p in 0..128{for c in 0..EXPANDED{let at=(((p/64)*64+c/240)*240+c%240)*64+p%64;
+        assert!(!seen[at]);seen[at]=true;out[2*at..2*at+2].copy_from_slice(&canonical[2*(p*EXPANDED+c)..2*(p*EXPANDED+c)+2]);}}
+    assert!(seen.into_iter().all(|x|x));assert_eq!(reference_canonical_tile(&out),canonical,"independent column-wire inverse");out
+}
+/// Inverse starts from physical indices, independently recovering each axis.
+pub fn reference_canonical_tile(column:&[u8])->Vec<u8>{
+    assert_eq!(column.len(),128*EXPANDED*2);let mut out=vec![0;column.len()];let mut seen=vec![false;128*EXPANDED];
+    for at in 0..128*EXPANDED{let p=(at/(64*240*64))*64+at%64;let c=(at/(64*240)%64)*240+at/64%240;
+        assert!(p<128&&c<EXPANDED);let index=p*EXPANDED+c;assert!(!seen[index]);seen[index]=true;
+        out[2*index..2*index+2].copy_from_slice(&column[2*at..2*at+2]);}
+    assert!(seen.into_iter().all(|x|x));out
+}
 fn mix(mut x:u64)->u64{x=(x^(x>>30)).wrapping_mul(0xbf58476d1ce4e5b9);x=(x^(x>>27)).wrapping_mul(0x94d049bb133111eb);x^(x>>31)}
 pub fn input(permuted:bool,residual:bool)->Vec<u8>{
     let mut out=Vec::with_capacity(TOKENS*HIDDEN*2);

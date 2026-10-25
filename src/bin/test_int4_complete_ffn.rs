@@ -194,11 +194,12 @@ async fn intended_step(d:&mut Device,p:&ProductionWeights,w:&WeightsGpu,x:&Input
     let upcan=fixture::canonical_projection(&jb,EXPANDED,0);let gatecan=fixture::canonical_projection(&jb,EXPANDED,1);
     let mut hidden=Vec::with_capacity(512*EXPANDED*2);
     for quarter in 0..4 {let begin=quarter*128*EXPANDED*2;let end=begin+128*EXPANDED*2;
-        let u:HbmTensor<bf16,Chip,m![P128,L]>=upload(d,upcan[begin..end].to_vec()).await?;
-        let g:HbmTensor<bf16,Chip,m![P128,L]>=upload(d,gatecan[begin..end].to_vec()).await?;
-        let mut h=poison::<m![P128,L]>(d,0x7fca).await?;
+        let ub=fixture::reference_column_tile(&upcan[begin..end]);let gb=fixture::reference_column_tile(&gatecan[begin..end]);
+        let u:HbmTensor<bf16,Chip,furiosa_opt_gemma4::ops_int4_complete_reference::Operand>=upload(d,ub.clone()).await?;
+        let g:HbmTensor<bf16,Chip,furiosa_opt_gemma4::ops_int4_complete_reference::Operand>=upload(d,gb.clone()).await?;
+        let mut h=poison::<furiosa_opt_gemma4::ops_int4_complete_reference::Operand>(d,0x7fca).await?;
         launch(furiosa_opt_gemma4::ops_int4_complete_reference::geglu_p128,(&mut *d,&u,&g,p.ug(),p.gg(),&mut h)).await?;
-        hidden.extend(read(d,&h).await?);assert_eq!(read(d,&u).await?,upcan[begin..end]);assert_eq!(read(d,&g).await?,gatecan[begin..end]);
+        hidden.extend(fixture::reference_canonical_tile(&read(d,&h).await?));assert_eq!(read(d,&u).await?,ub);assert_eq!(read(d,&g).await?,gb);
     }
     exact+=cpu::compare_bits(&got.hidden,&hidden,"independent original P128 GeGLU BF16");
     let qh=fixture::quantize(&hidden,EXPANDED);assert_eq!(got.hp,qh.packed);assert_eq!(got.hs,floats(&qh.scales));
