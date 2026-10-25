@@ -1,0 +1,464 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/b16-f4-model)
+warning: unused import: `ops_batch`
+  --> src/host/prefill.rs:12:40
+   |
+12 |     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
+   |                                        ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ops_batch_r64 as linear`
+  --> src/host/decode_r64.rs:12:20
+   |
+12 |     Chip, axes::*, ops_batch_r64 as linear, ops_commit_r64 as commit, ops_norm_r64 as norm,
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_keyrings_h64.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_h64_blocked.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: method `prepare_prompt384128` is never used
+   --> src/host/prefill_group.rs:608:25
+    |
+426 | impl GroupPrefill {
+    | ----------------- method in this implementation
+...
+608 |     pub(crate) async fn prepare_prompt384128(
+    |                         ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `prompt384128_chunks` is never used
+    --> src/host/prefill_group.rs:1366:4
+     |
+1366 | fn prompt384128_chunks<'a>(sequences: &[Sequence<'a>]) -> Vec<Sequence<'a>> {
+     |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `project_output` is never used
+   --> src/device/sliding/projection.rs:178:15
+    |
+178 | pub(crate) fn project_output(
+    |               ^^^^^^^^^^^^^^
+
+warning: type alias `HiddenRows` is never used
+   --> src/device/sliding/projection.rs:198:6
+    |
+198 | type HiddenRows = m![H / 120, 1 # 8];
+    |      ^^^^^^^^^^
+
+warning: function `output_partial` is never used
+   --> src/device/sliding/projection.rs:200:4
+    |
+200 | fn output_partial(
+    |    ^^^^^^^^^^^^^^
+
+warning: function `add_partials` is never used
+   --> src/device/sliding/projection.rs:241:4
+    |
+241 | fn add_partials(
+    |    ^^^^^^^^^^^^
+
+warning: function `apply_output_channel_scale` is never used
+   --> src/device/sliding/projection.rs:268:4
+    |
+268 | fn apply_output_channel_scale(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `feedforward` is never used
+   --> src/device_e154/shared/mlp.rs:537:15
+    |
+537 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `prepare_ffn_fp8_split` is never used
+   --> src/device_e154/shared/mlp.rs:629:15
+    |
+629 | pub(crate) fn prepare_ffn_fp8_split(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device_e154/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_vision` is never used
+  --> src/device_e154/shared/residual.rs:86:15
+   |
+86 | pub(crate) fn add_vision<Cluster: M, Slice: M>(
+   |               ^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device_e154/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_r64_sharded.rs:47:4
+   |
+47 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_sharded.rs:48:4
+   |
+48 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_local_reuse.rs:48:4
+   |
+48 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_r64_local_reuse.rs:47:4
+   |
+47 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn_dm` is never used
+  --> src/ops_native_fp8_r64_staged_fused.rs:52:4
+   |
+52 | fn quantize_ffn_dm(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^^^^
+
+warning: function `quantize_ffn_dm` is never used
+  --> src/ops_decode32_ffn.rs:53:4
+   |
+53 | fn quantize_ffn_dm(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^^^^
+
+warning: `furiosa-opt-gemma4` (lib) generated 25 warnings (run `cargo fix --lib -p furiosa-opt-gemma4` to apply 6 suggestions)
+   Compiling furiosa_opt_gemma4::ops_prepack_alloc::prepack_up
+   Compiling furiosa_opt_gemma4::ops_prepack_alloc::reblock_up
+   Compiling furiosa_opt_gemma4::ops_prepack_alloc::prepack_down
+   Compiling furiosa_opt_gemma4::ops_prepack_alloc::reblock_down
+   Compiling furiosa_opt_gemma4::ops_zero_pool::zero_sliding_pool
+   Compiling furiosa_opt_gemma4::ops_zero_pool::zero_full_pool
+   Compiling furiosa_opt_gemma4::ops_ffn_projection_join::join
+   Compiling furiosa_opt_gemma4::ops_r64_io::embed_tokens
+   Compiling furiosa_opt_gemma4::ops_vision::patch_embed
+   Compiling furiosa_opt_gemma4::ops_vision::add_position_and_norm
+   Compiling furiosa_opt_gemma4::ops_vision::project_to_text_embedding
+   Compiling furiosa_opt_gemma4::ops_audio::audio_project_frame
+   Compiling furiosa_opt_gemma4::ops_norm_r64::insert_hidden_row
+   Compiling furiosa_opt_gemma4::ops_norm_r64::rmsnorm_r64
+   Compiling furiosa_opt_gemma4::ops_query_r64_native_fp8::quantize_input
+   Compiling furiosa_opt_gemma4::ops_qkv_blocked_r64::project_sliding_qkv
+   Compiling furiosa_opt_gemma4::ops_qkv_shared_r64::project_sliding_qkv
+   Compiling furiosa_opt_gemma4::ops_head_r64_blocked::sliding_heads_r64
+   Compiling furiosa_opt_gemma4::ops_head_r64::sliding_heads_r64
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_kv_r64
+   Compiling furiosa_opt_gemma4::ops_commit_r64::load_sliding_kv_tile
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_1
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_2
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_3
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_4
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_5
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_6
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_7
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_8
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_9
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_10
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_11
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_12
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_13
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_14
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_15
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_sliding_pool_16
+   Compiling furiosa_opt_gemma4::ops_decode32_attention::sliding_attention_r64
+   Compiling furiosa_opt_gemma4::ops_request_sliding_r64_prefix512::sliding_attention_r64
+   Compiling furiosa_opt_gemma4::ops_request_sliding_r64_prefix768::sliding_attention_r64
+   Compiling furiosa_opt_gemma4::ops_request_sliding_r64_mixed512::sliding_attention_r64
+   Compiling furiosa_opt_gemma4::ops_request_sliding_r64_head_rows::sliding_attention_r64
+   Compiling furiosa_opt_gemma4::ops_request_sliding_r64::sliding_attention_r64
+   Compiling furiosa_opt_gemma4::ops_decode32_output::project_sliding_output_batch
+   Compiling furiosa_opt_gemma4::ops_output_r64_trf32::project_sliding_output_batch
+   Compiling furiosa_opt_gemma4::ops_norm_r64::post_attention_r64
+   Compiling furiosa_opt_gemma4::ops_decode32_ffn::batch_ffn
+   Compiling furiosa_opt_gemma4::ops_native_fp8_r64_staged_fused::batch_ffn
+   Compiling furiosa_opt_gemma4::ops_native_fp8_r64_local_reuse::batch_ffn_partitioned_input
+   Compiling furiosa_opt_gemma4::ops_norm_r64::post_feedforward_r64
+   Compiling furiosa_opt_gemma4::ops_qkv_blocked_r64::project_full_qk
+   Compiling furiosa_opt_gemma4::ops_qkv_shared_r64::project_full_qk
+   Compiling furiosa_opt_gemma4::ops_head_r64_blocked::full_heads_r64
+   Compiling furiosa_opt_gemma4::ops_head_r64::full_heads_r64
+   Compiling furiosa_opt_gemma4::ops_commit_r64::commit_full_kv_r64
+   Compiling furiosa_opt_gemma4::ops_commit_r64::load_full_kv_tile
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_1
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_2
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_3
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_4
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_5
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_6
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_7
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_8
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_9
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_10
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_11
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_12
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_13
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_14
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_15
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_full_pool_16
+   Compiling furiosa_opt_gemma4::ops_request_full_r64::full_attention_first_page_r64
+   Compiling furiosa_opt_gemma4::ops_request_full_r64::full_attention_next_page_r64
+   Compiling furiosa_opt_gemma4::ops_request_full_r64::full_attention_divide_r64
+   Compiling furiosa_opt_gemma4::ops_decode32_output::project_full_output_batch
+   Compiling furiosa_opt_gemma4::ops_output_r64_trf32::project_full_output_batch
+   Compiling furiosa_opt_gemma4::ops_decode32_lm::logits_batch
+   Compiling furiosa_opt_gemma4::ops_r64_lm_partitioned::logits_batch
+   Compiling furiosa_opt_gemma4::ops_r64_io_blocked::extract_logits_row
+   Compiling furiosa_opt_gemma4::ops_request_attention::copy_sliding_cache_to_pool
+   Compiling furiosa_opt_gemma4::ops_request_attention::copy_full_page_to_pool
+   Compiling furiosa_opt_gemma4::ops_request_attention::copy_sliding_pool_to_cache
+   Compiling furiosa_opt_gemma4::ops_request_attention::copy_full_pool_to_page
+   Compiling furiosa_opt_gemma4::ops_batch_io::embed_tokens
+   Compiling furiosa_opt_gemma4::ops_prefill::insert_hidden_row
+   Compiling furiosa_opt_gemma4::ops_b16_prefix::sliding
+   Compiling furiosa_opt_gemma4::ops_norm_batch::rmsnorm_b16
+   Compiling furiosa_opt_gemma4::ops_query_b16_native_fp8::quantize_input
+   Compiling furiosa_opt_gemma4::ops_qkv_blocked_b16::project_sliding_qkv
+   Compiling furiosa_opt_gemma4::ops_qkv_shared_b16::project_sliding_qkv
+   Compiling furiosa_opt_gemma4::ops_head_b16_blocked::sliding_heads_b16
+   Compiling furiosa_opt_gemma4::ops_head_batch::sliding_heads_b16
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_1
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_2
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_3
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_4
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_5
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_6
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_7
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_8
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_9
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_10
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_11
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_12
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_13
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_14
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_15
+   Compiling furiosa_opt_gemma4::ops_b16_attention_output::sliding_16
+   Compiling furiosa_opt_gemma4::ops_request_sliding_b16_rc64::sliding_attention_b16
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_1
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_2
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_3
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_4
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_5
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_6
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_7
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_8
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_9
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_10
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_11
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_12
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_13
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_14
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_15
+   Compiling furiosa_opt_gemma4::ops_request_attention::commit_sliding_pool_16
+   Compiling furiosa_opt_gemma4::ops_request_attention_rings::sliding_attention_b16
+   Compiling furiosa_opt_gemma4::ops_decode::sliding_attention_row
+   Compiling furiosa_opt_gemma4::ops_output_b16_hsplit::project_sliding_output_batch
+   Compiling furiosa_opt_gemma4::ops_output_b16_parallel_gather::project_sliding_output_batch
+   Compiling furiosa_opt_gemma4::ops_b16_f4_partialscale_epilogue::post_attention_ffn
+   Compiling furiosa_opt_gemma4::ops_b16_ingress_epilogue::post_attention_ffn
+   Compiling furiosa_opt_gemma4::ops_b16_ffn_epilogue::post_attention_ffn
+   Compiling furiosa_opt_gemma4::ops_norm_batch::post_attention_b16
+   Compiling furiosa_opt_gemma4::ops_native_fp8_b16_staged_fused::batch_ffn
+   Compiling furiosa_opt_gemma4::ops_native_fp8_b16_staged::quantize_hidden
+   Compiling furiosa_opt_gemma4::ops_native_fp8_b16_staged::upgate_geglu_prequantized
+   Compiling furiosa_opt_gemma4::ops_native_fp8_b16_staged::quantize_ffn
+   Compiling furiosa_opt_gemma4::ops_native_fp8_b16_staged::down_prequantized
+   Compiling furiosa_opt_gemma4::ops_norm_batch::post_feedforward_b16
+   Compiling furiosa_opt_gemma4::ops_b16_prefix::full
+   Compiling furiosa_opt_gemma4::ops_qkv_blocked_b16::project_full_qk
+   Compiling furiosa_opt_gemma4::ops_qkv_shared_b16::project_full_qk
+   Compiling furiosa_opt_gemma4::ops_head_b16_blocked::full_heads_b16
+   Compiling furiosa_opt_gemma4::ops_head_batch::full_heads_b16
+   Compiling furiosa_opt_gemma4::ops_request_full_clusters::full_attention_first_page_b16
+   Compiling furiosa_opt_gemma4::ops_request_full_clusters::full_attention_next_page_b16
+   Compiling furiosa_opt_gemma4::ops_request_full_clusters::full_attention_divide_b16
+   Compiling furiosa_opt_gemma4::ops_decode::full_commit_row
+   Compiling furiosa_opt_gemma4::ops::full_attention_first_page
+   Compiling furiosa_opt_gemma4::ops::full_attention_page
+   Compiling furiosa_opt_gemma4::ops_decode::full_divide_pack_row
+   Compiling furiosa_opt_gemma4::ops_output_b16_hsplit::project_full_output_batch
+   Compiling furiosa_opt_gemma4::ops_output_b16_parallel_gather::project_full_output_batch
+   Compiling furiosa_opt_gemma4::ops_b16_lm_storegroup::logits_batch
+   Compiling furiosa_opt_gemma4::ops_batch_io::extract_logits_row
+   Compiling furiosa_opt_gemma4::ops_prefill_tiles_reference::store_hidden_tile
+   Compiling furiosa_opt_gemma4::ops_vision_trf::encode_patches
+   Compiling furiosa_opt_gemma4::ops_media_rows::insert_b16_in_p128
+   Compiling furiosa_opt_gemma4::ops_audio_batch::audio_project_b16
+   Compiling furiosa_opt_gemma4::ops_audio_batch::audio_project_p128
+   Compiling furiosa_opt_gemma4::ops_media_rows::insert_p128_in_p128
+   Compiling furiosa_opt_gemma4::ops_norm_wide::rmsnorm_p128
+   Compiling furiosa_opt_gemma4::ops_query_native_fp8::quantize_input
+   Compiling furiosa_opt_gemma4::ops_query_native_fp8::project_query_quantized
+   Compiling furiosa_opt_gemma4::ops_qkv_native_prequant::project_sliding_kv_quantized
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_query_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_sliding_kv_batch
+   Compiling furiosa_opt_gemma4::ops_prefill_head_attn_commit::sliding_fused_first_p128
+   Compiling furiosa_opt_gemma4::ops_prefill_head_attn_commit::sliding_fused_p128
+   Compiling furiosa_opt_gemma4::ops_head_wide_blocked::sliding_heads_p128
+   Compiling furiosa_opt_gemma4::ops_head_wide::sliding_heads_p128
+   Compiling furiosa_opt_gemma4::ops_sliding_wide_head_rows::sliding_attention_first_p128
+   Compiling furiosa_opt_gemma4::ops_sliding_wide_head_rows::sliding_attention_p128
+   Compiling furiosa_opt_gemma4::ops_sliding_wide_pool::sliding_attention_p128
+   Compiling furiosa_opt_gemma4::ops_commit_wide_pool::commit_sliding_kv_p128
+   Compiling furiosa_opt_gemma4::ops_sliding_wide::sliding_attention_p128
+   Compiling furiosa_opt_gemma4::ops_commit_wide::commit_sliding_kv_p128
+   Compiling furiosa_opt_gemma4::ops_head_wide_tile::sliding_heads_from_wide_tile
+   Compiling furiosa_opt_gemma4::ops_sliding_prompt_pool::sliding_attention_b16
+   Compiling furiosa_opt_gemma4::ops_sliding_prompt_clusters::sliding_attention_b16
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_1
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_2
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_3
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_4
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_5
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_6
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_7
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_8
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_9
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_10
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_11
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_12
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_13
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_14
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_15
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_sliding_kv_16
+   Compiling furiosa_opt_gemma4::ops_prefill_tiles::store_heads_sliding_tile
+   Compiling furiosa_opt_gemma4::ops_output_p128_parallel_gather::project_sliding_output_batch
+   Compiling furiosa_opt_gemma4::ops_norm_wide::post_attention_p128
+   Compiling furiosa_opt_gemma4::ops_native_fp8_local_reuse::batch_ffn_partitioned_input
+   Compiling furiosa_opt_gemma4::ops_norm_wide::post_feedforward_p128
+   Compiling furiosa_opt_gemma4::ops_qkv_native_prequant::project_full_query_quantized
+   Compiling furiosa_opt_gemma4::ops_qkv_native_prequant::project_full_key_quantized
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_query_batch
+   Compiling furiosa_opt_gemma4::ops_qkv_p128_trf32::project_full_key_batch
+   Compiling furiosa_opt_gemma4::ops_head_wide_blocked::full_heads_p128
+   Compiling furiosa_opt_gemma4::ops_head_wide::full_heads_p128
+   Compiling furiosa_opt_gemma4::ops_commit_wide_pool::commit_full_kv_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide_stats::full_attention_first_page_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide_stats::full_attention_next_page_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide_direct::full_attention_first_page_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide_direct::full_attention_next_page_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide_pool::full_attention_first_page_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide_pool::full_attention_next_page_p128
+   Compiling furiosa_opt_gemma4::ops_commit_wide::commit_full_kv_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide::full_attention_first_page_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide::full_attention_next_page_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide_stats::full_attention_divide_p128
+   Compiling furiosa_opt_gemma4::ops_full_wide::full_attention_divide_p128
+   Compiling furiosa_opt_gemma4::ops_head_wide_tile::full_heads_from_wide_tile
+   Compiling furiosa_opt_gemma4::ops_attention_pool::full_attention_first_page_b16
+   Compiling furiosa_opt_gemma4::ops_attention_pool::full_attention_next_page_b16
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_1
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_2
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_3
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_4
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_5
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_6
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_7
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_8
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_9
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_10
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_11
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_12
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_13
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_14
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_15
+   Compiling furiosa_opt_gemma4::ops_prefill::commit_full_kv_16
+   Compiling furiosa_opt_gemma4::ops_attention::full_attention_first_page_b16
+   Compiling furiosa_opt_gemma4::ops_attention::full_attention_next_page_b16
+   Compiling furiosa_opt_gemma4::ops_attention::full_attention_divide_b16
+   Compiling furiosa_opt_gemma4::ops_prefill_tiles::store_heads_full_tile
+   Compiling furiosa_opt_gemma4::ops_output_p128_parallel_gather::project_full_output_batch
+   Compiling furiosa_opt_gemma4::ops_prefill_tiles_reference::load_hidden_tile
+   Compiling furiosa_opt_gemma4::ops_prefill::extract_hidden_row
+   Compiling furiosa_opt_gemma4::ops::final_norm_and_logits
+   Compiling furiosa_opt_gemma4::ops_batch_kpart16::project_query_batch
+   Compiling furiosa_opt_gemma4::ops_batch_kpart16::project_sliding_kv_batch
+   Compiling furiosa_opt_gemma4::ops_batch_clusters::batch_ffn_clusters
+   Compiling furiosa_opt_gemma4::ops_batch_kpart16::project_full_query_batch
+   Compiling furiosa_opt_gemma4::ops_batch_kpart16::project_full_key_batch
+   Compiling furiosa_opt_gemma4::ops::embed_token
+   Compiling furiosa_opt_gemma4::ops_cache_pools::sliding_project_qkv
+   Compiling furiosa_opt_gemma4::ops_cache_pools::sliding_attention
+   Compiling furiosa_opt_gemma4::ops::sliding_project_qkv
+   Compiling furiosa_opt_gemma4::ops::sliding_attention
+   Compiling furiosa_opt_gemma4::ops::sliding_attention_output
+   Compiling furiosa_opt_gemma4::ops::decoder_feedforward
+   Compiling furiosa_opt_gemma4::ops_cache_pools::full_project_qkv
+   Compiling furiosa_opt_gemma4::ops_cache_pools::full_attention_first_page
+   Compiling furiosa_opt_gemma4::ops_cache_pools::full_attention_page
+   Compiling furiosa_opt_gemma4::ops::full_project_qkv
+   Compiling furiosa_opt_gemma4::ops::full_attention_output
+   Compiling furiosa_opt_gemma4::ops_norm_blocked_residual::pack_four
+   Compiling furiosa_opt_gemma4::ops_norm_blocked_chain::normalize_qkv_four
+   Compiling furiosa_opt_gemma4::ops_norm_fused::normalize_qkv_four
+   Compiling furiosa_opt_gemma4::ops_qkv_weight_stationary::project_sliding_qkv_four
+   Compiling furiosa_opt_gemma4::ops_qkv_shared_ingress::project_sliding_qkv_four
+   Compiling furiosa_opt_gemma4::ops_qk_shared_ingress::project_full_qk_four
+   Compiling furiosa_opt_gemma4::ops_output_weight_stationary::project_sliding_output_four
+   Compiling furiosa_opt_gemma4::ops_output_p128_h64_blocked::project_sliding_output_four
+   Compiling furiosa_opt_gemma4::ops_output_p128_keyrings_h64::project_sliding_output_four
+   Compiling furiosa_opt_gemma4::ops_full_output_weight_stationary::project_full_output_four
+   Compiling furiosa_opt_gemma4::ops_output_p128_four_keyrings::project_full_output_four
+   Compiling furiosa_opt_gemma4::ops_group_ffn_projection_storegroup::sliding_projection_owned
+   Compiling furiosa_opt_gemma4::ops_group_ffn_projection_storegroup::full_projection_owned
+   Compiling furiosa_opt_gemma4::ops_group_ffn_projection::sliding_projection_owned
+   Compiling furiosa_opt_gemma4::ops_group_ffn_projection::full_projection_owned
+   Compiling furiosa_opt_gemma4::ops_group_ffn_epilogue::sliding_globals
+   Compiling furiosa_opt_gemma4::ops_group_ffn_epilogue::full_globals
+   Compiling furiosa_opt_gemma4::ops_group_ffn_epilogue::sliding
+   Compiling furiosa_opt_gemma4::ops_group_ffn_epilogue::full
+   Compiling furiosa_opt_gemma4::ops_norm_blocked_chain::post_attention_sliding
+   Compiling furiosa_opt_gemma4::ops_norm_blocked_chain::post_attention_full
+   Compiling furiosa_opt_gemma4::ops_norm_quarters::post_attention_ffn_input_four_blocked
+   Compiling furiosa_opt_gemma4::ops_norm_shardquant::post_attention_ffn_input_four_blocked
+   Compiling furiosa_opt_gemma4::ops_norm_fused::post_attention_ffn_input_four_blocked
+   Compiling furiosa_opt_gemma4::ops_norm_fused::post_attention_ffn_input_four
+   Compiling furiosa_opt_gemma4::ops_prompt_group_io::pack_hidden_group
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512_blocks::quantize_hidden
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512_core_globals::ffn_core
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512_core_fused::ffn_core
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512_ingress::project_up_scaled
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512_blocks_sharded::geglu_quantize
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512_pipeline::project_down_blocked
+   Compiling furiosa_opt_gemma4::ops_norm_blocked_residual::post_feedforward
+   Compiling furiosa_opt_gemma4::ops_norm_quarter_post::post_feedforward_four
+   Compiling furiosa_opt_gemma4::ops_norm_fused::post_feedforward_four
+   Compiling furiosa_opt_gemma4::ops_native_fp8_p512_downblocked::unpack_hidden_group
+   Compiling furiosa_opt_gemma4::ops_norm_blocked_residual::unpack_four
+   Compiling furiosa_opt_gemma4::ops_greedy_b16::greedy_argmax_b16
+   Compiling furiosa_opt_gemma4::ops_greedy_r64::greedy_argmax_r64
+   Compiling furiosa_opt_gemma4::ops_commit_wide_pool::copy_sliding_pool_to_cache_rc64
+    Finished `release` profile [optimized] target(s) in 6m 44s

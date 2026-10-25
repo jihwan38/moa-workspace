@@ -32,3 +32,18 @@ F4 must not dispatch. This split bounds each hardware job and avoids requiring
 group/projection storage, verify missing-shadow rejection, prepare all 144
 projections, verify idempotence, and report actual device capacity and separate
 read/encode/upload timings. No performance or quality claim exists before runtime.
+
+Peer review of frozen `72786a5b` found no physical mapping, replay, checkpoint,
+selection or reference-route blocker. Model's cache wrapper divides the lower
+helper's byte count by two, so `replay_exact_cache_bf16_values` is correctly a
+BF16 value count. The underlying helper separately prints compared bytes.
+
+All **133 unfiltered library tests passed**, with zero ignored or filtered;
+server/probe typechecks passed. The release probe built in 6m44s. See
+`power2-build.json` for exact source, hashes and uniquely named ELF.
+
+This inherited physical32 base has a diagnostic `ring` Cargo dependency and
+unconditional SHA256 in the cache helper. Therefore this frozen build is a
+**local diagnostic only**, not a source-only official export. A distinct clean
+source must restore the original Cargo contract and omit digest-only diagnostics
+before a server/official candidate. Preserve this source and ELF unchanged.
