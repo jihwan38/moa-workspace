@@ -5,7 +5,7 @@ use crate::{Chip, axes::{H, P128, Qs, Ns, Gs, Ds}};
 use furiosa_opt_std::prelude::*;
 axes![Ho = 2, Hr = 240, Ht = 8, KBlock = 4, K1024 = 1024];
 type Cluster = m![Ho];
-type Parts = m![Hr#256];
+type Parts = m![Hr #256];
 type InputParts = m![KBlock,K1024/16];
 pub type Output = m![P128,H];
 
@@ -22,7 +22,7 @@ fn pair(device: &mut Device,
         .collect::<m![P128],m![Ht]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
         .vector_clip(ClipBinaryOpF32::Add,&left).vector_final()
-        .cast::<bf16,m![Ht#16]>().commit_trim::<m![Ht]>().commit()
+        .cast::<bf16,m![Ht #16]>().commit_trim::<m![Ht]>().commit()
 }
 
 fn one(device: &mut Device,
@@ -42,7 +42,7 @@ fn one(device: &mut Device,
         .contract_outer::<m![P128,KBlock,K1024/32],m![K1024%32],_,_,_>(weight)
         .contract_packet::<m![1]>().contract_time::<m![P128,KBlock]>()
         .contract_lane::<m![P128,KBlock],m![Ht]>(LaneMode::Interleaved)
-        .cast::<bf16,m![Ht#16]>().commit_trim::<m![Ht]>().commit();
+        .cast::<bf16,m![Ht #16]>().commit_trim::<m![Ht]>().commit();
     let p01 = pair(device,&partial,0usize);
     let p23 = pair(device,&partial,2usize);
     let p01: VrfTensor<f32,Chip,Cluster,Parts,m![P128,Ht]> = device.sub.begin(p01.view())
@@ -53,7 +53,7 @@ fn one(device: &mut Device,
         .collect::<m![P128],m![Ht]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
         .vector_clip(ClipBinaryOpF32::Add,&p01).vector_final()
-        .cast::<bf16,m![Ht#16]>().commit_trim::<m![Ht]>().commit();
+        .cast::<bf16,m![Ht #16]>().commit_trim::<m![Ht]>().commit();
     let result: DmTensor<bf16,Chip,Cluster,Parts,m![P128,Ht]> = device.main.begin(sum.view())
         .fetch::<m![P128],m![Ht]>().fetch_cast::<f32>()
         .collect::<m![P128],m![Ht]>()
@@ -61,7 +61,7 @@ fn one(device: &mut Device,
         .vector_narrow_split::<m![P128,Ht/4],m![Ht%4]>()
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),scale)
         .vector_widen_concat::<m![P128],m![Ht]>().vector_final()
-        .cast::<bf16,m![Ht#16]>().commit_trim::<m![Ht]>().commit();
+        .cast::<bf16,m![Ht #16]>().commit_trim::<m![Ht]>().commit();
     let output: HbmTensorViewMut<'_,bf16,Chip,m![P128,Ho,Hr,Ht]> = unsafe { output.view_mut().reshape() };
     result.view().to_hbm_view(&mut device.tdma,output);
 }
