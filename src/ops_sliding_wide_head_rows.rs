@@ -505,3 +505,48 @@ pub fn sliding_attention_p128(
         .commit();
     result.view().to_hbm_view(&mut device.tdma, out.view_mut());
 }
+
+/// First128 causal queries only: no position precedes this chunk. All rows must
+/// be live, with finite normalized Q/K and finite V. The ordinary entry remains
+/// the control for every other position and for diagnostic comparison.
+#[device(chip = 1)]
+pub fn sliding_attention_first_p128(
+    device: &mut Device,
+    q: &HbmTensor<bf16, Chip, m![P128, Ns, Gs, Ds]>,
+    chunk_k: &HbmTensor<bf16, Chip, m![P128, Ns, Ds]>,
+    chunk_v: &HbmTensor<bf16, Chip, m![P128, Ns, Ds]>,
+    chunk_mask: &HbmTensor<f32, Chip, m![P128, Pk128]>,
+    out: &mut HbmTensor<bf16, Chip, m![P128, Ns, Gs, Ds]>,
+) {
+    let scores = chunk_scores(device, q, chunk_k, chunk_mask);
+    let max = chunk_max(device, &scores);
+    let exp = chunk_exp(device, &scores, &max);
+    let sum = chunk_sum(device, &exp);
+    // The control adds EPS to the all-zero old denominator, then the new sum.
+    let sum: Scalar = device.main.begin(sum.view())
+        .fetch::<m![P128%4], m![1#8]>()
+        .collect::<m![P128%4], m![1#8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Add, EPS)
+        .vector_final().commit_trim::<m![1#8]>().commit();
+    let sum = scalar_vrf(device, &sum);
+    let values = chunk_values(device, &exp, chunk_v);
+    // Preserve the control's BF16 numerator boundary after adding old zero.
+    let total: DmTensor<bf16, Chip, Cluster, Rows, m![P128%4,Ds]> = device.main.begin(values.view())
+        .fetch::<m![P128%4,Ds/16],m![Ds%16]>().fetch_cast::<f32>()
+        .collect::<m![P128%4,Ds/8],m![Ds%8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Add, 0f32)
+        .vector_final().cast::<bf16,m![Ds%8#16]>()
+        .commit_trim::<m![Ds%8]>().commit();
+    let result: DmTensor<bf16, Chip, Cluster, Rows, m![P128%4,Ds]> = device.main.begin(total.view())
+        .fetch::<m![P128%4,Ds/16],m![Ds%16]>().fetch_cast::<f32>()
+        .collect::<m![P128%4,Ds/8],m![Ds%8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![P128%4,Ds/4],m![Ds%4]>()
+        .vector_fp_div(&sum)
+        .vector_widen_concat::<m![P128%4,Ds/8],m![Ds%8]>()
+        .vector_final().cast::<bf16,m![Ds%8#16]>()
+        .commit_trim::<m![Ds%8]>().commit();
+    result.view().to_hbm_view(&mut device.tdma, out.view_mut());
+}

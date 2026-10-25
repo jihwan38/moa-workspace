@@ -1,0 +1,13 @@
+{
+  "base": "b94c427",
+  "control": "ops_sliding_wide_head_rows::sliding_attention_p128 computesfull1024oldringevenstart0; r729 groupedslidingattention18.231ms across160 calls",
+  "change": "Newdevice-onlyentry restrictedto first128querieswithno oldhistory. Computeexistingchunk QK/max/exp/sum/PV; reproduceEPS+newsumand0+newBF16valueboundaries. No oldKV arguments or gathers. Normal host stillcurrentcontrol.",
+  "reason": "Atabsolutechunkstart0 alloldmask=-1e30; finite normalized Q/K andfinitecacheyieldzerooldexp oncecomparedwithlivechunkmax. OmitprovablymaskedoldKVwork withoutchangingprovidedmodel. Finite-inputinvariantandvalid128rows required.",
+  "gates": [
+    "separateNaNpoisonedoutputs,candidatefirst, allBF16bitsagainstcurrentheadrows withnonzero finite staleKV",
+    "independentF64causalsamples, 3seeds/scales, reversedorder, futureKVinvariance",
+    "inclusiveABBA+actualtrace",
+    "beforehostactivation: actualcomputedhistory/allvocab firstchunk andlaterdecode gates; sourceonlyposition0dispatch"
+  ],
+  "limits": "Kernel first128causalqueriesonly. Cannotcalllaterpositionsorallinvalid/paddedrows. Noapproximationproposed. Finitevalueassumptionmustbevalidated."
+}
