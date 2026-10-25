@@ -1,0 +1,63 @@
+{
+  "base": "abdcbb52",
+  "functional": "01cbf49a",
+  "tests": {
+    "passed": 118,
+    "failed": 0,
+    "ignored": 0,
+    "filtered": 0
+  },
+  "plain_server_and_probe_check": "PASS",
+  "runs": [
+    {
+      "run": "a001-b16-lm-export-library",
+      "source_commit": "01cbf49a91b94b2a6ab592e81e95ec9ac811ffba",
+      "verified_source_hashes": 387,
+      "exit_code": 0,
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/round2/b16-lm-storegroup-export",
+        "moa2026-round2",
+        "env",
+        "CARGO_TARGET_DIR=/round2/prefill-head-attn-commit/target",
+        "CARGO_BUILD_JOBS=4",
+        "CARGO_INCREMENTAL=0",
+        "cargo",
+        "test",
+        "--lib",
+        "--config",
+        "profile.test.package.furiosa-opt-gemma4.debug=0"
+      ]
+    },
+    {
+      "run": "a002-b16-lm-export-check",
+      "source_commit": "01cbf49a91b94b2a6ab592e81e95ec9ac811ffba",
+      "verified_source_hashes": 387,
+      "exit_code": 0,
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/round2/b16-lm-storegroup-export",
+        "moa2026-round2",
+        "env",
+        "CARGO_TARGET_DIR=/round2/prefill-head-attn-commit/target",
+        "CARGO_BUILD_JOBS=4",
+        "CARGO_INCREMENTAL=0",
+        "cargo",
+        "check",
+        "--bin",
+        "server",
+        "--bin",
+        "test_b16_lm_storegroup",
+        "--config",
+        "profile.dev.package.furiosa-opt-gemma4.debug=0"
+      ]
+    }
+  ],
+  "source_audit": "batch_kernels independent one-call ABI/scope review PASS; unchanged control math prefix verified",
+  "recovery_enabled": false,
+  "h960_approximation_exported": false
+}

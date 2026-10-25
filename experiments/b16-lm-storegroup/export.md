@@ -1,0 +1,9 @@
+# Clean production export on abdcbb52 (recovery OFF)
+
+Functional commit01cbf49a adds only the exact store-only module, its strict supplied-weight probe, lib export, and one launch change in `host/prefill_decode.rs::decode_batch`. The same normalized `[B,H]`, original embedding `[W,H]`, and existing writable `[B,W]` buffer are passed. Final norm, live-row extraction, retained Batch16 greedy/stochastic fallback, output ownership and completion ordering are unchanged. Scalar and R32/R64 paths do not call this entry. All B16 rows are still computed exactly as the former path, including padding; there are no live-row assumptions in the new store.
+
+No new field, configuration, cache, persistent HBM, or allocation occurs. `ops_batch_io::logits_batch` remains the independent original control. H960-partitioned approximation is deliberately absent. Recovery remains false; QKV/FFN/O defaults and all scheduling code are byte-identical to abdcbb52 (`unchanged-source.json`). A3711-byte code prefix through the original final transpose exactly matches the control (math-equivalence.json).
+
+The standalone exact resource and provided-embedding runtime gates are frozen in the prior tree; build-proof.json correctly refers to that tested source/ELF. Root will compile a fresh plain server from this clean export and run public quality/performance. No extra model-wide mode or arithmetic test is needed for the sole canonical-ABI call replacement; the full library suite and server/probe checks are still required.
+
+Final export checks: a001 full118 library tests PASS, zero failed/ignored/filtered; a002 plain server and strict probe checks PASS. Every387 source hash matched each recorded run. Independent batch_kernels call/ABI/scope audit passed: same awaited canonical output, unchanged extraction and sampling, no scalar/R32/R64/Group change. Own target is free; root owns c077 device build and all public/Arena work.
