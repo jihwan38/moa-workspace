@@ -411,7 +411,7 @@ impl Model {
         Ok(Some(&self.logits[..4]))
     }
 
-    /// Model-only exact256-token checkpoint. This API does not change Worker dispatch.
+    /// Exact256-token checkpoint with two actual P128 execution states.
     /// One request owns both chronological halves; only its final input may request logits.
     pub async fn start_prefill256(
         &mut self, device:&mut Device, sequence:&Sequence<'_>, workspace:&mut Workspace,
@@ -419,7 +419,7 @@ impl Model {
         if sequence.inputs.len()!=256 { return Err("Prompt256 needs256 inputs".into()); }
         self.start_prefill_tail256_with_padding(device,std::slice::from_ref(sequence),workspace,bf16::from_bits(0)).await
     }
-    /// Model-only pair of independent128-token chunks, with owner-ordered outputs.
+    /// Pair of independent128-token chunks, with owner-ordered outputs.
     pub async fn start_prefill_pair256(
         &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -453,11 +453,20 @@ impl Model {
     pub async fn advance_prefill_tail256(
         &mut self, device:&mut Device, workspace:&mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.advance_prefill_tail256_measured(device, workspace, None).await
+    }
+    pub(crate) async fn advance_prefill_tail256_measured(
+        &mut self, device:&mut Device, workspace:&mut Workspace,
+        mut timing: Option<&mut PrefillAdvanceTiming>,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        if let Some(timing) = timing.as_mut() { **timing = PrefillAdvanceTiming::default(); }
         let state=self.active_tail256.as_mut().ok_or("no Tail256 is active")?;
         let group=self.group.as_mut().ok_or("grouped scratch is missing")?;
-        if !group.advance_tail256(device,&self.weights,state,workspace,&mut self.prefill).await? {
-            return Ok(None);
-        }
+        let mark = timing.as_ref().map(|_| std::time::Instant::now());
+        let complete = group.advance_tail256(device,&self.weights,state,workspace,&mut self.prefill).await?;
+        if let Some(timing) = timing.as_mut() { timing.layer = Some(mark.unwrap().elapsed()); }
+        if !complete { return Ok(None); }
+        let mark = timing.as_ref().map(|_| std::time::Instant::now());
         let owners=state.owners();
         for owner in 0..owners {
             std::mem::swap(&mut self.logits[owner],&mut workspace.logits);
@@ -466,6 +475,7 @@ impl Model {
             result?;
         }
         self.active_tail256=None;
+        if let Some(timing) = timing.as_mut() { timing.finish = Some(mark.unwrap().elapsed()); }
         Ok(Some(&self.logits[..owners]))
     }
 
