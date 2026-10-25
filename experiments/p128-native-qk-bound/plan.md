@@ -9,10 +9,10 @@ K/V. Its old-history QK uses BF16 packets of32 for Ds256, with K in TRF and
 128 local query rows. The current chunk QK, BF16 PV, score rounding, softmax,
 row denominator, residual cache ordering and full head preparation remain intact.
 
-The experimental bound changes only old-history Q/K to direct E4 fetch casts
+The experimental bound changes only old-history Q/K to BF16→F32 fetch, E4 cast and real DM materialization
 and native64-wide E4 contraction. It deliberately omits adaptive scaling and
 therefore is not a candidate numerical algorithm: plain casts can saturate or
-underflow. Both inputs still read the existing BF16 cache/storage. This tests
+underflow. The initial direct BF16→E4 Fetch Adapter call is unsupported (r1206); its compiler failure is retained. Query cast happens on the four local rows before the original head broadcast. Both inputs still read the existing BF16 cache/storage. This tests
 whether cheaper old-history QK has enough complete-chain headroom to justify
 a separate, correctly scaled implementation and its actual quality gates.
 

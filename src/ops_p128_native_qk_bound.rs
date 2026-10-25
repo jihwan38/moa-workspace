@@ -48,32 +48,38 @@ fn old_scores(
 ) -> KeyScores {
     type KeyRows = m![Ns, Ts / 32];
     let q: DmTensor<bf16, Chip, Cluster, Rows, m![P128 % 4, Ds]> = q.to_dm(&mut device.tdma);
-    let q: DmTensor<bf16, Chip, Cluster, KeyRows, m![P128 % 4, P128 / 4 % 16, Gs, Ds]> = device
+    let q: DmTensor<f8e4m3, Chip, Cluster, Rows, m![P128 % 4, Ds]> = device.main.begin(q.view())
+        .fetch::<m![P128 % 4, Ds / 16], m![Ds % 16]>().fetch_cast::<f32>()
+        .collect::<m![P128 % 4, Ds / 8], m![Ds % 8]>()
+        .cast::<f8e4m3, m![Ds % 8 # 32]>().commit_trim::<m![Ds % 8]>().commit();
+    let q: DmTensor<f8e4m3, Chip, Cluster, KeyRows, m![P128 % 4, P128 / 4 % 16, Gs, Ds]> = device
         .main
         .begin(q.view())
         .fetch::<m![P128 % 4], m![Ds]>()
         .switch::<KeyRows, m![P128 % 4, P128 / 4 % 16, Gs]>(SwitchConfig::CustomBroadcast {
             ring_size: 32,
         })
-        .collect::<m![P128 % 4, P128 / 4 % 16, Gs, Ds / 16], m![Ds % 16]>()
-        .commit_trim::<m![Ds % 16]>()
+        .collect::<m![P128 % 4, P128 / 4 % 16, Gs, Ds / 32], m![Ds % 32]>()
+        .commit_trim::<m![Ds % 32]>()
         .commit();
     let k: DmTensor<bf16, Chip, Cluster, KeyRows, m![Ts % 32, Ds]> = k
         .gather::<m![Rc64], m![Ts, Ns, Ds]>()
         .by_byte_offsets(base)
         .to_dm(&mut device.tdma);
+    let k: DmTensor<f8e4m3, Chip, Cluster, KeyRows, m![Ts % 32, Ds]> = device.main.begin(k.view())
+        .fetch::<m![Ts % 32, Ds / 16], m![Ds % 16]>().fetch_cast::<f32>()
+        .collect::<m![Ts % 32, Ds / 8], m![Ds % 8]>()
+        .cast::<f8e4m3, m![Ds % 8 # 32]>().commit_trim::<m![Ds % 8]>().commit();
     let kt: TrfTensor<f8e4m3, Chip, Cluster, KeyRows, m![Ts % 8], m![Ts / 8 % 4, Ds]> = device
         .sub
         .begin(k.view())
-        .fetch::<m![Ts % 8, Ts / 8 % 4, Ds / 16], m![Ds % 16]>()
-        .fetch_cast::<f8e4m3>()
+        .fetch::<m![Ts % 8, Ts / 8 % 4, Ds / 32], m![Ds % 32]>()
         .collect::<m![Ts % 8, Ts / 8 % 4, Ds / 32], m![Ds % 32]>()
         .to_trf();
     let scores: DmTensor<bf16, Chip, Cluster, KeyRows, m![P128 % 64, Gs, Ts % 32]> = device
         .main
         .begin(q.view())
-        .fetch::<m![P128 % 64, Gs, Ds / 16], m![Ds % 16]>()
-        .fetch_cast::<f8e4m3>()
+        .fetch::<m![P128 % 64, Gs, Ds / 32], m![Ds % 32]>()
         .collect::<m![P128 % 64, Gs, Ds / 32], m![Ds % 32]>()
         .contract_outer::<m![P128 % 64, Gs, Ds / 64, Ts / 8 % 4], m![Ds % 64], _, _, _>(&kt)
         .contract_packet::<m![1]>()
