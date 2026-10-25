@@ -1259,8 +1259,8 @@ impl Model {
         })
     }
 
-    /// Per-call exact B16 shared UP activation ingress diagnostic. Automatic
-    /// remains the original ingress; all width/cache/output policies are equal.
+    /// Explicit exact B16 shared UP ingress path, also enabled for Automatic
+    /// after matched model/cache gates. All width/cache/output policies are equal.
     pub async fn forward_outputs_b16_up_ingress(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
@@ -1598,7 +1598,7 @@ impl Model {
                         &singletons,
                         output_layout == OutputLayout::Rows,
                         matches!(dispatch, Dispatch::Automatic | Dispatch::B16UpIngressDiagnostic | Dispatch::OriginalB16UpIngressDiagnostic | Dispatch::B16AttentionOutputDiagnostic) && singletons.len() == sequences.len(),
-                        dispatch == Dispatch::B16UpIngressDiagnostic && singletons.len() == sequences.len(),
+                        matches!(dispatch, Dispatch::Automatic | Dispatch::B16UpIngressDiagnostic) && singletons.len() == sequences.len(),
                     )
                     .await?;
             }
