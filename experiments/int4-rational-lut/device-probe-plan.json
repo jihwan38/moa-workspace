@@ -1,0 +1,72 @@
+{
+  "base_checkpoint": "5eed6639be93d9872469c6d47c1b320325277f18",
+  "scope": "Strict actual B16/P512H3840 quantizer foundation only; source/check authorized now, device ELF needs reviewPASS plus root authorization, root alone Arena",
+  "unchanged_kernel_sources": [
+    "src/ops_int4_rational_lut.rs",
+    "src/ops_int4_rational_lut_p512.rs",
+    "src/ops_int4_rational_lut_p512_compact.rs"
+  ],
+  "independent_oracle": {
+    "path": "src/bin/support/rational_a4_oracle.rs",
+    "sha256": "1b2beeb44d58c1ce98c9c4b04363a14792ac39df67a58c7b87fe6cae336bfec1",
+    "contract": "Original u128 quotient/remainder, no candidate reciprocal lookup or threshold counting"
+  },
+  "arena_plan": {
+    "jobs": [
+      {
+        "args": [
+          "b16"
+        ],
+        "timeout_seconds": 70,
+        "fixtures": 13,
+        "logical_code_checks": 798720,
+        "logical_scale_checks": 208,
+        "post_all_calls_immutable_bytes": 1650688,
+        "initial_table_bytes": 4096,
+        "kernel_calls": 534
+      },
+      {
+        "args": [
+          "p512"
+        ],
+        "timeout_seconds": 70,
+        "fixtures": 4,
+        "candidate_logical_code_checks": 7864320,
+        "candidate_logical_scale_checks": 2048,
+        "original_logical_code_checks": 7864320,
+        "original_logical_scale_checks": 2048,
+        "paired_code_comparisons": 7864320,
+        "paired_scale_comparisons": 2048,
+        "cross_permutation_code_comparisons": 3932160,
+        "cross_permutation_scale_comparisons": 1024,
+        "post_all_calls_immutable_bytes": 15761408,
+        "initial_table_bytes": 8192,
+        "kernel_calls": 330
+      }
+    ],
+    "combined_cpu_oracle_code_checks": 16527360,
+    "combined_cpu_oracle_scale_checks": 4304,
+    "budget_rationale": "Two independently complete bounded jobs; <80MiB output downloads in P512 and330 short completed quantizer calls, no model/weights. 70s is a hard limit, not a measured runtime promise; do not raise it to hide failure."
+  },
+  "p512_fixtures": {
+    "0": "128 distinct denominator mantissas \u00d7 four normal exponents[15,127,200,254];512 distinct amax/scales, every valid Mx/delta0..4 both signs",
+    "1": "512 rows cycling signedzero/subnormal/floor/extreme-normal and explicit seven signed half-ties plus neighboringBF16 values; all rows remain finite",
+    "2": "True row(73*r+127)%512 and column(127*c+73)%3840 bijections ofcase0",
+    "3": "True row(301*r+19)%512 and column(253*c+521)%3840 bijections ofcase1"
+  },
+  "strict_checks": [
+    "Every candidate code and exactF32 scale bit vs unchanged independent oracle",
+    "Original fullP512 and compact: separate poisoned buffers, candidate consumed first, both vsoracle, then raw paired equality",
+    "Cross-case device output permutation equality including all512 scales",
+    "All source input bytes and entire128\u00d732B immutabletable verified after correctness/timing/profile calls",
+    "Table lane0 mathematicalUbits; seven otherphysical lanes deterministic distinctsentinels",
+    "OriginalCargo and kernel body hashes retained"
+  ],
+  "timing": {
+    "b16": "Keep existing two groups of20 completed calls perfixture; all quantization outputs included",
+    "p512": "ABBA original/candidate/candidate/original,20 completed calls perblock for eachfixture",
+    "excluded": "Equal setup/upload/oracle/readback; excludes I4 packing/consumer, H15360 hidden quantizer, FFN/model",
+    "claims": "All timing empirical quantizer-only; no extrapolatedwholeFFN or modelquality"
+  },
+  "disk_before_source_check": "df reported3.2GiB free; target idle; no fullELF build until explicitrootauthorization and fresh disk check"
+}
