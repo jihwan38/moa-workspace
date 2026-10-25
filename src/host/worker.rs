@@ -406,6 +406,59 @@ impl DecodeCadence {
     }
 }
 
+/// Validate the real server's admission and owning allocations before any job.
+/// Public Buffer metadata is read only; no cache data is transferred or changed.
+fn verify_canonical_storage_identity(workspace: &Workspace) -> Result<(), Box<dyn std::error::Error>> {
+    let physical = crate::ops_pool_views::Rc64::SIZE;
+    let query_rows = crate::axes::R64::SIZE;
+    let pages = crate::ops_request_attention::Fc::SIZE;
+    if !workspace.is_canonical() || physical != 32 || query_rows != 64
+        || workspace.requests() != physical || workspace.physical_full_pages() != pages
+        || pages != 256 || workspace.capacity() != CONTEXT
+    {
+        return Err("physical32 server storage/admission identity mismatch".into());
+    }
+    #[cfg(backend = "npu")]
+    {
+        use furiosa_opt_std::runtime::{Buffers, DeviceSend};
+        use super::runtime::KvCache;
+        let sliding_bytes = physical * crate::axes::Ts::SIZE * crate::axes::Ns::SIZE
+            * crate::axes::Ds::SIZE * 2;
+        let full_bytes = pages * crate::axes::Tf::SIZE * crate::axes::Df::SIZE * 2;
+        let mut sliding_layers = 0usize;
+        let mut full_layers = 0usize;
+        let mut allocated_bytes = 0usize;
+        for cache in &workspace.kv_cache {
+            let mut buffers = Buffers::new();
+            let expected = match cache {
+                KvCache::SlidingCanonical { k, v } => {
+                    DeviceSend::bind(k, &mut buffers)?;
+                    DeviceSend::bind(v, &mut buffers)?;
+                    sliding_layers += 1;
+                    sliding_bytes
+                }
+                KvCache::FullCanonical { k, v } => {
+                    DeviceSend::bind(k, &mut buffers)?;
+                    DeviceSend::bind(v, &mut buffers)?;
+                    full_layers += 1;
+                    full_bytes
+                }
+                _ => return Err("physical32 server needs canonical owning KV pools".into()),
+            };
+            if buffers.len() != 2 || buffers.iter().any(|buffer| buffer.size() != expected) {
+                return Err("physical32 server allocated KV extent mismatch".into());
+            }
+            allocated_bytes += buffers.iter().map(|buffer| buffer.size()).sum::<usize>();
+        }
+        if sliding_layers + full_layers != crate::LAYERS {
+            return Err("physical32 server KV layer count mismatch".into());
+        }
+        eprintln!("startup.storage_identity physical_rings={physical} admission={} query_rows={query_rows} full_pages={pages} context={} sliding_pool_bytes={sliding_bytes} full_pool_bytes={full_bytes} sliding_layers={sliding_layers} full_layers={full_layers} allocated_kv_bytes={allocated_bytes} verified_owning_buffers=true",
+            workspace.requests(), workspace.capacity());
+    }
+    Ok(())
+}
+
 impl Worker {
     pub fn new(tokenizer: Tokenizer) -> Result<Self, Box<dyn std::error::Error>> {
         Self::new_with_storage(tokenizer, true)
@@ -434,6 +487,9 @@ impl Worker {
             } else {
                 Workspace::new(&mut device, &weights, CONTEXT, CAPACITY).await?
             };
+            if canonical {
+                verify_canonical_storage_identity(&workspace)?;
+            }
             eprintln!(
                 "startup.workspace_ms={:.3}",
                 started.elapsed().as_secs_f64() * 1000.0

@@ -1,0 +1,101 @@
+{
+  "c080_server_sha256": "06f9d1d01c21716fddbaef9f300617050872b4ae0791f2a70fe44b3396d58935",
+  "source": "2d72b26d",
+  "runtime_contradiction": [
+    "SCHED_RECOVERY action=start members=1:0:128:0,2:1:128:0,3:2:128:0,4:3:128:0,5:4:128:0,6:5:128:0,7:6:128:0,8:7:128:0,9:8:128:0,10:9:128:0,11:10:128:0,12:11:128:0,13:12:128:0,14:13:128:0,15:14:128:0,16:15:128:0,17:16:128:0,18:17:128:0,19:18:128:0,20:19:128:0,21:20:128:0,22:21:128:0,23:22:128:0,24:23:128:0,25:24:128:0,26:25:128:0,27:26:128:0,28:27:128:0,29:28:128:0,30:29:128:0,31:30:128:0,32:31:128:0,33:32:128:0,34:33:128:0,35:34:128:0,36:35:128:0,37:36:128:0,38:37:128:0,39:38:128:0,40:39:128:0 passthrough= oldest_ms=1236.636 left_ms=2513.364",
+    "SCHED_TOTAL credit=true cap_ms=150 d40=63:77.98/82.32 p4=960 pc1=0:0.00/0.00 pc4=960:2.48/18.38 credit_fit=0 unknown=1 used=0:0.00/0.00 prep1=0:0.00/0.00 prep4=20:6.25/13.66 layer1=0:0.00/0.00 layer4=960:2.23/6.37 final1=0:0.00/0.00 final4=20:5.09/10.88"
+  ],
+  "provenance": [
+    {
+      "path": "physical-pool32/src/ops_pool_views.rs",
+      "size": 3590,
+      "mtime_utc": "2026-10-25T13:49:21.140204+00:00",
+      "sha256": "6199d5a0e23cb6ca860135a4658efe5b069c3c832ace38379f7df6687e91c795"
+    },
+    {
+      "path": "physical-pool32/src/host/worker.rs",
+      "size": 154123,
+      "mtime_utc": "2026-10-25T13:55:47.807648+00:00",
+      "sha256": "d6302a09a71100d2f04abc9a307d3c93ebdebbd9609b79ba15806454c6539f00"
+    },
+    {
+      "path": "physical-pool64-control/src/ops_pool_views.rs",
+      "size": 3061,
+      "mtime_utc": "2026-10-25T14:03:41.604121+00:00",
+      "sha256": "556e53c6dd86d0044e925224cf45bbe1dc15f328aed81a840981390113678d1e"
+    },
+    {
+      "path": "physical-pool64-control/src/host/worker.rs",
+      "size": 154107,
+      "mtime_utc": "2026-10-25T14:03:41.662123+00:00",
+      "sha256": "f3de602bd371ad4c8fa4db2a969825ddcaebbfc84e9a0188b90fd80053210b88"
+    },
+    {
+      "path": "ffn-k256/target/release/deps/libfuriosa_opt_gemma4-7a3de1371c7e6ef7.rlib",
+      "size": 84839978,
+      "mtime_utc": "2026-10-25T14:11:49.797095+00:00",
+      "sha256": "bba8bbbab78caa39109a7b95c9ee7e6eac7ea39df995c3d187ec0fc7040ebd66"
+    },
+    {
+      "path": "ffn-k256/target/release/deps/furiosa_opt_gemma4-7a3de1371c7e6ef7.d",
+      "size": 26895,
+      "mtime_utc": "2026-10-25T14:11:15.355897+00:00",
+      "sha256": "3f1fd8338688876023256f19507a1751c82aae3511f1da14685b80b05d9047e9"
+    }
+  ],
+  "a004": {
+    "name": "a004-physical-pool64-control-build",
+    "purpose": "Build original physical64 storage with identical fixed32-owner diagnostics for separately executed SHA256 model/cache parity",
+    "started_at": "2026-10-25T14:11:01.863175+00:00",
+    "worktree": "/home/jihwan38/moa-worktrees/round2/physical-pool64-control",
+    "commit": "89c0097ca947b2a25c7e74442f1099886d233914",
+    "status": "",
+    "command": [
+      "docker",
+      "exec",
+      "--workdir",
+      "/round2/physical-pool64-control",
+      "-e",
+      "CARGO_TARGET_DIR=/round2/ffn-k256/target",
+      "-e",
+      "CARGO_INCREMENTAL=0",
+      "moa2026-round2",
+      "bash",
+      "-lc",
+      "set -e\ncargo check --bin test_physical_pool --bin compare_physical_pool_group --bin compare_physical_pool_history > experiments/physical-pool64-control/check.log 2>&1\ncargo furiosa-opt build --release --bin test_physical_pool --bin compare_physical_pool_group --bin compare_physical_pool_history > experiments/physical-pool64-control/build.log 2>&1"
+    ],
+    "result": "command_succeeded",
+    "exit_code": 0,
+    "pid": 3523395,
+    "finished_at": "2026-10-25T14:18:54.364028+00:00"
+  },
+  "a005": {
+    "name": "a005-physical-pool32-server-resolved",
+    "purpose": "Rebuild unchanged gated physical32 plain server with resolved Cargo.lock captured before build for reproducible candidate freeze; no CPU rerun",
+    "started_at": "2026-10-25T14:21:49.667309+00:00",
+    "worktree": "/home/jihwan38/moa-worktrees/round2/physical-pool32",
+    "commit": "2d72b26d6459a3d27f4eeef4ac5da31196d23f21",
+    "status": "?? experiments/physical-pool32/artifacts/\n?? experiments/physical-pool32/b16-attention-schedule.json\n?? experiments/physical-pool32/zero-pool-schedule.json\n",
+    "command": [
+      "docker",
+      "exec",
+      "--workdir",
+      "/round2/physical-pool32",
+      "-e",
+      "CARGO_TARGET_DIR=/round2/ffn-k256/target",
+      "-e",
+      "CARGO_INCREMENTAL=0",
+      "moa2026-round2",
+      "bash",
+      "-lc",
+      "set -e\ncargo check --locked --bin server > experiments/physical-pool32/server-resolved-check.log 2>&1\ncargo furiosa-opt build --release --bin server > experiments/physical-pool32/server-resolved-build.log 2>&1"
+    ],
+    "result": "command_succeeded",
+    "exit_code": 0,
+    "pid": 3611902,
+    "finished_at": "2026-10-25T14:21:52.604837+00:00"
+  },
+  "assessment": "c080 runtime uses rings0..39 and d40, incompatible with sourcephysical32. Shared target library freshness is a supported hypothesis, not yet independently reproduced as the unique cause. The cached7a library mtime is during a00464 build; a00532 logs only bin/greedy compile, and relative src dep-info plus older32 source mtimes can explain stale reuse.",
+  "valid_separate_evidence": "Frozen32/64 micro/model executables and actual10GiB memory differences remain independent; c080 server/public results are quarantined, not physical32 serving evidence.",
+  "mitigation": "Preserve first clean build, add actual runtime workspace/Buffer extent validation and startup identity, force all package source mtimes fresh before final build, capture immutable ELF and verify source hashes."
+}

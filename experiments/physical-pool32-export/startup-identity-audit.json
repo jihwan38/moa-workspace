@@ -1,0 +1,18 @@
+{
+  "worker_after_removing_only_new_readonly_startup_helper_and_call_byte_identical_to": "07718f07",
+  "expected_identity": {
+    "physical_rings": 32,
+    "admission": 32,
+    "query_rows": 64,
+    "full_pages": 256,
+    "context": 8192,
+    "sliding_pool_bytes": 134217728,
+    "full_pool_bytes": 134217728,
+    "sliding_layers": 40,
+    "full_layers": 8,
+    "allocated_kv_bytes": 12884901888
+  },
+  "actual_verification": "NPU-only public DeviceSend::bind of each whole owned K/V HbmTensor into local Buffers; every Buffer::size must equal the expected logical byte extent. No data read/write/launch/alias is introduced. Admission identity is also checked before the NPU-only allocation check.",
+  "needed_runtime_gate": "Root must observe startup.storage_identity and actual capacity32 overflow scheduling; compile/ELF hash alone are not a capacity proof.",
+  "freshness_mitigation": "Final record_run --fresh-package touches package sources without changing hashes, then --capture-artifact snapshots completed ELF and validates all captured source hashes."
+}
