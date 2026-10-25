@@ -1,3 +1,5 @@
+> CONTROL QUARANTINE: a006 OFF contains cached ON device graphs. Use no cross-flag numerical conclusions from a006; see cache-failure.md. ON producer proof remains valid. Fresh isolated OFF a007 is being gated.
+
 # Root-only dispatch handoff
 
 ON worktree `/round2/fixed-e4-kv-quality-on`, source375bdcf4, captured prefix `/round2/runs/a005-fixed-e4-on-probes-build/built/target/release/`.

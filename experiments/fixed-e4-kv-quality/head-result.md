@@ -1,3 +1,5 @@
+> CONTROL QUARANTINE: a006 OFF contains cached ON device graphs. Use no cross-flag numerical conclusions from a006; see cache-failure.md. ON producer proof remains valid. Fresh isolated OFF a007 is being gated.
+
 # Fixed E4 producer gate: PASS, model quality pending
 
 Actual ON artifact375bdcf4/a005 passed r1306 job321560 and r1307 job321561. All eight head entrypoints match the unchanged scalar head reference with only K/V transformed by the independent finite CPU codec. Q remains bitwise equal. The head gate checked11,272,192 bytes; unconditional B16/R64/P128 finite-code layouts add1,835,008 bytes, for13,107,200 total. Both scalar canonical/legacy producer gates checked830,529,024 bytes, including complete pools at slot31, positions1023/1024 and reset0. These are byte comparisons (some bytes are immutable inputs/guards), not distinct model output counts.
