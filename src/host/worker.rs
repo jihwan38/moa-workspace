@@ -410,7 +410,7 @@ impl Worker {
     pub fn new(tokenizer: Tokenizer) -> Result<Self, Box<dyn std::error::Error>> {
         Self::new_with_storage(tokenizer, true)
     }
-    /// Canonical KV pool and R64 request capacity, also used by the HTTP worker.
+    /// Canonical KV pool with32 resident requests; R64 compute capacity is unchanged.
     pub fn new_canonical64(tokenizer: Tokenizer) -> Result<Self, Box<dyn std::error::Error>> {
         Self::new_with_storage(tokenizer, true)
     }
@@ -429,7 +429,7 @@ impl Worker {
             );
             let started = std::time::Instant::now();
             let mut workspace = if canonical {
-                Workspace::new_canonical64(&mut device, &weights, CONTEXT, crate::axes::R64::SIZE)
+                Workspace::new_canonical64(&mut device, &weights, CONTEXT, crate::ops_pool_views::Rc64::SIZE)
                     .await?
             } else {
                 Workspace::new(&mut device, &weights, CONTEXT, CAPACITY).await?

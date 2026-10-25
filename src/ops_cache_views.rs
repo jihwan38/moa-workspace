@@ -26,8 +26,8 @@ pub fn sliding_project_qkv(
     rope_offset: &HbmTensor<i32, Chip, m![1]>,
     cos: &HbmTensor<bf16, Chip, m![E, Ds]>,
     sin: &HbmTensor<bf16, Chip, m![E, Ds]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
     q_out: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
 ) {
     let x: DmTensor<bf16, Chip, Cluster, Slice, m![H]> = x.to_dm(&mut device.tdma);
@@ -107,8 +107,8 @@ pub fn full_project_qkv(
 pub fn sliding_attention(
     device: &mut Device,
     q: &HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
-    k: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]>,
-    v: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]>,
+    k: HbmTensorView<'_, bf16, Chip, m![Ts # 32768, Ns, Ds]>,
+    v: HbmTensorView<'_, bf16, Chip, m![Ts # 32768, Ns, Ds]>,
     mask: &HbmTensor<f32, Chip, m![Ts]>,
     out_hbm: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
 ) {

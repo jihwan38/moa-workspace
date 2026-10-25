@@ -100,6 +100,28 @@ mod tests {
     use super::*;
     use std::collections::BTreeSet;
     #[test]
+    fn physical32_queues_next_owner_without_changing_context_or_full_pages() {
+        let mut pool = PageReservations::new(32, 256, 8192).unwrap();
+        let mut admitted: Vec<_> = (0..32)
+            .map(|_| pool.try_reserve(513).unwrap().unwrap())
+            .collect();
+        assert_eq!(admitted.last().unwrap().blocks.sliding, 31);
+        assert_eq!(pool.available_pages(), 192);
+        assert!(pool.try_reserve(8192).unwrap().is_none());
+        assert_eq!(pool.available_pages(), 192);
+        let completed = admitted.pop().unwrap();
+        let stale = Reservation { blocks: completed.blocks.clone(), epoch: completed.epoch };
+        pool.release(completed).unwrap();
+        let next = pool.try_reserve(8192).unwrap().unwrap();
+        assert_eq!(next.blocks.sliding, 31);
+        assert_eq!(next.blocks.full.len(), 16);
+        assert_eq!(pool.available_pages(), 178);
+        assert!(pool.release(stale).is_err());
+        pool.release(next).unwrap();
+        for owner in admitted { pool.release(owner).unwrap(); }
+        assert_eq!(pool.available_pages(), 256);
+    }
+    #[test]
     fn long_requests_queue_before_execution_without_page_deadlock() {
         let mut pool = PageReservations::new(64, 256, 8192).unwrap();
         let mut admitted = Vec::new();

@@ -15,7 +15,7 @@ pub fn zero_sliding_pool(device: &mut Device) -> HbmTensor<bf16, Chip, m![Rc64, 
             &mut device.tdma,
             output
                 .view_mut()
-                .tile::<m![Rc64], 1, m![Rc64 = 1 #{!} 64, Ts, Ns, Ds]>(ring),
+                .tile::<m![Rc64], 1, m![Rc64 = 1 #{!} 32, Ts, Ns, Ds]>(ring),
         );
     }
     output

@@ -25,7 +25,7 @@ fn scalar_vrf(device: &mut Device, x: &Scalar) -> VrfTensor<f32, Chip, Cluster, 
 fn old_scores(
     device: &mut Device,
     q: &HbmTensor<bf16, Chip, m![B, Ns, Gs, Ds]>,
-    k: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]>,
+    k: HbmTensorView<'_, bf16, Chip, m![Ts # 32768, Ns, Ds]>,
     mask: &HbmTensor<f32, Chip, m![B, Ts]>,
 ) -> DmTensor<f32, Chip, Cluster, Rows, m![Ts]> {
     type KeyRows = m![Ts / 8, 1 # 2];
@@ -129,7 +129,7 @@ fn row_sum(device: &mut Device, exp: &DmTensor<f32, Chip, Cluster, Rows, m![Ts]>
 fn weighted_values(
     device: &mut Device,
     exp: &DmTensor<f32, Chip, Cluster, Rows, m![Ts]>,
-    v: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]>,
+    v: HbmTensorView<'_, bf16, Chip, m![Ts # 32768, Ns, Ds]>,
 ) -> DmTensor<bf16, Chip, Cluster, HeadRows, m![B%8, Gs, Ds]> {
     type KeyRows = m![Ns, Ts / 32];
     let weights: DmTensor<bf16, Chip, Cluster, Rows, m![Ts]> = device
@@ -335,8 +335,8 @@ fn chunk_values(
 pub fn sliding_attention_b16(
     device: &mut Device,
     q: &HbmTensor<bf16, Chip, m![B, Ns, Gs, Ds]>,
-    old_k: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]>,
-    old_v: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]>,
+    old_k: HbmTensorView<'_, bf16, Chip, m![Ts # 32768, Ns, Ds]>,
+    old_v: HbmTensorView<'_, bf16, Chip, m![Ts # 32768, Ns, Ds]>,
     chunk_k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     chunk_v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     old_mask: &HbmTensor<f32, Chip, m![B, Ts]>,

@@ -8,8 +8,8 @@ use crate::{Chip, EPS};
 pub(crate) fn attend(
     device: &mut Device,
     q: &HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
-    k: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]>,
-    v: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]>,
+    k: HbmTensorView<'_, bf16, Chip, m![Ts # 32768, Ns, Ds]>,
+    v: HbmTensorView<'_, bf16, Chip, m![Ts # 32768, Ns, Ds]>,
     mask: &HbmTensor<f32, Chip, m![Ts]>,
     out: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
 ) {
