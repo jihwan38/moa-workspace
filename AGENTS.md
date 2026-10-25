@@ -1,17 +1,12 @@
 # Ownership and scope
 
-Owned by `/root/round2_path`, base4dc3c818.
-Only public checked runtime binding of a packed-I32 input owner to the existing
-I4 group960 projection kernels, a separate three-arm probe, and evidence may
-change. Device kernels, original probe/oracle, model, Cargo dependencies and
-official candidates remain unchanged.
+Owned by `/root/batch_kernels`, base `cd331f3e02bb2926c7f16fdff19d166ad35adf04`.
+Add disconnected canonical BF16 norm/GeGLU bridges for a future complete I4 FFN
+diagnostic. Original exact control, arithmetic, BF16 boundaries, provided-model
+globals and residual ordering remain intact. Any helper visibility change needs
+byte-identical function-body proof. No E4-to-A4 requantization.
 
-Current authorization: after host check and independent source review PASS,
-root authorizes fresh standalone device ELF build/capture on exclusive
-`/round2/ffn-k256/target`, CARGO_INCREMENTAL=0 and a new empty public OUT_DIR.
-Keep frozen original Cargo.lock. No Arena or model/serving activation.
-All four embedded projection images must equal the previous validated ELF.
-Use public DeviceSend/Buffers/Function::run; no fabricated addresses, private
-constructors, device reinterpretation or input copy. Keep every owner borrowed
-until the awaited runtime call finishes. Root owns any later execution.
-DOWN resource245684>240000 remains HOLD regardless of ABI correctness.
+Current authorization is source, host check and exact resource compilation only.
+No standalone ELF, Arena, host activation or performance/quality claim. Use
+original dependency files, exclusive `/round2/tail256-model/target`, fresh package
+tracking and separate empty public `FURIOSA_OPT_OUT_DIR` paths.

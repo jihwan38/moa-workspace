@@ -1,0 +1,63 @@
+{
+  "base_commit": "cd331f3e02bb2926c7f16fdff19d166ad35adf04",
+  "scope": "Disconnected BF16 bridge source/host/resource only; no quantizer, I4 GEMM, model or serving integration in this tree.",
+  "actual_control_flow": [
+    "GroupPrefill::advance_rows grouped_norm_stores branch selects sliding/full_projection_owned",
+    "post_attention_*_stage: projected load -> normalize(post) BF16 -> residual_add BF16 -> normalize(pre) BF16 -> existing E4quant -> persist updated residual",
+    "ffn_core_stage: UP/GATE -> stage_geglu_quantize -> DOWN",
+    "post_feedforward_stage: normalize(postFFN) BF16 -> residual_add BF16 -> layergate BF16 -> persist residual"
+  ],
+  "prefix_bridge": {
+    "input": "Four original sliding blocked Output or four full canonical[P128,H] projections, post/pre normweights, mutable blocked Residual",
+    "unchanged_prefix": "Original loaders, normalize(post), residual load/add, normalize(pre), using original ops_norm_quarters helpers",
+    "output": "Canonical BF16[P512,H] immediately before quantize_shards; updated Residual persisted after output",
+    "mapping": "Same-wire Q4/P128 relabel: p=128*q+64*c+2*r+j. Then real to_dm from H480 shards to Slice[P512/128,P512%64], Cluster[P512/64%2], localH; canonical HBM store. No E4 code or dequantization.",
+    "new_canonical_write_bytes": 3932160,
+    "new_dm_row_materialization_bytes": 3932160,
+    "future_quantizer_read_bytes": 3932160,
+    "unchanged_residual_write_bytes": 3932160
+  },
+  "geglu_bridge": {
+    "input": "Current JoinedOutput = [FfnProjection,P512/256,L/240,P512%256,L%240], unchanged reciprocal up/gate globals",
+    "reuse": "Visibility-only pub(crate) global_dm and geglu_tile_into; scale_tile body untouched/private. Preserve original joined plane views, two globalDM loads and four chunk/2tile loops before amax.",
+    "rounding": "Each UP/GATE\u00d7global roundsBF16, gate/\u221a2 ->Erf ->+1 ->\u00d7gate inF32, product\u00d7up then originalDivF2 thenBF16. No fused arithmetic or clamp change.",
+    "output": "Canonical BF16[P512,L] before hiddenamax/quantization",
+    "mapping": "Per chunk0..3, real DM join from Slice[L/960,P64/4], local[P64%4,L960] to Slice[P64,1#4], localL. Canonical target selects P512%256=64 at64*chunk, preserving both token clusters. No output alias or same-wire transpose.",
+    "joined_total_read_bytes": 31457280,
+    "canonical_hidden_write_bytes": 15728640,
+    "future_quantizer_read_bytes": 15728640,
+    "per_chunk_hidden_live_bytes": 3932160,
+    "per_chunk_row_staging_physical_upper_bytes": 15728640
+  },
+  "future_complete_path": [
+    "prefixBF16",
+    "fused rational A4+packH",
+    "checked raw UP/GATE",
+    "GeGLU BF16 bridge",
+    "fused rational A4+packL",
+    "checked raw DOWN",
+    "unchanged postnorm/residual/layergate"
+  ],
+  "invariants": [
+    "Original control kernels/bodies unchanged; helper visibility-only edits proven byte-identical",
+    "No original native-E4 row dequant factor applied to provided-weight I4 results",
+    "Post-FFN layergate remains only in the unchanged tail, never moved into prefix",
+    "Every512 row written exactly once; canonical outputs and residual require distinct HBM owners",
+    "All added DM movement, BF16 HBM writes and future rereads charged, no hidden fence exclusion"
+  ],
+  "resource_gate": {
+    "entries": [
+      "prefix_sliding_bf16",
+      "prefix_full_bf16",
+      "geglu_bf16"
+    ],
+    "report": "Each complete bridge task, output movement, actual SRAM peak/lifetimes and DramStack. No extrapolated complete-FFN saving. Any spill/failure retained; no geometry sweep.",
+    "no_dram_stack_target": true,
+    "numeric_speed_threshold": null,
+    "standalone_ELF_authorized": false,
+    "Arena_authorized": false
+  },
+  "future_correctness": "Must independently compare canonical BF16 boundaries/residual against original same-input helper/control, all rows/permutations/padding and supplied signed globals; this resource phase does not prove runtime bits.",
+  "target": "/round2/tail256-model/target",
+  "original_dependencies": true
+}
