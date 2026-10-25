@@ -248,3 +248,4 @@ pub mod ops_b16_ffn_epilogue;
 pub mod ops_decode32_ffn;
 pub mod ops_decode32_attention;
 pub mod ops_decode32_lm;
+pub mod ops_b16_prefix;

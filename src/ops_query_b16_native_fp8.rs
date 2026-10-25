@@ -201,6 +201,15 @@ pub fn quantize_input(
     output: &mut HbmTensor<f8e4m3, Chip, m![B, H]>,
     scale: &mut HbmTensor<f32, Chip, m![B,1#8]>,
 ) {
+    quantize_input_stage(device,input,output,scale);
+}
+
+pub(crate) fn quantize_input_stage(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![B, H]>,
+    output: &mut HbmTensor<f8e4m3, Chip, m![B, H]>,
+    scale: &mut HbmTensor<f32, Chip, m![B,1#8]>,
+) {
     let input: DmTensor<bf16, Chip, Cluster, QuantRows, m![H]> = input.to_dm(&mut device.tdma);
     let (q, s) = quantize_hidden(device, &input);
     q.view().to_hbm_view(&mut device.tdma, output.view_mut());

@@ -321,6 +321,20 @@ pub fn project_sliding_qkv(device:&mut Device,
  qo:&mut HbmTensor<bf16,Chip,QueryOutput>,
  ko:&mut HbmTensor<bf16,Chip,KeyOutput>,
  vo:&mut HbmTensor<bf16,Chip,KeyOutput>) {
+    project_sliding_qkv_stage(device,input,xscale,qw,kw,vw,qs,ks,vs,qo,ko,vo);
+}
+
+pub(crate) fn project_sliding_qkv_stage(device:&mut Device,
+ input:&HbmTensor<f8e4m3,Chip,m![B,H]>,xscale:&HbmTensor<f32,Chip,m![B,1#8]>,
+ qw:&HbmTensor<f8e4m3,Chip,m![Qs,H]>,
+ kw:&HbmTensor<f8e4m3,Chip,m![Ps,H]>,
+ vw:&HbmTensor<f8e4m3,Chip,m![Ps,H]>,
+ qs:&HbmTensor<bf16,Chip,m![Qs]>,
+ ks:&HbmTensor<bf16,Chip,m![Ps]>,
+ vs:&HbmTensor<bf16,Chip,m![Ps]>,
+ qo:&mut HbmTensor<bf16,Chip,QueryOutput>,
+ ko:&mut HbmTensor<bf16,Chip,KeyOutput>,
+ vo:&mut HbmTensor<bf16,Chip,KeyOutput>) {
  let qw:DmTensor<f8e4m3,Chip,Cluster,QsParts,m![Qs%64,H%960]>=qw.to_dm(&mut device.tdma);
  let qw:DmTensor<f8e4m3,Chip,Cluster,SharedParts,m![Qs%64,H%960]>=unsafe{qw.reshape()};
  let kw:DmTensor<f8e4m3,Chip,Cluster,PsParts,m![Ps%32,H%960]>=kw.to_dm(&mut device.tdma);
@@ -341,6 +355,17 @@ pub fn project_sliding_qkv(device:&mut Device,
 }
 #[device(chip=1)]
 pub fn project_full_qk(device:&mut Device,
+ input:&HbmTensor<f8e4m3,Chip,m![B,H]>,xscale:&HbmTensor<f32,Chip,m![B,1#8]>,
+ qw:&HbmTensor<f8e4m3,Chip,m![Qf,H]>,
+ kw:&HbmTensor<f8e4m3,Chip,m![Pf,H]>,
+ qs:&HbmTensor<bf16,Chip,m![Qf]>,
+ ks:&HbmTensor<bf16,Chip,m![Pf]>,
+ qo:&mut HbmTensor<bf16,Chip,FullQueryOutput>,
+ ko:&mut HbmTensor<bf16,Chip,FullKeyOutput>) {
+    project_full_qk_stage(device,input,xscale,qw,kw,qs,ks,qo,ko);
+}
+
+pub(crate) fn project_full_qk_stage(device:&mut Device,
  input:&HbmTensor<f8e4m3,Chip,m![B,H]>,xscale:&HbmTensor<f32,Chip,m![B,1#8]>,
  qw:&HbmTensor<f8e4m3,Chip,m![Qf,H]>,
  kw:&HbmTensor<f8e4m3,Chip,m![Pf,H]>,

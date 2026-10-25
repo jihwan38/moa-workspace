@@ -19,6 +19,23 @@ pub fn sliding_heads_b16(
     k_out: &mut HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v_out: &mut HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
 ) {
+    sliding_heads_b16_stage(device,q_raw,k_raw,v_raw,q_weight,k_weight,rope_offsets,cos,sin,q_out,k_out,v_out);
+}
+
+pub(crate) fn sliding_heads_b16_stage(
+    device: &mut Device,
+    q_raw: &HbmTensor<bf16, Chip, QueryOutput>,
+    k_raw: &HbmTensor<bf16, Chip, KeyOutput>,
+    v_raw: &HbmTensor<bf16, Chip, KeyOutput>,
+    q_weight: &HbmTensor<bf16, Chip, m![Ds]>,
+    k_weight: &HbmTensor<bf16, Chip, m![Ds]>,
+    rope_offsets: &HbmTensor<i32, Chip, m![B]>,
+    cos: &HbmTensor<bf16, Chip, m![E, Ds]>,
+    sin: &HbmTensor<bf16, Chip, m![E, Ds]>,
+    q_out: &mut HbmTensor<bf16, Chip, m![B, Ns, Gs, Ds]>,
+    k_out: &mut HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+    v_out: &mut HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+) {
     type QRows = m![B, Ns, Gs];
     type KRows = m![B,Ns,1 # 2];
     let q = unsafe { q_raw.view().reshape::<Chip, m![B/8,Ns,Gs,Ds/64,B%8,Ds%64]>() };
@@ -56,6 +73,22 @@ pub fn sliding_heads_b16(
 
 #[device(chip = 1)]
 pub fn full_heads_b16(
+    device: &mut Device,
+    q_raw: &HbmTensor<bf16, Chip, FullQueryOutput>,
+    k_raw: &HbmTensor<bf16, Chip, FullKeyOutput>,
+    q_weight: &HbmTensor<bf16, Chip, m![Df]>,
+    k_weight: &HbmTensor<bf16, Chip, m![Df]>,
+    rope_offsets: &HbmTensor<i32, Chip, m![B]>,
+    cos: &HbmTensor<bf16, Chip, m![E, Df]>,
+    sin: &HbmTensor<bf16, Chip, m![E, Df]>,
+    q_out: &mut HbmTensor<bf16, Chip, m![B, Gf, Df]>,
+    k_out: &mut HbmTensor<bf16, Chip, m![B, Df]>,
+    v_out: &mut HbmTensor<bf16, Chip, m![B, Df]>,
+) {
+    full_heads_b16_stage(device,q_raw,k_raw,q_weight,k_weight,rope_offsets,cos,sin,q_out,k_out,v_out);
+}
+
+pub(crate) fn full_heads_b16_stage(
     device: &mut Device,
     q_raw: &HbmTensor<bf16, Chip, FullQueryOutput>,
     k_raw: &HbmTensor<bf16, Chip, FullKeyOutput>,
