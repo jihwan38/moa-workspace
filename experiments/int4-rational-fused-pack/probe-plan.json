@@ -1,0 +1,27 @@
+{
+  "scope": "Strict probe source/check only. No device ELF or Arena authorization yet; root-only future runs <=70s each, arguments input and hidden.",
+  "kernel_source": "43fcd8b9",
+  "input_candidate": "quantize_pack_input_aligned",
+  "input_control": "unchanged compact H quantizer then unchanged aligned pack from15a335b6; required separate actual pack gate remains a prerequisite",
+  "hidden_candidate": "quantize_pack_hidden",
+  "hidden_control": "unchanged hidden quantizer then validated staged hidden packing",
+  "fixtures": "All4 existing full512-row fixtures for each width, byte-identical source. Case0:128 mantissas times4 exponents yields512 distinct scales. Case1:floor/FTZ/sign/ties/extremes. Cases2/3:independent full row/channel permutations. Hidden maxima remain in final2 of15360 columns.",
+  "oracle": "Unchanged u128 quotient/remainder BF16 rational oracle; independent pair-byte forward encoding and word/nibble inverse-coordinate encoding must agree. Decode every candidate nibble and compare with CPU codes; control canonical I32 codes independently checked.",
+  "ownership": "Candidate-first, separately poisoned candidate/control packed outputs and scale owners; separate control canonical code owner. Immutable BF16 input, all4096 bytes of both typed table owners and all32 shift bytes. No raw I4 binding or GEMM consumer in this probe.",
+  "post_reuse": "After all timing/profile calls re-read candidate packed/scales, control packed/scales/canonicalcodes and all immutable owners; compare with initial CPU-validated bytes.",
+  "timing": "Perfixture [candidate,control,control,candidate],20 iterations/block; candidate one complete awaited quantize-pack call, control original quantize plus current pack both awaited. Setup/poison/readback/CPUoracle excluded symmetrically. Profile lastfixture once perarm, outside timers.",
+  "performance_gate": "Eachfixture worst candidate block <=0.8*best current-control block; judge only after all correctness checks. Failure preserved, never relaxed. No FFN/model claim.",
+  "counts_both_jobs": {
+    "candidate_codes":39321600,
+    "control_canonical_codes":39321600,
+    "candidate_packed_bytes":19660800,
+    "control_packed_bytes":19660800,
+    "candidate_scales":4096,
+    "control_scales":4096,
+    "permutation_codes":19660800,
+    "permutation_scales":2048,
+    "post_reuse_output_bytes":196640768,
+    "immutable_bytes":78708992,
+    "kernel_calls":990
+  }
+}
