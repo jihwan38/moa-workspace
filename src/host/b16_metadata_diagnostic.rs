@@ -45,11 +45,13 @@ pub async fn collect_retained(
     let mut result = Vec::with_capacity(count);
     match output {
         ForwardOutput::Rows(rows) => {
+            assert_eq!(count, 1, "pure multi-row oracle must retain native logits");
             assert_eq!(rows.len(), count);
             for row in rows { result.push(logits_bits(d, row).await?); }
             println!("B16_METADATA_OUTPUT layout=Rows live={count} device_selected=0");
         }
         ForwardOutput::Batch16(logits, live) => {
+            assert!((2..=B::SIZE).contains(&count));
             assert_eq!(live, count);
             let start = Instant::now();
             let selected = selector.select_b16(d, logits, &policies).await?;
@@ -64,6 +66,7 @@ pub async fn collect_retained(
             println!("B16_METADATA_OUTPUT layout=Batch16 live={live} policy_case={policy_case} device_selected={device_selected} select_ms={select_ms:.6}");
         }
         ForwardOutput::Blocked64(logits, live) => {
+            assert!(count > B::SIZE);
             assert_eq!(live, count);
             let start = Instant::now();
             let selected = selector.select(d, logits, &policies).await?;
