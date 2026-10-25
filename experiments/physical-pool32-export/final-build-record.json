@@ -1,0 +1,40 @@
+{
+  "name": "a002-physical32-clean-identity-build",
+  "purpose": "Force fresh package rebuild with upstream dependencies and real server owning-KV Buffer/admission identity; lockedcheck131host and capture immutable plainserver",
+  "started_at": "2026-10-25T14:50:10.694946+00:00",
+  "worktree": "/home/jihwan38/moa-worktrees/round2/physical-pool32-export",
+  "commit": "3d497087ea8eb998e561ad60e86cb2757f5a2727",
+  "status": "?? experiments/physical-pool32-export/artifacts/\n",
+  "command": [
+    "docker",
+    "exec",
+    "--workdir",
+    "/round2/physical-pool32-export",
+    "-e",
+    "CARGO_TARGET_DIR=/round2/ffn-k256/target",
+    "-e",
+    "CARGO_INCREMENTAL=0",
+    "moa2026-round2",
+    "bash",
+    "-lc",
+    "set -e\ncargo check --locked --bin server > experiments/physical-pool32-export/identity-check.log 2>&1\ncargo test --locked --lib --config profile.test.package.furiosa-opt-gemma4.debug=0 > experiments/physical-pool32-export/identity-host-tests.log 2>&1\ncargo furiosa-opt build --release --bin server > experiments/physical-pool32-export/identity-build.log 2>&1"
+  ],
+  "result": "command_succeeded",
+  "exit_code": 0,
+  "fresh_package": {
+    "refreshed_files": 391,
+    "contents_changed": false,
+    "target_exclusivity": "caller must coordinate"
+  },
+  "pid": 3755913,
+  "finished_at": "2026-10-25T14:52:33.936886+00:00",
+  "built_artifacts": {
+    "target/release/server": {
+      "source_path": "/home/jihwan38/moa-worktrees/round2/physical-pool32-export/target/release/server",
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a002-physical32-clean-identity-build/built/target/release/server",
+      "sha256": "b1aa162208a29f2688de7926ec76eea5de419fa2ce0d04b553cc25a83fcf1705",
+      "size": 39072528
+    }
+  },
+  "build_inputs_unchanged": true
+}
