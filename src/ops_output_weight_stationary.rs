@@ -7,7 +7,7 @@ axes![Ho = 2, Hr = 240, Ht = 8, KBlock = 4, K1024 = 1024];
 type Cluster = m![Ho];
 type Parts = m![Hr #256];
 type InputParts = m![KBlock,K1024/16];
-pub type Output = m![P128,H];
+pub type Output = m![P128,Ho,Hr,Ht];
 
 fn pair(device: &mut Device,
     partial: &DmTensor<bf16,Chip,Cluster,Parts,m![P128,KBlock,Ht]>,
@@ -62,8 +62,7 @@ fn one(device: &mut Device,
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),scale)
         .vector_widen_concat::<m![P128],m![Ht]>().vector_final()
         .cast::<bf16,m![Ht #16]>().commit_trim::<m![Ht]>().commit();
-    let output: HbmTensorViewMut<'_,bf16,Chip,m![P128,Ho,Hr,Ht]> = unsafe { output.view_mut().reshape() };
-    result.view().to_hbm_view(&mut device.tdma,output);
+    result.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
 
 #[device(chip=1)]
