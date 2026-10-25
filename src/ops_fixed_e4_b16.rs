@@ -864,4 +864,3 @@ pub fn sliding_16(
         output,
     );
 }
-
