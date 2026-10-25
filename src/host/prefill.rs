@@ -50,6 +50,7 @@ pub(crate) struct PreparedNarrow {
 pub(crate) struct Prefill {
     // Dedicated decode raw layouts; canonical scratch remains available to prompts and diagnostics.
     decode_blocked_output: bool,
+    staged_ffn: bool,
     output_hsplit: bool,
     decode_q_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::QueryOutput>,
     decode_k_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::KeyOutput>,
@@ -95,6 +96,10 @@ pub(crate) struct Prefill {
 }
 
 impl Prefill {
+    pub(crate) fn set_staged_ffn(&mut self, enabled: bool) {
+        self.staged_ffn = enabled;
+    }
+
     pub(crate) fn set_output_hsplit(&mut self, enabled: bool) {
         self.output_hsplit = enabled;
     }
@@ -145,6 +150,7 @@ impl Prefill {
         }
         Ok(Self {
             decode_blocked_output: true,
+            staged_ffn: true,
             output_hsplit: true,
             decode_q_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::QueryOutput),
             decode_k_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::KeyOutput),
@@ -805,6 +811,17 @@ impl Prefill {
         )
         .await?;
         self.record_profile("ffn.pre_norm", &mut profile_mark);
+        if self.staged_ffn {
+        launch(
+            crate::ops_native_fp8_b16_staged_fused::batch_ffn,
+            (device, &self.norm,
+             &weights.native_fp8.up, &weights.native_fp8.gate, &weights.native_fp8.down,
+             &weights.native_fp8.up_dequant, &weights.native_fp8.gate_dequant, &weights.native_fp8.down_dequant,
+             &weights.up_global_scale, &weights.gate_global_scale, &weights.down_global_scale,
+             &mut self.native_q_input, &mut self.native_input_scale, &mut self.native_hidden,
+             &mut self.native_q_hidden, &mut self.native_hidden_scale, &mut self.projected),
+        ).await?;
+        } else {
         launch(
             crate::ops_native_fp8_b16_staged::quantize_hidden,
             (device, &self.norm, &mut self.native_q_input, &mut self.native_input_scale),
@@ -826,6 +843,7 @@ impl Prefill {
              &weights.native_fp8.down, &weights.native_fp8.down_dequant,
              &weights.down_global_scale, &mut self.projected),
         ).await?;
+        }
         self.record_profile("ffn.core", &mut profile_mark);
         launch(
             crate::ops_norm_batch::post_feedforward_b16,

@@ -221,3 +221,5 @@ pub mod ops_full_wide_stats;
 pub mod ops_greedy_b16;
 pub mod ops_output_p128_h64_blocked;
 pub mod ops_native_fp8_r64_staged_fused;
+
+pub mod ops_native_fp8_b16_staged_fused;

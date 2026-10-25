@@ -117,6 +117,11 @@ impl Model {
         self.prefill.set_output_hsplit(enabled);
     }
 
+    /// Diagnostic B16 FFN dispatch control; scratch, norms and caches stay unchanged.
+    pub fn set_b16_staged_ffn(&mut self, enabled: bool) {
+        self.prefill.set_staged_ffn(enabled);
+    }
+
     /// Diagnostic arithmetic control for R64 FFN only; both paths use identical norms and caches.
     pub fn set_r64_staged_ffn(&mut self, enabled: bool) {
         if let Some(decode) = &mut self.decode64 {
