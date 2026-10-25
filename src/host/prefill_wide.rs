@@ -11,6 +11,7 @@ pub(crate) mod group;
 const EXACT_SLIDING_ATTENTION_ENABLED: bool = true;
 // Pure movement change: original page recurrence and masks remain unchanged.
 const DIRECT_FULL_ATTENTION_ENABLED: bool = true;
+const COMPACT_FULL_STATISTICS_ENABLED: bool = true;
 
 pub(crate) struct WidePrefill {
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
@@ -33,6 +34,8 @@ pub(crate) struct WidePrefill {
     head_v_f: HbmTensor<bf16, Chip, m![P128, Df]>,
     accum_f: HbmTensor<bf16, Chip, m![P128, Gf, Df]>,
     max_f: HbmTensor<f32, Chip, m![P128, Gf, 1 # 8]>,
+    compact_max_f: HbmTensor<f32, Chip, crate::ops_full_wide_stats::Stats>,
+    compact_sum_f: HbmTensor<f32, Chip, crate::ops_full_wide_stats::Stats>,
     sum_f: HbmTensor<f32, Chip, m![P128, Gf, 1 # 8]>,
     full_line_mask: HbmTensor<f32, Chip, m![P128, Tf]>,
     tile_indices: Vec<HbmTensor<i32, Chip, m![1]>>,
@@ -47,6 +50,7 @@ pub(crate) struct PreparedWide {
     native_qkv: bool,
     exact_sliding_attention: bool,
     direct_full_attention: bool,
+    compact_full_statistics: bool,
     next_layer: usize,
     segments: Vec<Segment>,
     native: Option<NativeMetadata>,
@@ -143,6 +147,8 @@ impl WidePrefill {
             head_k_f: zero!(m![P128, Df]),
             head_v_f: zero!(m![P128, Df]),
             accum_f: zero!(m![P128, Gf, Df]),
+            compact_max_f: HostTensor::<f32, crate::ops_full_wide_stats::Stats>::zero().to_hbm(&mut device.pdma).await?,
+            compact_sum_f: HostTensor::<f32, crate::ops_full_wide_stats::Stats>::zero().to_hbm(&mut device.pdma).await?,
             max_f: HostTensor::<f32, m![P128,Gf,1 #8]>::zero()
                 .to_hbm(&mut device.pdma)
                 .await?,
@@ -277,6 +283,7 @@ impl WidePrefill {
             native_qkv: count == P128::SIZE,
             exact_sliding_attention: EXACT_SLIDING_ATTENTION_ENABLED,
             direct_full_attention: DIRECT_FULL_ATTENTION_ENABLED,
+            compact_full_statistics: COMPACT_FULL_STATISTICS_ENABLED,
             next_layer: 0,
             segments,
             native,
@@ -415,6 +422,18 @@ impl WidePrefill {
     ) -> Result<()> {
         let mut state = self.prepare(device, weights, sequence, scratch, ws.is_canonical()).await?;
         state.direct_full_attention = false;
+        while !self.advance_layer(device, weights, &mut state, ws, scratch).await? {}
+        self.finish(device, weights, &state, ws, scratch).await
+    }
+
+    /// Validated direct-page control with the original padded F32 state layout.
+    /// Only the dense statistics transfer is disabled in this local execution.
+    pub(crate) async fn run_direct_full_attention(
+        &mut self, device: &mut Device, weights: &Weights, sequence: &Sequence<'_>,
+        ws: &mut Workspace, scratch: &mut Prefill,
+    ) -> Result<()> {
+        let mut state = self.prepare(device, weights, sequence, scratch, ws.is_canonical()).await?;
+        state.compact_full_statistics = false;
         while !self.advance_layer(device, weights, &mut state, ws, scratch).await? {}
         self.finish(device, weights, &state, ws, scratch).await
     }
@@ -951,7 +970,18 @@ impl WidePrefill {
                 } else {
                     &self.full_line_mask
                 };
-                if state.direct_full_attention {
+                if state.direct_full_attention && state.compact_full_statistics {
+                    let args = (
+                        &mut *device, &self.head_q_f, &*k, &*v,
+                        &ws.cache_full_head_offsets[blocks[current]], mask,
+                        &mut self.compact_max_f, &mut self.compact_sum_f, &mut self.accum_f,
+                    );
+                    if current == 0 {
+                        launch(crate::ops_full_wide_stats::full_attention_first_page_p128, args).await?;
+                    } else {
+                        launch(crate::ops_full_wide_stats::full_attention_next_page_p128, args).await?;
+                    }
+                } else if state.direct_full_attention {
                     let args = (
                         &mut *device, &self.head_q_f, &*k, &*v,
                         &ws.cache_full_head_offsets[blocks[current]], mask,
@@ -1017,11 +1047,13 @@ impl WidePrefill {
                 }
             }
             }
-            launch(
-                crate::ops_full_wide::full_attention_divide_p128,
-                (device, &self.accum_f, &self.sum_f, &mut self.attn_f),
-            )
-            .await?;
+            if ws.is_canonical() && state.direct_full_attention && state.compact_full_statistics {
+                launch(crate::ops_full_wide_stats::full_attention_divide_p128,
+                    (device, &self.accum_f, &self.compact_sum_f, &mut self.attn_f)).await?;
+            } else {
+                launch(crate::ops_full_wide::full_attention_divide_p128,
+                    (device, &self.accum_f, &self.sum_f, &mut self.attn_f)).await?;
+            }
             scratch.record_optional_profile("wide.full.attention", &mut mark);
         } else {
             for (tile, segment) in segments.iter().enumerate() {

@@ -83,6 +83,7 @@ enum Dispatch {
     NativeQkvDiagnostic,
     OriginalAttentionDiagnostic,
     OriginalFullAttentionDiagnostic,
+    DirectFullAttentionDiagnostic,
     Bf16QkvDiagnostic,
     Decode64Diagnostic,
 }
@@ -92,7 +93,7 @@ impl Dispatch {
             && match self {
                 Self::Serial => false,
                 Self::Automatic => sequence.inputs.len() == crate::axes::P128::SIZE,
-                Self::WideDiagnostic | Self::NativeQkvDiagnostic | Self::Bf16QkvDiagnostic | Self::OriginalAttentionDiagnostic | Self::OriginalFullAttentionDiagnostic => true,
+                Self::WideDiagnostic | Self::NativeQkvDiagnostic | Self::Bf16QkvDiagnostic | Self::OriginalAttentionDiagnostic | Self::OriginalFullAttentionDiagnostic | Self::DirectFullAttentionDiagnostic => true,
                 Self::Decode64Diagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
             }
     }
@@ -578,6 +579,15 @@ impl Model {
         Ok(&self.logits[..sequences.len()])
     }
 
+    /// Validated direct full-page kernel with padded statistics, isolating only
+    /// the dense state transfer; all other kernels and request history match.
+    pub async fn forward_sequences_direct_full_attention(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::DirectFullAttentionDiagnostic, false).await?;
+        Ok(&self.logits[..sequences.len()])
+    }
+
     /// Explicit BF16 P128 QKV reference, independent of the ordinary dispatch default.
     pub async fn forward_sequences_bf16_qkv(
         &mut self,
@@ -730,7 +740,9 @@ impl Model {
             workspace.blocks.sliding = sequence.blocks.sliding;
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
             let result = async {
-                if dispatch == Dispatch::OriginalFullAttentionDiagnostic && dispatch.use_wide(sequence) {
+                if dispatch == Dispatch::DirectFullAttentionDiagnostic && dispatch.use_wide(sequence) {
+                    self.wide.run_direct_full_attention(device, &self.weights, sequence, workspace, &mut self.prefill).await?;
+                } else if dispatch == Dispatch::OriginalFullAttentionDiagnostic && dispatch.use_wide(sequence) {
                     self.wide.run_original_full_attention(device, &self.weights, sequence, workspace, &mut self.prefill).await?;
                 } else if dispatch == Dispatch::OriginalAttentionDiagnostic && dispatch.use_wide(sequence) {
                     self.wide.run_original_attention(device, &self.weights, sequence, workspace, &mut self.prefill).await?;

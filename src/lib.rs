@@ -216,3 +216,5 @@ pub mod ops_qkv_shared_ingress;
 
 pub mod ops_qk_shared_ingress;
 pub mod ops_norm_fused;
+
+pub mod ops_full_wide_stats;
