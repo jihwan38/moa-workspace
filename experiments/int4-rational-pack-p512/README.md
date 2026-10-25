@@ -13,7 +13,8 @@ The preregistered resource gate is **not fully passed**:
 These are static compiler timelines, not measured latency. Neither schedule has
 DramStack. Both perform the entire shape in one kernel; no P128 tiling or extra
 launch is hidden. Source/probe typecheck passed in a004 and, after the coverage repair, a005. No standalone ELF,
-device execution, quantizer/GEMM integration, or model validation was performed.
+device execution, quantizer/GEMM integration, or model validation was performed
+at that initial resource checkpoint.
 
 The hidden schedule allocates the complete 31,457,280-byte I32 tensor in SRAM
 pages 0 and 1. Its 3,932,160-byte packed result occupies page 2 and coexists with
@@ -69,3 +70,24 @@ Peer review found that the original fixture repeated token rows modulo16. Probe-
 commit c2746fda replaces that fixture and asserts every full row identity; no
 device result ever used the inadequate fixture. Kernel/resource source 9f9a2762
 and both frozen schedules are unchanged.
+
+After the parent LUT device gates passed, the root authorized one bounded actual
+pack/layout diagnostic while retaining the original input-resource HOLD.
+`actual-probe-plan.json` preregisters ten cases, 49,152,000 integer codes,
+24,576,000 packed bytes, six read-only invalid-binding checks, separate completed
+H/L call timings, and one root-only run capped at 70 seconds. This is not a
+quantizer/GEMM/model integration or a runtime gain claim.
+
+Source fbab0a3d adds compile-time public-trait assertions before the consumed DM
+reshapes and timing/owner checks to the existing probe. The root independently
+reviewed it before a007 built the standalone executable using a new empty public
+`FURIOSA_OPT_OUT_DIR`. A006 source check and a007 build passed; all 401 recorded
+source/config hashes match. The captured ELF is
+`runs/a007-rational-pack-p512-actual-build/built/target/release/test_int4_pack_p512`,
+SHA256 `cd870cffa309a89bee202ef24e9821a96ef79fdeb97f7f386e8eb3a8369bf1b2`.
+
+The read-only ELF registry audit binds all four embedded kernels to the fresh
+output files. Both pack kernel blobs are byte-identical to their earlier
+resource-compiled blobs, so the const assertions did not add device work.
+`actual-build.json` and `actual-build-registry.json` preserve those bindings.
+No execution result is claimed by this build evidence.
