@@ -7,7 +7,8 @@ axes![Ho = 2, Hr = 240, Ht = 8, KBlock = 4, K1024 = 1024];
 type Cluster = m![Ho];
 type Parts = m![Hr #256];
 type InputParts = m![KBlock,K1024/16];
-pub type Output = m![P128,Ho,Hr,Ht];
+pub type Output = m![P128/64,Ho,Hr/8,P128%64,Hr%8,Ht];
+type StoreParts = m![Hr/8#32,P128/32,1#2];
 
 fn pair(device: &mut Device,
     partial: &DmTensor<bf16,Chip,Cluster,Parts,m![P128,KBlock,Ht]>,
@@ -62,6 +63,9 @@ fn one(device: &mut Device,
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),scale)
         .vector_widen_concat::<m![P128],m![Ht]>().vector_final()
         .cast::<bf16,m![Ht #16]>().commit_trim::<m![Ht]>().commit();
+    // Real redistribution joins eight neighboring H8 lanes and splits P32.
+    // The stored byte order now exactly matches the existing H64 blocked ABI.
+    let result: DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,Hr%8,Ht]> = result.to_dm(&mut device.tdma);
     result.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
 

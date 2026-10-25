@@ -61,7 +61,7 @@ async fn fixture(case: usize) {
             let got=read(&mut d,&outputs[g]).await;
             let expected=read(&mut d,&references[g]).await;
             for row in 0..128 { for col in 0..3840 {
-                let i=row*3840+col;
+                let i=blocked_index(row,col);
                 if got[i].to_bits()!=expected[blocked_index(row,col)].to_bits() {
                     if differences<8 {println!("WEIGHT_STATIONARY_DIFF case={case} group={g} row={row} col={col} got={} expected={}",got[i].to_f32(),expected[blocked_index(row,col)].to_f32());}
                     differences+=1;
@@ -81,7 +81,7 @@ async fn fixture(case: usize) {
                     let right=bf16::from_f32(partial[2]+partial[3]).to_f32();
                     let sum=bf16::from_f32(left+right).to_f32();
                     let result=bf16::from_f32(sum*cpu_s[col].to_f32());
-                    assert_eq!(got[row*3840+col].to_bits(),result.to_bits(),"independent CPU sample case={case} group={g} row={row} col={col}");
+                    assert_eq!(got[blocked_index(row,col)].to_bits(),result.to_bits(),"independent CPU sample case={case} group={g} row={row} col={col}");
                     cpu_checks+=1;
                 }}
             }
