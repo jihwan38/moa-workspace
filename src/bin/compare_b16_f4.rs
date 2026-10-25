@@ -161,6 +161,7 @@ async fn model_case(
     w: &mut Workspace,
     selector: &mut GreedySelector,
     prefix: usize,
+    quantizer: b16_f4_weights::F4Quantizer,
 ) -> Result<()> {
     let allocations: Vec<Vec<_>> = (0..2)
         .map(|half| (0..16).map(|r| blocks(half * 16 + r)).collect())
@@ -188,7 +189,7 @@ async fn model_case(
         )
         .await?;
         assert!(
-            m.prepare_b16_f4(d).await.is_err(),
+            m.prepare_b16_f4_with_quantizer(d, quantizer).await.is_err(),
             "even idempotent preparation must reject an active checkpoint"
         );
         let mut positions = vec![prefix; 16];
@@ -430,7 +431,7 @@ async fn main() -> Result<()> {
     );
     memory(&d, "all_original_workspaces_and_complete_shadow")?;
     if mode == "model" {
-        model_case(&mut d, &mut m, &mut w, &mut selector, prefix).await?;
+        model_case(&mut d, &mut m, &mut w, &mut selector, prefix, quantizer).await?;
     } else {
         guards_case(&mut d, &mut m, &mut w, &mut selector, prefix).await?;
     }
