@@ -1,0 +1,92 @@
+{
+  "source_commit": "98662213",
+  "scope": "read-only current prompt interfaces for future sole fixed-scale1 E4 physical32 storage; no implementation or device proof",
+  "source_sha256": {
+    "src/host/prefill_wide.rs": "6126c3aeefe98b1a35fbace1e700aef05604ad5afc591a97bb01437d5d8e38ad",
+    "src/host/prefill_group.rs": "8f4a14ec1971d78b0ab898eed9cee3400a1fe7b4c709824ed84414db07a97de8",
+    "src/host/prefill.rs": "afc939557eeb9546dd728fd0fe408d6d172c8898f2d1d42ec6102004f9dbfef6",
+    "src/ops_prefill_head_attn_commit.rs": "100764382b6a30ddb0300c9e2a8fb3ff0807215eda6533bc7eeccdbff85d911a",
+    "src/ops_sliding_wide_head_rows.rs": "4296e488728074a73027f0230d44672e2b323643e857dbe721f490b3974cc881",
+    "src/ops_sliding_wide_pool.rs": "53f2a7333e663851afe39d7158c2749c546cd7860f5a86139bbf1d9f17adfc0b",
+    "src/ops_sliding_prompt_pool.rs": "ac5bad4c21a7584f790119e0e70682a5982a6b96bcb8b44a4802183cf3a3dc9e",
+    "src/ops_commit_wide_pool.rs": "4a02fc78fd23aa9f2a0d7129a3774ac062b05d6fb87b274e8580c449a54a46d2",
+    "src/ops_commit_r64.rs": "c260585045c7208577dc99abe7078bcb08f5432cc2129fcc08b8b3c78ce035a8",
+    "src/ops_fixed_e4_quality.rs": "c1825cd34a2eb26ea639da27ca1d6835093a8470076a7cdfc70b1841bc7d6a1d"
+  },
+  "dispatch": [
+    {
+      "source": "src/host/prefill_group.rs:986",
+      "fact": "All four dense QKV projections finish first. Each real PreparedWide is then awaited separately through sliding_after_qkv; same-owner quarters are chronological. Only states.len() real quarters attend/commit; padded Tail256/384 tensor quarters do not own cache state."
+    },
+    {
+      "source": "src/host/prefill_wide.rs:677",
+      "fact": "Native metadata exists only for count128. Canonical+blocked+fused_head_attention+exact_sliding_attention chooses fused first128 at absolute start0, fused general otherwise. Both retain existing BF16 current K/V scratch, then commit all128 after attention. Deferred O returns only after commit."
+    },
+    {
+      "source": "src/host/prefill_wide.rs:724",
+      "fact": "Nonfused native uses blocked/canonical head producer, then first128, exact HeadRows, or original pooled diagnostic attention, then separate commit128. Legacy per-request BF16 storage remains a separate branch."
+    },
+    {
+      "source": "src/host/prefill_wide.rs:863",
+      "fact": "Partial17..127 uses sequential B16 prompt segments. Each segment has its own RoPE/masks/live count, runs heads_from_wide_tile, prompt-pool attention, live-prefix commit, then attention tile store. It is not independent-request B16 attention."
+    }
+  ],
+  "typed_adapters": [
+    {
+      "symbols": [
+        "ops_prefill_head_attn_commit::old_scores",
+        "ops_prefill_head_attn_commit::weighted_values",
+        "ops_sliding_wide_head_rows::old_scores",
+        "ops_sliding_wide_head_rows::weighted_values"
+      ],
+      "current": "BF16 [Rc64,Ts,Ns,Ds], Rc64 physical32; bases i32[P128/64] (two equal absolute ring byte offsets); gathered DM KeyRows=[Ns,Ts/32], elements[Ts%32,Ds].",
+      "proposed_boundary": "E4 pool gather plus table lookup to exactly the existing BF16 DM before unchanged contractions, masks, full1024 denominator and32-plane BF16 PV tree. Current-chunk Q/K/V remain BF16. First128 skips old reads entirely."
+    },
+    {
+      "symbols": [
+        "ops_sliding_prompt_pool::old_scores",
+        "ops_sliding_prompt_pool::weighted_values",
+        "ops_sliding_wide_pool::old_scores",
+        "ops_sliding_wide_pool::weighted_values"
+      ],
+      "current": "Whole canonical pool plus base i32[1]. Prompt B16 old K gather uses Ts/8 distribution, V uses Ns,Ts/32; existing redistribution/tree remains. Original P128 diagnostic has its own row-local mapping.",
+      "proposed_boundary": "Separate E4 gather/lookup adapters or explicit shared decoded ring fallback preserving current typed attention APIs; do not assume current HeadRows adapter covers diagnostic/partial paths."
+    },
+    {
+      "symbols": [
+        "ops_prefill_head_attn_commit::commit",
+        "ops_commit_wide_pool::commit_sliding_kv_p128"
+      ],
+      "current": "All128 live: scatter axes[Rc64,Ts], payload[Ns,Ds], offsets i32[P128].",
+      "proposed_boundary": "E4 code scatter with halved sliding byte offsets after completed old-ring attention; no change to full-attention commit."
+    },
+    {
+      "symbols": [
+        "host::prefill::CommitOffsets::sliding_pool",
+        "ops_commit_r64::commit_sliding_pool<VALID>"
+      ],
+      "current": "VALID1..16 wrappers tile exactly the live prefix before scatter; same helper also serves independent decoders whose current token commit precedes attention.",
+      "proposed_boundary": "Preserve live-prefix dispatch and caller-specific ordering; convert only sliding payload/destination type and offsets."
+    }
+  ],
+  "address_rules": {
+    "E4_ring_base": "ring * Ts * Ns * Ds (one byte/code)",
+    "E4_row_offset": "(ring * Ts + position % Ts) * Ns * Ds",
+    "unchanged": "RoPE offsets and all full-attention pool offsets remain BF16 byte units (*2); full pages stay Fc256. Existing ring IDs/ownership/context masks do not change."
+  },
+  "quantization_boundary": "Current q022 heads already cast original post-RoPE K / normalized V to E4 then lookup to BF16. A storage port must feed those same decoded values into current-chunk attention. Prefer retaining original codes for commit, or independently prove decoded BF16(E4)->E4 recast code identity (including signed zero/nonfinite policy); recast exactness is not established by this source review.",
+  "required_invariants": [
+    "One authoritative sliding pool, no stale mirror",
+    "All queries finish old-ring reads before prompt commit, including wrap",
+    "Same-owner group quarters remain separately awaited; prior multi-quarter graph alias failure cannot be ignored",
+    "Partial padding never scatters or becomes an owner",
+    "Layer cursors/yields/reservations unchanged; prepared state owns fixed ring/pages across decoder interleaves",
+    "First0, unwrapped,1024wrap,lastphysical31/remap/reset/partial tails and all owner compositions require matched surrogate bits/cache proof"
+  ],
+  "not_claimed": [
+    "No legal SDK lowering/resource result for new E4 adapters",
+    "No end-to-end speed prediction",
+    "No compressed-port model/task validation",
+    "No assumption that historical scaled-E4 kernel can be imported unchanged"
+  ]
+}
