@@ -271,3 +271,6 @@ pub mod ops_norm_blocked_chain_storegroup;
 pub mod ops_group_ffn_projection_storegroup;
 
 pub mod ops_decode32_f4_partialscale;
+
+pub mod ops_decode32_f4_dense;
+pub mod ops_decode32_f4_diagnostic;
