@@ -276,8 +276,9 @@ impl Model {
         Err("no grouped512-density prompt is awaiting its first layer".into())
     }
 
-    /// Default-off exact grouped sliding QKV control. Selection belongs only
-    /// to one prepared execution and is immutable after its first layer.
+    /// Exact grouped sliding QKV control, enabled after all eleven owner-route
+    /// gates. Selection belongs to one prepared execution and is immutable
+    /// after its first layer.
     /// Full QK, O, FFN, attention and cache ownership use their existing paths.
     pub fn set_active_prefill_weight_stationary_qkv(
         &mut self, enabled: bool,

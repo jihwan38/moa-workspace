@@ -1,4 +1,4 @@
-//! Same owner route/history; only the default-off sliding QKV producer differs.
+//! Same owner route/history; only the explicitly selected sliding QKV producer differs.
 //! One case per invocation keeps complete vocabulary/cache checks bounded.
 //! Both arms retain current norms, joined FFN, stationary O and full QK; storage is shared.
 use furiosa_opt_gemma4::{LAYERS,host::{generate::read_logits,load,model::{Input,Model,Sequence},runtime::{Blocks,Workspace}},ops};
@@ -142,5 +142,5 @@ async fn main()->Result<()> {
   println!("QKV_STATIONARY_MODEL_PASS case={case} round={round} control_ms={:.6} candidate_ms={:.6}",ms[0],ms[1]);
  }
  snapshot(&d,"all_model_routes_complete")?;
- println!("PASS original vs scoped weight-stationary sliding QKV: all_vocab/cache/reset/interleaves; current fullQK/O/joinedFFN identical; no production activation or HTTP claim");Ok(())
+ println!("PASS original vs scoped weight-stationary sliding QKV: all_vocab/cache/reset/interleaves; current fullQK/O/joinedFFN identical; no HTTP throughput claim");Ok(())
 }
