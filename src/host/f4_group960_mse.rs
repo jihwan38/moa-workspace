@@ -99,6 +99,71 @@ pub fn quantize_blocked_e4_mse(
     Ok(quantize_impl::<false>(raw, rows, cols)?.0)
 }
 
+/// Optional startup CPU parallelism. The production preparation caller remains
+/// on the serial API until a separately measured startup gate authorizes it.
+/// Complete physical row blocks are independent; joins preserve input order.
+pub fn quantize_blocked_e4_mse_parallel(
+    raw: &[u8],
+    rows: usize,
+    cols: usize,
+) -> Result<PackedF4Weights, QuantizeError> {
+    let workers = std::thread::available_parallelism().map_or(1, |n| n.get());
+    quantize_parallel_with_workers(raw, rows, cols, workers)
+}
+
+fn quantize_parallel_with_workers(
+    raw: &[u8],
+    rows: usize,
+    cols: usize,
+    available_workers: usize,
+) -> Result<PackedF4Weights, QuantizeError> {
+    // Match serial validation before launching anything or computing offsets.
+    if rows == 0 || cols == 0 || rows % ROW_BLOCK != 0 || cols % GROUP_SIZE != 0 {
+        return Err(QuantizeError::InvalidShape { rows, cols });
+    }
+    let expected = rows.checked_mul(cols).ok_or(QuantizeError::SizeOverflow)?;
+    if raw.len() != expected {
+        return Err(QuantizeError::Length { expected, actual: raw.len() });
+    }
+    let blocks = rows / ROW_BLOCK;
+    let workers = available_workers.clamp(1, 4).min(blocks);
+    if workers == 1 {
+        return quantize_blocked_e4_mse(raw, rows, cols);
+    }
+    // Populate the immutable shared lookup once, before thread creation.
+    let _ = tables();
+    let parts = std::thread::scope(|scope| {
+        let mut handles = Vec::with_capacity(workers);
+        for worker in 0..workers {
+            let begin_row = (blocks * worker / workers) * ROW_BLOCK;
+            let end_row = (blocks * (worker + 1) / workers) * ROW_BLOCK;
+            let byte_start = begin_row * cols;
+            let source = &raw[byte_start..end_row * cols];
+            handles.push((byte_start, scope.spawn(move || {
+                quantize_blocked_e4_mse(source, end_row - begin_row, cols)
+            })));
+        }
+        // Joining every worker in source order makes both result order and the
+        // first invalid source byte deterministic, regardless of completion order.
+        handles.into_iter().map(|(offset, handle)| {
+            handle.join().unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+                .map_err(|error| match error {
+                    QuantizeError::NonFinite { index, bits } =>
+                        QuantizeError::NonFinite { index: offset + index, bits },
+                    other => other,
+                })
+        }).collect::<Vec<_>>()
+    });
+    let mut packed_f4 = Vec::with_capacity(raw.len() / 2);
+    let mut group_scales = Vec::with_capacity(raw.len() / GROUP_SIZE);
+    for part in parts {
+        let part = part?;
+        packed_f4.extend_from_slice(&part.packed_f4);
+        group_scales.extend_from_slice(&part.group_scales);
+    }
+    Ok(PackedF4Weights { packed_f4, group_scales })
+}
+
 /// Same output plus per-group error sums against current E4, obtained from the
 /// existing histogram. The optional report avoids a full per-weight F64 audit.
 pub fn quantize_blocked_e4_mse_report(
