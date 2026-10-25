@@ -6,7 +6,7 @@ use super::*;
 pub(super) const ENABLED: bool = true;
 /// Process-wide policy selection; isolated candidate activation changes this
 /// constant, never request content, evaluation flags, or the receipt budget.
-pub(super) const RECOVERY_ENABLED: bool = false;
+pub(super) const RECOVERY_ENABLED: bool = true;
 pub(super) const RECEIPT_BUDGET: Duration = Duration::from_millis(3750);
 
 #[derive(Default)]
