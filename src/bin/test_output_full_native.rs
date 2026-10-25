@@ -51,10 +51,9 @@ async fn read_output(d: &mut Device, x: &HbmTensor<bf16, Chip, op::Output>) -> V
 
 fn provided_weights(layer: usize) -> (Vec<f8e4m3>, Vec<bf16>) {
     assert_eq!(layer % 6, 5);
-    let path = std::path::PathBuf::from(
-        std::env::var("RNGD_MODEL_DIR").expect("provided model directory"),
-    )
-    .join("model.safetensors");
+    let path = furiosa_opt_gemma4::host::load::model_dir()
+        .unwrap()
+        .join("model.safetensors");
     let file = std::fs::File::open(path).unwrap();
     let map = unsafe { memmap2::Mmap::map(&file).unwrap() };
     let tensors = safetensors::SafeTensors::deserialize(&map).unwrap();
