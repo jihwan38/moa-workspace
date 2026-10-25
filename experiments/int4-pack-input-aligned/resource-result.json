@@ -1,0 +1,713 @@
+{
+  "attribution": {
+    "dense_plus_staged_physical_bytes_during_copy": 4915200,
+    "dm_staging_cycles_H4_and_H16": 3276,
+    "historical_metric_note": "Original H52085 is the timeline endpoint (LIR51982); staged H54722 and candidate19994 are LIR task estimates (timeline54825/20097). All original HOLD decisions remain; the candidate passes41668 under either metric.",
+    "live_H16_staging_bytes": 983040,
+    "meaning": "Controlled H-only mapping change removes the modeled final-store penalty; no assertion about an undocumented TDMA threshold or actual bandwidth.",
+    "only_estimated_critical_delta_cycles": 34728,
+    "physical_H16_staging_bytes": 3932160,
+    "store_cycles_H4_to_H16": [
+      35968,
+      1240
+    ]
+  },
+  "base_commit": "11e8118be33de43ef0b1cdd8ef7f2763b3c54312",
+  "gate": {
+    "candidate_timeline_also_below_same_cap": true,
+    "max_lir_task_cycles": 41668,
+    "pass_resource": true
+  },
+  "next_gate": "Root decision: strict complete H pack/raw-copy byte oracle and matched completed-call timing. Resource PASS is neither device correctness nor full-FFN speed.",
+  "no_arena_execution": true,
+  "no_standalone_elf_build": true,
+  "plan_sha256": "b6e5a17661f6fe9391e5ea8d06abf7da23496f9ddc0e0d9d89a9c17601e947d0",
+  "preserved_holds": {
+    "four_row_H": "54722 > 41668",
+    "original_H": "52085 > 50000"
+  },
+  "records": [
+    {
+      "checked_input_files": 404,
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/round2/int4-pack-input-aligned",
+        "-e",
+        "CARGO_TARGET_DIR=/round2/tail256-model/target",
+        "-e",
+        "CARGO_INCREMENTAL=0",
+        "-e",
+        "CARGO_PROFILE_DEV_DEBUG=0",
+        "-e",
+        "CARGO_NET_OFFLINE=true",
+        "moa2026-round2",
+        "cargo",
+        "check",
+        "--lib"
+      ],
+      "commit": "15a335b6c2f4ea7ec6397519f4d3b152de843659",
+      "exit_code": 0,
+      "files": {
+        "output.log": "4551ddae28d5c499dc32f35a9c1d6c696cd27c69126ba545df60d7d448fc1489",
+        "run.json": "aafbbff297a23b93be3967a315876ec4795d6768ab7cd2feb011761e95331f0c",
+        "source-hashes.json": "8a40b2f6b257359cb823b321dd46f2b19ba980615a5192e260ceeedda1afc9d7",
+        "source.diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "name": "a001-int4-pack-input-aligned-hostcheck",
+      "result": "command_succeeded"
+    },
+    {
+      "checked_input_files": 404,
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/round2/int4-pack-input-aligned",
+        "-e",
+        "CARGO_TARGET_DIR=/round2/tail256-model/target",
+        "-e",
+        "CARGO_INCREMENTAL=0",
+        "-e",
+        "CARGO_PROFILE_DEV_DEBUG=0",
+        "-e",
+        "CARGO_NET_OFFLINE=true",
+        "-e",
+        "FURIOSA_OPT_OUT_DIR=/round2/int4-pack-input-aligned/experiments/int4-pack-input-aligned/kernel-out-a002",
+        "moa2026-round2",
+        "cargo",
+        "furiosa-opt",
+        "compile",
+        "--exact",
+        "ops_int4_pack_input_aligned::pack_input",
+        "--dump-schedule",
+        "experiments/int4-pack-input-aligned/input-schedule.json"
+      ],
+      "commit": "15a335b6c2f4ea7ec6397519f4d3b152de843659",
+      "exit_code": 0,
+      "files": {
+        "output.log": "5e9f765ec3c636a194a8305b6598183340e4bab30c37399d24f8e8b38fd20804",
+        "run.json": "260fafb8313f9a2d84d55061965af47e6fd4f0db658af03841af8d1321d95db1",
+        "source-hashes.json": "8a40b2f6b257359cb823b321dd46f2b19ba980615a5192e260ceeedda1afc9d7",
+        "source.diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "name": "a002-int4-pack-input-aligned-resource",
+      "result": "command_succeeded"
+    }
+  ],
+  "resource_images": {
+    "experiments/int4-pack-input-aligned/kernel-out-a002/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_pack_input_aligned::pack_input.bin": {
+      "bytes": 42496,
+      "sha256": "212f6db15234d905cf76e887d2ef1a5c3703ffa1ca835ac66a74291b730c4974"
+    },
+    "experiments/int4-pack-input-aligned/kernel-out-a002/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_pack_input_aligned::pack_input.edf": {
+      "bytes": 49023,
+      "sha256": "a86cca24ad056530607018cc7972473dbef69255e88e94ce39510b7ae4c617d4"
+    },
+    "experiments/int4-pack-input-aligned/kernel-out-a002/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_pack_input_aligned::pack_input.hash": {
+      "bytes": 4162,
+      "sha256": "3ecdf7812f1a72fa2547ecd859ec9e195abd30faa82a66f00b8643401d4cce96"
+    }
+  },
+  "results": {
+    "four_row_H": {
+      "dram_stack": false,
+      "lir_task_cycles": 54722,
+      "operations": [
+        {
+          "begin": 0,
+          "cycles": 5708,
+          "end": 5708,
+          "id": "@1",
+          "kind": "dma.dto_s",
+          "source": "--> src/ops_int4_pack_p512.rs:47:65"
+        },
+        {
+          "begin": 5708,
+          "cycles": 7030,
+          "end": 12738,
+          "id": "@9",
+          "kind": "dma.dto_s",
+          "source": "--> src/ops_int4_pack_p512.rs:40:60"
+        },
+        {
+          "begin": 12738,
+          "cycles": 1240,
+          "end": 13978,
+          "id": "@15",
+          "kind": "rngd_cmd.tu_exec",
+          "source": "--> src/ops_int4_pack_p512.rs:59:61"
+        },
+        {
+          "begin": 13978,
+          "cycles": 3276,
+          "end": 17254,
+          "id": "@19",
+          "kind": "dma.sto_s",
+          "source": "--> src/ops_int4_pack_staged_store.rs:21:9"
+        },
+        {
+          "begin": 17254,
+          "cycles": 35968,
+          "end": 53222,
+          "id": "@24",
+          "kind": "dma.sto_d",
+          "source": "--> src/ops_int4_pack_staged_store.rs:22:5"
+        },
+        {
+          "begin": 53222,
+          "cycles": 1500,
+          "end": 54722,
+          "id": "@28",
+          "kind": "cluster_sync",
+          "source": "--> src/ops_int4_pack_staged_store.rs:22:5"
+        }
+      ],
+      "sha256": "5cc9bd416d682e8e75be553ef5b72f3e6135916796cb37ab6295312d54b43a8c",
+      "sram_allocations": [
+        {
+          "address": 7995392,
+          "buffer_type": "Sram",
+          "id": "%T8",
+          "lifetime": {
+            "begin": 13741,
+            "end": 14981
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 983040
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T6",
+          "lifetime": {
+            "begin": 6711,
+            "end": 6978
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        {
+          "address": 9043968,
+          "buffer_type": "Sram",
+          "id": "%T10",
+          "lifetime": {
+            "begin": 14981,
+            "end": 54225
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 983040
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T5",
+          "lifetime": {
+            "begin": 1003,
+            "end": 6711
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "id": "%T4",
+          "lifetime": {
+            "begin": 13741,
+            "end": 14981
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 7864320
+        },
+        {
+          "address": 7995392,
+          "buffer_type": "Sram",
+          "id": "%T9",
+          "lifetime": {
+            "begin": 14981,
+            "end": 18257
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 983040
+        },
+        {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "id": "%T3",
+          "lifetime": {
+            "begin": 6711,
+            "end": 13741
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 7864320
+        }
+      ],
+      "sram_peak_live_address_union_bytes": 8847360,
+      "timeline_last_end": 54825
+    },
+    "original_H": {
+      "dram_stack": false,
+      "lir_task_cycles": 51982,
+      "operations": [
+        {
+          "begin": 0,
+          "cycles": 5708,
+          "end": 5708,
+          "id": "@1",
+          "kind": "dma.dto_s",
+          "source": "--> src/ops_int4_pack_p512.rs:30:65"
+        },
+        {
+          "begin": 5708,
+          "cycles": 7030,
+          "end": 12738,
+          "id": "@9",
+          "kind": "dma.dto_s",
+          "source": "--> src/ops_int4_pack_p512.rs:23:60"
+        },
+        {
+          "begin": 12738,
+          "cycles": 1240,
+          "end": 13978,
+          "id": "@15",
+          "kind": "rngd_cmd.tu_exec",
+          "source": "--> src/ops_int4_pack_p512.rs:42:61"
+        },
+        {
+          "begin": 13978,
+          "cycles": 36504,
+          "end": 50482,
+          "id": "@19",
+          "kind": "dma.sto_d",
+          "source": "--> src/ops_int4_pack_p512.rs:74:5"
+        },
+        {
+          "begin": 50482,
+          "cycles": 1500,
+          "end": 51982,
+          "id": "@23",
+          "kind": "cluster_sync",
+          "source": "--> src/ops_int4_pack_p512.rs:74:5"
+        }
+      ],
+      "sha256": "9a37eb7c36bf4692476348e8528d69c23694fab27d034bd3f57561b019f0f084",
+      "sram_allocations": [
+        {
+          "address": 7995392,
+          "buffer_type": "Sram",
+          "id": "%T8",
+          "lifetime": {
+            "begin": 13741,
+            "end": 14981
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 983040
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T6",
+          "lifetime": {
+            "begin": 6711,
+            "end": 6978
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T5",
+          "lifetime": {
+            "begin": 1003,
+            "end": 6711
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "id": "%T4",
+          "lifetime": {
+            "begin": 13741,
+            "end": 14981
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 7864320
+        },
+        {
+          "address": 7995392,
+          "buffer_type": "Sram",
+          "id": "%T9",
+          "lifetime": {
+            "begin": 14981,
+            "end": 51485
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 983040
+        },
+        {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "id": "%T3",
+          "lifetime": {
+            "begin": 6711,
+            "end": 13741
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 7864320
+        }
+      ],
+      "sram_peak_live_address_union_bytes": 8847360,
+      "timeline_last_end": 52085
+    },
+    "sixteen_row_H_padded": {
+      "dram_stack": false,
+      "lir_task_cycles": 19994,
+      "operations": [
+        {
+          "begin": 0,
+          "cycles": 5708,
+          "end": 5708,
+          "id": "@1",
+          "kind": "dma.dto_s",
+          "source": "--> src/ops_int4_pack_p512.rs:47:65"
+        },
+        {
+          "begin": 5708,
+          "cycles": 7030,
+          "end": 12738,
+          "id": "@9",
+          "kind": "dma.dto_s",
+          "source": "--> src/ops_int4_pack_p512.rs:40:60"
+        },
+        {
+          "begin": 12738,
+          "cycles": 1240,
+          "end": 13978,
+          "id": "@15",
+          "kind": "rngd_cmd.tu_exec",
+          "source": "--> src/ops_int4_pack_p512.rs:59:61"
+        },
+        {
+          "begin": 13978,
+          "cycles": 3276,
+          "end": 17254,
+          "id": "@19",
+          "kind": "dma.sto_s",
+          "source": "--> src/ops_int4_pack_input_aligned.rs:29:9"
+        },
+        {
+          "begin": 17254,
+          "cycles": 1240,
+          "end": 18494,
+          "id": "@24",
+          "kind": "dma.sto_d",
+          "source": "--> src/ops_int4_pack_input_aligned.rs:30:5"
+        },
+        {
+          "begin": 18494,
+          "cycles": 1500,
+          "end": 19994,
+          "id": "@28",
+          "kind": "cluster_sync",
+          "source": "--> src/ops_int4_pack_input_aligned.rs:30:5"
+        }
+      ],
+      "sha256": "3db94e9c09f12d91d2694154095f449bd6a21db138843fe69a7a561f33bad6b2",
+      "sram_allocations": [
+        {
+          "address": 7995392,
+          "buffer_type": "Sram",
+          "id": "%T8",
+          "lifetime": {
+            "begin": 13741,
+            "end": 14981
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 983040
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T6",
+          "lifetime": {
+            "begin": 6711,
+            "end": 6978
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        {
+          "address": 9043968,
+          "buffer_type": "Sram",
+          "id": "%T10",
+          "lifetime": {
+            "begin": 14981,
+            "end": 19497
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 3932160
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T5",
+          "lifetime": {
+            "begin": 1003,
+            "end": 6711
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "id": "%T4",
+          "lifetime": {
+            "begin": 13741,
+            "end": 14981
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 7864320
+        },
+        {
+          "address": 7995392,
+          "buffer_type": "Sram",
+          "id": "%T9",
+          "lifetime": {
+            "begin": 14981,
+            "end": 18257
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 983040
+        },
+        {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "id": "%T3",
+          "lifetime": {
+            "begin": 6711,
+            "end": 13741
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 7864320
+        }
+      ],
+      "sram_peak_live_address_union_bytes": 8847360,
+      "timeline_last_end": 20097
+    },
+    "sixteen_row_L": {
+      "dram_stack": false,
+      "lir_task_cycles": 49254,
+      "operations": [
+        {
+          "begin": 0,
+          "cycles": 5708,
+          "end": 5708,
+          "id": "@1",
+          "kind": "dma.dto_s",
+          "source": "--> src/ops_int4_pack_p512.rs:47:65"
+        },
+        {
+          "begin": 5708,
+          "cycles": 26475,
+          "end": 32183,
+          "id": "@10",
+          "kind": "dma.dto_s",
+          "source": "--> src/ops_int4_pack_p512.rs:40:60"
+        },
+        {
+          "begin": 32183,
+          "cycles": 4120,
+          "end": 36303,
+          "id": "@17",
+          "kind": "rngd_cmd.tu_exec",
+          "source": "--> src/ops_int4_pack_p512.rs:59:61"
+        },
+        {
+          "begin": 36303,
+          "cycles": 7772,
+          "end": 44075,
+          "id": "@21",
+          "kind": "dma.sto_s",
+          "source": "--> src/ops_int4_pack_staged_store.rs:37:9"
+        },
+        {
+          "begin": 44075,
+          "cycles": 3679,
+          "end": 47754,
+          "id": "@26",
+          "kind": "dma.sto_d",
+          "source": "--> src/ops_int4_pack_staged_store.rs:38:5"
+        },
+        {
+          "begin": 47754,
+          "cycles": 1500,
+          "end": 49254,
+          "id": "@30",
+          "kind": "cluster_sync",
+          "source": "--> src/ops_int4_pack_staged_store.rs:38:5"
+        }
+      ],
+      "sha256": "5d915bd54cf6331d33f877d3ba83cbf2afc5c0446cf4710bf2c9314dadc3b194",
+      "sram_allocations": [
+        {
+          "address": 33554432,
+          "buffer_type": "Sram",
+          "id": "%T8",
+          "lifetime": {
+            "begin": 33192,
+            "end": 37312
+          },
+          "physical_pages": [
+            2
+          ],
+          "size": 3932160
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T6",
+          "lifetime": {
+            "begin": 6711,
+            "end": 6978
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        {
+          "address": 37486592,
+          "buffer_type": "Sram",
+          "id": "%T10",
+          "lifetime": {
+            "begin": 37312,
+            "end": 48763
+          },
+          "physical_pages": [
+            2
+          ],
+          "size": 3932160
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T5",
+          "lifetime": {
+            "begin": 1003,
+            "end": 6711
+          },
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "id": "%T4",
+          "lifetime": {
+            "begin": 33189,
+            "end": 37312
+          },
+          "physical_pages": [
+            0,
+            1
+          ],
+          "size": 31457280
+        },
+        {
+          "address": 33554432,
+          "buffer_type": "Sram",
+          "id": "%T9",
+          "lifetime": {
+            "begin": 37312,
+            "end": 45084
+          },
+          "physical_pages": [
+            2
+          ],
+          "size": 3932160
+        },
+        {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "id": "%T3",
+          "lifetime": {
+            "begin": 6714,
+            "end": 33189
+          },
+          "physical_pages": [
+            0,
+            1
+          ],
+          "size": 31457280
+        }
+      ],
+      "sram_peak_live_address_union_bytes": 35389440,
+      "timeline_last_end": 49363
+    }
+  },
+  "review": {
+    "agent": "/root/e2e_evidence",
+    "result": "PASS",
+    "scope": "Source-only leader/padding/row coverage; actual padding writes and raw bytes remain ungated.",
+    "source": "15a335b6"
+  },
+  "source_commit": "15a335b6c2f4ea7ec6397519f4d3b152de843659",
+  "unchanged_base_files": {
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+    "rust-toolchain.toml": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d",
+    "src/bin/test_int4_pack_p512.rs": "946863859f63639728d049c16c442f54667b42a009b2093ff242f6421a3db3b6",
+    "src/bin/test_int4_pack_staged_store.rs": "5dd65e81bb1967f7a2ff333d2a0b0d7c11c7d16a28b65535184d864dd2d9d946",
+    "src/i4_p512_raw_adapter.rs": "94d5acfdf03f182ab1e5a0091ec026925ab2015b5162c040d743067912e22aae",
+    "src/ops_int4_pack_p512.rs": "bb8712628ee65de06d694ec63fa17e056a0b75fe9c68f02b477e066dcc00cad4",
+    "src/ops_int4_pack_staged_store.rs": "f9e8347a833e630e9dbf27666213788417bd15bbc656661bd6f0ab37b0d01e11"
+  }
+}
