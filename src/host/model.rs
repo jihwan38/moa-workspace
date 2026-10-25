@@ -55,8 +55,8 @@ pub struct Sequence<'a> {
     pub blocks: &'a Blocks,
 }
 
-/// q021 composition research: only explicit per-call LM diagnostics are enabled.
-const B16_LM_FP8_ENABLED: bool = false;
+/// q021 quality candidate: startup FP8 LM shadow, canonical B16 Automatic only.
+const B16_LM_FP8_ENABLED: bool = true;
 
 pub struct Model {
     weights: load::Weights,
