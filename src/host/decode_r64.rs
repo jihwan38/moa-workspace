@@ -424,7 +424,7 @@ impl Decode64 {
         }
         self.record_profile("r64.sliding.attention", &mut profile_mark);
         launch(
-            crate::ops_output_r64_parallel_gather::project_sliding_output_batch,
+            crate::ops_output_r64_trf32::project_sliding_output_batch,
             (
                 device,
                 &self.attn_s,
@@ -565,7 +565,7 @@ impl Decode64 {
         .await?;
         self.record_profile("r64.full.attention", &mut profile_mark);
         launch(
-            crate::ops_output_r64_parallel_gather::project_full_output_batch,
+            crate::ops_output_r64_trf32::project_full_output_batch,
             (
                 device,
                 &self.divided_f,
