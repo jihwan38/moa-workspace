@@ -166,12 +166,12 @@ fn load_projected(device:&mut Device,input:&HbmTensor<bf16,Chip,Output>,group:us
     input.view().to_dm_view(&mut device.tdma,
         target.view_mut().tile::<m![Q4],1,m![Q4=1#{!}4,P128%2,H%960]>(group));
 }
-fn load_residual(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,H]>,group:usize,
+pub(crate) fn load_residual(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,H]>,group:usize,
     target:&mut DmTensor<bf16,Chip,Cluster,Shards,m![Q4,P128%2,H%480]>) {
     input.view().to_dm_view(&mut device.tdma,
         target.view_mut().tile::<m![Q4],1,m![Q4=1#{!}4,P128%2,H%480]>(group));
 }
-fn store_residual(device:&mut Device,input:&DmTensor<bf16,Chip,Cluster,Shards,m![Q4,P128%2,H%480]>,group:usize,
+pub(crate) fn store_residual(device:&mut Device,input:&DmTensor<bf16,Chip,Cluster,Shards,m![Q4,P128%2,H%480]>,group:usize,
     output:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
     input.view().tile::<m![Q4],1,m![Q4=1#4,P128%2,H%480]>(group)
         .to_hbm_view(&mut device.tdma,output.view_mut());
