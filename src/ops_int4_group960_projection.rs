@@ -49,7 +49,7 @@ pub fn project_upgate(
             .fetch::<m![P512%256=128%8/4],m![H%960]>()
             .switch::<UpParts,m![P512%256=128%8,P512%256=128/8]>(SwitchConfig::CustomBroadcast{ring_size:256})
             .collect::<m![P512%256=128%8,P512%256=128/8,H/64%15],m![H%64]>().to_trf();
-        let result: DmTensor<bf16,Chip,ProjectionCluster,UpRows,m![L%240,P512%256=128]> = device.main.begin(weight.view())
+        let reduced: DmTensor<f32,Chip,ProjectionCluster,UpRows,m![L%240,P512%256=128]> = device.main.begin(weight.view())
             .fetch::<m![L%240,H/64%15],m![H%64]>()
             .collect::<m![L%240,H/64%15],m![H%64]>()
             .contract_outer::<m![L%240,H/64%15,P512%256=128/8],m![H%64],_,_,_>(&x)
@@ -60,8 +60,15 @@ pub fn project_upgate(
             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&block)
             .vector_widen_concat::<m![L%240,P512%256=128/8],m![P512%256=128%8]>()
             .vector_inter_slice_reduce::<UpRows,m![L%240,P512%256=128/8]>(InterSliceReduceOpF32::Add)
+            .vector_final().commit_trim::<m![P512%256=128%8]>().commit();
+        // Intra-first reduction ends the SDK vector pass. Retain the real F32
+        // DM boundary instead of bypassing that stage constraint.
+        let result: DmTensor<bf16,Chip,ProjectionCluster,UpRows,m![L%240,P512%256=128]> = device.main.begin(reduced.view())
+            .fetch::<m![L%240,P512%256=128/8],m![P512%256=128%8]>()
+            .collect::<m![L%240,P512%256=128/8],m![P512%256=128%8]>()
+            .vector_init().vector_intra_slice_tag(TagMode::Zero)
             .vector_narrow_split::<m![L%240,P512%256=128/4],m![P512%256=128%4]>()
-            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&xs)
+            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)
             .vector_widen_concat::<m![L%240,P512%256=128/8],m![P512%256=128%8]>()
             .vector_final().cast::<bf16,m![P512%256=128%8#16]>()
             .commit_trim::<m![P512%256=128%8]>().commit();
@@ -107,7 +114,7 @@ pub fn project_down(
         let x: TrfTensor<i4,Chip,Cluster,DownParts,m![P512%256=128%8],m![P512%256=128/8,L%960]> = device.sub.begin(input.view())
             .fetch::<m![P512%256=128%8,P512%256=128/8,L/64%15],m![L%64]>()
             .collect::<m![P512%256=128%8,P512%256=128/8,L/64%15],m![L%64]>().to_trf();
-        let result: DmTensor<bf16,Chip,Cluster,DownRows,m![H%240,P512%256=128]> = device.main.begin(weight.view())
+        let reduced: DmTensor<f32,Chip,Cluster,DownRows,m![H%240,P512%256=128]> = device.main.begin(weight.view())
             .fetch::<m![H%240,L/64%15],m![L%64]>()
             .collect::<m![H%240,L/64%15],m![L%64]>()
             .contract_outer::<m![H%240,L/64%15,P512%256=128/8],m![L%64],_,_,_>(&x)
@@ -118,8 +125,13 @@ pub fn project_down(
             .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&block)
             .vector_widen_concat::<m![H%240,P512%256=128/8],m![P512%256=128%8]>()
             .vector_inter_slice_reduce::<DownRows,m![H%240,P512%256=128/8]>(InterSliceReduceOpF32::Add)
+            .vector_final().commit_trim::<m![P512%256=128%8]>().commit();
+        let result: DmTensor<bf16,Chip,Cluster,DownRows,m![H%240,P512%256=128]> = device.main.begin(reduced.view())
+            .fetch::<m![H%240,P512%256=128/8],m![P512%256=128%8]>()
+            .collect::<m![H%240,P512%256=128/8],m![P512%256=128%8]>()
+            .vector_init().vector_intra_slice_tag(TagMode::Zero)
             .vector_narrow_split::<m![H%240,P512%256=128/4],m![P512%256=128%4]>()
-            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&xs)
+            .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)
             .vector_widen_concat::<m![H%240,P512%256=128/8],m![P512%256=128%8]>()
             .vector_final().cast::<bf16,m![P512%256=128%8#16]>()
             .commit_trim::<m![P512%256=128%8]>().commit();
