@@ -242,3 +242,4 @@ pub mod ops_media_rows;
 pub mod ops_audio_batch;
 
 pub mod ops_vision_trf;
+pub mod ops_prefill_head_attn_commit;
