@@ -78,7 +78,7 @@ fn project_sliding_one(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,Ns,
 
     let mut partial:DmTensor<bf16,Chip,Cluster,Parts,m![H%64,P128%64]>=DmTensor::new();
     for chunk in 0..2 {
-        let input:DmTensor<bf16,Chip,Cluster,m![Qs/1024,P128%8,P128/8%4,1#2],m![Qs%1024]>=flat
+        let input:DmTensor<bf16,Chip,Cluster,m![Qs/1024,1#2,P128%8,P128/8%4],m![Qs%1024]>=flat
             .tile::<m![P128/32%2],1,m![P128/64,1#2,P128%32,Qs]>(chunk).to_dm(&mut device.tdma);
         let x:TrfTensor<bf16,Chip,Cluster,Parts,m![P128%8],m![P128/8%4,Qs%1024]>=device.sub
             .begin(input.view())
