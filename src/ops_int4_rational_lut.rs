@@ -50,7 +50,7 @@ pub fn quantize_row(
         indices.to_dm(&mut device.tdma);
     let packed: DmTensor<i32, Chip, Cluster, m![1 # 256], m![B % 8]> = device.main.begin(records.view())
         .fetch::<m![B % 8], m![1 # 8]>().collect::<m![B % 8], m![1 # 8]>()
-        .transpose::<m![1], m![B % 8]>().commit_trim::<m![B % 8]>().commit();
+        .transpose::<m![B % 8 / 2], m![B % 2 # 8]>().commit_trim::<m![B % 2]>().commit();
     let positions: SpmTensor<i32, Chip, Cluster, m![1 # 4], m![B % 8]> = packed.to_spm(&mut device.tdma);
     let selected: DmTensor<i32, Chip, Cluster, Rows, m![1 # 8]> = table
         .gather::<m![Mantissa], m![1 # 8]>()
