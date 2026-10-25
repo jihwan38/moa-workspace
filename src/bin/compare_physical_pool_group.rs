@@ -145,5 +145,5 @@ async fn main()->Result<()> {
   println!("PHYSICAL_POOL_GROUP_PASS case={case} round={round} control_ms={:.6} candidate_ms={:.6}",ms[0],ms[1]);
  }
  snapshot(&d,"all_model_routes_complete")?;
- println!("PASS physical32 same-c079 paired owners: all_vocab/cache/reset/B16interleaves; no old64-model equivalence inferred");Ok(())
+ println!("PASS physical64 same-c079 paired owners: all_vocab/cache/reset/B16interleaves; no old64-model equivalence inferred");Ok(())
 }
