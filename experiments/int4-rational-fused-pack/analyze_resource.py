@@ -3,6 +3,7 @@
 from pathlib import Path
 import hashlib
 import json
+import subprocess
 
 EXP = Path(__file__).resolve().parent
 TREE = EXP.parents[1]
@@ -33,8 +34,10 @@ def analyze(width, name, run_name, output_dir):
     assert run["result"] == "command_succeeded" and run["exit_code"] == 0
     assert run["fresh_package"]["contents_changed"] is False
     for relative, expected in hashes.items():
-        assert sha(TREE / relative) == expected, relative
-    actual_sources = {str(p.relative_to(TREE)) for p in (TREE / "src").rglob("*") if p.is_file()}
+        if sha(TREE / relative) != expected:
+            frozen = subprocess.check_output(["git", "-C", str(TREE), "show", f"{run['commit']}:{relative}"])
+            assert hashlib.sha256(frozen).hexdigest() == expected, relative
+    actual_sources = set(subprocess.check_output(["git", "-C", str(TREE), "ls-tree", "-r", "--name-only", run["commit"], "src"]).decode().splitlines())
     assert actual_sources == {p for p in hashes if p.startswith("src/")}
     records = [dict(tensor=tensor, **record)
                for tensor, records in timeline["tensors"].items() for record in records]
@@ -74,9 +77,13 @@ def analyze(width, name, run_name, output_dir):
     images = sorted((EXP / output_dir).rglob("*.bin"))
     assert len(images) == 1
     plan = json.loads((EXP / "plan.json").read_text())
-    baseline_key = "input" if name == "input" else "hidden_staged_pack"
-    baseline = plan["resource_gate"]["baseline_separate_cycles"][baseline_key]
-    limit = plan["resource_gate"]["maximum_cycles"][name]
+    if name == "aligned-input":
+        extension = json.loads((EXP / "aligned-input-plan.json").read_text())
+        baseline, limit = extension["gate"]["baseline_cycles"], extension["gate"]["complete_resource_max_cycles"]
+    else:
+        baseline_key = "input" if name == "input" else "hidden_staged_pack"
+        baseline = plan["resource_gate"]["baseline_separate_cycles"][baseline_key]
+        limit = plan["resource_gate"]["maximum_cycles"][name]
     return {
         "result": "RESOURCE_PASS_ONLY" if total <= limit else "RESOURCE_HOLD",
         "rows": 512, "width": width, "estimated_total_cycles": total,
@@ -91,6 +98,7 @@ def analyze(width, name, run_name, output_dir):
         "dma_operations": operators,
         "source_commit": run["commit"], "source_input_count": len(hashes),
         "source_inputs_verified": True,
+        "source_verification_scope": "Captured inputs match current bytes or exact captured Git commit; ignored original lock must match current frozen bytes. Source file set matches captured commit.",
         "run": str(run_dir.relative_to(ROUND2)),
         "raw_hashes": {p: sha(run_dir / p) for p in ["run.json", "source-hashes.json", "output.log"]},
         "schedule_sha256": sha(schedule_path),
@@ -107,8 +115,9 @@ if __name__ == "__main__":
         "host_check": {"run": str(check_dir.relative_to(ROUND2)), "source_commit": check["commit"], "run_sha256": sha(check_dir / "run.json")},
         "input": analyze(3840, "input", "a002-rational-fused-pack-input-resource", "kernel-out-a002-input"),
         "hidden": analyze(15360, "hidden", "a003-rational-fused-pack-hidden-resource", "kernel-out-a003-hidden"),
+        "aligned_input": analyze(3840, "aligned-input", "a004-rational-fused-pack-aligned-resource", "kernel-out-a004-aligned"),
         "source_review": {"reviewer":"root", "commit":"c38b773e", "result":"PASS", "scope":"Quantization prefix/scale-store and pack-body extraction; runtime equivalence remains separate"},
         "remaining_gates": ["Separately authorized executable build", "Strict packed-code/scalebit equivalence and post-reuse/immutability", "Same-job complete quantize+current-pack actual comparison", "Any consumer/GEMM/FFN integration is separate"],
     }
     (EXP / "resource-result.json").write_text(json.dumps(result, indent=2) + "\n")
-    print(json.dumps({name: {key: result[name][key] for key in ["estimated_total_cycles", "estimated_reduction_fraction", "result"]} for name in ["input", "hidden"]}, indent=2))
+    print(json.dumps({name: {key: result[name][key] for key in ["estimated_total_cycles", "estimated_reduction_fraction", "result"]} for name in ["input", "hidden", "aligned_input"]}, indent=2))
