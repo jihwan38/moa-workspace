@@ -234,6 +234,18 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_group_with_media_batch(device, sequences, workspace, super::prefill::wide::MEDIA_BATCH_ENABLED).await
+    }
+
+    /// Per-call media preparation choice, applied before any embedding work.
+    /// No selector or borrowed media reference survives preparation.
+    pub async fn start_prefill_group_with_media_batch(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+        batched_media: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
@@ -252,7 +264,7 @@ impl Model {
             self.group
                 .as_mut()
                 .unwrap()
-                .prepare(device, &self.weights, sequences, &mut self.prefill)
+                .prepare(device, &self.weights, sequences, &mut self.prefill, batched_media)
                 .await?,
         );
         Ok(())
@@ -412,6 +424,15 @@ impl Model {
     pub async fn start_prefill_pair512(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_pair512_with_media_batch(device, sequences, workspace, super::prefill::wide::MEDIA_BATCH_ENABLED).await
+    }
+
+    /// Per-call media preparation choice, applied before any embedding work.
+    /// No selector or borrowed media reference survives preparation.
+    pub async fn start_prefill_pair512_with_media_batch(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+        batched_media: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
@@ -425,7 +446,7 @@ impl Model {
         }
         self.prepare_group_scratch(device).await?;
         self.active_prompt384128 = Some(self.group.as_mut().unwrap()
-            .prepare_prompt_pair512(device, &self.weights, sequences, &mut self.prefill).await?);
+            .prepare_prompt_pair512(device, &self.weights, sequences, &mut self.prefill, batched_media).await?);
         Ok(())
     }
 
@@ -486,6 +507,18 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill512_with_media_batch(device, sequence, workspace, super::prefill::wide::MEDIA_BATCH_ENABLED).await
+    }
+
+    /// Per-call media preparation choice, applied before any embedding work.
+    /// No selector or borrowed media reference survives preparation.
+    pub async fn start_prefill512_with_media_batch(
+        &mut self,
+        device: &mut Device,
+        sequence: &Sequence<'_>,
+        workspace: &mut Workspace,
+        batched_media: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
@@ -497,7 +530,7 @@ impl Model {
         self.prepare_group_scratch(device).await?;
         self.active_prefill = Some(ActivePrefill::Prompt512(
             self.group.as_mut().unwrap().prepare_prompt512(
-                device, &self.weights, sequence, &mut self.prefill,
+                device, &self.weights, sequence, &mut self.prefill, batched_media,
             ).await?,
         ));
         Ok(())
@@ -654,6 +687,18 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_with_media_batch(device, sequence, workspace, super::prefill::wide::MEDIA_BATCH_ENABLED).await
+    }
+
+    /// Per-call media preparation choice, applied before any embedding work.
+    /// No selector or borrowed media reference survives preparation.
+    pub async fn start_prefill_with_media_batch(
+        &mut self,
+        device: &mut Device,
+        sequence: &Sequence<'_>,
+        workspace: &mut Workspace,
+        batched_media: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
@@ -668,12 +713,13 @@ impl Model {
         self.active_prefill = Some(if WidePrefill::supports(sequence) {
             ActivePrefill::Wide(
                 self.wide
-                    .prepare(
+                    .prepare_with_media_batch(
                         device,
                         &self.weights,
                         sequence,
                         &mut self.prefill,
                         workspace.is_canonical(),
+                        batched_media,
                     )
                     .await?,
             )
@@ -685,6 +731,22 @@ impl Model {
             )
         });
         Ok(())
+    }
+
+    /// Diagnostic full P128 embedding snapshots: scalar control, batched candidate.
+    /// Candidate runs first; neither preparation executes transformer layers or KV writes.
+    pub async fn compare_media_prepare(
+        &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
+    ) -> Result<(Vec<bf16>, Vec<bf16>), Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() { return Err("another prefill is in progress".into()); }
+        validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+        validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
+        if !WidePrefill::supports(sequence) { return Err("media snapshot requires supported P128 preparation".into()); }
+        self.wide.prepare_with_media_batch(device, &self.weights, sequence, &mut self.prefill, workspace.is_canonical(), true).await?;
+        let candidate = self.wide.embedding_snapshot(device).await?;
+        self.wide.prepare_with_media_batch(device, &self.weights, sequence, &mut self.prefill, workspace.is_canonical(), false).await?;
+        let control = self.wide.embedding_snapshot(device).await?;
+        Ok((control, candidate))
     }
 
     /// Run one complete layer. A result is returned only after all layers and

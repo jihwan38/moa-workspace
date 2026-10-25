@@ -184,11 +184,12 @@ impl GroupPrefill {
         weights: &Weights,
         sequences: &[Sequence<'_>],
         scratch: &mut Prefill,
+        batched_media: bool,
     ) -> Result<PreparedGroup> {
         if !Self::supports(sequences) {
             return Err("grouped prefill needs four independent page-local128-token chunks".into());
         }
-        self.prepare_rows(device, weights, sequences, scratch).await
+        self.prepare_rows(device, weights, sequences, scratch, batched_media).await
     }
 
     pub(crate) fn supports_prompt512(sequence: &Sequence<'_>) -> bool {
@@ -209,6 +210,7 @@ impl GroupPrefill {
         weights: &Weights,
         sequence: &Sequence<'_>,
         scratch: &mut Prefill,
+        batched_media: bool,
     ) -> Result<PreparedPrompt512> {
         if !Self::supports_prompt512(sequence) {
             return Err(
@@ -226,7 +228,7 @@ impl GroupPrefill {
             })
             .collect();
         Ok(PreparedPrompt512 {
-            chunks: self.prepare_rows(device, weights, &chunks, scratch).await?,
+            chunks: self.prepare_rows(device, weights, &chunks, scratch, batched_media).await?,
         })
     }
 
@@ -257,11 +259,12 @@ impl GroupPrefill {
         weights: &Weights,
         sequences: &[Sequence<'_>],
         scratch: &mut Prefill,
+        batched_media: bool,
     ) -> Result<PreparedPrompt384128> {
         if !Self::supports_prompt384128(sequences) {
             return Err("Prompt384128 needs independent384/128 ranges aligned to128 with final-only logits".into());
         }
-        self.prepare_prompt_pair512(device, weights, sequences, scratch).await
+        self.prepare_prompt_pair512(device, weights, sequences, scratch, batched_media).await
     }
 
     pub(crate) async fn prepare_prompt_pair512(
@@ -270,6 +273,7 @@ impl GroupPrefill {
         weights: &Weights,
         sequences: &[Sequence<'_>],
         scratch: &mut Prefill,
+        batched_media: bool,
     ) -> Result<PreparedPrompt384128> {
         if !Self::supports_prompt_pair512(sequences) {
             return Err("PromptPair512 needs two independent aligned128/256/384 ranges totaling512, with final-only logits".into());
@@ -278,7 +282,7 @@ impl GroupPrefill {
         let second_owner_row = sequences[0].inputs.len() / P128::SIZE;
         debug_assert!(chunks.iter().all(WidePrefill::supports));
         Ok(PreparedPrompt384128 {
-            chunks: self.prepare_rows(device, weights, &chunks, scratch).await?,
+            chunks: self.prepare_rows(device, weights, &chunks, scratch, batched_media).await?,
             second_owner_row,
             final_rows: [second_owner_row - 1, 3],
         })
@@ -291,6 +295,7 @@ impl GroupPrefill {
         weights: &Weights,
         sequences: &[Sequence<'_>],
         scratch: &mut Prefill,
+        batched_media: bool,
     ) -> Result<PreparedGroup> {
         debug_assert_eq!(sequences.len(), 4);
         Ok(PreparedGroup {
@@ -303,16 +308,16 @@ impl GroupPrefill {
             blocked_residual: true,
             states: [
                 self.rows[0]
-                    .prepare(device, weights, &sequences[0], scratch, true)
+                    .prepare_with_media_batch(device, weights, &sequences[0], scratch, true, batched_media)
                     .await?,
                 self.rows[1]
-                    .prepare(device, weights, &sequences[1], scratch, true)
+                    .prepare_with_media_batch(device, weights, &sequences[1], scratch, true, batched_media)
                     .await?,
                 self.rows[2]
-                    .prepare(device, weights, &sequences[2], scratch, true)
+                    .prepare_with_media_batch(device, weights, &sequences[2], scratch, true, batched_media)
                     .await?,
                 self.rows[3]
-                    .prepare(device, weights, &sequences[3], scratch, true)
+                    .prepare_with_media_batch(device, weights, &sequences[3], scratch, true, batched_media)
                     .await?,
             ],
         })
