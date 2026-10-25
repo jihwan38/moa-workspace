@@ -75,6 +75,18 @@ impl PreparedTail256 {
         if self.owners == 1 { 1 } else { owner }
     }
 }
+/// Three real chronological quarters; the fourth tensor quarter has no owner.
+pub(crate) struct PreparedTail384 {
+    states: [PreparedWide; 3],
+    owner_first_rows: Vec<usize>,
+    owner_final_rows: Vec<usize>,
+}
+impl PreparedTail384 {
+    pub(crate) fn blocks(&self) -> Vec<&runtime::Blocks> {
+        self.owner_first_rows.iter().map(|&row| &self.states[row].blocks).collect()
+    }
+    pub(crate) fn owners(&self) -> usize { self.owner_first_rows.len() }
+}
 #[derive(Clone, Copy)]
 struct GroupExecution {
     fused_norms: bool, blocked_output: bool, shard_quant: bool,
@@ -417,6 +429,65 @@ impl GroupPrefill {
         self.rows[row].finish(device,weights,&state.states[row],ws,scratch).await
     }
 
+    pub(crate) fn supports_tail384(sequences: &[Sequence<'_>]) -> bool {
+        (1..=3).contains(&sequences.len())
+            && sequences.iter().all(|s| matches!(s.inputs.len(),128|256|384)
+                && s.start_position % 128 == 0
+                && s.start_position.checked_add(s.inputs.len()).is_some()
+                && s.inputs[..s.inputs.len()-1].iter().all(|input| !input.logits))
+            && sequences.iter().map(|s|s.inputs.len()).sum::<usize>() == 384
+            && crate::host::request_pool::independent_sequences(sequences)
+    }
+
+    /// Validate real reservations before deriving repeated metadata privately.
+    /// The original four-independent-owner constructor keeps its separate guard.
+    pub(crate) async fn prepare_tail384(
+        &mut self, device:&mut Device, weights:&Weights, sequences:&[Sequence<'_>],
+        scratch:&mut Prefill, batched_media:bool, padding:bf16,
+    ) -> Result<PreparedTail384> {
+        if !Self::supports_tail384(sequences) {
+            return Err("Tail384 needs aligned independent owner ranges totaling384".into());
+        }
+        let mut owner_first_rows=Vec::with_capacity(sequences.len());
+        let mut owner_final_rows=Vec::with_capacity(sequences.len());
+        let mut chunks=Vec::with_capacity(3);
+        for sequence in sequences {
+            owner_first_rows.push(chunks.len());
+            for (i,inputs) in sequence.inputs.chunks_exact(P128::SIZE).enumerate() {
+                chunks.push(Sequence { inputs, start_position:sequence.start_position+i*P128::SIZE,
+                    blocks:sequence.blocks });
+            }
+            owner_final_rows.push(chunks.len()-1);
+        }
+        debug_assert_eq!(chunks.len(),3);
+        let padding_row=&mut self.rows[3];
+        padding_row.x=HostTensor::<bf16,m![P128,H]>::from_vec(
+            std::iter::repeat_n(padding,P128::SIZE*H::SIZE)).to_hbm(&mut device.pdma).await?;
+        padding_row.attn_s=HostTensor::<bf16,m![P128,Ns,Gs,Ds]>::from_vec(
+            std::iter::repeat_n(padding,P128::SIZE*Ns::SIZE*Gs::SIZE*Ds::SIZE)).to_hbm(&mut device.pdma).await?;
+        padding_row.attn_f=HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
+            std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
+        Ok(PreparedTail384 { owner_first_rows, owner_final_rows, states:[
+            self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
+            self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
+            self.rows[2].prepare_with_media_batch(device,weights,&chunks[2],scratch,true,batched_media).await?,
+        ]})
+    }
+    pub(crate) async fn advance_tail384(
+        &mut self, device:&mut Device, weights:&Weights, state:&mut PreparedTail384,
+        ws:&mut Workspace, scratch:&mut Prefill,
+    ) -> Result<bool> {
+        self.advance_rows(device,weights,&mut state.states,GroupExecution::production(),ws,scratch).await
+    }
+    pub(crate) async fn finish_tail384(
+        &mut self, owner:usize, device:&mut Device, weights:&Weights,
+        state:&PreparedTail384, ws:&mut Workspace, scratch:&mut Prefill,
+    ) -> Result<()> {
+        let row=state.owner_final_rows[owner];
+        ws.blocks.clone_from(&state.states[row].blocks);
+        self.rows[row].finish(device,weights,&state.states[row],ws,scratch).await
+    }
+
     pub(crate) async fn advance_prompt512(
         &mut self,
         device: &mut Device,
@@ -477,7 +548,7 @@ impl GroupPrefill {
         &mut self, device:&mut Device, weights:&Weights, states:&mut [PreparedWide],
         execution:GroupExecution, ws:&mut Workspace, scratch:&mut Prefill,
     ) -> Result<bool> {
-        debug_assert!(matches!(states.len(),2|4));
+        debug_assert!(matches!(states.len(),2|3|4));
         let index = states[0].next_layer;
         if states.iter().any(|s| s.next_layer != index) {
             return Err("grouped layer cursors diverged".into());
@@ -1018,5 +1089,53 @@ mod tail256_tests {
         a[127].logits=true;
         assert!(!GroupPrefill::supports_tail256(&[Sequence{inputs:&a,start_position:0,blocks:&blocks}]));
         assert!(!GroupPrefill::supports_tail256(&[]));
+    }
+}
+
+#[cfg(test)]
+mod tail384_tests {
+    use super::*;
+    use crate::host::model::Input;
+    fn inputs(count:usize)->Vec<Input<'static>> {
+        (0..count).map(|i|Input{token:i+2,soft:None,logits:i+1==count,image:None,audio:None}).collect()
+    }
+    #[test]
+    fn accepts_only_three_real_quarters_and_keeps_four_owner_guard() {
+        let blocks:Vec<_>=(0..4).map(|i|runtime::Blocks{sliding:7+i,full:vec![31-i,63-i,95-i,127-i,159-i]}).collect();
+        for counts in [vec![384],vec![256,128],vec![128,256],vec![128,128,128]] {
+            let rows:Vec<_>=counts.iter().map(|&n|inputs(n)).collect();
+            for start in [0,256,896,1664,1920] {
+                let sequences:Vec<_>=rows.iter().zip(&blocks).map(|(inputs,blocks)|Sequence{inputs,start_position:start,blocks}).collect();
+                assert!(GroupPrefill::supports_tail384(&sequences));
+                assert!(!GroupPrefill::supports(&sequences));
+                assert!(!GroupPrefill::supports_tail256(&sequences));
+            }
+        }
+        let row=inputs(128);
+        let quad:Vec<_>=blocks.iter().map(|blocks|Sequence{inputs:&row,start_position:0,blocks}).collect();
+        assert!(GroupPrefill::supports(&quad));assert!(!GroupPrefill::supports_tail384(&quad));
+    }
+    #[test]
+    fn refuses_aliases_before_deriving_repeated_owner_metadata() {
+        let row=inputs(384);let a=runtime::Blocks{sliding:7,full:vec![255,17,23,11,8]};
+        let b=runtime::Blocks{sliding:9,full:vec![254,16,22,10,6]};
+        for alias in [runtime::Blocks{sliding:a.sliding,full:b.full.clone()},runtime::Blocks{sliding:b.sliding,full:a.full.clone()}] {
+            assert!(!GroupPrefill::supports_tail384(&[
+                Sequence{inputs:&row[..256],start_position:896,blocks:&a},
+                Sequence{inputs:&row[256..],start_position:1920,blocks:&alias}]));
+        }
+        // Repeated quarters may only be created inside the one-owner constructor.
+        let repeated:Vec<_>=row.chunks_exact(128).enumerate().map(|(i,inputs)|Sequence{inputs,start_position:128*i,blocks:&a}).collect();
+        assert!(!GroupPrefill::supports_tail384(&repeated));
+    }
+    #[test]
+    fn rejects_short_unaligned_overflow_and_early_logits() {
+        let mut row=inputs(384);let blocks=runtime::Blocks{sliding:7,full:vec![255]};
+        for (count,start) in [(128,0),(256,0),(383,0),(384,1),(384,usize::MAX-127)] {
+            assert!(!GroupPrefill::supports_tail384(&[Sequence{inputs:&row[..count],start_position:start,blocks:&blocks}]));
+        }
+        row[255].logits=true;
+        assert!(!GroupPrefill::supports_tail384(&[Sequence{inputs:&row,start_position:0,blocks:&blocks}]));
+        assert!(!GroupPrefill::supports_tail384(&[]));
     }
 }

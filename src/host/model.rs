@@ -5,7 +5,7 @@ use crate::{Chip, axes::{B, W}};
 use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
-use super::prefill::wide::group::{GroupPrefill, PreparedGroup, PreparedPrompt512, PreparedPrompt384128, PreparedTail256};
+use super::prefill::wide::group::{GroupPrefill, PreparedGroup, PreparedPrompt512, PreparedPrompt384128, PreparedTail256, PreparedTail384};
 use super::prefill::{
     Prefill, PreparedNarrow,
     wide::{PreparedWide, WidePrefill},
@@ -65,6 +65,7 @@ pub struct Model {
     active_group: Option<PreparedGroup>,
     active_prompt384128: Option<PreparedPrompt384128>,
     active_tail256: Option<PreparedTail256>,
+    active_tail384: Option<PreparedTail384>,
     active_prefill: Option<ActivePrefill>,
     logits: Vec<Logits>,
 }
@@ -188,6 +189,7 @@ impl Model {
             active_group: None,
             active_prompt384128: None,
             active_tail256: None,
+            active_tail384: None,
             active_prefill: None,
             logits,
         })
@@ -201,6 +203,7 @@ impl Model {
             .or_else(|| self.active_group.as_ref().map(|state|state.blocks()[0].sliding))
             .or_else(|| self.active_prompt384128.as_ref().map(|state|state.blocks()[0].sliding))
             .or_else(|| self.active_tail256.as_ref().map(|state|state.blocks()[0].sliding))
+            .or_else(|| self.active_tail384.as_ref().map(|state|state.blocks()[0].sliding))
     }
 
     /// Every request allocation held by an active prompt scheduling quantum.
@@ -222,6 +225,7 @@ impl Model {
             blocks.extend(active.blocks());
         }
         if let Some(active) = &self.active_tail256 { blocks.extend(active.blocks()); }
+        if let Some(active) = &self.active_tail384 { blocks.extend(active.blocks()); }
         blocks
     }
     /// Allocate the optional grouped prompt workspace before serving requests.
@@ -482,6 +486,54 @@ impl Model {
         }
         self.active_tail256=None;
         if let Some(timing) = timing.as_mut() { timing.finish = Some(mark.unwrap().elapsed()); }
+        Ok(Some(&self.logits[..owners]))
+    }
+
+    /// Model-only384-token checkpoint over one to three independently owned ranges.
+    /// The fourth tensor quarter is padding; only real states attend or commit KV.
+    pub async fn start_prefill_tail384(
+        &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_tail384_with_padding(device,sequences,workspace,bf16::from_bits(0)).await
+    }
+    /// Scoped padding-independence diagnostic, with no persistent model selector.
+    pub async fn start_prefill_tail384_with_padding(
+        &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
+        padding:bf16,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() { return Err("another prefill is in progress".into()); }
+        if !workspace.is_canonical() || sequences.len()>self.logits.len()
+            || !GroupPrefill::supports_tail384(sequences) {
+            return Err("Tail384 needs canonical independent owner ranges totaling384".into());
+        }
+        for sequence in sequences {
+            validate_sequence(sequence,workspace.capacity(),workspace.requests())?;
+            validate_physical_pages(sequence.blocks,workspace.physical_full_pages())?;
+        }
+        self.prepare_group_scratch(device).await?;
+        self.active_tail384=Some(self.group.as_mut().unwrap().prepare_tail384(
+            device,&self.weights,sequences,&mut self.prefill,
+            super::prefill::wide::MEDIA_BATCH_ENABLED,padding).await?);
+        Ok(())
+    }
+    /// One complete layer per call. Failed/cancelled in-flight calls require
+    /// discarding Model/Workspace, exactly like the other resumable prompt APIs.
+    pub async fn advance_prefill_tail384(
+        &mut self, device:&mut Device, workspace:&mut Workspace,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        let state=self.active_tail384.as_mut().ok_or("no Tail384 is active")?;
+        let group=self.group.as_mut().ok_or("grouped scratch is missing")?;
+        if !group.advance_tail384(device,&self.weights,state,workspace,&mut self.prefill).await? {
+            return Ok(None);
+        }
+        let owners=state.owners();
+        for owner in 0..owners {
+            std::mem::swap(&mut self.logits[owner],&mut workspace.logits);
+            let result=group.finish_tail384(owner,device,&self.weights,state,workspace,&mut self.prefill).await;
+            std::mem::swap(&mut self.logits[owner],&mut workspace.logits);
+            result?;
+        }
+        self.active_tail384=None;
         Ok(Some(&self.logits[..owners]))
     }
 
