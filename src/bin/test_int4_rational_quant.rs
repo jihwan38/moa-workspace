@@ -1,5 +1,6 @@
 //! Strict exact-rational A4 code/scale foundation, not a model-quality test.
 use furiosa_opt_gemma4::{Chip, axes::{B,H}, ops_int4_rational_quant as op};
+use op::Threshold;
 use furiosa_opt_std::prelude::*;
 #[path="support/npu_profile.rs"] mod npu_profile;
 #[path="support/rational_a4_oracle.rs"] mod oracle;
@@ -13,7 +14,7 @@ async fn main()->Result<(),Box<dyn std::error::Error>> {
     let profile=npu_profile::Collector::default();
     tracing::subscriber::set_global_default(profile.clone())?;
     let mut d=Device::new(op::quantize_row.topology())?;
-    let odds=HostTensor::<i32,m![op::Threshold]>::from_vec(vec![1,3,5,7,9,11,13,15]).to_hbm(&mut d.pdma).await?;
+    let odds=HostTensor::<i32,m![Threshold]>::from_vec(vec![1,3,5,7,9,11,13,15]).to_hbm(&mut d.pdma).await?;
     let odd_bytes=raw(&mut d,&odds).await;
     let mut total_codes=0usize;
     let mut total_scales=0usize;

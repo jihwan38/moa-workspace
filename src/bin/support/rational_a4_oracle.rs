@@ -52,7 +52,7 @@ pub fn fixture(case: usize) -> Vec<u16> {
             for delta in 0..5 {
                 for mx in 128..256 {
                     if delta == 0 && mx > ma { continue; }
-                    let x = ((128 - delta) << 7) | (mx - 128);
+                    let x = (((128 - delta) << 7) | (mx - 128)) as u16;
                     values.extend([x, x | 0x8000]);
                 }
             }
