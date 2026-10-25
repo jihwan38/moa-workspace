@@ -567,6 +567,11 @@ impl Worker {
             if sessions.is_empty() {
                 continue;
             }
+            if startup_cohort::ENABLED {
+                // A decoder-free interval can occur without an empty worker.
+                // Preserve all active model state and the original receipt budget.
+                cohort.rearm_prefill_only(&sessions);
+            }
             let available: Vec<_> = sessions
                 .iter()
                 .map(|s| ready_input(s, cohort.allows(s)))
@@ -2621,6 +2626,114 @@ mod tests {
         let mut expired = StartupCohort::default();
         expired.maybe_start(&mut sessions, &[first], now);
         assert!(!expired.active());
+        assert!(sessions.iter().all(|s| !s.delivery.held()));
+    }
+
+    #[test]
+    fn startup_rearms_after_visible_completion_with_pending_prefill_ownership_intact() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (old, old_events) = session(pool.as_mut().unwrap(), 128, 2);
+        let (a, a_events) = session(pool.as_mut().unwrap(), 128, 4);
+        let (b, _b_events) = session(pool.as_mut().unwrap(), 512, 4);
+        let mut sessions = vec![old, a, b];
+        let old_ring = sessions[0].blocks.sliding;
+        cohort_complete(&mut sessions, old_ring, 3, &mut pool);
+        assert!(matches!(old_events.try_recv(), Ok(StreamEvent::Delta(t)) if t == "a"));
+        let first = cohort_work(&sessions[1]);
+        let active_prompt = ScheduledInput {
+            ring: sessions[2].blocks.sliding,
+            position: 0,
+            count: 512,
+        };
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        assert!(!cohort.active());
+        assert!(!cohort.rearm_prefill_only(&sessions));
+
+        cohort_complete(&mut sessions, old_ring, 4, &mut pool);
+        assert!(matches!(old_events.try_recv(), Ok(StreamEvent::Delta(t)) if t == "b"));
+        assert!(matches!(old_events.try_recv(), Ok(StreamEvent::Done(_))));
+        assert_eq!(sessions.len(), 2);
+        let available_pages = pool.as_ref().unwrap().available_pages();
+        let blocks: Vec<_> = sessions.iter().map(|s| s.blocks.clone()).collect();
+        let receipts: Vec<_> = sessions.iter().map(|s| s.timing.received).collect();
+        assert!(cohort.rearm_prefill_only(&sessions));
+        assert!(!complete_work(
+            &mut sessions, &[active_prompt], None, &mut pool, &mut vec![], &mut vec![]
+        ).unwrap());
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        assert!(cohort.active());
+        cohort_complete(&mut sessions, first.ring, 3, &mut pool);
+        assert!(matches!(a_events.try_recv(), Err(mpsc::TryRecvError::Empty)));
+        assert_eq!(pool.as_ref().unwrap().available_pages(), available_pages);
+        for (index, s) in sessions.iter().enumerate() {
+            assert_eq!(s.blocks.sliding, blocks[index].sliding);
+            assert_eq!(s.blocks.full, blocks[index].full);
+            assert_eq!(s.timing.received, receipts[index]);
+            assert!(s.reservation.is_some());
+        }
+        assert_eq!(sessions[1].generation.input().1, active_prompt.position);
+        assert_eq!(sessions[1].generation.inputs(active_prompt.count).0.len(), 512);
+    }
+
+    #[test]
+    fn startup_rearm_rejects_invisible_decode_phase() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (old, _old_events) = stop_prefix_session(pool.as_mut().unwrap(), true);
+        let (a, _a_events) = session(pool.as_mut().unwrap(), 128, 4);
+        let mut sessions = vec![old, a];
+        let old_ring = sessions[0].blocks.sliding;
+        cohort_complete(&mut sessions, old_ring, 3, &mut pool);
+        assert!(sessions[0].timing.progress.first.is_none());
+        assert!(!sessions[0].generation.is_prefilling());
+        let mixed: Vec<_> = sessions.iter().map(cohort_work).collect();
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &mixed, Instant::now());
+        assert!(!cohort.active());
+        assert!(!cohort.rearm_prefill_only(&sessions));
+        let first = cohort_work(&sessions[1]);
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        assert!(!cohort.active());
+        assert!(sessions.iter().all(|s| !s.delivery.held()));
+    }
+
+    #[test]
+    fn startup_rearm_cannot_expand_an_active_snapshot() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, _a_events) = session(pool.as_mut().unwrap(), 128, 4);
+        let (b, _b_events) = session(pool.as_mut().unwrap(), 128, 4);
+        let mut sessions = vec![a, b];
+        let first = cohort_work(&sessions[0]);
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        assert!(sessions.iter().all(|s| s.generation.is_prefilling()));
+        let (late, _late_events) = session(pool.as_mut().unwrap(), 128, 4);
+        sessions.push(late);
+        assert!(!cohort.rearm_prefill_only(&sessions));
+        let late_work = cohort_work(&sessions[2]);
+        cohort.maybe_start(&mut sessions, &[late_work], Instant::now());
+        assert!(cohort.active());
+        assert!(!cohort.allows(&sessions[2]));
+        assert!(!sessions[2].delivery.held());
+    }
+
+    #[test]
+    fn startup_rearm_keeps_expired_original_receipt_budget() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, _a_events) = session(pool.as_mut().unwrap(), 128, 4);
+        let (b, _b_events) = session(pool.as_mut().unwrap(), 128, 4);
+        let mut sessions = vec![a, b];
+        let now = Instant::now();
+        let received = now - startup_cohort::RECEIPT_BUDGET;
+        sessions[0].timing.received = received;
+        let first = cohort_work(&sessions[0]);
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], now);
+        assert!(!cohort.active());
+        assert!(cohort.rearm_prefill_only(&sessions));
+        cohort.maybe_start(&mut sessions, &[first], now);
+        assert!(!cohort.active());
+        assert_eq!(sessions[0].timing.received, received);
         assert!(sessions.iter().all(|s| !s.delivery.held()));
     }
 }

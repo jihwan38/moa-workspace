@@ -132,6 +132,28 @@ impl StartupCohort {
         assert!(self.active.is_none());
         self.attempted = false;
     }
+    /// A previous visible stream may finish while other admitted prompts remain.
+    /// Rearm only before any remaining generation enters Decode, including a
+    /// decoder whose text is still hidden by channel or stop-prefix handling.
+    /// This changes eligibility only: receipt times, allocations and any active
+    /// model prompt checkpoint remain untouched. An existing snapshot never grows.
+    pub(super) fn rearm_prefill_only(&mut self, sessions: &[Session]) -> bool {
+        if self.attempted
+            && self.active.is_none()
+            && !sessions.is_empty()
+            && sessions.iter().all(|s| {
+                s.generation.is_prefilling()
+                    && s.timing.progress.first.is_none()
+                    && !s.delivery.terminal()
+                    && !s.delivery.held()
+            })
+        {
+            self.attempted = false;
+            true
+        } else {
+            false
+        }
+    }
     #[cfg(test)]
     pub(super) fn active(&self) -> bool {
         self.active.is_some()
