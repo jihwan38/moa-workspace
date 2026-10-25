@@ -1,0 +1,13 @@
+{
+  "base": "394d60a2",
+  "control": "ops_b16_up_ingress_epilogue::post_attention_ffn",
+  "candidate": "ops_b16_f4_group240_epilogue::post_attention_ffn",
+  "scope": "RESOURCE FIRST, no host changes",
+  "hypothesis": "F4 requantized independently per240 input channels; group power2 scales apply to current normalized nativeE4 weight domain. Four groups per H960; one whole120-row reconstruction per projection, no row DivF, three table loads instead of12. Existing nativeE4 activations and dot remain. This is a new approximate model, not original NVFP4 reconstruction.",
+  "quantizer_not_implemented": true,
+  "scale_contract": "For each nativeE4 weight240-vector, smallest positive power2 s with6s>=amax; nearest fixedE2M1 codes, ties-to-even policy to be specified/tested before execution. Reconstruct castE4(F32lookup(code)*s), then existing retained rowdequant/global scaling.",
+  "correctness_before_device": "Independent scalar encoder/scale, allpackedbytes, reconstructedE4 against intendedCPU algorithm, completeFFN outputs vs denseE4 sameapproxweights; report originalweight/outputdrift separately.",
+  "resource_gate": "At least10percent estimated completeepilogue reduction inclscales/reconstruction, noDramStack. OtherwiseHOLD before any quantizer/model/NPU.",
+  "cost": "Per projection F4 29491200B + F32paddedgroupmetadata1966080B vsE4 58982400B, ~46.67percent fewer weight bytes. VRF3840B. Existing activation quantizers unchanged.",
+  "prior_hold": "Original suppliedgroup16 reconstruction705641f5 complete+25.73percent, retained; originalK128I4explicitzero geometry alreadyrejectedRawInt5Flit2, no rerun."
+}
