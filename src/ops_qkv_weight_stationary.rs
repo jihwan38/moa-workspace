@@ -59,14 +59,27 @@ fn one(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![P128,H]>,
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),scale)
         .vector_widen_concat::<m![P128,Joined/8],m![Joined%8]>().vector_final()
         .cast::<bf16,m![Joined%8#16]>().commit_trim::<m![Joined%8]>().commit();
-    let mut q:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=8]>=DmTensor::new();
-    result.view().tile::<m![Joined],8,m![P128,Joined=8#16]>(0).to_dm_view(&mut device.tdma,q.view_mut());
+    // Move each complete 32-byte Joined16 row once. Cropping before this
+    // redistribution produced slow 16/8-byte inter-slice fragments (r1073/74).
+    // The three following TU copies only compact local data for the old ABI.
+    let joined:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined]>=result.to_dm(&mut device.tdma);
+    let q:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=8]>=device.main
+        .begin(joined.view().tile::<m![Joined],8,m![P128%32,OutputGroup%8,Joined=8#16]>(0))
+        .fetch::<m![P128%32,OutputGroup%8],m![Joined=8#16]>()
+        .collect::<m![P128%32,OutputGroup%8],m![Joined=8#16]>()
+        .commit_trim::<m![Joined=8]>().commit();
     q.view().to_hbm_view(&mut device.tdma,qout.view_mut());
-    let mut k:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=4]>=DmTensor::new();
-    result.view().tile::<m![Joined],4,m![P128,Joined=4#16]>(8).to_dm_view(&mut device.tdma,k.view_mut());
+    let k:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=4]>=device.main
+        .begin(joined.view().tile::<m![Joined],4,m![P128%32,OutputGroup%8,Joined=4#16]>(8))
+        .fetch::<m![P128%32,OutputGroup%8],m![Joined=4#16]>()
+        .collect::<m![P128%32,OutputGroup%8],m![Joined=4#16]>()
+        .commit_trim::<m![Joined=4]>().commit();
     k.view().to_hbm_view(&mut device.tdma,kout.view_mut());
-    let mut v:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=4]>=DmTensor::new();
-    result.view().tile::<m![Joined],4,m![P128,Joined=4#16]>(12).to_dm_view(&mut device.tdma,v.view_mut());
+    let v:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=4]>=device.main
+        .begin(joined.view().tile::<m![Joined],4,m![P128%32,OutputGroup%8,Joined=4#16]>(12))
+        .fetch::<m![P128%32,OutputGroup%8],m![Joined=4#16]>()
+        .collect::<m![P128%32,OutputGroup%8],m![Joined=4#16]>()
+        .commit_trim::<m![Joined=4]>().commit();
     v.view().to_hbm_view(&mut device.tdma,vout.view_mut());
 }
 
