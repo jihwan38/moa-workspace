@@ -269,3 +269,7 @@ pub mod ops_b16_lm_storegroup;
 
 pub mod ops_norm_blocked_chain_storegroup;
 pub mod ops_group_ffn_projection_storegroup;
+
+pub mod ops_b16_fixed_e4_reader;
+pub mod ops_b16_fixed_e4_commit;
+pub mod ops_b16_fixed_e4_attention;
