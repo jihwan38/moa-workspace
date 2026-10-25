@@ -161,12 +161,18 @@ pub(crate) fn sliding_attention_b16_stage(
             .gather::<m![Rc64], m![Ts, Ns, Ds]>()
             .by_byte_offsets(&index)
             .to_dm(&mut device.tdma);
+        // SDK0.9 lookup exists only on Main. Materialize exact widened codes
+        // in DM, then keep the original plain Sub→TRF ingestion.
+        let k: DmTensor<bf16, Chip, Cluster, KeyRows, m![B % 4, Ts % 32, Ds]> = device.main.begin(k.view())
+            .fetch::<m![B % 4, Ts % 32, Ds / 32], m![Ds % 32]>()
+            .fetch_table_lookup::<bf16>()
+            .collect::<m![B % 4, Ts % 32, Ds / 16], m![Ds % 16]>()
+            .commit();
         let kt: TrfTensor<bf16, Chip, Cluster, KeyRows, m![Ts % 8], m![B % 4, Ts / 8 % 4, Ds]> =
             device
                 .sub
                 .begin(k.view())
-                .fetch::<m![Ts % 8, B % 4, Ts / 8 % 4, Ds / 32], m![Ds % 32]>()
-                .fetch_table_lookup::<bf16>()
+                .fetch::<m![Ts % 8, B % 4, Ts / 8 % 4, Ds / 16], m![Ds % 16]>()
                 .collect::<m![Ts % 8, B % 4, Ts / 8 % 4, Ds / 16], m![Ds % 16]>()
                 .to_trf();
         let scores: DmTensor<bf16, Chip, Cluster, KeyRows, m![B % 4, Gs, Ts % 32]> = device
