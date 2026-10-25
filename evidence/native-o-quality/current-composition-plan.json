@@ -1,0 +1,18 @@
+{
+  "candidate": "q015-native-o-current",
+  "control": "c070-metadata-o32",
+  "control_source": "eb5004a3a8a051dfb7392394f179ffe8148634c0",
+  "change": "Use the identical q014 native FP8 grouped sliding O kernel on the current exact B16 prefix/epilogue/metadata, R32/O32, and packed-tail host.",
+  "native_kernel_sha256": "c430453cb68d732863cf66ce6fd9a8445dd55df328c4c168fd1b589124f2e7af",
+  "precision": "Approximate FP8 activations; original weights, K1024 BF16 partial tree and scales retained. No cross-request computation or KV reuse, input-specialized dispatch, or omitted model work.",
+  "prior_quality": "q014 all six public suites passed, but prior synthetic numerical guard FAILED. That failure is preserved in prior-model-result.json, not reclassified as exactness.",
+  "prior_performance": "q014 C14 warm14+98 valid139.293766TPS; C15 warm15+60 valid144.547074TPS. Current exact c070 C14 warm14+98 valid139.403710TPS. Different candidates and request counts are not a causal combined speed claim.",
+  "gates": [
+    "Verify identical native kernel and limited production caller diff against c070",
+    "Build immutable source and ELF using existing root target without duplicating dependency caches",
+    "Run all six public quality suites afresh; any required case failure rejects this composition",
+    "Run genuine completed warmup plus bounded C15/C16 latency checks and a longer run for a surviving setting",
+    "Private official accuracy and latency required before any ranked claim"
+  ],
+  "build_target": "/round2/r64-server/target (root exclusive while building)"
+}
