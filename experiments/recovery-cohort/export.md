@@ -45,3 +45,5 @@ This is a source/CPU handoff for root's matched serving test, not a measured
 throughput or SLO improvement. Deliberate holding remains bounded by the fixed
 receipt deadline plus existing atomic-work granularity. Old decoders retain
 normal eligibility and credit accounting; actual TPOT/gaps require HTTP evidence.
+
+Peer review found that the old checkpoint test removed a decoder positioned after B, so its stated compaction was not exercised. Test-only `1a1b05f` places the old decoder before B and explicitly asserts B index1→0 while preserving the saved ring/range and subsequent completion checks. Full unfiltered `a004-recovery-compaction-test` passes118/118 (zero ignored/filtered). Production source is unchanged; this does not alter the frozen policy candidate.
