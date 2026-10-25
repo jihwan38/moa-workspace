@@ -1,0 +1,11 @@
+# Bounded late-admission recovery experiment
+
+Base e71cb50a is c077 exact grouped-store LM with recovery disabled. The current fixed recovery candidate c076 remains held after actual r1130 regression. This experiment changes scheduling only; no model, kernel, cache allocation, sampling or generation code is changed.
+
+Control: legacy c077 cohort, original3750ms receipt budget,90ms credit and150ms soft gap. Research candidate: recovery plus fresh late-admission joining, enabled only in a separate activation commit after default-off source/tests.
+
+The new synchronous Worker hook runs after FIFO admission and before availability/selection. Existing ready/deadline release wins, including host-time expiration after the top-of-loop check. Only admitted, never-participating, un-emitted Prefill sessions join an active unfinished snapshot. Append stable request IDs; call hold once, preserve snapshot.started and use min(existing deadline, earliest original receipt+3750ms). If this minimum is due, flush existing members without holding new requests. Old visible/invisible decoders and prior unfinished checkpoints remain passthrough. Reservation, cancellation, EOS, fatal flush and ring-keyed completion paths stay unchanged.
+
+All held members retain reservations until release, so membership is finite and bounded by admitted capacity. Pending requests cannot join. Add trace action=join with appended IDs, prompt remaining counts, existing/current membership and old/new deadline-left; no prompts. Tests cover ready/deadline priority, newer/earlier/expired receipts, once participation, real mixed completion, prior512 checkpoint under compaction, cancellation/terminal/fatal/EOF and admission capacity.
+
+Evidence motivating only one gate: r1130 shows recurring11+5 groups, but initial15+old20 has no free slot. Later4608 prompt tokens need about1.05s of grouped layers versus363ms headroom. No admission timestamps exist in that trace. Joining can make useful real work eligible sooner but may convert ready release into deadline release. No full16 or throughput claim. Root will compare complete HTTP results, decode widths/calls/token rows, prompt chunks/layers, old visible gaps, TTFT and throughput after CPU gates. Root alone builds/releases/dispatches Arena.
