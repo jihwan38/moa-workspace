@@ -1,0 +1,58 @@
+{
+  "candidate": "q020-b16-f4-mse-parallel",
+  "source_commit": "d52f0c08504d4827948abd8536b2d0011645fcce",
+  "classification": "current-work counterfactual audit; not a universal hardware bound",
+  "inputs_sha256": {
+    "runs/r1301-q020-c16-warm-r96-submit/arena.log": "6f4f435d0e220b6e79c67014a9c11d48b0aee1c4bd2007b26e862b2f3bdbaa6e",
+    "final/submissions/f5abd3e8/submission.json": "9e52290e6b0813ed6664b06d4eaab3e873e96b87886a0372ffcae00748f659a4",
+    "state/leaderboard-20261025T213340Z.json": "a9ee92445e744b2e7d961f7753c87cdb48b9ff8f80fd35fb75f86b1ade8074e3",
+    "final/submissions/f5abd3e8/src/host/worker.rs": "1249772dcc47370952d7f8e3b6072b1b0fe853f5966ea4eb291794847e9ccef5"
+  },
+  "local_measured_window": {
+    "concurrency": 16,
+    "warmup_requests_excluded": 16,
+    "measured_requests": 96,
+    "output_tokens": 6144,
+    "duration_ms": 35301.93354701623,
+    "prompt": {
+      "calls": 8304,
+      "milliseconds": 21092.160000000003,
+      "rounding_bound_ms": 54.96
+    },
+    "decode": {
+      "calls": 379,
+      "milliseconds": 14040.519999999999,
+      "rounding_bound_ms": 2.525
+    },
+    "unattributed_ms": 169.2535470162311,
+    "decode_rows": 6048,
+    "dense_chunks": 173,
+    "useful_prompt_tokens": 87808,
+    "dense_prompt_rows": 88576,
+    "padding_fraction": 0.00867052023121384
+  },
+  "counterfactual_tokens_per_second": {
+    "all_prompt_work_free_unchanged_decode": 437.590630546447,
+    "all_decode_work_free_unchanged_prompt": 291.29306813526915,
+    "perfect_overlap_unchanged_phases": 291.29306813526915,
+    "all_prompt_free_rounding_optimistic": 437.6693395317494,
+    "all_decode_free_rounding_optimistic": 292.05407563744217
+  },
+  "official_observation": {
+    "submission": "f5abd3e8",
+    "score": 174.09330035025513,
+    "rank": 17,
+    "observed_at_utc": "2026-10-25T21:33:40Z",
+    "final_ranking": false,
+    "third_score": 796.0550217113679,
+    "required_speedup": 4.572577003881248
+  },
+  "interpretation": [
+    "pc1/pc4 are inclusive work intervals; prep/layer/final counters are subcomponents and must not be added again.",
+    "The first cumulative total follows exactly the 16 completed warmup requests; subtract it from the final total.",
+    "Counterfactuals omit all unattributed overhead, preserve the observed work/call schedule and use rounded cumulative means.",
+    "Local trace covers 96 measured requests. Official score covers 240 and is recorded separately; no official phase profile is available.",
+    "Improving only one phase cannot reach 700 TPS under this fixed-work counterfactual. This does not rule out a different algorithm or schedule.",
+    "A higher-concurrency path needs separately measured prompt and decode improvements; extra KV capacity alone does not establish that path."
+  ]
+}
