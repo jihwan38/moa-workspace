@@ -1,0 +1,35 @@
+{
+  "base_commit": "a384b467947b73f98fbc4378f0acb9891430dbe8",
+  "math_proof_commit": "3055874a5e9bb4b870de952719ff09e7ab65d340",
+  "contract": "Finite BF16 FTZ; A=max(2^-112,rowamax); exact-rational q=sign(x)*roundaway(7*abs(x)/A); reconstruction scale RN32(A*RN32(1/7)), never1/T",
+  "implementation": "U=7*ceil(2^20/Ma), Tbits=F32bits(U)+signed((114-ea)<<23); ordinary exact-product MulF followed by existing FpToFxp(31) and clamp[-7,7]",
+  "table": "128 mathematically generated immutable I32 bit-pattern entries, each initialized32B record; total4096B, no data calibration",
+  "lookup_path": ["DM rowamax mantissa index", "real DM consolidation into PE0 leader", "DM to SPM dense row index list", "HBM by_positions gather", "DM to scalar VRF", "scalar exponent adjustment"],
+  "b16_gate": {
+    "complete_estimated_cycles_max": 15000,
+    "rows": 16,
+    "width": 3840,
+    "cluster_mapping": "B/8",
+    "row_mapping": "B%8#256",
+    "index_spm_bytes_per_cluster": 32,
+    "prior_threshold_complete_cycles": 19765,
+    "prior_power2_distinct_contract_cycles": 9312,
+    "required": ["all index/table/data/output movement included", "no DramStack", "original Cargo and locked dependencies", "new empty compiler output directory"],
+    "failure_action": "Preserve and HOLD without standalone device build or gate relaxation"
+  },
+  "conditional_p512_gate": {
+    "may_start_only_if_b16_passes": true,
+    "complete_estimated_cycles_max": 30000,
+    "rows": 512,
+    "width": 3840,
+    "cluster_mapping": "P512/256",
+    "row_mapping": "P512%256",
+    "index_spm_bytes_per_cluster": 1024,
+    "i32_output_bytes": 7864320,
+    "meaning": "Independent resource feasibility cap including32x logical rows/output; not an extrapolated B16 latency or predicted serving gain",
+    "failure_action": "Preserve and HOLD without standalone device build or gate relaxation"
+  },
+  "probe": "Retain the independent integer quotient/remainder oracle and13fixtures from a384b467; change only selected kernel/table ABI and labels; check initialized table immutability as well as input/codes/scales",
+  "missing_gates": ["actual NPU MulF/FpToFxp agreement for non-power2 multipliers", "inclusive runtime quantization timing", "pack and native I4 consumer", "complete supplied-weight FFN", "model quality"],
+  "authorization": "source/typecheck and exact resource only; no standalone device ELF, Arena, model dispatch or official changes"
+}
