@@ -219,3 +219,5 @@ pub mod ops_norm_fused;
 
 pub mod ops_full_wide_stats;
 pub mod ops_greedy_b16;
+
+pub mod ops_output_p128_h64_blocked;
