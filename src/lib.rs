@@ -136,3 +136,5 @@ pub mod ops_query_native_fp8;
 pub mod ops_batch_layouts;
 
 pub mod ops_norm_shardquant;
+
+pub mod ops_norm_quarters;
