@@ -3,7 +3,7 @@
 use crate::{Chip, axes::Ds};
 use furiosa_opt_std::prelude::*;
 
-pub const ENABLED: bool = false;
+pub const ENABLED: bool = true;
 
 pub(crate) fn roundtrip_ds<C:M,S:M>(device:&mut Device,
     x:&DmTensor<bf16,Chip,C,S,m![Ds]>) -> DmTensor<bf16,Chip,C,S,m![Ds]> {
