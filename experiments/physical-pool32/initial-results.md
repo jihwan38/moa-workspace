@@ -37,6 +37,8 @@ matches the complete ordered SHA256 event stream, including row labels/positions
 cache physical IDs and byte counts. Its result is explicitly a cross-program
 SHA256 comparison, alongside each program's independent paired-byte gates.
 
-A frozen reporting typo is preserved: PHYSICAL_POOL_GROUP_CACHE/SENTINEL's field
-bf16_values contains bytes. Use KV_ALL_BYTES_EXACT compared_bytes for aggregation.
+Unit clarification: Model::compare_canonical_kv divides the underlying helper's
+byte count by2, so Group/Sentinel bf16_values is correctly named. Aggregation here
+uses KV_ALL_BYTES_EXACT compared_bytes directly. An earlier prose caveat missed
+that Model wrapper; the numerical totals are unchanged.
 Independent e2e source and probe ownership reviews found no concrete blocker.
