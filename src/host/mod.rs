@@ -24,3 +24,5 @@ pub mod greedy;
 pub mod kv_diagnostic;
 
 pub mod b16_ffn_epilogue_diagnostic;
+
+pub mod b16_prefix_diagnostic;
