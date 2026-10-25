@@ -276,3 +276,9 @@ pub mod ops_fixed_e4_quality_diagnostic;
 
 pub mod ops_fixed_e4_storage;
 pub mod ops_fixed_e4_scalar;
+pub mod ops_fixed_e4_prompt_codec;
+pub mod ops_fixed_e4_prompt;
+pub mod ops_fixed_e4_wide;
+pub mod ops_fixed_e4_wide_original;
+pub mod ops_fixed_e4_fused;
+pub mod ops_fixed_e4_commit_wide;
