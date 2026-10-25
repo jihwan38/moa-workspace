@@ -1,0 +1,26 @@
+{
+  "base": "eefe824a85e8ee3f78deb6883fa9e029bf9f658a",
+  "owner": "e2e_evidence",
+  "control": "ops_head_wide_blocked::sliding_heads_p128 + current ops_sliding_wide_head_rows::{sliding_attention_p128,sliding_attention_first_p128} + ops_commit_wide_pool::commit_sliding_kv_p128",
+  "change": "One device launch computes identical blocked head RMS/norm/RoPE, retains Q in DM, writes existing K/V scratch for intercluster exchange, computes unchanged current attention, then performs original128KVscatter. Dedicated absolute0 first128 counterpart preserves current pruning.",
+  "scope": "Kernel/probe only. No host, metadata, API, cache allocation or precision changes.",
+  "removed_work": "Q1MiB HBMwrite plus two1MiB reads in general attention and two host launch/wait boundaries. First128 removes oneQread instead. K/V scratch and all attention output HBM remain. Logical byte savings do not imply wall gain.",
+  "invariants": [
+    "All old-ring K/V reads complete before cache commit; wrap must preserve earlier queries.",
+    "Every F32 max/exp/denominator and32-key BF16 partial/reduction boundary is unchanged.",
+    "K/V scratch remains separate from old ring through all128attention outputs.",
+    "Only native128live canonical blocks supported; no partial write or padded row commit.",
+    "No crossrequest reuse. Each owner completes entire layer before scheduler yield.",
+    "No P512 width increase or changed old/current aggregation."
+  ],
+  "resource": "Retained headed Q adds only2KiB per physical QRows PE; ordinary P128 query broadcast still64KiB/key PE. Actual compiler schedule/allocation must pass; do not infer peak from tensor sums.",
+  "gates": [
+    "device compile/allocation",
+    "complete headed outputs/attention/KV bytes vs original3calls with independent rawblockedpacking",
+    "starts0,128,896,1024 andlastphysicalslot; masks and future/expired poison",
+    "nonselectedpoolneighbors unchanged, independent owners, immutable raw inputs/weights",
+    "completechain ABBA including heads+commit and actualNPUtrace",
+    "onlyaftermicroWIN prepare scoped host and wholemodel/allhistory gates"
+  ],
+  "npu_dispatch": "root only"
+}
