@@ -95,7 +95,7 @@ impl Step64 {
             None
         };
         Ok(Self {
-            e4:if cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Step64::new(device,sequences).await?)}else{None},
+            e4:if crate::host::kv_e4::STORAGE_ENABLED || cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Step64::new(device,sequences).await?)}else{None},
             ring_offsets,
             sliding_mask,
             pages,

@@ -271,10 +271,9 @@ impl Workspace {
         Self::new_storage(device, weights, capacity, requests, true, false, false).await
     }
 
-    /// Isolated E4 storage candidate; the feature also enables the same numerical
-    /// codec in BF16 reference workspaces for exact storage-transition comparisons.
+    /// One authoritative E4 sliding pool, available in source-only builds.
+    /// The quality feature adds the codec to BF16 diagnostic reference workspaces.
     pub async fn new_canonical64_e4(device:&mut Device,weights:&Weights,capacity:usize,requests:usize)->Result<Self,Box<dyn std::error::Error>> {
-        if !cfg!(feature="kv-e4-quality") { return Err("E4 workspace requires kv-e4-quality".into()); }
         Self::new_storage(device,weights,capacity,requests,true,false,true).await
     }
 

@@ -108,7 +108,7 @@ impl Decode64 {
             );
         }
         Ok(Self {
-            e4_capture:if cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Captured16::new(device).await?)}else{None},
+            e4_capture:if crate::host::kv_e4::STORAGE_ENABLED || cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Captured16::new(device).await?)}else{None},
             k_tile_s: zero!(bf16, m![B, Ns, Ds]),
             v_tile_s: zero!(bf16, m![B, Ns, Ds]),
             k_tile_f: zero!(bf16, m![B, Df]),

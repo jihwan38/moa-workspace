@@ -139,7 +139,7 @@ impl Worker {
             );
             let started = std::time::Instant::now();
             let mut workspace = if canonical {
-                if cfg!(feature="kv-e4-pool") {
+                if super::kv_e4::STORAGE_ENABLED {
                     Workspace::new_canonical64_e4(&mut device,&weights,CONTEXT,crate::axes::R64::SIZE).await?
                 } else {
                     Workspace::new_canonical64(&mut device, &weights, CONTEXT, crate::axes::R64::SIZE).await?

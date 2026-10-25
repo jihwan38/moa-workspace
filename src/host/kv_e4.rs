@@ -2,6 +2,9 @@
 use crate::{Chip, axes::*, ops_kv_e4_pool as kernels, ops_request_sliding_r64_fp8_scales::Scale8};
 use furiosa_opt_std::prelude::*;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+/// Source-only serving default; no build feature or request flag selects storage.
+pub(crate) const STORAGE_ENABLED: bool = true;
+
 pub(crate) struct Pool {
     pub k: HbmTensor<f8e4m3, Chip, kernels::DataPool>,
     pub v: HbmTensor<f8e4m3, Chip, kernels::DataPool>,

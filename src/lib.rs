@@ -182,7 +182,7 @@ pub mod ops_qk_native_shared;
 
 pub mod ops_qkv_shared_r64;
 pub mod ops_qkv_shared_b16;
-// Isolated quality experiment; disabled unless explicitly built with this feature.
+// E4 storage and optional quality-reference codec.
 pub mod ops_kv_e4;
 pub mod ops_request_sliding_r64_fp8_scales;
 

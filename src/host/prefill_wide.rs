@@ -68,7 +68,7 @@ impl NativeMetadata {
             };
         }
         Ok(Self {
-            e4:if cfg!(feature="kv-e4-quality") {if let Some(b)=blocks{Some(crate::host::kv_e4::Commit128::new(device,b.sliding,start).await?)}else{None}}else{None},
+            e4:if crate::host::kv_e4::STORAGE_ENABLED || cfg!(feature="kv-e4-quality") {if let Some(b)=blocks{Some(crate::host::kv_e4::Commit128::new(device,b.sliding,start).await?)}else{None}}else{None},
             rope_s: ints!(|row| ((start + row) * Ds::SIZE * 2) as i32),
             rope_f: ints!(|row| ((start + row) * Df::SIZE * 2) as i32),
             sliding_offsets: ints!(
@@ -116,7 +116,7 @@ impl WidePrefill {
             );
         }
         Ok(Self {
-            e4_capture:if cfg!(feature="kv-e4-quality"){Some(crate::host::kv_e4::Captured128::new(device).await?)}else{None},
+            e4_capture:if crate::host::kv_e4::STORAGE_ENABLED || cfg!(feature="kv-e4-quality"){Some(crate::host::kv_e4::Captured128::new(device).await?)}else{None},
             qkv_input: HostTensor::<f8e4m3, m![P128,H]>::zero().to_hbm(&mut device.pdma).await?,
             qkv_scale: HostTensor::<f32, m![P128,1#8]>::zero().to_hbm(&mut device.pdma).await?,
             x: zero!(m![P128, H]),

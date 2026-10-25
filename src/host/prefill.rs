@@ -129,7 +129,7 @@ impl Prefill {
         }
         Ok(Self {
             profile: None,
-            e4_capture:if cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Captured16::new(device).await?)}else{None},
+            e4_capture:if crate::host::kv_e4::STORAGE_ENABLED || cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Captured16::new(device).await?)}else{None},
             logits_batch: zero!(bf16, m![B, W]),
             decode_q_f: zero!(bf16, m![Gf, Df]),
             decode_max_f: zero!(f32, m![Gf]),
@@ -1484,7 +1484,7 @@ struct CommitOffsets { original:CommitShape,e4:Option<super::kv_e4::Commit16> }
 impl CommitOffsets {
  async fn new(device:&mut Device,start:usize,count:usize,blocks:Option<&runtime::Blocks>)->Result<Self>{
   let original=CommitShape::new(device,start,count,blocks).await?;
-  let e4=if cfg!(feature="kv-e4-quality") {if let Some(b)=blocks{Some(super::kv_e4::Commit16::prompt(device,b.sliding,start,count).await?)}else{None}}else{None};
+  let e4=if crate::host::kv_e4::STORAGE_ENABLED || cfg!(feature="kv-e4-quality") {if let Some(b)=blocks{Some(super::kv_e4::Commit16::prompt(device,b.sliding,start,count).await?)}else{None}}else{None};
   Ok(Self{original,e4})
  }
  async fn sliding(&self,device:&mut Device,k:&HbmTensor<bf16,Chip,m![B,Ns,Ds]>,v:&HbmTensor<bf16,Chip,m![B,Ns,Ds]>,ck:&mut HbmTensor<bf16,Chip,m![Ts,Ns,Ds]>,cv:&mut HbmTensor<bf16,Chip,m![Ts,Ns,Ds]>)->Result<()>{self.original.sliding(device,k,v,ck,cv).await}
