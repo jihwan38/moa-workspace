@@ -103,8 +103,8 @@ fn project_sliding_one(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,Ns,
             .tile::<m![P128/32%2],1,m![P128/64,1#2,P128%32,Qs]>(chunk).to_dm(&mut device.tdma);
         let x:TrfTensor<bf16,Chip,Cluster,Parts,m![P128%8],m![P128/8%4,Qs%1024]>=device.sub
             .begin(input.view())
-            .fetch::<m![Qs/16%64],m![Qs%16]>()
-            .switch::<Parts,m![P128%8,P128/8%4,Qs/16%64]>(SwitchConfig::CustomBroadcast { ring_size: 256 })
+            .fetch::<m![1],m![Qs%1024]>()
+            .switch::<Parts,m![P128%8,P128/8%4]>(SwitchConfig::CustomBroadcast { ring_size: 256 })
             .collect::<m![P128%8,P128/8%4,Qs/16%64],m![Qs%16]>().to_trf();
         device.main.begin(weight.view())
             .fetch::<m![H%120,Qs/16%64],m![Qs%16]>().collect::<m![H%120,Qs/16%64],m![Qs%16]>()
@@ -152,8 +152,8 @@ fn project_full_one(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,Gf,Df]
             .tile::<m![P128/32%2],1,m![P128/64,1#2,P128%32,Qf]>(chunk).to_dm(&mut device.tdma);
         let x:TrfTensor<bf16,Chip,Cluster,FullParts,m![P128%8],m![P128/8%4,Qf%1024]>=device.sub
             .begin(input.view())
-            .fetch::<m![Qf/16%64],m![Qf%16]>()
-            .switch::<FullParts,m![P128%8,P128/8%4,Qf/16%64]>(SwitchConfig::CustomBroadcast { ring_size: 256 })
+            .fetch::<m![1],m![Qf%1024]>()
+            .switch::<FullParts,m![P128%8,P128/8%4]>(SwitchConfig::CustomBroadcast { ring_size: 256 })
             .collect::<m![P128%8,P128/8%4,Qf/16%64],m![Qf%16]>().to_trf();
         device.main.begin(weight.view())
             .fetch::<m![H%120,Qf/16%64],m![Qf%16]>().collect::<m![H%120,Qf/16%64],m![Qf%16]>()
