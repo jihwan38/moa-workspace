@@ -804,7 +804,7 @@ impl GroupPrefill {
             Layer::Sliding(l) => {
                 if execution.blocked_output && execution.fused_norms {
                     let [oa, ob, oc, od] = &mut self.output_s;
-                    launch(crate::ops_output_p128_h64_blocked::project_sliding_output_four,
+                    launch(crate::ops_output_h64_native::project_sliding_output_four,
                         (device, &a.attn_s, &b.attn_s, &c.attn_s, &d.attn_s,
                          &l.o_weight, &l.o_weight_scale, oa, ob, oc, od)).await?;
                 } else {
