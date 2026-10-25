@@ -272,3 +272,5 @@ pub mod ops_group_ffn_projection_storegroup;
 
 pub mod ops_i4_raw_binding;
 pub mod i4_raw_adapter;
+
+pub mod ops_int4_pack_words;
