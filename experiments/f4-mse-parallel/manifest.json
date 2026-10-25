@@ -1,0 +1,51 @@
+{
+  "source": "2d1cba712acacb9f999a7671a81a704ce4c759d7",
+  "inputs": {
+    "src/host/f4_group960.rs": "64bf25e09f5a5b70f157fbf0c95aa5dabaf90afaa87c97b3682ed8e02adb9409",
+    "src/host/f4_group960_mse.rs": "6bfa34bd9c379b846cc37424e09373afbaf6095671949a3c8390df5e6389949a",
+    "experiments/f4-mse-parallel/probe.rs": "0d48b5f7b31374ee2f858c1478461332f5c479475dccfe34a1839e2ee403d610"
+  },
+  "artifacts": {
+    "probe": {
+      "sha256": "b3d21cf723294a6e13fe24779a3a310fa2a784b5b839b915572e6674d7b4fdb4",
+      "bytes": 4444888
+    },
+    "tests": {
+      "sha256": "f4210b21e2dff9a919e8c11fc5e91752c629c94812089a8fbde1a7a2400015e4",
+      "bytes": 7015800
+    }
+  },
+  "commands": [
+    [
+      "abba",
+      [
+        "experiments/f4-mse-parallel/artifacts/probe",
+        "abba"
+      ]
+    ],
+    [
+      "serial-memory",
+      [
+        "experiments/f4-mse-parallel/artifacts/probe",
+        "serial"
+      ]
+    ],
+    [
+      "parallel-memory",
+      [
+        "experiments/f4-mse-parallel/artifacts/probe",
+        "parallel"
+      ]
+    ],
+    [
+      "two-cpu-abba",
+      [
+        "taskset",
+        "-c",
+        "0,1",
+        "experiments/f4-mse-parallel/artifacts/probe",
+        "abba"
+      ]
+    ]
+  ]
+}

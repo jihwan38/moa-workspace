@@ -1,0 +1,18 @@
+ENV available_parallelism=24 capped_workers=4 affinity="Cpus_allowed_list:\t0-23"
+ENV_FILE path=/sys/fs/cgroup/cpu.max value="max 100000"
+ENV_FILE path=/sys/fs/cgroup/cpuset.cpus.effective value="0-23"
+ENV_FILE path=/proc/self/cgroup value="0::/"
+ENV_FILE path=/sys/fs/cgroup/cpu/cpu.cfs_quota_us value=""
+ENV_FILE path=/sys/fs/cgroup/cpu/cpu.cfs_period_us value=""
+PARITY rows=15360 cols=3840 packed_bytes=58982400 scale_values_compared_bitwise=122880 permutation=true all_finite_codes=true signed_zero=true
+PARITY rows=3840 cols=15360 packed_bytes=58982400 scale_values_compared_bitwise=122880 permutation=true all_finite_codes=true signed_zero=true
+ENCODE mode=serial iteration=0 ms=81.484451 packed=29491200 scales=61440 fnv64=fc53130b65afb7f2
+ENCODE mode=parallel iteration=1 ms=27.773564 packed=29491200 scales=61440 fnv64=fc53130b65afb7f2
+ENCODE mode=parallel iteration=2 ms=29.219115 packed=29491200 scales=61440 fnv64=fc53130b65afb7f2
+ENCODE mode=serial iteration=3 ms=77.619682 packed=29491200 scales=61440 fnv64=fc53130b65afb7f2
+ENCODE mode=parallel iteration=4 ms=24.567041 packed=29491200 scales=61440 fnv64=fc53130b65afb7f2
+ENCODE mode=serial iteration=5 ms=77.589765 packed=29491200 scales=61440 fnv64=fc53130b65afb7f2
+ENCODE mode=serial iteration=6 ms=77.487014 packed=29491200 scales=61440 fnv64=fc53130b65afb7f2
+ENCODE mode=parallel iteration=7 ms=25.410000 packed=29491200 scales=61440 fnv64=fc53130b65afb7f2
+MEMORY VmHWM:	  204540 kB VmRSS:	  118776 kB
+PASS mode=gate memory_scope=includes_full_parity_fixtures

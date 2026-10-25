@@ -1,0 +1,152 @@
+{
+  "abba": {
+    "milliseconds": {
+      "serial": [
+        82.388759,
+        77.635277,
+        77.703056,
+        78.417216
+      ],
+      "parallel": [
+        36.969377,
+        28.362101,
+        23.532995,
+        27.390157
+      ]
+    },
+    "means": {
+      "serial": 79.036077,
+      "parallel": 29.063657499999998
+    },
+    "peak_rss_kib": 118808,
+    "environment": [
+      "ENV available_parallelism=24 cpu_max=\"max 100000\" affinity=\"Cpus_allowed_list:\\t0-23\""
+    ],
+    "serial_over_parallel_mean": 2.7194126203833777
+  },
+  "two-cpu-abba": {
+    "milliseconds": {
+      "serial": [
+        82.626743,
+        77.61955,
+        77.641353,
+        77.565231
+      ],
+      "parallel": [
+        78.986029,
+        69.663018,
+        69.935371,
+        69.593833
+      ]
+    },
+    "means": {
+      "serial": 78.86321925,
+      "parallel": 72.04456275
+    },
+    "peak_rss_kib": 118736,
+    "environment": [
+      "ENV available_parallelism=2 cpu_max=\"max 100000\" affinity=\"Cpus_allowed_list:\\t0-1\""
+    ],
+    "serial_over_parallel_mean": 1.0946449841560042
+  },
+  "two-core-abba": {
+    "milliseconds": {
+      "serial": [
+        82.906529,
+        77.634395,
+        77.73314,
+        77.511411
+      ],
+      "parallel": [
+        51.830551,
+        42.463801,
+        42.661876,
+        42.636915
+      ]
+    },
+    "means": {
+      "serial": 78.94636875,
+      "parallel": 44.89828575
+    },
+    "peak_rss_kib": 118920,
+    "environment": [
+      "ENV available_parallelism=2 cpu_max=\"max 100000\" affinity=\"Cpus_allowed_list:\\t0,2\""
+    ],
+    "serial_over_parallel_mean": 1.7583381510284055
+  },
+  "serial-memory": {
+    "milliseconds": {
+      "serial": [
+        82.265998,
+        81.514543,
+        77.400296,
+        77.238859,
+        77.263483
+      ],
+      "parallel": []
+    },
+    "means": {
+      "serial": 79.1366358
+    },
+    "peak_rss_kib": 89512,
+    "environment": [
+      "ENV available_parallelism=24 cpu_max=\"max 100000\" affinity=\"Cpus_allowed_list:\\t0-23\""
+    ]
+  },
+  "parallel-memory": {
+    "milliseconds": {
+      "serial": [],
+      "parallel": [
+        34.439822,
+        35.854054,
+        27.379192,
+        28.994112,
+        26.20196
+      ]
+    },
+    "means": {
+      "parallel": 30.573828
+    },
+    "peak_rss_kib": 118648,
+    "environment": [
+      "ENV available_parallelism=24 cpu_max=\"max 100000\" affinity=\"Cpus_allowed_list:\\t0-23\""
+    ]
+  },
+  "local-arena-gate": {
+    "milliseconds": {
+      "serial": [
+        81.484451,
+        77.619682,
+        77.589765,
+        77.487014
+      ],
+      "parallel": [
+        27.773564,
+        29.219115,
+        24.567041,
+        25.41
+      ]
+    },
+    "means": {
+      "serial": 78.54522800000001,
+      "parallel": 26.74243
+    },
+    "peak_rss_kib": 204540,
+    "environment": [
+      "ENV available_parallelism=24 capped_workers=4 affinity=\"Cpus_allowed_list:\\t0-23\"",
+      "ENV_FILE path=/sys/fs/cgroup/cpu.max value=\"max 100000\"",
+      "ENV_FILE path=/sys/fs/cgroup/cpuset.cpus.effective value=\"0-23\"",
+      "ENV_FILE path=/proc/self/cgroup value=\"0::/\"",
+      "ENV_FILE path=/sys/fs/cgroup/cpu/cpu.cfs_quota_us value=\"\"",
+      "ENV_FILE path=/sys/fs/cgroup/cpu/cpu.cfs_period_us value=\"\""
+    ],
+    "serial_over_parallel_mean": 2.9371013778478625
+  },
+  "memory_delta_kib": 29136,
+  "limits": [
+    "Local Docker only:24 available CPUs,no cgroup quota.",
+    "0,1 affinity uses two SMT siblings of one core;0,2 uses two distinct cores. Neither recreates Arena cgroup quota.",
+    "Gate peakRSS includes full correctness fixtures; separate memory processes measure encoder allocation scope.",
+    "No startup or serving caller changed; no Arena task run by agent."
+  ]
+}
