@@ -137,7 +137,9 @@ pub async fn read_logits(
     logits: &HbmTensor<bf16, Chip, m![W]>,
 ) -> Result<Vec<f32>, Box<dyn std::error::Error>> {
     let logits: HostTensor<bf16, m![W]> = logits.to_host(&mut device.pdma).await?;
-    Ok(crate::host_logit_bytes::decode_bf16_le(&logits.into_inner().into_buf()))
+    Ok(crate::host_logit_bytes::decode_bf16_le(
+        &logits.into_inner().into_buf(),
+    ))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -316,6 +318,16 @@ impl Generation {
     /// output and EOS/stop events that do not increment completion usage.
     pub(crate) fn completion_tokens(&self) -> usize {
         self.output.completion_tokens
+    }
+
+    /// Explicit phase queries never inspect input from a completed generation.
+    pub(crate) fn is_prefilling(&self) -> bool {
+        matches!(self.phase, Phase::Prompt(_))
+    }
+
+    pub(crate) fn finishes_prompt(&self, count: usize) -> bool {
+        matches!(self.phase, Phase::Prompt(position)
+            if count > 0 && position.checked_add(count) == Some(self.request.prompt_ids.len()))
     }
 
     /// Immutable request bans, shared by CPU sampling and external greedy selection.

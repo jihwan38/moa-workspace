@@ -12,6 +12,10 @@ use crate::host::tokenizer::Tokenizer;
 use furiosa_opt_std::prelude::*;
 use std::time::{Duration, Instant};
 
+#[path = "startup_cohort.rs"]
+mod startup_cohort;
+use startup_cohort::{StartupCohort, StartupDelivery};
+
 /// Requests computed together; more wait in the queue.
 pub const CAPACITY: usize = crate::axes::B::SIZE;
 /// Prompt plus generated positions allowed per request.
@@ -45,6 +49,7 @@ enum SampleOutput {
 }
 
 struct Session {
+    delivery: StartupDelivery,
     generation: Generation,
     blocks: Blocks,
     reservation: Option<Reservation>,
@@ -108,6 +113,7 @@ struct SessionTiming {
     decode_rounds: usize,
     credited: usize,
     phases: [Duration; 3],
+    cohort_hold: Duration,
 }
 impl SessionTiming {
     fn new(id: u64, prompt_tokens: usize, now: Instant) -> Self {
@@ -123,6 +129,7 @@ impl SessionTiming {
             decode_rounds: 0,
             credited: 0,
             phases: [Duration::ZERO; 3],
+            cohort_hold: Duration::ZERO,
         }
     }
     fn report(&self, finished: Instant) {
@@ -139,7 +146,7 @@ impl SessionTiming {
             .map(|t| ms(finished.saturating_duration_since(t)) / (self.progress.tokens - 1) as f64)
             .unwrap_or(0.0);
         eprintln!(
-            "SCHED_REQ id={} p={} q={:.1} first={:.1} own={:.1} dw={:.1}/{} pw={:.1} host={:.1} n={} avg={:.2} maxgap={:.1} over={}/{:.1} credited={} ph={:.1}/{:.1}/{:.1}",
+            "SCHED_REQ id={} p={} q={:.1} first={:.1} own={:.1} dw={:.1}/{} pw={:.1} host={:.1} n={} avg={:.2} maxgap={:.1} over={}/{:.1} credited={} ph={:.1}/{:.1}/{:.1} hold={:.1}",
             self.id,
             self.prompt_tokens,
             ms(self.admitted.saturating_duration_since(self.received)),
@@ -159,7 +166,8 @@ impl SessionTiming {
             self.credited,
             ms(self.phases[0]),
             ms(self.phases[1]),
-            ms(self.phases[2])
+            ms(self.phases[2]),
+            ms(self.cohort_hold)
         );
     }
 }
@@ -458,7 +466,25 @@ impl Worker {
         let mut active_work = Vec::<ScheduledInput>::new();
         let mut request_id = 0u64;
         let mut trace = SchedulerTrace::new();
+        let mut cohort = StartupCohort::default();
         loop {
+            // Flush before any potentially blocking receive, including held Done/EOS.
+            if let Some(reason) = cohort.release_reason(&sessions, Instant::now()) {
+                cohort.release(
+                    &mut sessions,
+                    &mut reservations,
+                    &mut free,
+                    &mut rings,
+                    Instant::now(),
+                    reason,
+                );
+                if SCHEDULER_TRACE_ENABLED && sessions.is_empty() && pending.is_empty() {
+                    trace.report();
+                }
+            }
+            if sessions.is_empty() && pending.is_empty() {
+                cohort.reset_idle();
+            }
             let incoming: Vec<_> = if sessions.is_empty() && pending.is_empty() {
                 let Ok(job) = jobs.recv() else { break };
                 std::iter::once(job)
@@ -499,6 +525,7 @@ impl Worker {
                         timing,
                     }),
                     Ok(generation) => sessions.push(Session {
+                        delivery: StartupDelivery::default(),
                         generation,
                         reservation: None,
                         blocks: Blocks {
@@ -527,6 +554,7 @@ impl Worker {
                     let mut request = pending.pop_front().unwrap();
                     request.timing.admitted = Instant::now();
                     sessions.push(Session {
+                        delivery: StartupDelivery::default(),
                         generation: request.generation,
                         blocks: reservation.blocks.clone(),
                         reservation: Some(reservation),
@@ -541,13 +569,7 @@ impl Worker {
             }
             let available: Vec<_> = sessions
                 .iter()
-                .map(|s| ReadyInput {
-                    ring: s.blocks.sliding,
-                    position: s.generation.input().1,
-                    count: s.generation.input_count(PREFILL_CHUNK),
-                    prompt512: s.generation.input_count(crate::axes::P512::SIZE)
-                        == crate::axes::P512::SIZE,
-                })
+                .map(|s| ready_input(s, cohort.allows(s)))
                 .collect();
             let active_rings = self.model.active_prefill_rings();
             debug_assert_eq!(
@@ -857,6 +879,9 @@ impl Worker {
                     credited,
                 );
             }
+            if startup_cohort::ENABLED && matches!(&result, Ok(Ok(Some(_)))) {
+                cohort.maybe_start(&mut sessions, &scheduled, Instant::now());
+            }
             let completed = match result {
                 Ok(Ok(outputs)) => complete_work(
                     &mut sessions,
@@ -885,6 +910,16 @@ impl Worker {
                     }
                 }
                 Err(message) => {
+                    // Deliver only already-computed buffered events before the terminal
+                    // worker error. Completed held members cannot receive a later Error.
+                    cohort.release(
+                        &mut sessions,
+                        &mut reservations,
+                        &mut free,
+                        &mut rings,
+                        Instant::now(),
+                        "error",
+                    );
                     // Any partially executed prompt layer makes the entire model
                     // unusable. Release every live reservation only as we go offline.
                     for session in &mut sessions {
@@ -971,7 +1006,9 @@ fn complete_work(
         let Some(session) = sessions.iter().find(|s| s.blocks.sliding == input.ring) else {
             return Err("scheduled request is no longer live");
         };
-        if input.count == 0
+        if session.delivery.terminal()
+            || (session.delivery.held() && !session.generation.is_prefilling())
+            || input.count == 0
             || scheduled[..row]
                 .iter()
                 .any(|other| other.ring == input.ring)
@@ -989,51 +1026,74 @@ fn complete_work(
             return true;
         };
         let count = scheduled[row].count;
-        let emit = |delta: Delta<'_>| {
-            let text = match delta {
-                Delta::Content(text) | Delta::Reasoning(text) => text,
-            };
-            if !text.is_empty() {
-                session.timing.progress.emitted(Instant::now());
-            }
-            !session.stream
-                || session
-                    .events
-                    .send(match delta {
-                        Delta::Content(text) => StreamEvent::Delta(text.to_owned()),
-                        Delta::Reasoning(text) => StreamEvent::ReasoningDelta(text.to_owned()),
-                    })
-                    .is_ok()
-        };
+        let Session {
+            generation,
+            delivery,
+            events,
+            stream,
+            timing,
+            ..
+        } = session;
+        let emit = |delta: Delta<'_>| delivery.delta(delta, *stream, events, &mut timing.progress);
         let result = match &outputs[row] {
-            SampleOutput::Logits(logits) => session.generation.advance_inputs(count, logits, emit),
-            SampleOutput::Greedy(token) => session
-                .generation
-                .advance_inputs_greedy(count, *token, emit),
+            SampleOutput::Logits(logits) => generation.advance_inputs(count, logits, emit),
+            SampleOutput::Greedy(token) => generation.advance_inputs_greedy(count, *token, emit),
         };
-        session.timing.progress.tokens = session.generation.completion_tokens();
+        timing.progress.tokens = generation.completion_tokens();
+        if !generation.is_prefilling() {
+            delivery.ready(Instant::now());
+        }
         let event = match result {
             Ok(None) => return true,
             Ok(Some(output)) => StreamEvent::Done(output),
             Err(error) => StreamEvent::Error(error.to_string()),
         };
-        let _ = session.events.send(event);
+        if delivery.finish(event, *stream, events, &mut timing.progress) {
+            return true;
+        }
         if SCHEDULER_TRACE_ENABLED {
-            session.timing.report(Instant::now());
+            timing.report(Instant::now());
         }
-        if let Some(reservation) = session.reservation.take() {
-            reservations
-                .as_mut()
-                .unwrap()
-                .release(reservation)
-                .expect("completed session owns reservation");
-        } else {
-            free.append(&mut session.blocks.full);
-            rings.push(session.blocks.sliding);
-        }
+        release_session(session, reservations, free, rings);
         false
     });
     Ok(true)
+}
+
+fn release_session(
+    session: &mut Session,
+    reservations: &mut Option<PageReservations>,
+    free: &mut Vec<usize>,
+    rings: &mut Vec<usize>,
+) {
+    if let Some(reservation) = session.reservation.take() {
+        reservations
+            .as_mut()
+            .unwrap()
+            .release(reservation)
+            .expect("completed session owns reservation");
+    } else {
+        free.append(&mut session.blocks.full);
+        rings.push(session.blocks.sliding);
+    }
+}
+
+fn ready_input(session: &Session, allowed: bool) -> ReadyInput {
+    if !allowed {
+        return ReadyInput {
+            ring: session.blocks.sliding,
+            position: 0,
+            count: 0,
+            prompt512: false,
+        };
+    }
+    ReadyInput {
+        ring: session.blocks.sliding,
+        position: session.generation.input().1,
+        count: session.generation.input_count(PREFILL_CHUNK),
+        prompt512: session.generation.input_count(crate::axes::P512::SIZE)
+            == crate::axes::P512::SIZE,
+    }
 }
 
 /// Four independent requests take priority because `pending_prompt` selects
@@ -1401,14 +1461,16 @@ mod tests {
         };
         let reservation = pool.try_reserve(prompt + max).unwrap().unwrap();
         let (events, receiver) = mpsc::channel();
+        let id = reservation.blocks.sliding as u64;
         (
             Session {
+                delivery: StartupDelivery::default(),
                 generation: Generation::new(tokenizer(), request, CONTEXT).unwrap(),
                 blocks: reservation.blocks.clone(),
                 reservation: Some(reservation),
                 events,
                 stream: true,
-                timing: SessionTiming::new(0, prompt, Instant::now()),
+                timing: SessionTiming::new(id, prompt, Instant::now()),
             },
             receiver,
         )
@@ -2086,5 +2148,479 @@ mod tests {
         assert_eq!(trace.phases[2][1].total, Duration::from_millis(6));
         assert_eq!(trace.prompt_dispatches[1], 2);
         assert_eq!(trace.credited.total, Duration::from_millis(258));
+    }
+
+    fn cohort_work(session: &Session) -> ScheduledInput {
+        ScheduledInput {
+            ring: session.blocks.sliding,
+            position: session.generation.input().1,
+            count: session.generation.input_count(PREFILL_CHUNK),
+        }
+    }
+
+    fn cohort_complete(
+        sessions: &mut Vec<Session>,
+        ring: usize,
+        token: usize,
+        pool: &mut Option<PageReservations>,
+    ) {
+        let s = sessions.iter().find(|s| s.blocks.sliding == ring).unwrap();
+        let work = [cohort_work(s)];
+        assert!(
+            complete_work(
+                sessions,
+                &work,
+                Some(&[SampleOutput::Greedy(token)]),
+                pool,
+                &mut vec![],
+                &mut vec![]
+            )
+            .unwrap()
+        );
+    }
+
+    #[test]
+    fn startup_cohort_holds_actual_first_delta_without_credit_or_extra_decode() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, ar) = session(pool.as_mut().unwrap(), 128, 4);
+        let (b, _br) = session(pool.as_mut().unwrap(), 128, 4);
+        let mut sessions = vec![a, b];
+        let first = cohort_work(&sessions[0]);
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        assert!(cohort.active());
+        cohort_complete(&mut sessions, first.ring, 3, &mut pool);
+        assert!(matches!(ar.try_recv(), Err(mpsc::TryRecvError::Empty)));
+        assert_eq!(sessions[0].generation.completion_tokens(), 1);
+        assert_eq!(sessions[0].timing.progress.tokens, 1);
+        assert!(sessions[0].timing.progress.first.is_none());
+        assert!(
+            sessions[0]
+                .timing
+                .progress
+                .deadline(DECODE_CREDIT_TARGET, DECODE_GAP_SOFTCAP)
+                .is_none()
+        );
+        assert!(!cohort.allows(&sessions[0]));
+        assert!(cohort.allows(&sessions[1]));
+        let available: Vec<_> = sessions
+            .iter()
+            .map(|s| ready_input(s, cohort.allows(s)))
+            .collect();
+        assert_eq!(
+            select_work_in(64, &available, &mut false, &mut 0, &[], true),
+            vec![1]
+        );
+        let second = sessions[1].blocks.sliding;
+        cohort_complete(&mut sessions, second, 4, &mut pool);
+        let release = Instant::now();
+        assert_eq!(cohort.release_reason(&sessions, release), Some("ready"));
+        cohort.release(
+            &mut sessions,
+            &mut pool,
+            &mut vec![],
+            &mut vec![],
+            release,
+            "ready",
+        );
+        assert!(matches!(ar.try_recv(),Ok(StreamEvent::Delta(text)) if text=="a"));
+        assert_eq!(sessions[0].timing.progress.first, Some(release));
+        assert_eq!(
+            sessions[0]
+                .timing
+                .progress
+                .deadline(DECODE_CREDIT_TARGET, DECODE_GAP_SOFTCAP),
+            Some(release + DECODE_CREDIT_TARGET)
+        );
+        assert!(sessions.iter().all(|s| cohort.allows(s)));
+    }
+
+    #[test]
+    fn startup_cohort_one_token_and_eos_keep_done_and_reservation_until_idle_flush() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, ar) = session(pool.as_mut().unwrap(), 128, 1);
+        let (b, br) = session(pool.as_mut().unwrap(), 128, 4);
+        let mut sessions = vec![a, b];
+        let before = pool.as_ref().unwrap().available_pages();
+        let first = cohort_work(&sessions[0]);
+        let second = sessions[1].blocks.sliding;
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        cohort_complete(&mut sessions, first.ring, 3, &mut pool);
+        cohort_complete(
+            &mut sessions,
+            second,
+            crate::host::generate::EOS_TOKEN,
+            &mut pool,
+        );
+        assert_eq!(sessions.len(), 2);
+        assert!(
+            sessions
+                .iter()
+                .all(|s| s.delivery.terminal() && !cohort.allows(s))
+        );
+        assert_eq!(pool.as_ref().unwrap().available_pages(), before);
+        assert!(matches!(ar.try_recv(), Err(mpsc::TryRecvError::Empty)));
+        assert!(matches!(br.try_recv(), Err(mpsc::TryRecvError::Empty)));
+        // All work is blocked, but this opens before any recv or model call.
+        assert_eq!(
+            cohort.release_reason(&sessions, Instant::now()),
+            Some("ready")
+        );
+        cohort.release(
+            &mut sessions,
+            &mut pool,
+            &mut vec![],
+            &mut vec![],
+            Instant::now(),
+            "ready",
+        );
+        assert!(sessions.is_empty());
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 256);
+        assert!(matches!(ar.try_recv(),Ok(StreamEvent::Delta(t)) if t=="a"));
+        assert!(
+            matches!(ar.try_recv(),Ok(StreamEvent::Done(o)) if o.text=="a" && o.completion_tokens==1)
+        );
+        assert!(
+            matches!(br.try_recv(),Ok(StreamEvent::Done(o)) if o.text.is_empty() && o.completion_tokens==0)
+        );
+        assert!(matches!(
+            ar.try_recv(),
+            Err(mpsc::TryRecvError::Disconnected)
+        ));
+    }
+
+    #[test]
+    fn startup_snapshot_does_not_grow_and_oldest_receipt_bounds_release() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, ar) = session(pool.as_mut().unwrap(), 128, 4);
+        let (b, _br) = session(pool.as_mut().unwrap(), 512, 4);
+        let mut sessions = vec![a, b];
+        let start = Instant::now();
+        for s in &mut sessions {
+            s.timing.received = start;
+        }
+        let first = cohort_work(&sessions[0]);
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], start + Duration::from_millis(100));
+        cohort_complete(&mut sessions, first.ring, 3, &mut pool);
+        let (late, _lr) = session(pool.as_mut().unwrap(), 128, 4);
+        sessions.push(late);
+        assert!(!cohort.allows(&sessions[2]));
+        let deadline = start + startup_cohort::RECEIPT_BUDGET;
+        assert_eq!(
+            cohort.release_reason(&sessions, deadline - Duration::from_nanos(1)),
+            None
+        );
+        assert_eq!(cohort.release_reason(&sessions, deadline), Some("deadline"));
+        cohort.release(
+            &mut sessions,
+            &mut pool,
+            &mut vec![],
+            &mut vec![],
+            deadline,
+            "deadline",
+        );
+        assert!(matches!(ar.try_recv(),Ok(StreamEvent::Delta(t)) if t=="a"));
+        assert_eq!(sessions[0].timing.progress.first, Some(deadline));
+        assert!(sessions.iter().all(|s| cohort.allows(s)));
+        let later = cohort_work(&sessions[2]);
+        cohort.maybe_start(&mut sessions, &[later], deadline);
+        assert!(!cohort.active(), "one finite cohort per busy wave");
+    }
+
+    #[test]
+    fn startup_visible_decoder_prevents_barrier_and_partial_prompt_cannot_start_one() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, _ar) = session(pool.as_mut().unwrap(), 128, 4);
+        let (b, _br) = session(pool.as_mut().unwrap(), 256, 4);
+        let mut sessions = vec![a, b];
+        let partial = cohort_work(&sessions[1]);
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[partial], Instant::now());
+        assert!(!cohort.active());
+        let first = sessions[0].blocks.sliding;
+        cohort_complete(&mut sessions, first, 3, &mut pool);
+        assert!(sessions[0].timing.progress.first.is_some());
+        let next = cohort_work(&sessions[1]);
+        cohort.maybe_start(&mut sessions, &[next], Instant::now());
+        assert!(!cohort.active());
+        assert!(sessions.iter().all(|s| cohort.allows(s)));
+    }
+
+    fn stop_prefix_session(
+        pool: &mut PageReservations,
+        stream: bool,
+    ) -> (Session, mpsc::Receiver<StreamEvent>) {
+        let (mut s, r) = session(pool, 128, 4);
+        s.stream = stream;
+        s.generation = Generation::new(
+            tokenizer(),
+            crate::host::generate::GenerationRequest {
+                prompt_ids: vec![2; 128],
+                soft_at: vec![None; 128],
+                image: None,
+                audio: None,
+                max_new_tokens: 4,
+                sampling: crate::host::sampling::SamplingConfig::DEFAULT,
+                stop_strings: vec!["ab".into()],
+                separate_reasoning: false,
+                ignore_eos: false,
+            },
+            CONTEXT,
+        )
+        .unwrap();
+        (s, r)
+    }
+
+    #[test]
+    fn startup_invisible_decoder_is_ready_without_text_and_does_not_deadlock() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, ar) = stop_prefix_session(pool.as_mut().unwrap(), true);
+        let (b, br) = session(pool.as_mut().unwrap(), 128, 1);
+        let mut sessions = vec![a, b];
+        let first = sessions[0].blocks.sliding;
+        cohort_complete(&mut sessions, first, 3, &mut pool); // "a" is held by stop-prefix logic.
+        assert!(!sessions[0].generation.is_prefilling());
+        assert!(sessions[0].timing.progress.first.is_none());
+        let second = cohort_work(&sessions[1]);
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[second], Instant::now());
+        assert!(!cohort.allows(&sessions[0]));
+        cohort_complete(&mut sessions, second.ring, 4, &mut pool);
+        assert_eq!(
+            cohort.release_reason(&sessions, Instant::now()),
+            Some("ready")
+        );
+        cohort.release(
+            &mut sessions,
+            &mut pool,
+            &mut vec![],
+            &mut vec![],
+            Instant::now(),
+            "ready",
+        );
+        assert_eq!(sessions.len(), 1);
+        assert!(cohort.allows(&sessions[0]));
+        assert!(sessions[0].timing.progress.first.is_none());
+        assert!(matches!(ar.try_recv(), Err(mpsc::TryRecvError::Empty)));
+        assert!(matches!(br.try_recv(),Ok(StreamEvent::Delta(t)) if t=="b"));
+        cohort_complete(&mut sessions, first, 4, &mut pool); // matches stop, no fabricated delta.
+        assert!(sessions.is_empty());
+        assert!(matches!(ar.try_recv(),Ok(StreamEvent::Done(o)) if o.text.is_empty()));
+    }
+
+    #[test]
+    fn startup_disconnect_releases_once_and_preserves_other_members() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, ar) = session(pool.as_mut().unwrap(), 128, 4);
+        let (b, _br) = session(pool.as_mut().unwrap(), 128, 4);
+        let mut sessions = vec![a, b];
+        let first = cohort_work(&sessions[0]);
+        let second = sessions[1].blocks.sliding;
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        drop(ar);
+        cohort_complete(&mut sessions, first.ring, 3, &mut pool);
+        cohort_complete(&mut sessions, second, 4, &mut pool);
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 254);
+        cohort.release(
+            &mut sessions,
+            &mut pool,
+            &mut vec![],
+            &mut vec![],
+            Instant::now(),
+            "ready",
+        );
+        assert_eq!(sessions.len(), 1);
+        assert_eq!(sessions[0].blocks.sliding, second);
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 255);
+        cohort.release(
+            &mut sessions,
+            &mut pool,
+            &mut vec![],
+            &mut vec![],
+            Instant::now(),
+            "ready",
+        );
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 255);
+    }
+
+    #[test]
+    fn startup_nonstream_buffers_only_done_and_done_never_precedes_later_delta() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (mut a, ar) = session(pool.as_mut().unwrap(), 128, 1);
+        a.stream = false;
+        let (b, _br) = session(pool.as_mut().unwrap(), 128, 1);
+        let mut sessions = vec![a, b];
+        let first = cohort_work(&sessions[0]);
+        let second = sessions[1].blocks.sliding;
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        cohort_complete(&mut sessions, first.ring, 3, &mut pool);
+        assert!(sessions[0].timing.progress.first.is_none());
+        // A held terminal can never be sampled or advanced a second time.
+        assert!(
+            complete_work(
+                &mut sessions,
+                &[first],
+                Some(&[SampleOutput::Greedy(4)]),
+                &mut pool,
+                &mut vec![],
+                &mut vec![]
+            )
+            .is_err()
+        );
+        cohort_complete(&mut sessions, second, 4, &mut pool);
+        cohort.release(
+            &mut sessions,
+            &mut pool,
+            &mut vec![],
+            &mut vec![],
+            Instant::now(),
+            "ready",
+        );
+        assert!(sessions.is_empty());
+        assert!(matches!(ar.try_recv(),Ok(StreamEvent::Done(o)) if o.text=="a"));
+        assert!(matches!(
+            ar.try_recv(),
+            Err(mpsc::TryRecvError::Disconnected)
+        ));
+    }
+
+    #[test]
+    fn startup_terminal_error_and_offline_flush_preserve_computed_event_order() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, ar) = session(pool.as_mut().unwrap(), 128, 1);
+        let (b, br) = session(pool.as_mut().unwrap(), 128, 4);
+        let mut sessions = vec![a, b];
+        let first = cohort_work(&sessions[0]);
+        let second = sessions[1].blocks.sliding;
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        cohort_complete(&mut sessions, first.ring, 3, &mut pool);
+        cohort_complete(&mut sessions, second, crate::axes::W::SIZE, &mut pool);
+        cohort.release(
+            &mut sessions,
+            &mut pool,
+            &mut vec![],
+            &mut vec![],
+            Instant::now(),
+            "error",
+        );
+        assert!(sessions.is_empty());
+        assert_eq!(pool.as_ref().unwrap().available_pages(), 256);
+        assert!(matches!(ar.try_recv(),Ok(StreamEvent::Delta(t)) if t=="a"));
+        assert!(matches!(ar.try_recv(),Ok(StreamEvent::Done(o)) if o.text=="a"));
+        assert!(matches!(
+            ar.try_recv(),
+            Err(mpsc::TryRecvError::Disconnected)
+        ));
+        assert!(matches!(br.try_recv(), Ok(StreamEvent::Error(_))));
+        assert!(matches!(
+            br.try_recv(),
+            Err(mpsc::TryRecvError::Disconnected)
+        ));
+    }
+
+    #[test]
+    fn startup_mixed_inflight_invisible_decode_batch_consumes_every_computed_output() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, ar) = stop_prefix_session(pool.as_mut().unwrap(), true);
+        let (b, br) = session(pool.as_mut().unwrap(), 1, 4);
+        let mut sessions = vec![a, b];
+        let first = sessions[0].blocks.sliding;
+        cohort_complete(&mut sessions, first, 3, &mut pool);
+        let work: Vec<_> = sessions.iter().map(cohort_work).collect();
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &work, Instant::now());
+        assert!(!cohort.active());
+        assert!(
+            complete_work(
+                &mut sessions,
+                &work,
+                Some(&[SampleOutput::Greedy(5), SampleOutput::Greedy(4)]),
+                &mut pool,
+                &mut vec![],
+                &mut vec![]
+            )
+            .unwrap()
+        );
+        assert_eq!(sessions[0].generation.completion_tokens(), 2);
+        assert_eq!(sessions[1].generation.completion_tokens(), 1);
+        assert!(matches!(ar.try_recv(),Ok(StreamEvent::Delta(t)) if t=="ac"));
+        assert!(matches!(br.try_recv(),Ok(StreamEvent::Delta(t)) if t=="b"));
+    }
+
+    #[test]
+    fn startup_channel_marker_without_first_text_releases_as_ready() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (mut a, ar) = session(pool.as_mut().unwrap(), 128, 4);
+        a.generation = Generation::new(
+            tokenizer(),
+            crate::host::generate::GenerationRequest {
+                prompt_ids: vec![2; 128],
+                soft_at: vec![None; 128],
+                image: None,
+                audio: None,
+                max_new_tokens: 4,
+                sampling: crate::host::sampling::SamplingConfig::DEFAULT,
+                stop_strings: vec![],
+                separate_reasoning: true,
+                ignore_eos: false,
+            },
+            CONTEXT,
+        )
+        .unwrap();
+        let (b, _br) = session(pool.as_mut().unwrap(), 128, 1);
+        let mut sessions = vec![a, b];
+        let first = cohort_work(&sessions[0]);
+        let second = sessions[1].blocks.sliding;
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        cohort_complete(
+            &mut sessions,
+            first.ring,
+            crate::host::generate::CHANNEL_OPEN_TOKEN,
+            &mut pool,
+        );
+        cohort_complete(&mut sessions, second, 3, &mut pool);
+        assert_eq!(
+            cohort.release_reason(&sessions, Instant::now()),
+            Some("ready")
+        );
+        cohort.release(
+            &mut sessions,
+            &mut pool,
+            &mut vec![],
+            &mut vec![],
+            Instant::now(),
+            "ready",
+        );
+        assert_eq!(sessions.len(), 1);
+        assert!(!sessions[0].generation.is_prefilling());
+        assert!(cohort.allows(&sessions[0]));
+        assert!(sessions[0].timing.progress.first.is_none());
+        assert!(matches!(ar.try_recv(), Err(mpsc::TryRecvError::Empty)));
+    }
+
+    #[test]
+    fn startup_does_not_delay_a_lone_request_or_an_already_expired_snapshot() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, _ar) = session(pool.as_mut().unwrap(), 128, 4);
+        let mut sessions = vec![a];
+        let first = cohort_work(&sessions[0]);
+        let mut cohort = StartupCohort::default();
+        cohort.maybe_start(&mut sessions, &[first], Instant::now());
+        assert!(!cohort.active());
+        assert!(!sessions[0].delivery.held());
+        let (b, _br) = session(pool.as_mut().unwrap(), 128, 4);
+        sessions.push(b);
+        let now = Instant::now();
+        sessions[0].timing.received = now - startup_cohort::RECEIPT_BUDGET;
+        let mut expired = StartupCohort::default();
+        expired.maybe_start(&mut sessions, &[first], now);
+        assert!(!expired.active());
+        assert!(sessions.iter().all(|s| !s.delivery.held()));
     }
 }
