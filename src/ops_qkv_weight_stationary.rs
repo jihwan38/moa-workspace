@@ -35,12 +35,19 @@ fn one(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![P128,H]>,
         .contract_lane::<m![P128,Joined/8,HBlock],m![Joined%8]>(LaneMode::Interleaved)
         .commit_trim::<m![Joined%8]>().commit();
     // The tested local four-way Add matches the original four-slice F32 Add.
-    let dot:DmTensor<bf16,Chip,Cluster,Parts,m![P128,Joined]>=device.main.begin(partial.view())
+    let sum:DmTensor<f32,Chip,Cluster,Parts,m![P128,Joined]>=device.main.begin(partial.view())
         .fetch::<m![P128,Joined/8,HBlock],m![Joined%8]>()
         .collect::<m![P128,Joined/8,HBlock],m![Joined%8]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
         .vector_narrow_split::<m![P128,Joined/8,HBlock,Joined/4%2],m![Joined%4]>()
         .vector_intra_slice_reduce::<HBlock,m![P128,Joined/4],m![Joined%4]>(IntraSliceReduceOpF32::Add)
+        .vector_widen_concat::<m![P128,Joined/8],m![Joined%8]>().vector_final()
+        .commit_trim::<m![Joined%8]>().commit();
+    let dot:DmTensor<bf16,Chip,Cluster,Parts,m![P128,Joined]>=device.main.begin(sum.view())
+        .fetch::<m![P128,Joined/8],m![Joined%8]>()
+        .collect::<m![P128,Joined/8],m![Joined%8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![P128,Joined/4],m![Joined%4]>()
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)
         .vector_widen_concat::<m![P128,Joined/8],m![Joined%8]>().vector_final()
         .cast::<bf16,m![Joined%8#16]>().commit_trim::<m![Joined%8]>().commit();
@@ -52,14 +59,14 @@ fn one(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![P128,H]>,
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),scale)
         .vector_widen_concat::<m![P128,Joined/8],m![Joined%8]>().vector_final()
         .cast::<bf16,m![Joined%8#16]>().commit_trim::<m![Joined%8]>().commit();
-    let q:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=8]>=result.view()
-        .tile::<m![Joined],8,m![P128,Joined=8#16]>(0).to_dm(&mut device.tdma);
+    let mut q:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=8]>=DmTensor::new();
+    result.view().tile::<m![Joined],8,m![P128,Joined=8#16]>(0).to_dm_view(&mut device.tdma,q.view_mut());
     q.view().to_hbm_view(&mut device.tdma,qout.view_mut());
-    let k:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=4]>=result.view()
-        .tile::<m![Joined],4,m![P128,Joined=4#16]>(8).to_dm(&mut device.tdma);
+    let mut k:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=4]>=DmTensor::new();
+    result.view().tile::<m![Joined],4,m![P128,Joined=4#16]>(8).to_dm_view(&mut device.tdma,k.view_mut());
     k.view().to_hbm_view(&mut device.tdma,kout.view_mut());
-    let v:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=4]>=result.view()
-        .tile::<m![Joined],4,m![P128,Joined=4#16]>(12).to_dm(&mut device.tdma);
+    let mut v:DmTensor<bf16,Chip,Cluster,StoreParts,m![P128%32,OutputGroup%8,Joined=4]>=DmTensor::new();
+    result.view().tile::<m![Joined],4,m![P128,Joined=4#16]>(12).to_dm_view(&mut device.tdma,v.view_mut());
     v.view().to_hbm_view(&mut device.tdma,vout.view_mut());
 }
 
