@@ -320,13 +320,13 @@ impl GroupPrefill {
         let [a, b, c, d] = &mut self.rows;
         match layer {
             Layer::Sliding(l) => {
-                launch(crate::ops_output_p128_four_trf32::project_sliding_output_four,
+                launch(crate::ops_output_p128_keyrings_h64::project_sliding_output_four,
                     (device, &a.attn_s, &b.attn_s, &c.attn_s, &d.attn_s,
                      &l.o_weight, &l.o_weight_scale, &mut a.projected,
                      &mut b.projected, &mut c.projected, &mut d.projected)).await?;
             }
             Layer::Full(l) => {
-                launch(crate::ops_output_p128_four_trf32::project_full_output_four,
+                launch(crate::ops_output_p128_four_keyrings::project_full_output_four,
                     (device, &a.attn_f, &b.attn_f, &c.attn_f, &d.attn_f,
                      &l.o_weight, &l.o_weight_scale, &mut a.projected,
                      &mut b.projected, &mut c.projected, &mut d.projected)).await?;

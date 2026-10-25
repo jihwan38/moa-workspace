@@ -207,3 +207,6 @@ pub mod ops_sliding_wide_exact_sum;
 pub mod ops_native_fp8_p512_ingress;
 
 pub mod ops_sliding_wide_head_rows;
+
+pub mod ops_output_p128_four_keyrings;
+pub mod ops_output_p128_keyrings_h64;
