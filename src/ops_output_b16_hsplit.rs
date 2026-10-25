@@ -7,6 +7,7 @@ use crate::{
 };
 use furiosa_opt_std::prelude::*;
 axes![Ho = 2, Hb = 30, Ht = 64];
+pub type SlidingOutput = m![B,Ho,Hb,Ht];
 type Cluster = m![Ho];
 type Parts = m![Hb # 32,Qs/1024,1#2];
 type FullParts = m![Hb # 32,Qf/1024];
@@ -132,8 +133,7 @@ fn scale_output_wide(
     result.view().to_hbm_view(&mut device.tdma, output);
 }
 
-#[device(chip = 1)]
-pub fn project_sliding_output_batch(
+pub(crate) fn project_sliding_output_batch_stage(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![B, Ns, Gs, Ds]>,
     weight: &HbmTensor<f8e4m3, Chip, m![H, Qs]>,
@@ -186,6 +186,17 @@ pub fn project_sliding_output_batch(
     let p23 = add_gathered_pair(device, &gathered, 2);
     let result = add_partials_wide(device, &p01, &p23);
     scale_output_wide(device, &result, scale, output);
+}
+
+#[device(chip = 1)]
+pub fn project_sliding_output_batch(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![B, Ns, Gs, Ds]>,
+    weight: &HbmTensor<f8e4m3, Chip, m![H, Qs]>,
+    scale: &HbmTensor<bf16, Chip, m![H]>,
+    output: HbmTensorViewMut<'_, bf16, Chip, m![B, Ho, Hb, Ht]>,
+) {
+    project_sliding_output_batch_stage(device,input,weight,scale,output);
 }
 
 #[device(chip = 1)]

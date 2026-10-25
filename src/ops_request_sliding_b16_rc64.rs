@@ -136,8 +136,7 @@ fn sliding_sum(
         .commit_trim::<m![1 # 8]>()
         .commit()
 }
-#[device(chip = 1)]
-pub fn sliding_attention_b16(
+pub(crate) fn sliding_attention_b16_stage(
     device: &mut Device,
     q: &HbmTensor<bf16, Chip, m![B, Ns, Gs, Ds]>,
     pool_k: &HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
@@ -269,4 +268,17 @@ pub fn sliding_attention_b16(
                 .tile::<m![B], 8, m![B=8 #{!} 16,Ns,Gs,Ds]>(group * 8),
         );
     }
+}
+
+#[device(chip = 1)]
+pub fn sliding_attention_b16(
+    device: &mut Device,
+    q: &HbmTensor<bf16, Chip, m![B, Ns, Gs, Ds]>,
+    pool_k: &HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
+    pool_v: &HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
+    ring_byte_offsets: &HbmTensor<i32, Chip, m![B]>,
+    visibility_mask: &HbmTensor<f32, Chip, m![B, Ts]>,
+    out: &mut HbmTensor<bf16, Chip, m![B, Ns, Gs, Ds]>,
+) {
+    sliding_attention_b16_stage(device,q,pool_k,pool_v,ring_byte_offsets,visibility_mask,out);
 }

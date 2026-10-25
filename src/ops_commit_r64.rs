@@ -23,7 +23,7 @@ pub fn commit_full_kv_r64(device:&mut Device,k:&HbmTensor<bf16,Chip,m![R64,Df]>,
 }
 
 
-fn commit_sliding_pool<const VALID: usize>(
+pub(crate) fn commit_sliding_pool<const VALID: usize>(
     device: &mut Device,
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,

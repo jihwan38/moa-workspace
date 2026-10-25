@@ -28,3 +28,5 @@ pub mod b16_ffn_epilogue_diagnostic;
 pub mod b16_prefix_diagnostic;
 
 pub mod b16_metadata_diagnostic;
+
+pub mod b16_attention_output_diagnostic;
