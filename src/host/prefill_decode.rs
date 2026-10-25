@@ -30,6 +30,7 @@ impl Prefill {
         logits: &mut [Logits],
         output_rows: &[usize],
         materialize_rows: bool,
+        attention_output_composed: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -166,6 +167,7 @@ impl Prefill {
                         sequences,
                         &offsets,
                         pooled.as_ref(),
+                        attention_output_composed,
                     )
                     .await?
                 }
@@ -232,6 +234,7 @@ impl Prefill {
         sequences: &[Sequence<'_>],
         offsets: &[RowOffsets],
         pooled: Option<&PooledStep>,
+        attention_output_composed: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output && ws.is_canonical();
@@ -309,6 +312,18 @@ impl Prefill {
         }
         self.record_profile("sliding.heads_rope", &mut profile_mark);
         }
+        let composed = attention_output_composed && ws.is_canonical() && self.output_hsplit;
+        if composed {
+            let metadata=pooled.ok_or("canonical decode requires independent rows")?;
+            let runtime::KvCache::SlidingCanonical{k,v}=&mut ws.kv_cache[index] else {
+                return Err("sliding layer has wrong pool kind".into());
+            };
+            metadata.sliding_attention_output(
+                device,&self.q_s,&self.k_s,&self.v_s,k,v,layer,
+                &mut self.attn_s,&mut self.projected,
+            ).await?;
+            self.record_profile("sliding.attention_output_composed",&mut profile_mark);
+        } else {
         if ws.is_canonical() {
             let metadata = pooled.ok_or("canonical decode requires independent rows")?;
             let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
@@ -403,6 +418,7 @@ impl Prefill {
             .await?;
         }
         self.record_profile("sliding.output", &mut profile_mark);
+        }
         if self.epilogue_fused && self.staged_ffn {
             return self.post_attention_ffn_native(device, &layer.mlp,
                 &layer.post_attention_norm, &layer.pre_feedforward_norm,
