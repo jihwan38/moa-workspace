@@ -243,3 +243,5 @@ pub mod ops_audio_batch;
 
 pub mod ops_vision_trf;
 pub mod ops_prefill_head_attn_commit;
+
+pub mod ops_b16_ffn_epilogue;

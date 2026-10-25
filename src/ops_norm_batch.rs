@@ -164,12 +164,28 @@ pub fn rmsnorm_b16(
     weight: &HbmTensor<bf16, Chip, m![H]>,
     out: &mut HbmTensor<bf16, Chip, m![B, H]>,
 ) {
+    rmsnorm_b16_stage(device, x, weight, out);
+}
+pub(crate) fn rmsnorm_b16_stage(
+    device: &mut Device,
+    x: &HbmTensor<bf16, Chip, m![B, H]>,
+    weight: &HbmTensor<bf16, Chip, m![H]>,
+    out: &mut HbmTensor<bf16, Chip, m![B, H]>,
+) {
     let x: DmTensor<bf16, Chip, Cluster, Shards, m![H % 480]> = x.to_dm(&mut device.tdma);
     let x = normalize(device, &x, weight);
     x.view().to_hbm_view(&mut device.tdma, out.view_mut());
 }
 #[device(chip = 1)]
 pub fn post_attention_b16(
+    device: &mut Device,
+    projected: &HbmTensor<bf16, Chip, m![B, H]>,
+    weight: &HbmTensor<bf16, Chip, m![H]>,
+    residual: &mut HbmTensor<bf16, Chip, m![B, H]>,
+) {
+    post_attention_b16_stage(device, projected, weight, residual);
+}
+pub(crate) fn post_attention_b16_stage(
     device: &mut Device,
     projected: &HbmTensor<bf16, Chip, m![B, H]>,
     weight: &HbmTensor<bf16, Chip, m![H]>,
@@ -182,6 +198,15 @@ pub fn post_attention_b16(
 }
 #[device(chip = 1)]
 pub fn post_feedforward_b16(
+    device: &mut Device,
+    projected: &HbmTensor<bf16, Chip, m![B, H]>,
+    weight: &HbmTensor<bf16, Chip, m![H]>,
+    layer_gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
+    residual: &mut HbmTensor<bf16, Chip, m![B, H]>,
+) {
+    post_feedforward_b16_stage(device, projected, weight, layer_gate, residual);
+}
+pub(crate) fn post_feedforward_b16_stage(
     device: &mut Device,
     projected: &HbmTensor<bf16, Chip, m![B, H]>,
     weight: &HbmTensor<bf16, Chip, m![H]>,

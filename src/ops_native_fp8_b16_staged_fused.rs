@@ -291,6 +291,15 @@ pub fn batch_ffn(device:&mut Device,input:&HbmTensor<bf16,Chip,m![B,H]>,
  qinput:&mut HbmTensor<f8e4m3,Chip,Input>,xscale:&mut HbmTensor<f32,Chip,m![B]>,
  hidden:&mut HbmTensor<bf16,Chip,Hidden>,qhidden:&mut HbmTensor<f8e4m3,Chip,QuantHidden>,hscale:&mut HbmTensor<f32,Chip,m![B]>,
  output:&mut HbmTensor<bf16,Chip,m![B,H]>) {
+ batch_ffn_stages(device,input,up,gate,down,us,gs,ds,ug,gg,dg,qinput,xscale,hidden,qhidden,hscale,output);
+}
+pub(crate) fn batch_ffn_stages(device:&mut Device,input:&HbmTensor<bf16,Chip,m![B,H]>,
+ up:&HbmTensor<f8e4m3,Chip,UpWeight>,gate:&HbmTensor<f8e4m3,Chip,UpWeight>,down:&HbmTensor<f8e4m3,Chip,DownWeight>,
+ us:&HbmTensor<f32,Chip,m![L]>,gs:&HbmTensor<f32,Chip,m![L]>,ds:&HbmTensor<f32,Chip,m![H]>,
+ ug:&HbmTensor<f32,Chip,m![1]>,gg:&HbmTensor<f32,Chip,m![1]>,dg:&HbmTensor<f32,Chip,m![1]>,
+ qinput:&mut HbmTensor<f8e4m3,Chip,Input>,xscale:&mut HbmTensor<f32,Chip,m![B]>,
+ hidden:&mut HbmTensor<bf16,Chip,Hidden>,qhidden:&mut HbmTensor<f8e4m3,Chip,QuantHidden>,hscale:&mut HbmTensor<f32,Chip,m![B]>,
+ output:&mut HbmTensor<bf16,Chip,m![B,H]>) {
  stage_quantize_hidden(device,input,qinput,xscale);
  stage_upgate(device,qinput,xscale,up,gate,us,gs,ug,gg,hidden);
  stage_quantize_ffn(device,hidden,qhidden,hscale);

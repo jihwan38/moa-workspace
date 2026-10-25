@@ -1,0 +1,10 @@
+{
+  "base": "38d53fd",
+  "control": "Prefill::ffn_native in current B16 decode: post_attention_b16, rmsnorm_b16, native staged fused FFN, post_feedforward_b16 are four complete launches",
+  "mechanism": "Compose existing stage helpers in one device graph while retaining every existing HBM intermediate and original BF16/F32 boundaries; removes three host launch waits per layer, no speculative memory savings",
+  "expected_scope": "48 layers remove144 calls per B16 step; actual complete-chain timing determines benefit, no20%claim",
+  "implementation": "Factor original three norm kernel bodies and FFN stage body into pub(crate) helpers called by unchanged original wrappers and new combined kernel",
+  "correctness": "Actual provided MLP weights and deterministic distinct row inputs, original4-launch vs combined all buffers bitexact, NaN poison candidate output, same inputs and scales, row permutations, signed layer gate; then fullmodel all-vocab/cache/regrouping before any host default",
+  "measurement": "Complete4-launch chain vsone kernel ABBA, each awaited, excludesD2H only; actual trace if needed",
+  "ownership": "root isolated worktree and own inactive r64-server target after c066freeze; frozen source+ELF before hardware dispatch"
+}

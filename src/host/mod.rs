@@ -22,3 +22,5 @@ pub(crate) mod request_pool_r64;
 pub mod greedy;
 
 pub mod kv_diagnostic;
+
+pub mod b16_ffn_epilogue_diagnostic;
