@@ -11,7 +11,7 @@ fn provided<E:M,W:M>(layer:usize,name:&str)->(Vec<f8e4m3>,Vec<bf16>){
  let w=HostTensor::<f8e4m3,W>::from_safetensors(&s.tensor(&format!("{p}.weight")).unwrap()).unwrap().into_vec();let scale=s.tensor(&format!("{p}.weight_scale")).unwrap();assert_eq!(scale.dtype(),safetensors::Dtype::BF16);assert_eq!(scale.shape(),[E::SIZE,1]);(w,HostTensor::<bf16,E>::from_buf(scale.data().to_vec()).into_vec())
 }
 async fn read_bf<E:M>(d:&mut Device,t:&HbmTensor<bf16,Chip,E>)->Vec<bf16>{let v:HostTensor<bf16,E>=t.to_host(&mut d.pdma).await.unwrap();v.into_vec()}
-async fn immutable_e4<E:M>(d:&mut Device,t:&HbmTensor<f8e4m3,Chip,E>,expected:&[f8e4m3]){let v:HostTensor<f8e4m3,E>=t.to_host(&mut d.pdma).await.unwrap();assert_eq!(v.into_buf(),f8e4m3::to_buf(expected));}
+async fn immutable_e4<E:M>(d:&mut Device,t:&HbmTensor<f8e4m3,Chip,E>,expected:&[f8e4m3]){let v:HostTensor<f8e4m3,E>=t.to_host(&mut d.pdma).await.unwrap();assert_eq!(f8e4m3::to_buf(&v.into_vec()),f8e4m3::to_buf(expected));}
 async fn poison<E:M>(d:&mut Device)->HbmTensor<bf16,Chip,E>{HostTensor::<bf16,E>::from_vec(vec![bf16::from_f32(f32::NAN);E::SIZE]).to_hbm(&mut d.pdma).await.unwrap()}
 macro_rules! call {($d:ident,$f:path,$x:ident,$xs:ident,$qw:ident,$kw:ident,$vw:ident,$qs:ident,$ks:ident,$vs:ident,$out:ident,$order:ident)=>{{
  let [a,b,c,e]=$out.as_mut_slice() else{unreachable!()};
