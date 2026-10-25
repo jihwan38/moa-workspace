@@ -1,0 +1,62 @@
+warning: unused import: `ops_batch`
+  --> src/host/prefill.rs:12:40
+   |
+12 |     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
+   |                                        ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ops_batch_r64 as linear`
+  --> src/host/decode_r64.rs:12:20
+   |
+12 |     Chip, axes::*, ops_batch_r64 as linear, ops_commit_r64 as commit, ops_norm_r64 as norm,
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_keyrings_h64.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_h64_blocked.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+error[E0599]: the method `vector_logic` exists for struct `VectorTensor<'_, Main, ..., i32, ..., ..., ..., ..., ..., ..., IntraFirst, ..., Way8>`, but its trait bounds were not satisfied
+   --> src/ops_int4_power2_quant.rs:29:10
+    |
+ 24 |       let scale:DmTensor<f32,Chip,Cluster,Rows,m![1#8]>=device.main.begin(amax.view())
+    |  _______________________________________________________-
+ 25 | |         .fetch::<m![1],m![1#8]>().collect::<m![1],m![1#8]>()
+ 26 | |         .vector_init().vector_intra_slice_tag(TagMode::Zero)
+ 27 | |         .vector_reinterpret::<i32>()
+ 28 | |         .vector_clip(ClipBinaryOpI32::AddFxp,0x001f_ffffi32)
+ 29 | |         .vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)
+    | |_________-^^^^^^^^^^^^
+    |
+   ::: /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/engine/vector/stage/markers.rs:197:1
+    |
+197 |   pub struct Clip;
+    |   --------------- doesn't satisfy `_: CanTransitionTo<Logic>`
+    |
+    = note: the following trait bounds were not satisfied:
+            `furiosa_opt_std::prelude::stage::Clip: furiosa_opt_std::prelude::stage::CanTransitionTo<furiosa_opt_std::prelude::stage::Logic>`
+    = note: the full name for the type has been written to '/round2/tail256-model/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-1de0aaf816f3513d.long-type-13713152708270518138.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 6 warnings emitted

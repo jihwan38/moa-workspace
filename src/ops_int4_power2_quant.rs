@@ -25,8 +25,9 @@ pub fn quantize_row(device:&mut Device,input:&HbmTensor<bf16,Chip,m![B,H]>,
         .fetch::<m![1],m![1#8]>().collect::<m![1],m![1#8]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
         .vector_reinterpret::<i32>()
-        .vector_clip(ClipBinaryOpI32::AddFxp,0x001f_ffffi32)
-        .vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)
+        .vector_fxp(FxpBinaryOp::AddFxp,0x001f_ffffi32)
+        .vector_fxp(FxpBinaryOp::LogicRightShift,23i32)
+        .vector_fxp(FxpBinaryOp::LeftShift,23i32)
         .vector_clip(ClipBinaryOpI32::AddFxp,-0x0100_0000i32)
         .vector_reinterpret::<f32>()
         .vector_final().commit_trim::<m![1#8]>().commit();
