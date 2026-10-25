@@ -1,0 +1,11 @@
+# q019-b16-f4-mse handoff
+
+Source `13174d8b7ce9e15a05611055889e948f5a311aea` is ready for parent-owned public task evaluation. `a001-b16-f4-mse-quality-check` passed; `a002-b16-f4-mse-quality-build` passed in 35.30s with `--fresh-package` and `--capture-artifact target/release/server`. All 397 refreshed inputs retained their bytes. The immutable captured server SHA256 is `36d0ca26eb1d52afa292ef675081751f69d74b030c8f0b3bf9a44f34e6fcf278` (39,317,936 bytes); exact paths and original Cargo/lock hashes are in `build.json`.
+
+The OFF scaffold is `291a6485`; the separate research activation is `13174d8b`. Model startup explicitly requests `MseDyadic`, rather than using the legacy PowerOfTwoRange convenience method. Automatic changes only pure independent canonical B16 singleton batches of 2..16 with staged/composed FFN; explicit OriginalF4 overrides it. No q018 LM implementation is present. Scalar/prompt/mixed/R32 paths retain current arithmetic. Worker checks actual physical32 pool owning-buffer metadata before Model construction; this is a read-only startup assertion.
+
+round2_path independently reviewed the actual startup and dispatch control flow and reported PASS: immutable per-call shadow scope, Original override, unchanged other paths, original Cargo, and metadata-only identity. No additional test/build was run by the reviewer. The original OFF model has 133 unfiltered library tests; the subsequent enum, identity and activation revisions received server/probe checks rather than an inaccurately claimed full CPU rerun.
+
+Fresh-package identity model/guards r1275/321403 and r1276/321404 passed on source `2d0bb5a8`, with explicit actual 32/32/64/256 geometry and all 12,884,901,888 K/V owner bytes. Detailed paired PowerOfTwo/MSE drift, replay/cache checks and startup costs are preserved at `b16-f4-mse-model` evidence commit `008c738b`. MSE still changes original top1 on 29/60 eligible teacher-forced rows. Structural replay passing is not a quality result.
+
+Six fresh public accuracy suites are required before any performance/private evaluation. This source is a separate research candidate, not a root production integration; the default-OFF trees and all original artifacts remain preserved. Parent owns Arena dispatch and candidate freeze.
