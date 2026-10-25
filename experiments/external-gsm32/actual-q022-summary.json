@@ -1,0 +1,60 @@
+{
+  "candidate": "q022-fixed-e4-kv-surrogate",
+  "source_commit": "98662213",
+  "server_sha256": "c0985c25bca1a0fa80ceb6ab81bda96bee09dd9787eac4fcfb880209f210c2d7",
+  "result": "predeclared compressed-port research admission gate PASS",
+  "public_suites_passed": 6,
+  "public_checks_passed": 124,
+  "fixed_train_completed": 32,
+  "fixed_train_correct": 32,
+  "c081_correct": 31,
+  "newly_failed_vs_c081_ids": [],
+  "preserved_baseline_error": {
+    "id": "gsm8k.train.004066",
+    "c081_extracted_answer": "6",
+    "expected_answer": "15",
+    "q022_extracted_answer": "15"
+  },
+  "fixed_request_sets_unchanged": true,
+  "all_responses_independently_rescored": true,
+  "q022_finish_reasons": {
+    "stop": 32
+  },
+  "q022_prompt_tokens": 3784,
+  "q022_completion_tokens": 4891,
+  "q022_shards": [
+    {
+      "run": "r1366-q022-fixed-e4-kv-surrogate-external-gsm-train32-s1",
+      "job": 321723,
+      "duration_seconds": 24.555717162,
+      "server_sha256": "c0985c25bca1a0fa80ceb6ab81bda96bee09dd9787eac4fcfb880209f210c2d7",
+      "request_set_sha256": "3c3a6c75d8d9eb7bf549b263f03ef7b418330f6c15239e65f5cf131f8fed697c"
+    },
+    {
+      "run": "r1367-q022-fixed-e4-kv-surrogate-external-gsm-train32-s2",
+      "job": 321724,
+      "duration_seconds": 24.551864456,
+      "server_sha256": "c0985c25bca1a0fa80ceb6ab81bda96bee09dd9787eac4fcfb880209f210c2d7",
+      "request_set_sha256": "361e948160eddc57c097fe6f91a5bd9cb7600353e90f1d538127abead894d42d"
+    }
+  ],
+  "quality_scope": "Fixed-scale1 E4 roundtrip surrogate retains original BF16 sliding storage and readers. This passes the declared gate for a separate compressed storage experiment, not implementation correctness or compressed performance.",
+  "accuracy_scope": "One fixed public TRAIN32 sample and six repeated public fixtures; no general, private, or official accuracy claim. No response-conditioned resampling, tuning, replacement, or filtering.",
+  "report_sha256": "04c22adabd7d7ad27fa27eb0cfa4c1300737eaebdb51b8262256678331a5c4cd",
+  "preserved_prior_report_sha256": {
+    "actual-c081-q020.json": "8d81a76376ab9d9e15937870333eae83dbde613fe706c10a40550b8e40e025cf",
+    "actual-c081-q020-q021.json": "5eb41d98d92e24acafa8595436b3dd694c132367403a16bbaf47fb0c92deab4d"
+  },
+  "reproduce": [
+    "python3",
+    "experiments/external-gsm32/analyze_results.py",
+    "--include-q022"
+  ],
+  "validation": [
+    "All128 responses independently rescored with frozen organizer scorer and usage checked",
+    "All four candidates have identical fixed shard request hashes and per-ID prompt token counts",
+    "Both prior report files byte-identical to committed versions",
+    "Repeated collection generates byte-identical four-candidate report",
+    "Public results and summaries reconcile to124 with same candidate ELF binding"
+  ]
+}

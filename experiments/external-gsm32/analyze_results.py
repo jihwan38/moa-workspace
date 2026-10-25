@@ -27,10 +27,14 @@ def canonical(value):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--include-q021", action="store_true")
+    parser.add_argument("--include-q022", action="store_true",
+                        help="Include q021 and q022; preserve both earlier reports.")
     args = parser.parse_args()
     runs = dict(RUNS)
-    if args.include_q021:
+    if args.include_q021 or args.include_q022:
         runs["q021-b16-f4-mse-lm-fp8"] = ["r1326", "r1327"]
+    if args.include_q022:
+        runs["q022-fixed-e4-kv-surrogate"] = ["r1366", "r1367"]
     manifests = json.loads((HERE / "prepared-evaluations.json").read_text())
     selected = [json.loads(line) for line in (HERE / "selected-train.jsonl").read_text().splitlines()]
     dataset = json.loads((HERE / "dataset-manifest.json").read_text())
@@ -142,7 +146,7 @@ def main():
         "Arena duration includes startup; completion lengths differ, so these quality runs do not estimate throughput speedup.",
         "Single execution of each frozen shard/model, no response-conditioned filtering or retry.",
     ]
-    if args.include_q021:
+    if args.include_q021 or args.include_q022:
         # Preserve the original two-candidate artifact and its original schema.
         result["all_candidate_pairs"] = {}
         for left, right in combinations(runs, 2):
@@ -166,11 +170,60 @@ def main():
             for index in dataset["indices"]
         ]
         result["prior_two_candidate_report_sha256"] = sha((HERE / "actual-c081-q020.json").read_bytes())
-    output = "actual-c081-q020-q021.json" if args.include_q021 else "actual-c081-q020.json"
+    if args.include_q022:
+        # This gate was declared before examining q022's fixed32 responses.
+        # A failed quality gate is an outcome to retain, not a reason to drop rows.
+        name = "q022-fixed-e4-kv-surrogate"
+        candidate = per_candidate[name]
+        public = []
+        binary = next(m["server_sha256"] for m in manifests if m["base_candidate"] == name)
+        for number in range(1360, 1366):
+            matches = list((ROOT / "runs").glob(f"r{number}-*"))
+            assert len(matches) == 1, (number, matches)
+            run = matches[0]
+            status = json.loads((run / "arena-status.json").read_text())
+            tested = json.loads((run / "tested-candidate.json").read_text())
+            records = json.loads((run / "arena-records.json").read_text())
+            summaries = [r["data"] for r in records if r["type"] == "STAGE2_SUMMARY"]
+            assert len(summaries) == 1 and tested["binary_sha256"] == binary
+            summary = summaries[0]
+            outputs = [r["data"] for r in records if r["type"] == "STAGE2_RESULT"]
+            assert len(outputs) == summary["total"]
+            assert sum(r["passed"] for r in outputs) == summary["passed"]
+            public.append({"run": run.name, "job": status["id"], "status": status["status"],
+                "exit_code": status["exit_code"], "server_sha256": binary,
+                "source_commit": tested["source_commit"], "summary": summary,
+                "all_passed": status["status"] == "SUCCEEDED" and status["exit_code"] == 0
+                              and summary["passed"] == summary["total"] and summary["failed"] == 0,
+                "files": {str(run / f): sha((run / f).read_bytes()) for f in
+                          ["arena.log", "arena-records.json", "arena-status.json", "tested-candidate.json"]}})
+        assert len({r["summary"]["test"] for r in public}) == 6
+        assert sum(r["summary"]["total"] for r in public) == 124
+        newly_failed = [k for k in a if a[k]["passed"] and not candidate[k]["passed"]]
+        result["q022_compressed_port_admission_gate"] = {
+            "purpose": "Quality admission only; q022 retains BF16 storage/readers and does not measure compressed-cache performance.",
+            "predeclared_rule": "All six public suites pass, and no newly failed fixed TRAIN32 cases relative to c081.",
+            "public_suites": public,
+            "public_passed": sum(r["summary"]["passed"] for r in public),
+            "public_total": sum(r["summary"]["total"] for r in public),
+            "fixed_train_completed": result["candidates"][name]["completed"],
+            "fixed_train_passed": result["candidates"][name]["accuracy_passed"],
+            "newly_failed_ids": newly_failed,
+            "baseline_failed_ids": [k for k in a if not a[k]["passed"]],
+            "candidate_failed_ids": [k for k in candidate if not candidate[k]["passed"]],
+            "passed": all(r["all_passed"] for r in public) and not newly_failed,
+        }
+        result["prior_three_candidate_report_sha256"] = sha((HERE / "actual-c081-q020-q021.json").read_bytes())
+        result["limitations"].append("The predeclared gate admits a compressed-pool implementation experiment; it does not validate that future implementation or establish general/private accuracy.")
+    output = ("actual-c081-q020-q021-q022.json" if args.include_q022 else
+              "actual-c081-q020-q021.json" if args.include_q021 else "actual-c081-q020.json")
     (HERE / output).write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({k: result[k] for k in ["candidates", "paired_summary"]}, indent=2))
-    if args.include_q021:
+    if args.include_q021 or args.include_q022:
         print(json.dumps(result["all_candidate_pairs"], indent=2))
+    if args.include_q022:
+        print(json.dumps({k: v for k, v in result["q022_compressed_port_admission_gate"].items()
+                          if k != "public_suites"}, indent=2))
 
 
 if __name__ == "__main__":
