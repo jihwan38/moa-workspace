@@ -1,0 +1,172 @@
+--- a/src/host/prefill_group.rs
++++ b/src/host/prefill_group.rs
+@@ -92,6 +92,7 @@
+             return Err("FFN global preload must be selected before the first layer".into());
+         }
+         self.preload_ffn_globals = enabled;
++        if !enabled { self.projection_owned_ffn = false; }
+         Ok(())
+     }
+     pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
+@@ -99,6 +100,7 @@
+             return Err("FFN epilogue composition must be selected before the first layer".into());
+         }
+         self.composed_ffn_epilogue = enabled;
++        if !enabled { self.projection_owned_ffn = false; }
+         Ok(())
+     }
+     pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
+@@ -143,6 +145,7 @@
+             return Err("FFN global preload must be selected before the first layer".into());
+         }
+         self.preload_ffn_globals = enabled;
++        if !enabled { self.projection_owned_ffn = false; }
+         Ok(())
+     }
+     pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
+@@ -150,6 +153,7 @@
+             return Err("FFN epilogue composition must be selected before the first layer".into());
+         }
+         self.composed_ffn_epilogue = enabled;
++        if !enabled { self.projection_owned_ffn = false; }
+         Ok(())
+     }
+     pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
+@@ -235,7 +239,7 @@
+     pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
+         self.chunks.fused_head_attention(enabled);
+     }
+-    pub(crate) fn original_blocked_residual(&mut self) { self.chunks.blocked_residual = false; }
++    pub(crate) fn original_blocked_residual(&mut self) { self.chunks.original_blocked_residual(); }
+     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 2] {
+         [&self.chunks.states[0].blocks, &self.chunks.states[self.second_owner_row].blocks]
+     }
+@@ -259,13 +263,13 @@
+     }
+     pub(crate) fn prune_empty_history(&mut self) { self.chunks.prune_empty_history(); }
+     pub(crate) fn original_empty_history(&mut self) { self.chunks.original_empty_history(); }
+-    pub(crate) fn original_blocked_residual(&mut self) { self.chunks.blocked_residual = false; }
+-    pub(crate) fn original_norms(&mut self) { self.chunks.fused_norms = false; }
+-    pub(crate) fn original_output(&mut self) { self.chunks.blocked_output = false; }
+-    pub(crate) fn original_shard_quant(&mut self) { self.chunks.shard_quant = false; }
+-    pub(crate) fn original_quarter_norm(&mut self) { self.chunks.quarter_norm = false; }
+-    pub(crate) fn original_ffn_core(&mut self) { self.chunks.fused_ffn_core = false; }
+-    pub(crate) fn original_quarter_postnorm(&mut self) { self.chunks.quarter_postnorm = false; }
++    pub(crate) fn original_blocked_residual(&mut self) { self.chunks.original_blocked_residual(); }
++    pub(crate) fn original_norms(&mut self) { self.chunks.original_norms(); }
++    pub(crate) fn original_output(&mut self) { self.chunks.original_output(); }
++    pub(crate) fn original_shard_quant(&mut self) { self.chunks.original_shard_quant(); }
++    pub(crate) fn original_quarter_norm(&mut self) { self.chunks.original_quarter_norm(); }
++    pub(crate) fn original_ffn_core(&mut self) { self.chunks.original_ffn_core(); }
++    pub(crate) fn original_quarter_postnorm(&mut self) { self.chunks.original_quarter_postnorm(); }
+     pub(crate) fn blocks(&self) -> &runtime::Blocks {
+         &self.chunks.states[0].blocks
+     }
+@@ -286,6 +290,7 @@
+             return Err("FFN global preload requires the current single-launch core".into());
+         }
+         self.preload_ffn_globals = enabled;
++        if !enabled { self.projection_owned_ffn = false; }
+         Ok(())
+     }
+     pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
+@@ -293,6 +298,7 @@
+             return Err("FFN epilogue composition must be selected before the first layer".into());
+         }
+         self.composed_ffn_epilogue = enabled;
++        if !enabled { self.projection_owned_ffn = false; }
+         Ok(())
+     }
+     pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
+@@ -314,7 +320,7 @@
+     pub(crate) fn original_empty_history(&mut self) {
+         for state in &mut self.states { state.prune_empty_history = false; }
+     }
+-    pub(crate) fn original_blocked_residual(&mut self) { self.blocked_residual = false; }
++    pub(crate) fn original_blocked_residual(&mut self) { self.blocked_residual = false; self.projection_owned_ffn = false; }
+     fn uses_blocked_residual(&self) -> bool {
+         // Old diagnostic implementations retain canonical state throughout.
+         // Their timings include this storage fallback; the dedicated storage
+@@ -322,12 +328,12 @@
+         self.blocked_residual && self.fused_norms && self.blocked_output
+             && self.shard_quant && self.quarter_norm && self.quarter_postnorm
+     }
+-    pub(crate) fn original_norms(&mut self) { self.fused_norms = false; }
+-    pub(crate) fn original_output(&mut self) { self.blocked_output = false; }
+-    pub(crate) fn original_shard_quant(&mut self) { self.shard_quant = false; }
+-    pub(crate) fn original_quarter_norm(&mut self) { self.quarter_norm = false; }
+-    pub(crate) fn original_ffn_core(&mut self) { self.fused_ffn_core = false; }
+-    pub(crate) fn original_quarter_postnorm(&mut self) { self.quarter_postnorm = false; }
++    pub(crate) fn original_norms(&mut self) { self.fused_norms = false; self.projection_owned_ffn = false; }
++    pub(crate) fn original_output(&mut self) { self.blocked_output = false; self.projection_owned_ffn = false; }
++    pub(crate) fn original_shard_quant(&mut self) { self.shard_quant = false; self.projection_owned_ffn = false; }
++    pub(crate) fn original_quarter_norm(&mut self) { self.quarter_norm = false; self.projection_owned_ffn = false; }
++    pub(crate) fn original_ffn_core(&mut self) { self.fused_ffn_core = false; self.projection_owned_ffn = false; }
++    pub(crate) fn original_quarter_postnorm(&mut self) { self.quarter_postnorm = false; self.projection_owned_ffn = false; }
+     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 4] {
+         [
+             &self.states[0].blocks,
+@@ -573,7 +579,7 @@
+             preload_ffn_globals: true,
+             quarter_postnorm: true,
+             blocked_residual: true,
+-            composed_ffn_epilogue: true, projection_owned_ffn: false,
++            composed_ffn_epilogue: true, projection_owned_ffn: self.has_projection_storage(),
+             weight_stationary_output: true,
+             states: [
+                 self.rows[0]
+@@ -628,7 +634,7 @@
+             row.attn_f = HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
+                 std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
+         }
+-        Ok(PreparedTail256 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:false,
++        Ok(PreparedTail256 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:self.has_projection_storage(),
+             weight_stationary_output:true, owners:sequences.len(), states:[
+             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
+             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
+@@ -692,7 +698,7 @@
+             std::iter::repeat_n(padding,P128::SIZE*Ns::SIZE*Gs::SIZE*Ds::SIZE)).to_hbm(&mut device.pdma).await?;
+         padding_row.attn_f=HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
+             std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
+-        Ok(PreparedTail384 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:false,
++        Ok(PreparedTail384 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:self.has_projection_storage(),
+             weight_stationary_output:true, owner_first_rows, owner_final_rows, states:[
+             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
+             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
+--- a/src/host/worker.rs
++++ b/src/host/worker.rs
+@@ -442,6 +442,7 @@
+             let mut model = Model::new(&mut device, weights, &mut workspace).await?;
+             if (GROUP_PREFILL_ENABLED || PROMPT512_ENABLED) && canonical {
+                 model.prepare_group_scratch(&mut device).await?;
++                model.prepare_projection_owned_ffn(&mut device).await?;
+             }
+             eprintln!(
+                 "startup.model_scratch_ms={:.3}",
+--- a/src/host/model.rs
++++ b/src/host/model.rs
+@@ -291,9 +291,9 @@
+         Err("no grouped512-density prompt is awaiting its first layer".into())
+     }
+ 
+-    /// Experimental startup-only storage preparation. It adds immutable joined
+-    /// copies of the existing native UP/GATE tensors; no arithmetic or dispatch
+-    /// changes until a prepared execution explicitly opts in before layer zero.
++    /// Startup-only immutable joins of existing native UP/GATE tensors.
++    /// Successfully prepared storage enables projection-owned FFN for subsequent
++    /// grouped states. No per-request join or mode survives a prepared state.
+     pub async fn prepare_projection_owned_ffn(
+         &mut self, device: &mut Device,
+     ) -> Result<(), Box<dyn std::error::Error>> {
+@@ -304,8 +304,9 @@
+         self.group.as_mut().unwrap().prepare_projection_storage(device, &self.weights).await
+     }
+ 
+-    /// Default-off, prepared-state-only diagnostic; existing owner validation,
+-    /// attention, norms and per-layer completion rules are unchanged.
++    /// Prepared-state-only FFN control; false retains the original composed
++    /// producer. Storage must already exist before enabling the joined producer.
++    /// Owner validation, attention, norms and completion rules are unchanged.
+     pub fn set_active_prefill_projection_owned_ffn(
+         &mut self, enabled: bool,
+     ) -> Result<(), Box<dyn std::error::Error>> {
