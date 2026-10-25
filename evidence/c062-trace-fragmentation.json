@@ -1,0 +1,32 @@
+{
+  "candidate": "c062-first128-idle",
+  "run": "r775-c062-c11-chunk-trace-submit",
+  "job": 319108,
+  "comparison_run": "r748-c061-c11-chunk-trace-submit",
+  "finding": "Later C11 fragility follows another isolated128-token prefix and three128-token tails, then overlaps following wave with visible decoders. This is a measured scheduling consequence, not proof the first128 kernel itself regressed.",
+  "trace_excerpt": [
+    "SCHED_IDLE batch=3 wait_ms=2.066 receipt_span_ms=0.370",
+    "SCHED_COHORT members=11 reason=ready hold_ms=3342.9 oldest_ms=3502.5",
+    "SCHED_IDLE batch=4 wait_ms=2.070 receipt_span_ms=1.546",
+    "SCHED_COHORT members=11 reason=ready hold_ms=2570.7 oldest_ms=3506.5",
+    "SCHED_IDLE batch=2 wait_ms=2.073 receipt_span_ms=0.679",
+    "SCHED_COHORT members=11 reason=ready hold_ms=2816.8 oldest_ms=3633.6",
+    "SCHED_IDLE batch=1 wait_ms=2.071 receipt_span_ms=0.000",
+    "SCHED_CHUNK seq=60 cohort=0 ready1=0 visible=0 queued=0 batch=1 owners=1 tokens=128 quanta=48 work_ms=89.917 span_ms=90.006 rows=34:10:0:128:256 pending=34:10:0:256:128",
+    "SCHED_CHUNK seq=61 cohort=0 ready1=0 visible=0 queued=0 batch=4 owners=4 tokens=512 quanta=48 work_ms=377.084 span_ms=377.159 rows=44:0:0:128:512,43:1:0:128:512,42:2:0:128:768,41:3:0:128:768 pending=34:10:128:128:128,35:9:0:256:128,36:8:0:1024:128,37:7:0:2048:128,38:6:0:2048:128,39:5:0:1024:128,40:4:0:2048:128,41:3:0:768:128,42:2:0:768:128,43:1:0:512:128,44:0:0:512:128",
+    "SCHED_COHORT members=11 reason=deadline hold_ms=2873.2 oldest_ms=3751.5",
+    "SCHED_CHUNK seq=81 cohort=1 ready1=0 visible=0 queued=0 batch=2 owners=2 tokens=512 quanta=48 work_ms=166.376 span_ms=264.715 rows=40:4:1664:384:384,38:6:1920:128:128 pending=37:7:1664:384:128,38:6:1920:128:128,40:4:1664:384:128",
+    "SCHED_CHUNK seq=82 cohort=0 ready1=10 visible=10 queued=0 batch=1 owners=1 tokens=128 quanta=48 work_ms=93.605 span_ms=192.630 rows=37:7:1664:128:384 pending=37:7:1664:384:128",
+    "SCHED_CHUNK seq=83 cohort=0 ready1=10 visible=10 queued=0 batch=1 owners=1 tokens=128 quanta=48 work_ms=93.876 span_ms=193.127 rows=37:7:1792:128:256 pending=37:7:1792:256:128",
+    "SCHED_CHUNK seq=84 cohort=0 ready1=10 visible=10 queued=0 batch=1 owners=1 tokens=128 quanta=48 work_ms=97.333 span_ms=196.923 rows=37:7:1920:128:128 pending=37:7:1920:128:128",
+    "SCHED_CHUNK seq=85 cohort=0 ready1=3 visible=3 queued=0 batch=4 owners=4 tokens=512 quanta=48 work_ms=261.021 span_ms=373.076 rows=50:8:0:128:768,51:9:0:128:512,45:0:0:128:1024,46:1:0:128:256 pending=45:0:0:1024:128,46:1:0:256:128,47:2:0:256:128,48:3:0:2048:128,49:5:0:768:128,50:8:0:768:128,51:9:0:512:128",
+    "SCHED_CHUNK seq=94 cohort=0 ready1=3 visible=3 queued=0 batch=4 owners=4 tokens=512 quanta=48 work_ms=286.135 span_ms=565.234 rows=55:7:128:128:384,50:8:512:128:256,52:10:384:128:128,45:0:512:128:512 pending=45:0:512:512:128,48:3:512:1536:128,49:5:512:256:128,50:8:512:256:128,52:10:384:128:128,53:4:512:512:128,54:6:512:1536:128,55:7:128:384:128",
+    "SCHED_CHUNK seq=103 cohort=0 ready1=10 visible=10 queued=0 batch=1 owners=1 tokens=512 quanta=48 work_ms=162.520 span_ms=361.359 rows=54:6:1536:512:512 pending=54:6:1536:512:128"
+  ],
+  "observations": [
+    "seq60 single128 cost89.917ms; correspondingc061seq60 packed512.",
+    "c062 seq81 pair512 span264.715ms/own166.376; cohort then opens and seq82-84 isolatedtails span192.630+193.127+196.923ms.",
+    "followingwave seq85 begins with3visibledecoders; laterseq94 own286.135ms/span565.234ms.",
+    "Each media-heavy512chunk still~260-390ms vs~150-170ms text chunks. Exact batchedmedia optimization removes per-row encoder cost and is beingvalidated; no latencybenefitclaimeduntilHTTP."
+  ]
+}
