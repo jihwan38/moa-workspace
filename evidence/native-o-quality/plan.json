@@ -1,0 +1,102 @@
+{
+  "base": "b078362",
+  "kernel_source": "5664413",
+  "kernel_sha256": "c430453cb68d732863cf66ce6fd9a8445dd55df328c4c168fd1b589124f2e7af",
+  "change": "Global grouped sliding output projection uses existing native FP8 activation kernel; original weights and K1024 BF16 partial/add tree retained. All model layers/attention/KV/request computation retained. No input/test flags or reuse. B16/R64 and full O unchanged.",
+  "existing_micro_gate": {
+    "job": 319052,
+    "run": "r743-native-output-blocked-submit",
+    "source": "5664413ac062d9c57a37606b31910140734a9848",
+    "control_abba_us": [
+      372.070875,
+      369.119625
+    ],
+    "native_abba_us": [
+      247.274375,
+      246.0205
+    ],
+    "control_mean_us": 370.59525,
+    "native_mean_us": 246.6474375,
+    "time_reduction": 0.33445602041580413,
+    "quantized_cpu_and_roundtrip": "all passed; three seeds, four groups, two permutations",
+    "bf16_relative_l2_random": [
+      0.024285619588081085,
+      0.024303192821307208
+    ],
+    "trace": {
+      "TRACE_BLOCKED_CONTROL": {
+        "0": {
+          "counts": {
+            "DMA": 30,
+            "Renegade::StoTab": 1,
+            "Renegade::TuExec": 125,
+            "Cluster": 1,
+            "Task": 1
+          },
+          "duration_sums_raw_overlapping": {
+            "DMA": 209197,
+            "Renegade::StoTab": 5379,
+            "Renegade::TuExec": 527727,
+            "Cluster": 2947,
+            "Task": 724591
+          }
+        },
+        "1": {
+          "counts": {
+            "DMA": 30,
+            "Renegade::StoTab": 1,
+            "Renegade::TuExec": 125,
+            "Cluster": 1,
+            "Task": 1
+          },
+          "duration_sums_raw_overlapping": {
+            "DMA": 208885,
+            "Renegade::StoTab": 5379,
+            "Renegade::TuExec": 527526,
+            "Cluster": 2,
+            "Task": 721714
+          }
+        }
+      },
+      "TRACE_FUSED_NATIVE": {
+        "0": {
+          "counts": {
+            "DMA": 25,
+            "Renegade::TuExec": 132,
+            "Renegade::StoVrf": 8,
+            "Cluster": 9,
+            "Task": 1
+          },
+          "duration_sums_raw_overlapping": {
+            "DMA": 307773,
+            "Renegade::TuExec": 272135,
+            "Renegade::StoVrf": 4670,
+            "Cluster": 38736,
+            "Task": 468603
+          }
+        },
+        "1": {
+          "counts": {
+            "DMA": 25,
+            "Renegade::TuExec": 132,
+            "Renegade::StoVrf": 8,
+            "Cluster": 9,
+            "Task": 1
+          },
+          "duration_sums_raw_overlapping": {
+            "DMA": 305458,
+            "Renegade::TuExec": 271525,
+            "Renegade::StoVrf": 4684,
+            "Cluster": 40306,
+            "Task": 467177
+          }
+        }
+      }
+    },
+    "model_and_public_quality": "not measured"
+  },
+  "existing_failed_model_guard": "r762/job319078 failed frozen numerical guards;25/52 top1 matches, rawL2max0.602576776, all13,631,488logits finite. This remains a failed model drift gate, not exactness.",
+  "new_question": "Does this measured approximate kernel preserve actual public task correctness under current complete serving path? No previous public accuracy test establishes that either way. Synthetic logit drift is evidence of risk, not a public task result.",
+  "adoption_gate": "Run all6 public suites and measured server performance; any required task failure rejects this candidate. Private16 stillrequired before official adoption. Root exactcandidate unchanged.",
+  "label": "Approximate research candidate only, never bitexact claim to BF16."
+}
