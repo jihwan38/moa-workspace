@@ -1,0 +1,287 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/b16-lm-fp8-model)
+warning: unused import: `ops_batch`
+  --> src/host/prefill.rs:12:40
+   |
+12 |     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
+   |                                        ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ops_batch_r64 as linear`
+  --> src/host/decode_r64.rs:12:20
+   |
+12 |     Chip, axes::*, ops_batch_r64 as linear, ops_commit_r64 as commit, ops_norm_r64 as norm,
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_keyrings_h64.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_h64_blocked.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: method `prepare_prompt384128` is never used
+   --> src/host/prefill_group.rs:608:25
+    |
+426 | impl GroupPrefill {
+    | ----------------- method in this implementation
+...
+608 |     pub(crate) async fn prepare_prompt384128(
+    |                         ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `project_output` is never used
+   --> src/device/sliding/projection.rs:178:15
+    |
+178 | pub(crate) fn project_output(
+    |               ^^^^^^^^^^^^^^
+
+warning: type alias `HiddenRows` is never used
+   --> src/device/sliding/projection.rs:198:6
+    |
+198 | type HiddenRows = m![H / 120, 1 # 8];
+    |      ^^^^^^^^^^
+
+warning: function `output_partial` is never used
+   --> src/device/sliding/projection.rs:200:4
+    |
+200 | fn output_partial(
+    |    ^^^^^^^^^^^^^^
+
+warning: function `add_partials` is never used
+   --> src/device/sliding/projection.rs:241:4
+    |
+241 | fn add_partials(
+    |    ^^^^^^^^^^^^
+
+warning: function `apply_output_channel_scale` is never used
+   --> src/device/sliding/projection.rs:268:4
+    |
+268 | fn apply_output_channel_scale(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `feedforward` is never used
+   --> src/device_e154/shared/mlp.rs:537:15
+    |
+537 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `prepare_ffn_fp8_split` is never used
+   --> src/device_e154/shared/mlp.rs:629:15
+    |
+629 | pub(crate) fn prepare_ffn_fp8_split(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device_e154/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_vision` is never used
+  --> src/device_e154/shared/residual.rs:86:15
+   |
+86 | pub(crate) fn add_vision<Cluster: M, Slice: M>(
+   |               ^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device_e154/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_r64_sharded.rs:47:4
+   |
+47 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_sharded.rs:48:4
+   |
+48 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_local_reuse.rs:48:4
+   |
+48 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_r64_local_reuse.rs:47:4
+   |
+47 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn_dm` is never used
+  --> src/ops_native_fp8_r64_staged_fused.rs:52:4
+   |
+52 | fn quantize_ffn_dm(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^^^^
+
+warning: function `quantize_ffn_dm` is never used
+  --> src/ops_decode32_ffn.rs:53:4
+   |
+53 | fn quantize_ffn_dm(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^^^^
+
+warning: `furiosa-opt-gemma4` (lib test) generated 24 warnings (run `cargo fix --lib -p furiosa-opt-gemma4 --tests` to apply 6 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 29s
+     Running unittests src/lib.rs (/round2/ffn-k256/target/debug/deps/furiosa_opt_gemma4-6aca037d7b1a7242)
+
+running 127 tests
+test host::generate::chunk_tests::explicit384_limit_preserves_existing_limits_and_checks_boundaries ... ok
+test host::generate::chunk_tests::explicit_prompt512_chunks_cover_boundaries_and_fall_back_for_tails ... ok
+test host::admission::tests::stale_foreign_and_oversized_requests_cannot_change_allocator_state ... ok
+test host::admission::tests::long_requests_queue_before_execution_without_page_deadlock ... ok
+test host::admission::tests::short_requests_use_all64_slots_and_failed_reservation_is_atomic ... ok
+test host::generate::chunk_tests::explicit256_range_crosses_pages_without_changing_default128_policy ... ok
+test host::generate::chunk_tests::prompt_chunks_cover_page_and_ring_boundaries_without_skipping_rows ... ok
+test host::greedy::tests::result_policy_preserves_normal_ties_and_all_banned_fallback ... ok
+test host::model::tests::accepts_final_partial_chunk_and_rejects_another_requests_ring ... ok
+test host::model::tests::rejects_discarding_requested_logits_and_out_of_bounds_sequences ... ok
+test host::model::tests::sequence_crossing_full_page_requires_next_physical_block ... ok
+test host::prefill::wide::group::prompt384128_tests::generic_pair_rejects_incomplete_overfull_and_aliased_owners ... ok
+test host::prefill::wide::group::prompt384128_tests::rejects_shared_rings_pages_and_duplicate_owner_pages ... ok
+test host::prefill::wide::group::prompt384128_tests::two_owners_derive_three_chronological_a_quarters_and_one_b ... ok
+test host::prefill::wide::group::tail256_tests::tail_rejects_partial_unaligned_overflow_and_intermediate_logits ... ok
+test host::prefill::wide::group::tail384_tests::rejects_short_unaligned_overflow_and_early_logits ... ok
+test host::prefill::wide::group::tail384_tests::refuses_aliases_before_deriving_repeated_owner_metadata ... ok
+test host::prefill::wide::group::three_owner512_tests::rejects_partial_bad_sum_unaligned_overflow_and_early_logits ... ok
+test host::prefill::wide::group::three_owner512_tests::real_owner_aliases_cannot_enter_private_chronological_derivation ... ok
+test host::prefill::wide::media_rows_tests::missing_media_and_out_of_range_indices_return_errors ... ok
+test host::prefill::wide::group::tail256_tests::one_owner_halves_are_private_and_do_not_weaken_independent_groups ... ok
+test host::prefill::wide::group::prompt384128_tests::rejects_wrong_lengths_alignment_overflow_and_intermediate_outputs ... ok
+test host::prefill::wide::group::tail256_tests::tail_pair_rejects_aliases_and_does_not_enable_four_owner_constructor ... ok
+test host::prefill::wide::group::prompt512_tests::same_owner_chronological_chunks_have_a_separate_validation_contract ... ok
+test host::prefill::wide::group::prompt384128_tests::all_pair_partitions_preserve_owner_order_and_final_quarters ... ok
+test host::prefill::wide::media_rows_tests::plain_text_does_not_resolve_unused_or_invalid_media_payloads ... ok
+test host::prefill::wide::group::tail384_tests::accepts_only_three_real_quarters_and_keeps_four_owner_guard ... ok
+test host::prefill::wide::media_rows_tests::malformed_live_frame_shapes_and_missing_positions_return_errors ... ok
+test host::prefill::wide::group::three_owner512_tests::three_real_owner_permutations_keep_original_four_owner_validation ... ok
+test host::request_pool::tests::overlapping_full_pages_disable_independent_pooling_even_with_distinct_rings ... ok
+test host::prefill::wide::media_rows_tests::mixed_media_keeps_target_rows_order_duplicates_and_original_positions ... ok
+test host::request_pool_r64::tests::prefix768_preserves512_priority_and_rejects_future_or_wrapped_history ... ok
+test host::request_pool_r64::tests::prefix_policy_tracks_live_group_boundaries_and_ring_wrap ... ok
+test host::prefill::wide::media_rows_tests::partial_chunks_use_only_live_rows_and_each_inputs_own_media ... ok
+test host::runtime::audio_batch_tests::invalid_frames_are_rejected_before_device_allocation ... ok
+test host::sampling::tests::greedy_keeps_signed_zero_nan_order_and_lowest_token_ties ... ok
+test host::worker::idle_batch::tests::continuous_arrivals_do_not_extend_first_receipt_deadline ... ok
+test host::worker::chunk_trace::tests::format_preserves_exact_lengths_range_and_snapshot_across_yields ... ok
+test host::worker::idle_batch::tests::fifo_capacity_preserves_uncollected_jobs_and_disconnect_flushes ... ok
+test host::runtime::audio_batch_tests::packing_preserves_independent_rows_order_and_zero_padding ... ok
+test host::worker::idle_batch::tests::timeout_or_single_capacity_returns_first_job_without_loss ... ok
+test host::worker::tests::a_slow_prompt_quantum_reduces_the_remaining_decode_budget ... ok
+test host::worker::tests::active_prompt_chunk_yields_to_decode_and_keeps_other_prompts_pending ... ok
+test host::worker::tests::all_tail384_shapes_keep_real_owner_counts_and_dense_cost_four ... ok
+test host::worker::tests::canonical64_scheduler_visits_high_slots_and_keeps_all_ready_decoders ... ok
+test host::worker::tests::dispatch_trace_distinguishes_r64_width_and_prompt_owner_width_from_cost_class ... ok
+test host::worker::tests::earned_credit_uses_only_completed_tokens_and_the_earliest_stream_deadline ... ok
+test host::worker::tests::exact_route_classifiers_reject_partial_and_ambiguous_shapes ... ok
+test host::worker::tests::four_independent_prompts_precede_single_owner512_and_share_its_cost_class ... ok
+test host::worker::tests::group_selection_keeps_cyclic_order_and_short_or_cross_page_tails_get_their_turn ... ok
+test host::worker::tests::grouped_prompt_cost_survives_interleaved_single_prompt_measurements ... ok
+test host::request_pool::tests::request_metadata_keeps_ragged_pages_and_padding_inactive ... ok
+test host::worker::tests::larger_packing_keeps_cyclic_order_and_never_skips_a_short_owner ... ok
+test host::prefill_masks::tests::full_last_page_excludes_future_rows_and_masks_padding_like_last_live_row ... ok
+test host::prefill_masks::tests::sliding_masks_match_absolute_causal_window_at_wraps ... ok
+test host::worker::tests::incomplete_outputs_cannot_advance_or_release_any_group_member ... ok
+test host::worker::tests::cancelled_final_prompt512_holds_one_reservation_until_its_output_completes ... ok
+test host::worker::tests::exact_remaining_prompt_lengths_survive512_tail_decode_and_terminal_phases ... ok
+test host::worker::tests::active_group_keeps_row_identity_after_an_interleaved_decoder_finishes ... ok
+test host::worker::tests::chunk_trace_is_read_only_and_survives_cancelled_receivers_and_session_reordering ... ok
+test host::worker::tests::late_join_release_compacts_below_a_live_prior_checkpoint_before_selection ... ok
+test host::worker::tests::late_join_ready_or_host_time_expiration_releases_before_adding_arrivals ... ok
+test host::worker::tests::compact_trace_separates_own_compute_decoder_wait_and_other_prompt_wait ... ok
+test host::worker::tests::output_trace_records_overdue_average_and_gap_deadlines ... ok
+test host::worker::tests::late_join_keeps_started_and_deadline_and_earlier_receipt_can_only_shrink ... ok
+test host::worker::tests::late_join_is_disabled_without_both_policy_switches ... ok
+test host::worker::tests::late_join_preserves_prior_checkpoint_after_old_decoder_completion_compacts_sessions ... ok
+test host::worker::tests::late_join_expired_queued_receipt_flushes_without_marking_or_skipping_it ... ok
+test host::worker::tests::cancelled_stream_retains_group_reservation_until_complete_outputs_arrive ... ok
+test host::worker::tests::late_join_only_fresh_prompt_keeps_visible_and_invisible_mixed_decode_unheld ... ok
+test host::worker::tests::late_join_capacity_is_bounded_by_retained_reservations_and_pending_receipts_stay_old ... ok
+test host::worker::tests::late_join_terminal_cancellation_and_fatal_flush_keep_exact_event_order ... ok
+test host::generate::selected_token_tests::zero_completion_and_intermediate_prompt_never_consume_a_selection ... ok
+test host::generate::selected_token_tests::rejected_external_selection_keeps_phase_and_sampling_fallback ... ok
+test host::worker::tests::phase_trace_preserves_whole_prompt_work_and_counts_each_phase_once ... ok
+test host::generate::selected_token_tests::selected_tokens_preserve_reasoning_channel_and_marker_suppression ... ok
+test host::worker::tests::preparation_and_finalization_do_not_train_the_recurring_layer_estimator ... ok
+test host::worker::tests::pair384128_advances_nonfinal_a_without_sampling_it ... ok
+test host::worker::tests::progress_tracks_real_generation_usage_and_first_nonempty_delta ... ok
+test host::worker::tests::pair384128_retains_both_ranges_through_decoder_removal_and_cancelled_owner ... ok
+test host::generate::selected_token_tests::selected_tokens_preserve_stop_overlap_eos_length_and_cancellation ... ok
+test host::worker::tests::measured_decode_budget_fits_multiple_prompt_layers_and_reserves_next_round ... ok
+test host::worker::tests::recovery_cancel_and_fatal_flush_preserve_done_order_and_live_reservations ... ok
+test host::worker::tests::prompt_round_robin_uses_stable_ring_ids_across_session_removal ... ok
+test host::worker::tests::paired_tail256_atomic_outputs_advance_only_actual_owners ... ok
+test host::worker::tests::prompt512_range_survives_decoder_removal_yields_and_a_cross_page_completion ... ok
+test host::worker::tests::soft_gap_cap_limits_banked_credit_and_unknown_progress_keeps_the_control_policy ... ok
+test host::worker::tests::startup_cohort_holds_actual_first_delta_without_credit_or_extra_decode ... ok
+test host::worker::tests::ready_decode_requests_stay_batched_while_prompt_progresses ... ok
+test host::worker::tests::recovery_silent_first_token_is_ready_but_never_gets_hidden_extra_decode ... ok
+test host::worker::tests::startup_cohort_one_token_and_eos_keep_done_and_reservation_until_idle_flush ... ok
+test host::worker::tests::recovery_staggered_receipts_never_rehold_and_prior_checkpoint_survives_compaction ... ok
+test host::worker::tests::startup_disconnect_releases_once_and_preserves_other_members ... ok
+test host::worker::tests::startup_channel_marker_without_first_text_releases_as_ready ... ok
+test host::worker::tests::recovery_mixed_visible_and_invisible_decoders_consume_once_without_holding ... ok
+test host::worker::tests::real512_quad_pair_triple_single_all_precede_padded_routes ... ok
+test host::worker::tests::recovery_eos_nonstream_terminal_flush_precedes_idle_eof_and_releases_once ... ok
+test host::worker::tests::single_tail256_retains_range_after_decoder_compaction_and_cancel ... ok
+test host::worker::tests::startup_does_not_delay_a_lone_request_or_an_already_expired_snapshot ... ok
+test host::worker::tests::startup_invisible_decoder_is_ready_without_text_and_does_not_deadlock ... ok
+test host::worker::tests::recovery_fresh_late_arrivals_do_not_extend_deadline_or_skip_expired_oldest ... ok
+test host::worker::tests::startup_rearm_keeps_expired_original_receipt_budget ... ok
+test host::worker::tests::startup_rearm_rejects_invisible_decode_phase ... ok
+test host::worker::tests::startup_rearm_cannot_expand_an_active_snapshot ... ok
+test host::worker::tests::startup_mixed_inflight_invisible_decode_batch_consumes_every_computed_output ... ok
+test host::worker::tests::startup_snapshot_does_not_grow_and_oldest_receipt_bounds_release ... ok
+test host::worker::tests::startup_nonstream_buffers_only_done_and_done_never_precedes_later_delta ... ok
+test host::worker::tests::startup_rearms_after_visible_completion_with_pending_prefill_ownership_intact ... ok
+test host::worker::tests::startup_terminal_error_and_offline_flush_preserve_computed_event_order ... ok
+test host::worker::tests::reversed_and_balanced_pairs_keep_oldest_owner_ranges_until_atomic_completion ... ok
+test host::worker::tests::startup_visible_decoder_prevents_barrier_and_partial_prompt_cannot_start_one ... ok
+test host::worker::tests::tail256_does_not_bypass_short_or_unaligned_oldest_prompt ... ok
+test host::worker::tests::two_owner384128_keeps_quad_priority_single512_fallback_and_short_tail_turn ... ok
+test host::worker::tests::tail256_cost_reserves_padded_dense_work_and_keeps_decoders_responsive ... ok
+test host::worker::tests::three_owner_completion_keeps_unfinished_cohort_deadline_and_real_event_credit ... ok
+test host::worker::tests::tail256_held_output_never_extends_cohort_receipt_deadline ... ok
+test host::worker::tests::tail256_preserves_real512_priority_cyclic_order_and_disabled_fallback ... ok
+test host::worker::tests::tail256_intermediate_ranges_do_not_sample_nonfinal_owner ... ok
+test host::worker::tests::recovery_no_fixed_batch_quota_and_every_capture_tracks_request_participation ... ok
+test host::worker::tests::tail384_shapes_complete_final_outputs_without_sampling_intermediate_ranges ... ok
+test host::worker::tests::three_owner_checkpoint_survives_decoder_compaction_and_cancelled_owner ... ok
+test ops_pool_views::tests::host_windows_preserve_pool_extent_and_borrow_kind ... ok
+test host::prefill_masks::tests::p128_masks_preserve_absolute_history_and_ignore_padding ... ok
+test host::greedy::tests::b16_bans_keep_cluster_boundary_rows_and_ignore_out_of_range_ids ... ok
+test host::generate::selected_token_tests::all_banned_fallback_matches_existing_sampler ... ok
+test host::sampling::tests::greedy_matches_reference_for_all_bf16_patterns_and_arbitrary_bans ... ok
+test host::greedy::tests::ban_wire_order_preserves_row_and_word_boundaries ... ok
+
+test result: ok. 127 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
