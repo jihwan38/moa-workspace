@@ -4,7 +4,34 @@
 use super::*;
 use crate::ops_batch_layouts::{P512H960, P512L240, P512L960};
 use crate::ops_prompt_group_io as group_io;
+/// Raw QKV belongs to one group row and remains in the producer's physical
+/// layout until the matching head kernel consumes it. Ordinary Wide keeps its
+/// canonical buffers and never receives these values.
+pub(super) struct BlockedQkv {
+    pub(super) q_s: HbmTensor<bf16, Chip, crate::ops_qkv_shared_blocked::QueryOutput>,
+    pub(super) k_s: HbmTensor<bf16, Chip, crate::ops_qkv_shared_blocked::KeyOutput>,
+    pub(super) v_s: HbmTensor<bf16, Chip, crate::ops_qkv_shared_blocked::KeyOutput>,
+    pub(super) q_f: HbmTensor<bf16, Chip, crate::ops_qk_shared_blocked::QueryOutput>,
+    pub(super) k_f: HbmTensor<bf16, Chip, crate::ops_qk_shared_blocked::KeyOutput>,
+}
+impl BlockedQkv {
+    async fn new(device: &mut Device) -> Result<Self> {
+        macro_rules! zero {
+            ($layout:ty) => {
+                HostTensor::<bf16, $layout>::zero().to_hbm(&mut device.pdma).await?
+            };
+        }
+        Ok(Self {
+            q_s: zero!(crate::ops_qkv_shared_blocked::QueryOutput),
+            k_s: zero!(crate::ops_qkv_shared_blocked::KeyOutput),
+            v_s: zero!(crate::ops_qkv_shared_blocked::KeyOutput),
+            q_f: zero!(crate::ops_qk_shared_blocked::QueryOutput),
+            k_f: zero!(crate::ops_qk_shared_blocked::KeyOutput),
+        })
+    }
+}
 pub(crate) struct GroupPrefill {
+    blocked: [BlockedQkv; 4],
     rows: [WidePrefill; 4],
     norm: HbmTensor<bf16, Chip, m![P512, H]>,
     projected: HbmTensor<bf16, Chip, crate::ops_native_fp8_p512_downblocked::Output>,
@@ -59,6 +86,10 @@ impl GroupPrefill {
             };
         }
         Ok(Self {
+            blocked: [
+                BlockedQkv::new(device).await?, BlockedQkv::new(device).await?,
+                BlockedQkv::new(device).await?, BlockedQkv::new(device).await?,
+            ],
             rows: [
                 WidePrefill::new(device).await?,
                 WidePrefill::new(device).await?,
@@ -221,26 +252,27 @@ impl GroupPrefill {
             .await?;
         }
         scratch.record_optional_profile("group.qkv.norm_quantize", &mut mark);
-        let [a, b, c, d] = &mut self.rows;
+        let [a, b, c, d] = &self.rows;
+        let [oa, ob, oc, od] = &mut self.blocked;
         match layer {
             Layer::Sliding(l) => {
-                launch(crate::ops_qkv_native_shared::project_sliding_qkv_four,
+                launch(crate::ops_qkv_shared_blocked::project_sliding_qkv_four,
                     (device, &a.qkv_input, &a.qkv_scale, &b.qkv_input, &b.qkv_scale,
                      &c.qkv_input, &c.qkv_scale, &d.qkv_input, &d.qkv_scale,
                      &l.q_weight, &l.k_weight, &l.v_weight,
                      &l.q_weight_scale, &l.k_weight_scale, &l.v_weight_scale,
-                     (&mut a.q_s, &mut a.k_s, &mut a.v_s),
-                     (&mut b.q_s, &mut b.k_s, &mut b.v_s),
-                     (&mut c.q_s, &mut c.k_s, &mut c.v_s),
-                     (&mut d.q_s, &mut d.k_s, &mut d.v_s))).await?;
+                     (&mut oa.q_s, &mut oa.k_s, &mut oa.v_s),
+                     (&mut ob.q_s, &mut ob.k_s, &mut ob.v_s),
+                     (&mut oc.q_s, &mut oc.k_s, &mut oc.v_s),
+                     (&mut od.q_s, &mut od.k_s, &mut od.v_s))).await?;
             }
             Layer::Full(l) => {
-                launch(crate::ops_qk_native_shared::project_full_qk_four,
+                launch(crate::ops_qk_shared_blocked::project_full_qk_four,
                     (device, &a.qkv_input, &a.qkv_scale, &b.qkv_input, &b.qkv_scale,
                      &c.qkv_input, &c.qkv_scale, &d.qkv_input, &d.qkv_scale,
                      &l.q_weight, &l.k_weight, &l.q_weight_scale, &l.k_weight_scale,
-                     (&mut a.q_f, &mut a.k_f), (&mut b.q_f, &mut b.k_f),
-                     (&mut c.q_f, &mut c.k_f), (&mut d.q_f, &mut d.k_f))).await?;
+                     (&mut oa.q_f, &mut oa.k_f), (&mut ob.q_f, &mut ob.k_f),
+                     (&mut oc.q_f, &mut oc.k_f), (&mut od.q_f, &mut od.k_f))).await?;
             }
         }
         scratch.record_optional_profile("group.qkv.projections", &mut mark);
@@ -260,6 +292,7 @@ impl GroupPrefill {
                             scratch,
                             false,
                             true,
+                            Some(&self.blocked[row]),
                         )
                         .await?
                 }
@@ -275,6 +308,7 @@ impl GroupPrefill {
                             scratch,
                             false,
                             true,
+                            Some(&self.blocked[row]),
                         )
                         .await?
                 }
