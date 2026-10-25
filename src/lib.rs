@@ -117,3 +117,11 @@ pub mod ops_output_p128_four_switch;
 pub mod ops_output_p128_four_keyrings;
 
 pub mod ops_output_p128_keyrings_h64;
+
+pub mod ops_qkv_shared_blocked;
+
+pub mod ops_qk_shared_blocked;
+
+pub mod ops_query_native_fp8_control;
+
+pub mod ops_qkv_shared_ingress;
