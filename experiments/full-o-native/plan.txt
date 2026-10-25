@@ -8,3 +8,5 @@ Before any NPU measurement: added provided fullO layers5/47 with strict unchange
 Independent batch_kernels audit identified supported ingress repair: distribute QuantRows=(K8,P%4,P/8%8), localP/4%2. Switch stream(P/4%2,P%4,P/8%8) canonically normalizes first two adjacent high/low factors toP%8 forTRF; two-local-row work unchanged, no extraDM copy or unsafealias. Earlier highP/32 bit was a true forbidden permutation, not Collect normalization.
 
 r967/319684: all three synthetic cases passed quantization/8partial/tree/roundtrip/immutability; actual~766usBF16fourquarter vs661–669usnative. Run FAILED at supplied-weightfileopen because ArenaRNGD_MODEL_DIR is parent, notleaf. Repair uses existing public load::model_dir resolver, preserves all math/guards and failurelog; suppliedweightgates remainpending.
+
+r969/319697 actuallayer5 roundtrip4/1966080finalbitdifferences, strictguardFAILretained. Diagnostic-only coordinate/CPUexactsum/nativepartial/tree dumps nowexecute BEFORE SAMEassert; no boundoracceptancechanges. Modelbuild remainsheld. Syntheticgain~100us/fourfullO is only~0.8msper48layerP512 with8fulllayers; servingprioritylikelyHOLD regardless.

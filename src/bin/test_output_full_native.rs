@@ -118,7 +118,29 @@ macro_rules! fixture {($d:ident,$seed:ident,$axis:ident,$shape:ty,$quant:ident,$
         let mut reference=Vec::new();for out in &reference_outputs {reference.push(read_output(&mut $d,out).await);}
         assert!(actual.iter().flatten().all(|x|x.to_f32().is_finite()));
         let diff:usize=actual.iter().zip(&reference).map(|(a,b)|a.iter().zip(b).filter(|(x,y)|x.to_bits()!=y.to_bits()).count()).sum();
-        println!("O_NATIVE_ROUNDTRIP axis={} seed={} order={order:?} values={} differences={diff}",stringify!($axis),$seed,4*P128::SIZE*H::SIZE);assert_eq!(diff,0);
+        println!("O_NATIVE_ROUNDTRIP axis={} seed={} order={order:?} values={} differences={diff}",stringify!($axis),$seed,4*P128::SIZE*H::SIZE);
+        if diff!=0 {
+            for group in 0..4 {
+                let changed:Vec<_>=actual[group].iter().zip(&reference[group]).enumerate().filter_map(|(i,(a,b))|(a.to_bits()!=b.to_bits()).then_some(i)).collect();
+                if changed.is_empty(){continue;}
+                let mut raw=HostTensor::<bf16,m![P128,$axis/1024,H]>::zero().to_hbm(&mut $d.pdma).await.unwrap();
+                launch(op::$partials,(&mut $d,&original[order[group]],&weights,&mut raw)).await.unwrap();
+                let raw=read(&mut $d,&raw).await;
+                for &i in changed.iter().take(16) {
+                    let row=i/H::SIZE;let col=i%H::SIZE;
+                    let mut dots=Vec::new();let mut abs_sums=Vec::new();let mut cpu_parts=Vec::new();let mut npu_parts=Vec::new();
+                    for c in 0..$axis::SIZE/1024 {
+                        let terms:Vec<f64>=(c*1024..(c+1)*1024).map(|k|cpu_q[order[group]][row*$axis::SIZE+k]as f64*cpu_weights[col*$axis::SIZE+k].to_f32()as f64).collect();
+                        let dot=terms.iter().sum::<f64>();dots.push(dot);abs_sums.push(terms.iter().map(|x|x.abs()).sum::<f64>());
+                        cpu_parts.push(bf16::from_f32(dot as f32*cpu_scale[order[group]][row*($axis::SIZE/1024)+c]).to_f32());
+                        npu_parts.push(raw[(row*($axis::SIZE/1024)+c)*H::SIZE+col].to_f32());
+                    }
+                    let tree=|mut v:Vec<f32>|{while v.len()>1{v=v.chunks_exact(2).map(|x|bf16::from_f32(x[0]+x[1]).to_f32()).collect();}bf16::from_f32(v[0]*cpu_channels[col].to_f32()).to_f32()};
+                    println!("ROUNDTRIP_DIFF seed={} group={group} original_group={} row={row} col={col} actual={} control={} channel={} cpu_tree={} native_partial_tree={} dots={dots:?} abs_sums={abs_sums:?} cpu_parts={cpu_parts:?} native_parts={npu_parts:?}",$seed,order[group],actual[group][i].to_f32(),reference[group][i].to_f32(),cpu_channels[col].to_f32(),tree(cpu_parts.clone()),tree(npu_parts.clone()));
+                }
+            }
+        }
+        assert_eq!(diff,0,"strict roundtrip guard retained after diagnostic coordinate dump");
         let mut cpu_diff=0usize;let mut cpu_count=0usize;let mut partial_diff=0usize;let mut partial_count=0usize;
         let mut raw_partials=Vec::new();
         let mut raw=HostTensor::<bf16,m![P128,$axis/1024,H]>::from_vec(vec![bf16::from_f32(f32::NAN);P128::SIZE*($axis::SIZE/1024)*H::SIZE]).to_hbm(&mut $d.pdma).await.unwrap();
