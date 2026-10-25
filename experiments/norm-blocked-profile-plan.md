@@ -1,0 +1,3 @@
+# Profile the existing exact grouped norm consumer
+
+Control is current ad2d172 canonical/fused consumer; blocked consumer is the actual adopted direct H64 producer ABI. Run both complete post-attention normalization, residual, pre-FFN normalization and quantization chains, with all existing byte and F64 gates, then capture one actual trace per input/order. No arithmetic changes. The trace determines whether per-element division, scalar RMS handling, redistribution or blocked writes dominates before proposing a replacement. F32 reciprocal multiplication may differ near BF16 ties, so it cannot be described as exact without validation; do not modify production from a presumed compiler cost.

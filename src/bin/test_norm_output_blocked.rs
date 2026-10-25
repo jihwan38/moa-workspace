@@ -1,3 +1,5 @@
+#[path="support/npu_profile.rs"]
+mod npu_profile;
 //! Independent-output exact oracle and complete-chain ABBA timing for norm fusion.
 use furiosa_opt_gemma4::{Chip, EPS, axes::*, ops_norm_fused as fused,
     ops_batch_layouts::P512H960, ops_output_p128_h64_blocked::Output};
@@ -106,10 +108,22 @@ async fn test(d:&mut Device,seed:u64,order:[usize;4]) {
         let now=Instant::now();run(d,variant,&projected,&blocked,&post,&pre,&offsets,state).await;
         timing[variant as usize].push(now.elapsed().as_secs_f64()*1e6);
     }
+    if std::env::var_os("FURIOSA_OPT_PROFILE").is_some() {
+        for (label, choice) in [("canonical",false),("blocked",true)] {
+            let state=if choice {&mut candidate}else{&mut control};
+            state.reset_residual(d,&rv).await;
+            println!("NORM_PROFILE_BEGIN variant={label} seed={seed}");
+            PROFILE.with(|p| p.enable(true));
+            run(d,choice,&projected,&blocked,&post,&pre,&offsets,state).await;
+            PROFILE.with(|p| p.enable(false));
+        }
+    }
     println!("TIMING seed={seed} order={order:?} canonical1launch_us={:?} blocked1launch_us={:?}",timing[0],timing[1]);
 }
+thread_local! { static PROFILE: npu_profile::Collector = npu_profile::Collector::default(); }
 #[tokio::main]
 async fn main() {
+    PROFILE.with(|p| tracing::subscriber::set_global_default(p.clone()).unwrap());
     let mut d=Device::new(fused::post_attention_ffn_input_four.topology()).unwrap();
     test(&mut d,713,[0,1,2,3]).await;
     test(&mut d,1771,[3,1,0,2]).await;
