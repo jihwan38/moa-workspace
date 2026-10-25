@@ -1,0 +1,41 @@
+{
+  "name": "a004-int4-ffn-geglu-resource",
+  "purpose": "Compile unchanged BF16 global-scale GeGLU plus canonical full-L row DM/HBM bridge; no standalone ELF",
+  "started_at": "2026-10-25T23:41:55.716882+00:00",
+  "worktree": "/home/jihwan38/moa-worktrees/round2/int4-complete-ffn-bridges",
+  "commit": "381fc0239c212e53009294e19084e5cbf850e51c",
+  "status": "?? experiments/int4-complete-ffn-bridges/kernel-out-a002/\n?? experiments/int4-complete-ffn-bridges/kernel-out-a003/\n?? experiments/int4-complete-ffn-bridges/prefix-full-schedule.json\n?? experiments/int4-complete-ffn-bridges/prefix-sliding-schedule.json\n",
+  "command": [
+    "docker",
+    "exec",
+    "-w",
+    "/round2/int4-complete-ffn-bridges",
+    "-e",
+    "CARGO_TARGET_DIR=/round2/tail256-model/target",
+    "-e",
+    "CARGO_INCREMENTAL=0",
+    "-e",
+    "CARGO_PROFILE_DEV_DEBUG=0",
+    "-e",
+    "CARGO_NET_OFFLINE=true",
+    "-e",
+    "FURIOSA_OPT_OUT_DIR=/round2/int4-complete-ffn-bridges/experiments/int4-complete-ffn-bridges/kernel-out-a004",
+    "moa2026-round2",
+    "cargo",
+    "furiosa-opt",
+    "compile",
+    "--exact",
+    "ops_int4_ffn_bridges::geglu_bf16",
+    "--dump-schedule",
+    "experiments/int4-complete-ffn-bridges/geglu-schedule.json"
+  ],
+  "result": "command_succeeded",
+  "exit_code": 0,
+  "fresh_package": {
+    "refreshed_files": 405,
+    "contents_changed": false,
+    "target_exclusivity": "caller must coordinate"
+  },
+  "pid": 68011,
+  "finished_at": "2026-10-25T23:42:10.445827+00:00"
+}
