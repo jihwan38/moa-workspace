@@ -1,0 +1,17 @@
+{
+  "base_commit": "507b9555fe600bbf447e58279d418e2d29868015",
+  "scope": "Host-only provided-weight diagnostic; no Device, kernel compilation, host dispatch changes or Arena submission",
+  "input": "load::model_dir()/model.safetensors, read-only mmap using existing dependencies",
+  "sampling": "Exactly r1194: layers 0/6/47, UP/GATE/DOWN, four boundary rows plus 60 deterministic mix-selected rows per projection, repetitions retained",
+  "reference": "BF16(provided E2M1 low/high nibble * provided E4M3 per16 scale), before global scale; 4423680 values",
+  "coarse_control": "Original r1194 power2 scale starts 2^-114 and doubles until 7*s>=max(2^-112,FTZ-amax); code ties away",
+  "new_rational": "Exact sign(x)*floor(7*abs(FTZ(x))/A+1/2), A=max(2^-112,amax), code [-7,7], reconstruction scale RN32(A*RN32(1/7))",
+  "independent_oracle": "i64 quotient (2*n+d)/(2*d) from finite BF16 mantissa/exponent; no floating DivF and no device seven-threshold implementation",
+  "grouping": ["one whole output row", "independent 960-value blocks within each sampled row"],
+  "provenance": "Tensor names/dtypes/shapes/lengths, exact row lists and labeled noncryptographic FNV1a64 fingerprints of sampled source and decoded BF16 bytes; not a whole-model SHA",
+  "report": "Code bounds/histograms, finite min/max, signed-zero/subnormal counts, scale/amax ranges, squared error/norm, relative L2 and max absolute error; timing includes decode and all four audits",
+  "failure_policy": "Missing file/tensor, wrong header, nonfinite source/reconstruction or contract assertion is a hard failure, not a skipped PASS",
+  "build": "Original Cargo.toml/Cargo.lock; plain cargo build --release --locked, incremental disabled, package debug0, exclusive tail256-model target and captured output",
+  "not_claimed": ["r742 synthetic 0.1319 is not provided-model quality", "No model or activation accuracy", "No packing or NPU speed", "No new quantizer adoption", "Old r742/r751 DivF failures remain failures"],
+  "next_gate": "Independent source review and root-dispatched bounded CPU diagnostic on supplied weights; actual output decides whether this precision route merits further complete-chain work"
+}
