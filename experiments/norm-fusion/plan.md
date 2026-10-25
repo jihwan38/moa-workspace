@@ -79,3 +79,21 @@ against original unpack+fourpostnorm, checks immutable input, F64 samples, signe
 layer gates and complete5vs1 ABBA. No host/default changes before its actual gate.
 
 Direct blocked postFFN candidate a031 compiled in26.66s on first attempt. The producer H240 quarters read directly into H480 shards; the original norm/residual/gate helpers are reused. Actual parity/performance remains pending root.
+
+## Actual whole-model and third fusion gates
+
+Initial two fusions passed whole-model Arena318719/r582: all53logit comparisons
+were exact, including48R64interleaves and fourpostprompt steps. SameGrouped512
+control200.410ms became181.509ms (prepare5.997, layers175.513, maxquantum6.875).
+QKVnorm stage fell13.571→3.830ms; originalpostattention/preFFN/pack/quant
+20.335→13.952ms. Four independent owners also passed Arena318726/r585, including
+interleaves, at starts896/384/0/128; group layers177.892ms. These are diagnostics,
+not HTTP scores.
+
+Direct blocked postFFN Arena318740/r590 passed every residual bit, immutable
+producer bytes and F64samples. Complete5-launch control was about213us and
+fused1-launch path137–160us. The third host call now uses the SAME per-execution
+fused_norms selector; original constructors disable all three fusions together.
+The direct path leaves row.projected stale after FFN deliberately: subsequent
+layer QKV uses persisted x and its O projection overwrites projected; finish
+normalizes x. No consumer needs the obsolete unpacked FFN temporary.

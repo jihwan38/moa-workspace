@@ -439,28 +439,36 @@ impl GroupPrefill {
         )
         .await?;
         scratch.record_optional_profile("group.ffn.down", &mut mark);
-        let [a, b, c, d] = &mut self.rows;
-        launch(
-            crate::ops_native_fp8_p512_downblocked::unpack_hidden_group,
-            (
-                device,
-                &self.projected,
-                &mut a.projected,
-                &mut b.projected,
-                &mut c.projected,
-                &mut d.projected,
-            ),
-        )
-        .await?;
-        scratch.record_optional_profile("group.ffn.unpack", &mut mark);
-        for row in &mut self.rows {
+        if state.fused_norms {
+            let [a, b, c, d] = &mut self.rows;
+            launch(crate::ops_norm_fused::post_feedforward_four,
+                (device, &self.projected, post, gate,
+                 &mut a.x, &mut b.x, &mut c.x, &mut d.x)).await?;
+            scratch.record_optional_profile("group.ffn.fused_post_norm", &mut mark);
+        } else {
+            let [a, b, c, d] = &mut self.rows;
             launch(
-                crate::ops_norm_wide::post_feedforward_p128,
-                (device, &row.projected, post, gate, &mut row.x),
+                crate::ops_native_fp8_p512_downblocked::unpack_hidden_group,
+                (
+                    device,
+                    &self.projected,
+                    &mut a.projected,
+                    &mut b.projected,
+                    &mut c.projected,
+                    &mut d.projected,
+                ),
             )
             .await?;
+            scratch.record_optional_profile("group.ffn.unpack", &mut mark);
+            for row in &mut self.rows {
+                launch(
+                    crate::ops_norm_wide::post_feedforward_p128,
+                    (device, &row.projected, post, gate, &mut row.x),
+                )
+                .await?;
+            }
+            scratch.record_optional_profile("group.ffn.post_norm", &mut mark);
         }
-        scratch.record_optional_profile("group.ffn.post_norm", &mut mark);
         for current in &mut state.states {
             current.next_layer += 1;
         }
