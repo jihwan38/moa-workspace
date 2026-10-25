@@ -278,3 +278,4 @@ pub mod ops_int4_rational_lut_p512_compact;
 
 pub mod ops_int4_pack_p512;
 pub mod i4_p512_raw_adapter;
+pub mod ops_int4_pack_staged_store;

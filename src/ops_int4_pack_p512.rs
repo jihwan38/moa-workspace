@@ -15,7 +15,7 @@ pub type PackedHidden = m![P512 / 256, L / 960, P512 % 256, L % 960 / 8];
 pub type I4Input = crate::ops_batch_layouts::P512H960;
 pub type I4Hidden = crate::ops_batch_layouts::P512L960;
 
-fn pack_dm<K: AxisName, W: AxisName>(
+pub(crate) fn pack_dm<K: AxisName, W: AxisName>(
     device: &mut Device,
     input: &HbmTensor<i32, Chip, m![P512, K]>,
     shifts: &HbmTensor<i32, Chip, m![K % 8]>,
