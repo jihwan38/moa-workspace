@@ -1,0 +1,9 @@
+# Fixed E4 producer gate: PASS, model quality pending
+
+Actual ON artifact375bdcf4/a005 passed r1306 job321560 and r1307 job321561. All eight head entrypoints match the unchanged scalar head reference with only K/V transformed by the independent finite CPU codec. Q remains bitwise equal. The head gate checked11,272,192 bytes; unconditional B16/R64/P128 finite-code layouts add1,835,008 bytes, for13,107,200 total. Both scalar canonical/legacy producer gates checked830,529,024 bytes, including complete pools at slot31, positions1023/1024 and reset0. These are byte comparisons (some bytes are immutable inputs/guards), not distinct model output counts.
+
+The head gate includes ordinary and blocked B16/R64/P128, tiled Wide and the shared fused-P128 prepare_heads output. Scalar controls are body-hash-verified original3d497087 implementations. All ten current producer hooks therefore have enabled-device coverage, including scalar K's localNs axis corrected in cb4eff4a. Finite BF16 conversion/saturation/signed zero is tested; no nonfinite payload preservation is claimed. Actual model/autoregressive/public quality is still untested here.
+
+Fresh ON build a005 and OFF a006 captured all three probes immediately after verifying399 unchanged input hashes each. `build-pair.json` verifies that **only `src/ops_fixed_e4_quality.rs` differs among build inputs**, and source diff shows only the boolean. Original Cargo/lock are identical. No source activation in production, no F4FFN/FP8LM import, and BF16 cache storage/reader ABI remain unchanged. Surrogate execution cannot establish compressed-cache speed.
+
+Original logs and artifact paths/hashes remain in root run records; `head-actual.json` binds the exact log SHA256 and complete markers. `compare_reports.py OFF.log ON.log --output report.json` is the bounded cross-program reader; it refuses mismatched flags/row sets and reports sampled error only.
