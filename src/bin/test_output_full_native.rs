@@ -49,6 +49,31 @@ async fn read_output(d: &mut Device, x: &HbmTensor<bf16, Chip, op::Output>) -> V
     read(d, x).await
 }
 
+fn provided_weights(layer: usize) -> (Vec<f8e4m3>, Vec<bf16>) {
+    assert_eq!(layer % 6, 5);
+    let path = std::path::PathBuf::from(
+        std::env::var("RNGD_MODEL_DIR").expect("provided model directory"),
+    )
+    .join("model.safetensors");
+    let file = std::fs::File::open(path).unwrap();
+    let map = unsafe { memmap2::Mmap::map(&file).unwrap() };
+    let tensors = safetensors::SafeTensors::deserialize(&map).unwrap();
+    let prefix = format!("model.language_model.layers.{layer}.self_attn.o_proj");
+    let w = tensors.tensor(&format!("{prefix}.weight")).unwrap();
+    let weights = HostTensor::<f8e4m3, m![H, Qf]>::from_safetensors(&w)
+        .unwrap()
+        .into_vec();
+    let scale = tensors.tensor(&format!("{prefix}.weight_scale")).unwrap();
+    assert_eq!(scale.dtype(), safetensors::Dtype::BF16);
+    assert_eq!(scale.shape(), [H::SIZE, 1]);
+    let scales = HostTensor::<bf16, m![H]>::from_buf(scale.data().to_vec()).into_vec();
+    println!(
+        "PROVIDED_FULL_O layer={layer} weights={} scales={}",
+        weights.len(),
+        scales.len()
+    );
+    (weights, scales)
+}
 macro_rules! fixture {($d:ident,$seed:ident,$axis:ident,$shape:ty,$quant:ident,$four:ident,$partials:ident)=>{{
     let mut original=Vec::<HbmTensor<bf16,Chip,$shape>>::new();
     let mut quantized=Vec::<HbmTensor<f8e4m3,Chip,m![P128,$axis]>>::new();
@@ -79,8 +104,11 @@ macro_rules! fixture {($d:ident,$seed:ident,$axis:ident,$shape:ty,$quant:ident,$
         reference_outputs.push(HostTensor::<bf16,op::Output>::from_vec(vec![bf16::from_f32(f32::NAN);P128::SIZE*H::SIZE]).to_hbm(&mut $d.pdma).await.unwrap());
         cpu_q.push(q.iter().map(|v|v.to_f32()).collect());cpu_scale.push(ss);
     }
-    let weights=HostTensor::<f8e4m3,m![H,$axis]>::from_vec((0..H::SIZE).flat_map(|n|(0..$axis::SIZE).map(move|k|weight(n,k,$seed)))).to_hbm(&mut $d.pdma).await.unwrap();
-    let ws=HostTensor::<bf16,m![H]>::from_vec((0..H::SIZE).map(|n|bf16::from_f32(channel(n)))).to_hbm(&mut $d.pdma).await.unwrap();
+    let (cpu_weights,cpu_channels)=if $seed>=1000 {provided_weights($seed-1000)} else {
+        ((0..H::SIZE).flat_map(|n|(0..$axis::SIZE).map(move|k|weight(n,k,$seed))).collect(),(0..H::SIZE).map(|n|bf16::from_f32(channel(n))).collect())
+    };
+    let weights=HostTensor::<f8e4m3,m![H,$axis]>::from_vec(cpu_weights.clone()).to_hbm(&mut $d.pdma).await.unwrap();
+    let ws=HostTensor::<bf16,m![H]>::from_vec(cpu_channels.clone()).to_hbm(&mut $d.pdma).await.unwrap();
     for order in [[0,1,2,3],[3,1,0,2]] {
         // Candidate executes first into independent NaN outputs.
         let [a,b,c,d]=outputs.as_mut_slice() else{unreachable!()};
@@ -100,7 +128,7 @@ macro_rules! fixture {($d:ident,$seed:ident,$axis:ident,$shape:ty,$quant:ident,$
             let columns:Vec<_>=if $seed==0{(0..17).collect()}else{vec![0,1,59,60,119,120,3838,3839]};
             let mut cpu=Vec::new();for &n in &columns {
                 let mut partials:Vec<f32>=(0..$axis::SIZE/1024).map(|c|{
-                    let dot=(c*1024..(c+1)*1024).map(|k|cpu_q[order[g]][r*$axis::SIZE+k]as f64*weight(n,k,$seed).to_f32()as f64).sum::<f64>();
+                    let dot=(c*1024..(c+1)*1024).map(|k|cpu_q[order[g]][r*$axis::SIZE+k]as f64*cpu_weights[n*$axis::SIZE+k].to_f32()as f64).sum::<f64>();
                     bf16::from_f32((dot as f32)*cpu_scale[order[g]][r*($axis::SIZE/1024)+c]).to_f32()
                 }).collect();
                 for (c,&expected) in partials.iter().enumerate() {
@@ -110,8 +138,8 @@ macro_rules! fixture {($d:ident,$seed:ident,$axis:ident,$shape:ty,$quant:ident,$
                 while partials.len()>1 {partials=partials.chunks_exact(2).map(|p|bf16::from_f32(p[0]+p[1]).to_f32()).collect();}
                 cpu.push(partials[0]);
             }
-            if $seed==0 {for n in 0..H::SIZE{cpu_count+=1;cpu_diff+=usize::from(actual[g][r*H::SIZE+n].to_bits()!=bf16::from_f32(cpu[n%17]*channel(n)).to_bits());}}
-            else {for (j,&n)in columns.iter().enumerate(){cpu_count+=1;cpu_diff+=usize::from(actual[g][r*H::SIZE+n].to_bits()!=bf16::from_f32(cpu[j]*channel(n)).to_bits());}}
+            if $seed==0 {for n in 0..H::SIZE{cpu_count+=1;cpu_diff+=usize::from(actual[g][r*H::SIZE+n].to_bits()!=bf16::from_f32(cpu[n%17]*cpu_channels[n].to_f32()).to_bits());}}
+            else {for (j,&n)in columns.iter().enumerate(){cpu_count+=1;cpu_diff+=usize::from(actual[g][r*H::SIZE+n].to_bits()!=bf16::from_f32(cpu[j]*cpu_channels[n].to_f32()).to_bits());}}
         }}
         println!("O_NATIVE_CPU axis={} seed={} order={order:?} values={cpu_count} differences={cpu_diff}",stringify!($axis),$seed);assert_eq!(cpu_diff,0);println!("O_NATIVE_CPU_PARTIAL axis={} seed={} checked={partial_count} differences={partial_diff}",stringify!($axis),$seed);assert_eq!(partial_diff,0);
         if order==[0,1,2,3] {
@@ -122,7 +150,7 @@ macro_rules! fixture {($d:ident,$seed:ident,$axis:ident,$shape:ty,$quant:ident,$
             println!("O_NATIVE_BF16_ERROR axis={} seed={} values={} changed={changed} relative_l2={} max_abs={max}",stringify!($axis),$seed,4*P128::SIZE*H::SIZE,(err/energy.max(1e-30)).sqrt());
         }
     }
-    if $seed==31 {for variant in [1,0,0,1] {
+    if $seed==31 || $seed>=1000 {for variant in [1,0,0,1] {
         let start=std::time::Instant::now();for _ in 0..8 {
             if variant==0 {let[a,b,c,d]=outputs.as_mut_slice()else{unreachable!()};launch(control::$four,(&mut $d,&original[0],&original[1],&original[2],&original[3],&weights,&ws,a,b,c,d)).await.unwrap();}
             else {
@@ -136,12 +164,20 @@ macro_rules! fixture {($d:ident,$seed:ident,$axis:ident,$shape:ty,$quant:ident,$
         println!("TRACE_FUSED_NATIVE");PROFILE.with(|p|p.enable(true));
         let[a,b,c,d]=outputs.as_mut_slice()else{unreachable!()};launch(op::$four,(&mut $d,&original[0],&original[1],&original[2],&original[3],&weights,&ws,a,b,c,d)).await.unwrap();PROFILE.with(|p|p.enable(false));
     }
+    for group in 0..4 {
+        let values=read(&mut $d,&original[group]).await;
+        assert!(values.iter().enumerate().all(|(i,x)|x.to_bits()==value(i/$axis::SIZE,i%$axis::SIZE,$seed,group).to_bits()),"original input changed");
+    }
+    let readw:HostTensor<f8e4m3,m![H,$axis]>=weights.to_host(&mut $d.pdma).await.unwrap();
+    assert!(readw.into_vec().iter().zip(&cpu_weights).all(|(a,b)|a.to_f32().to_bits()==b.to_f32().to_bits()),"weight changed");
+    assert!(read(&mut $d,&ws).await.iter().zip(&cpu_channels).all(|(a,b)|a.to_bits()==b.to_bits()),"scale changed");
+    println!("FULL_O_IMMUTABLE seed={}",$seed);
 }};}
 #[tokio::main]
 async fn main() {
     PROFILE.with(|p| tracing::subscriber::set_global_default(p.clone()).unwrap());
     let mut d = Device::new(op::project_full_output_four.topology()).unwrap();
-    for seed in [0, 31, 79] {
+    for seed in [0, 31, 79, 1005, 1047] {
         fixture!(
             d,
             seed,
