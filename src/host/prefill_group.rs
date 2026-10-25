@@ -73,6 +73,9 @@ pub(crate) struct PreparedPrompt384128 {
     final_rows: [usize; 2],
 }
 impl PreparedPrompt384128 {
+    pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
+        self.chunks.fused_head_attention(enabled);
+    }
     pub(crate) fn original_blocked_residual(&mut self) { self.chunks.blocked_residual = false; }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 2] {
         [&self.chunks.states[0].blocks, &self.chunks.states[self.second_owner_row].blocks]
@@ -80,6 +83,9 @@ impl PreparedPrompt384128 {
 }
 
 impl PreparedPrompt512 {
+    pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
+        self.chunks.fused_head_attention(enabled);
+    }
     pub(crate) fn prune_empty_history(&mut self) { self.chunks.prune_empty_history(); }
     pub(crate) fn original_empty_history(&mut self) { self.chunks.original_empty_history(); }
     pub(crate) fn original_blocked_residual(&mut self) { self.chunks.blocked_residual = false; }
@@ -94,6 +100,9 @@ impl PreparedPrompt512 {
     }
 }
 impl PreparedGroup {
+    pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
+        for state in &mut self.states { state.fused_head_attention = enabled; }
+    }
     pub(crate) fn prune_empty_history(&mut self) {
         for state in &mut self.states { state.prune_empty_history = true; }
     }

@@ -21,6 +21,8 @@ const EMPTY_HISTORY_PRUNING_ENABLED: bool = true;
 // Exact media encoders passed independent scalar/CPU gates and29,589,504
 // full-model/embedding comparisons inr783. Explicit per-call controls remain.
 pub(crate) const MEDIA_BATCH_ENABLED: bool = true;
+// Opt-in per prepared execution until complete whole-model gates pass.
+const FUSED_HEAD_ATTENTION_ENABLED: bool = false;
 
 pub(crate) struct WidePrefill {
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
@@ -60,6 +62,7 @@ pub(crate) struct PreparedWide {
     native_qkv: bool,
     exact_sliding_attention: bool,
     prune_empty_history: bool,
+    fused_head_attention: bool,
     direct_full_attention: bool,
     compact_full_statistics: bool,
     next_layer: usize,
@@ -377,6 +380,7 @@ impl WidePrefill {
             direct_full_attention: DIRECT_FULL_ATTENTION_ENABLED,
             compact_full_statistics: COMPACT_FULL_STATISTICS_ENABLED,
             prune_empty_history: EMPTY_HISTORY_PRUNING_ENABLED,
+            fused_head_attention: FUSED_HEAD_ATTENTION_ENABLED,
             next_layer: 0,
             segments,
             native,
@@ -688,6 +692,32 @@ impl WidePrefill {
         let mut mark = scratch.profile_mark();
         let ring = state.blocks.sliding;
         if let Some(meta) = &state.native {
+            if state.fused_head_attention && state.exact_sliding_attention
+                && ws.is_canonical() && blocked.is_some()
+            {
+                let raw = blocked.unwrap();
+                let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index]
+                    else { unreachable!() };
+                // All128 rows are live. The fused kernel finishes attention against
+                // the old ring before its absolute-offset KV scatter. Headed K/V
+                // scratch remains separate; deferred O consumes only attn_s.
+                if state.prune_empty_history && state.start_position == 0 {
+                    launch(crate::ops_prefill_head_attn_commit::sliding_fused_first_p128,
+                        (device, &raw.q_s, &raw.k_s, &raw.v_s,
+                         &layer.q_norm, &layer.k_norm, &meta.rope_s,
+                         &ws.cos_s, &ws.sin_s, k, v, &meta.sliding_cluster_bases,
+                         &meta.old_mask, &meta.chunk_mask, &meta.sliding_offsets,
+                         &mut self.head_k_s, &mut self.head_v_s, &mut self.attn_s)).await?;
+                } else {
+                    launch(crate::ops_prefill_head_attn_commit::sliding_fused_p128,
+                        (device, &raw.q_s, &raw.k_s, &raw.v_s,
+                         &layer.q_norm, &layer.k_norm, &meta.rope_s,
+                         &ws.cos_s, &ws.sin_s, k, v, &meta.sliding_cluster_bases,
+                         &meta.old_mask, &meta.chunk_mask, &meta.sliding_offsets,
+                         &mut self.head_k_s, &mut self.head_v_s, &mut self.attn_s)).await?;
+                }
+                scratch.record_optional_profile("wide.sliding.fused_heads_attention_commit", &mut mark);
+            } else {
             if let Some(raw) = blocked {
             launch(
                 crate::ops_head_wide_blocked::sliding_heads_p128,
@@ -818,6 +848,7 @@ impl WidePrefill {
             )
             .await?;
             scratch.record_optional_profile("wide.sliding.kv_commit", &mut mark);
+            }
             }
         } else {
             for (tile, segment) in segments.iter().enumerate() {

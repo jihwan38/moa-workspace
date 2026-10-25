@@ -536,6 +536,66 @@ impl Model {
         Ok(())
     }
 
+    /// Scoped exact heads/attention/commit diagnostic. All other choices persist.
+    pub async fn start_prefill512_fused_head_attention(
+        &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill512(device, sequence, workspace).await?;
+        match self.active_prefill.as_mut().unwrap() {
+            ActivePrefill::Prompt512(state) => state.fused_head_attention(true),
+            _ => unreachable!("start_prefill512 owns Prompt512 state"),
+        }
+        Ok(())
+    }
+
+    /// Scoped exact fusion across four independent owners; no global selector.
+    pub async fn start_prefill_group_fused_head_attention(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_group(device, sequences, workspace).await?;
+        self.active_group.as_mut().unwrap().fused_head_attention(true);
+        Ok(())
+    }
+
+    /// Scoped exact fusion for any supported ordered two-owner512 split.
+    pub async fn start_prefill_pair512_fused_head_attention(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_pair512(device, sequences, workspace).await?;
+        self.active_prompt384128.as_mut().unwrap().fused_head_attention(true);
+        Ok(())
+    }
+
+    /// Scoped exact heads/attention/commit diagnostic. All other choices persist.
+    pub async fn start_prefill512_original_head_attention(
+        &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill512(device, sequence, workspace).await?;
+        match self.active_prefill.as_mut().unwrap() {
+            ActivePrefill::Prompt512(state) => state.fused_head_attention(false),
+            _ => unreachable!("start_prefill512 owns Prompt512 state"),
+        }
+        Ok(())
+    }
+
+    /// Scoped exact fusion across four independent owners; no global selector.
+    pub async fn start_prefill_group_original_head_attention(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_group(device, sequences, workspace).await?;
+        self.active_group.as_mut().unwrap().fused_head_attention(false);
+        Ok(())
+    }
+
+    /// Scoped exact fusion for any supported ordered two-owner512 split.
+    pub async fn start_prefill_pair512_original_head_attention(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_pair512(device, sequences, workspace).await?;
+        self.active_prompt384128.as_mut().unwrap().fused_head_attention(false);
+        Ok(())
+    }
+
     /// Original first128 attention control, with old-history work retained.
     pub async fn start_prefill512_original_history(
         &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
