@@ -1,8 +1,8 @@
 # BEEF Stage 2 experiments
 
 The active goal is a verified final top-three result before the final submission
-deadline, 2026-10-26 20:59 KST. No official valid score has been recorded in this
-checkpoint. Kernel parity, public-case accuracy, model latency and official rank
+deadline, 2026-10-26 20:59 KST. Official submission25b712dd passed16/16 private cases at40.2445 generated tokens/s.
+Public experimental candidates and newer exact kernel gates are recorded under evidence/. Kernel parity, public-case accuracy, model latency and official rank
 are separate gates.
 
 Work is isolated under `/home/jihwan38/moa-worktrees/round2`. `server` integrates
