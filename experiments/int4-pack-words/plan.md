@@ -1,0 +1,9 @@
+# Integer nibble packing gate
+
+Base394d60a2; isolated kernel only. Input signedI32 codes have shape[B16,480words,8nibbles] and range[-8,7]. Each group masks15 and shifts by[0,4,8,12,16,20,24,28], then reduces with SDK AddSat. For every subset of the eight fields, the signed sum stays insideI32: without the sign-bearing high field the sum is at most0x0fffffff; a positive high field leaves total at most0x7fffffff; a negative high field plus any lower subset stays betweenI32_MIN and−1. Thus saturation never triggers and the result is the desired bitwise OR. No float or division appears.
+
+Each output slice owns16 consecutiveI32 words. The final TU packs two words into one8-byte commit, and HBM receives contiguous64-byte stripes. This is dense[16,480] I32 storage, exactly30,720 bytes, little-endian low-nibble-first; it can be bound by the separate reviewed public raw ABI to denseI4[B16,H3840]. No tensor dtype reinterpret or unsafe/private SDK edit is used here. The original I32 owner must remain live through any consumer await.
+
+Resource gate must show no DramStack or unpacked-HBM bridge and include input/shifts, mask/shift/reduction, final transpose and output store. Independent device micro will cover all16 topnibbles, all signedcodes at each nibble position, byte/nibble patterns, reversed/permuted rows, distinct input epochs and destination poison. Every output word and source byte will be checked. No quantizer or model integration is authorized by this proof.
+
+Only after integer packing and public binding work, a separately labeled resource proposal may inspect explicitlyzero-paddedH960→K1024 nativeI4 contraction withK128 packet/P128 TRF. Zero padding must be physically written, and that route does not inherit FP8 numerical equivalence.
