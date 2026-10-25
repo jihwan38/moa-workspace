@@ -3,7 +3,7 @@
 mod f4_group960;
 #[path = "../../src/host/f4_group960_mse.rs"]
 mod f4_group960_mse;
-use f4_group960::{PackedF4Weights, QuantizeError};
+use f4_group960::PackedF4Weights;
 use f4_group960_mse::{quantize_blocked_e4_mse as serial, quantize_blocked_e4_mse_parallel as parallel};
 
 fn fixture(rows: usize, cols: usize, seed: u64) -> Vec<u8> {
@@ -63,16 +63,46 @@ fn proc_value(key: &str) -> String {
         .find(|l| l.starts_with(key)).unwrap().to_owned()
 }
 
+fn full_validation() {
+    for (rows, cols, seed) in [(15360, 3840, 71), (3840, 15360, 93)] {
+        let raw = fixture(rows, cols, seed);
+        let candidate = parallel(&raw, rows, cols).unwrap();
+        let control = serial(&raw, rows, cols).unwrap();
+        parity(&candidate, &control);
+        drop(candidate);
+        let groups = raw.len() / 960;
+        let mut permuted = vec![0; raw.len()];
+        // 73 is coprime to 61,440; use a genuine whole-group permutation.
+        for g in 0..groups {
+            let source = (g * 73 + 127) % groups;
+            permuted[g*960..(g+1)*960].copy_from_slice(&raw[source*960..(source+1)*960]);
+        }
+        let shuffled = parallel(&permuted, rows, cols).unwrap();
+        for g in 0..groups {
+            let source = (g * 73 + 127) % groups;
+            assert_eq!(&shuffled.packed_f4[g*480..(g+1)*480],
+                &control.packed_f4[source*480..(source+1)*480]);
+            assert_eq!(shuffled.group_scales[g].to_bits(), control.group_scales[source].to_bits());
+        }
+        println!("PARITY rows={rows} cols={cols} packed_bytes={} scale_values_compared_bitwise={} permutation=true all_finite_codes=true signed_zero=true",
+            control.packed_f4.len()*2, control.group_scales.len()*2);
+    }
+}
+
 fn main() {
     let args: Vec<_> = std::env::args().collect();
     let mode = args.get(1).map_or("abba", String::as_str);
     let (rows, cols) = (15360, 3840);
-    let raw = fixture(rows, cols, 0x12345678a5);
-    println!("ENV available_parallelism={} cpu_max={:?} affinity={:?}",
-        std::thread::available_parallelism().unwrap().get(),
-        std::fs::read_to_string("/sys/fs/cgroup/cpu.max").unwrap_or_default().trim(),
+    let available = std::thread::available_parallelism().unwrap().get();
+    println!("ENV available_parallelism={available} capped_workers={} affinity={:?}", available.min(4),
         proc_value("Cpus_allowed_list:"));
-    let modes: Vec<&str> = if mode == "abba" {
+    for path in ["/sys/fs/cgroup/cpu.max", "/sys/fs/cgroup/cpuset.cpus.effective", "/proc/self/cgroup",
+        "/sys/fs/cgroup/cpu/cpu.cfs_quota_us", "/sys/fs/cgroup/cpu/cpu.cfs_period_us"] {
+        println!("ENV_FILE path={path} value={:?}", std::fs::read_to_string(path).unwrap_or_default().trim());
+    }
+    if mode == "gate" { full_validation(); }
+    let raw = fixture(rows, cols, 0x12345678a5);
+    let modes: Vec<&str> = if mode == "abba" || mode == "gate" {
         vec!["serial", "parallel", "parallel", "serial", "parallel", "serial", "serial", "parallel"]
     } else { vec![mode; 5] };
     let mut expected = None;
@@ -88,33 +118,16 @@ fn main() {
         drop(output);
     }
     println!("MEMORY {} {}", proc_value("VmHWM:"), proc_value("VmRSS:"));
+    println!("PASS mode={mode} memory_scope={}", if mode=="gate" {"includes_full_parity_fixtures"} else {"encoding_process"});
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use f4_group960::QuantizeError;
     #[test]
     fn full_projection_shapes_and_group_permutation() {
-        for (rows, cols, seed) in [(15360, 3840, 71), (3840, 15360, 93)] {
-            let raw = fixture(rows, cols, seed);
-            let candidate = parallel(&raw, rows, cols).unwrap();
-            let control = serial(&raw, rows, cols).unwrap();
-            parity(&candidate, &control);
-            let groups = raw.len() / 960;
-            let mut permuted = vec![0; raw.len()];
-            // 73 is coprime to 61,440; use a genuine whole-group permutation.
-            for g in 0..groups {
-                let source = (g * 73 + 127) % groups;
-                permuted[g*960..(g+1)*960].copy_from_slice(&raw[source*960..(source+1)*960]);
-            }
-            let shuffled = parallel(&permuted, rows, cols).unwrap();
-            for g in 0..groups {
-                let source = (g * 73 + 127) % groups;
-                assert_eq!(&shuffled.packed_f4[g*480..(g+1)*480],
-                    &control.packed_f4[source*480..(source+1)*480]);
-                assert_eq!(shuffled.group_scales[g].to_bits(), control.group_scales[source].to_bits());
-            }
-        }
+        full_validation();
     }
 
     #[test]
