@@ -7,7 +7,7 @@
 use furiosa_opt_std::prelude::*;
 use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
 type Cluster=m![P128/64];
-type Parts=m![H/120,Qs/1024,1 # 2];
+type Parts=m![H/120,Qs/1024#8];
 type FullParts=m![H/120,Qf/1024];
 type DownRows=m![H/120,1 # 8];
 fn add_partials_wide(device:&mut Device,
@@ -130,8 +130,8 @@ fn project_sliding_one(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,Ns,
             .cast::<bf16,m![P128%8#16]>().commit_trim::<m![P128%8]>()
             .commit_view(partial.view_mut().tile::<m![P128/32%2],1,m![H%120,1#{!}2,P128%32]>(chunk));
     }
-    let pairs = reduce_pair::<Parts,m![H/120,Qs/2048,1#4]>(device,&partial);
-    let result = reduce_pair::<m![H/120,Qs/2048,1#4],DownRows>(device,&pairs);
+    let pairs = reduce_pair::<Parts,m![H/120,Qs/2048#8]>(device,&partial);
+    let result = reduce_pair::<m![H/120,Qs/2048#8],DownRows>(device,&pairs);
     scale_output_wide(device,&result,scale,output);
 }
 
@@ -173,9 +173,9 @@ fn project_full_one(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,Gf,Df]
             .cast::<bf16,m![P128%8#16]>().commit_trim::<m![P128%8]>()
             .commit_view(partial.view_mut().tile::<m![P128/32%2],1,m![H%120,1#{!}2,P128%32]>(chunk));
     }
-    let pairs = reduce_pair::<FullParts,m![H/120,Qf/2048,1#2]>(device,&partial);
-    let quads = reduce_pair::<m![H/120,Qf/2048,1#2],m![H/120,Qf/4096,1#4]>(device,&pairs);
-    let result = reduce_pair::<m![H/120,Qf/4096,1#4],DownRows>(device,&quads);
+    let pairs = reduce_pair::<FullParts,m![H/120,Qf/2048#8]>(device,&partial);
+    let quads = reduce_pair::<m![H/120,Qf/2048#8],m![H/120,Qf/4096#8]>(device,&pairs);
+    let result = reduce_pair::<m![H/120,Qf/4096#8],DownRows>(device,&quads);
     scale_output_wide(device,&result,scale,output);
 }
 
