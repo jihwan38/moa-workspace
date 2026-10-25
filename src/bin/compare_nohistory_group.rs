@@ -104,7 +104,7 @@ async fn main() -> Result<()> {
         .collect();
     let now = std::time::Instant::now();
     model
-        .start_prefill_group(&mut d, &control, &mut ws)
+        .start_prefill_group_original_history(&mut d, &control, &mut ws)
         .await?;
     control_ms += now.elapsed().as_secs_f64() * 1000.0;
     for layer in 0..furiosa_opt_gemma4::LAYERS {

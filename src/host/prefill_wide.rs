@@ -12,6 +12,8 @@ const EXACT_SLIDING_ATTENTION_ENABLED: bool = true;
 // Pure movement change: original page recurrence and masks remain unchanged.
 const DIRECT_FULL_ATTENTION_ENABLED: bool = true;
 const COMPACT_FULL_STATISTICS_ENABLED: bool = true;
+// Exact first128 path passed current-kernel, computed-history and ownership gates.
+const EMPTY_HISTORY_PRUNING_ENABLED: bool = true;
 
 pub(crate) struct WidePrefill {
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
@@ -285,7 +287,7 @@ impl WidePrefill {
             exact_sliding_attention: EXACT_SLIDING_ATTENTION_ENABLED,
             direct_full_attention: DIRECT_FULL_ATTENTION_ENABLED,
             compact_full_statistics: COMPACT_FULL_STATISTICS_ENABLED,
-            prune_empty_history: false,
+            prune_empty_history: EMPTY_HISTORY_PRUNING_ENABLED,
             next_layer: 0,
             segments,
             native,

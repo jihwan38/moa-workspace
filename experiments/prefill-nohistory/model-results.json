@@ -1,0 +1,66 @@
+{
+  "micro": "r758319076",
+  "source_commit": "149e695",
+  "tests": 81,
+  "independent_audit": "e2e_evidence verified EPS andBF16numerator preservation underfinite normalizedQKandfiniteV",
+  "model": [
+    {
+      "run": "r763-nohistory-prompt-model-submit",
+      "status": {
+        "id": 319079,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-r763-first128model",
+        "status": "SUCCEEDED",
+        "created_at": "2026-10-25T04:30:31Z",
+        "started_at": "2026-10-25T04:30:31Z",
+        "finished_at": "2026-10-25T04:30:45Z",
+        "duration_sec": 13.267141301,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "pass": [
+        "PASS first128 causal history pruning Prompt512 start=0 interleave=true original_group_complete_ms=152.929 prepare_ms=5.338 layers_ms=142.574 candidate_complete_ms=147.912 max_quantum_ms=5.574"
+      ]
+    },
+    {
+      "run": "r764-nohistory-mixed-group-model-submit",
+      "status": {
+        "id": 319080,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-r764-first128group",
+        "status": "SUCCEEDED",
+        "created_at": "2026-10-25T04:32:07Z",
+        "started_at": "2026-10-25T04:32:07Z",
+        "finished_at": "2026-10-25T04:32:21Z",
+        "duration_sec": 13.479059687,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "pass": [
+        "PASS first128 causal grouped prompt starts=[0, 128, 0, 512] interleave=true control_group_ms=160.254 cold_prepare_ms=5.325 group_layers_ms=147.621 max_quantum_ms=11.934"
+      ]
+    },
+    {
+      "run": "r765-nohistory-allzero-group-model-submit",
+      "status": {
+        "id": 319081,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-r765-first128allfour",
+        "status": "SUCCEEDED",
+        "created_at": "2026-10-25T04:33:21Z",
+        "started_at": "2026-10-25T04:33:21Z",
+        "finished_at": "2026-10-25T04:33:34Z",
+        "duration_sec": 12.66705128,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "pass": [
+        "PASS first128 causal grouped prompt starts=[0, 0, 0, 0] interleave=true control_group_ms=160.283 cold_prepare_ms=5.403 group_layers_ms=142.406 max_quantum_ms=11.810"
+      ]
+    }
+  ],
+  "activation": "Enableonly exactcanonical native128 atabsolute0. Eachpreparedexecution ownsflag; neworiginal_history diagnosticcontrols explicitlyretainoldwork. No newKVwrites orfullattention changes."
+}

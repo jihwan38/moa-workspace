@@ -98,7 +98,7 @@ async fn main() -> Result<()> {
     model.begin_stage_profile();
     let started = std::time::Instant::now();
     model
-        .start_prefill512(
+        .start_prefill512_original_history(
             &mut device,
             &Sequence {
                 inputs: &inputs,

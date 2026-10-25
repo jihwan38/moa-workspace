@@ -81,6 +81,7 @@ impl PreparedPrompt384128 {
 
 impl PreparedPrompt512 {
     pub(crate) fn prune_empty_history(&mut self) { self.chunks.prune_empty_history(); }
+    pub(crate) fn original_empty_history(&mut self) { self.chunks.original_empty_history(); }
     pub(crate) fn original_blocked_residual(&mut self) { self.chunks.blocked_residual = false; }
     pub(crate) fn original_norms(&mut self) { self.chunks.fused_norms = false; }
     pub(crate) fn original_output(&mut self) { self.chunks.blocked_output = false; }
@@ -95,6 +96,9 @@ impl PreparedPrompt512 {
 impl PreparedGroup {
     pub(crate) fn prune_empty_history(&mut self) {
         for state in &mut self.states { state.prune_empty_history = true; }
+    }
+    pub(crate) fn original_empty_history(&mut self) {
+        for state in &mut self.states { state.prune_empty_history = false; }
     }
     pub(crate) fn original_blocked_residual(&mut self) { self.blocked_residual = false; }
     fn uses_blocked_residual(&self) -> bool {
