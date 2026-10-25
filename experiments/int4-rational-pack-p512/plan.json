@@ -1,0 +1,40 @@
+{
+  "base_commit": "5eed6639",
+  "scope": "Source and exact resource compilation only; no standalone ELF, Arena, model integration or quantizer change",
+  "prior_proof": "ops_int4_pack_words and i4_raw_adapter in int4-raw-binding proved B16 H3840 only; this is a fresh full-P512 geometry/blocked-layout gate",
+  "input": "Ordinary canonical I32[P512,K], codes in [-8,7], K=H3840 or L15360; canonical I32 quantizer output is a distinct owning buffer",
+  "packing": "Mask15, shift by4*(K%8), exact AddSat reduction of eight disjoint fields, pairwise TU compaction into dense I32 words; every signed partial sum is within I32 bounds",
+  "mapping": {
+    "cluster": "P512/256",
+    "slice": "P512%256",
+    "local_input": "K (3840 or15360 I32)",
+    "local_dense_packed": "K/8 I32",
+    "owned_blocked_words": "[P512/256,K/960,P512%256,K%960/8]",
+    "byte_offset": "((((p/256)*(K/960)+k/960)*256+p%256)*960+k%960)/2; even k low nibble, odd k high nibble",
+    "conversion": "Real DMA store from canonical packed DM to blocked HBM; all conversion work stays inside the pack resource. No unsafe reshape, tensor dtype cast or omitted per-request layout transfer"
+  },
+  "consumer_contract": {
+    "up_source": "batch-kernels/src/ops_native_i4_p512_bound.rs::project_up_scaled Input=[P/256,H/960,P%256,I4K960]",
+    "down_source": "batch-kernels/src/ops_native_i4_p512.rs::project_down_blocked Input=P512L960=[P/256,L/960,P%256,L%960]",
+    "proof_reader": "Typed blocked-I4 to canonical-I4 byte copy, both H and L; normal typed call and public Function::run over packed I32 owner must agree with independent CPU canonical/blocked nibble encoders",
+    "limit": "Reader verifies owner/raw ABI/byte layout only; no new GEMM, per960 scale or complete FFN equivalence claim"
+  },
+  "resources": {
+    "h_i32_input_bytes": 7864320,
+    "l_i32_input_bytes": 31457280,
+    "h_packed_output_bytes": 983040,
+    "l_packed_output_bytes": 3932160,
+    "h_input_dm_per_slice_bytes": 15360,
+    "l_input_dm_per_slice_bytes": 61440,
+    "l_dense_packed_dm_per_slice_bytes": 7680,
+    "require_actual_allocation_report": true,
+    "h_full_pack_estimated_cycles_max": 50000,
+    "l_full_pack_estimated_cycles_max": 200000,
+    "require_no_dramstack": true,
+    "failure_rule": "Preserve failed full-P512 source/schedule. No substitution of B16 estimate; only report a concrete P128 boundary and its launch cost if whole-shape allocation fails"
+  },
+  "probe_source": "Independent pair-of-nibbles byte encoder versus eight-field word encoder; all16 top nibbles, signed endpoints, zeros, distinct row/shard coordinates, true row/channel permutations; whole packed/canonical bytes and immutable inputs/shifts, exact-owner extents/alignment/overlap validation",
+  "ownership": "Packed I32 owner retained immutable across awaited raw call; output is a distinct owning HbmTensor. Public Buffers clones remain local through completion; no fabricated address or private SDK binding",
+  "build_policy": "Original Cargo and lock, incremental0/debug0, tail256-model target exclusive, unique public FURIOSA_OPT_OUT_DIR for resource builds; disk3.2GiB at start, no deletions",
+  "not_claimed": ["No weight quantization or activation math change", "No actual speedup", "No complete FFN", "No model quality", "No full-rate K128 INT4 revival"]
+}
