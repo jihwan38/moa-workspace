@@ -21,3 +21,7 @@ scale multiplications and canonical output. Both arms start after actual final R
 RMS is unchanged. Static shadow creation/allocation time and actual memory delta are
 reported separately. Standalone capacity is not full-model headroom validation.
 No model, Worker, cache, selection or serving-default files changed.
+
+Independent e2e read-only review of frozen3a877b1e passed mapping, quant scale
+strides, intended algorithm and oracle/timing scope; no concrete blocker. Root
+submitted r1184/job321121 with trace/70s. Result is pending; submission is not a gate.
