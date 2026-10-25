@@ -179,3 +179,6 @@ pub mod ops_output_p128_four;
 
 pub mod ops_qkv_native_shared;
 pub mod ops_qk_native_shared;
+
+pub mod ops_qkv_shared_r64;
+pub mod ops_qkv_shared_b16;

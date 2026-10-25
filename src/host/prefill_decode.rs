@@ -227,42 +227,11 @@ impl Prefill {
         self.record_profile("sliding.input_norm", &mut profile_mark);
         launch(crate::ops_qkv_b16_native_prequant::quantize_input,
             (device, &self.norm, &mut self.native_q_input, &mut self.native_qkv_scale)).await?;
-        launch(
-            crate::ops_qkv_b16_native_prequant::project_query_quantized,
-            (
-                device,
-                &self.native_q_input,
-                &self.native_qkv_scale,
-                &layer.q_weight,
-                &layer.q_weight_scale,
-                &mut self.q_raw_s,
-            ),
-        )
-        .await?;
-        launch(
-            crate::ops_qkv_b16_native_prequant::project_sliding_kv_quantized,
-            (
-                device,
-                &self.native_q_input,
-                &self.native_qkv_scale,
-                &layer.k_weight,
-                &layer.k_weight_scale,
-                &mut self.k_raw_s,
-            ),
-        )
-        .await?;
-        launch(
-            crate::ops_qkv_b16_native_prequant::project_sliding_kv_quantized,
-            (
-                device,
-                &self.native_q_input,
-                &self.native_qkv_scale,
-                &layer.v_weight,
-                &layer.v_weight_scale,
-                &mut self.v_raw_s,
-            ),
-        )
-        .await?;
+        launch(crate::ops_qkv_shared_b16::project_sliding_qkv,
+            (device, &self.native_q_input, &self.native_qkv_scale,
+             &layer.q_weight, &layer.k_weight, &layer.v_weight,
+             &layer.q_weight_scale, &layer.k_weight_scale, &layer.v_weight_scale,
+             &mut self.q_raw_s, &mut self.k_raw_s, &mut self.v_raw_s)).await?;
         self.record_profile("sliding.qkv", &mut profile_mark);
         launch(
             crate::ops_head_batch::sliding_heads_b16,
@@ -403,30 +372,11 @@ impl Prefill {
         self.record_profile("full.input_norm", &mut profile_mark);
         launch(crate::ops_qkv_b16_native_prequant::quantize_input,
             (device, &self.norm, &mut self.native_q_input, &mut self.native_qkv_scale)).await?;
-        launch(
-            crate::ops_qkv_b16_native_prequant::project_full_query_quantized,
-            (
-                device,
-                &self.native_q_input,
-                &self.native_qkv_scale,
-                &layer.q_weight,
-                &layer.q_weight_scale,
-                &mut self.q_raw_f,
-            ),
-        )
-        .await?;
-        launch(
-            crate::ops_qkv_b16_native_prequant::project_full_key_quantized,
-            (
-                device,
-                &self.native_q_input,
-                &self.native_qkv_scale,
-                &layer.k_weight,
-                &layer.k_weight_scale,
-                &mut self.k_raw_f,
-            ),
-        )
-        .await?;
+        launch(crate::ops_qkv_shared_b16::project_full_qk,
+            (device, &self.native_q_input, &self.native_qkv_scale,
+             &layer.q_weight, &layer.k_weight,
+             &layer.q_weight_scale, &layer.k_weight_scale,
+             &mut self.q_raw_f, &mut self.k_raw_f)).await?;
         self.record_profile("full.qkv", &mut profile_mark);
         launch(
             crate::ops_head_batch::full_heads_b16,

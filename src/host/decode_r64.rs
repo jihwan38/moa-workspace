@@ -300,42 +300,11 @@ impl Decode64 {
         self.record_profile("r64.sliding.input_norm", &mut profile_mark);
         launch(crate::ops_qkv_r64_native_prequant::quantize_input,
             (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
-        launch(
-            crate::ops_qkv_r64_native_prequant::project_query_quantized,
-            (
-                device,
-                &self.qkv_input,
-                &self.qkv_scale,
-                &layer.q_weight,
-                &layer.q_weight_scale,
-                &mut self.q_raw_s,
-            ),
-        )
-        .await?;
-        launch(
-            crate::ops_qkv_r64_native_prequant::project_sliding_kv_quantized,
-            (
-                device,
-                &self.qkv_input,
-                &self.qkv_scale,
-                &layer.k_weight,
-                &layer.k_weight_scale,
-                &mut self.k_raw_s,
-            ),
-        )
-        .await?;
-        launch(
-            crate::ops_qkv_r64_native_prequant::project_sliding_kv_quantized,
-            (
-                device,
-                &self.qkv_input,
-                &self.qkv_scale,
-                &layer.v_weight,
-                &layer.v_weight_scale,
-                &mut self.v_raw_s,
-            ),
-        )
-        .await?;
+        launch(crate::ops_qkv_shared_r64::project_sliding_qkv,
+            (device, &self.qkv_input, &self.qkv_scale,
+             &layer.q_weight, &layer.k_weight, &layer.v_weight,
+             &layer.q_weight_scale, &layer.k_weight_scale, &layer.v_weight_scale,
+             &mut self.q_raw_s, &mut self.k_raw_s, &mut self.v_raw_s)).await?;
         self.record_profile("r64.sliding.qkv", &mut profile_mark);
         launch(
             crate::ops_head_r64::sliding_heads_r64,
@@ -456,30 +425,11 @@ impl Decode64 {
         self.record_profile("r64.full.input_norm", &mut profile_mark);
         launch(crate::ops_qkv_r64_native_prequant::quantize_input,
             (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
-        launch(
-            crate::ops_qkv_r64_native_prequant::project_full_query_quantized,
-            (
-                device,
-                &self.qkv_input,
-                &self.qkv_scale,
-                &layer.q_weight,
-                &layer.q_weight_scale,
-                &mut self.q_raw_f,
-            ),
-        )
-        .await?;
-        launch(
-            crate::ops_qkv_r64_native_prequant::project_full_key_quantized,
-            (
-                device,
-                &self.qkv_input,
-                &self.qkv_scale,
-                &layer.k_weight,
-                &layer.k_weight_scale,
-                &mut self.k_raw_f,
-            ),
-        )
-        .await?;
+        launch(crate::ops_qkv_shared_r64::project_full_qk,
+            (device, &self.qkv_input, &self.qkv_scale,
+             &layer.q_weight, &layer.k_weight,
+             &layer.q_weight_scale, &layer.k_weight_scale,
+             &mut self.q_raw_f, &mut self.k_raw_f)).await?;
         self.record_profile("r64.full.qkv", &mut profile_mark);
         launch(
             crate::ops_head_r64::full_heads_r64,
