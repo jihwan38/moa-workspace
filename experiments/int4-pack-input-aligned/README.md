@@ -46,10 +46,39 @@ must be at most80percent of the best original sample, separately for cases0/4.
 The probe completes all49,152,000-code /24,576,000-packed-byte checks and six
 invalid bindings before asserting that speed criterion. L keeps the existing
 staged/original comparison; the failed four-row H candidate is never executed.
-Both correctness and performance still await root's single bounded device run.
+At the build checkpoint, both correctness and performance awaited root's single
+bounded device run.
 
 Replay the artifact/source checks without compilation or device execution:
 
 ```sh
 python3 experiments/int4-pack-input-aligned/audit_build.py
+```
+
+Root's job323012 then passed in1.465691244 seconds. The raw log/status/run and
+source maps are preserved under `actual-323012/`; `analyze_actual.py` verifies
+their hashes, all405 build/submit inputs, the captured/submitted ELF and six
+embedded kernels before recalculating the exact counts and timing gates.
+The full49,152,000 codes,24,576,000 packed bytes, independent original packed
+outputs and six invalid bindings passed, including post-reuse immutability.
+
+| Complete pack, same-job ABBA | Original mean | Candidate mean | Mean time saved |
+| --- | ---: | ---: | ---: |
+| H3840 aligned16-row staging | 50.072µs | 29.547µs | 40.99% |
+| L15360 existing staged control | 147.147µs | 71.213µs | 51.60% |
+
+For the preregistered H case0/4 gates, worst-candidate versus best-original
+savings were39.83% and40.13%, each above20%. H candidate samples ranged
+28.535–30.125µs and original49.136–50.676µs; L ranged70.794–71.605µs and
+146.552–147.670µs. Separate pack-plus-raw-layout-copy means were80.386µs(H)
+and110.368µs(L). The raw consumer is a layout copy, not a matrix projection.
+
+The log has no `NPU_SPAN` or profile markers and `arena-records.json` is empty.
+Per-operation profiling is therefore `NOT_COLLECTED`; no runtime DMA/TU cause
+is claimed from the resource estimates. Original H/H4 resource HOLDs remain,
+and this result does not measure quantization, GEMM, complete FFN or model
+throughput/quality. No additional experiment was run for this analysis.
+
+```sh
+python3 experiments/int4-pack-input-aligned/analyze_actual.py
 ```
