@@ -26,6 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut saved: Vec<(Vec<i32>, Vec<u32>)> = Vec::new();
     let (mut total_codes, mut total_scales, mut immutable_bytes) = (0usize, 0usize, 0usize);
     let (mut permutation_codes, mut permutation_scales) = (0usize, 0usize);
+    let mut post_reuse_output_bytes = 0usize;
     for case in 0..fixture::CASES {
         let bits = fixture::fixture(case);
         assert_eq!(bits.len(), fixture::ROWS * fixture::WIDTH);
@@ -81,6 +82,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             launch(op::quantize_row, (&mut d, &x, &table, &mut q, &mut scale)).await?;
             profile.enable(false);
         }
+        // The first bytes already passed the independent CPU code/scale oracle.
+        // Recheck the whole output after every timed/profile call has completed.
+        assert_eq!(raw(&mut d, &q).await, code_bytes, "all code bytes stable after repeated use");
+        assert_eq!(raw(&mut d, &scale).await, scale_bytes, "all scale bytes stable after repeated use");
+        let checked_output_bytes = code_bytes.len() + scale_bytes.len();
+        post_reuse_output_bytes += checked_output_bytes;
+        println!("RATIONAL_LUT_HIDDEN_POST_REUSE case={case} output_bytes={checked_output_bytes}");
         assert_eq!(raw(&mut d, &x).await, input_bytes, "entire15MiB input immutable after all calls");
         assert_eq!(raw(&mut d, &table).await, table_bytes, "entire table immutable after all calls");
         immutable_bytes += input_bytes.len() + table_bytes.len();
@@ -88,6 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!((total_codes, total_scales), (31457280, 2048));
     assert_eq!((permutation_codes, permutation_scales), (15728640, 1024));
     assert_eq!(immutable_bytes, 62930944);
-    println!("PASS_RATIONAL_LUT_HIDDEN codes={total_codes} scales={total_scales} permutation_codes={permutation_codes} permutation_scales={permutation_scales} immutable_bytes={immutable_bytes} rows=512 width=15360 no_pack_consumer_FFN_or_model_claim");
+    assert_eq!(post_reuse_output_bytes, 125837312);
+    println!("PASS_RATIONAL_LUT_HIDDEN codes={total_codes} scales={total_scales} permutation_codes={permutation_codes} permutation_scales={permutation_scales} immutable_bytes={immutable_bytes} post_reuse_output_bytes={post_reuse_output_bytes} rows=512 width=15360 no_pack_consumer_FFN_or_model_claim");
     Ok(())
 }
