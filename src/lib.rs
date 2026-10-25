@@ -203,3 +203,5 @@ pub mod ops_output_b16_hsplit;
 pub mod ops_sliding_wide_exact;
 
 pub mod ops_sliding_wide_exact_sum;
+
+pub mod ops_native_fp8_p512_ingress;

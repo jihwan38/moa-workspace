@@ -384,13 +384,13 @@ impl GroupPrefill {
         .await?;
         scratch.record_optional_profile("group.ffn.quantize_hidden", &mut mark);
         launch(
-            crate::ops_native_fp8_p512_pipeline::project_up_scaled,
+            crate::ops_native_fp8_p512_ingress::project_up_scaled,
             (device, &self.q_input, &self.input_scale, &mlp.native_fp8.up,
              &mlp.native_fp8.up_dequant, &mut self.up),
         ).await?;
         scratch.record_optional_profile("group.ffn.up", &mut mark);
         launch(
-            crate::ops_native_fp8_p512_pipeline::project_up_scaled,
+            crate::ops_native_fp8_p512_ingress::project_up_scaled,
             (device, &self.q_input, &self.input_scale, &mlp.native_fp8.gate,
              &mlp.native_fp8.gate_dequant, &mut self.gate),
         ).await?;
