@@ -1,0 +1,11 @@
+{
+  "base": "394d60a2",
+  "control": "ops_b16_ingress_epilogue::post_attention_ffn",
+  "candidate": "ops_b16_f4_partialscale_epilogue::post_attention_ffn",
+  "scope": "ApproximateW4A8 resourcefirst; nohost/NPU/quantizer yet",
+  "algorithm": "Static currentnativeE4weights requantized intoF4 withscale per row andH960 (UP/GATE)/L960(DOWN). DirecttablelookupE4\u2192originalF8dot. F32group scale applied to localdot BEFORE cross-slice4/16sum; originalactivation/rowscale/global/BF16/GeGLU boundaries kept. Differentquantizedmodel, nooriginalbitexactclaim.",
+  "quantizer": "Proposedsmallestpower2swith6s>=amaxofnativeE4group, nearestE2M1withdefinedties; CPU/deviceproofrequired beforeNPU. Couldprecomputeonhostfromsuppliedweights atstartup.",
+  "mechanism": "Avoid all345600expandedE4weightreconstruction/PE andassociatedDM. Onlyscale3*1920localoutputpartials instead, plus<1MBmetadata. Originalprovidedgroup16HOLD andcoarsegroup240HOLD remain.",
+  "gate": "Atleast10percent completeepilogue resourcegain, noDramStack; independentcode/weight/completeFFN/F64proof beforeactual, thenquality.",
+  "cost": "F4weight29491200B perprojection andF32groupscale245760B perprojection, versus58982400BE4. Adds3groupVRF loads,3tableloads, localF32partialmul; nativeactivations unchanged."
+}
