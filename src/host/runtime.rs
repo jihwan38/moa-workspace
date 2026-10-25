@@ -345,7 +345,8 @@ impl Workspace {
         Self::new_storage(device, weights, capacity, requests, false, false).await
     }
 
-    /// One canonical Rc64/Fc256 allocation per layer. Admission must reserve a
+    /// One canonical physical32/Fc256 allocation per layer. The compatibility
+    /// constructor name does not set the physical slot count. Admission reserves a
     /// request's complete page requirement from the bounded global page pool.
     pub async fn new_canonical64(
         device: &mut Device,

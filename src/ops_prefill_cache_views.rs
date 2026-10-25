@@ -8,8 +8,8 @@ fn commit_sliding_kv<const VALID: usize>(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = { VALID }]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     let k: DmTensor<bf16, Chip, Cluster, Slice, m![B = { VALID }, Ns, Ds]> = k
         .view()
@@ -35,8 +35,8 @@ pub fn commit_sliding_kv_1(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 1]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<1>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -47,8 +47,8 @@ pub fn commit_sliding_kv_2(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 2]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<2>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -59,8 +59,8 @@ pub fn commit_sliding_kv_3(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 3]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<3>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -71,8 +71,8 @@ pub fn commit_sliding_kv_4(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 4]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<4>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -83,8 +83,8 @@ pub fn commit_sliding_kv_5(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 5]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<5>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -95,8 +95,8 @@ pub fn commit_sliding_kv_6(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 6]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<6>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -107,8 +107,8 @@ pub fn commit_sliding_kv_7(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 7]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<7>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -119,8 +119,8 @@ pub fn commit_sliding_kv_8(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 8]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<8>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -131,8 +131,8 @@ pub fn commit_sliding_kv_9(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 9]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<9>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -143,8 +143,8 @@ pub fn commit_sliding_kv_10(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 10]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<10>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -155,8 +155,8 @@ pub fn commit_sliding_kv_11(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 11]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<11>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -167,8 +167,8 @@ pub fn commit_sliding_kv_12(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 12]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<12>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -179,8 +179,8 @@ pub fn commit_sliding_kv_13(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 13]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<13>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -191,8 +191,8 @@ pub fn commit_sliding_kv_14(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 14]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<14>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -203,8 +203,8 @@ pub fn commit_sliding_kv_15(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 15]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<15>(device, k, v, offsets, k_cache, v_cache);
 }
@@ -215,8 +215,8 @@ pub fn commit_sliding_kv_16(
     k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     offsets: &HbmTensor<i32, Chip, m![B = 16]>,
-    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
-    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]>,
+    k_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
+    v_cache: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]>,
 ) {
     commit_sliding_kv::<16>(device, k, v, offsets, k_cache, v_cache);
 }

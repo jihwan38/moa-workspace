@@ -1781,6 +1781,15 @@ fn validate_sequence(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn physical_slot32_rejected_before_execution_while_slot31_is_valid() {
+        let inputs = [input(true)];
+        let mut blocks = Blocks { sliding: 31, full: vec![255] };
+        assert!(validate_sequence(&Sequence { inputs: &inputs, start_position: 0, blocks: &blocks }, 8192, 32).is_ok());
+        blocks.sliding = 32;
+        assert!(validate_sequence(&Sequence { inputs: &inputs, start_position: 0, blocks: &blocks }, 8192, 32).is_err());
+        assert!(validate_physical_pages(&blocks, 256).is_ok());
+    }
 
     fn input(logits: bool) -> Input<'static> {
         Input {

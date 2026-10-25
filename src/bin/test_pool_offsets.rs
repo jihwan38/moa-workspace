@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         HostTensor::<bf16, m![Ts, Ns, Ds]>::zero()
             .to_hbm(&mut device.pdma)
             .await?;
-    for slot in [0usize, 31, 63] {
+    for slot in [0usize, 15, Rc64::SIZE - 1] {
         // Base is relative to the complete pool; the bound buffer never shifts.
         let offset: HbmTensor<i32, Chip, m![1]> =
             HostTensor::<i32, m![1]>::from_vec([(slot * ring_elements * 2) as i32])
@@ -59,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         expected[slot * ring_elements..(slot + 1) * ring_elements].copy_from_slice(&replacement);
     }
     exact(
-        "all64rings including untouched neighbors",
+        "all physical rings including untouched neighbors",
         &rings
             .to_host::<m![Rc64, Ts, Ns, Ds]>(&mut device.pdma)
             .await?

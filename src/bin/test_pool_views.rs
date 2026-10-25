@@ -33,12 +33,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         HostTensor::<bf16, m![Ts, Ns, Ds]>::zero()
             .to_hbm(&mut device.pdma)
             .await?;
-    for slot in [0usize, 31, 63] {
+    for slot in [0usize, 15, Rc64::SIZE - 1] {
         // Tile one contiguous slot, then remove only its unit-length axis.
-        let view: HbmTensorView<'_, bf16, Chip, m![Ts # 65536, Ns, Ds]> = unsafe {
+        let view: HbmTensorView<'_, bf16, Chip, m![Ts # 32768, Ns, Ds]> = unsafe {
             rings
                 .view()
-                .tile::<m![Rc64], 1, m![Rc64 = 1 # 64, Ts, Ns, Ds]>(slot)
+                .tile::<m![Rc64], 1, m![Rc64 = 1 # 32, Ts, Ns, Ds]>(slot)
                 .reshape()
         };
         launch(op::read_ring, (&mut device, view, &mut output)).await?;
@@ -57,17 +57,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             HostTensor::<bf16, m![Ts, Ns, Ds]>::from_vec(replacement.clone())
                 .to_hbm(&mut device.pdma)
                 .await?;
-        let view: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 65536, Ns, Ds]> = unsafe {
+        let view: HbmTensorViewMut<'_, bf16, Chip, m![Ts #{!} 32768, Ns, Ds]> = unsafe {
             rings
                 .view_mut()
-                .tile::<m![Rc64], 1, m![Rc64 = 1 #{!} 64, Ts, Ns, Ds]>(slot)
+                .tile::<m![Rc64], 1, m![Rc64 = 1 #{!} 32, Ts, Ns, Ds]>(slot)
                 .reshape()
         };
         launch(op::write_ring, (&mut device, &input, view)).await?;
         expected[slot * ring_elements..(slot + 1) * ring_elements].copy_from_slice(&replacement);
     }
     exact(
-        "all64rings including untouched neighbors",
+        "all physical rings including untouched neighbors",
         &rings
             .to_host::<m![Rc64, Ts, Ns, Ds]>(&mut device.pdma)
             .await?
