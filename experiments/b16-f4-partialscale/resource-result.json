@@ -1,0 +1,1629 @@
+{
+  "decision": "PASS resourcegate; actualcompleteFFN andquantizerquality pending",
+  "scope": "NewapproximateW4A8 per960weightscale. Not originalNVFP4/E4 equivalent. No host activation.",
+  "graphs": {
+    "control": {
+      "sha256": "6c89d2008b037c5e51be417d4e042ae37932c2f6940a43387d3eaef04aaacece",
+      "estimated_cycles": 258933,
+      "counts": {
+        "index_access": 6,
+        "raw.profile": 150,
+        "raw.load_sfr": 46,
+        "raw.sync_acquire": 10,
+        "dma.dto_s": 27,
+        "raw.wait": 109,
+        "cluster_sync": 9,
+        "rngd_cmd.tu_exec": 46,
+        "raw.sync_release": 10,
+        "core_imp_cmd": 8,
+        "raw.page_table_update": 6,
+        "rngd_cmd.sto_vrf": 18,
+        "dma.sto_d": 9,
+        "raw.update_base_timestamp": 2,
+        "scratchpad": 1,
+        "low_level_reshape": 3,
+        "index_write": 2
+      },
+      "overlapping_duration_sums": {
+        "index_access": 36,
+        "raw.profile": 0,
+        "raw.load_sfr": 7990,
+        "raw.sync_acquire": 2000,
+        "dma.dto_s": 183574,
+        "raw.wait": 242573,
+        "cluster_sync": 0,
+        "rngd_cmd.tu_exec": 60693,
+        "raw.sync_release": 3000,
+        "core_imp_cmd": 120,
+        "raw.page_table_update": 45,
+        "rngd_cmd.sto_vrf": 5938,
+        "dma.sto_d": 50251,
+        "raw.update_base_timestamp": 0,
+        "scratchpad": 0,
+        "low_level_reshape": 0,
+        "index_write": 12
+      },
+      "unexpected_dram": [],
+      "ordered": [
+        {
+          "kind": "dma.dto_s",
+          "begin": 1003,
+          "end": 1895,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:194:65\n\nprojected.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 1895,
+          "end": 2296,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 1974,
+          "end": 2952,
+          "duration": 978,
+          "description": "--> src/ops_norm_batch.rs:62:9\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 2296,
+          "end": 2715,
+          "duration": 419,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 2715,
+          "end": 2997,
+          "duration": 282,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 2952,
+          "end": 3335,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 3152,
+          "end": 4044,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:109:9\n\nprevious.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 3335,
+          "end": 3602,
+          "duration": 267,
+          "description": "--> src/ops_norm_batch.rs:71:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 3602,
+          "end": 4003,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 4044,
+          "end": 4427,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:110:72\n\ndevice\n.sub\n.begin(previous.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 4244,
+          "end": 4963,
+          "duration": 719,
+          "description": ""
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 4244,
+          "end": 4568,
+          "duration": 324,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 4568,
+          "end": 4909,
+          "duration": 341,
+          "description": "--> src/ops_norm_batch.rs:117:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &previous)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 5644,
+          "end": 10649,
+          "duration": 5005,
+          "description": "--> src/ops_norm_batch.rs:197:5\n\nx.view().to_hbm_view(&mut device.tdma, residual.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 10649,
+          "end": 11627,
+          "duration": 978,
+          "description": "--> src/ops_norm_batch.rs:62:9\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 11627,
+          "end": 12280,
+          "duration": 653,
+          "description": "--> src/ops_b16_up_ingress.rs:231:58\n\nup_dequant.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 11627,
+          "end": 12010,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 12280,
+          "end": 12603,
+          "duration": 323,
+          "description": "--> src/ops_b16_up_ingress.rs:111:59\n\ndevice.sub.begin(ws.view())\n.fetch::<m![L/8%15],m![L%8]>().collect::<m![L/8%15],m![L%8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 12280,
+          "end": 13172,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:175:65\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 13172,
+          "end": 13573,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 13184,
+          "end": 62341,
+          "duration": 49157,
+          "description": "--> src/ops_b16_up_ingress.rs:229:68\n\nup.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 13573,
+          "end": 13992,
+          "duration": 419,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 13992,
+          "end": 14274,
+          "duration": 282,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 14274,
+          "end": 14541,
+          "duration": 267,
+          "description": "--> src/ops_norm_batch.rs:71:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 14541,
+          "end": 14942,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 14942,
+          "end": 15266,
+          "duration": 324,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 62341,
+          "end": 67346,
+          "duration": 5005,
+          "description": "--> src/ops_norm_batch.rs:177:5\n\nx.view().to_hbm_view(&mut device.tdma, out.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 67346,
+          "end": 67999,
+          "duration": 653,
+          "description": "--> src/ops_b16_up_ingress.rs:232:58\n\ngate_dequant.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 67999,
+          "end": 68322,
+          "duration": 323,
+          "description": "--> src/ops_b16_up_ingress.rs:111:59\n\ndevice.sub.begin(ws.view())\n.fetch::<m![L/8%15],m![L%8]>().collect::<m![L/8%15],m![L%8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 68946,
+          "end": 70037,
+          "duration": 1091,
+          "description": "--> src/ops_b16_up_ingress.rs:90:59\n\ninput.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 70037,
+          "end": 71278,
+          "duration": 1241,
+          "description": "--> src/ops_b16_up_ingress.rs:20:69\n\ndevice.main.begin(x.view())\n.fetch::<m![H /16],m![H %16]>().fetch_cast::<f32>()\n.collect::<m![H /8],m![H %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H /4],m![H %4]>()\n.vector_intra_slice_reduce::<H,m![1],m![1 #4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 #8]>()\n.vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 71278,
+          "end": 71560,
+          "duration": 282,
+          "description": "--> src/ops_b16_up_ingress.rs:31:69\n\ndevice.main.begin(amax.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)\n.vector_reinterpret::<f32>().vector_narrow_trim::<m![1 #4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),0.0078125f32)\n.vector_widen_pad::<m![1 #8]>().vector_final()\n.commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 71560,
+          "end": 71827,
+          "duration": 267,
+          "description": "--> src/ops_b16_up_ingress.rs:39:67\n\ndevice.sub.begin(scale.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 71760,
+          "end": 75303,
+          "duration": 3543,
+          "description": "--> src/ops_b16_up_ingress.rs:93:5\n\nscale.view().to_hbm_view(&mut device.tdma,scales.view_mut())"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 71827,
+          "end": 73068,
+          "duration": 1241,
+          "description": "--> src/ops_b16_up_ingress.rs:41:65\n\ndevice.main.begin(x.view())\n.fetch::<m![H /16],m![H %16]>().fetch_cast::<f32>()\n.collect::<m![H /8],m![H %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H /4],m![H %4]>()\n.vector_fp_binary(FpBinaryOp::DivF,&sv)\n.vector_widen_concat::<m![H /8],m![H %8]>().vector_final()\n.cast::<f8e4m3,m![H %8 #32]>().commit_trim::<m![H %8]>().commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 75303,
+          "end": 75996,
+          "duration": 693,
+          "description": "--> src/ops_b16_up_ingress.rs:92:5\n\nq.view().to_hbm_view(&mut device.tdma,output.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 76903,
+          "end": 77843,
+          "duration": 940,
+          "description": "--> src/ops_b16_up_ingress.rs:228:58\n\ninput_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 77843,
+          "end": 78114,
+          "duration": 271,
+          "description": "--> src/ops_b16_up_ingress.rs:109:55\n\ndevice.sub.begin(xs.view())\n.fetch::<m![B/8],m![B%8]>().collect::<m![B/8],m![B%8]>().to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 78114,
+          "end": 78385,
+          "duration": 271,
+          "description": "--> src/ops_b16_up_ingress.rs:109:55\n\ndevice.sub.begin(xs.view())\n.fetch::<m![B/8],m![B%8]>().collect::<m![B/8],m![B%8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 78503,
+          "end": 79224,
+          "duration": 721,
+          "description": "--> src/ops_b16_up_ingress.rs:227:69\n\ninput.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 79224,
+          "end": 98989,
+          "duration": 19765,
+          "description": "--> src/ops_b16_up_ingress.rs:233:74\n\ndevice.sub.begin(input.view())\n.fetch::<m![1],m![H%960]>()\n.switch::<UpParts,m![B%8,B/8]>(SwitchConfig::CustomBroadcast{ring_size:256})\n.collect::<m![B%8,B/8,H/32%30],m![H%32]>().to_trf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 79236,
+          "end": 128393,
+          "duration": 49157,
+          "description": "--> src/ops_b16_up_ingress.rs:230:70\n\ngate.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 98989,
+          "end": 102885,
+          "duration": 3896,
+          "description": "--> src/ops_b16_up_ingress.rs:113:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![L%120,H/32%30],m![H%32]>().collect::<m![L%120,H/32%30],m![H%32]>()\n.contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(input)\n.contract_packet::<m![1]>().contract_time::<m![L%120,B/8]>()\n.contract_lane::<m![L%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_inter_slice_reduce::<UpRows,m![L%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 128393,
+          "end": 132289,
+          "duration": 3896,
+          "description": "--> src/ops_b16_up_ingress.rs:113:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![L%120,H/32%30],m![H%32]>().collect::<m![L%120,H/32%30],m![H%32]>()\n.contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(input)\n.contract_packet::<m![1]>().contract_time::<m![L%120,B/8]>()\n.contract_lane::<m![L%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_inter_slice_reduce::<UpRows,m![L%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 132289,
+          "end": 133229,
+          "duration": 940,
+          "description": "--> src/ops_b16_up_ingress.rs:133:9\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 133229,
+          "end": 134169,
+          "duration": 940,
+          "description": "--> src/ops_b16_up_ingress.rs:133:9\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 133229,
+          "end": 133496,
+          "duration": 267,
+          "description": "--> src/ops_b16_up_ingress.rs:134:69\n\ndevice\n.sub\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 133496,
+          "end": 134017,
+          "duration": 521,
+          "description": "--> src/ops_b16_up_ingress.rs:140:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 134017,
+          "end": 134780,
+          "duration": 763,
+          "description": "--> src/ops_b16_up_ingress.rs:166:74\n\ndevice\n.sub\n.begin(gate.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.70710678118f32)\n.vector_fp_unary(FpUnaryOp::Erf)\n.vector_fp_binary(FpBinaryOp::AddF, 1f32)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), Stash)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 134780,
+          "end": 135047,
+          "duration": 267,
+          "description": "--> src/ops_b16_up_ingress.rs:134:69\n\ndevice\n.sub\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 135047,
+          "end": 135568,
+          "duration": 521,
+          "description": "--> src/ops_b16_up_ingress.rs:140:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 135047,
+          "end": 135790,
+          "duration": 743,
+          "description": "--> src/ops_b16_up_ingress.rs:184:75\n\ndevice\n.sub\n.begin(gelu.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 135790,
+          "end": 136311,
+          "duration": 521,
+          "description": "--> src/ops_b16_up_ingress.rs:190:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit_view(output)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 136311,
+          "end": 137251,
+          "duration": 940,
+          "description": "--> src/ops_b16_up_ingress.rs:133:9\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 137251,
+          "end": 138191,
+          "duration": 940,
+          "description": "--> src/ops_b16_up_ingress.rs:133:9\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 137251,
+          "end": 137518,
+          "duration": 267,
+          "description": "--> src/ops_b16_up_ingress.rs:134:69\n\ndevice\n.sub\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 137518,
+          "end": 138039,
+          "duration": 521,
+          "description": "--> src/ops_b16_up_ingress.rs:140:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 138039,
+          "end": 138802,
+          "duration": 763,
+          "description": "--> src/ops_b16_up_ingress.rs:166:74\n\ndevice\n.sub\n.begin(gate.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.70710678118f32)\n.vector_fp_unary(FpUnaryOp::Erf)\n.vector_fp_binary(FpBinaryOp::AddF, 1f32)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), Stash)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 138802,
+          "end": 139069,
+          "duration": 267,
+          "description": "--> src/ops_b16_up_ingress.rs:134:69\n\ndevice\n.sub\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 139069,
+          "end": 139590,
+          "duration": 521,
+          "description": "--> src/ops_b16_up_ingress.rs:140:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 139069,
+          "end": 139812,
+          "duration": 743,
+          "description": "--> src/ops_b16_up_ingress.rs:184:75\n\ndevice\n.sub\n.begin(gelu.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 139812,
+          "end": 140333,
+          "duration": 521,
+          "description": "--> src/ops_b16_up_ingress.rs:190:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit_view(output)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 140412,
+          "end": 141164,
+          "duration": 752,
+          "description": "--> src/ops_b16_up_ingress.rs:240:65\n\ndevice.main.begin(hidden.view())\n.fetch::<m![B/16,L%120],m![B%16]>().collect::<m![B/16,L%120],m![B%16]>()\n.transpose::<m![B/16,L/4%30,B%16],m![L%4#16]>().commit_trim::<m![L%4]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 140412,
+          "end": 140994,
+          "duration": 582,
+          "description": "--> src/ops_b16_up_ingress.rs:251:64\n\nweight_dequant_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 140994,
+          "end": 141317,
+          "duration": 323,
+          "description": "--> src/ops_b16_up_ingress.rs:252:65\n\ndevice.sub.begin(ws.view())\n.fetch::<m![H / 8 % 15],m![H % 8]>().collect::<m![H / 8 % 15],m![H % 8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 141164,
+          "end": 160832,
+          "duration": 19668,
+          "description": "--> src/ops_b16_up_ingress.rs:243:5\n\nhidden.view().to_hbm_view(&mut device.tdma,output.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 160832,
+          "end": 161415,
+          "duration": 583,
+          "description": "--> src/ops_b16_up_ingress.rs:254:64\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 161415,
+          "end": 161682,
+          "duration": 267,
+          "description": "--> src/ops_b16_up_ingress.rs:255:65\n\ndevice.sub.begin(global.view())\n.fetch::<m![1],m![1#8]>().collect::<m![1],m![1#8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 161415,
+          "end": 162307,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:109:9\n\nprevious.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 162307,
+          "end": 162690,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:110:72\n\ndevice\n.sub\n.begin(previous.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 162432,
+          "end": 165242,
+          "duration": 2810,
+          "description": "--> src/ops_b16_up_ingress.rs:98:59\n\ninput.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 165242,
+          "end": 169363,
+          "duration": 4121,
+          "description": "--> src/ops_b16_up_ingress.rs:54:69\n\ndevice.main.begin(x.view())\n.fetch::<m![L /16],m![L %16]>().fetch_cast::<f32>()\n.collect::<m![L /8],m![L %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![L /4],m![L %4]>()\n.vector_intra_slice_reduce::<L,m![1],m![1 #4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 #8]>()\n.vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 165254,
+          "end": 214411,
+          "duration": 49157,
+          "description": "--> src/ops_b16_up_ingress.rs:250:80\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 169363,
+          "end": 169645,
+          "duration": 282,
+          "description": "--> src/ops_b16_up_ingress.rs:65:69\n\ndevice.main.begin(amax.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)\n.vector_reinterpret::<f32>().vector_narrow_trim::<m![1 #4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),0.0078125f32)\n.vector_widen_pad::<m![1 #8]>().vector_final()\n.commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 169645,
+          "end": 169912,
+          "duration": 267,
+          "description": "--> src/ops_b16_up_ingress.rs:73:67\n\ndevice.sub.begin(scale.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>().to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 169912,
+          "end": 174033,
+          "duration": 4121,
+          "description": "--> src/ops_b16_up_ingress.rs:75:65\n\ndevice.main.begin(x.view())\n.fetch::<m![L /16],m![L %16]>().fetch_cast::<f32>()\n.collect::<m![L /8],m![L %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L /4],m![L %4]>()\n.vector_fp_binary(FpBinaryOp::DivF,&sv)\n.vector_widen_concat::<m![L /8],m![L %8]>().vector_final()\n.cast::<f8e4m3,m![L %8 #32]>().commit_trim::<m![L %8]>().commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 214411,
+          "end": 215963,
+          "duration": 1552,
+          "description": "--> src/ops_b16_up_ingress.rs:100:5\n\nq.view().to_hbm_view(&mut device.tdma,output.view_mut())"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 215963,
+          "end": 219506,
+          "duration": 3543,
+          "description": "--> src/ops_b16_up_ingress.rs:101:5\n\nscale.view().to_hbm_view(&mut device.tdma,scales.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 219506,
+          "end": 233792,
+          "duration": 14286,
+          "description": "--> src/ops_b16_up_ingress.rs:248:71\n\ninput.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 233792,
+          "end": 234375,
+          "duration": 583,
+          "description": "--> src/ops_b16_up_ingress.rs:249:62\n\ninput_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 233792,
+          "end": 235975,
+          "duration": 2183,
+          "description": "--> src/ops_b16_up_ingress.rs:259:78\n\ndevice.sub.begin(input.view())\n.fetch::<m![B%8,B/8,L/32%30],m![L%32]>()\n.collect::<m![B%8,B/8,L/32%30],m![L%32]>().to_trf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 234375,
+          "end": 235353,
+          "duration": 978,
+          "description": "--> src/ops_norm_batch.rs:62:9\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 235353,
+          "end": 236681,
+          "duration": 1328,
+          "description": "--> src/ops_norm_batch.rs:136:68\n\nscalar.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 235975,
+          "end": 236246,
+          "duration": 271,
+          "description": "--> src/ops_b16_up_ingress.rs:257:59\n\ndevice.sub.begin(xscale.view())\n.fetch::<m![B/8],m![B%8]>().collect::<m![B/8],m![B%8]>().to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 236246,
+          "end": 240250,
+          "duration": 4004,
+          "description": "--> src/ops_b16_up_ingress.rs:262:69\n\ndevice.main.begin(weight.view())\n.fetch::<m![H%120,L/32%30],m![L%32]>().collect::<m![H%120,L/32%30],m![L%32]>()\n.contract_outer::<m![H%120,L/64%15,B/8],m![L%64],_,_,_>(&x)\n.contract_packet::<m![1]>().contract_time::<m![H%120,B/8]>()\n.contract_lane::<m![H%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_inter_slice_reduce::<DownRows,m![H%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![H%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 236325,
+          "end": 236708,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 236787,
+          "end": 237052,
+          "duration": 265,
+          "description": "--> src/ops_norm_batch.rs:137:68\n\ndevice\n.sub\n.begin(scalar.view())\n.fetch::<m![1], m![1 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 240250,
+          "end": 241011,
+          "duration": 761,
+          "description": "--> src/ops_b16_up_ingress.rs:274:73\n\ndevice.main.begin(result.view())\n.fetch::<m![H%120,B/8],m![B%8]>().fetch_cast::<f32>()\n.collect::<m![H%120,B/8],m![B%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&global)\n.vector_widen_concat::<m![H%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 241011,
+          "end": 241763,
+          "duration": 752,
+          "description": "--> src/ops_b16_up_ingress.rs:282:73\n\ndevice.main.begin(result.view())\n.fetch::<m![B/16,H%120],m![B%16]>().collect::<m![B/16,H%120],m![B%16]>()\n.transpose::<m![B/16,H/4%30,B%16],m![H%4#16]>().commit_trim::<m![H%4]>().commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 241763,
+          "end": 248000,
+          "duration": 6237,
+          "description": "--> src/ops_b16_up_ingress.rs:285:5\n\nresult.view().to_hbm_view(&mut device.tdma,output.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 249600,
+          "end": 250492,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:216:65\n\nprojected.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 250492,
+          "end": 250893,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 250893,
+          "end": 251312,
+          "duration": 419,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 251312,
+          "end": 251594,
+          "duration": 282,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 251594,
+          "end": 251861,
+          "duration": 267,
+          "description": "--> src/ops_norm_batch.rs:71:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 251861,
+          "end": 252262,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 252262,
+          "end": 252586,
+          "duration": 324,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 252586,
+          "end": 252927,
+          "duration": 341,
+          "description": "--> src/ops_norm_batch.rs:117:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &previous)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 252927,
+          "end": 253328,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:144:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scalar)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 253328,
+          "end": 258333,
+          "duration": 5005,
+          "description": "--> src/ops_norm_batch.rs:220:5\n\nx.view().to_hbm_view(&mut device.tdma, residual.view_mut())"
+        }
+      ]
+    },
+    "candidate": {
+      "sha256": "33c63dc0c1acc1a62a958a999e711c465b7eaf5f8bdaf3b473fd1afea69f4125",
+      "estimated_cycles": 193813,
+      "counts": {
+        "raw.profile": 168,
+        "raw.wait": 124,
+        "cluster_sync": 9,
+        "raw.load_sfr": 49,
+        "rngd_cmd.tu_exec": 49,
+        "dma.dto_s": 33,
+        "raw.sync_release": 10,
+        "rngd_cmd.sto_vrf": 21,
+        "dma.sto_d": 9,
+        "core_imp_cmd": 8,
+        "low_level_reshape": 3,
+        "index_access": 6,
+        "rngd_cmd.sto_tab": 3,
+        "raw.sync_acquire": 10,
+        "raw.page_table_update": 7,
+        "index_write": 2,
+        "raw.update_base_timestamp": 2,
+        "scratchpad": 1
+      },
+      "overlapping_duration_sums": {
+        "raw.profile": 0,
+        "raw.wait": 175900,
+        "cluster_sync": 0,
+        "raw.load_sfr": 8590,
+        "rngd_cmd.tu_exec": 78969,
+        "dma.dto_s": 115462,
+        "raw.sync_release": 3000,
+        "rngd_cmd.sto_vrf": 6907,
+        "dma.sto_d": 50251,
+        "core_imp_cmd": 120,
+        "low_level_reshape": 0,
+        "index_access": 36,
+        "rngd_cmd.sto_tab": 3879,
+        "raw.sync_acquire": 2000,
+        "raw.page_table_update": 30,
+        "index_write": 12,
+        "raw.update_base_timestamp": 0,
+        "scratchpad": 0
+      },
+      "unexpected_dram": [],
+      "ordered": [
+        {
+          "kind": "dma.dto_s",
+          "begin": 1003,
+          "end": 1895,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:194:65\n\nprojected.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 1895,
+          "end": 2296,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 1974,
+          "end": 2952,
+          "duration": 978,
+          "description": "--> src/ops_norm_batch.rs:62:9\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 2296,
+          "end": 2715,
+          "duration": 419,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 2715,
+          "end": 2997,
+          "duration": 282,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 2952,
+          "end": 3335,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 3152,
+          "end": 4044,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:109:9\n\nprevious.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 3335,
+          "end": 3602,
+          "duration": 267,
+          "description": "--> src/ops_norm_batch.rs:71:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 3602,
+          "end": 4003,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 4044,
+          "end": 4427,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:110:72\n\ndevice\n.sub\n.begin(previous.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 4244,
+          "end": 4568,
+          "duration": 324,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 4244,
+          "end": 4963,
+          "duration": 719,
+          "description": ""
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 4568,
+          "end": 4909,
+          "duration": 341,
+          "description": "--> src/ops_norm_batch.rs:117:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &previous)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 5644,
+          "end": 10649,
+          "duration": 5005,
+          "description": "--> src/ops_norm_batch.rs:197:5\n\nx.view().to_hbm_view(&mut device.tdma, residual.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 10649,
+          "end": 11627,
+          "duration": 978,
+          "description": "--> src/ops_norm_batch.rs:62:9\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 11627,
+          "end": 12010,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 12249,
+          "end": 13141,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:175:65\n\nx.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 13141,
+          "end": 14112,
+          "duration": 971,
+          "description": "--> src/ops_b16_f4_partialscale.rs:251:65\n\nup_block.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 13141,
+          "end": 13542,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 13542,
+          "end": 13961,
+          "duration": 419,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 13961,
+          "end": 14243,
+          "duration": 282,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 14112,
+          "end": 14950,
+          "duration": 838,
+          "description": ""
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 14243,
+          "end": 14510,
+          "duration": 267,
+          "description": "--> src/ops_norm_batch.rs:71:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 14510,
+          "end": 14911,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 14510,
+          "end": 14833,
+          "duration": 323,
+          "description": "--> src/ops_b16_f4_partialscale.rs:117:63\n\ndevice.sub.begin(group.view())\n.fetch::<m![L/8%15],m![L%8]>().collect::<m![L/8%15],m![L%8]>().to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 14911,
+          "end": 15235,
+          "duration": 324,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_tab",
+          "begin": 14950,
+          "end": 16243,
+          "duration": 1293,
+          "description": ""
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 15235,
+          "end": 20240,
+          "duration": 5005,
+          "description": "--> src/ops_norm_batch.rs:177:5\n\nx.view().to_hbm_view(&mut device.tdma, out.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 20240,
+          "end": 20893,
+          "duration": 653,
+          "description": "--> src/ops_b16_f4_partialscale.rs:254:58\n\nup_dequant.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 20893,
+          "end": 21216,
+          "duration": 323,
+          "description": "--> src/ops_b16_f4_partialscale.rs:115:59\n\ndevice.sub.begin(ws.view())\n.fetch::<m![L/8%15],m![L%8]>().collect::<m![L/8%15],m![L%8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 20893,
+          "end": 21731,
+          "duration": 838,
+          "description": ""
+        },
+        {
+          "kind": "rngd_cmd.sto_tab",
+          "begin": 21734,
+          "end": 23027,
+          "duration": 1293,
+          "description": ""
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 21840,
+          "end": 22931,
+          "duration": 1091,
+          "description": "--> src/ops_b16_f4_partialscale.rs:93:59\n\ninput.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 22931,
+          "end": 23902,
+          "duration": 971,
+          "description": "--> src/ops_b16_f4_partialscale.rs:253:67\n\ngate_block.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 22931,
+          "end": 24172,
+          "duration": 1241,
+          "description": "--> src/ops_b16_f4_partialscale.rs:23:69\n\ndevice.main.begin(x.view())\n.fetch::<m![H /16],m![H %16]>().fetch_cast::<f32>()\n.collect::<m![H /8],m![H %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H /4],m![H %4]>()\n.vector_intra_slice_reduce::<H,m![1],m![1 #4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 #8]>()\n.vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 23902,
+          "end": 24225,
+          "duration": 323,
+          "description": "--> src/ops_b16_f4_partialscale.rs:117:63\n\ndevice.sub.begin(group.view())\n.fetch::<m![L/8%15],m![L%8]>().collect::<m![L/8%15],m![L%8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 23902,
+          "end": 24555,
+          "duration": 653,
+          "description": "--> src/ops_b16_f4_partialscale.rs:255:58\n\ngate_dequant.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 24172,
+          "end": 24454,
+          "duration": 282,
+          "description": "--> src/ops_b16_f4_partialscale.rs:34:69\n\ndevice.main.begin(amax.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)\n.vector_reinterpret::<f32>().vector_narrow_trim::<m![1 #4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),0.0078125f32)\n.vector_widen_pad::<m![1 #8]>().vector_final()\n.commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 24454,
+          "end": 24721,
+          "duration": 267,
+          "description": "--> src/ops_b16_f4_partialscale.rs:42:67\n\ndevice.sub.begin(scale.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>().to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 24721,
+          "end": 25962,
+          "duration": 1241,
+          "description": "--> src/ops_b16_f4_partialscale.rs:44:65\n\ndevice.main.begin(x.view())\n.fetch::<m![H /16],m![H %16]>().fetch_cast::<f32>()\n.collect::<m![H /8],m![H %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H /4],m![H %4]>()\n.vector_fp_binary(FpBinaryOp::DivF,&sv)\n.vector_widen_concat::<m![H /8],m![H %8]>().vector_final()\n.cast::<f8e4m3,m![H %8 #32]>().commit_trim::<m![H %8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 24721,
+          "end": 25044,
+          "duration": 323,
+          "description": "--> src/ops_b16_f4_partialscale.rs:115:59\n\ndevice.sub.begin(ws.view())\n.fetch::<m![L/8%15],m![L%8]>().collect::<m![L/8%15],m![L%8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 25962,
+          "end": 26655,
+          "duration": 693,
+          "description": "--> src/ops_b16_f4_partialscale.rs:95:5\n\nq.view().to_hbm_view(&mut device.tdma,output.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 28255,
+          "end": 28976,
+          "duration": 721,
+          "description": "--> src/ops_b16_f4_partialscale.rs:248:69\n\ninput.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 28976,
+          "end": 48741,
+          "duration": 19765,
+          "description": "--> src/ops_b16_f4_partialscale.rs:256:74\n\ndevice.sub.begin(input.view())\n.fetch::<m![1],m![H%960]>()\n.switch::<UpParts,m![B%8,B/8]>(SwitchConfig::CustomBroadcast{ring_size:256})\n.collect::<m![B%8,B/8,H/32%30],m![H%32]>().to_trf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 28982,
+          "end": 53594,
+          "duration": 24612,
+          "description": "--> src/ops_b16_f4_partialscale.rs:250:68\n\nup.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 53594,
+          "end": 62857,
+          "duration": 9263,
+          "description": "--> src/ops_b16_f4_partialscale.rs:119:65\n\ndevice.main.begin(weight.view())\n.fetch::<m![L%120],m![H%960]>().fetch_table_lookup::<f8e4m3>()\n.collect::<m![L%120,H/32%30],m![H%32]>()\n.contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(input)\n.contract_packet::<m![1]>().contract_time::<m![L%120,B/8]>()\n.contract_lane::<m![L%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&group)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_inter_slice_reduce::<UpRows,m![L%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_final().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 53600,
+          "end": 78212,
+          "duration": 24612,
+          "description": "--> src/ops_b16_f4_partialscale.rs:252:70\n\ngate.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 78212,
+          "end": 81755,
+          "duration": 3543,
+          "description": "--> src/ops_b16_f4_partialscale.rs:96:5\n\nscale.view().to_hbm_view(&mut device.tdma,scales.view_mut())"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 78212,
+          "end": 87475,
+          "duration": 9263,
+          "description": "--> src/ops_b16_f4_partialscale.rs:119:65\n\ndevice.main.begin(weight.view())\n.fetch::<m![L%120],m![H%960]>().fetch_table_lookup::<f8e4m3>()\n.collect::<m![L%120,H/32%30],m![H%32]>()\n.contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(input)\n.contract_packet::<m![1]>().contract_time::<m![L%120,B/8]>()\n.contract_lane::<m![L%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&group)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_inter_slice_reduce::<UpRows,m![L%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_final().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 83355,
+          "end": 84295,
+          "duration": 940,
+          "description": "--> src/ops_b16_f4_partialscale.rs:249:58\n\ninput_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 84295,
+          "end": 84566,
+          "duration": 271,
+          "description": "--> src/ops_b16_f4_partialscale.rs:113:55\n\ndevice.sub.begin(xs.view())\n.fetch::<m![B/8],m![B%8]>().collect::<m![B/8],m![B%8]>().to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 84566,
+          "end": 84837,
+          "duration": 271,
+          "description": "--> src/ops_b16_f4_partialscale.rs:113:55\n\ndevice.sub.begin(xs.view())\n.fetch::<m![B/8],m![B%8]>().collect::<m![B/8],m![B%8]>().to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 87478,
+          "end": 88239,
+          "duration": 761,
+          "description": "--> src/ops_b16_f4_partialscale.rs:131:5\n\ndevice.main.begin(reduced.view())\n.fetch::<m![L%120,B/8],m![B%8]>().collect::<m![L%120,B/8],m![B%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 88239,
+          "end": 89179,
+          "duration": 940,
+          "description": "--> src/ops_b16_f4_partialscale.rs:147:9\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 88239,
+          "end": 89000,
+          "duration": 761,
+          "description": "--> src/ops_b16_f4_partialscale.rs:131:5\n\ndevice.main.begin(reduced.view())\n.fetch::<m![L%120,B/8],m![B%8]>().collect::<m![L%120,B/8],m![B%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 89200,
+          "end": 90140,
+          "duration": 940,
+          "description": "--> src/ops_b16_f4_partialscale.rs:147:9\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 89200,
+          "end": 89467,
+          "duration": 267,
+          "description": "--> src/ops_b16_f4_partialscale.rs:148:69\n\ndevice\n.sub\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 89467,
+          "end": 89988,
+          "duration": 521,
+          "description": "--> src/ops_b16_f4_partialscale.rs:154:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 89988,
+          "end": 90751,
+          "duration": 763,
+          "description": "--> src/ops_b16_f4_partialscale.rs:180:74\n\ndevice\n.sub\n.begin(gate.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.70710678118f32)\n.vector_fp_unary(FpUnaryOp::Erf)\n.vector_fp_binary(FpBinaryOp::AddF, 1f32)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), Stash)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 90751,
+          "end": 91018,
+          "duration": 267,
+          "description": "--> src/ops_b16_f4_partialscale.rs:148:69\n\ndevice\n.sub\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 91018,
+          "end": 91539,
+          "duration": 521,
+          "description": "--> src/ops_b16_f4_partialscale.rs:154:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 91018,
+          "end": 91761,
+          "duration": 743,
+          "description": "--> src/ops_b16_f4_partialscale.rs:198:75\n\ndevice\n.sub\n.begin(gelu.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 91761,
+          "end": 92282,
+          "duration": 521,
+          "description": "--> src/ops_b16_f4_partialscale.rs:204:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit_view(output)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 91761,
+          "end": 92701,
+          "duration": 940,
+          "description": "--> src/ops_b16_f4_partialscale.rs:147:9\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 92701,
+          "end": 93641,
+          "duration": 940,
+          "description": "--> src/ops_b16_f4_partialscale.rs:147:9\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 92701,
+          "end": 92968,
+          "duration": 267,
+          "description": "--> src/ops_b16_f4_partialscale.rs:148:69\n\ndevice\n.sub\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 92968,
+          "end": 93489,
+          "duration": 521,
+          "description": "--> src/ops_b16_f4_partialscale.rs:154:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 93489,
+          "end": 94252,
+          "duration": 763,
+          "description": "--> src/ops_b16_f4_partialscale.rs:180:74\n\ndevice\n.sub\n.begin(gate.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.70710678118f32)\n.vector_fp_unary(FpUnaryOp::Erf)\n.vector_fp_binary(FpBinaryOp::AddF, 1f32)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), Stash)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 94252,
+          "end": 94519,
+          "duration": 267,
+          "description": "--> src/ops_b16_f4_partialscale.rs:148:69\n\ndevice\n.sub\n.begin(scale.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 94519,
+          "end": 95040,
+          "duration": 521,
+          "description": "--> src/ops_b16_f4_partialscale.rs:154:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 94519,
+          "end": 95262,
+          "duration": 743,
+          "description": "--> src/ops_b16_f4_partialscale.rs:198:75\n\ndevice\n.sub\n.begin(gelu.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 95262,
+          "end": 95783,
+          "duration": 521,
+          "description": "--> src/ops_b16_f4_partialscale.rs:204:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit_view(output)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 95862,
+          "end": 96614,
+          "duration": 752,
+          "description": "--> src/ops_b16_f4_partialscale.rs:263:65\n\ndevice.main.begin(hidden.view())\n.fetch::<m![B/16,L%120],m![B%16]>().collect::<m![B/16,L%120],m![B%16]>()\n.transpose::<m![B/16,L/4%30,B%16],m![L%4#16]>().commit_trim::<m![L%4]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 95862,
+          "end": 96444,
+          "duration": 582,
+          "description": "--> src/ops_b16_f4_partialscale.rs:278:64\n\nweight_dequant_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 96444,
+          "end": 96767,
+          "duration": 323,
+          "description": "--> src/ops_b16_f4_partialscale.rs:279:65\n\ndevice.sub.begin(ws.view())\n.fetch::<m![H / 8 % 15],m![H % 8]>().collect::<m![H / 8 % 15],m![H % 8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 96614,
+          "end": 116282,
+          "duration": 19668,
+          "description": "--> src/ops_b16_f4_partialscale.rs:266:5\n\nhidden.view().to_hbm_view(&mut device.tdma,output.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 116282,
+          "end": 117253,
+          "duration": 971,
+          "description": "--> src/ops_b16_f4_partialscale.rs:275:66\n\nblock.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 117253,
+          "end": 117576,
+          "duration": 323,
+          "description": "--> src/ops_b16_f4_partialscale.rs:276:67\n\ndevice.sub.begin(block.view())\n.fetch::<m![H/8%15],m![H%8]>().collect::<m![H/8%15],m![H%8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 117882,
+          "end": 120692,
+          "duration": 2810,
+          "description": "--> src/ops_b16_f4_partialscale.rs:101:59\n\ninput.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 120692,
+          "end": 124813,
+          "duration": 4121,
+          "description": "--> src/ops_b16_f4_partialscale.rs:57:69\n\ndevice.main.begin(x.view())\n.fetch::<m![L /16],m![L %16]>().fetch_cast::<f32>()\n.collect::<m![L /8],m![L %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![L /4],m![L %4]>()\n.vector_intra_slice_reduce::<L,m![1],m![1 #4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 #8]>()\n.vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 120698,
+          "end": 145406,
+          "duration": 24708,
+          "description": "--> src/ops_b16_f4_partialscale.rs:274:76\n\nweight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 124813,
+          "end": 125095,
+          "duration": 282,
+          "description": "--> src/ops_b16_f4_partialscale.rs:68:69\n\ndevice.main.begin(amax.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)\n.vector_reinterpret::<f32>().vector_narrow_trim::<m![1 #4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),0.0078125f32)\n.vector_widen_pad::<m![1 #8]>().vector_final()\n.commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 125095,
+          "end": 125362,
+          "duration": 267,
+          "description": "--> src/ops_b16_f4_partialscale.rs:76:67\n\ndevice.sub.begin(scale.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>().to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 125365,
+          "end": 129486,
+          "duration": 4121,
+          "description": "--> src/ops_b16_f4_partialscale.rs:78:65\n\ndevice.main.begin(x.view())\n.fetch::<m![L /16],m![L %16]>().fetch_cast::<f32>()\n.collect::<m![L /8],m![L %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L /4],m![L %4]>()\n.vector_fp_binary(FpBinaryOp::DivF,&sv)\n.vector_widen_concat::<m![L /8],m![L %8]>().vector_final()\n.cast::<f8e4m3,m![L %8 #32]>().commit_trim::<m![L %8]>().commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 145406,
+          "end": 146958,
+          "duration": 1552,
+          "description": "--> src/ops_b16_f4_partialscale.rs:103:5\n\nq.view().to_hbm_view(&mut device.tdma,output.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 146958,
+          "end": 147796,
+          "duration": 838,
+          "description": ""
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 147796,
+          "end": 148379,
+          "duration": 583,
+          "description": "--> src/ops_b16_f4_partialscale.rs:281:64\n\nglobal_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 148379,
+          "end": 148646,
+          "duration": 267,
+          "description": "--> src/ops_b16_f4_partialscale.rs:282:65\n\ndevice.sub.begin(global.view())\n.fetch::<m![1],m![1#8]>().collect::<m![1],m![1#8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 148558,
+          "end": 162844,
+          "duration": 14286,
+          "description": "--> src/ops_b16_f4_partialscale.rs:272:71\n\ninput.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_tab",
+          "begin": 148646,
+          "end": 149939,
+          "duration": 1293,
+          "description": ""
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 162844,
+          "end": 166387,
+          "duration": 3543,
+          "description": "--> src/ops_b16_f4_partialscale.rs:104:5\n\nscale.view().to_hbm_view(&mut device.tdma,scales.view_mut())"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 162844,
+          "end": 165027,
+          "duration": 2183,
+          "description": "--> src/ops_b16_f4_partialscale.rs:286:78\n\ndevice.sub.begin(input.view())\n.fetch::<m![B%8,B/8,L/32%30],m![L%32]>()\n.collect::<m![B%8,B/8,L/32%30],m![L%32]>().to_trf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 165106,
+          "end": 174369,
+          "duration": 9263,
+          "description": "--> src/ops_b16_f4_partialscale.rs:289:69\n\ndevice.main.begin(weight.view())\n.fetch::<m![H%120],m![L%960]>().fetch_table_lookup::<f8e4m3>()\n.collect::<m![H%120,L/32%30],m![L%32]>()\n.contract_outer::<m![H%120,L/64%15,B/8],m![L%64],_,_,_>(&x)\n.contract_packet::<m![1]>().contract_time::<m![H%120,B/8]>()\n.contract_lane::<m![H%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&block)\n.vector_widen_concat::<m![H%120,B/8],m![B%8]>()\n.vector_inter_slice_reduce::<DownRows,m![H%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_final().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 166387,
+          "end": 167365,
+          "duration": 978,
+          "description": "--> src/ops_norm_batch.rs:62:9\n\nrms_weight.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 167365,
+          "end": 167748,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 167987,
+          "end": 168570,
+          "duration": 583,
+          "description": "--> src/ops_b16_f4_partialscale.rs:273:62\n\ninput_scale.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 168570,
+          "end": 168841,
+          "duration": 271,
+          "description": "--> src/ops_b16_f4_partialscale.rs:284:59\n\ndevice.sub.begin(xscale.view())\n.fetch::<m![B/8],m![B%8]>().collect::<m![B/8],m![B%8]>().to_vrf()"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 168570,
+          "end": 169462,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:109:9\n\nprevious.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 169462,
+          "end": 170790,
+          "duration": 1328,
+          "description": "--> src/ops_norm_batch.rs:136:68\n\nscalar.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 169462,
+          "end": 169845,
+          "duration": 383,
+          "description": "--> src/ops_norm_batch.rs:110:72\n\ndevice\n.sub\n.begin(previous.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 170790,
+          "end": 171055,
+          "duration": 265,
+          "description": "--> src/ops_norm_batch.rs:137:68\n\ndevice\n.sub\n.begin(scalar.view())\n.fetch::<m![1], m![1 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 174369,
+          "end": 175130,
+          "duration": 761,
+          "description": "--> src/ops_b16_f4_partialscale.rs:301:69\n\ndevice.main.begin(reduced.view())\n.fetch::<m![H%120,B/8],m![B%8]>().collect::<m![H%120,B/8],m![B%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![H%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 175130,
+          "end": 175891,
+          "duration": 761,
+          "description": "--> src/ops_b16_f4_partialscale.rs:309:73\n\ndevice.main.begin(result.view())\n.fetch::<m![H%120,B/8],m![B%8]>().fetch_cast::<f32>()\n.collect::<m![H%120,B/8],m![B%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&global)\n.vector_widen_concat::<m![H%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 175891,
+          "end": 176643,
+          "duration": 752,
+          "description": "--> src/ops_b16_f4_partialscale.rs:317:73\n\ndevice.main.begin(result.view())\n.fetch::<m![B/16,H%120],m![B%16]>().collect::<m![B/16,H%120],m![B%16]>()\n.transpose::<m![B/16,H/4%30,B%16],m![H%4#16]>().commit_trim::<m![H%4]>().commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 176643,
+          "end": 182880,
+          "duration": 6237,
+          "description": "--> src/ops_b16_f4_partialscale.rs:320:5\n\nresult.view().to_hbm_view(&mut device.tdma,output.view_mut())"
+        },
+        {
+          "kind": "dma.dto_s",
+          "begin": 184480,
+          "end": 185372,
+          "duration": 892,
+          "description": "--> src/ops_norm_batch.rs:216:65\n\nprojected.to_dm(&mut device.tdma)"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 185372,
+          "end": 185773,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 185773,
+          "end": 186192,
+          "duration": 419,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 186192,
+          "end": 186474,
+          "duration": 282,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.sto_vrf",
+          "begin": 186474,
+          "end": 186741,
+          "duration": 267,
+          "description": "--> src/ops_norm_batch.rs:71:77\n\ndevice\n.sub\n.begin(rms.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 186741,
+          "end": 187142,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 187142,
+          "end": 187466,
+          "duration": 324,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 187466,
+          "end": 187807,
+          "duration": 341,
+          "description": "--> src/ops_norm_batch.rs:117:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &previous)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "rngd_cmd.tu_exec",
+          "begin": 187807,
+          "end": 188208,
+          "duration": 401,
+          "description": "--> src/ops_norm_batch.rs:144:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scalar)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "kind": "dma.sto_d",
+          "begin": 188208,
+          "end": 193213,
+          "duration": 5005,
+          "description": "--> src/ops_norm_batch.rs:220:5\n\nx.view().to_hbm_view(&mut device.tdma, residual.view_mut())"
+        }
+      ]
+    }
+  },
+  "relative_estimated_gain": 0.2514936296261967,
+  "provenance": [
+    {
+      "run": "r1191-f4-partialscale-resource",
+      "source": "56ef56eee66f21591041ff27b83ad760b02dea46",
+      "exit": 1,
+      "current_source_mismatches": [
+        "src/ops_b16_f4_partialscale.rs"
+      ]
+    },
+    {
+      "run": "r1193-f4-partialscale-resource",
+      "source": "8df08ec30c70729d440575476555f7a81352f692",
+      "exit": 0,
+      "current_source_mismatches": []
+    },
+    {
+      "run": "r1195-f4-partialscale-control-resource",
+      "source": "8df08ec30c70729d440575476555f7a81352f692",
+      "exit": 0,
+      "current_source_mismatches": []
+    }
+  ],
+  "math": "scale localF4lookup/E4dot inF32, interslice4/16sum, realF32DMcommit, originalxscale/rowscale thenBF16. GeGLU/global/postnorm identical.",
+  "review": "e2e readonly8df08ec3 scalegeometry/retainedmath reviewed; micro isolated intendeddenseE4same-F4 control will distinguish implementation from originalapproximation.",
+  "capacity_limit": "All48layers3F4shadows plusmetadata~4.28GB exceeds c0793.52GBfree; nofullmodelport withoutcapacityplan. UP+Gateonly~2.85GB mayfitc079 butnotq018withoutfurtherchanges."
+}
