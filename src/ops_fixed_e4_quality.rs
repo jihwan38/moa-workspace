@@ -3,6 +3,8 @@
 use crate::{Chip, axes::Ds};
 use furiosa_opt_std::prelude::*;
 
+// q022 quality-only research artifact; BF16 storage is intentionally retained.
+// Public task gates must pass before any separate compressed-pool proposal.
 pub const ENABLED: bool = true;
 
 pub(crate) fn roundtrip_ds<C:M,S:M>(device:&mut Device,
