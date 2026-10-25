@@ -1,7 +1,7 @@
 //! Owned per-step metadata for R64 independent requests on the canonical pools.
 use super::{
     model::Sequence,
-    request_pool::{PoolOffsets, full_page_vectors_rows, sliding_vectors_rows},
+    request_pool::{PoolOffsets, full_page_vectors_rows, sliding_vectors_rows_bytes},
 };
 use crate::{Chip, axes::*};
 use furiosa_opt_std::prelude::*;
@@ -24,12 +24,12 @@ pub(crate) struct Step64 {
     pub segments: Vec<PoolOffsets>,
 }
 impl Step64 {
-    pub async fn new(device: &mut Device, sequences: &[Sequence<'_>]) -> Result<Self> {
+    pub async fn new(device: &mut Device, sequences: &[Sequence<'_>], sliding_element_bytes: usize) -> Result<Self> {
         let live = sequences.len();
         if live == 0 || live > R64::SIZE {
             return Err("invalid R64 live width".into());
         }
-        let (rings, mask) = sliding_vectors_rows(R64::SIZE, sequences);
+        let (rings, mask) = sliding_vectors_rows_bytes(R64::SIZE, sequences, sliding_element_bytes);
         let ring_offsets = HostTensor::<i32, m![R64]>::from_vec(rings)
             .to_hbm(&mut device.pdma)
             .await?;
@@ -56,7 +56,7 @@ impl Step64 {
                     ((s.blocks.sliding * Ts::SIZE + s.start_position % Ts::SIZE)
                         * Ns::SIZE
                         * Ds::SIZE
-                        * 2) as i32
+                        * sliding_element_bytes) as i32
                 })
                 .collect::<Vec<_>>(),
         )
@@ -85,7 +85,7 @@ impl Step64 {
         let mut segments = Vec::new();
         if live < R64::SIZE {
             for chunk in sequences.chunks(B::SIZE) {
-                segments.push(PoolOffsets::new(device, chunk).await?);
+                segments.push(PoolOffsets::new_bytes(device, chunk, sliding_element_bytes).await?);
             }
         }
         let sliding_short_groups = sliding_short_group_mask(sequences.iter().map(|s| s.start_position));

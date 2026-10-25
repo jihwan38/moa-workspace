@@ -205,6 +205,11 @@ mod audio_batch_tests {
 }
 
 pub(crate) enum KvCache {
+    /// Sole fixed-scale E4 canonical owner; full attention remains BF16.
+    SlidingFixedE4 {
+        k: HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+        v: HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+    },
     /// Canonical request slots: every execution path reads/writes this allocation.
     SlidingCanonical {
         k: HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
@@ -274,6 +279,7 @@ pub struct Workspace {
     capacity: usize,
     requests: usize,
     canonical: bool,
+    fixed_e4: bool,
     physical_full_pages: usize,
     pub(crate) cache_ring_offsets: Vec<HbmTensor<i32, Chip, m![1]>>,
     pub(crate) cache_page_offsets: Vec<HbmTensor<i32, Chip, m![1]>>,
@@ -305,6 +311,9 @@ impl Workspace {
     pub(crate) fn is_canonical(&self) -> bool {
         self.canonical
     }
+    pub(crate) fn uses_fixed_e4(&self) -> bool { self.fixed_e4 }
+    pub(crate) fn sliding_element_bytes(&self) -> usize { if self.fixed_e4 { 1 } else { 2 } }
+
     pub(crate) fn physical_full_pages(&self) -> usize {
         self.physical_full_pages
     }
@@ -332,7 +341,7 @@ impl Workspace {
         capacity: usize,
         requests: usize,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::new_storage(device, weights, capacity, requests, false, true).await
+        Self::new_storage(device, weights, capacity, requests, false, true, false).await
     }
 
     /// Diagnostic control with ordinary per-request KV and no duplicate pooled mirror.
@@ -342,7 +351,7 @@ impl Workspace {
         capacity: usize,
         requests: usize,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::new_storage(device, weights, capacity, requests, false, false).await
+        Self::new_storage(device, weights, capacity, requests, false, false, false).await
     }
 
     /// One canonical physical32/Fc256 allocation per layer. The compatibility
@@ -354,7 +363,18 @@ impl Workspace {
         capacity: usize,
         requests: usize,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::new_storage(device, weights, capacity, requests, true, false).await
+        Self::new_storage(device, weights, capacity, requests, true, false, false).await
+    }
+
+    /// Explicit research constructor. Ordinary serving keeps canonical BF16.
+    /// The q022 head codec must stay enabled for both parity arms.
+    pub async fn new_canonical_fixed_e4(
+        device: &mut Device, weights: &Weights, capacity: usize, requests: usize,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        if !crate::ops_fixed_e4_quality::ENABLED {
+            return Err("fixed E4 storage requires the q022 numerical contract".into());
+        }
+        Self::new_storage(device, weights, capacity, requests, true, false, true).await
     }
 
     async fn new_storage(
@@ -364,6 +384,7 @@ impl Workspace {
         requests: usize,
         canonical: bool,
         mirror_pool: bool,
+        fixed_e4: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         if requests == 0 || !(1..=E::SIZE).contains(&capacity) {
             return Err(format!("need at least one request and 1..={} positions", E::SIZE).into());
@@ -390,20 +411,24 @@ impl Workspace {
 
         let mut kv_cache = Vec::with_capacity(weights.layers.len());
         for layer in &weights.layers {
-            let cache = match (layer, canonical) {
-                (Layer::Sliding(_), true) => KvCache::SlidingCanonical {
+            let cache = match (layer, canonical, fixed_e4) {
+                (Layer::Sliding(_), true, true) => KvCache::SlidingFixedE4 {
+                    k: launch(crate::ops_fixed_e4_storage::zero_sliding_pool, &mut *device).await?,
+                    v: launch(crate::ops_fixed_e4_storage::zero_sliding_pool, &mut *device).await?,
+                },
+                (Layer::Sliding(_), true, false) => KvCache::SlidingCanonical {
                     k: launch(crate::ops_zero_pool::zero_sliding_pool, &mut *device).await?,
                     v: launch(crate::ops_zero_pool::zero_sliding_pool, &mut *device).await?,
                 },
-                (Layer::Full(_), true) => KvCache::FullCanonical {
+                (Layer::Full(_), true, _) => KvCache::FullCanonical {
                     k: launch(crate::ops_zero_pool::zero_full_pool, &mut *device).await?,
                     v: launch(crate::ops_zero_pool::zero_full_pool, &mut *device).await?,
                 },
-                (Layer::Sliding(_), false) => KvCache::Sliding {
+                (Layer::Sliding(_), false, _) => KvCache::Sliding {
                     k: zero_hbm_vec::<bf16, m![Ts, Ns, Ds]>(device, requests).await?,
                     v: zero_hbm_vec::<bf16, m![Ts, Ns, Ds]>(device, requests).await?,
                 },
-                (Layer::Full(_), false) => KvCache::Full {
+                (Layer::Full(_), false, _) => KvCache::Full {
                     k: zero_hbm_vec::<bf16, m![Tf, Df]>(device, pool).await?,
                     v: zero_hbm_vec::<bf16, m![Tf, Df]>(device, pool).await?,
                 },
@@ -417,7 +442,7 @@ impl Workspace {
             for ring in 0..requests {
                 cache_ring_offsets.push(
                     HostTensor::<i32, m![1]>::from_vec([
-                        (ring * Ts::SIZE * Ns::SIZE * Ds::SIZE * 2) as i32,
+                        (ring * Ts::SIZE * Ns::SIZE * Ds::SIZE * if fixed_e4 { 1 } else { 2 }) as i32,
                     ])
                     .to_hbm(&mut device.pdma)
                     .await?,
@@ -464,6 +489,7 @@ impl Workspace {
             capacity,
             requests,
             canonical,
+            fixed_e4,
             physical_full_pages: pool,
             cache_ring_offsets,
             cache_page_offsets,
@@ -527,7 +553,7 @@ async fn set_position_offsets(
         };
 
     let offset_kv_s: HostTensor<i32, m![1]> =
-        HostTensor::from_vec([(ps * Ns::SIZE * Ds::SIZE * 2) as i32]);
+        HostTensor::from_vec([(ps * Ns::SIZE * Ds::SIZE * ws.sliding_element_bytes()) as i32]);
     let offset_kv_f: HostTensor<i32, m![1]> = HostTensor::from_vec([(pf * Df::SIZE * 2) as i32]);
 
     let offset_rope_s: HostTensor<i32, m![1]> = HostTensor::from_vec([(pos * Ds::SIZE * 2) as i32]);
@@ -719,7 +745,48 @@ impl Decode {
     ) -> Result<(), Error> {
         let mask_row = pos.min(Ts::SIZE - 1);
         let ring = ws.blocks.sliding;
-        if ws.canonical {
+        if ws.uses_fixed_e4() {
+            let KvCache::SlidingFixedE4 { k, v } = &mut ws.kv_cache[layer_index] else {
+                unreachable!()
+            };
+            launch(
+                crate::ops_fixed_e4_scalar::sliding_project_qkv,
+                (
+                    device,
+                    &self.x,
+                    &layer.q_weight,
+                    &layer.k_weight,
+                    &layer.v_weight,
+                    &layer.q_weight_scale,
+                    &layer.k_weight_scale,
+                    &layer.v_weight_scale,
+                    &layer.input_norm,
+                    &layer.q_norm,
+                    &layer.k_norm,
+                    &ws.offset_kv_s,
+                    &ws.offset_rope_s,
+                    &ws.cos_s,
+                    &ws.sin_s,
+                    &mut *k,
+                    &mut *v,
+                    &mut self.q_s,
+                ),
+            )
+            .await?;
+            launch(
+                crate::ops_fixed_e4_scalar::sliding_attention,
+                (
+                    device,
+                    &self.q_s,
+                    &*k,
+                    &*v,
+                    &ws.cache_ring_offsets[ring],
+                    &ws.mask_s[mask_row],
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+        } else if ws.canonical {
             let KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[layer_index] else {
                 unreachable!()
             };

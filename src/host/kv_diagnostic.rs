@@ -63,6 +63,22 @@ pub async fn compare_canonical_kv(
                 checked += equal(&format!("sliding layer{layer} K"), &ak, &raw(d, &sk).await?)?;
                 checked += equal(&format!("sliding layer{layer} V"), &av, &raw(d, &sv).await?)?;
             }
+            KvCache::SlidingFixedE4 { k, v } => {
+                launch(
+                    crate::ops_fixed_e4_storage::copy_sliding_pool_to_cache,
+                    (d, k, v, &ws.cache_ring_offsets[a.sliding], &mut sk, &mut sv),
+                )
+                .await?;
+                let ak = raw(d, &sk).await?;
+                let av = raw(d, &sv).await?;
+                launch(
+                    crate::ops_fixed_e4_storage::copy_sliding_pool_to_cache,
+                    (d, k, v, &ws.cache_ring_offsets[b.sliding], &mut sk, &mut sv),
+                )
+                .await?;
+                checked += equal(&format!("sliding layer{layer} K"), &ak, &raw(d, &sk).await?)?;
+                checked += equal(&format!("sliding layer{layer} V"), &av, &raw(d, &sv).await?)?;
+            }
             KvCache::FullCanonical { k, v } => {
                 for (logical, (&pa, &pb)) in a.full.iter().zip(&b.full).enumerate() {
                     launch(

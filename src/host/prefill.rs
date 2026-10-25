@@ -48,6 +48,8 @@ pub(crate) struct PreparedNarrow {
 }
 
 pub(crate) struct Prefill {
+    // Immutable allocation ABI copied once from Model::new workspace.
+    sliding_element_bytes: usize,
     // Dedicated decode raw layouts; canonical scratch remains available to prompts and diagnostics.
     decode_blocked_output: bool,
     staged_ffn: bool,
@@ -154,7 +156,7 @@ impl Prefill {
         }
     }
 
-    pub(crate) async fn new(device: &mut Device) -> Result<Self> {
+    pub(crate) async fn new(device: &mut Device, sliding_element_bytes: usize) -> Result<Self> {
         macro_rules! zero {
             ($dtype:ty, $mapping:ty) => {
                 HostTensor::<$dtype, $mapping>::zero()
@@ -163,6 +165,7 @@ impl Prefill {
             };
         }
         Ok(Self {
+            sliding_element_bytes,
             decode_blocked_output: true,
             staged_ffn: true,
             epilogue_fused: true,
@@ -301,7 +304,7 @@ impl Prefill {
             .to_hbm(&mut device.pdma)
             .await?;
         let commits =
-            CommitOffsets::new(device, start, count, canonical.then_some(sequence.blocks)).await?;
+            CommitOffsets::new(device, start, count, canonical.then_some(sequence.blocks), self.sliding_element_bytes).await?;
         self.record_profile("prepare.prompt", &mut profile_mark);
         std::mem::swap(&mut self.x, &mut self.prompt_x);
         Ok(PreparedNarrow {
@@ -493,7 +496,30 @@ impl Prefill {
         )
         .await?;
         self.record_profile("sliding.heads_rope", &mut profile_mark);
-        if ws.is_canonical() {
+        if ws.uses_fixed_e4() {
+            let runtime::KvCache::SlidingFixedE4 { k, v } = &mut ws.kv_cache[index] else {
+                unreachable!()
+            };
+            launch(
+                crate::ops_fixed_e4_prompt::sliding_attention_b16,
+                (
+                    device,
+                    &self.q_s,
+                    &*k,
+                    &*v,
+                    &ws.cache_ring_offsets[ring],
+                    &self.k_s,
+                    &self.v_s,
+                    old_mask,
+                    chunk_mask,
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+            commits
+                .sliding_fixed_e4(device, &self.k_s, &self.v_s, k, v)
+                .await?;
+        } else if ws.is_canonical() {
             let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
                 unreachable!()
             };
@@ -972,13 +998,14 @@ impl CommitOffsets {
         start: usize,
         count: usize,
         blocks: Option<&runtime::Blocks>,
+        sliding_element_bytes: usize,
     ) -> Result<Self> {
         let sliding: Vec<_> = (0..count)
             .map(|r| {
                 ((blocks.map_or(0, |b| b.sliding * Ts::SIZE) + (start + r) % Ts::SIZE)
                     * Ns::SIZE
                     * Ds::SIZE
-                    * 2) as i32
+                    * sliding_element_bytes) as i32
             })
             .collect();
         let full: Vec<_> = (0..count)
@@ -1450,6 +1477,130 @@ impl CommitOffsets {
             Self::V16 { sliding, .. } => {
                 launch(
                     crate::ops_commit_r64::commit_sliding_pool_16,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+        }
+        Ok(())
+    }
+    async fn sliding_fixed_e4(
+        &self,
+        device: &mut Device,
+        k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+        v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+        cache_k: &mut HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+        cache_v: &mut HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+    ) -> Result<()> {
+        match self {
+            Self::V1 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_1,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V2 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_2,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V3 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_3,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V4 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_4,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V5 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_5,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V6 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_6,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V7 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_7,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V8 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_8,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V9 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_9,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V10 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_10,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V11 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_11,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V12 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_12,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V13 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_13,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V14 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_14,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V15 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_15,
+                    (device, k, v, sliding, cache_k, cache_v),
+                )
+                .await?
+            }
+            Self::V16 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_16,
                     (device, k, v, sliding, cache_k, cache_v),
                 )
                 .await?

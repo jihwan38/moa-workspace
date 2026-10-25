@@ -194,7 +194,7 @@ impl Model {
         Ok(Self {
             weights,
             decode: workspace.begin_decode(device).await?,
-            prefill: Prefill::new(device).await?,
+            prefill: Prefill::new(device, workspace.sliding_element_bytes()).await?,
             decode64: if workspace.is_canonical() {
                 Some(super::decode_r64::Decode64::new(device).await?)
             } else {

@@ -82,7 +82,7 @@ struct NativeMetadata {
     full_offsets: HbmTensor<i32, Chip, m![P128]>,
 }
 impl NativeMetadata {
-    async fn new(device: &mut Device, start: usize, blocks: Option<&runtime::Blocks>) -> Result<Self> {
+    async fn new(device: &mut Device, start: usize, blocks: Option<&runtime::Blocks>, sliding_element_bytes: usize) -> Result<Self> {
         let (old, chunk) =
             crate::host::prefill_masks::sliding_masks_rows(start, P128::SIZE, P128::SIZE);
         macro_rules! ints {
@@ -96,10 +96,10 @@ impl NativeMetadata {
             rope_s: ints!(|row| ((start + row) * Ds::SIZE * 2) as i32),
             rope_f: ints!(|row| ((start + row) * Df::SIZE * 2) as i32),
             sliding_cluster_bases: HostTensor::<i32, m![P128/64]>::from_vec(
-                [((blocks.map_or(0, |b| b.sliding) * Ts::SIZE * Ns::SIZE * Ds::SIZE * 2) as i32); 2],
+                [((blocks.map_or(0, |b| b.sliding) * Ts::SIZE * Ns::SIZE * Ds::SIZE * sliding_element_bytes) as i32); 2],
             ).to_hbm(&mut device.pdma).await?,
             sliding_offsets: ints!(
-                |row| ((blocks.map_or(0, |b| b.sliding) * Ts::SIZE + (start + row) % Ts::SIZE) * Ns::SIZE * Ds::SIZE * 2) as i32
+                |row| ((blocks.map_or(0, |b| b.sliding) * Ts::SIZE + (start + row) % Ts::SIZE) * Ns::SIZE * Ds::SIZE * sliding_element_bytes) as i32
             ),
             full_offsets: ints!(|row| ((blocks.map_or(0, |b| b.full[start / Tf::SIZE]) * Tf::SIZE + (start + row) % Tf::SIZE) * Df::SIZE * 2) as i32),
             old_mask: HostTensor::<f32, m![P128, Ts]>::from_vec(old)
@@ -362,11 +362,11 @@ impl WidePrefill {
                 full_mask: HostTensor::<f32, m![B, Tf]>::from_vec(full_mask(start, valid))
                     .to_hbm(&mut device.pdma)
                     .await?,
-                commits: CommitOffsets::new(device, start, valid, canonical.then_some(sequence.blocks)).await?,
+                commits: CommitOffsets::new(device, start, valid, canonical.then_some(sequence.blocks), scratch.sliding_element_bytes).await?,
             });
         }
         let native = if count == P128::SIZE {
-            Some(NativeMetadata::new(device, sequence.start_position, canonical.then_some(sequence.blocks)).await?)
+            Some(NativeMetadata::new(device, sequence.start_position, canonical.then_some(sequence.blocks), scratch.sliding_element_bytes).await?)
         } else {
             None
         };
@@ -697,8 +697,8 @@ impl WidePrefill {
                 && ws.is_canonical() && blocked.is_some()
             {
                 let raw = blocked.unwrap();
-                let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index]
-                    else { unreachable!() };
+                match &mut ws.kv_cache[index] {
+                    runtime::KvCache::SlidingCanonical { k,v } => {
                 // All128 rows are live. The fused kernel finishes attention against
                 // the old ring before its absolute-offset KV scatter. Headed K/V
                 // scratch remains separate; deferred O consumes only attn_s.
@@ -716,6 +716,29 @@ impl WidePrefill {
                          &ws.cos_s, &ws.sin_s, k, v, &meta.sliding_cluster_bases,
                          &meta.old_mask, &meta.chunk_mask, &meta.sliding_offsets,
                          &mut self.head_k_s, &mut self.head_v_s, &mut self.attn_s)).await?;
+                }
+                    }
+                    runtime::KvCache::SlidingFixedE4 { k,v } => {
+                // All128 rows are live. The fused kernel finishes attention against
+                // the old ring before its absolute-offset KV scatter. Headed K/V
+                // scratch remains separate; deferred O consumes only attn_s.
+                if state.prune_empty_history && state.start_position == 0 {
+                    launch(crate::ops_fixed_e4_fused::sliding_fused_first_p128,
+                        (device, &raw.q_s, &raw.k_s, &raw.v_s,
+                         &layer.q_norm, &layer.k_norm, &meta.rope_s,
+                         &ws.cos_s, &ws.sin_s, k, v, &meta.sliding_cluster_bases,
+                         &meta.old_mask, &meta.chunk_mask, &meta.sliding_offsets,
+                         &mut self.head_k_s, &mut self.head_v_s, &mut self.attn_s)).await?;
+                } else {
+                    launch(crate::ops_fixed_e4_fused::sliding_fused_p128,
+                        (device, &raw.q_s, &raw.k_s, &raw.v_s,
+                         &layer.q_norm, &layer.k_norm, &meta.rope_s,
+                         &ws.cos_s, &ws.sin_s, k, v, &meta.sliding_cluster_bases,
+                         &meta.old_mask, &meta.chunk_mask, &meta.sliding_offsets,
+                         &mut self.head_k_s, &mut self.head_v_s, &mut self.attn_s)).await?;
+                }
+                    }
+                    _ => unreachable!(),
                 }
                 scratch.record_optional_profile("wide.sliding.fused_heads_attention_commit", &mut mark);
             } else {
@@ -759,7 +782,64 @@ impl WidePrefill {
             .await?;
             }
             scratch.record_optional_profile("wide.sliding.heads", &mut mark);
-            if ws.is_canonical() {
+            if ws.uses_fixed_e4() {
+                let runtime::KvCache::SlidingFixedE4 { k, v } = &mut ws.kv_cache[index] else { unreachable!() };
+            // All queries use the immutable old ring; committing sooner evicts keys
+            // still needed by earlier rows when the128-token chunk wraps the ring.
+            if state.exact_sliding_attention && state.prune_empty_history && state.start_position == 0 {
+            launch(crate::ops_fixed_e4_wide::sliding_attention_first_p128,
+                (device, &self.head_q_s, &self.head_k_s, &self.head_v_s,
+                 &meta.chunk_mask, &mut self.attn_s)).await?;
+            } else if state.exact_sliding_attention {
+            launch(
+                crate::ops_fixed_e4_wide::sliding_attention_p128,
+                (
+                    device,
+                    &self.head_q_s,
+                    &*k,
+                    &*v,
+                    &meta.sliding_cluster_bases,
+                    &self.head_k_s,
+                    &self.head_v_s,
+                    &meta.old_mask,
+                    &meta.chunk_mask,
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+            } else {
+            launch(
+                crate::ops_fixed_e4_wide_original::sliding_attention_p128,
+                (
+                    device,
+                    &self.head_q_s,
+                    &*k,
+                    &*v,
+                    &ws.cache_ring_offsets[ring],
+                    &self.head_k_s,
+                    &self.head_v_s,
+                    &meta.old_mask,
+                    &meta.chunk_mask,
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+            }
+            scratch.record_optional_profile("wide.sliding.attention", &mut mark);
+            launch(
+                crate::ops_fixed_e4_commit_wide::commit_sliding_kv_p128,
+                (
+                    device,
+                    &self.head_k_s,
+                    &self.head_v_s,
+                    &meta.sliding_offsets,
+                    k,
+                    v,
+                ),
+            )
+            .await?;
+            scratch.record_optional_profile("wide.sliding.kv_commit", &mut mark);
+            } else if ws.is_canonical() {
                 let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else { unreachable!() };
             // All queries use the immutable old ring; committing sooner evicts keys
             // still needed by earlier rows when the128-token chunk wraps the ring.
@@ -874,7 +954,33 @@ impl WidePrefill {
                 )
                 .await?;
             scratch.record_optional_profile("wide.sliding.heads", &mut mark);
-                if ws.is_canonical() {
+                if ws.uses_fixed_e4() {
+                    let runtime::KvCache::SlidingFixedE4 { k, v } = &mut ws.kv_cache[index] else {
+                        unreachable!()
+                    };
+                    launch(
+                        crate::ops_fixed_e4_prompt::sliding_attention_b16,
+                        (
+                            device,
+                            &scratch.q_s,
+                            &*k,
+                            &*v,
+                            &ws.cache_ring_offsets[ring],
+                            &scratch.k_s,
+                            &scratch.v_s,
+                            &segment.old_mask,
+                            &segment.chunk_mask,
+                            &mut scratch.attn_s,
+                        ),
+                    )
+                    .await?;
+            scratch.record_optional_profile("wide.sliding.attention", &mut mark);
+                    segment
+                        .commits
+                        .sliding_fixed_e4(device, &scratch.k_s, &scratch.v_s, &mut *k, &mut *v)
+                        .await?;
+            scratch.record_optional_profile("wide.sliding.kv_commit", &mut mark);
+                } else if ws.is_canonical() {
                     let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
                         unreachable!()
                     };

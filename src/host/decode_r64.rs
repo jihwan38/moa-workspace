@@ -212,7 +212,7 @@ impl Decode64 {
         if !ws.is_canonical() || !super::request_pool::independent_sequences(sequences) {
             return Err("R64 execution requires distinct canonical request allocations".into());
         }
-        let mut metadata = Step64::new(device, sequences).await?;
+        let mut metadata = Step64::new(device, sequences, ws.sliding_element_bytes()).await?;
         metadata.sliding_prefix768 &= allow_prefix768;
         let capacity32 = use_capacity32 && (17..=32).contains(&count) && self.staged_ffn;
         let output32 = capacity32 && use_output32;
@@ -420,9 +420,8 @@ impl Decode64 {
         .await?;
         }
         self.record_profile("r64.sliding.heads_rope", &mut profile_mark);
-        let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
-            return Err("sliding layer has wrong pool kind".into());
-        };
+        match &mut ws.kv_cache[index] {
+            runtime::KvCache::SlidingCanonical {k,v} => {
         self.commit_sliding(device, metadata, k, v).await?;
         if let Some(policy) = policy32 {
             launch(crate::ops_decode32_attention::sliding_attention_r64,
@@ -479,6 +478,68 @@ impl Decode64 {
             ),
         )
         .await?;
+        }
+            }
+            runtime::KvCache::SlidingFixedE4 {k,v} => {
+        self.commit_sliding_fixed_e4(device, metadata, k, v).await?;
+        if let Some(policy) = policy32 {
+            launch(crate::ops_fixed_e4_decode32::sliding_attention_r64,
+                (device, &self.q_s, &*k, &*v, &metadata.ring_offsets,
+                 &metadata.sliding_mask, policy, &mut self.attn_s)).await?;
+        } else if metadata.sliding_short_groups == 255 {
+        launch(
+            crate::ops_fixed_e4_r64_prefix512::sliding_attention_r64,
+            (
+                device,
+                &self.q_s,
+                &*k,
+                &*v,
+                &metadata.ring_offsets,
+                &metadata.sliding_mask,
+                &mut self.attn_s,
+            ),
+        )
+        .await?;
+        } else if metadata.sliding_prefix768 {
+            launch(crate::ops_fixed_e4_r64_prefix768::sliding_attention_r64,
+                (device, &self.q_s, &*k, &*v, &metadata.ring_offsets,
+                 &metadata.sliding_mask, &mut self.attn_s)).await?;
+        } else if let Some(policy) = &metadata.sliding_group_policy {
+            launch(
+                crate::ops_fixed_e4_r64_mixed512::sliding_attention_r64,
+                (
+                    device,
+                    &self.q_s,
+                    &*k,
+                    &*v,
+                    &metadata.ring_offsets,
+                    &metadata.sliding_mask,
+                    policy,
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+        } else if use_head_rows {
+            launch(crate::ops_fixed_e4_r64_head_rows::sliding_attention_r64,
+                (device,&self.q_s,&*k,&*v,&metadata.ring_offsets,
+                 &metadata.sliding_mask,&mut self.attn_s)).await?;
+        } else {
+        launch(
+            crate::ops_fixed_e4_r64::sliding_attention_r64,
+            (
+                device,
+                &self.q_s,
+                &*k,
+                &*v,
+                &metadata.ring_offsets,
+                &metadata.sliding_mask,
+                &mut self.attn_s,
+            ),
+        )
+        .await?;
+        }
+            }
+            _ => return Err("sliding layer has wrong pool kind".into()),
         }
         self.record_profile("r64.sliding.attention", &mut profile_mark);
         if output32 {
@@ -777,6 +838,47 @@ impl Decode64 {
                 .await?;
                 offsets
                     .sliding_canonical(device, &self.k_tile_s, &self.v_tile_s, &mut *k, &mut *v)
+                    .await?;
+            }
+        }
+        Ok(())
+    }
+    async fn commit_sliding_fixed_e4(
+        &mut self,
+        device: &mut Device,
+        metadata: &Step64,
+        k: &mut HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+        v: &mut HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+    ) -> Result<()> {
+        if metadata.live == R64::SIZE {
+            launch(
+                crate::ops_fixed_e4_commit::commit_sliding_kv_r64,
+                (
+                    device,
+                    &self.k_s,
+                    &self.v_s,
+                    &metadata.sliding_offsets,
+                    k,
+                    v,
+                ),
+            )
+            .await?;
+        } else {
+            for (tile, offsets) in metadata.segments.iter().enumerate() {
+                launch(
+                    commit::load_sliding_kv_tile,
+                    (
+                        device,
+                        &self.k_s,
+                        &self.v_s,
+                        &self.tile_indices[tile],
+                        &mut self.k_tile_s,
+                        &mut self.v_tile_s,
+                    ),
+                )
+                .await?;
+                offsets
+                    .sliding_fixed_e4(device, &self.k_tile_s, &self.v_tile_s, &mut *k, &mut *v)
                     .await?;
             }
         }

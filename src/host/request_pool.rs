@@ -236,12 +236,12 @@ pub(crate) struct PooledStep {
     pub commits: PoolOffsets,
 }
 impl PooledStep {
-    pub async fn new(device: &mut Device, sequences: &[Sequence<'_>]) -> Result<Self> {
+    pub async fn new(device: &mut Device, sequences: &[Sequence<'_>], sliding_element_bytes: usize) -> Result<Self> {
         let count = sequences.len();
         if count == 0 || count > B::SIZE {
             return Err("invalid pooled batch width".into());
         }
-        let (ring_offsets, sliding_mask) = sliding_vectors(sequences);
+        let (ring_offsets, sliding_mask) = sliding_vectors_rows_bytes(B::SIZE, sequences, sliding_element_bytes);
         let ring_offsets = HostTensor::<i32, m![B]>::from_vec(ring_offsets)
             .to_hbm(&mut device.pdma)
             .await?;
@@ -272,7 +272,7 @@ impl PooledStep {
             ring_offsets,
             sliding_mask,
             pages,
-            commits: PoolOffsets::new(device, sequences).await?,
+            commits: PoolOffsets::new_bytes(device, sequences, sliding_element_bytes).await?,
         })
     }
 }
@@ -345,13 +345,16 @@ pub(crate) enum PoolOffsets {
 }
 impl PoolOffsets {
     pub(crate) async fn new(device: &mut Device, sequences: &[Sequence<'_>]) -> Result<Self> {
+        Self::new_bytes(device, sequences, 2).await
+    }
+    pub(crate) async fn new_bytes(device: &mut Device, sequences: &[Sequence<'_>], sliding_element_bytes: usize) -> Result<Self> {
         let sliding: Vec<_> = sequences
             .iter()
             .map(|s| {
                 ((s.blocks.sliding * Ts::SIZE + s.start_position % Ts::SIZE)
                     * Ns::SIZE
                     * Ds::SIZE
-                    * 2) as i32
+                    * sliding_element_bytes) as i32
             })
             .collect();
         let full: Vec<_> = sequences
@@ -743,6 +746,130 @@ impl PoolOffsets {
         }
         Ok(())
     }
+    pub async fn sliding_fixed_e4(
+        &self,
+        device: &mut Device,
+        k: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+        v: &HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
+        pool_k: &mut HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+        pool_v: &mut HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+    ) -> Result<()> {
+        match self {
+            Self::V1 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_1,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V2 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_2,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V3 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_3,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V4 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_4,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V5 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_5,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V6 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_6,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V7 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_7,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V8 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_8,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V9 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_9,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V10 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_10,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V11 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_11,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V12 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_12,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V13 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_13,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V14 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_14,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V15 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_15,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+            Self::V16 { sliding, .. } => {
+                launch(
+                    crate::ops_fixed_e4_commit::commit_sliding_pool_16,
+                    (device, k, v, sliding, pool_k, pool_v),
+                )
+                .await?
+            }
+        }
+        Ok(())
+    }
     pub async fn full(
         &self,
         device: &mut Device,
@@ -843,12 +970,17 @@ pub(crate) fn sliding_vectors_rows(
     rows: usize,
     sequences: &[Sequence<'_>],
 ) -> (Vec<i32>, Vec<f32>) {
+    sliding_vectors_rows_bytes(rows, sequences, 2)
+}
+pub(crate) fn sliding_vectors_rows_bytes(
+    rows: usize, sequences: &[Sequence<'_>], sliding_element_bytes: usize,
+) -> (Vec<i32>, Vec<f32>) {
     let count = sequences.len();
     let mut offsets = Vec::with_capacity(rows);
     let mut mask = Vec::with_capacity(rows * Ts::SIZE);
     for row in 0..rows {
         let sequence = &sequences[row.min(count - 1)];
-        offsets.push((sequence.blocks.sliding * Ts::SIZE * Ns::SIZE * Ds::SIZE * 2) as i32);
+        offsets.push((sequence.blocks.sliding * Ts::SIZE * Ns::SIZE * Ds::SIZE * sliding_element_bytes) as i32);
         for slot in 0..Ts::SIZE {
             mask.push(
                 if row < count && slot <= sequence.start_position.min(Ts::SIZE - 1) {

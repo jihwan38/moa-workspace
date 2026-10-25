@@ -45,7 +45,7 @@ impl Prefill {
         }
         let distinct = super::super::request_pool::independent_sequences(sequences);
         let pooled = if distinct && ws.is_canonical() {
-            Some(PooledStep::new(device, sequences).await?)
+            Some(PooledStep::new(device, sequences, ws.sliding_element_bytes()).await?)
         } else if distinct && ws.request_pool.is_some() {
             let pool = ws.request_pool.as_mut().unwrap();
             for sequence in sequences {
@@ -57,7 +57,7 @@ impl Prefill {
                 )
                 .await?;
             }
-            Some(PooledStep::new(device, sequences).await?)
+            Some(PooledStep::new(device, sequences, ws.sliding_element_bytes()).await?)
         } else {
             for sequence in sequences {
                 ws.ensure_legacy(device, sequence.blocks, sequence.start_position)
@@ -319,16 +319,40 @@ impl Prefill {
         let composed = attention_output_composed && ws.is_canonical() && self.output_hsplit;
         if composed {
             let metadata=pooled.ok_or("canonical decode requires independent rows")?;
-            let runtime::KvCache::SlidingCanonical{k,v}=&mut ws.kv_cache[index] else {
-                return Err("sliding layer has wrong pool kind".into());
-            };
-            metadata.sliding_attention_output(
-                device,&self.q_s,&self.k_s,&self.v_s,k,v,layer,
-                &mut self.attn_s,&mut self.projected,
-            ).await?;
+            match &mut ws.kv_cache[index] {
+                runtime::KvCache::SlidingCanonical{k,v} => metadata.sliding_attention_output(
+                    device,&self.q_s,&self.k_s,&self.v_s,k,v,layer,
+                    &mut self.attn_s,&mut self.projected).await?,
+                runtime::KvCache::SlidingFixedE4{k,v} => metadata.sliding_attention_output_fixed_e4(
+                    device,&self.q_s,&self.k_s,&self.v_s,k,v,layer,
+                    &mut self.attn_s,&mut self.projected).await?,
+                _ => return Err("sliding layer has wrong pool kind".into()),
+            }
             self.record_profile("sliding.attention_output_composed",&mut profile_mark);
         } else {
-        if ws.is_canonical() {
+        if ws.uses_fixed_e4() {
+            let metadata = pooled.ok_or("canonical decode requires independent rows")?;
+            let runtime::KvCache::SlidingFixedE4 { k, v } = &mut ws.kv_cache[index] else {
+                return Err("sliding layer has wrong pool kind".into());
+            };
+            metadata
+                .commits
+                .sliding_fixed_e4(device, &self.k_s, &self.v_s, k, v)
+                .await?;
+            launch(
+                crate::ops_fixed_e4_b16::sliding_attention_b16,
+                (
+                    device,
+                    &self.q_s,
+                    &*k,
+                    &*v,
+                    &metadata.ring_offsets,
+                    &metadata.sliding_mask,
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+        } else if ws.is_canonical() {
             let metadata = pooled.ok_or("canonical decode requires independent rows")?;
             let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
                 return Err("sliding layer has wrong pool kind".into());
