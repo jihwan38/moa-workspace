@@ -55,6 +55,7 @@ pub(crate) struct PreparedGroup {
     shard_quant: bool,
     quarter_norm: bool,
     fused_ffn_core: bool,
+    quarter_postnorm: bool,
 }
 /// Four chronological chunks of one request. Only its single allocation may be
 /// exposed to the scheduler; the four copies below are execution metadata.
@@ -67,6 +68,7 @@ impl PreparedPrompt512 {
     pub(crate) fn original_shard_quant(&mut self) { self.chunks.shard_quant = false; }
     pub(crate) fn original_quarter_norm(&mut self) { self.chunks.quarter_norm = false; }
     pub(crate) fn original_ffn_core(&mut self) { self.chunks.fused_ffn_core = false; }
+    pub(crate) fn original_quarter_postnorm(&mut self) { self.chunks.quarter_postnorm = false; }
     pub(crate) fn blocks(&self) -> &runtime::Blocks {
         &self.chunks.states[0].blocks
     }
@@ -77,6 +79,7 @@ impl PreparedGroup {
     pub(crate) fn original_shard_quant(&mut self) { self.shard_quant = false; }
     pub(crate) fn original_quarter_norm(&mut self) { self.quarter_norm = false; }
     pub(crate) fn original_ffn_core(&mut self) { self.fused_ffn_core = false; }
+    pub(crate) fn original_quarter_postnorm(&mut self) { self.quarter_postnorm = false; }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 4] {
         [
             &self.states[0].blocks,
@@ -207,6 +210,7 @@ impl GroupPrefill {
             shard_quant: true,
             quarter_norm: true,
             fused_ffn_core: true,
+            quarter_postnorm: true,
             states: [
                 self.rows[0]
                     .prepare(device, weights, &sequences[0], scratch, true)
@@ -503,9 +507,15 @@ impl GroupPrefill {
         }
         if state.fused_norms {
             let [a, b, c, d] = &mut self.rows;
+            if state.quarter_postnorm {
+                launch(crate::ops_norm_quarter_post::post_feedforward_four,
+                    (device, &self.projected, post, gate,
+                     &mut a.x, &mut b.x, &mut c.x, &mut d.x)).await?;
+            } else {
             launch(crate::ops_norm_fused::post_feedforward_four,
                 (device, &self.projected, post, gate,
                  &mut a.x, &mut b.x, &mut c.x, &mut d.x)).await?;
+            }
             scratch.record_optional_profile("group.ffn.fused_post_norm", &mut mark);
         } else {
             let [a, b, c, d] = &mut self.rows;
