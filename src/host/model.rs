@@ -5,7 +5,7 @@ use crate::{Chip, axes::{B, W}};
 use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
-use super::prefill::wide::group::{GroupPrefill, PreparedGroup, PreparedPrompt512, PreparedPrompt384128, PreparedTail256, PreparedTail384};
+use super::prefill::wide::group::{GroupPrefill, PreparedGroup, PreparedPrompt512, PreparedPrompt384128, PreparedTail256, PreparedTail384, PreparedThreeOwner512};
 use super::prefill::{
     Prefill, PreparedNarrow,
     wide::{PreparedWide, WidePrefill},
@@ -66,6 +66,7 @@ pub struct Model {
     active_prompt384128: Option<PreparedPrompt384128>,
     active_tail256: Option<PreparedTail256>,
     active_tail384: Option<PreparedTail384>,
+    active_three_owner512: Option<PreparedThreeOwner512>,
     active_prefill: Option<ActivePrefill>,
     logits: Vec<Logits>,
 }
@@ -190,6 +191,7 @@ impl Model {
             active_prompt384128: None,
             active_tail256: None,
             active_tail384: None,
+            active_three_owner512: None,
             active_prefill: None,
             logits,
         })
@@ -204,6 +206,7 @@ impl Model {
             .or_else(|| self.active_prompt384128.as_ref().map(|state|state.blocks()[0].sliding))
             .or_else(|| self.active_tail256.as_ref().map(|state|state.blocks()[0].sliding))
             .or_else(|| self.active_tail384.as_ref().map(|state|state.blocks()[0].sliding))
+            .or_else(|| self.active_three_owner512.as_ref().map(|state|state.blocks()[0].sliding))
     }
 
     /// Every request allocation held by an active prompt scheduling quantum.
@@ -226,6 +229,7 @@ impl Model {
         }
         if let Some(active) = &self.active_tail256 { blocks.extend(active.blocks()); }
         if let Some(active) = &self.active_tail384 { blocks.extend(active.blocks()); }
+        if let Some(active) = &self.active_three_owner512 { blocks.extend(active.blocks()); }
         blocks
     }
     /// Allocate the optional grouped prompt workspace before serving requests.
@@ -535,6 +539,58 @@ impl Model {
         }
         self.active_tail384=None;
         Ok(Some(&self.logits[..owners]))
+    }
+
+    /// Model-only full512 checkpoint from three independent owners. Exactly one
+    /// owner contributes256 consecutive inputs; the other two contribute128 each.
+    /// Their four chronological quarters are derived privately after validation.
+    pub async fn start_prefill_three_owner512(
+        &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() { return Err("another prefill is in progress".into()); }
+        if !workspace.is_canonical() || self.logits.len()<3
+            || !GroupPrefill::supports_three_owner512(sequences) {
+            return Err("ThreeOwner512 needs canonical independent256/128/128 ranges in owner order".into());
+        }
+        for sequence in sequences {
+            validate_sequence(sequence,workspace.capacity(),workspace.requests())?;
+            validate_physical_pages(sequence.blocks,workspace.physical_full_pages())?;
+        }
+        self.prepare_group_scratch(device).await?;
+        self.active_three_owner512=Some(self.group.as_mut().unwrap().prepare_three_owner512(
+            device,&self.weights,sequences,&mut self.prefill,
+            super::prefill::wide::MEDIA_BATCH_ENABLED).await?);
+        Ok(())
+    }
+    /// Yield after one whole layer; only the final call returns three outputs.
+    /// Failed/cancelled in-flight execution requires discarding Model/Workspace,
+    /// as for all resumable prompt APIs; do not retry partial cache updates.
+    pub async fn advance_prefill_three_owner512(
+        &mut self, device:&mut Device, workspace:&mut Workspace,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.advance_prefill_three_owner512_measured(device,workspace,None).await
+    }
+    pub(crate) async fn advance_prefill_three_owner512_measured(
+        &mut self, device:&mut Device, workspace:&mut Workspace,
+        mut timing:Option<&mut PrefillAdvanceTiming>,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        if let Some(timing)=timing.as_mut() { **timing=PrefillAdvanceTiming::default(); }
+        let state=self.active_three_owner512.as_mut().ok_or("no ThreeOwner512 is active")?;
+        let group=self.group.as_mut().ok_or("grouped scratch is missing")?;
+        let mark=timing.as_ref().map(|_|std::time::Instant::now());
+        let complete=group.advance_three_owner512(device,&self.weights,state,workspace,&mut self.prefill).await?;
+        if let Some(timing)=timing.as_mut() {timing.layer=Some(mark.unwrap().elapsed());}
+        if !complete {return Ok(None);}
+        let mark=timing.as_ref().map(|_|std::time::Instant::now());
+        for owner in 0..3 {
+            std::mem::swap(&mut self.logits[owner],&mut workspace.logits);
+            let result=group.finish_three_owner512(owner,device,&self.weights,state,workspace,&mut self.prefill).await;
+            std::mem::swap(&mut self.logits[owner],&mut workspace.logits);
+            result?;
+        }
+        self.active_three_owner512=None;
+        if let Some(timing)=timing.as_mut() {timing.finish=Some(mark.unwrap().elapsed());}
+        Ok(Some(&self.logits[..3]))
     }
 
     /// Diagnostic only: compare every physical K/V value of two canonical

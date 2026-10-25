@@ -87,6 +87,18 @@ impl PreparedTail384 {
     }
     pub(crate) fn owners(&self) -> usize { self.owner_first_rows.len() }
 }
+/// Three independent reservations contribute four privately derived quarters.
+/// Unlike Tail384, every tensor quarter belongs to a real input position.
+pub(crate) struct PreparedThreeOwner512 {
+    chunks: PreparedGroup,
+    owner_first_rows: [usize; 3],
+    owner_final_rows: [usize; 3],
+}
+impl PreparedThreeOwner512 {
+    pub(crate) fn blocks(&self) -> [&runtime::Blocks; 3] {
+        self.owner_first_rows.map(|row| &self.chunks.states[row].blocks)
+    }
+}
 #[derive(Clone, Copy)]
 struct GroupExecution {
     fused_norms: bool, blocked_output: bool, shard_quant: bool,
@@ -299,6 +311,41 @@ impl GroupPrefill {
                     && sequence.inputs[..sequence.inputs.len() - 1].iter().all(|input| !input.logits)
             })
             && crate::host::request_pool::independent_sequences(sequences)
+    }
+
+    pub(crate) fn supports_three_owner512(sequences: &[Sequence<'_>]) -> bool {
+        sequences.len() == 3
+            && sequences.iter().all(|s| matches!(s.inputs.len(),128|256)
+                && s.start_position % P128::SIZE == 0
+                && s.start_position.checked_add(s.inputs.len()).is_some()
+                && s.inputs[..s.inputs.len()-1].iter().all(|input| !input.logits))
+            && sequences.iter().map(|s|s.inputs.len()).sum::<usize>() == P512::SIZE
+            && crate::host::request_pool::independent_sequences(sequences)
+    }
+
+    pub(crate) async fn prepare_three_owner512(
+        &mut self, device:&mut Device, weights:&Weights, sequences:&[Sequence<'_>],
+        scratch:&mut Prefill, batched_media:bool,
+    ) -> Result<PreparedThreeOwner512> {
+        if !Self::supports_three_owner512(sequences) {
+            return Err("ThreeOwner512 needs independent aligned256/128/128 ranges in owner order".into());
+        }
+        let mut owner_first_rows=[0;3];let mut owner_final_rows=[0;3];
+        let mut chunks=Vec::with_capacity(4);
+        for (owner,sequence) in sequences.iter().enumerate() {
+            owner_first_rows[owner]=chunks.len();
+            for (quarter,inputs) in sequence.inputs.chunks_exact(P128::SIZE).enumerate() {
+                chunks.push(Sequence{inputs,start_position:sequence.start_position+quarter*P128::SIZE,
+                    blocks:sequence.blocks});
+            }
+            owner_final_rows[owner]=chunks.len()-1;
+        }
+        debug_assert_eq!(chunks.len(),4);
+        debug_assert!(chunks.iter().all(WidePrefill::supports));
+        Ok(PreparedThreeOwner512 {
+            chunks:self.prepare_rows(device,weights,&chunks,scratch,batched_media).await?,
+            owner_first_rows,owner_final_rows,
+        })
     }
 
     /// Validate the two actual owners before deriving A0/A1/A2/B0 internally.
@@ -520,6 +567,18 @@ impl GroupPrefill {
     ) -> Result<bool> {
         // All A quarters precede all B quarters; each owner's commits are causal.
         self.advance_layer(device, weights, &mut state.chunks, ws, scratch).await
+    }
+    pub(crate) async fn advance_three_owner512(
+        &mut self, device:&mut Device, weights:&Weights, state:&mut PreparedThreeOwner512,
+        ws:&mut Workspace, scratch:&mut Prefill,
+    ) -> Result<bool> {
+        self.advance_layer(device,weights,&mut state.chunks,ws,scratch).await
+    }
+    pub(crate) async fn finish_three_owner512(
+        &mut self, owner:usize, device:&mut Device, weights:&Weights,
+        state:&PreparedThreeOwner512, ws:&mut Workspace, scratch:&mut Prefill,
+    ) -> Result<()> {
+        self.finish(state.owner_final_rows[owner],device,weights,&state.chunks,ws,scratch).await
     }
     pub(crate) async fn finish_prompt384128(
         &mut self, owner: usize, device: &mut Device, weights: &Weights,
@@ -1137,5 +1196,63 @@ mod tail384_tests {
         row[255].logits=true;
         assert!(!GroupPrefill::supports_tail384(&[Sequence{inputs:&row,start_position:0,blocks:&blocks}]));
         assert!(!GroupPrefill::supports_tail384(&[]));
+    }
+}
+
+#[cfg(test)]
+mod three_owner512_tests {
+    use super::*;
+    use crate::host::model::Input;
+    fn inputs(count:usize)->Vec<Input<'static>> {
+        (0..count).map(|i|Input{token:i+2,soft:None,logits:i+1==count,image:None,audio:None}).collect()
+    }
+    fn blocks()->Vec<runtime::Blocks> {
+        (0..4).map(|i|runtime::Blocks{sliding:7+i,full:vec![31-i,63-i,95-i,127-i,159-i]}).collect()
+    }
+    #[test]
+    fn three_real_owner_permutations_keep_original_four_owner_validation() {
+        let blocks=blocks();
+        for double in 0..3 {
+            let rows:Vec<_>=(0..3).map(|i|inputs(if i==double{256}else{128})).collect();
+            for start in [0,256,896,1792,1920] {
+                let sequences:Vec<_>=rows.iter().zip(&blocks).map(|(inputs,blocks)|Sequence{inputs,start_position:start,blocks}).collect();
+                assert!(GroupPrefill::supports_three_owner512(&sequences));
+                assert!(!GroupPrefill::supports(&sequences));
+                assert!(!GroupPrefill::supports_prompt_pair512(&sequences));
+                assert!(!GroupPrefill::supports_tail384(&sequences));
+            }
+        }
+        let row=inputs(128);
+        let quad:Vec<_>=blocks.iter().map(|blocks|Sequence{inputs:&row,start_position:0,blocks}).collect();
+        assert!(GroupPrefill::supports(&quad));assert!(!GroupPrefill::supports_three_owner512(&quad));
+    }
+    #[test]
+    fn real_owner_aliases_cannot_enter_private_chronological_derivation() {
+        let mut blocks=blocks();let rows=[inputs(256),inputs(128),inputs(128)];
+        for duplicate in 1..3 {
+            let original=blocks[duplicate].clone();blocks[duplicate].sliding=blocks[0].sliding;
+            let seq:Vec<_>=rows.iter().zip(&blocks).map(|(inputs,blocks)|Sequence{inputs,start_position:896,blocks}).collect();
+            assert!(!GroupPrefill::supports_three_owner512(&seq));blocks[duplicate]=original.clone();
+            blocks[duplicate].full[2]=blocks[0].full[2];
+            let seq:Vec<_>=rows.iter().zip(&blocks).map(|(inputs,blocks)|Sequence{inputs,start_position:896,blocks}).collect();
+            assert!(!GroupPrefill::supports_three_owner512(&seq));blocks[duplicate]=original;
+        }
+    }
+    #[test]
+    fn rejects_partial_bad_sum_unaligned_overflow_and_early_logits() {
+        let blocks=blocks();
+        for counts in [[128,128,128],[256,256,128],[255,128,129],[384,128,0]] {
+            let rows:Vec<_>=counts.into_iter().map(inputs).collect();
+            let seq:Vec<_>=rows.iter().zip(&blocks).map(|(inputs,blocks)|Sequence{inputs,start_position:0,blocks}).collect();
+            assert!(!GroupPrefill::supports_three_owner512(&seq));
+        }
+        let mut rows=[inputs(256),inputs(128),inputs(128)];
+        for start in [1,usize::MAX-127] {
+            let seq:Vec<_>=rows.iter().zip(&blocks).map(|(inputs,blocks)|Sequence{inputs,start_position:start,blocks}).collect();
+            assert!(!GroupPrefill::supports_three_owner512(&seq));
+        }
+        rows[0][127].logits=true;
+        let seq:Vec<_>=rows.iter().zip(&blocks).map(|(inputs,blocks)|Sequence{inputs,start_position:0,blocks}).collect();
+        assert!(!GroupPrefill::supports_three_owner512(&seq));
     }
 }
