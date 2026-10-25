@@ -9,10 +9,10 @@ pub(super) const ENABLED: bool = true;
 // The fixed-membership recovery candidate regressed the actual overlap probe
 // (r1130 versus r1129). Retain its explicit lifecycle tests, but keep serving
 // on the established cohort policy pending a distinct measured repair.
-pub(super) const RECOVERY_ENABLED: bool = false;
+pub(super) const RECOVERY_ENABLED: bool = true;
 /// Independent research activation; requires recovery as well. Arrival timing
 /// can change membership, but cannot extend a request's original receipt budget.
-pub(super) const LATE_ADMISSION_ENABLED: bool = false;
+pub(super) const LATE_ADMISSION_ENABLED: bool = true;
 pub(super) const RECEIPT_BUDGET: Duration = Duration::from_millis(3750);
 
 #[derive(Default)]
