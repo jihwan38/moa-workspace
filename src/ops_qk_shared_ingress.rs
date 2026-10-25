@@ -5,6 +5,7 @@ axes![SharedFullRow64=64];
 pub type QueryOutput=m![P128/64,Qf/128,P128%64,Qf%128];
 pub type KeyOutput=m![P128/64,Pf/8,P128%64,Pf%8];
 type Cluster=m![P128/64];
+type InputRows=m![P128%8,P128/8%8,H/960];
 type SharedParts=m![SharedFullRow64,H/960];
 type SharedRows=m![SharedFullRow64,1#4];
 type QfParts=m![Qf/128,H/960];
