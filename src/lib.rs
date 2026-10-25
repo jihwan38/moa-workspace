@@ -273,3 +273,5 @@ pub mod ops_int4_rational_quant;
 pub mod ops_int4_rational_lut;
 
 pub mod ops_int4_rational_lut_p512;
+
+pub mod ops_int4_rational_lut_p512_compact;
