@@ -1,4 +1,4 @@
-//! Original grouped norm launches versus exact fused Prompt512 execution.
+//! Canonical versus blocked sliding O stores with identical fused Prompt512 norms.
 //! Args: start(default896), interleave0/1(default1). No HTTP dispatch changes.
 use furiosa_opt_gemma4::{
     LAYERS,
