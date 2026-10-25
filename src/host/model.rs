@@ -227,6 +227,19 @@ impl Model {
         );
         Ok(())
     }
+    /// Diagnostic control: retain the original normalization/packing launches
+    /// for this one independently validated group. The selector belongs to its
+    /// prepared state, so no mode persists after completion or cancellation.
+    pub async fn start_prefill_group_original_norms(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_group(device, sequences, workspace).await?;
+        self.active_group.as_mut().unwrap().original_norms();
+        Ok(())
+    }
     /// A completed layer is the only safe yield point. On an execution error or
     /// an aborted in-flight future, discard this model/workspace; do not retry
     /// a partially updated group. The caller retains all four allocations.
@@ -312,6 +325,21 @@ impl Model {
         Ok(())
     }
 
+    /// Diagnostic control for the same chronological Prompt512 execution,
+    /// changing only the exact norm/quantization fusion launch boundary.
+    pub async fn start_prefill512_original_norms(
+        &mut self,
+        device: &mut Device,
+        sequence: &Sequence<'_>,
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill512(device, sequence, workspace).await?;
+        match self.active_prefill.as_mut().unwrap() {
+            ActivePrefill::Prompt512(state) => state.original_norms(),
+            _ => unreachable!("start_prefill512 owns Prompt512 state"),
+        }
+        Ok(())
+    }
     /// Prepare one request's embeddings and masks without advancing Generation.
     /// Only one prompt chunk can be in flight; independent request decode may run
     /// between subsequent complete-layer advances. Retain the same Workspace

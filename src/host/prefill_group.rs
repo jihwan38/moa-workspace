@@ -48,6 +48,8 @@ pub(crate) struct GroupPrefill {
 }
 pub(crate) struct PreparedGroup {
     states: [PreparedWide; 4],
+    // Owned by this prepared execution; no persistent Model mode survives cancellation.
+    fused_norms: bool,
 }
 /// Four chronological chunks of one request. Only its single allocation may be
 /// exposed to the scheduler; the four copies below are execution metadata.
@@ -55,11 +57,13 @@ pub(crate) struct PreparedPrompt512 {
     chunks: PreparedGroup,
 }
 impl PreparedPrompt512 {
+    pub(crate) fn original_norms(&mut self) { self.chunks.fused_norms = false; }
     pub(crate) fn blocks(&self) -> &runtime::Blocks {
         &self.chunks.states[0].blocks
     }
 }
 impl PreparedGroup {
+    pub(crate) fn original_norms(&mut self) { self.fused_norms = false; }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 4] {
         [
             &self.states[0].blocks,
@@ -179,6 +183,7 @@ impl GroupPrefill {
     ) -> Result<PreparedGroup> {
         debug_assert_eq!(sequences.len(), 4);
         Ok(PreparedGroup {
+            fused_norms: true,
             states: [
                 self.rows[0]
                     .prepare(device, weights, &sequences[0], scratch, true)
@@ -337,10 +342,6 @@ impl GroupPrefill {
             Layer::Sliding(l) => &l.post_attention_norm,
             Layer::Full(l) => &l.post_attention_norm,
         };
-        for row in &mut self.rows {
-            row.post_attention(device, post_attention, scratch).await?;
-        }
-        scratch.record_optional_profile("group.attention.post_norm", &mut output_mark);
         let (mlp, pre, post, gate) = match layer {
             Layer::Sliding(l) => (
                 &l.mlp,
@@ -356,33 +357,46 @@ impl GroupPrefill {
             ),
         };
         let mut mark = scratch.profile_mark();
-        for row in &mut self.rows {
-            row.normalize(device, pre, scratch).await?;
+        if state.fused_norms {
+            let [a, b, c, d] = &mut self.rows;
+            launch(crate::ops_norm_fused::post_attention_ffn_input_four,
+                (device, &a.projected, &b.projected, &c.projected, &d.projected,
+                 post_attention, pre, &mut a.x, &mut b.x, &mut c.x, &mut d.x,
+                 &mut self.q_input, &mut self.input_scale)).await?;
+            scratch.record_optional_profile("group.ffn.fused_norm_quantize", &mut mark);
+        } else {
+            for row in &mut self.rows {
+                row.post_attention(device, post_attention, scratch).await?;
+            }
+            scratch.record_optional_profile("group.attention.post_norm", &mut mark);
+            for row in &mut self.rows {
+                row.normalize(device, pre, scratch).await?;
+            }
+            scratch.record_optional_profile("group.ffn.pre_norm", &mut mark);
+            launch(
+                group_io::pack_hidden_group,
+                (
+                    device,
+                    &self.rows[0].norm,
+                    &self.rows[1].norm,
+                    &self.rows[2].norm,
+                    &self.rows[3].norm,
+                    &self.zero,
+                    &self.second,
+                    &self.third,
+                    &self.fourth,
+                    &mut self.norm,
+                ),
+            )
+            .await?;
+            scratch.record_optional_profile("group.ffn.pack", &mut mark);
+            launch(
+                crate::ops_native_fp8_p512_blocks::quantize_hidden,
+                (device, &self.norm, &mut self.q_input, &mut self.input_scale),
+            )
+            .await?;
+            scratch.record_optional_profile("group.ffn.quantize_hidden", &mut mark);
         }
-        scratch.record_optional_profile("group.ffn.pre_norm", &mut mark);
-        launch(
-            group_io::pack_hidden_group,
-            (
-                device,
-                &self.rows[0].norm,
-                &self.rows[1].norm,
-                &self.rows[2].norm,
-                &self.rows[3].norm,
-                &self.zero,
-                &self.second,
-                &self.third,
-                &self.fourth,
-                &mut self.norm,
-            ),
-        )
-        .await?;
-        scratch.record_optional_profile("group.ffn.pack", &mut mark);
-        launch(
-            crate::ops_native_fp8_p512_blocks::quantize_hidden,
-            (device, &self.norm, &mut self.q_input, &mut self.input_scale),
-        )
-        .await?;
-        scratch.record_optional_profile("group.ffn.quantize_hidden", &mut mark);
         launch(
             crate::ops_native_fp8_p512_ingress::project_up_scaled,
             (device, &self.q_input, &self.input_scale, &mlp.native_fp8.up,
