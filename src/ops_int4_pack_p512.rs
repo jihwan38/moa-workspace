@@ -6,6 +6,8 @@ use crate::{
 };
 use furiosa_opt_std::prelude::*;
 
+axes![InputWords = 480, HiddenWords = 1920, Nibbles = 8];
+
 type Cluster = m![P512 / 256];
 type Rows = m![P512 % 256];
 pub type PackedInput = m![P512 / 256, H / 960, P512 % 256, H % 960 / 8];
@@ -13,37 +15,50 @@ pub type PackedHidden = m![P512 / 256, L / 960, P512 % 256, L % 960 / 8];
 pub type I4Input = crate::ops_batch_layouts::P512H960;
 pub type I4Hidden = crate::ops_batch_layouts::P512L960;
 
-fn pack_dm<K: AxisName>(
+fn pack_dm<K: AxisName, W: AxisName>(
     device: &mut Device,
     input: &HbmTensor<i32, Chip, m![P512, K]>,
     shifts: &HbmTensor<i32, Chip, m![K % 8]>,
 ) -> DmTensor<i32, Chip, Cluster, Rows, m![K / 8]> {
     let input: DmTensor<i32, Chip, Cluster, Rows, m![K]> = input.to_dm(&mut device.tdma);
+    // SAFETY: at every fixed (chip,cluster,slice), canonical local offset k
+    // becomes (word=k/8,nibble=k%8), whose row-major offset is 8*word+nibble=k.
+    // No padding, dtype, cluster, slice, or byte order changes. Consuming DM
+    // reshape is the SDK's explicit same-wire axis regrouping, not a transpose.
+    let input: DmTensor<i32, Chip, Cluster, Rows, m![W, Nibbles]> =
+        unsafe { input.reshape() };
     let shifts: DmTensor<i32, Chip, Cluster, Rows, m![K % 8]> = shifts.to_dm(&mut device.tdma);
-    let shifts: VrfTensor<i32, Chip, Cluster, Rows, m![K % 8]> = device
+    // SAFETY: both local mappings are precisely eight contiguous I32 values.
+    let shifts: DmTensor<i32, Chip, Cluster, Rows, m![Nibbles]> =
+        unsafe { shifts.reshape() };
+    let shifts: VrfTensor<i32, Chip, Cluster, Rows, m![Nibbles]> = device
         .sub
         .begin(shifts.view())
-        .fetch::<m![1], m![K % 8]>()
-        .collect::<m![1], m![K % 8]>()
+        .fetch::<m![1], m![Nibbles]>()
+        .collect::<m![1], m![Nibbles]>()
         .to_vrf();
     // Masked fields occupy disjoint bits. Any subset sum fits signed I32,
     // including the negative top nibble, so AddSat equals the intended OR.
-    device
+    let packed: DmTensor<i32, Chip, Cluster, Rows, m![W]> = device
         .main
         .begin(input.view())
-        .fetch::<m![K / 8], m![K % 8]>()
-        .collect::<m![K / 8], m![K % 8]>()
+        .fetch::<m![W], m![Nibbles]>()
+        .collect::<m![W], m![Nibbles]>()
         .vector_init()
         .vector_intra_slice_tag(TagMode::Zero)
         .vector_logic(LogicBinaryOpI32::BitAnd, 15i32)
         .vector_logic(LogicBinaryOpI32::LeftShift, &shifts)
-        .vector_narrow_split::<m![K / 4], m![K % 4]>()
-        .vector_intra_slice_reduce::<K, m![K / 8], m![1 # 4]>(IntraSliceReduceOpI32::AddSat)
+        .vector_narrow_split::<m![W, Nibbles / 4], m![Nibbles % 4]>()
+        .vector_intra_slice_reduce::<Nibbles, m![W], m![1 # 4]>(IntraSliceReduceOpI32::AddSat)
         .vector_widen_pad::<m![1 # 8]>()
         .vector_final()
-        .transpose::<m![K / 16], m![K / 8 % 2 # 8]>()
-        .commit_trim::<m![K / 8 % 2]>()
-        .commit()
+        .transpose::<m![W / 2], m![W % 2 # 8]>()
+        .commit_trim::<m![W % 2]>()
+        .commit();
+    // SAFETY: packed local offset w remains w under K/8; both contain K::SIZE/8
+    // contiguous I32 words. The subsequent DMA, not this rename, changes the
+    // physical HBM order to K960 blocks across rows.
+    unsafe { packed.reshape() }
 }
 
 #[device(chip = 1)]
@@ -53,7 +68,7 @@ pub fn pack_input(
     shifts: &HbmTensor<i32, Chip, m![H % 8]>,
     output: &mut HbmTensor<i32, Chip, PackedInput>,
 ) {
-    let dense = pack_dm::<H>(device, input, shifts);
+    let dense = pack_dm::<H, InputWords>(device, input, shifts);
     // Physical bytes become [P/256,H/960,P%256,H%960/8]. This is DMA,
     // not a reshape/bitcast; every layout-transfer cost belongs to this kernel.
     dense
@@ -68,7 +83,7 @@ pub fn pack_hidden(
     shifts: &HbmTensor<i32, Chip, m![L % 8]>,
     output: &mut HbmTensor<i32, Chip, PackedHidden>,
 ) {
-    let dense = pack_dm::<L>(device, input, shifts);
+    let dense = pack_dm::<L, HiddenWords>(device, input, shifts);
     dense
         .view()
         .to_hbm_view(&mut device.tdma, output.view_mut());

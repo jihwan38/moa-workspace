@@ -11,7 +11,7 @@
     "local_dense_packed": "K/8 I32",
     "owned_blocked_words": "[P512/256,K/960,P512%256,K%960/8]",
     "byte_offset": "((((p/256)*(K/960)+k/960)*256+p%256)*960+k%960)/2; even k low nibble, odd k high nibble",
-    "conversion": "Real DMA store from canonical packed DM to blocked HBM; all conversion work stays inside the pack resource. No unsafe reshape, tensor dtype cast or omitted per-request layout transfer"
+    "conversion": "Three explicit consumed I32 DM same-wire axis regroupings (K to Word/Nibble8, 8 shifts to Nibble8, Word to K/8) have exact linear-index proofs in source. They do not move, permute, pad, or change dtype. Canonical packed DM to K960-blocked HBM remains a real charged DMA; no dtype or layout reinterpretation."
   },
   "consumer_contract": {
     "up_source": "batch-kernels/src/ops_native_i4_p512_bound.rs::project_up_scaled Input=[P/256,H/960,P%256,I4K960]",
@@ -36,5 +36,17 @@
   "probe_source": "Independent pair-of-nibbles byte encoder versus eight-field word encoder; all16 top nibbles, signed endpoints, zeros, distinct row/shard coordinates, true row/channel permutations; whole packed/canonical bytes and immutable inputs/shifts, exact-owner extents/alignment/overlap validation",
   "ownership": "Packed I32 owner retained immutable across awaited raw call; output is a distinct owning HbmTensor. Public Buffers clones remain local through completion; no fabricated address or private SDK binding",
   "build_policy": "Original Cargo and lock, incremental0/debug0, tail256-model target exclusive, unique public FURIOSA_OPT_OUT_DIR for resource builds; disk3.2GiB at start, no deletions",
-  "not_claimed": ["No weight quantization or activation math change", "No actual speedup", "No complete FFN", "No model quality", "No full-rate K128 INT4 revival"]
+  "not_claimed": [
+    "No weight quantization or activation math change",
+    "No actual speedup",
+    "No complete FFN",
+    "No model quality",
+    "No full-rate K128 INT4 revival"
+  ],
+  "preserved_failure": {
+    "run": "runs/a001-rational-pack-p512-h-resource",
+    "source": "7a43bf6b664a8d646ced7d1078660b208f683ee6",
+    "cause": "Named K intra-slice reduction removes retained K/8 time at lowering; final transpose mismatch. No resource/capacity conclusion.",
+    "repair": "Distinct W/Nibbles axes via documented same-wire consumed DM reshape, preserving every physical address."
+  }
 }
