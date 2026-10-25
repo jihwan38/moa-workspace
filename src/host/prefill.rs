@@ -47,7 +47,13 @@ pub(crate) struct PreparedNarrow {
     commits: CommitOffsets,
 }
 
+struct Fp8LmShadow {
+    weight: HbmTensor<f8e4m3, Chip, m![W,H]>,
+    scale: HbmTensor<f32, Chip, m![W]>,
+}
+
 pub(crate) struct Prefill {
+    lm_fp8: Option<Fp8LmShadow>,
     // Dedicated decode raw layouts; canonical scratch remains available to prompts and diagnostics.
     decode_blocked_output: bool,
     staged_ffn: bool,
@@ -99,6 +105,17 @@ pub(crate) struct Prefill {
 }
 
 impl Prefill {
+    pub(crate) fn has_lm_fp8(&self) -> bool { self.lm_fp8.is_some() }
+    pub(crate) async fn prepare_lm_fp8(&mut self, device:&mut Device, weights:&Weights) -> Result<()> {
+        if self.lm_fp8.is_none() {
+            let (weight,scale)=launch(crate::ops_b16_lm_fp8::quantize_embedding,
+                (device,&weights.embedding_table)).await?;
+            self.lm_fp8=Some(Fp8LmShadow { weight,scale });
+        }
+        Ok(())
+    }
+
+
     pub(crate) fn set_prefix_fused(&mut self, enabled: bool) {
         self.prefix_fused = enabled;
     }
@@ -165,6 +182,7 @@ impl Prefill {
             };
         }
         Ok(Self {
+            lm_fp8: None,
             decode_blocked_output: true,
             staged_ffn: true,
             epilogue_fused: true,
