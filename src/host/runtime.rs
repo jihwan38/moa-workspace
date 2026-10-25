@@ -139,6 +139,71 @@ pub(crate) async fn encode_vision_patches_b16(
     Ok(output)
 }
 
+/// Pack independent frame values in caller order; inactive output rows are zero
+/// inputs and must not be scattered over text/image embeddings by the caller.
+fn pack_audio_frames(frames: &[&[bf16]], capacity: usize)
+    -> Result<Vec<bf16>, Box<dyn std::error::Error>> {
+    if frames.is_empty() || frames.len() > capacity {
+        return Err(format!("audio batch needs1..={capacity} frames").into());
+    }
+    if frames.iter().any(|frame| frame.len() != Aa::SIZE) {
+        return Err("every audio frame must be Aa-wide".into());
+    }
+    let mut packed = vec![bf16::from_f32(0.0); capacity * Aa::SIZE];
+    for (row, frame) in frames.iter().enumerate() {
+        packed[row * Aa::SIZE..(row + 1) * Aa::SIZE].copy_from_slice(frame);
+    }
+    Ok(packed)
+}
+
+/// Exact scalar audio arithmetic for up to16 independent frames. This helper
+/// uploads one packed input and receives a fresh fully written device output;
+/// it never allocates/uploads a zero output or modifies hidden/KV storage.
+pub async fn encode_audio_frames_b16(
+    device: &mut Device,
+    projection: &HbmTensor<bf16, Chip, m![H,Aa]>,
+    frames: &[&[bf16]],
+) -> Result<HbmTensor<bf16, Chip, m![B,H]>, Box<dyn std::error::Error>> {
+    let input = HostTensor::<bf16,m![B,Aa]>::from_vec(pack_audio_frames(frames,B::SIZE)?)
+        .to_hbm(&mut device.pdma).await?;
+    Ok(launch(crate::ops_audio_batch::audio_project_b16,
+        (device, &input, projection)).await?)
+}
+
+/// P128 counterpart. Only frames.len() rows are live; their order is unchanged.
+pub async fn encode_audio_frames_p128(
+    device: &mut Device,
+    projection: &HbmTensor<bf16, Chip, m![H,Aa]>,
+    frames: &[&[bf16]],
+) -> Result<HbmTensor<bf16, Chip, m![P128,H]>, Box<dyn std::error::Error>> {
+    let input = HostTensor::<bf16,m![P128,Aa]>::from_vec(pack_audio_frames(frames,P128::SIZE)?)
+        .to_hbm(&mut device.pdma).await?;
+    Ok(launch(crate::ops_audio_batch::audio_project_p128,
+        (device, &input, projection)).await?)
+}
+
+#[cfg(test)]
+mod audio_batch_tests {
+    use super::*;
+    #[test]
+    fn packing_preserves_independent_rows_order_and_zero_padding() {
+        let a=vec![bf16::from_f32(0.25); Aa::SIZE];
+        let b=vec![bf16::from_f32(-0.5); Aa::SIZE];
+        let packed=pack_audio_frames(&[&b,&a,&b],B::SIZE).unwrap();
+        assert_eq!(&packed[..Aa::SIZE],b.as_slice());
+        assert_eq!(&packed[Aa::SIZE..2*Aa::SIZE],a.as_slice());
+        assert_eq!(&packed[2*Aa::SIZE..3*Aa::SIZE],b.as_slice());
+        assert!(packed[3*Aa::SIZE..].iter().all(|x|x.to_bits()==0));
+    }
+    #[test]
+    fn invalid_frames_are_rejected_before_device_allocation() {
+        let a=vec![bf16::from_f32(0.25); Aa::SIZE];
+        assert!(pack_audio_frames(&[],B::SIZE).is_err());
+        assert!(pack_audio_frames(&vec![a.as_slice(); B::SIZE+1],B::SIZE).is_err());
+        assert!(pack_audio_frames(&[&a[..Aa::SIZE-1]],B::SIZE).is_err());
+    }
+}
+
 pub(crate) enum KvCache {
     /// Canonical request slots: every execution path reads/writes this allocation.
     SlidingCanonical {

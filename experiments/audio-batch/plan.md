@@ -1,0 +1,7 @@
+# Exact batched audio encoding
+
+Base7d6b102. The original runtime uploads640BF16 samples, uploads a zero3840BF16 output, launches one scalar encoder, then callers upload a row offset and launch an insertion for each frame. The scalar encoder applies one full640-wide F32 RMS reduction (divide640, EPS, sqrt), DivF and BF16 rounding, then an unsplit K640 BF16 dot and BF16 output.
+
+Candidate copies that normalization arithmetic per independent row, uses two clusters forB16/P128, shares the original BF16 projection weights across8 or64 frames per cluster, and returns a newly allocated fully written output. P128 uses two32-row TRF epochs, each retainingK640 unsplit. No request or frame computation is reused. Runtime helpers only pack existing frame values in caller order, zero inactive input rows and return dense embeddings. Root owns explicit valid-row scatter and serving integration. Original scalar path remains unchanged.
+
+Required gates: candidate-first poisoned outputs versus every original scalar output; independent double RMS and dot checks; permutation and partial zero padding; immutable input/weight and independent returned allocation ownership; actual provided audio weights; whole16-frame and128-frame wall time including input packing/upload/output allocation and all device completions, with reads/scatter excluded symmetrically. No serving adoption before actual model and audio quality checks.
