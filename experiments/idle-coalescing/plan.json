@@ -1,0 +1,19 @@
+{
+  "base": "640b167bbcc4196e88b5be926a60e57c808315eb",
+  "observed": "r739/319041 seq60 begins one128 chunk despite eleven requests arriving during work. Total wave then leaves seq82-84 singleton128 tails, work281.481ms/span573.010ms, crossing finite cohort deadline. Prior waves seq38-39 also singleton tails.",
+  "change": "Only fully idle worker blocks for first Job then collects additional FIFO arrivals until fixed2ms from first receipt, or capacity/disconnect. Capture each actual receive Instant before wait; never reset deadline. Active/pending/held workers retain existing nonblocking ingress. No benchmark/prompt/content condition and no cross-request reuse.",
+  "removed_work": "When enough arrivals fit window, existing grouped arithmetic consumes512 instead of first128 and three trailing128. No extra model path or omitted tokens. Fixed<=2ms idle admission cost.",
+  "gates": [
+    "Receiver FIFO/capacity/no-loss/disconnect/deadline tests",
+    "Existing ownership/cohort78 tests",
+    "Identical frozen model source apart from ingress helper",
+    "C11 realwarm77 and actualchunktrace confirm packing and bounded wait; all6 accuracy before adoption"
+  ],
+  "limitations": "Host thread scheduling can exceed wallclock timeout; 2ms is requested wait bound. Does not address3rd-place arithmetic throughput gap; other lanes remain active.",
+  "review": "round2_path independently verified11,264 tokens=22x512 butseq60 consumes128, seq61-81=21x512 andseq82-84=384. Existingreceipttimestampsareworker-dequeue, soactual2mscapturerateunknown;measureSCHED_IDLE andunchangedchunktrace.",
+  "host_tests": {
+    "run": "r745-c061-idle-host-tests",
+    "passed": 81,
+    "failed": 0
+  }
+}

@@ -17,6 +17,8 @@ mod startup_cohort;
 use startup_cohort::{StartupCohort, StartupDelivery};
 #[path = "chunk_trace.rs"]
 mod chunk_trace;
+#[path = "idle_batch.rs"]
+mod idle_batch;
 
 /// Requests computed together; more wait in the queue.
 pub const CAPACITY: usize = crate::axes::B::SIZE;
@@ -496,20 +498,26 @@ impl Worker {
                 cohort.reset_idle();
             }
             let incoming: Vec<_> = if sessions.is_empty() && pending.is_empty() {
-                let Ok(job) = jobs.recv() else { break };
-                std::iter::once(job)
-                    .chain(jobs.try_iter())
-                    .take(capacity)
-                    .collect()
+                // A fixed short idle window avoids launching an isolated P128
+                // while the rest of an arriving batch is still being enqueued.
+                // Receipt timestamps include this wait in the cohort budget.
+                let Some(batch) = idle_batch::receive(&jobs, capacity) else { break };
+                if chunk_trace_enabled {
+                    eprintln!("SCHED_IDLE batch={} wait_ms={:.3} receipt_span_ms={:.3}",
+                        batch.len(), batch[0].1.elapsed().as_secs_f64() * 1000.0,
+                        batch.last().unwrap().1.duration_since(batch[0].1).as_secs_f64() * 1000.0);
+                }
+                batch
             } else {
                 jobs.try_iter()
                     .take(capacity - sessions.len() - pending.len())
+                    .map(|job| (job, Instant::now()))
                     .collect()
             };
-            for job in incoming {
+            for (job, received) in incoming {
                 request_id += 1;
                 let timing =
-                    SessionTiming::new(request_id, job.request.prompt_ids.len(), Instant::now());
+                    SessionTiming::new(request_id, job.request.prompt_ids.len(), received);
                 let empty = job.request.max_new_tokens == 0;
                 let Some(positions) = job
                     .request
