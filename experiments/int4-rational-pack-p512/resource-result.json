@@ -1,0 +1,471 @@
+{
+  "decision": "HOLD overall: input exceeds frozen cap; hidden passes full shape without spill or tiling",
+  "failed_first_variant": {
+    "failure": "K-named reduction drops retained K/8 time, so final transpose mismatches; no resource result",
+    "run": "a001-rational-pack-p512-h-resource",
+    "source": "7a43bf6b664a8d646ced7d1078660b208f683ee6"
+  },
+  "hidden": {
+    "actual_sram_peak_live_payload_union_bytes": 35389440,
+    "blocked_packed_output_bytes": 3932160,
+    "compile_exit": 0,
+    "complete_timeline_cycles": 180627,
+    "dram_stack_allocations": [],
+    "operations": [
+      {
+        "cycles": 5708,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 1003,
+              "end": 6711
+            },
+            "resources": [
+              "DmaEngine"
+            ],
+            "util": {
+              "base_util": 0.0022775054,
+              "efficiency": 1.0,
+              "total_util": 0.0022775054
+            }
+          }
+        ],
+        "id": "@1",
+        "kind": "dma.dto_s",
+        "source": "--> src/ops_int4_pack_p512.rs:30:65\n\nshifts.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 26475,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 6714,
+              "end": 33189
+            },
+            "resources": [
+              "DmaEngine"
+            ],
+            "util": {
+              "base_util": 0.87369215,
+              "efficiency": 1.0,
+              "total_util": 0.87369215
+            }
+          }
+        ],
+        "id": "@10",
+        "kind": "dma.dto_s",
+        "source": "--> src/ops_int4_pack_p512.rs:23:60\n\ninput.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 4120,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 33192,
+              "end": 37312
+            },
+            "resources": [
+              "MainContext",
+              "VectorEngine"
+            ],
+            "util": {
+              "base_util": 0.0,
+              "efficiency": 0.0,
+              "total_util": 0.0
+            }
+          }
+        ],
+        "id": "@17",
+        "kind": "rngd_cmd.tu_exec",
+        "source": "--> src/ops_int4_pack_p512.rs:42:61\n\ndevice\n.main\n.begin(input.view())\n.fetch::<m![W], m![Nibbles]>()\n.collect::<m![W], m![Nibbles]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_logic(LogicBinaryOpI32::BitAnd, 15i32)\n.vector_logic(LogicBinaryOpI32::LeftShift, &shifts)\n.vector_narrow_split::<m![W, Nibbles / 4], m![Nibbles % 4]>()\n.vector_intra_slice_reduce::<Nibbles, m![W], m![1 # 4]>(IntraSliceReduceOpI32::AddSat)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.transpose::<m![W / 2], m![W % 2 # 8]>()\n.commit_trim::<m![W % 2]>()\n.commit()"
+      },
+      {
+        "cycles": 142715,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 37312,
+              "end": 180027
+            },
+            "resources": [
+              "DmaEngine"
+            ],
+            "util": {
+              "base_util": 0.020264164,
+              "efficiency": 1.0,
+              "total_util": 0.020264164
+            }
+          }
+        ],
+        "id": "@21",
+        "kind": "dma.sto_d",
+        "source": "--> src/ops_int4_pack_p512.rs:87:5\n\ndense\n.view()\n.to_hbm_view(&mut device.tdma, output.view_mut())"
+      },
+      {
+        "cycles": 267,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 6711,
+              "end": 6978
+            },
+            "resources": [
+              "SubContext"
+            ],
+            "util": {
+              "base_util": 0.0,
+              "efficiency": 0.0,
+              "total_util": 0.0
+            }
+          }
+        ],
+        "id": "@8",
+        "kind": "rngd_cmd.sto_vrf",
+        "source": "--> src/ops_int4_pack_p512.rs:34:68\n\ndevice\n.sub\n.begin(shifts.view())\n.fetch::<m![1], m![Nibbles]>()\n.collect::<m![1], m![Nibbles]>()\n.to_vrf()"
+      }
+    ],
+    "ordinary_i32_input_bytes": 31457280,
+    "predeclared_cycle_cap": 200000,
+    "resource_gate": "PASS",
+    "run": "a003-rational-pack-p512-l-resource",
+    "schedule": "hidden-schedule.json",
+    "schedule_sha256": "38611dcaba8003725d5b76bc3725bffa293476ff8bcb2c85a1425e5b816bbe77",
+    "source_commit": "9f9a276293eef64d8de4fb26f8b070c8e5d65a9f",
+    "sram_allocations_including_reshape_aliases": [
+      {
+        "allocation": {
+          "address": 33554432,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            2
+          ],
+          "size": 3932160
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 33192,
+          "end": 37312
+        },
+        "tensor": "%T8"
+      },
+      {
+        "allocation": {
+          "address": 0,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 6711,
+          "end": 6978
+        },
+        "tensor": "%T6"
+      },
+      {
+        "allocation": {
+          "address": 0,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 1003,
+          "end": 6711
+        },
+        "tensor": "%T5"
+      },
+      {
+        "allocation": {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0,
+            1
+          ],
+          "size": 31457280
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 33189,
+          "end": 37312
+        },
+        "tensor": "%T4"
+      },
+      {
+        "allocation": {
+          "address": 33554432,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            2
+          ],
+          "size": 3932160
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 37312,
+          "end": 180027
+        },
+        "tensor": "%T9"
+      },
+      {
+        "allocation": {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0,
+            1
+          ],
+          "size": 31457280
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 6714,
+          "end": 33189
+        },
+        "tensor": "%T3"
+      }
+    ]
+  },
+  "input": {
+    "actual_sram_peak_live_payload_union_bytes": 8847360,
+    "blocked_packed_output_bytes": 983040,
+    "compile_exit": 0,
+    "complete_timeline_cycles": 52085,
+    "dram_stack_allocations": [],
+    "operations": [
+      {
+        "cycles": 5708,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 1003,
+              "end": 6711
+            },
+            "resources": [
+              "DmaEngine"
+            ],
+            "util": {
+              "base_util": 0.0022775054,
+              "efficiency": 1.0,
+              "total_util": 0.0022775054
+            }
+          }
+        ],
+        "id": "@1",
+        "kind": "dma.dto_s",
+        "source": "--> src/ops_int4_pack_p512.rs:30:65\n\nshifts.to_dm(&mut device.tdma)"
+      },
+      {
+        "cycles": 1240,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 13741,
+              "end": 14981
+            },
+            "resources": [
+              "MainContext",
+              "VectorEngine"
+            ],
+            "util": {
+              "base_util": 0.0,
+              "efficiency": 0.0,
+              "total_util": 0.0
+            }
+          }
+        ],
+        "id": "@15",
+        "kind": "rngd_cmd.tu_exec",
+        "source": "--> src/ops_int4_pack_p512.rs:42:61\n\ndevice\n.main\n.begin(input.view())\n.fetch::<m![W], m![Nibbles]>()\n.collect::<m![W], m![Nibbles]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_logic(LogicBinaryOpI32::BitAnd, 15i32)\n.vector_logic(LogicBinaryOpI32::LeftShift, &shifts)\n.vector_narrow_split::<m![W, Nibbles / 4], m![Nibbles % 4]>()\n.vector_intra_slice_reduce::<Nibbles, m![W], m![1 # 4]>(IntraSliceReduceOpI32::AddSat)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.transpose::<m![W / 2], m![W % 2 # 8]>()\n.commit_trim::<m![W % 2]>()\n.commit()"
+      },
+      {
+        "cycles": 36504,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 14981,
+              "end": 51485
+            },
+            "resources": [
+              "DmaEngine"
+            ],
+            "util": {
+              "base_util": 0.019806048,
+              "efficiency": 1.0,
+              "total_util": 0.019806048
+            }
+          }
+        ],
+        "id": "@19",
+        "kind": "dma.sto_d",
+        "source": "--> src/ops_int4_pack_p512.rs:74:5\n\ndense\n.view()\n.to_hbm_view(&mut device.tdma, output.view_mut())"
+      },
+      {
+        "cycles": 267,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 6711,
+              "end": 6978
+            },
+            "resources": [
+              "SubContext"
+            ],
+            "util": {
+              "base_util": 0.0,
+              "efficiency": 0.0,
+              "total_util": 0.0
+            }
+          }
+        ],
+        "id": "@8",
+        "kind": "rngd_cmd.sto_vrf",
+        "source": "--> src/ops_int4_pack_p512.rs:34:68\n\ndevice\n.sub\n.begin(shifts.view())\n.fetch::<m![1], m![Nibbles]>()\n.collect::<m![1], m![Nibbles]>()\n.to_vrf()"
+      },
+      {
+        "cycles": 7030,
+        "entries": [
+          {
+            "iteration_index": null,
+            "lifetime": {
+              "begin": 6711,
+              "end": 13741
+            },
+            "resources": [
+              "DmaEngine"
+            ],
+            "util": {
+              "base_util": 0.82261735,
+              "efficiency": 1.0,
+              "total_util": 0.82261735
+            }
+          }
+        ],
+        "id": "@9",
+        "kind": "dma.dto_s",
+        "source": "--> src/ops_int4_pack_p512.rs:23:60\n\ninput.to_dm(&mut device.tdma)"
+      }
+    ],
+    "ordinary_i32_input_bytes": 7864320,
+    "predeclared_cycle_cap": 50000,
+    "resource_gate": "HOLD",
+    "run": "a002-rational-pack-p512-h-resource",
+    "schedule": "input-schedule.json",
+    "schedule_sha256": "9a37eb7c36bf4692476348e8528d69c23694fab27d034bd3f57561b019f0f084",
+    "source_commit": "9f9a276293eef64d8de4fb26f8b070c8e5d65a9f",
+    "sram_allocations_including_reshape_aliases": [
+      {
+        "allocation": {
+          "address": 7995392,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0
+          ],
+          "size": 983040
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 13741,
+          "end": 14981
+        },
+        "tensor": "%T8"
+      },
+      {
+        "allocation": {
+          "address": 0,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 6711,
+          "end": 6978
+        },
+        "tensor": "%T6"
+      },
+      {
+        "allocation": {
+          "address": 0,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0
+          ],
+          "size": 16384
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 1003,
+          "end": 6711
+        },
+        "tensor": "%T5"
+      },
+      {
+        "allocation": {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0
+          ],
+          "size": 7864320
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 13741,
+          "end": 14981
+        },
+        "tensor": "%T4"
+      },
+      {
+        "allocation": {
+          "address": 7995392,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0
+          ],
+          "size": 983040
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 14981,
+          "end": 51485
+        },
+        "tensor": "%T9"
+      },
+      {
+        "allocation": {
+          "address": 131072,
+          "buffer_type": "Sram",
+          "physical_pages": [
+            0
+          ],
+          "size": 7864320
+        },
+        "iteration_index": null,
+        "lifetime": {
+          "begin": 6711,
+          "end": 13741
+        },
+        "tensor": "%T3"
+      }
+    ]
+  },
+  "scope": "Static full-P512 resource only, no ELF, actual device execution, quantizer, GEMM or model claim"
+}

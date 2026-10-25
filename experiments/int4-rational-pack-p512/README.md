@@ -1,0 +1,65 @@
+This is a full-P512 integer packing and public raw-buffer ABI experiment. It
+changes neither quantization nor a serving caller. The input is ordinary
+canonical I32 codes in [-8,7]; the output owns dense packed bytes in the exact
+P512H960/P512L960 order needed by the planned per960 I4 consumers.
+
+The preregistered resource gate is **not fully passed**:
+
+| Shape | Complete estimated cycles | Frozen cap | Result |
+|---|---:|---:|---|
+| P512×H3840 | 52,085 | 50,000 | HOLD |
+| P512×L15360 | 180,627 | 200,000 | PASS |
+
+These are static compiler timelines, not measured latency. Neither schedule has
+DramStack. Both perform the entire shape in one kernel; no P128 tiling or extra
+launch is hidden. Source/probe typecheck passed in a004. No standalone ELF,
+device execution, quantizer/GEMM integration, or model validation was performed.
+
+The hidden schedule allocates the complete 31,457,280-byte I32 tensor in SRAM
+pages 0 and 1. Its 3,932,160-byte packed result occupies page 2 and coexists with
+the input during packing: the peak live SRAM payload union is 35,389,440 bytes.
+The input shape peaks at 8,847,360 bytes. The compiler also allocates 16,384 bytes
+of VRF for the eight shifts broadcast to all 512 slices. Reshape aliases are
+counted once, as address unions; they are not extra copies.
+
+The actual canonical-DM → blocked-HBM stores are charged: 36,504 estimated cycles
+for H and 142,715 for L. Canonical input loads cost 7,030 and 26,475 respectively;
+packing TU costs 1,240 and 4,120. The common 32-byte shift-table HBM load costs
+5,708. These are individual operation spans, not additive wall-time claims.
+
+The initial source 7a43bf6b failed before scheduling: reducing the named K axis
+also removed retained K/8 time, so the subsequent transpose had a mapping
+mismatch. The original failure and source binding remain in a001. Source
+9f9a2762 repairs only that issue with distinct Word and Nibble axes. The SDK's
+consuming DM reshape is explicitly unsafe because equal sizes alone cannot
+prove physical order. Here the preconditions are:
+
+* Chip, Cluster=P/256, Slice=P%256, dtype I32, and padding are unchanged.
+* Local k becomes (word=k/8, nibble=k%8), whose linear offset is 8×word+nibble=k.
+* The eight shift records retain their offsets 0..7 when renamed Nibble.
+* After reducing Nibble, pairwise transpose/trim emits word=2×pair+lane,
+  lane∈{0,1}; Word→K/8 leaves each local word offset unchanged.
+* These consumed same-wire regroupings do not implement the blocked layout.
+  The subsequent real DMA writes word offset
+  `(((p/256)*(K/960)+k/960)*256+p%256)*120+(k%960)/8`.
+  Nibble lane is k%8, even channels in the low nibble.
+
+For the legacy UP ABI `[P/256,H/960,P%256,I4K960]`, I4K960 is exactly k%960 in
+this last formula. DOWN uses the identical L960 rule. The separate owning I32
+buffer therefore has the same bytes as those typed I4 inputs; it is not a tensor
+dtype cast. The checked adapter binds that owner through public DeviceSend /
+Buffers / backend Function::run, verifies exact whole-owner sizes, 256-byte
+alignment and non-overlap, and retains the borrowed owners through await.
+
+`src/bin/test_int4_pack_p512.rs` contains a future byte gate: independent
+pair-nibble and inverse-index eight-field encoders, all 16 signed top nibbles,
+endpoints/zero, a true row/channel permutation, candidate-first raw binding versus
+typed I4 readers, and complete input/table/output immutability. It verifies the
+blocked-byte ABI only; it does not establish a GEMM or quantization result.
+
+Reproduce the static report with
+`python3 experiments/int4-rational-pack-p512/analyze_resource.py`.
+`resource-result.json` binds both frozen schedules and compiler allocations;
+`provenance.json` binds source/config, copied run records/logs, and compiled
+resource artifacts. Original Cargo.toml, Cargo.lock and toolchain are retained.
+The first failed variant and input-cap miss are not relaxed or erased.
