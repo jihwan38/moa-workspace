@@ -55,7 +55,7 @@ pub struct Sequence<'a> {
     pub blocks: &'a Blocks,
 }
 
-/// q021 quality candidate: startup FP8 LM shadow, canonical B16 Automatic only.
+/// q021 quality candidate: startup FP8 LM shadow, B16 Automatic terminal LM only.
 const B16_LM_FP8_ENABLED: bool = true;
 
 pub struct Model {

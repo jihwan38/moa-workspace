@@ -3,7 +3,10 @@
 Root authorized activation after r1303/r1304/r1305 passed. The only activation
 change is B16_LM_FP8_ENABLED=false→true. Model::new already prepares the returned
 immutable q018 FP8 embedding shadow after complete q019 MSE FFN preparation;
-Automatic selects it only when execution reaches canonical B16 terminal LM.
+Automatic selects it only when execution reaches B16 terminal LM. This is the
+existing q018 LM scope, including noncanonical/mixed-call singleton B16 routes;
+the serving Worker uses canonical pools. The F4 eligibility guard remains
+separately stricter and is unchanged by LM selection.
 Explicit OriginalB16LmDiagnostic remains false, and LM-only selectors still
 normalize before F4 eligibility. Scalar, prompt, R32/R64, attention, FFN and
 pool geometry are unchanged. Original BF16 embedding remains retained.
