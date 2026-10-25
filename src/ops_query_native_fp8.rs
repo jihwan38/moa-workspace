@@ -10,7 +10,7 @@ type Cluster = m![P128 / 64];
 type QuantRows = m![P128 % 64 # 256];
 type Parts = m![Qs / 64, H / 960];
 type Rows = m![Qs/64,1 # 4];
-fn quantize_hidden(
+pub(crate) fn quantize_hidden(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, QuantRows, m![H]>,
 ) -> (

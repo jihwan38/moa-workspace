@@ -5,7 +5,7 @@ use crate::{Chip, EPS};
 use furiosa_opt_std::prelude::*;
 const H_F32: f32 = H::SIZE as f32;
 type Shards = m![P128/2%32,H/480];
-fn normalize(
+pub(crate) fn normalize(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, Shards, m![P128%2,H % 480]>,
     rms_weight: &HbmTensor<bf16, Chip, m![H]>,
@@ -99,7 +99,7 @@ fn normalize(
         .commit_trim::<m![H % 8]>()
         .commit()
 }
-fn residual_add(
+pub(crate) fn residual_add(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, Shards, m![P128%2,H % 480]>,
     previous: &HbmTensor<bf16, Chip, m![P128,H]>,
