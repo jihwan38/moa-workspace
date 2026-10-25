@@ -344,6 +344,26 @@ impl Model {
         Err("no grouped512-density prompt is awaiting its first layer".into())
     }
 
+    /// Default-off prepared-state-only norm-store control. Both arms retain
+    /// the current composed projection-owned FFN; only physical store placement changes.
+    /// Owner validation, attention, norms and completion rules are unchanged.
+    pub fn set_active_prefill_grouped_norm_stores(
+        &mut self, enabled: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if enabled && !self.group.as_ref().is_some_and(|g|g.has_projection_storage()) {
+            return Err("joined FFN weights were not prepared".into());
+        }
+        if let Some(state) = self.active_group.as_mut() { return state.grouped_norm_stores(enabled); }
+        if let Some(state) = self.active_prompt384128.as_mut() { return state.grouped_norm_stores(enabled); }
+        if let Some(state) = self.active_tail256.as_mut() { return state.grouped_norm_stores(enabled); }
+        if let Some(state) = self.active_tail384.as_mut() { return state.grouped_norm_stores(enabled); }
+        if let Some(state) = self.active_three_owner512.as_mut() { return state.grouped_norm_stores(enabled); }
+        if let Some(ActivePrefill::Prompt512(state)) = self.active_prefill.as_mut() {
+            return state.grouped_norm_stores(enabled);
+        }
+        Err("no grouped512-density prompt is awaiting its first layer".into())
+    }
+
     /// Scoped exact FFN-global-load control, enabled for new prepared owner
     /// shapes after model/cache gates. Selection is permitted only before layer0;
     /// no persistent Model or Worker mode survives completion/cancellation.

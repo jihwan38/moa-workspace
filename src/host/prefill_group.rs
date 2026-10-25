@@ -71,6 +71,7 @@ pub(crate) struct PreparedGroup {
     composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
     weight_stationary_qkv: bool,
+    grouped_norm_stores: bool,
 }
 /// Exactly two actual P128 execution states; padding has no request metadata.
 pub(crate) struct PreparedTail256 {
@@ -78,10 +79,21 @@ pub(crate) struct PreparedTail256 {
     composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
     weight_stationary_qkv: bool,
+    grouped_norm_stores: bool,
     states: [PreparedWide; 2],
     owners: usize,
 }
 impl PreparedTail256 {
+    pub(crate) fn grouped_norm_stores(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("norm stores must be selected before the first layer".into());
+        }
+        if enabled && !self.projection_owned_ffn {
+            return Err("grouped norm stores require the current projection-owned FFN graph".into());
+        }
+        self.grouped_norm_stores = enabled;
+        Ok(())
+    }
     pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
         if self.states.iter().any(|state| state.next_layer != 0) {
             return Err("O producer must be selected before the first layer".into());
@@ -101,7 +113,7 @@ impl PreparedTail256 {
             return Err("FFN global preload must be selected before the first layer".into());
         }
         self.preload_ffn_globals = enabled;
-        if !enabled { self.projection_owned_ffn = false; }
+        if !enabled { self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
         Ok(())
     }
     pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
@@ -109,7 +121,7 @@ impl PreparedTail256 {
             return Err("FFN epilogue composition must be selected before the first layer".into());
         }
         self.composed_ffn_epilogue = enabled;
-        if !enabled { self.projection_owned_ffn = false; }
+        if !enabled { self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
         Ok(())
     }
     pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
@@ -120,6 +132,7 @@ impl PreparedTail256 {
             return Err("projection-owned FFN requires the current composed preload route".into());
         }
         self.projection_owned_ffn = enabled;
+        if !enabled { self.grouped_norm_stores = false; }
         Ok(())
     }
     pub(crate) fn blocks(&self) -> Vec<&runtime::Blocks> {
@@ -138,11 +151,22 @@ pub(crate) struct PreparedTail384 {
     composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
     weight_stationary_qkv: bool,
+    grouped_norm_stores: bool,
     states: [PreparedWide; 3],
     owner_first_rows: Vec<usize>,
     owner_final_rows: Vec<usize>,
 }
 impl PreparedTail384 {
+    pub(crate) fn grouped_norm_stores(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("norm stores must be selected before the first layer".into());
+        }
+        if enabled && !self.projection_owned_ffn {
+            return Err("grouped norm stores require the current projection-owned FFN graph".into());
+        }
+        self.grouped_norm_stores = enabled;
+        Ok(())
+    }
     pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
         if self.states.iter().any(|state| state.next_layer != 0) {
             return Err("O producer must be selected before the first layer".into());
@@ -162,7 +186,7 @@ impl PreparedTail384 {
             return Err("FFN global preload must be selected before the first layer".into());
         }
         self.preload_ffn_globals = enabled;
-        if !enabled { self.projection_owned_ffn = false; }
+        if !enabled { self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
         Ok(())
     }
     pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
@@ -170,7 +194,7 @@ impl PreparedTail384 {
             return Err("FFN epilogue composition must be selected before the first layer".into());
         }
         self.composed_ffn_epilogue = enabled;
-        if !enabled { self.projection_owned_ffn = false; }
+        if !enabled { self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
         Ok(())
     }
     pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
@@ -181,6 +205,7 @@ impl PreparedTail384 {
             return Err("projection-owned FFN requires the current composed preload route".into());
         }
         self.projection_owned_ffn = enabled;
+        if !enabled { self.grouped_norm_stores = false; }
         Ok(())
     }
     pub(crate) fn blocks(&self) -> Vec<&runtime::Blocks> {
@@ -196,6 +221,9 @@ pub(crate) struct PreparedThreeOwner512 {
     owner_final_rows: [usize; 3],
 }
 impl PreparedThreeOwner512 {
+    pub(crate) fn grouped_norm_stores(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.grouped_norm_stores(enabled)
+    }
     pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
         self.chunks.weight_stationary_output(enabled)
     }
@@ -222,13 +250,14 @@ struct GroupExecution {
     blocked_residual: bool, composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
     weight_stationary_qkv: bool,
+    grouped_norm_stores: bool,
 }
 impl GroupExecution {
     fn production() -> Self {
         Self { fused_norms:true, blocked_output:true, shard_quant:true,
             quarter_norm:true, fused_ffn_core:true, preload_ffn_globals:true, quarter_postnorm:true,
             blocked_residual:true, composed_ffn_epilogue:true, projection_owned_ffn:false,
-            weight_stationary_output:true, weight_stationary_qkv: true }
+            weight_stationary_output:true, grouped_norm_stores: false, weight_stationary_qkv: true }
     }
 }
 /// Four chronological chunks of one request. Only its single allocation may be
@@ -245,6 +274,9 @@ pub(crate) struct PreparedPrompt384128 {
     final_rows: [usize; 2],
 }
 impl PreparedPrompt384128 {
+    pub(crate) fn grouped_norm_stores(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.grouped_norm_stores(enabled)
+    }
     pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
         self.chunks.weight_stationary_output(enabled)
     }
@@ -270,6 +302,9 @@ impl PreparedPrompt384128 {
 }
 
 impl PreparedPrompt512 {
+    pub(crate) fn grouped_norm_stores(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.grouped_norm_stores(enabled)
+    }
     pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
         self.chunks.weight_stationary_output(enabled)
     }
@@ -302,6 +337,16 @@ impl PreparedPrompt512 {
     }
 }
 impl PreparedGroup {
+    pub(crate) fn grouped_norm_stores(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("norm stores must be selected before the first layer".into());
+        }
+        if enabled && !self.projection_owned_ffn {
+            return Err("grouped norm stores require the current projection-owned FFN graph".into());
+        }
+        self.grouped_norm_stores = enabled;
+        Ok(())
+    }
     pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
         if self.states.iter().any(|state| state.next_layer != 0) {
             return Err("O producer must be selected before the first layer".into());
@@ -324,7 +369,7 @@ impl PreparedGroup {
             return Err("FFN global preload requires the current single-launch core".into());
         }
         self.preload_ffn_globals = enabled;
-        if !enabled { self.projection_owned_ffn = false; }
+        if !enabled { self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
         Ok(())
     }
     pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
@@ -332,7 +377,7 @@ impl PreparedGroup {
             return Err("FFN epilogue composition must be selected before the first layer".into());
         }
         self.composed_ffn_epilogue = enabled;
-        if !enabled { self.projection_owned_ffn = false; }
+        if !enabled { self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
         Ok(())
     }
     pub(crate) fn projection_owned_ffn(&mut self, enabled: bool) -> Result<()> {
@@ -343,6 +388,7 @@ impl PreparedGroup {
             return Err("projection-owned FFN requires the current composed preload route".into());
         }
         self.projection_owned_ffn = enabled;
+        if !enabled { self.grouped_norm_stores = false; }
         Ok(())
     }
     pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
@@ -354,7 +400,7 @@ impl PreparedGroup {
     pub(crate) fn original_empty_history(&mut self) {
         for state in &mut self.states { state.prune_empty_history = false; }
     }
-    pub(crate) fn original_blocked_residual(&mut self) { self.blocked_residual = false; self.projection_owned_ffn = false; }
+    pub(crate) fn original_blocked_residual(&mut self) { self.blocked_residual = false; self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
     fn uses_blocked_residual(&self) -> bool {
         // Old diagnostic implementations retain canonical state throughout.
         // Their timings include this storage fallback; the dedicated storage
@@ -362,12 +408,12 @@ impl PreparedGroup {
         self.blocked_residual && self.fused_norms && self.blocked_output
             && self.shard_quant && self.quarter_norm && self.quarter_postnorm
     }
-    pub(crate) fn original_norms(&mut self) { self.fused_norms = false; self.projection_owned_ffn = false; }
-    pub(crate) fn original_output(&mut self) { self.blocked_output = false; self.projection_owned_ffn = false; }
-    pub(crate) fn original_shard_quant(&mut self) { self.shard_quant = false; self.projection_owned_ffn = false; }
-    pub(crate) fn original_quarter_norm(&mut self) { self.quarter_norm = false; self.projection_owned_ffn = false; }
-    pub(crate) fn original_ffn_core(&mut self) { self.fused_ffn_core = false; self.projection_owned_ffn = false; }
-    pub(crate) fn original_quarter_postnorm(&mut self) { self.quarter_postnorm = false; self.projection_owned_ffn = false; }
+    pub(crate) fn original_norms(&mut self) { self.fused_norms = false; self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
+    pub(crate) fn original_output(&mut self) { self.blocked_output = false; self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
+    pub(crate) fn original_shard_quant(&mut self) { self.shard_quant = false; self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
+    pub(crate) fn original_quarter_norm(&mut self) { self.quarter_norm = false; self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
+    pub(crate) fn original_ffn_core(&mut self) { self.fused_ffn_core = false; self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
+    pub(crate) fn original_quarter_postnorm(&mut self) { self.quarter_postnorm = false; self.projection_owned_ffn = false; self.grouped_norm_stores = false; }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 4] {
         [
             &self.states[0].blocks,
@@ -615,7 +661,7 @@ impl GroupPrefill {
             blocked_residual: true,
             composed_ffn_epilogue: true, projection_owned_ffn: self.has_projection_storage(),
             weight_stationary_output: true,
-            weight_stationary_qkv: true,
+            grouped_norm_stores: false, weight_stationary_qkv: true,
             states: [
                 self.rows[0]
                     .prepare_with_media_batch(device, weights, &sequences[0], scratch, true, batched_media)
@@ -670,7 +716,7 @@ impl GroupPrefill {
                 std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
         }
         Ok(PreparedTail256 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:self.has_projection_storage(),
-            weight_stationary_output:true, weight_stationary_qkv: true, owners:sequences.len(), states:[
+            weight_stationary_output:true, grouped_norm_stores: false, weight_stationary_qkv: true, owners:sequences.len(), states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
         ]})
@@ -685,6 +731,7 @@ impl GroupPrefill {
         execution.preload_ffn_globals = state.preload_ffn_globals;
         execution.weight_stationary_output = state.weight_stationary_output;
         execution.weight_stationary_qkv = state.weight_stationary_qkv;
+        execution.grouped_norm_stores = state.grouped_norm_stores;
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
     pub(crate) async fn finish_tail256(
@@ -735,7 +782,7 @@ impl GroupPrefill {
         padding_row.attn_f=HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
             std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
         Ok(PreparedTail384 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:self.has_projection_storage(),
-            weight_stationary_output:true, weight_stationary_qkv: true, owner_first_rows, owner_final_rows, states:[
+            weight_stationary_output:true, grouped_norm_stores: false, weight_stationary_qkv: true, owner_first_rows, owner_final_rows, states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
             self.rows[2].prepare_with_media_batch(device,weights,&chunks[2],scratch,true,batched_media).await?,
@@ -751,6 +798,7 @@ impl GroupPrefill {
         execution.preload_ffn_globals = state.preload_ffn_globals;
         execution.weight_stationary_output = state.weight_stationary_output;
         execution.weight_stationary_qkv = state.weight_stationary_qkv;
+        execution.grouped_norm_stores = state.grouped_norm_stores;
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
     pub(crate) async fn finish_tail384(
@@ -832,6 +880,7 @@ impl GroupPrefill {
             preload_ffn_globals:state.preload_ffn_globals,
             weight_stationary_output:state.weight_stationary_output,
             weight_stationary_qkv:state.weight_stationary_qkv,
+            grouped_norm_stores:state.grouped_norm_stores,
         };
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
@@ -850,6 +899,9 @@ impl GroupPrefill {
             .ok_or("grouped prefill layers already complete")?;
         let mut mark = scratch.profile_mark();
         let blocked_residual = execution.blocked_residual;
+        if execution.grouped_norm_stores && !execution.projection_owned_ffn {
+            return Err("grouped norm stores require projection-owned FFN".into());
+        }
         if execution.projection_owned_ffn && !(execution.composed_ffn_epilogue
             && blocked_residual && execution.fused_ffn_core && execution.preload_ffn_globals
             && self.projection_storage.as_ref().is_some_and(|s|s.layers.len()==crate::LAYERS)) {
@@ -1042,6 +1094,22 @@ impl GroupPrefill {
             if execution.projection_owned_ffn {
                 let storage = self.projection_storage.as_mut().ok_or("joined FFN weights were not prepared")?;
                 let joined = storage.layers.get(index).ok_or("joined FFN layer is missing")?;
+                if execution.grouped_norm_stores {
+                match layer {
+                    Layer::Sliding(_) => launch(crate::ops_group_ffn_projection_storegroup::sliding_projection_owned,
+                        (device, (&self.output_s[0],&self.output_s[1],&self.output_s[2],&self.output_s[3]),
+                         norms,&mut self.residual_blocked,&joined.weight,&joined.scale,&mlp.native_fp8.down,
+                         &mlp.native_fp8.down_dequant,&mlp.up_global_scale,&mlp.gate_global_scale,&mlp.down_global_scale,
+                         &mut self.q_input,&mut self.input_scale,&mut storage.output,&mut self.q_hidden,
+                         &mut self.hidden_scale,&mut self.projected)).await?,
+                    Layer::Full(_) => launch(crate::ops_group_ffn_projection_storegroup::full_projection_owned,
+                        (device,(&a.projected,&b.projected,&c.projected,&d.projected),
+                         norms,&mut self.residual_blocked,&joined.weight,&joined.scale,&mlp.native_fp8.down,
+                         &mlp.native_fp8.down_dequant,&mlp.up_global_scale,&mlp.gate_global_scale,&mlp.down_global_scale,
+                         &mut self.q_input,&mut self.input_scale,&mut storage.output,&mut self.q_hidden,
+                         &mut self.hidden_scale,&mut self.projected)).await?,
+                }
+                } else {
                 match layer {
                     Layer::Sliding(_) => launch(crate::ops_group_ffn_projection::sliding_projection_owned,
                         (device, (&self.output_s[0],&self.output_s[1],&self.output_s[2],&self.output_s[3]),
@@ -1055,6 +1123,7 @@ impl GroupPrefill {
                          &mlp.native_fp8.down_dequant,&mlp.up_global_scale,&mlp.gate_global_scale,&mlp.down_global_scale,
                          &mut self.q_input,&mut self.input_scale,&mut storage.output,&mut self.q_hidden,
                          &mut self.hidden_scale,&mut self.projected)).await?,
+                }
                 }
             } else if execution.preload_ffn_globals {
             match layer {
