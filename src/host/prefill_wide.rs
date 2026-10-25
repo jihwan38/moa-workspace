@@ -21,8 +21,9 @@ const EMPTY_HISTORY_PRUNING_ENABLED: bool = true;
 // Exact media encoders passed independent scalar/CPU gates and29,589,504
 // full-model/embedding comparisons inr783. Explicit per-call controls remain.
 pub(crate) const MEDIA_BATCH_ENABLED: bool = true;
-// Opt-in per prepared execution until complete whole-model gates pass.
-const FUSED_HEAD_ATTENTION_ENABLED: bool = false;
+// Complete chain r798 and full prompt/group/pair model+KV gates r806-r808 passed.
+// Explicit original-head controls remain scoped to each prepared execution.
+const FUSED_HEAD_ATTENTION_ENABLED: bool = true;
 
 pub(crate) struct WidePrefill {
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
