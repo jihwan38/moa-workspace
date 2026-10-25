@@ -113,3 +113,5 @@ pub mod ops_output_p128_four_reduce;
 pub mod ops_output_p128_four_ingress;
 
 pub mod ops_output_p128_four_switch;
+
+pub mod ops_output_p128_four_keyrings;
