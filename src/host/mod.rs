@@ -36,3 +36,5 @@ pub mod group_ffn_epilogue_diagnostic;
 pub mod fixed_e4_codec;
 
 pub mod fixed_e4_head_diagnostic;
+
+pub mod fixed_e4_model_diagnostic;
