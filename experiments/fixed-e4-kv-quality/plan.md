@@ -1,0 +1,11 @@
+# Fixed E4 sliding KV BF16-storage numerical experiment
+
+Base: clean physical32 c081 `3d497087`. No approximate F4 FFN or q018 LM code is imported. Parent authorized implementation after actual fixed-cache complete micro r1289/321461 and r1290/321462 passed intended codec/pools/output and the predeclared whole-chain speed threshold. Those micro results are not model quality.
+
+The source default remains OFF. One source constant controls fixed scale1 BF16->F32->E4->BF16 roundtrip at all ten active sliding K/V producer implementations mapped in `b16-f4-mse-model` evidence `67d3b153`. Apply only after final K RoPE / V normalization BF16 and before scratch/cache stores; Q and every full-attention implementation remain unchanged. Preserve BF16 pool ABI, masks, real-row live commits and old-ring-before-prompt-commit order. The fused P128 prepare_heads hook covers current-chunk attention, including absolute0.
+
+Build and freeze OFF/ON artifacts from otherwise identical source and identical schedules with `--fresh-package --capture-artifact`. No mutable runtime/global precision switching or partial history quantization. No compressed-storage host port. Surrogate timings include conversion work and cannot represent compressed performance.
+
+Gates: independent finite-code/roundtrip and same-input head-layout output proof; all ten hooks covered including blocked B16 prefix and fused P128. Model jobs use fresh actual histories, all packed prompt shapes, scalar/B16/R32 transitions, partial/tiled fallback, wrap/reset/permutation and interleaved active prompts. Same-candidate replay compares every logit and retained cache byte and validates its own greedy/stochastic outputs. Cross-OFF/ON logging contains all-vocabulary finiteness, full norms/checksums/top1 and deterministic sampled logits; original sample drift is explicitly not all-element L2 or exactness. Parent approved this bounded reporting format. Six public quality suites plus actual C17 autoregressive regroup history remain required; scalar is intentionally affected by sliding KV quantization.
+
+Physical32 BF16 cache owning-buffer identity must be verified from runtime metadata before model work. Original Cargo/dependencies remain unchanged. No model/serving activation beyond separate research ON artifact; parent alone dispatches Arena and evaluates promotion.
