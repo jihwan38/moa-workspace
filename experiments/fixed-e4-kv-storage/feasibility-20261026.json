@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-25T21:42:31.763876+00:00",
+  "decision": "NO_GO as a high-impact top3 strategy on current evidence; retain as an unvalidated capacity/storage optimization",
+  "scope": {
+    "checkpoint_commit": "8274c712",
+    "functional_commit": "340919dd329cf25516544e99711fc6048f5d0e2c",
+    "read_only_audit": true,
+    "this_change": "evidence JSON only",
+    "model_edits": false,
+    "builds": false,
+    "arena_runs": false,
+    "official_final_unchanged": true
+  },
+  "logical_memory": {
+    "basis": "Exact declared HBM pool payload, not an observed compressed allocator result",
+    "physical_sliding_slots": 32,
+    "admission_slots": 32,
+    "query_rows": 64,
+    "full_pages": 256,
+    "sliding_layers": 40,
+    "full_layers": 8,
+    "bf16_sliding_pool_each_bytes": 134217728,
+    "e4_sliding_pool_each_bytes": 67108864,
+    "bf16_sliding_all_bytes": 10737418240,
+    "e4_sliding_all_bytes": 5368709120,
+    "unchanged_full_all_bytes": 2147483648,
+    "bf16_total_kv_bytes": 12884901888,
+    "e4_total_kv_bytes": 7516192768,
+    "saving_bytes": 5368709120,
+    "saving_GiB": 5,
+    "extra_persistent_scalar_ring_scratch_bytes": 0,
+    "admission_increase_implemented": 0
+  },
+  "observed_memory": {
+    "run": "r1275-b16-f4-mse-identity-model",
+    "capacity_bytes": 51002675200,
+    "available_before_f4_shadow_bytes": 14279647744,
+    "available_after_f4_shadow_bytes": 9997525504,
+    "available_after_f4_shadow_GiB": 9.31092119216919,
+    "logical_context": 2048,
+    "scope": "Fresh physical32 model diagnostic after original workspaces, grouped/projection-owned FFN scratch and immutable MSE F4 shadow; NOT a q020 server peak measurement. Startup parallel encoding changes neither shadow bytes nor device math. Canonical full-pool extent is fixed256 pages.",
+    "implication": "C16 to C17 already fits resident32; free memory is not the demonstrated threshold bottleneck."
+  },
+  "serving_binding": {
+    "worker_current": "Workspace::new_canonical64 selects BF16; verify_canonical_storage_identity rejects SlidingFixedE4",
+    "compressed_constructor": "Workspace::new_canonical_fixed_e4 is explicit and requires enabled q022 producer codec",
+    "dtype_guard_audit": {
+      "workspace_async_functions": 80,
+      "guarded_before_work": 79,
+      "remaining_function": "Model::new establishes metadata width",
+      "scope": "Read-only source scan plus prior typecheck; newly added guard unit tests and final runtime audit not executed"
+    },
+    "hypothetical_rc64_e4": "Would use the same10GiB sliding payload as currentRc32 BF16, but needs separate physical-axis/admission/identity/reader ABI changes and all gates; not implemented or measured.",
+    "unchanged_full_budget": "256 full pages reserve complete prompt plus max generation;8192-position requests need16 pages each, allowing16 even with more sliding slots."
+  },
+  "current_q020_runtime": {
+    "run": "r1301-q020-c16-warm-r96-submit",
+    "warmup_requests": 16,
+    "measured_requests": 96,
+    "window_seconds": 35.30193354701623,
+    "throughput_tokens_per_second": 174.04145843221949,
+    "ttft_p90_ms": 3765.212404774502,
+    "dense_chunks": 173,
+    "useful_prompt_rows": 87808,
+    "computed_prompt_rows": 88576,
+    "occupancy": 0.9913294797687862,
+    "prompt_seconds_from_rounded_means": 21.09216,
+    "prompt_rounding_bound_ms": 54.96,
+    "decode_seconds_from_rounded_means": 14.04052,
+    "decode_rounding_bound_ms": 2.525,
+    "decode_calls": 379,
+    "decode_rows": 6048,
+    "live16_decode_calls": 377,
+    "other_decode_calls": {
+      "live4": 1,
+      "live12": 1
+    }
+  },
+  "conditional_fixed_schedule_projection": {
+    "basis": "Only measured complete B16 append+attention+suppliedO micro, synthetic histories and live14/16; old pool axis64, not current compressedRc32 runtime validation",
+    "control_mean_us": 238.778349,
+    "fixed_e4_mean_us": 201.28684900000002,
+    "sliding_layers": 40,
+    "saving_per_step_ms_if_transfer": 1.4996599999999989,
+    "assumed_calls": 379,
+    "window_saving_seconds_if_transfer": 0.5683711399999997,
+    "projected_tps_relative_gain_if_transfer": 0.01636374447687472,
+    "interpretation": "Approximately1.6%, not measured whole-model/HTTP improvement and not a universal upper bound. Assumes identical scheduling, all379 calls sharing measured per-layer delta including two unmeasured widths, no extra costs.",
+    "excluded_or_unproved": [
+      "q022 producer roundtrip overhead relative to q020",
+      "Rc32 host/metadata lowering",
+      "scalar/R32 and prompt-reader costs",
+      "cohort or decoder-width changes",
+      "joint q020 MSE-F4 plus E4-KV numerical quality"
+    ],
+    "prompt_gain_measured": false,
+    "halved_bytes_is_not_halved_wall_time": true,
+    "projected_window_time_reduction_fraction_if_transfer": 0.01610028355084361
+  },
+  "higher_concurrency_constraints": {
+    "current_q020_gsm_run": "r1296-q020-gsm8k-quality",
+    "observed_live16_mean_ms": 34.29,
+    "observed_live17_mean_ms": 59.3,
+    "scope": "Different requests/history/live-row workloads; width-cliff evidence only, not matched performance prediction. Source confirms17 entersR32 and current q020 B16-onlyF4 FFN no longer applies.",
+    "representative_prompt_gate": {
+      "run": "r1212-physical32-group-case1",
+      "label": "case1_round1_candidatetrue",
+      "total_ms": 118.285767,
+      "sliding_heads_attention_commit_ms": 20.320751,
+      "entire_stage_fraction": 0.17179371208710173,
+      "warning": "Eliminating this whole17.2% stage is already more generous than compressing only its old KV reads; no compressed prompt runtime exists."
+    },
+    "c32_fixed_work_screen": {
+      "c16_average_prompt_work_seconds": 3.51536,
+      "c32_at_same_cost_seconds": 7.03072,
+      "prompt_reduction_needed_for4s": 0.4310682262983023,
+      "scope": "Linear same-mix/count screen, not an arrival simulation or a universal percentile bound. About43% prompt reduction needed; even zeroing the representative entire sliding stage is insufficient."
+    }
+  },
+  "quality_scope": {
+    "q022_surrogate": "BF16-storage fixed-E4 roundtrip passed124 public cases and same GSM32 without newc081 failures; this is the numerical reference, not compressed ABI evidence.",
+    "checkpoint_math": "q022/c081 baseline, no q020 approximate F4 FFN or FP8 LM composition",
+    "required_for_q020_integration": "Exact storage parity against q022 first, then separate joint quality/performance gates before combining with q020."
+  },
+  "missing_gates": [
+    "Execute new CPU compatibility guard tests and final cross-workspace API review.",
+    "ActualRc32 all1..16 live commits, all32 slots, everyR32/R64 policy, scalar/head codec idempotence, wrap/reset/poison/neighbor and immutable-input checks. Existing B16live14/16 oldRc64 micro is not this gate.",
+    "Run captured prompt artifact and current scalar adapters; resources/typechecks are not runtime parity.",
+    "Fresh package and unique compiler OUT_DIR; verify embedded caller images against intended source, preserving prior stale-cache failures.",
+    "Build and run sequential q022-roundedBF16 versus E4 full-vocabulary and decoded-full-cache oracle, every11 packed-owner route, partial/scalar/B16/R32, activeP128 plus scalar/decode interleaves.",
+    "Measure actual owning pools7GiB versus12GiB and allocator deltas. Current oracle retains12GiB of host reference bytes; host-RAM and runtime-under-job-limit remain unverified.",
+    "Only then implement explicit Worker storage binding/identity, run joint public quality if combined withq020, and measure matched complete-serving latency/throughput. No existing compressed server result."
+  ],
+  "references": [
+    {
+      "path_relative_to_round2": "fixed-e4-kv-storage/experiments/fixed-e4-storage/checkpoint.md",
+      "sha256": "7a3824afa8e6d6424f3299639554cb2fcc7a8d7af44b9735a6db883dbfce4c99",
+      "checkpoint_commit": "8274c712"
+    },
+    {
+      "path_relative_to_round2": "fixed-e4-kv-storage/src/host/runtime.rs",
+      "sha256": "e63f8dd86f1d5ab44d169c0f34b36d7ebb0f279023963c1ec106d0befacce028",
+      "source_commit": "340919dd329cf25516544e99711fc6048f5d0e2c",
+      "symbols": [
+        "KvCache",
+        "Workspace::new_storage",
+        "Workspace::new_canonical_fixed_e4"
+      ]
+    },
+    {
+      "path_relative_to_round2": "fixed-e4-kv-storage/src/ops_pool_views.rs",
+      "sha256": "6199d5a0e23cb6ca860135a4658efe5b069c3c832ace38379f7df6687e91c795",
+      "source_commit": "340919dd329cf25516544e99711fc6048f5d0e2c",
+      "symbols": [
+        "Rc=32",
+        "Rc64 compatibility alias"
+      ]
+    },
+    {
+      "path_relative_to_round2": "fixed-e4-kv-storage/src/host/worker.rs",
+      "sha256": "654c01acc4a175dfc965d94a21ae819a2967a507e080508e1f9ee424959f058e",
+      "source_commit": "340919dd329cf25516544e99711fc6048f5d0e2c",
+      "symbols": [
+        "verify_canonical_storage_identity",
+        "Worker::new_with_storage"
+      ]
+    },
+    {
+      "path_relative_to_round2": "fixed-e4-kv-storage/src/host/model.rs",
+      "sha256": "cc84af72d064bc22e68ea8b3ff3f1b7f113983a051d1034e5b1fcf7c689968eb",
+      "source_commit": "340919dd329cf25516544e99711fc6048f5d0e2c",
+      "symbols": [
+        "Model::new",
+        "check_storage_workspace",
+        "forward_sequences_inner"
+      ]
+    },
+    {
+      "path_relative_to_round2": "fixed-e4-kv-storage/src/host/admission.rs",
+      "sha256": "e92afdc6a83aa3275170016d0329ac1465aee018434aa2d6506c6ea886e69437",
+      "source_commit": "340919dd329cf25516544e99711fc6048f5d0e2c",
+      "symbols": [
+        "PageReservations::try_reserve"
+      ]
+    },
+    {
+      "path_relative_to_round2": "fixed-e4-kv-storage/src/host/fixed_e4_storage_diagnostic.rs",
+      "sha256": "c6c30668d44a25d3b691ca1b13ec9665ec1c3e587df9b8e71f136e2b3e3d8b59",
+      "source_commit": "340919dd329cf25516544e99711fc6048f5d0e2c",
+      "symbols": [
+        "CacheSnapshot",
+        "verify_identity"
+      ]
+    },
+    {
+      "path_relative_to_round2": "runs/r1275-b16-f4-mse-identity-model/arena.log",
+      "sha256": "bfb7dfbf4b2647f7acf6b6b533e404e7d98b0d0e76947b6d87e9693acd6a3c94"
+    },
+    {
+      "path_relative_to_round2": "runs/r1301-q020-c16-warm-r96-submit/arena.log",
+      "sha256": "6f4f435d0e220b6e79c67014a9c11d48b0aee1c4bd2007b26e862b2f3bdbaa6e"
+    },
+    {
+      "path_relative_to_round2": "runs/r1302-c081-c16-warm-r96-submit/arena.log",
+      "sha256": "88d783356be2de6be7ddc9f0897b61b9a4bd342e4288ec70b8b89df62af75db7"
+    },
+    {
+      "path_relative_to_round2": "runs/r1296-q020-gsm8k-quality/arena.log",
+      "sha256": "4bd5ff90df99ccc5324149259cd4a8c6a1d9e0cb8d3bbfbc0f4a9fd955d423c6"
+    },
+    {
+      "path_relative_to_round2": "runs/r1289-b16-fixed-e4-kv-part0/arena.log",
+      "sha256": "1abf7157696ee58cfb70bb76081c45534173cae3b590112809c37ae1996c5e49"
+    },
+    {
+      "path_relative_to_round2": "runs/r1290-b16-fixed-e4-kv-part1/arena.log",
+      "sha256": "03b50989e1db416423ec3b759ff413b8a5902d633f85f6a04a92c26a30b080a1"
+    },
+    {
+      "path_relative_to_round2": "runs/r1212-physical32-group-case1/arena.log",
+      "sha256": "82ce5175509c6637dfaf17beede32c9d247919ada7cc56c1967e261f6f48b7d9"
+    },
+    {
+      "path_relative_to_round2": "external-quality/experiments/prefill-ceiling-c081/bounds.json",
+      "sha256": "8e167a4affea253bb69fa8b7dfbad64bfe35f1e85333ce0085aceb97aad819f7"
+    },
+    {
+      "path_relative_to_round2": "r64-server/evidence/q022-surrogate-quality.json",
+      "sha256": "23949489272603aa6754ea4190ede65fd2a100a8455c57dc2d8d26562894c6c8"
+    }
+  ],
+  "q020_prompt_source_equivalence_to_profile": [
+    {
+      "source_path": "src/host/prefill_group.rs",
+      "q020_and_r1212_sha256": "8f4a14ec1971d78b0ab898eed9cee3400a1fe7b4c709824ed84414db07a97de8"
+    },
+    {
+      "source_path": "src/ops_group_ffn_projection_storegroup.rs",
+      "q020_and_r1212_sha256": "3b553c2215486c485248bf6c10ae3827e23e3bd837c08675b6d12df34f0f36f9"
+    },
+    {
+      "source_path": "src/ops_ffn_projection_clusters.rs",
+      "q020_and_r1212_sha256": "24190dd57f563fd85280f2ea438bd0d7c4ec71536671d63da37739a1a99cf27f"
+    }
+  ]
+}
