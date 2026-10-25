@@ -190,3 +190,7 @@ pub mod ops_request_sliding_r64_fp8_mixed512;
 pub mod ops_kv_e4_pool;
 pub mod ops_request_sliding_b16_e4;
 pub mod ops_cache_pools_e4;
+
+pub mod ops_qkv_shared_blocked;
+pub mod ops_qk_shared_blocked;
+pub mod ops_head_wide_blocked;

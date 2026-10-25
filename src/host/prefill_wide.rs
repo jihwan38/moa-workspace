@@ -522,7 +522,7 @@ impl WidePrefill {
             .await?;
         }
         scratch.record_optional_profile("wide.sliding.qkv", &mut mark);
-        self.sliding_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn, false).await
+        self.sliding_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn, false, None).await
     }
 
     async fn sliding_after_qkv(
@@ -536,10 +536,34 @@ impl WidePrefill {
         scratch: &mut Prefill,
         include_ffn: bool,
         defer_output: bool,
+        blocked: Option<&group::BlockedQkv>,
     ) -> Result<()> {
+        if blocked.is_some() && state.native.is_none() {
+            return Err("blocked QKV requires a complete native P128 chunk".into());
+        }
         let mut mark = scratch.profile_mark();
         let ring = state.blocks.sliding;
         if let Some(meta) = &state.native {
+            if let Some(raw) = blocked {
+            launch(
+                crate::ops_head_wide_blocked::sliding_heads_p128,
+                (
+                    device,
+                    &raw.q_s,
+                    &raw.k_s,
+                    &raw.v_s,
+                    &layer.q_norm,
+                    &layer.k_norm,
+                    &meta.rope_s,
+                    &ws.cos_s,
+                    &ws.sin_s,
+                    &mut self.head_q_s,
+                    &mut self.head_k_s,
+                    &mut self.head_v_s,
+                ),
+            )
+            .await?;
+            } else {
             launch(
                 crate::ops_head_wide::sliding_heads_p128,
                 (
@@ -558,6 +582,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            }
             #[cfg(feature = "kv-e4-quality")]
             if !ws.is_e4(){launch(crate::ops_kv_e4::roundtrip_p128,(device,&mut self.head_k_s,&mut self.head_v_s)).await?;}
 
@@ -812,7 +837,7 @@ impl WidePrefill {
             .await?;
         }
         scratch.record_optional_profile("wide.full.qkv", &mut mark);
-        self.full_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn, false).await
+        self.full_after_qkv(device, ws, index, layer, state, segments, scratch, include_ffn, false, None).await
     }
 
     async fn full_after_qkv(
@@ -826,11 +851,34 @@ impl WidePrefill {
         scratch: &mut Prefill,
         include_ffn: bool,
         defer_output: bool,
+        blocked: Option<&group::BlockedQkv>,
     ) -> Result<()> {
+        if blocked.is_some() && state.native.is_none() {
+            return Err("blocked QKV requires a complete native P128 chunk".into());
+        }
         let mut mark = scratch.profile_mark();
         let page = state.start_position / Tf::SIZE;
         let blocks = &state.blocks.full;
         if let Some(meta) = &state.native {
+            if let Some(raw) = blocked {
+            launch(
+                crate::ops_head_wide_blocked::full_heads_p128,
+                (
+                    device,
+                    &raw.q_f,
+                    &raw.k_f,
+                    &layer.q_norm,
+                    &layer.k_norm,
+                    &meta.rope_f,
+                    &ws.cos_f,
+                    &ws.sin_f,
+                    &mut self.head_q_f,
+                    &mut self.head_k_f,
+                    &mut self.head_v_f,
+                ),
+            )
+            .await?;
+            } else {
             launch(
                 crate::ops_head_wide::full_heads_p128,
                 (
@@ -848,6 +896,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            }
             scratch.record_optional_profile("wide.full.heads", &mut mark);
             if ws.is_canonical() {
                 let runtime::KvCache::FullCanonical { k, v } = &mut ws.kv_cache[index] else { unreachable!() };
