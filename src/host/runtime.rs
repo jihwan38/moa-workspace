@@ -132,7 +132,7 @@ pub(crate) async fn encode_vision_patches_b16(
     let positions=HostTensor::<bf16,m![B,Mv]>::from_vec(positions).to_hbm(&mut device.pdma).await?;
     let mut output=HostTensor::<bf16,m![B,H]>::zero().to_hbm(&mut device.pdma).await?;
     let v=&weights.vision;
-    launch(crate::ops_vision_b16::encode_patches,
+    launch(crate::ops_vision_trf::encode_patches,
         (device,&pixels,&positions,&v.patch_ln1_weight,&v.patch_ln1_bias,
          &v.patch_dense_weight,&v.patch_dense_bias,&v.patch_ln2_weight,&v.patch_ln2_bias,
          &v.pos_norm_weight,&v.pos_norm_bias,&v.embedding_projection_weight,&mut output)).await?;
