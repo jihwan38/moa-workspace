@@ -1,0 +1,207 @@
+{
+  "result": "RESOURCE_PASS_ONLY",
+  "compiled_source_commit": "de2aa7300ef3cb0a8d2963461d31a90e68c3177c",
+  "function": "ops_int4_rational_lut::quantize_row",
+  "complete_estimated_cycles": 13011,
+  "gate_cycles": 15000,
+  "gate_pass": true,
+  "memory_classes": [
+    "DramIO(0)",
+    "DramIO(1)",
+    "DramIO(2)",
+    "DramIO(3)",
+    "Spm",
+    "Sram",
+    "Vrf"
+  ],
+  "rows": 16,
+  "width": 3840,
+  "input_bytes": 122880,
+  "i32_output_bytes": 245760,
+  "scale_bytes": 64,
+  "table_bytes": 4096,
+  "spm_logical_index_bytes_per_cluster": 32,
+  "prior_threshold_estimate": 19765,
+  "prior_distinct_power2_estimate": 9312,
+  "operations": [
+    {
+      "id": "@3",
+      "kind": "dma.dto_s",
+      "begin": 1003,
+      "end": 2094,
+      "cycles": 1091,
+      "source": "--> src/ops_int4_rational_lut.rs:20:57"
+    },
+    {
+      "id": "@10",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 2094,
+      "end": 3335,
+      "cycles": 1241,
+      "source": "--> src/ops_int4_rational_lut.rs:21:63"
+    },
+    {
+      "id": "@15",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 3335,
+      "end": 3617,
+      "cycles": 282,
+      "source": "--> src/ops_int4_rational_lut.rs:39:66"
+    },
+    {
+      "id": "@20",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 3617,
+      "end": 3899,
+      "cycles": 282,
+      "source": "--> src/ops_int4_rational_lut.rs:32:64"
+    },
+    {
+      "id": "@21",
+      "kind": "dma.sto_s",
+      "begin": 3617,
+      "end": 4025,
+      "cycles": 408,
+      "source": "--> src/ops_int4_rational_lut.rs:50:9"
+    },
+    {
+      "id": "@27",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 4025,
+      "end": 4298,
+      "cycles": 273,
+      "source": "--> src/ops_int4_rational_lut.rs:51:72"
+    },
+    {
+      "id": "@30",
+      "kind": "dma_command",
+      "begin": 4298,
+      "end": 4763,
+      "cycles": 465,
+      "source": "--> src/ops_int4_rational_lut.rs:54:74"
+    },
+    {
+      "id": "@31",
+      "kind": "dma.sto_d",
+      "begin": 4763,
+      "end": 8306,
+      "cycles": 3543,
+      "source": "--> src/ops_int4_rational_lut.rs:83:5"
+    },
+    {
+      "id": "@42",
+      "kind": "dma_command_gather",
+      "begin": 8306,
+      "end": 8867,
+      "cycles": 561,
+      "source": "--> src/ops_int4_rational_lut.rs:55:68"
+    },
+    {
+      "id": "@47",
+      "kind": "rngd_cmd.sto_vrf",
+      "begin": 8867,
+      "end": 9134,
+      "cycles": 267,
+      "source": "--> src/ops_int4_rational_lut.rs:59:66"
+    },
+    {
+      "id": "@54",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 9334,
+      "end": 9618,
+      "cycles": 284,
+      "source": "--> src/ops_int4_rational_lut.rs:63:70"
+    },
+    {
+      "id": "@59",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 9618,
+      "end": 10859,
+      "cycles": 1241,
+      "source": "--> src/ops_int4_rational_lut.rs:71:60"
+    },
+    {
+      "id": "@62",
+      "kind": "dma.sto_d",
+      "begin": 10859,
+      "end": 12411,
+      "cycles": 1552,
+      "source": "--> src/ops_int4_rational_lut.rs:82:5"
+    }
+  ],
+  "repairs": [
+    "a002 scalar4B DMA rejected; whole32B record consolidation",
+    "a003 scalar transpose max2live rows; four2row packets",
+    "a004 padding omitted by gather; explicit8live I32 record payload then typed lane0 selection"
+  ],
+  "scope": [
+    "Compiler estimate, not actual timing",
+    "No standalone device ELF or NPU execution",
+    "H3840 input quant only; hidden L15360, packing, I4 consumers and complete FFN absent",
+    "Independent integer quotient/remainder oracle unchanged; actual MulF/FpToFxp agreement not established",
+    "Reconstruction scale is RN32(A*RN32(1/7)), separate from multiplierT"
+  ],
+  "source_review": "batch_kernels reviewed ae798f59 arithmetic/domain/independent oracle; subsequent aligned record movement awaiting amended review",
+  "references": [
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/Cargo.toml",
+      "bytes": 718,
+      "sha256": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/Cargo.lock",
+      "bytes": 93783,
+      "sha256": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/src/ops_int4_rational_lut.rs",
+      "bytes": 5128,
+      "sha256": "515d7c0cc12fced18bab94a5f8ff78f9c5afd75b5e85864a56fb492c5c645fd7"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/src/bin/test_int4_rational_lut.rs",
+      "bytes": 3984,
+      "sha256": "67a2a30d63752d50def1ece645df82521d2b2f167a87571e75cae6b32eee6e89"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/src/bin/support/rational_a4_oracle.rs",
+      "bytes": 5295,
+      "sha256": "1b2beeb44d58c1ce98c9c4b04363a14792ac39df67a58c7b87fe6cae336bfec1"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/experiments/int4-rational-lut/plan.json",
+      "bytes": 2425,
+      "sha256": "7ee59af3da8d5c4c8e6822ccbdd9fe43f0893e9fceeb9d110aa3465f14bc5208"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/experiments/int4-rational-lut/b16-schedule.json",
+      "bytes": 42725,
+      "sha256": "875e03ad147cce32661e265789fec457624400f26f6b09dcb875b68dc3228e63"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a005-rational-lut-b16-resource/run.json",
+      "bytes": 1215,
+      "sha256": "6d5bd2d0f073706347b47c074a00cb0584f9fc9c4f412063bbc216961ec7841c"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a005-rational-lut-b16-resource/output.log",
+      "bytes": 5274,
+      "sha256": "915cb01e3e67f1833bf7d64a7fb6a00f199c5471ae75a095631c2162b4fb6698"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/experiments/int4-rational-lut/kernel-out-a005/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_rational_lut::quantize_row.bin",
+      "bytes": 57856,
+      "sha256": "473776918211e908a80a48f89c6f39a7f3d5c2564192fed2222d44c5d96acfe9"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/experiments/int4-rational-lut/kernel-out-a005/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_rational_lut::quantize_row.edf",
+      "bytes": 71822,
+      "sha256": "3f4d4fdc7c4f048467270bae2eba92452d3c372be64b4034fe6f6bc37bf83fea"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut/experiments/int4-rational-lut/kernel-out-a005/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_rational_lut::quantize_row.hash",
+      "bytes": 6395,
+      "sha256": "00a7bfcb9ca8b79a9ad0180cfdc0c621d02f149ad744371b4a6245318ca2ad7c"
+    }
+  ]
+}

@@ -8,7 +8,7 @@ type Cluster = m![B / 8];
 type Rows = m![B % 8 # 256];
 
 /// The live lane of table[m-128] is F32bits(7*ceil(2^20/m)), m=128..255.
-/// All seven padded lanes per entry must also be initialized by the caller.
+/// All seven remaining physical lanes must also be initialized by the caller.
 #[device(chip = 1)]
 pub fn quantize_row(
     device: &mut Device,

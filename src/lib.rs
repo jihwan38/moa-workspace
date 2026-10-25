@@ -271,3 +271,5 @@ pub mod ops_norm_blocked_chain_storegroup;
 pub mod ops_group_ffn_projection_storegroup;
 pub mod ops_int4_rational_quant;
 pub mod ops_int4_rational_lut;
+
+pub mod ops_int4_rational_lut_p512;
