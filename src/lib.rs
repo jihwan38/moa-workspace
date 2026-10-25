@@ -186,3 +186,5 @@ pub mod ops_qkv_shared_b16;
 pub mod ops_qkv_shared_blocked;
 pub mod ops_qk_shared_blocked;
 pub mod ops_head_wide_blocked;
+
+pub mod ops_output_p128_four_trf32;
