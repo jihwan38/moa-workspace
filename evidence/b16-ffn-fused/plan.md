@@ -9,7 +9,7 @@ Model::set_b16_staged_ffn exposes the four-stage same-width diagnostic control.
 
 The paired actual-model probe rebuilds17 independent512-token histories for
 each pass with bijective physical slot/page remaps. Widths1,2,8,10,16,17 exercise
-both sides of the B16/R64 threshold, followed by position0 reuse and31-token
+scalar fallback at1, B16 at2–16 and R64 at17, followed by position0 reuse and31-token
 prompt interleave. All vocabulary logits must match bitwise and remain finite.
 CPU sample is checked on actual matched logits for greedy and seeded stochastic
 (temperature0.8, top_k37, top_p0.9) configurations with banned token IDs. This

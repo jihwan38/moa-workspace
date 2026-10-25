@@ -65,7 +65,7 @@ async fn main()->Result<()>{
    for r in chosen{positions[r]+=1;}
   }
  }
- println!("PASS B16 staged-fused FFN actual model checked={checked} BF16logits;B16 widths1/2/8/10/16 and R64 width17;512-token histories,physical pool remap,full-page transition,position0 reuse,and31-token prompt interleave;CPU greedy and seeded stochastic parity;elapsed_s={:.3};timing diagnostic not HTTP/SLO",started.elapsed().as_secs_f64());Ok(())
+ println!("PASS B16 staged-fused FFN actual model checked={checked} BF16logits;scalar width1, B16 widths2/8/10/16 and R64 width17;512-token histories,physical pool remap,full-page transition,position0 reuse,and31-token prompt interleave;CPU greedy and seeded stochastic parity;elapsed_s={:.3};timing diagnostic not HTTP/SLO",started.elapsed().as_secs_f64());Ok(())
 }
 
 fn sampling_check(step:usize,request:usize,a:&[u16],b:&[u16]) {
