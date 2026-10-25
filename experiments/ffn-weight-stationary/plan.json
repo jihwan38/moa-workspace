@@ -1,0 +1,20 @@
+{
+  "status": "AUDIT ONLY; not implemented, no speed or exactness claim",
+  "motivation": "Successful originalBF16 slidingO weightsTRF and mainSwitch avoids perinputTRF and partialspatialgather. Test whether a distinct fullH nativeFFN geometry can remove more transfers.",
+  "up_gate_layout": {
+    "output": "Lo2 x Lr240(pad256) x Lt32=15360 realL,6.25percentinactiveparts",
+    "weight": "32 x H3840 E4 =122880B/slice;2epochs16outputs each61440BTRF",
+    "input": "existing P512H960 source must be actuallymapped; shardedH source and mainSwitch, no materializedfullactivationreplication",
+    "dot": "retain4 separateH960 F32partialsum, NOT oneH3840 sum",
+    "epilogue": "matchactual4term interslice F32Add tree before existing xscale,weightscale,BF16 boundaries",
+    "output_store": "realDMredistribution into sameP512L240 bytes, cost included"
+  },
+  "must_resolve": [
+    "OldL240blockedweights versusnewL32 ownership have nonnestedfactorization; actualDMA mapor startupreblock required; no unsafe reshape pretendingtranspose",
+    "Current intersliceF32Add4 order must independentlymatch localreduction; ifnotexactlabelapproximate withnewpredeclarednumericalgates",
+    "Nativequantweight storage andmemoryheadroom: never silentlyadd2x5GiB storage",
+    "Completecorecomparison includingquantization,GeGLU/down, outputredistribution andactualprofiler"
+  ],
+  "prior_rejections_distinction": "EarlierL240/H960role-swapreasoning needed4TRFrefills+activationreplication; newproposal usesfullH with2weightrefills andmainSwitch. This alone doesnotproveimprovement.",
+  "first_gate": "Independently establish exact four-term inter-slice F32Add grouping before any fullH weightsTRF kernel. NPU reference receives independent finiteF32partials on four slices; compare all three balanced and24left-fold CPU binaryF32orders, diverse exponent/cancellation/tie cases. No model work/qualityclaim."
+}
