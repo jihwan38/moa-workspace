@@ -148,8 +148,8 @@ struct GroupExecution {
 impl GroupExecution {
     fn production() -> Self {
         Self { fused_norms:true, blocked_output:true, shard_quant:true,
-            quarter_norm:true, fused_ffn_core:true, preload_ffn_globals:false, quarter_postnorm:true,
-            blocked_residual:true, composed_ffn_epilogue:false }
+            quarter_norm:true, fused_ffn_core:true, preload_ffn_globals:true, quarter_postnorm:true,
+            blocked_residual:true, composed_ffn_epilogue:true }
     }
 }
 /// Four chronological chunks of one request. Only its single allocation may be
@@ -470,10 +470,10 @@ impl GroupPrefill {
             shard_quant: true,
             quarter_norm: true,
             fused_ffn_core: true,
-            preload_ffn_globals: false,
+            preload_ffn_globals: true,
             quarter_postnorm: true,
             blocked_residual: true,
-            composed_ffn_epilogue: false,
+            composed_ffn_epilogue: true,
             states: [
                 self.rows[0]
                     .prepare_with_media_batch(device, weights, &sequences[0], scratch, true, batched_media)
@@ -527,7 +527,7 @@ impl GroupPrefill {
             row.attn_f = HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
                 std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
         }
-        Ok(PreparedTail256 { preload_ffn_globals:false, composed_ffn_epilogue:false, owners:sequences.len(), states:[
+        Ok(PreparedTail256 { preload_ffn_globals:true, composed_ffn_epilogue:true, owners:sequences.len(), states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
         ]})
@@ -588,7 +588,7 @@ impl GroupPrefill {
             std::iter::repeat_n(padding,P128::SIZE*Ns::SIZE*Gs::SIZE*Ds::SIZE)).to_hbm(&mut device.pdma).await?;
         padding_row.attn_f=HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
             std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
-        Ok(PreparedTail384 { preload_ffn_globals:false, composed_ffn_epilogue:false, owner_first_rows, owner_final_rows, states:[
+        Ok(PreparedTail384 { preload_ffn_globals:true, composed_ffn_epilogue:true, owner_first_rows, owner_final_rows, states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
             self.rows[2].prepare_with_media_batch(device,weights,&chunks[2],scratch,true,batched_media).await?,

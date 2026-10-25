@@ -1,5 +1,5 @@
-//! Exact three-launch grouped FFN composition, retaining every HBM boundary.
-//! No cache, request ownership, or production dispatch changes.
+//! Exact three-to-one grouped FFN composition, retaining every HBM boundary.
+//! Original and validated global-preload cores share unchanged norm stages.
 use crate::{Chip, axes::{H,L,P128,P512}};
 use crate::ops_batch_layouts::{P512H960,P512L240,P512L960};
 use crate::ops_native_fp8_blocked::{UpWeight,DownWeight};

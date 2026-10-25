@@ -1,5 +1,5 @@
-//! Experimental current P512 core with two GeGLU globals preloaded once.
-//! All current layouts, BF16 boundaries and HBM stages are unchanged; no serving caller.
+//! Exact P512 core with two GeGLU globals preloaded once.
+//! All current layouts, BF16 boundaries and HBM stages are unchanged.
 use furiosa_opt_std::prelude::*;
 use crate::{Chip,axes::{P512,H,L}};
 use crate::ops_batch_layouts::{P512H960,P512L240,P512L960};

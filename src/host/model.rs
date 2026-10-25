@@ -257,8 +257,8 @@ impl Model {
         Ok(())
     }
 
-    /// Exact grouped FFN launch-composition diagnostic, off for each newly
-    /// prepared state. The selector belongs to that state and can change only
+    /// Exact grouped FFN launch-composition control, enabled for new prepared
+    /// states after all owner-route gates. The selector can change only
     /// before its first layer; no model-wide mode survives completion or drop.
     pub fn set_active_prefill_ffn_epilogue_composed(
         &mut self, enabled: bool,
@@ -274,8 +274,8 @@ impl Model {
         Err("no grouped512-density prompt is awaiting its first layer".into())
     }
 
-    /// Scoped exact FFN-global-load diagnostic. The default is off for every
-    /// newly prepared owner shape. Selection is permitted only before layer0;
+    /// Scoped exact FFN-global-load control, enabled for new prepared owner
+    /// shapes after model/cache gates. Selection is permitted only before layer0;
     /// no persistent Model or Worker mode survives completion/cancellation.
     pub fn set_active_prefill_ffn_global_preload(
         &mut self, enabled:bool,
