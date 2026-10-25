@@ -5,9 +5,16 @@ use furiosa_opt_gemma4::{Chip, axes::*, ops_output_weight_stationary as op,
     ops_output_p128_h64_blocked as control};
 use furiosa_opt_std::prelude::*;
 
+fn hash(i: usize, seed: usize) -> usize {
+    let mut v=(i as u64).wrapping_add((seed as u64).wrapping_mul(0x9e3779b97f4a7c15));
+    v=(v^(v>>30)).wrapping_mul(0xbf58476d1ce4e5b9);
+    v=(v^(v>>27)).wrapping_mul(0x94d049bb133111eb);
+    (v^(v>>31)) as usize
+}
 fn input_value(g: usize, row: usize, k: usize, seed: usize) -> bf16 {
     let value = if row == 0 { 0.0 } else {
-        ((row * 17 + k * 13 + g * 19 + seed * 23) % 31) as f32 / 32.0 - 15.0 / 32.0
+        let code=if seed==0 {row*17+k*13+g*19} else {hash(row*4096+k,seed+g*137)};
+        (code % 31) as f32 / 32.0 - 15.0 / 32.0
     };
     bf16::from_f32(value * [0.5, 1.0, 2.0, 4.0][g])
 }
@@ -36,7 +43,7 @@ macro_rules! call { ($d:ident,$fun:path,$inputs:ident,$weights:ident,$scales:ide
 async fn fixture(case: usize) {
     let mut d = Device::new(op::project_sliding_output_four.topology()).unwrap();
     let (cpu_w,cpu_s) = if case < 3 {
-        ((0..H::SIZE*Qs::SIZE).map(|i| f8e4m3::from_f32(((i/Qs::SIZE*5+i%Qs::SIZE*7+case*11)%17) as f32/8.0-1.0)).collect(),
+        ((0..H::SIZE*Qs::SIZE).map(|i| f8e4m3::from_f32((if case==0 {(i/Qs::SIZE*5+i%Qs::SIZE*7)%17} else {hash(i,case+739)%17}) as f32/8.0-1.0)).collect(),
          (0..H::SIZE).map(|i|bf16::from_f32([0.0,0.5,-0.5,1.0,-1.0,1.5,2.0][i%7])).collect())
     } else { provided([0usize,6,46][case-3]) };
     let weights = HostTensor::<f8e4m3,m![H,Qs]>::from_vec(cpu_w.clone()).to_hbm(&mut d.pdma).await.unwrap();
