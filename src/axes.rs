@@ -3,6 +3,7 @@ use furiosa_opt_std::prelude::*;
 axes![
     B = 16,
     R64 = 64,
+    R32 = 32,
     P128 = 128,
     P512 = 512,
     H = 3840,

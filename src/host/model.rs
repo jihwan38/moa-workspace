@@ -97,6 +97,7 @@ enum Dispatch {
     DirectFullAttentionDiagnostic,
     Bf16QkvDiagnostic,
     Decode64Diagnostic,
+    Decode32Diagnostic,
     OriginalDecodeSlidingDiagnostic,
     OriginalDecodeHeadRowsDiagnostic,
 }
@@ -107,7 +108,7 @@ impl Dispatch {
                 Self::Serial => false,
                 Self::Automatic => sequence.inputs.len() == crate::axes::P128::SIZE,
                 Self::WideDiagnostic | Self::NativeQkvDiagnostic | Self::Bf16QkvDiagnostic | Self::OriginalAttentionDiagnostic | Self::OriginalFullAttentionDiagnostic | Self::DirectFullAttentionDiagnostic => true,
-                Self::Decode64Diagnostic | Self::OriginalDecodeSlidingDiagnostic | Self::OriginalDecodeHeadRowsDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
+                Self::Decode64Diagnostic | Self::Decode32Diagnostic | Self::OriginalDecodeSlidingDiagnostic | Self::OriginalDecodeHeadRowsDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
             }
     }
 }
@@ -1132,6 +1133,34 @@ impl Model {
         Ok(&self.logits[..sequences.len()])
     }
 
+    /// Explicit per-call32-capacity hot-stage diagnostic, retaining all R64 arithmetic.
+    /// Counts outside17..32 keep the complete existing R64 path; no persistent selector.
+    pub async fn forward_outputs_capacity32(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.forward_outputs_decode_diagnostic(device,sequences,workspace,true).await
+    }
+    /// Matched exact reference with identical native logits ABI and complete64-row work.
+    pub async fn forward_outputs_capacity64(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.forward_outputs_decode_diagnostic(device,sequences,workspace,false).await
+    }
+    async fn forward_outputs_decode_diagnostic(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace, capacity32:bool,
+    ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        if !workspace.is_canonical() || sequences.is_empty() || sequences.iter().any(|s|s.inputs.len()!=1) {
+            return Err("capacity diagnostic needs independent canonical singleton rows".into());
+        }
+        let dispatch=if capacity32 {Dispatch::Decode32Diagnostic}else{Dispatch::Decode64Diagnostic};
+        let layout=self.forward_sequences_inner(device,sequences,workspace,dispatch,true).await?;
+        Ok(match layout {
+            OutputLayout::Blocked64=>ForwardOutput::Blocked64(self.decode64.as_ref().unwrap().blocked_logits(),sequences.len()),
+            OutputLayout::Rows=>ForwardOutput::Rows(&self.logits[..sequences.len()]),
+            OutputLayout::Batch16=>unreachable!("forced R64 diagnostic cannot select B16"),
+        })
+    }
+
     /// Matched R64 control: disable only prefix768; retain existing512/mixed/full
     /// attention, exact request histories, all projection and LM arithmetic.
     pub async fn forward_sequences_r64_original_sliding(
@@ -1232,7 +1261,7 @@ impl Model {
         let use_r64 = workspace.is_canonical()
             && independent
             && (1..=crate::axes::R64::SIZE).contains(&singletons.len())
-            && (matches!(dispatch, Dispatch::Decode64Diagnostic | Dispatch::OriginalDecodeSlidingDiagnostic | Dispatch::OriginalDecodeHeadRowsDiagnostic)
+            && (matches!(dispatch, Dispatch::Decode64Diagnostic | Dispatch::Decode32Diagnostic | Dispatch::OriginalDecodeSlidingDiagnostic | Dispatch::OriginalDecodeHeadRowsDiagnostic)
                 || (dispatch != Dispatch::Serial && singletons.len() > crate::axes::B::SIZE));
         let batched_singletons = use_r64
             || (dispatch != Dispatch::Serial
@@ -1270,6 +1299,7 @@ impl Model {
                         output_layout == OutputLayout::Rows,
                         dispatch != Dispatch::OriginalDecodeSlidingDiagnostic,
                         dispatch != Dispatch::OriginalDecodeHeadRowsDiagnostic,
+                        matches!(dispatch, Dispatch::Automatic | Dispatch::Decode32Diagnostic),
                     )
                     .await?;
             } else {

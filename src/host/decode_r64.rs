@@ -15,6 +15,12 @@ use crate::{
 use furiosa_opt_std::prelude::*;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 pub(crate) struct Decode64 {
+    // Private32-row FFN intermediates; existing64-row activation/output ABI remains.
+    ffn32_qinput: HbmTensor<f8e4m3, Chip, crate::ops_decode32_ffn::Input>,
+    ffn32_xscale: HbmTensor<f32, Chip, m![R32]>,
+    ffn32_hidden: HbmTensor<bf16, Chip, crate::ops_decode32_ffn::Hidden>,
+    ffn32_qhidden: HbmTensor<f8e4m3, Chip, crate::ops_decode32_ffn::QuantHidden>,
+    ffn32_hscale: HbmTensor<f32, Chip, m![R32]>,
     // Owned once per model; the fused FFN materializes each validated HBM boundary.
     staged_ffn: bool,
     ffn_qinput: HbmTensor<f8e4m3, Chip, crate::ops_native_fp8_r64_staged_fused::Input>,
@@ -131,6 +137,11 @@ impl Decode64 {
         }
         Ok(Self {
             staged_ffn: true,
+            ffn32_qinput: zero!(f8e4m3, crate::ops_decode32_ffn::Input),
+            ffn32_xscale: zero!(f32, m![R32]),
+            ffn32_hidden: zero!(bf16, crate::ops_decode32_ffn::Hidden),
+            ffn32_qhidden: zero!(f8e4m3, crate::ops_decode32_ffn::QuantHidden),
+            ffn32_hscale: zero!(f32, m![R32]),
             ffn_qinput: zero!(f8e4m3, crate::ops_native_fp8_r64_staged_fused::Input),
             ffn_xscale: zero!(f32, m![R64]),
             ffn_hidden: zero!(bf16, crate::ops_native_fp8_r64_staged_fused::Hidden),
@@ -185,6 +196,7 @@ impl Decode64 {
         extract_rows: bool,
         allow_prefix768: bool,
         use_head_rows: bool,
+        use_capacity32: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -201,6 +213,10 @@ impl Decode64 {
         }
         let mut metadata = Step64::new(device, sequences).await?;
         metadata.sliding_prefix768 &= allow_prefix768;
+        let capacity32 = use_capacity32 && (17..=32).contains(&count) && self.staged_ffn;
+        let policy32 = if capacity32 {
+            Some(HbmScalar::<i32>::from_host(i32::from(metadata.sliding_short_groups), &mut device.pdma).await?)
+        } else { None };
         let token_offsets = HostTensor::<i32, m![R64]>::from_vec(
             (0..R64::SIZE)
                 .map(|r| (sequences[r.min(count - 1)].inputs[0].token * H::SIZE * 2) as i32)
@@ -274,11 +290,11 @@ impl Decode64 {
         for (index, layer) in weights.layers.iter().enumerate() {
             match layer {
                 Layer::Sliding(layer) => {
-                    self.decode_sliding(device, ws, index, layer, &rope_s, &metadata, use_head_rows)
+                    self.decode_sliding(device, ws, index, layer, &rope_s, &metadata, use_head_rows, policy32.as_ref())
                         .await?
                 }
                 Layer::Full(layer) => {
-                    self.decode_full(device, ws, index, layer, &rope_f, &metadata)
+                    self.decode_full(device, ws, index, layer, &rope_f, &metadata, capacity32)
                         .await?
                 }
             }
@@ -291,6 +307,10 @@ impl Decode64 {
             )
             .await?;
             self.record_profile("r64.logits.norm", &mut profile_mark);
+            if capacity32 {
+                launch(crate::ops_decode32_lm::logits_batch,
+                    (device, &self.norm, &weights.embedding_table, &mut self.logits_batch)).await?;
+            } else {
             launch(
                 crate::ops_r64_lm_partitioned::logits_batch,
                 (
@@ -301,6 +321,7 @@ impl Decode64 {
                 ),
             )
             .await?;
+            }
             self.record_profile("r64.logits.projection", &mut profile_mark);
             for (row, sequence) in sequences.iter().enumerate() {
                 if extract_rows && sequence.inputs[0].logits {
@@ -330,6 +351,7 @@ impl Decode64 {
         rope: &HbmTensor<i32, Chip, m![R64]>,
         metadata: &Step64,
         use_head_rows: bool,
+        policy32: Option<&HbmScalar<i32>>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output;
@@ -399,7 +421,11 @@ impl Decode64 {
             return Err("sliding layer has wrong pool kind".into());
         };
         self.commit_sliding(device, metadata, k, v).await?;
-        if metadata.sliding_short_groups == 255 {
+        if let Some(policy) = policy32 {
+            launch(crate::ops_decode32_attention::sliding_attention_r64,
+                (device, &self.q_s, &*k, &*v, &metadata.ring_offsets,
+                 &metadata.sliding_mask, policy, &mut self.attn_s)).await?;
+        } else if metadata.sliding_short_groups == 255 {
         launch(
             crate::ops_request_sliding_r64_prefix512::sliding_attention_r64,
             (
@@ -481,6 +507,7 @@ impl Decode64 {
             &layer.pre_feedforward_norm,
             &layer.post_feedforward_norm,
             &layer.layer_scalar,
+            policy32.is_some(),
         )
         .await
     }
@@ -493,6 +520,7 @@ impl Decode64 {
         layer: &FullLayer,
         rope: &HbmTensor<i32, Chip, m![R64]>,
         metadata: &Step64,
+        capacity32: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output;
@@ -622,6 +650,7 @@ impl Decode64 {
             &layer.pre_feedforward_norm,
             &layer.post_feedforward_norm,
             &layer.layer_scalar,
+            capacity32,
         )
         .await
     }
@@ -632,11 +661,20 @@ impl Decode64 {
         pre: &HbmTensor<bf16, Chip, m![H]>,
         post: &HbmTensor<bf16, Chip, m![H]>,
         gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
+        capacity32: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         launch(norm::rmsnorm_r64, (device, &self.x, pre, &mut self.norm)).await?;
         self.record_profile("r64.ffn.pre_norm", &mut profile_mark);
-        if self.staged_ffn {
+        if capacity32 {
+            launch(crate::ops_decode32_ffn::batch_ffn,
+                (device, &self.norm, &weights.native_fp8.up, &weights.native_fp8.gate,
+                 &weights.native_fp8.down, &weights.native_fp8.up_dequant,
+                 &weights.native_fp8.gate_dequant, &weights.native_fp8.down_dequant,
+                 &weights.up_global_scale, &weights.gate_global_scale, &weights.down_global_scale,
+                 &mut self.ffn32_qinput, &mut self.ffn32_xscale, &mut self.ffn32_hidden,
+                 &mut self.ffn32_qhidden, &mut self.ffn32_hscale, &mut self.projected)).await?;
+        } else if self.staged_ffn {
         launch(
             crate::ops_native_fp8_r64_staged_fused::batch_ffn,
             (

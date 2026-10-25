@@ -245,3 +245,6 @@ pub mod ops_vision_trf;
 pub mod ops_prefill_head_attn_commit;
 
 pub mod ops_b16_ffn_epilogue;
+pub mod ops_decode32_ffn;
+pub mod ops_decode32_attention;
+pub mod ops_decode32_lm;
