@@ -6,7 +6,7 @@ use std::{collections::VecDeque, sync::mpsc};
 use crate::api::worker::{Job, StreamEvent};
 use crate::host::generate::{Delta, Generation, PREFILL_CHUNK, read_logits};
 use crate::host::load;
-use crate::host::model::{ForwardOutput, Model, Sequence};
+use crate::host::model::{ForwardOutput, Model, PrefillAdvanceTiming, Sequence};
 use crate::host::runtime::{Blocks, Workspace};
 use crate::host::tokenizer::Tokenizer;
 use furiosa_opt_std::prelude::*;
@@ -107,6 +107,7 @@ struct SessionTiming {
     prompt_wait: Duration,
     decode_rounds: usize,
     credited: usize,
+    phases: [Duration; 3],
 }
 impl SessionTiming {
     fn new(id: u64, prompt_tokens: usize, now: Instant) -> Self {
@@ -121,6 +122,7 @@ impl SessionTiming {
             prompt_wait: Duration::ZERO,
             decode_rounds: 0,
             credited: 0,
+            phases: [Duration::ZERO; 3],
         }
     }
     fn report(&self, finished: Instant) {
@@ -137,7 +139,7 @@ impl SessionTiming {
             .map(|t| ms(finished.saturating_duration_since(t)) / (self.progress.tokens - 1) as f64)
             .unwrap_or(0.0);
         eprintln!(
-            "SCHED_REQ id={} p={} q={:.1} first={:.1} own={:.1} dw={:.1}/{} pw={:.1} host={:.1} n={} avg={:.2} maxgap={:.1} over={}/{:.1} credited={}",
+            "SCHED_REQ id={} p={} q={:.1} first={:.1} own={:.1} dw={:.1}/{} pw={:.1} host={:.1} n={} avg={:.2} maxgap={:.1} over={}/{:.1} credited={} ph={:.1}/{:.1}/{:.1}",
             self.id,
             self.prompt_tokens,
             ms(self.admitted.saturating_duration_since(self.received)),
@@ -154,8 +156,32 @@ impl SessionTiming {
             ms(self.progress.max_gap),
             self.progress.deadline_overruns,
             ms(self.progress.max_deadline_overrun),
-            self.credited
+            self.credited,
+            ms(self.phases[0]),
+            ms(self.phases[1]),
+            ms(self.phases[2])
         );
+    }
+}
+
+#[derive(Default)]
+struct PromptPhases {
+    preparation: Option<Duration>,
+    advance: PrefillAdvanceTiming,
+    read: Duration,
+}
+impl PromptPhases {
+    // Preparation can encode media and finalization can project/read logits.
+    // Neither repeats on every layer; only the measured layer trains its cost.
+    fn recurring_cost(&self, fallback: Duration) -> Duration {
+        self.advance.layer.unwrap_or(fallback)
+    }
+    fn times(&self) -> [Option<Duration>; 3] {
+        [
+            self.preparation,
+            self.advance.layer,
+            self.advance.finish.map(|t| t + self.read),
+        ]
     }
 }
 
@@ -186,6 +212,7 @@ struct SchedulerTrace {
     // Actual owners per dispatch, separate from the cost class: Prompt512 has
     // one owner but shares the four-chunk cost class with four independent rows.
     prompt_dispatches: [usize; 5],
+    phases: [[WorkCost; 2]; 3],
     credit_opportunities: usize,
     unknown_credit: usize,
     credited: WorkCost,
@@ -196,9 +223,17 @@ impl SchedulerTrace {
             decode: [WorkCost::default(); crate::axes::R64::SIZE + 1],
             prompt: [WorkCost::default(); 2],
             prompt_dispatches: [0; 5],
+            phases: [[WorkCost::default(); 2]; 3],
             credit_opportunities: 0,
             unknown_credit: 0,
             credited: WorkCost::default(),
+        }
+    }
+    fn prompt_phases(&mut self, width: usize, phases: &PromptPhases) {
+        for (stats, elapsed) in self.phases.iter_mut().zip(phases.times()) {
+            if let Some(elapsed) = elapsed {
+                stats[usize::from(width == 4)].add(elapsed);
+            }
         }
     }
     fn work(
@@ -234,7 +269,7 @@ impl SchedulerTrace {
             .map(|(width, count)| format!("p{width}={count}"))
             .collect();
         eprintln!(
-            "SCHED_TOTAL credit={} cap_ms={} {} {} pc1={} pc4={} credit_fit={} unknown={} used={}",
+            "SCHED_TOTAL credit={} cap_ms={} {} {} pc1={} pc4={} credit_fit={} unknown={} used={} prep1={} prep4={} layer1={} layer4={} final1={} final4={}",
             CREDIT_SCHEDULER_ENABLED,
             DECODE_GAP_SOFTCAP.as_millis(),
             widths.join(" "),
@@ -243,7 +278,13 @@ impl SchedulerTrace {
             self.prompt[1].compact(),
             self.credit_opportunities,
             self.unknown_credit,
-            self.credited.compact()
+            self.credited.compact(),
+            self.phases[0][0].compact(),
+            self.phases[0][1].compact(),
+            self.phases[1][0].compact(),
+            self.phases[1][1].compact(),
+            self.phases[2][0].compact(),
+            self.phases[2][1].compact()
         );
     }
 }
@@ -274,7 +315,9 @@ impl ReadyInput {
 
 /// Spend the interval between decode rounds on complete prompt layers. A single
 /// layer always remains eligible after a decode so slow rounds cannot starve it.
-/// Measurements include host logit reads, sampling and response event emission.
+/// Decode measurements include host reads, sampling and response event emission.
+/// Prompt estimates use recurring layer time; preparation and finalization are
+/// atomic and separately traced, so their stalls cannot inflate later layers.
 struct DecodeCadence {
     last: Option<(Instant, usize)>,
     costs: [Duration; crate::axes::R64::SIZE + 1],
@@ -583,6 +626,7 @@ impl Worker {
                 active_work.clone_from(&scheduled);
             }
             let work_started = Instant::now();
+            let mut prompt_phases = PromptPhases::default();
             for (&index, input) in selected.iter().zip(&scheduled) {
                 let session = &mut sessions[index];
                 let (_, position) = session.generation.input();
@@ -625,6 +669,7 @@ impl Worker {
                         .collect();
                     if grouped {
                         if active_rings.is_empty() {
+                            let mark = Instant::now();
                             self.model
                                 .start_prefill_group(
                                     &mut self.device,
@@ -632,10 +677,15 @@ impl Worker {
                                     &mut self.workspace,
                                 )
                                 .await?;
+                            prompt_phases.preparation = Some(mark.elapsed());
                         }
                         let Some(outputs) = self
                             .model
-                            .advance_prefill_group(&mut self.device, &mut self.workspace)
+                            .advance_prefill_group_measured(
+                                &mut self.device,
+                                &mut self.workspace,
+                                Some(&mut prompt_phases.advance),
+                            )
                             .await?
                         else {
                             return Ok(None);
@@ -643,6 +693,7 @@ impl Worker {
                         if outputs.len() != sequences.len() {
                             return Err("grouped output count does not match its requests".into());
                         }
+                        let mark = Instant::now();
                         let mut logits = Vec::with_capacity(outputs.len());
                         for (output, sequence) in outputs.iter().zip(&sequences) {
                             logits.push(SampleOutput::Logits(
@@ -653,6 +704,7 @@ impl Worker {
                                 },
                             ));
                         }
+                        prompt_phases.read = mark.elapsed();
                         return Ok(Some(logits));
                     }
                     if sequences.len() == 1
@@ -660,6 +712,7 @@ impl Worker {
                             || (active_rings.is_empty() && sequences[0].inputs.len() > 1))
                     {
                         if active_rings.is_empty() {
+                            let mark = Instant::now();
                             if scheduled[0].count == crate::axes::P512::SIZE {
                                 self.model
                                     .start_prefill512(
@@ -677,19 +730,26 @@ impl Worker {
                                     )
                                     .await?;
                             }
+                            prompt_phases.preparation = Some(mark.elapsed());
                         }
                         let Some(output) = self
                             .model
-                            .advance_prefill(&mut self.device, &mut self.workspace)
+                            .advance_prefill_measured(
+                                &mut self.device,
+                                &mut self.workspace,
+                                Some(&mut prompt_phases.advance),
+                            )
                             .await?
                         else {
                             return Ok(None);
                         };
+                        let mark = Instant::now();
                         let logits = if sequences[0].inputs.last().unwrap().logits {
                             read_logits(&mut self.device, output).await?
                         } else {
                             Vec::new()
                         };
+                        prompt_phases.read = mark.elapsed();
                         return Ok(Some(vec![SampleOutput::Logits(logits)]));
                     }
                     let outputs = self
@@ -773,6 +833,22 @@ impl Worker {
                 })
             }));
             if SCHEDULER_TRACE_ENABLED {
+                if decode_width == 0 {
+                    trace.prompt_phases(cost_width, &prompt_phases);
+                    for session in &mut sessions {
+                        if session.timing.progress.first.is_none()
+                            && scheduled
+                                .iter()
+                                .any(|input| input.ring == session.blocks.sliding)
+                        {
+                            for (sum, elapsed) in
+                                session.timing.phases.iter_mut().zip(prompt_phases.times())
+                            {
+                                *sum += elapsed.unwrap_or_default();
+                            }
+                        }
+                    }
+                }
                 account_prefill_wait(
                     &mut sessions,
                     &scheduled,
@@ -797,7 +873,7 @@ impl Worker {
             match completed {
                 Ok(false) => {
                     let elapsed = work_started.elapsed();
-                    cadence.observe_prompt(elapsed, cost_width);
+                    cadence.observe_prompt(prompt_phases.recurring_cost(elapsed), cost_width);
                     if SCHEDULER_TRACE_ENABLED {
                         trace.work(0, &scheduled, elapsed, credited);
                     }
@@ -841,7 +917,7 @@ impl Worker {
             if decode_width > 0 {
                 cadence.observe_decode(finished, decode_width, elapsed);
             } else {
-                cadence.observe_prompt(elapsed, cost_width);
+                cadence.observe_prompt(prompt_phases.recurring_cost(elapsed), cost_width);
             }
         }
     }
@@ -1945,5 +2021,70 @@ mod tests {
         assert_eq!(progress.deadline_overruns, 2);
         assert_eq!(progress.max_deadline_overrun, Duration::from_millis(20));
         assert_eq!(progress.max_gap, Duration::from_millis(170));
+    }
+
+    #[test]
+    fn preparation_and_finalization_do_not_train_the_recurring_layer_estimator() {
+        let phases = PromptPhases {
+            preparation: Some(Duration::from_millis(250)),
+            advance: PrefillAdvanceTiming {
+                layer: Some(Duration::from_millis(7)),
+                finish: Some(Duration::from_millis(20)),
+            },
+            read: Duration::from_millis(2),
+        };
+        let elapsed = Duration::from_millis(280);
+        let mut cadence = DecodeCadence::new();
+        cadence.prompt_cost[1] = Duration::from_millis(7);
+        cadence.observe_prompt(phases.recurring_cost(elapsed), 4);
+        assert_eq!(cadence.prompt_cost[1], Duration::from_millis(7));
+        assert_eq!(PromptPhases::default().recurring_cost(elapsed), elapsed);
+        assert_eq!(
+            phases.times(),
+            [
+                Some(Duration::from_millis(250)),
+                Some(Duration::from_millis(7)),
+                Some(Duration::from_millis(22)),
+            ]
+        );
+    }
+
+    #[test]
+    fn phase_trace_preserves_whole_prompt_work_and_counts_each_phase_once() {
+        let mut trace = SchedulerTrace::new();
+        let input = [ScheduledInput {
+            ring: 0,
+            position: 0,
+            count: 512,
+        }];
+        let phases = PromptPhases {
+            preparation: Some(Duration::from_millis(250)),
+            advance: PrefillAdvanceTiming {
+                layer: Some(Duration::from_millis(7)),
+                finish: None,
+            },
+            read: Duration::ZERO,
+        };
+        trace.prompt_phases(4, &phases);
+        trace.work(0, &input, Duration::from_millis(258), true);
+        let final_phase = PromptPhases {
+            preparation: None,
+            advance: PrefillAdvanceTiming {
+                layer: Some(Duration::from_millis(7)),
+                finish: Some(Duration::from_millis(5)),
+            },
+            read: Duration::from_millis(1),
+        };
+        trace.prompt_phases(4, &final_phase);
+        trace.work(0, &input, Duration::from_millis(14), false);
+        assert_eq!(trace.prompt[1].total, Duration::from_millis(272));
+        assert_eq!(trace.phases[0][1].calls, 1);
+        assert_eq!(trace.phases[0][1].total, Duration::from_millis(250));
+        assert_eq!(trace.phases[1][1].calls, 2);
+        assert_eq!(trace.phases[1][1].total, Duration::from_millis(14));
+        assert_eq!(trace.phases[2][1].calls, 1);
+        assert_eq!(trace.phases[2][1].total, Duration::from_millis(6));
+        assert_eq!(trace.prompt_dispatches[1], 2);
+        assert_eq!(trace.credited.total, Duration::from_millis(258));
     }
 }

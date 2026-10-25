@@ -13,6 +13,14 @@ use super::prefill::{
 use runtime::{Blocks, Workspace};
 pub type Logits = HbmTensor<bf16, Chip, m![W]>;
 
+/// Host-observed phase times for a scheduling quantum. These fields are supplied
+/// by the caller, so no timing state survives an aborted model future.
+#[derive(Default)]
+pub(crate) struct PrefillAdvanceTiming {
+    pub layer: Option<std::time::Duration>,
+    pub finish: Option<std::time::Duration>,
+}
+
 /// Physical output of the current computation. Only input rows requesting logits
 /// are valid, just as with `forward_sequences`; blocked rows retain request order.
 pub enum ForwardOutput<'a> {
@@ -210,17 +218,34 @@ impl Model {
         device: &mut Device,
         workspace: &mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.advance_prefill_group_measured(device, workspace, None)
+            .await
+    }
+    pub(crate) async fn advance_prefill_group_measured(
+        &mut self,
+        device: &mut Device,
+        workspace: &mut Workspace,
+        mut timing: Option<&mut PrefillAdvanceTiming>,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        if let Some(timing) = timing.as_mut() {
+            **timing = PrefillAdvanceTiming::default();
+        }
         let state = self
             .active_group
             .as_mut()
             .ok_or("no grouped prefill is active")?;
         let group = self.group.as_mut().ok_or("grouped scratch is missing")?;
-        if !group
+        let mark = timing.as_ref().map(|_| std::time::Instant::now());
+        let complete = group
             .advance_layer(device, &self.weights, state, workspace, &mut self.prefill)
-            .await?
-        {
+            .await?;
+        if let Some(timing) = timing.as_mut() {
+            timing.layer = Some(mark.unwrap().elapsed());
+        }
+        if !complete {
             return Ok(None);
         }
+        let mark = timing.as_ref().map(|_| std::time::Instant::now());
         for row in 0..4 {
             std::mem::swap(&mut self.logits[row], &mut workspace.logits);
             let result = group
@@ -237,6 +262,9 @@ impl Model {
             result?;
         }
         self.active_group = None;
+        if let Some(timing) = timing.as_mut() {
+            timing.finish = Some(mark.unwrap().elapsed());
+        }
         Ok(Some(&self.logits[..4]))
     }
 
@@ -319,11 +347,23 @@ impl Model {
         device: &mut Device,
         workspace: &mut Workspace,
     ) -> Result<Option<&Logits>, Box<dyn std::error::Error>> {
+        self.advance_prefill_measured(device, workspace, None).await
+    }
+    pub(crate) async fn advance_prefill_measured(
+        &mut self,
+        device: &mut Device,
+        workspace: &mut Workspace,
+        mut timing: Option<&mut PrefillAdvanceTiming>,
+    ) -> Result<Option<&Logits>, Box<dyn std::error::Error>> {
+        if let Some(timing) = timing.as_mut() {
+            **timing = PrefillAdvanceTiming::default();
+        }
         let state = self
             .active_prefill
             .as_mut()
             .ok_or("no resumable prefill is active")?;
         workspace.blocks.clone_from(state.blocks());
+        let mark = timing.as_ref().map(|_| std::time::Instant::now());
         let complete = match state {
             ActivePrefill::Wide(state) => {
                 self.wide
@@ -336,14 +376,20 @@ impl Model {
                     .await?
             }
             ActivePrefill::Prompt512(state) => {
-                self.group.as_mut().expect("Prompt512 owns grouped scratch")
+                self.group
+                    .as_mut()
+                    .expect("Prompt512 owns grouped scratch")
                     .advance_prompt512(device, &self.weights, state, workspace, &mut self.prefill)
                     .await?
             }
         };
+        if let Some(timing) = timing.as_mut() {
+            timing.layer = Some(mark.unwrap().elapsed());
+        }
         if !complete {
             return Ok(None);
         }
+        let mark = timing.as_ref().map(|_| std::time::Instant::now());
         std::mem::swap(&mut self.logits[0], &mut workspace.logits);
         let result = match state {
             ActivePrefill::Wide(state) => {
@@ -357,7 +403,9 @@ impl Model {
                     .await
             }
             ActivePrefill::Prompt512(state) => {
-                self.group.as_mut().expect("Prompt512 owns grouped scratch")
+                self.group
+                    .as_mut()
+                    .expect("Prompt512 owns grouped scratch")
                     .finish_prompt512(device, &self.weights, state, workspace, &mut self.prefill)
                     .await
             }
@@ -365,6 +413,9 @@ impl Model {
         std::mem::swap(&mut self.logits[0], &mut workspace.logits);
         result?;
         self.active_prefill = None;
+        if let Some(timing) = timing.as_mut() {
+            timing.finish = Some(mark.unwrap().elapsed());
+        }
         Ok(Some(&self.logits[0]))
     }
 
