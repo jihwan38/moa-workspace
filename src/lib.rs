@@ -125,3 +125,5 @@ pub mod ops_qk_shared_blocked;
 pub mod ops_query_native_fp8_control;
 
 pub mod ops_qkv_shared_ingress;
+
+pub mod ops_qk_shared_ingress;

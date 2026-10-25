@@ -5,3 +5,5 @@ Control: canonical blocked producer from6d58608, already whole-model/public vali
 Removed:64-fold HBM input duplication perP128, four groups. Added: packetized Switch into TRF; same H960F32partial reduction, dequant/BF16/channel boundaries and blocked outputs. Dot/reduction/store functions unchanged.
 
 Gate: two cases/four distinctgroups/twopermutations, every quant andscale againstCPU, all Q/K/V against canonical independentNaN outputs plus F64 dot checks. Inclusive ABBA includes optionalunchangedquant, allprojectionoutputs completed. No model adoption before measuredwin and wholePrompt512 gate.
+
+Sliding318701/r565 allindependentNaNbits+CPU/F64 PASS; QKVonly .418–.422→.268–.271ms. Printed timing scope mistakenly mentioned removed head calls; source actually times QKVonly, label corrected here. Quantinclusive .514→.365ms. FullQK same ingress now gated separately against canonical blocked output.

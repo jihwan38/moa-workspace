@@ -113,7 +113,7 @@ async fn main(){
    if order==[2,0,3,1]{cpu_check("Q",&aq,&cpu_q,&cpu_xs,&qw_cpu,&qs_cpu,order,seed);cpu_check("K",&ak,&cpu_q,&cpu_xs,&kw_cpu,&ks_cpu,order,seed);cpu_check("V",&av,&cpu_q,&cpu_xs,&vw_cpu,&vs_cpu,order,seed);}
   }
   if seed==101{
-   for include_quant in [true,false]{let mut times=[Vec::new(),Vec::new()];for variant in [0,1,1,0]{let start=std::time::Instant::now();for _ in 0..10{if include_quant{for g in 0..4{launch(quant::quantize_input,(&mut d,&inputs[g],&mut q[g],&mut xs[g])).await.unwrap();}}if variant==0{separate!([0,1,2,3]);}else{shared!([0,1,2,3]);}}times[variant].push(start.elapsed().as_secs_f64()*1000.0/10.0);}println!("INGRESS_QKV_timing include_one_quant_per_input={include_quant} blocked_control_ms={:?} ingress_ms={:?} scope=10_completed_QKV_and_four_heads_all_outputs_no_host_read",times[0],times[1]);}
+   for include_quant in [true,false]{let mut times=[Vec::new(),Vec::new()];for variant in [0,1,1,0]{let start=std::time::Instant::now();for _ in 0..10{if include_quant{for g in 0..4{launch(quant::quantize_input,(&mut d,&inputs[g],&mut q[g],&mut xs[g])).await.unwrap();}}if variant==0{separate!([0,1,2,3]);}else{shared!([0,1,2,3]);}}times[variant].push(start.elapsed().as_secs_f64()*1000.0/10.0);}println!("INGRESS_QKV_timing include_one_quant_per_input={include_quant} blocked_control_ms={:?} ingress_ms={:?} scope=10_completed_QKV_only_all_outputs_no_host_read",times[0],times[1]);}
    if std::env::var_os("FURIOSA_OPT_PROFILE").is_some(){for variant in [0,1]{println!("PROFILE_VARIANT {variant}");collector.enable(true);for g in 0..4{launch(quant::quantize_input,(&mut d,&inputs[g],&mut q[g],&mut xs[g])).await.unwrap();}if variant==0{separate!([0,1,2,3]);}else{shared!([0,1,2,3]);}collector.enable(false);}}
   }
  }
