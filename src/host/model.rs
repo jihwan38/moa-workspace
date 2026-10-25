@@ -5,7 +5,7 @@ use crate::{Chip, axes::{B, W}};
 use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
-use super::prefill::wide::group::{GroupPrefill, PreparedGroup, PreparedPrompt512, PreparedPrompt384128};
+use super::prefill::wide::group::{GroupPrefill, PreparedGroup, PreparedPrompt512, PreparedPrompt384128, PreparedTail256};
 use super::prefill::{
     Prefill, PreparedNarrow,
     wide::{PreparedWide, WidePrefill},
@@ -64,6 +64,7 @@ pub struct Model {
     group: Option<GroupPrefill>,
     active_group: Option<PreparedGroup>,
     active_prompt384128: Option<PreparedPrompt384128>,
+    active_tail256: Option<PreparedTail256>,
     active_prefill: Option<ActivePrefill>,
     logits: Vec<Logits>,
 }
@@ -180,6 +181,7 @@ impl Model {
             group: None,
             active_group: None,
             active_prompt384128: None,
+            active_tail256: None,
             active_prefill: None,
             logits,
         })
@@ -192,6 +194,7 @@ impl Model {
             .map(|state| state.blocks().sliding)
             .or_else(|| self.active_group.as_ref().map(|state|state.blocks()[0].sliding))
             .or_else(|| self.active_prompt384128.as_ref().map(|state|state.blocks()[0].sliding))
+            .or_else(|| self.active_tail256.as_ref().map(|state|state.blocks()[0].sliding))
     }
 
     /// Every request allocation held by an active prompt scheduling quantum.
@@ -212,6 +215,7 @@ impl Model {
         if let Some(active) = &self.active_prompt384128 {
             blocks.extend(active.blocks());
         }
+        if let Some(active) = &self.active_tail256 { blocks.extend(active.blocks()); }
         blocks
     }
     /// Allocate the optional grouped prompt workspace before serving requests.
@@ -405,6 +409,78 @@ impl Model {
             timing.finish = Some(mark.unwrap().elapsed());
         }
         Ok(Some(&self.logits[..4]))
+    }
+
+    /// Model-only exact256-token checkpoint. This API does not change Worker dispatch.
+    /// One request owns both chronological halves; only its final input may request logits.
+    pub async fn start_prefill256(
+        &mut self, device:&mut Device, sequence:&Sequence<'_>, workspace:&mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if sequence.inputs.len()!=256 { return Err("Prompt256 needs256 inputs".into()); }
+        self.start_prefill_tail256_with_padding(device,std::slice::from_ref(sequence),workspace,bf16::from_bits(0)).await
+    }
+    /// Model-only pair of independent128-token chunks, with owner-ordered outputs.
+    pub async fn start_prefill_pair256(
+        &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if sequences.len()!=2 { return Err("Pair256 needs two owners".into()); }
+        self.start_prefill_tail256_with_padding(device,sequences,workspace,bf16::from_bits(0)).await
+    }
+    /// Scoped numerical diagnostic: only the two inactive tensor quarters receive
+    /// this value. They never own request positions, KV reservations or logits.
+    pub async fn start_prefill_tail256_with_padding(
+        &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
+        padding:bf16,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() { return Err("another prefill is in progress".into()); }
+        if !workspace.is_canonical() || sequences.len()>self.logits.len()
+            || !GroupPrefill::supports_tail256(sequences) {
+            return Err("Tail256 needs canonical one256 or independent128+128 input ranges".into());
+        }
+        for sequence in sequences {
+            validate_sequence(sequence,workspace.capacity(),workspace.requests())?;
+            validate_physical_pages(sequence.blocks,workspace.physical_full_pages())?;
+        }
+        self.prepare_group_scratch(device).await?;
+        self.active_tail256=Some(self.group.as_mut().unwrap().prepare_tail256(
+            device,&self.weights,sequences,&mut self.prefill,
+            super::prefill::wide::MEDIA_BATCH_ENABLED,padding).await?);
+        Ok(())
+    }
+    /// Complete one layer, then return only the actual one/two owner outputs.
+    /// On a failed or cancelled in-flight call, discard Model/Workspace as for
+    /// every other resumable prefill; partial cache writes cannot be retried.
+    pub async fn advance_prefill_tail256(
+        &mut self, device:&mut Device, workspace:&mut Workspace,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        let state=self.active_tail256.as_mut().ok_or("no Tail256 is active")?;
+        let group=self.group.as_mut().ok_or("grouped scratch is missing")?;
+        if !group.advance_tail256(device,&self.weights,state,workspace,&mut self.prefill).await? {
+            return Ok(None);
+        }
+        let owners=state.owners();
+        for owner in 0..owners {
+            std::mem::swap(&mut self.logits[owner],&mut workspace.logits);
+            let result=group.finish_tail256(owner,device,&self.weights,state,workspace,&mut self.prefill).await;
+            std::mem::swap(&mut self.logits[owner],&mut workspace.logits);
+            result?;
+        }
+        self.active_tail256=None;
+        Ok(Some(&self.logits[..owners]))
+    }
+
+    /// Diagnostic only: compare every physical K/V value of two canonical
+    /// reservations, including untouched ring positions and allocated full pages.
+    /// No cache values are modified; transfer time is excluded from model timings.
+    pub async fn compare_canonical_kv(
+        &self, device:&mut Device, workspace:&Workspace, a:&Blocks, b:&Blocks,
+    ) -> Result<usize, Box<dyn std::error::Error>> {
+        validate_physical_pages(a,workspace.physical_full_pages())?;
+        validate_physical_pages(b,workspace.physical_full_pages())?;
+        if !workspace.is_canonical() || a.sliding>=64 || b.sliding>=64 {
+            return Err("cache comparison needs canonical reservations".into());
+        }
+        Ok(super::kv_diagnostic::compare_canonical_kv(device,workspace,a,b).await?/2)
     }
 
     /// Prepare exactly two independent owners:384 consecutive inputs from A,

@@ -1,0 +1,65 @@
+    Checking furiosa-opt-gemma4 v0.1.0 (/round2/tail256-model)
+error: prefix `Ts` is unknown
+   --> src/host/model.rs:495:68
+    |
+495 | ...                   let view:HbmTensorView<'_,bf16,Chip,m![Ts#65536,Ns,Ds]>=unsafe {
+    |                                                              ^^ unknown prefix
+    |
+    = note: prefixed identifiers and literals are reserved since Rust 2021
+help: consider inserting whitespace here
+    |
+495 |                             let view:HbmTensorView<'_,bf16,Chip,m![Ts #65536,Ns,Ds]>=unsafe {
+    |                                                                      +
+
+error: prefix `Tf` is unknown
+   --> src/host/model.rs:514:72
+    |
+514 | ...                   let view:HbmTensorView<'_,bf16,Chip,m![Tf#131072,Df]>=unsafe {
+    |                                                              ^^ unknown prefix
+    |
+    = note: prefixed identifiers and literals are reserved since Rust 2021
+help: consider inserting whitespace here
+    |
+514 |                                 let view:HbmTensorView<'_,bf16,Chip,m![Tf #131072,Df]>=unsafe {
+    |                                                                          +
+
+warning: unused import: `ops_batch`
+  --> src/host/prefill.rs:12:40
+   |
+12 |     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
+   |                                        ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ops_batch_r64 as linear`
+  --> src/host/decode_r64.rs:12:20
+   |
+12 |     Chip, axes::*, ops_batch_r64 as linear, ops_commit_r64 as commit, ops_norm_r64 as norm,
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_keyrings_h64.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_h64_blocked.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: `furiosa-opt-gemma4` (lib) generated 6 warnings
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors; 6 warnings emitted

@@ -59,6 +59,35 @@ pub(crate) struct PreparedGroup {
     quarter_postnorm: bool,
     blocked_residual: bool,
 }
+/// Exactly two actual P128 execution states; padding has no request metadata.
+pub(crate) struct PreparedTail256 {
+    states: [PreparedWide; 2],
+    owners: usize,
+}
+impl PreparedTail256 {
+    pub(crate) fn blocks(&self) -> Vec<&runtime::Blocks> {
+        if self.owners == 1 { vec![&self.states[0].blocks] }
+        else { vec![&self.states[0].blocks, &self.states[1].blocks] }
+    }
+    pub(crate) fn owners(&self) -> usize { self.owners }
+    fn final_row(&self, owner: usize) -> usize {
+        assert!(owner < self.owners);
+        if self.owners == 1 { 1 } else { owner }
+    }
+}
+#[derive(Clone, Copy)]
+struct GroupExecution {
+    fused_norms: bool, blocked_output: bool, shard_quant: bool,
+    quarter_norm: bool, fused_ffn_core: bool, quarter_postnorm: bool,
+    blocked_residual: bool,
+}
+impl GroupExecution {
+    fn production() -> Self {
+        Self { fused_norms:true, blocked_output:true, shard_quant:true,
+            quarter_norm:true, fused_ffn_core:true, quarter_postnorm:true,
+            blocked_residual:true }
+    }
+}
 /// Four chronological chunks of one request. Only its single allocation may be
 /// exposed to the scheduler; the four copies below are execution metadata.
 pub(crate) struct PreparedPrompt512 {
@@ -332,6 +361,62 @@ impl GroupPrefill {
         })
     }
 
+    pub(crate) fn supports_tail256(sequences: &[Sequence<'_>]) -> bool {
+        match sequences {
+            [one] => one.inputs.len() == 256 && one.start_position % 128 == 0
+                && one.start_position.checked_add(256).is_some()
+                && one.inputs[..255].iter().all(|input| !input.logits),
+            [a, b] => [a, b].iter().all(|s| s.inputs.len() == 128
+                && s.start_position % 128 == 0 && s.start_position.checked_add(128).is_some()
+                && s.inputs[..127].iter().all(|input| !input.logits) && WidePrefill::supports(s))
+                && crate::host::request_pool::independent_sequences(sequences),
+            _ => false,
+        }
+    }
+
+    pub(crate) async fn prepare_tail256(
+        &mut self, device:&mut Device, weights:&Weights, sequences:&[Sequence<'_>],
+        scratch:&mut Prefill, batched_media:bool, padding:bf16,
+    ) -> Result<PreparedTail256> {
+        if !Self::supports_tail256(sequences) {
+            return Err("Tail256 needs one aligned256 range or two independent128 ranges".into());
+        }
+        let chunks:Vec<_> = sequences.iter().flat_map(|s| {
+            s.inputs.chunks_exact(P128::SIZE).enumerate().map(move |(i, inputs)| Sequence {
+                inputs, start_position:s.start_position+i*P128::SIZE, blocks:s.blocks,
+            })
+        }).collect();
+        debug_assert_eq!(chunks.len(),2);
+        // Reset tensor-only padding after any previous four-owner execution.
+        // These tensors are never given request/KV metadata or attention calls.
+        for row in &mut self.rows[2..] {
+            row.x = HostTensor::<bf16,m![P128,H]>::from_vec(
+                std::iter::repeat_n(padding,P128::SIZE*H::SIZE)).to_hbm(&mut device.pdma).await?;
+            row.attn_s = HostTensor::<bf16,m![P128,Ns,Gs,Ds]>::from_vec(
+                std::iter::repeat_n(padding,P128::SIZE*Ns::SIZE*Gs::SIZE*Ds::SIZE)).to_hbm(&mut device.pdma).await?;
+            row.attn_f = HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
+                std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
+        }
+        Ok(PreparedTail256 { owners:sequences.len(), states:[
+            self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
+            self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
+        ]})
+    }
+    pub(crate) async fn advance_tail256(
+        &mut self, device:&mut Device, weights:&Weights, state:&mut PreparedTail256,
+        ws:&mut Workspace, scratch:&mut Prefill,
+    ) -> Result<bool> {
+        self.advance_rows(device,weights,&mut state.states,GroupExecution::production(),ws,scratch).await
+    }
+    pub(crate) async fn finish_tail256(
+        &mut self, owner:usize, device:&mut Device, weights:&Weights,
+        state:&PreparedTail256, ws:&mut Workspace, scratch:&mut Prefill,
+    ) -> Result<()> {
+        let row=state.final_row(owner);
+        ws.blocks.clone_from(&state.states[row].blocks);
+        self.rows[row].finish(device,weights,&state.states[row],ws,scratch).await
+    }
+
     pub(crate) async fn advance_prompt512(
         &mut self,
         device: &mut Device,
@@ -380,8 +465,21 @@ impl GroupPrefill {
         ws: &mut Workspace,
         scratch: &mut Prefill,
     ) -> Result<bool> {
-        let index = state.states[0].next_layer;
-        if state.states.iter().any(|s| s.next_layer != index) {
+        let execution=GroupExecution {
+            fused_norms:state.fused_norms, blocked_output:state.blocked_output,
+            shard_quant:state.shard_quant, quarter_norm:state.quarter_norm,
+            fused_ffn_core:state.fused_ffn_core, quarter_postnorm:state.quarter_postnorm,
+            blocked_residual:state.uses_blocked_residual(),
+        };
+        self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
+    }
+    async fn advance_rows(
+        &mut self, device:&mut Device, weights:&Weights, states:&mut [PreparedWide],
+        execution:GroupExecution, ws:&mut Workspace, scratch:&mut Prefill,
+    ) -> Result<bool> {
+        debug_assert!(matches!(states.len(),2|4));
+        let index = states[0].next_layer;
+        if states.iter().any(|s| s.next_layer != index) {
             return Err("grouped layer cursors diverged".into());
         }
         let layer = weights
@@ -389,7 +487,7 @@ impl GroupPrefill {
             .get(index)
             .ok_or("grouped prefill layers already complete")?;
         let mut mark = scratch.profile_mark();
-        let blocked_residual = state.uses_blocked_residual();
+        let blocked_residual = execution.blocked_residual;
         if blocked_residual && index == 0 {
             let [a, b, c, d] = &self.rows;
             launch(crate::ops_norm_blocked_residual::pack_four,
@@ -408,7 +506,7 @@ impl GroupPrefill {
                  &mut b.qkv_input, &mut b.qkv_scale,
                  &mut c.qkv_input, &mut c.qkv_scale,
                  &mut d.qkv_input, &mut d.qkv_scale)).await?;
-        } else if state.fused_norms {
+        } else if execution.fused_norms {
             let [a, b, c, d] = &mut self.rows;
             launch(crate::ops_norm_fused::normalize_qkv_four,
                 (device, &a.x, &b.x, &c.x, &d.x, input_norm,
@@ -451,8 +549,8 @@ impl GroupPrefill {
             }
         }
         scratch.record_optional_profile("group.qkv.projections", &mut mark);
-        for row in 0..4 {
-            let current = &state.states[row];
+        for row in 0..states.len() {
+            let current = &states[row];
             ws.blocks.clone_from(&current.blocks);
             match layer {
                 Layer::Sliding(layer) => {
@@ -495,7 +593,7 @@ impl GroupPrefill {
         let [a, b, c, d] = &mut self.rows;
         match layer {
             Layer::Sliding(l) => {
-                if state.blocked_output && state.fused_norms {
+                if execution.blocked_output && execution.fused_norms {
                     let [oa, ob, oc, od] = &mut self.output_s;
                     launch(crate::ops_output_p128_h64_blocked::project_sliding_output_four,
                         (device, &a.attn_s, &b.attn_s, &c.attn_s, &d.attn_s,
@@ -547,11 +645,11 @@ impl GroupPrefill {
                      &mut self.q_input, &mut self.input_scale)).await?,
             }
             scratch.record_optional_profile("group.ffn.blocked_post_pre_norm_quant", &mut mark);
-        } else if state.fused_norms {
+        } else if execution.fused_norms {
             let [a, b, c, d] = &mut self.rows;
-            if state.blocked_output && matches!(layer, Layer::Sliding(_)) {
-                if state.shard_quant {
-                    if state.quarter_norm {
+            if execution.blocked_output && matches!(layer, Layer::Sliding(_)) {
+                if execution.shard_quant {
+                    if execution.quarter_norm {
                     launch(crate::ops_norm_quarters::post_attention_ffn_input_four_blocked,
                         (device, &self.output_s[0], &self.output_s[1], &self.output_s[2], &self.output_s[3],
                          post_attention, pre, &mut a.x, &mut b.x, &mut c.x, &mut d.x,
@@ -608,7 +706,7 @@ impl GroupPrefill {
             .await?;
             scratch.record_optional_profile("group.ffn.quantize_hidden", &mut mark);
         }
-        if state.fused_ffn_core {
+        if execution.fused_ffn_core {
             launch(crate::ops_native_fp8_p512_core_fused::ffn_core,
                 (device, &self.q_input, &self.input_scale,
                  &mlp.native_fp8.up, &mlp.native_fp8.gate, &mlp.native_fp8.down,
@@ -655,9 +753,9 @@ impl GroupPrefill {
             launch(crate::ops_norm_blocked_residual::post_feedforward,
                 (device, &self.projected, post, gate, &mut self.residual_blocked)).await?;
             scratch.record_optional_profile("group.ffn.blocked_post_norm", &mut mark);
-        } else if state.fused_norms {
+        } else if execution.fused_norms {
             let [a, b, c, d] = &mut self.rows;
-            if state.quarter_postnorm {
+            if execution.quarter_postnorm {
                 launch(crate::ops_norm_quarter_post::post_feedforward_four,
                     (device, &self.projected, post, gate,
                      &mut a.x, &mut b.x, &mut c.x, &mut d.x)).await?;
@@ -698,10 +796,10 @@ impl GroupPrefill {
                 (device, &self.residual_blocked, &mut a.x, &mut b.x, &mut c.x, &mut d.x)).await?;
             scratch.record_optional_profile("group.residual.unpack", &mut mark);
         }
-        for current in &mut state.states {
+        for current in states.iter_mut() {
             current.next_layer += 1;
         }
-        Ok(state.states[0].next_layer == weights.layers.len())
+        Ok(states[0].next_layer == weights.layers.len())
     }
     pub(crate) async fn finish(
         &mut self,
@@ -879,5 +977,46 @@ mod prompt384128_tests {
             match mode {0=>blocks[1].sliding=blocks[0].sliding,1=>blocks[1].full[0]=blocks[0].full[0],_=>blocks[0].full[1]=blocks[0].full[0]}
             assert!(!GroupPrefill::supports_prompt384128(&[Sequence{inputs:&a,start_position:0,blocks:&blocks[0]},Sequence{inputs:&b,start_position:0,blocks:&blocks[1]}]));
         }
+    }
+}
+
+#[cfg(test)]
+mod tail256_tests {
+    use super::*;
+    use crate::host::model::Input;
+    fn inputs(count:usize)->Vec<Input<'static>> {
+        (0..count).map(|i| Input {token:2+i,soft:None,logits:i+1==count,image:None,audio:None}).collect()
+    }
+    #[test]
+    fn one_owner_halves_are_private_and_do_not_weaken_independent_groups() {
+        let a=inputs(256);let blocks=runtime::Blocks{sliding:7,full:vec![255,13,12,11,10]};
+        for start in [0,256,896,1920] {
+            assert!(GroupPrefill::supports_tail256(&[Sequence{inputs:&a,start_position:start,blocks:&blocks}]));
+            let repeated=[Sequence{inputs:&a[..128],start_position:start,blocks:&blocks},
+                Sequence{inputs:&a[128..],start_position:start+128,blocks:&blocks}];
+            assert!(!GroupPrefill::supports_tail256(&repeated));
+            assert!(!GroupPrefill::supports(&repeated));
+        }
+    }
+    #[test]
+    fn tail_pair_rejects_aliases_and_does_not_enable_four_owner_constructor() {
+        let a=inputs(128);let b=inputs(128);
+        let aa=runtime::Blocks{sliding:7,full:vec![255,13,12,11,10]};
+        let bb=runtime::Blocks{sliding:9,full:vec![254,23,22,21,20]};
+        let pair=[Sequence{inputs:&a,start_position:896,blocks:&aa},Sequence{inputs:&b,start_position:1920,blocks:&bb}];
+        assert!(GroupPrefill::supports_tail256(&pair));assert!(!GroupPrefill::supports(&pair));
+        for alias in [runtime::Blocks{sliding:7,full:bb.full.clone()},runtime::Blocks{sliding:9,full:aa.full.clone()}] {
+            assert!(!GroupPrefill::supports_tail256(&[Sequence{inputs:&a,start_position:896,blocks:&aa},Sequence{inputs:&b,start_position:1920,blocks:&alias}]));
+        }
+    }
+    #[test]
+    fn tail_rejects_partial_unaligned_overflow_and_intermediate_logits() {
+        let mut a=inputs(256);let blocks=runtime::Blocks{sliding:7,full:vec![255]};
+        for (count,start) in [(128,0),(255,0),(256,1),(256,usize::MAX-127)] {
+            assert!(!GroupPrefill::supports_tail256(&[Sequence{inputs:&a[..count],start_position:start,blocks:&blocks}]));
+        }
+        a[127].logits=true;
+        assert!(!GroupPrefill::supports_tail256(&[Sequence{inputs:&a,start_position:0,blocks:&blocks}]));
+        assert!(!GroupPrefill::supports_tail256(&[]));
     }
 }
