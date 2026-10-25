@@ -219,6 +219,7 @@ impl Prefill {
         pooled: Option<&PooledStep>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
+        let blocked = self.decode_blocked_output && ws.is_canonical();
         launch(
             crate::ops_norm_batch::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
@@ -227,13 +228,41 @@ impl Prefill {
         self.record_profile("sliding.input_norm", &mut profile_mark);
         launch(crate::ops_qkv_b16_native_prequant::quantize_input,
             (device, &self.norm, &mut self.native_q_input, &mut self.native_qkv_scale)).await?;
-        launch(crate::ops_qkv_shared_b16::project_sliding_qkv,
+        if blocked {
+            launch(crate::ops_qkv_blocked_b16::project_sliding_qkv,
+            (device, &self.native_q_input, &self.native_qkv_scale,
+             &layer.q_weight, &layer.k_weight, &layer.v_weight,
+             &layer.q_weight_scale, &layer.k_weight_scale, &layer.v_weight_scale,
+             &mut self.decode_q_blocked_s, &mut self.decode_k_blocked_s, &mut self.decode_v_blocked_s)).await?;
+        } else {
+            launch(crate::ops_qkv_shared_b16::project_sliding_qkv,
             (device, &self.native_q_input, &self.native_qkv_scale,
              &layer.q_weight, &layer.k_weight, &layer.v_weight,
              &layer.q_weight_scale, &layer.k_weight_scale, &layer.v_weight_scale,
              &mut self.q_raw_s, &mut self.k_raw_s, &mut self.v_raw_s)).await?;
+        }
         self.record_profile("sliding.qkv", &mut profile_mark);
-        launch(
+        if blocked {
+            launch(
+            crate::ops_head_b16_blocked::sliding_heads_b16,
+            (
+                device,
+                &self.decode_q_blocked_s,
+                &self.decode_k_blocked_s,
+                &self.decode_v_blocked_s,
+                &layer.q_norm,
+                &layer.k_norm,
+                rope,
+                &ws.cos_s,
+                &ws.sin_s,
+                &mut self.q_s,
+                &mut self.k_s,
+                &mut self.v_s,
+            ),
+        )
+        .await?;
+        } else {
+            launch(
             crate::ops_head_batch::sliding_heads_b16,
             (
                 device,
@@ -251,6 +280,7 @@ impl Prefill {
             ),
         )
         .await?;
+        }
         self.record_profile("sliding.heads_rope", &mut profile_mark);
         if ws.is_canonical() {
             let metadata = pooled.ok_or("canonical decode requires independent rows")?;
@@ -364,6 +394,7 @@ impl Prefill {
         pooled: Option<&PooledStep>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
+        let blocked = self.decode_blocked_output && ws.is_canonical();
         launch(
             crate::ops_norm_batch::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
@@ -372,13 +403,40 @@ impl Prefill {
         self.record_profile("full.input_norm", &mut profile_mark);
         launch(crate::ops_qkv_b16_native_prequant::quantize_input,
             (device, &self.norm, &mut self.native_q_input, &mut self.native_qkv_scale)).await?;
-        launch(crate::ops_qkv_shared_b16::project_full_qk,
+        if blocked {
+            launch(crate::ops_qkv_blocked_b16::project_full_qk,
+            (device, &self.native_q_input, &self.native_qkv_scale,
+             &layer.q_weight, &layer.k_weight,
+             &layer.q_weight_scale, &layer.k_weight_scale,
+             &mut self.decode_q_blocked_f, &mut self.decode_k_blocked_f)).await?;
+        } else {
+            launch(crate::ops_qkv_shared_b16::project_full_qk,
             (device, &self.native_q_input, &self.native_qkv_scale,
              &layer.q_weight, &layer.k_weight,
              &layer.q_weight_scale, &layer.k_weight_scale,
              &mut self.q_raw_f, &mut self.k_raw_f)).await?;
+        }
         self.record_profile("full.qkv", &mut profile_mark);
-        launch(
+        if blocked {
+            launch(
+            crate::ops_head_b16_blocked::full_heads_b16,
+            (
+                device,
+                &self.decode_q_blocked_f,
+                &self.decode_k_blocked_f,
+                &layer.q_norm,
+                &layer.k_norm,
+                rope,
+                &ws.cos_f,
+                &ws.sin_f,
+                &mut self.q_f,
+                &mut self.k_f,
+                &mut self.v_f,
+            ),
+        )
+        .await?;
+        } else {
+            launch(
             crate::ops_head_batch::full_heads_b16,
             (
                 device,
@@ -395,6 +453,7 @@ impl Prefill {
             ),
         )
         .await?;
+        }
         self.record_profile("full.heads_rope", &mut profile_mark);
         if ws.is_canonical() {
             let metadata = pooled.ok_or("canonical decode requires independent rows")?;

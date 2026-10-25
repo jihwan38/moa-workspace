@@ -48,6 +48,14 @@ pub(crate) struct PreparedNarrow {
 }
 
 pub(crate) struct Prefill {
+    // Dedicated decode raw layouts; canonical scratch remains available to prompts and diagnostics.
+    decode_blocked_output: bool,
+    decode_q_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::QueryOutput>,
+    decode_k_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::KeyOutput>,
+    decode_v_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::KeyOutput>,
+    decode_q_blocked_f: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::FullQueryOutput>,
+    decode_k_blocked_f: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::FullKeyOutput>,
+
     profile: Option<std::collections::BTreeMap<&'static str, (usize, std::time::Duration)>>,
     logits_batch: HbmTensor<bf16, Chip, m![B, W]>,
     decode_q_f: HbmTensor<bf16, Chip, m![Gf, Df]>,
@@ -86,6 +94,10 @@ pub(crate) struct Prefill {
 }
 
 impl Prefill {
+    pub(crate) fn set_decode_blocked_output(&mut self, enabled: bool) {
+        self.decode_blocked_output = enabled;
+    }
+
     pub(crate) fn begin_profile(&mut self) {
         self.profile = Some(Default::default());
     }
@@ -127,6 +139,13 @@ impl Prefill {
             };
         }
         Ok(Self {
+            decode_blocked_output: true,
+            decode_q_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::QueryOutput),
+            decode_k_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::KeyOutput),
+            decode_v_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::KeyOutput),
+            decode_q_blocked_f: zero!(bf16, crate::ops_qkv_blocked_b16::FullQueryOutput),
+            decode_k_blocked_f: zero!(bf16, crate::ops_qkv_blocked_b16::FullKeyOutput),
+
             profile: None,
             logits_batch: zero!(bf16, m![B, W]),
             decode_q_f: zero!(bf16, m![Gf, Df]),

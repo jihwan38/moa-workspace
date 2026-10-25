@@ -97,6 +97,16 @@ impl Dispatch {
 }
 
 impl Model {
+    /// Diagnostic storage-control gate. Serving defaults to blocked decode outputs.
+    /// This changes only projection scratch layout and its matching head consumer;
+    /// request histories, attention, arithmetic and logits selection are unchanged.
+    pub fn set_decode_blocked_output(&mut self, enabled: bool) {
+        self.prefill.set_decode_blocked_output(enabled);
+        if let Some(decode) = &mut self.decode64 {
+            decode.set_decode_blocked_output(enabled);
+        }
+    }
+
     /// Diagnostics only: collect host-observed durations of batched execution stages.
     pub fn begin_stage_profile(&mut self) {
         self.prefill.begin_profile();

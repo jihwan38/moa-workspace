@@ -15,6 +15,14 @@ use crate::{
 use furiosa_opt_std::prelude::*;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 pub(crate) struct Decode64 {
+    // Dedicated decode raw layouts; canonical scratch remains available to prompts and diagnostics.
+    decode_blocked_output: bool,
+    decode_q_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_r64::QueryOutput>,
+    decode_k_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_r64::KeyOutput>,
+    decode_v_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_r64::KeyOutput>,
+    decode_q_blocked_f: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_r64::FullQueryOutput>,
+    decode_k_blocked_f: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_r64::FullKeyOutput>,
+
     k_tile_s: HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v_tile_s: HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     k_tile_f: HbmTensor<bf16, Chip, m![B, Df]>,
@@ -48,6 +56,10 @@ pub(crate) struct Decode64 {
 }
 
 impl Decode64 {
+    pub(crate) fn set_decode_blocked_output(&mut self, enabled: bool) {
+        self.decode_blocked_output = enabled;
+    }
+
     pub(crate) fn blocked_logits(&self) -> &HbmTensor<bf16, Chip, crate::ops_r64_io_blocked::BlockedLogits> {
         &self.logits_batch
     }
@@ -107,6 +119,13 @@ impl Decode64 {
             );
         }
         Ok(Self {
+            decode_blocked_output: true,
+            decode_q_blocked_s: zero!(bf16, crate::ops_qkv_blocked_r64::QueryOutput),
+            decode_k_blocked_s: zero!(bf16, crate::ops_qkv_blocked_r64::KeyOutput),
+            decode_v_blocked_s: zero!(bf16, crate::ops_qkv_blocked_r64::KeyOutput),
+            decode_q_blocked_f: zero!(bf16, crate::ops_qkv_blocked_r64::FullQueryOutput),
+            decode_k_blocked_f: zero!(bf16, crate::ops_qkv_blocked_r64::FullKeyOutput),
+
             k_tile_s: zero!(bf16, m![B, Ns, Ds]),
             v_tile_s: zero!(bf16, m![B, Ns, Ds]),
             k_tile_f: zero!(bf16, m![B, Df]),
@@ -292,6 +311,7 @@ impl Decode64 {
         metadata: &Step64,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
+        let blocked = self.decode_blocked_output;
         launch(
             norm::rmsnorm_r64,
             (device, &self.x, &layer.input_norm, &mut self.norm),
@@ -300,13 +320,41 @@ impl Decode64 {
         self.record_profile("r64.sliding.input_norm", &mut profile_mark);
         launch(crate::ops_qkv_r64_native_prequant::quantize_input,
             (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
-        launch(crate::ops_qkv_shared_r64::project_sliding_qkv,
+        if blocked {
+            launch(crate::ops_qkv_blocked_r64::project_sliding_qkv,
+            (device, &self.qkv_input, &self.qkv_scale,
+             &layer.q_weight, &layer.k_weight, &layer.v_weight,
+             &layer.q_weight_scale, &layer.k_weight_scale, &layer.v_weight_scale,
+             &mut self.decode_q_blocked_s, &mut self.decode_k_blocked_s, &mut self.decode_v_blocked_s)).await?;
+        } else {
+            launch(crate::ops_qkv_shared_r64::project_sliding_qkv,
             (device, &self.qkv_input, &self.qkv_scale,
              &layer.q_weight, &layer.k_weight, &layer.v_weight,
              &layer.q_weight_scale, &layer.k_weight_scale, &layer.v_weight_scale,
              &mut self.q_raw_s, &mut self.k_raw_s, &mut self.v_raw_s)).await?;
+        }
         self.record_profile("r64.sliding.qkv", &mut profile_mark);
-        launch(
+        if blocked {
+            launch(
+            crate::ops_head_r64_blocked::sliding_heads_r64,
+            (
+                device,
+                &self.decode_q_blocked_s,
+                &self.decode_k_blocked_s,
+                &self.decode_v_blocked_s,
+                &layer.q_norm,
+                &layer.k_norm,
+                rope,
+                &ws.cos_s,
+                &ws.sin_s,
+                &mut self.q_s,
+                &mut self.k_s,
+                &mut self.v_s,
+            ),
+        )
+        .await?;
+        } else {
+            launch(
             crate::ops_head_r64::sliding_heads_r64,
             (
                 device,
@@ -324,6 +372,7 @@ impl Decode64 {
             ),
         )
         .await?;
+        }
         self.record_profile("r64.sliding.heads_rope", &mut profile_mark);
         let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
             return Err("sliding layer has wrong pool kind".into());
@@ -417,6 +466,7 @@ impl Decode64 {
         metadata: &Step64,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
+        let blocked = self.decode_blocked_output;
         launch(
             norm::rmsnorm_r64,
             (device, &self.x, &layer.input_norm, &mut self.norm),
@@ -425,13 +475,40 @@ impl Decode64 {
         self.record_profile("r64.full.input_norm", &mut profile_mark);
         launch(crate::ops_qkv_r64_native_prequant::quantize_input,
             (device, &self.norm, &mut self.qkv_input, &mut self.qkv_scale)).await?;
-        launch(crate::ops_qkv_shared_r64::project_full_qk,
+        if blocked {
+            launch(crate::ops_qkv_blocked_r64::project_full_qk,
+            (device, &self.qkv_input, &self.qkv_scale,
+             &layer.q_weight, &layer.k_weight,
+             &layer.q_weight_scale, &layer.k_weight_scale,
+             &mut self.decode_q_blocked_f, &mut self.decode_k_blocked_f)).await?;
+        } else {
+            launch(crate::ops_qkv_shared_r64::project_full_qk,
             (device, &self.qkv_input, &self.qkv_scale,
              &layer.q_weight, &layer.k_weight,
              &layer.q_weight_scale, &layer.k_weight_scale,
              &mut self.q_raw_f, &mut self.k_raw_f)).await?;
+        }
         self.record_profile("r64.full.qkv", &mut profile_mark);
-        launch(
+        if blocked {
+            launch(
+            crate::ops_head_r64_blocked::full_heads_r64,
+            (
+                device,
+                &self.decode_q_blocked_f,
+                &self.decode_k_blocked_f,
+                &layer.q_norm,
+                &layer.k_norm,
+                rope,
+                &ws.cos_f,
+                &ws.sin_f,
+                &mut self.q_f,
+                &mut self.k_f,
+                &mut self.v_f,
+            ),
+        )
+        .await?;
+        } else {
+            launch(
             crate::ops_head_r64::full_heads_r64,
             (
                 device,
@@ -448,6 +525,7 @@ impl Decode64 {
             ),
         )
         .await?;
+        }
         self.record_profile("r64.full.heads_rope", &mut profile_mark);
         let runtime::KvCache::FullCanonical { k, v } = &mut ws.kv_cache[index] else {
             return Err("full layer has wrong pool kind".into());

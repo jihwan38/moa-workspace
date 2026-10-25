@@ -188,3 +188,10 @@ pub mod ops_qk_shared_blocked;
 pub mod ops_head_wide_blocked;
 
 pub mod ops_output_p128_four_trf32;
+pub mod ops_qkv_blocked_r64;
+
+pub mod ops_qkv_blocked_b16;
+
+pub mod ops_head_r64_blocked;
+
+pub mod ops_head_b16_blocked;
