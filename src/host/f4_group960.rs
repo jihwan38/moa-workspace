@@ -61,6 +61,12 @@ pub struct PackedF4Groups {
     pub dense_e4_codes: Vec<u8>,
 }
 
+/// Startup-only output without the full-size E4 oracle copy.
+pub struct PackedF4Weights {
+    pub packed_f4: Vec<u8>,
+    pub group_scales: Vec<f32>,
+}
+
 // All finite E4M3FN magnitudes are integer multiples of 2^-9.
 fn magnitude_units(bits: u8) -> u32 {
     let bits = bits & 0x7f;
@@ -193,6 +199,59 @@ pub fn quantize_blocked_e4(
         packed_f4,
         group_scales,
         dense_e4_codes,
+    })
+}
+
+/// Two source passes and paired-nibble writes, with identical quantization to
+/// `quantize_blocked_e4`. This omits only the dense E4 diagnostic reference.
+/// Validation is completed before allocating the large packed-weight output;
+/// only per-group scale metadata is allocated during the first pass.
+pub fn quantize_blocked_e4_packed(
+    raw: &[u8],
+    rows: usize,
+    cols: usize,
+) -> Result<PackedF4Weights, QuantizeError> {
+    if rows == 0 || cols == 0 || rows % ROW_BLOCK != 0 || cols % GROUP_SIZE != 0 {
+        return Err(QuantizeError::InvalidShape { rows, cols });
+    }
+    let expected = rows.checked_mul(cols).ok_or(QuantizeError::SizeOverflow)?;
+    if raw.len() != expected {
+        return Err(QuantizeError::Length {
+            expected,
+            actual: raw.len(),
+        });
+    }
+    let mut exponents = Vec::with_capacity(raw.len() / GROUP_SIZE);
+    let mut group_scales = Vec::with_capacity(raw.len() / GROUP_SIZE);
+    for (group_index, group) in raw.chunks_exact(GROUP_SIZE).enumerate() {
+        let max_bits = group.iter().map(|b| b & 0x7f).max().unwrap();
+        if max_bits == 0x7f {
+            let local = group.iter().position(|&b| !finite(b)).unwrap();
+            return Err(QuantizeError::NonFinite {
+                index: group_index * GROUP_SIZE + local,
+                bits: group[local],
+            });
+        }
+        let exponent = scale_exponent_for_max(max_bits)?;
+        exponents.push((exponent + 11) as u8);
+        group_scales.push(f32::from_bits(((exponent + 127) as u32) << 23));
+    }
+    let lookup: [[u8; 256]; 19] =
+        std::array::from_fn(|e| std::array::from_fn(|b| encode_finite(b as u8, e as i32 - 11)));
+    let mut packed_f4 = vec![0u8; raw.len() / 2];
+    for ((source, destination), &exponent) in raw
+        .chunks_exact(GROUP_SIZE)
+        .zip(packed_f4.chunks_exact_mut(GROUP_SIZE / 2))
+        .zip(&exponents)
+    {
+        let table = &lookup[usize::from(exponent)];
+        for (pair, byte) in source.chunks_exact(2).zip(destination) {
+            *byte = table[usize::from(pair[0])] | (table[usize::from(pair[1])] << 4);
+        }
+    }
+    Ok(PackedF4Weights {
+        packed_f4,
+        group_scales,
     })
 }
 
