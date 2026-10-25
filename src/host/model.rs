@@ -274,6 +274,17 @@ impl Model {
         self.active_group.as_mut().unwrap().original_output();
         Ok(())
     }
+    /// Same prepared execution with the previous full-row quantizer; no persistent mode.
+    pub async fn start_prefill_group_original_shard_quant(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_group(device, sequences, workspace).await?;
+        self.active_group.as_mut().unwrap().original_shard_quant();
+        Ok(())
+    }
     /// A completed layer is the only safe yield point. On an execution error or
     /// an aborted in-flight future, discard this model/workspace; do not retry
     /// a partially updated group. The caller retains all four allocations.
@@ -384,6 +395,20 @@ impl Model {
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_output(),
+            _ => unreachable!("start_prefill512 owns Prompt512 state"),
+        }
+        Ok(())
+    }
+    /// Same prepared execution with the previous full-row quantizer; no persistent mode.
+    pub async fn start_prefill512_original_shard_quant(
+        &mut self,
+        device: &mut Device,
+        sequence: &Sequence<'_>,
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill512(device, sequence, workspace).await?;
+        match self.active_prefill.as_mut().unwrap() {
+            ActivePrefill::Prompt512(state) => state.original_shard_quant(),
             _ => unreachable!("start_prefill512 owns Prompt512 state"),
         }
         Ok(())

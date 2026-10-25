@@ -224,3 +224,5 @@ pub mod ops_native_fp8_r64_staged_fused;
 
 pub mod ops_native_fp8_b16_staged_fused;
 pub mod ops_request_sliding_r64_prefix768;
+
+pub mod ops_norm_shardquant;

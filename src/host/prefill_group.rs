@@ -52,6 +52,7 @@ pub(crate) struct PreparedGroup {
     // Owned by this prepared execution; no persistent Model mode survives cancellation.
     fused_norms: bool,
     blocked_output: bool,
+    shard_quant: bool,
 }
 /// Four chronological chunks of one request. Only its single allocation may be
 /// exposed to the scheduler; the four copies below are execution metadata.
@@ -61,6 +62,7 @@ pub(crate) struct PreparedPrompt512 {
 impl PreparedPrompt512 {
     pub(crate) fn original_norms(&mut self) { self.chunks.fused_norms = false; }
     pub(crate) fn original_output(&mut self) { self.chunks.blocked_output = false; }
+    pub(crate) fn original_shard_quant(&mut self) { self.chunks.shard_quant = false; }
     pub(crate) fn blocks(&self) -> &runtime::Blocks {
         &self.chunks.states[0].blocks
     }
@@ -68,6 +70,7 @@ impl PreparedPrompt512 {
 impl PreparedGroup {
     pub(crate) fn original_norms(&mut self) { self.fused_norms = false; }
     pub(crate) fn original_output(&mut self) { self.blocked_output = false; }
+    pub(crate) fn original_shard_quant(&mut self) { self.shard_quant = false; }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 4] {
         [
             &self.states[0].blocks,
@@ -195,6 +198,7 @@ impl GroupPrefill {
         Ok(PreparedGroup {
             fused_norms: true,
             blocked_output: true,
+            shard_quant: true,
             states: [
                 self.rows[0]
                     .prepare(device, weights, &sequences[0], scratch, true)
@@ -388,10 +392,17 @@ impl GroupPrefill {
         if state.fused_norms {
             let [a, b, c, d] = &mut self.rows;
             if state.blocked_output && matches!(layer, Layer::Sliding(_)) {
+                if state.shard_quant {
+                    launch(crate::ops_norm_shardquant::post_attention_ffn_input_four_blocked,
+                        (device, &self.output_s[0], &self.output_s[1], &self.output_s[2], &self.output_s[3],
+                         post_attention, pre, &mut a.x, &mut b.x, &mut c.x, &mut d.x,
+                         &mut self.q_input, &mut self.input_scale)).await?;
+                } else {
                 launch(crate::ops_norm_fused::post_attention_ffn_input_four_blocked,
                     (device, &self.output_s[0], &self.output_s[1], &self.output_s[2], &self.output_s[3],
                      post_attention, pre, &mut a.x, &mut b.x, &mut c.x, &mut d.x,
                      &mut self.q_input, &mut self.input_scale)).await?;
+                }
             } else {
             launch(crate::ops_norm_fused::post_attention_ffn_input_four,
                 (device, &a.projected, &b.projected, &c.projected, &d.projected,
