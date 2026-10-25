@@ -266,3 +266,6 @@ pub mod ops_b16_ingress_epilogue;
 pub mod ops_qkv_weight_stationary;
 
 pub mod ops_b16_lm_storegroup;
+
+pub mod ops_norm_blocked_chain_storegroup;
+pub mod ops_group_ffn_projection_storegroup;
