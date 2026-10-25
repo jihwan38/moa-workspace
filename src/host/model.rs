@@ -214,7 +214,15 @@ impl Model {
             active_prefill: None,
             logits,
         };
-        if super::b16_f4_weights::ENABLED { model.prepare_b16_f4(device).await?; }
+        if super::b16_f4_weights::ENABLED {
+            let started = std::time::Instant::now();
+            let timing = model.prepare_b16_f4_with_quantizer(
+                device, super::b16_f4_weights::F4Quantizer::MseDyadic,
+            ).await?;
+            println!("B16_F4_SERVER_READY quantizer=MseDyadic projections={} packed_bytes={} scale_bytes={} elapsed_ms={:.6} automatic_scope=independent_canonical_B16 quality_candidate=true",
+                timing.projections, timing.packed_bytes, timing.scale_bytes,
+                started.elapsed().as_secs_f64() * 1000.0);
+        }
         Ok(model)
     }
 

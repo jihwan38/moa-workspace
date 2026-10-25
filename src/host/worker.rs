@@ -438,6 +438,9 @@ impl Worker {
                 "startup.workspace_ms={:.3}",
                 started.elapsed().as_secs_f64() * 1000.0
             );
+            if canonical {
+                super::kv_diagnostic::verify_physical32_identity(&workspace, CONTEXT)?;
+            }
             let started = std::time::Instant::now();
             let mut model = Model::new(&mut device, weights, &mut workspace).await?;
             if (GROUP_PREFILL_ENABLED || PROMPT512_ENABLED) && canonical {
