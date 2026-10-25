@@ -201,3 +201,5 @@ pub mod ops_output_r64_trf32;
 pub mod ops_output_b16_hsplit;
 
 pub mod ops_sliding_wide_exact;
+
+pub mod ops_sliding_wide_exact_sum;
