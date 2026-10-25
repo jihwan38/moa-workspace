@@ -14,7 +14,20 @@ fn signed(n: usize) -> i32 {
 }
 fn code(case: usize, p: usize, c: usize, width: usize) -> i32 {
     match case {
-        0 => signed(p * 11 + (c / 960) * 7 + (c % 960) * 3 + (c / 8) * 13),
+        0 => {
+            // Encode all nine row bits in each K960 block, so P/256 cluster
+            // swaps and rows sixteen apart cannot evade the byte oracle.
+            if c % 960 < 3 {
+                return signed(p >> (4 * (c % 960)));
+            }
+            let mut z = (p as u32).wrapping_mul(0x9e3779b9)
+                ^ (c as u32).wrapping_mul(0x85ebca6b)
+                ^ 0xc2b2ae35;
+            z ^= z >> 16;
+            z = z.wrapping_mul(0x7feb352d);
+            z ^= z >> 15;
+            signed(z as usize)
+        }
         1 => -8,
         2 => 7,
         3 => 0,
@@ -102,6 +115,10 @@ async fn main() -> Result<()> {
                 let mut seen=[false;16];
                 for word in blocked.chunks_exact(4) { seen[(word[3]>>4) as usize]=true; }
                 assert!(seen.iter().all(|x|*x),"all sixteen top nibbles");
+                for p in 0..512 { for block in 0..width/960 {
+                    let tag=(0..3).fold(0usize,|n,j|n|(((values[p*width+block*960+j] as usize)&15)<<(4*j)));
+                    assert_eq!(tag,p,"all nine row bits survive in every K960 block");
+                }}
             }
             if case==4 { for p in 0..512 { for c in 0..width {
                 assert_eq!(values[p*width+c],code(0,(73*p+17)%512,(37*c+19)%width,width));
