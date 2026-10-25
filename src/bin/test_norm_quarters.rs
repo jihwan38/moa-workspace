@@ -124,7 +124,7 @@ thread_local! { static PROFILE: npu_profile::Collector = npu_profile::Collector:
 #[tokio::main]
 async fn main() {
     PROFILE.with(|p| tracing::subscriber::set_global_default(p.clone()).unwrap());
-    let mut d=Device::new(fused::post_attention_ffn_input_four.topology()).unwrap();
+    let mut d=Device::new(fused::post_attention_ffn_input_four_blocked.topology()).unwrap();
     test(&mut d,713,[0,1,2,3]).await;
     test(&mut d,1771,[3,1,0,2]).await;
     test(&mut d,5001,[2,0,3,1]).await;
