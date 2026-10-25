@@ -10,7 +10,7 @@ use furiosa_opt_std::prelude::*;
 type Cluster = m![P128 / 64];
 type Shards = m![P128 / 2 % 32, H / 480];
 
-fn gate(
+pub(crate) fn gate(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, Shards, m![Q4, P128 % 2, H % 480]>,
     scalar: &HbmTensor<bf16, Chip, m![1 # 8]>,
