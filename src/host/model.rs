@@ -55,8 +55,8 @@ pub struct Sequence<'a> {
     pub blocks: &'a Blocks,
 }
 
-/// Research default: retain original BF16 B16 LM until model/task-quality gates.
-const B16_LM_FP8_ENABLED: bool = false;
+/// Isolated q018 task-quality candidate; root serving integration remains separate.
+const B16_LM_FP8_ENABLED: bool = true;
 
 pub struct Model {
     weights: load::Weights,
