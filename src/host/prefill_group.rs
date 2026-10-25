@@ -60,15 +60,24 @@ pub(crate) struct PreparedGroup {
     quarter_postnorm: bool,
     blocked_residual: bool,
     composed_ffn_epilogue: bool,
+    weight_stationary_output: bool,
 }
 /// Exactly two actual P128 execution states; padding has no request metadata.
 pub(crate) struct PreparedTail256 {
     preload_ffn_globals: bool,
     composed_ffn_epilogue: bool,
+    weight_stationary_output: bool,
     states: [PreparedWide; 2],
     owners: usize,
 }
 impl PreparedTail256 {
+    pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("O producer must be selected before the first layer".into());
+        }
+        self.weight_stationary_output = enabled;
+        Ok(())
+    }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
         if self.states.iter().any(|state| state.next_layer != 0) {
             return Err("FFN global preload must be selected before the first layer".into());
@@ -97,11 +106,19 @@ impl PreparedTail256 {
 pub(crate) struct PreparedTail384 {
     preload_ffn_globals: bool,
     composed_ffn_epilogue: bool,
+    weight_stationary_output: bool,
     states: [PreparedWide; 3],
     owner_first_rows: Vec<usize>,
     owner_final_rows: Vec<usize>,
 }
 impl PreparedTail384 {
+    pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("O producer must be selected before the first layer".into());
+        }
+        self.weight_stationary_output = enabled;
+        Ok(())
+    }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
         if self.states.iter().any(|state| state.next_layer != 0) {
             return Err("FFN global preload must be selected before the first layer".into());
@@ -129,6 +146,9 @@ pub(crate) struct PreparedThreeOwner512 {
     owner_final_rows: [usize; 3],
 }
 impl PreparedThreeOwner512 {
+    pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.weight_stationary_output(enabled)
+    }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
         self.chunks.preload_ffn_globals(enabled)
     }
@@ -144,12 +164,14 @@ struct GroupExecution {
     fused_norms: bool, blocked_output: bool, shard_quant: bool,
     quarter_norm: bool, fused_ffn_core: bool, preload_ffn_globals: bool, quarter_postnorm: bool,
     blocked_residual: bool, composed_ffn_epilogue: bool,
+    weight_stationary_output: bool,
 }
 impl GroupExecution {
     fn production() -> Self {
         Self { fused_norms:true, blocked_output:true, shard_quant:true,
             quarter_norm:true, fused_ffn_core:true, preload_ffn_globals:true, quarter_postnorm:true,
-            blocked_residual:true, composed_ffn_epilogue:true }
+            blocked_residual:true, composed_ffn_epilogue:true,
+            weight_stationary_output:false }
     }
 }
 /// Four chronological chunks of one request. Only its single allocation may be
@@ -166,6 +188,9 @@ pub(crate) struct PreparedPrompt384128 {
     final_rows: [usize; 2],
 }
 impl PreparedPrompt384128 {
+    pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.weight_stationary_output(enabled)
+    }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
         self.chunks.preload_ffn_globals(enabled)
     }
@@ -182,6 +207,9 @@ impl PreparedPrompt384128 {
 }
 
 impl PreparedPrompt512 {
+    pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.weight_stationary_output(enabled)
+    }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
         self.chunks.preload_ffn_globals(enabled)
     }
@@ -205,6 +233,13 @@ impl PreparedPrompt512 {
     }
 }
 impl PreparedGroup {
+    pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("O producer must be selected before the first layer".into());
+        }
+        self.weight_stationary_output = enabled;
+        Ok(())
+    }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
         if self.states.iter().any(|state| state.next_layer != 0) {
             return Err("FFN global preload must be selected before the first layer".into());
@@ -474,6 +509,7 @@ impl GroupPrefill {
             quarter_postnorm: true,
             blocked_residual: true,
             composed_ffn_epilogue: true,
+            weight_stationary_output: false,
             states: [
                 self.rows[0]
                     .prepare_with_media_batch(device, weights, &sequences[0], scratch, true, batched_media)
@@ -527,7 +563,8 @@ impl GroupPrefill {
             row.attn_f = HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
                 std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
         }
-        Ok(PreparedTail256 { preload_ffn_globals:true, composed_ffn_epilogue:true, owners:sequences.len(), states:[
+        Ok(PreparedTail256 { preload_ffn_globals:true, composed_ffn_epilogue:true,
+            weight_stationary_output:false, owners:sequences.len(), states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
         ]})
@@ -539,6 +576,7 @@ impl GroupPrefill {
         let mut execution = GroupExecution::production();
         execution.composed_ffn_epilogue = state.composed_ffn_epilogue;
         execution.preload_ffn_globals = state.preload_ffn_globals;
+        execution.weight_stationary_output = state.weight_stationary_output;
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
     pub(crate) async fn finish_tail256(
@@ -588,7 +626,8 @@ impl GroupPrefill {
             std::iter::repeat_n(padding,P128::SIZE*Ns::SIZE*Gs::SIZE*Ds::SIZE)).to_hbm(&mut device.pdma).await?;
         padding_row.attn_f=HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
             std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
-        Ok(PreparedTail384 { preload_ffn_globals:true, composed_ffn_epilogue:true, owner_first_rows, owner_final_rows, states:[
+        Ok(PreparedTail384 { preload_ffn_globals:true, composed_ffn_epilogue:true,
+            weight_stationary_output:false, owner_first_rows, owner_final_rows, states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
             self.rows[2].prepare_with_media_batch(device,weights,&chunks[2],scratch,true,batched_media).await?,
@@ -601,6 +640,7 @@ impl GroupPrefill {
         let mut execution = GroupExecution::production();
         execution.composed_ffn_epilogue = state.composed_ffn_epilogue;
         execution.preload_ffn_globals = state.preload_ffn_globals;
+        execution.weight_stationary_output = state.weight_stationary_output;
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
     pub(crate) async fn finish_tail384(
@@ -679,6 +719,7 @@ impl GroupPrefill {
             blocked_residual:state.uses_blocked_residual(),
             composed_ffn_epilogue:state.composed_ffn_epilogue,
             preload_ffn_globals:state.preload_ffn_globals,
+            weight_stationary_output:state.weight_stationary_output,
         };
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
@@ -804,9 +845,21 @@ impl GroupPrefill {
             Layer::Sliding(l) => {
                 if execution.blocked_output && execution.fused_norms {
                     let [oa, ob, oc, od] = &mut self.output_s;
+                    if execution.weight_stationary_output {
+                        // Same owned H64 buffers and downstream consumer. The
+                        // host relabels the proven identical physical byte order.
+                        launch(crate::ops_output_weight_stationary::project_sliding_output_four,
+                            (device, &a.attn_s, &b.attn_s, &c.attn_s, &d.attn_s,
+                             &l.o_weight, &l.o_weight_scale,
+                             unsafe { oa.view_mut().reshape() },
+                             unsafe { ob.view_mut().reshape() },
+                             unsafe { oc.view_mut().reshape() },
+                             unsafe { od.view_mut().reshape() })).await?;
+                    } else {
                     launch(crate::ops_output_p128_h64_blocked::project_sliding_output_four,
                         (device, &a.attn_s, &b.attn_s, &c.attn_s, &d.attn_s,
                          &l.o_weight, &l.o_weight_scale, oa, ob, oc, od)).await?;
+                    }
                 } else {
                 launch(crate::ops_output_p128_keyrings_h64::project_sliding_output_four,
                     (device, &a.attn_s, &b.attn_s, &c.attn_s, &d.attn_s,
@@ -815,10 +868,21 @@ impl GroupPrefill {
                 }
             }
             Layer::Full(l) => {
+                if execution.weight_stationary_output {
+                    // Named Ho/Hr/Ht factors preserve canonical [P128,H] bytes.
+                    launch(crate::ops_full_output_weight_stationary::project_full_output_four,
+                        (device, &a.attn_f, &b.attn_f, &c.attn_f, &d.attn_f,
+                         &l.o_weight, &l.o_weight_scale,
+                         unsafe { a.projected.view_mut().reshape() },
+                         unsafe { b.projected.view_mut().reshape() },
+                         unsafe { c.projected.view_mut().reshape() },
+                         unsafe { d.projected.view_mut().reshape() })).await?;
+                } else {
                 launch(crate::ops_output_p128_four_keyrings::project_full_output_four,
                     (device, &a.attn_f, &b.attn_f, &c.attn_f, &d.attn_f,
                      &l.o_weight, &l.o_weight_scale, &mut a.projected,
                      &mut b.projected, &mut c.projected, &mut d.projected)).await?;
+                }
             }
         }
         scratch.record_optional_profile("group.attention.output", &mut output_mark);

@@ -257,6 +257,23 @@ impl Model {
         Ok(())
     }
 
+    /// Scoped exact sliding/full O control. New prepared states default to the
+    /// original producer; only a not-yet-started grouped state may opt in.
+    /// No model-wide selection survives completion, error or cancellation.
+    pub fn set_active_prefill_weight_stationary_output(
+        &mut self, enabled: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(state) = self.active_group.as_mut() { return state.weight_stationary_output(enabled); }
+        if let Some(state) = self.active_prompt384128.as_mut() { return state.weight_stationary_output(enabled); }
+        if let Some(state) = self.active_tail256.as_mut() { return state.weight_stationary_output(enabled); }
+        if let Some(state) = self.active_tail384.as_mut() { return state.weight_stationary_output(enabled); }
+        if let Some(state) = self.active_three_owner512.as_mut() { return state.weight_stationary_output(enabled); }
+        if let Some(ActivePrefill::Prompt512(state)) = self.active_prefill.as_mut() {
+            return state.weight_stationary_output(enabled);
+        }
+        Err("no grouped512-density prompt is awaiting its first layer".into())
+    }
+
     /// Exact grouped FFN launch-composition control, enabled for new prepared
     /// states after all owner-route gates. The selector can change only
     /// before its first layer; no model-wide mode survives completion or drop.
