@@ -10,7 +10,7 @@ pub type Output = m![P128, H];
 type Cluster = m![P128 / 64];
 type Parts = m![Qf / 1024, H / 120];
 type DownRows = m![H/120,1#8];
-type QuantRows = m![Qf / 1024, P128 % 8, P128 / 8 % 4];
+type QuantRows = m![Qf / 1024, P128 % 4, P128 / 8 % 8];
 
 fn add_partials_wide(
     device: &mut Device,
@@ -144,34 +144,34 @@ fn scale_output_wide(
 }
 fn quantize_local(
     device: &mut Device,
-    x: &DmTensor<bf16, Chip, Cluster, QuantRows, m![P128 / 32 % 2, Qf % 1024]>,
+    x: &DmTensor<bf16, Chip, Cluster, QuantRows, m![P128 / 4 % 2, Qf % 1024]>,
 ) -> (
-    DmTensor<f8e4m3, Chip, Cluster, QuantRows, m![P128 / 32 % 2, Qf % 1024]>,
-    DmTensor<f32, Chip, Cluster, QuantRows, m![P128/32%2,1 # 8]>,
+    DmTensor<f8e4m3, Chip, Cluster, QuantRows, m![P128 / 4 % 2, Qf % 1024]>,
+    DmTensor<f32, Chip, Cluster, QuantRows, m![P128/4%2,1 # 8]>,
 ) {
-    let amax: DmTensor<f32, Chip, Cluster, QuantRows, m![P128/32%2,1 # 8]> = device
+    let amax: DmTensor<f32, Chip, Cluster, QuantRows, m![P128/4%2,1 # 8]> = device
         .main
         .begin(x.view())
-        .fetch::<m![P128 / 32 % 2, Qf / 16 % 64], m![Qf % 16]>()
+        .fetch::<m![P128 / 4 % 2, Qf / 16 % 64], m![Qf % 16]>()
         .fetch_cast::<f32>()
-        .collect::<m![P128 / 32 % 2, Qf / 8 % 128], m![Qf % 8]>()
+        .collect::<m![P128 / 4 % 2, Qf / 8 % 128], m![Qf % 8]>()
         .vector_init()
         .vector_intra_slice_tag(TagMode::Zero)
         .vector_reinterpret::<i32>()
         .vector_logic(LogicBinaryOpI32::BitAnd, 0x7fff_ffffi32)
         .vector_reinterpret::<f32>()
-        .vector_narrow_split::<m![P128 / 32 % 2, Qf / 4 % 256], m![Qf % 4]>()
-        .vector_intra_slice_reduce::<Qf, m![P128 / 32 % 2], m![1 #4]>(IntraSliceReduceOpF32::Max)
+        .vector_narrow_split::<m![P128 / 4 % 2, Qf / 4 % 256], m![Qf % 4]>()
+        .vector_intra_slice_reduce::<Qf, m![P128 / 4 % 2], m![1 #4]>(IntraSliceReduceOpF32::Max)
         .vector_widen_pad::<m![1 #8]>()
         .vector_clip(ClipBinaryOpF32::Max, 1.925929944387236e-34f32)
         .vector_final()
         .commit_trim::<m![1 #8]>()
         .commit();
-    let scale: DmTensor<f32, Chip, Cluster, QuantRows, m![P128/32%2,1 #8]> = device
+    let scale: DmTensor<f32, Chip, Cluster, QuantRows, m![P128/4%2,1 #8]> = device
         .main
         .begin(amax.view())
-        .fetch::<m![P128 / 32 % 2, 1], m![1 #8]>()
-        .collect::<m![P128 / 32 % 2, 1], m![1 #8]>()
+        .fetch::<m![P128 / 4 % 2, 1], m![1 #8]>()
+        .collect::<m![P128 / 4 % 2, 1], m![1 #8]>()
         .vector_init()
         .vector_intra_slice_tag(TagMode::Zero)
         .vector_reinterpret::<i32>()
@@ -183,23 +183,23 @@ fn quantize_local(
         .vector_final()
         .commit_trim::<m![1 #8]>()
         .commit();
-    let sv: VrfTensor<f32, Chip, Cluster, QuantRows, m![P128/32%2,1 #8]> = device
+    let sv: VrfTensor<f32, Chip, Cluster, QuantRows, m![P128/4%2,1 #8]> = device
         .sub
         .begin(scale.view())
-        .fetch::<m![P128 / 32 % 2, 1], m![1 #8]>()
-        .collect::<m![P128 / 32 % 2, 1], m![1 #8]>()
+        .fetch::<m![P128 / 4 % 2, 1], m![1 #8]>()
+        .collect::<m![P128 / 4 % 2, 1], m![1 #8]>()
         .to_vrf();
-    let q: DmTensor<f8e4m3, Chip, Cluster, QuantRows, m![P128 / 32 % 2, Qf % 1024]> = device
+    let q: DmTensor<f8e4m3, Chip, Cluster, QuantRows, m![P128 / 4 % 2, Qf % 1024]> = device
         .main
         .begin(x.view())
-        .fetch::<m![P128 / 32 % 2, Qf / 16 % 64], m![Qf % 16]>()
+        .fetch::<m![P128 / 4 % 2, Qf / 16 % 64], m![Qf % 16]>()
         .fetch_cast::<f32>()
-        .collect::<m![P128 / 32 % 2, Qf / 8 % 128], m![Qf % 8]>()
+        .collect::<m![P128 / 4 % 2, Qf / 8 % 128], m![Qf % 8]>()
         .vector_init()
         .vector_intra_slice_tag(TagMode::Zero)
-        .vector_narrow_split::<m![P128 / 32 % 2, Qf / 4 % 256], m![Qf % 4]>()
+        .vector_narrow_split::<m![P128 / 4 % 2, Qf / 4 % 256], m![Qf % 4]>()
         .vector_fp_binary(FpBinaryOp::DivF, &sv)
-        .vector_widen_concat::<m![P128 / 32 % 2, Qf / 8 % 128], m![Qf % 8]>()
+        .vector_widen_concat::<m![P128 / 4 % 2, Qf / 8 % 128], m![Qf % 8]>()
         .vector_final()
         .cast::<f8e4m3, m![Qf %8 #32]>()
         .commit_trim::<m![Qf % 8]>()
@@ -212,7 +212,7 @@ fn partials(
     weight: &DmTensor<f8e4m3, Chip, Cluster, Parts, m![H % 120, Qf % 1024]>,
 ) -> DmTensor<bf16, Chip, Cluster, Parts, m![H % 120, P128 % 64]> {
     let flat: HbmTensorView<'_, bf16, Chip, m![P128, Qf]> = unsafe { input.view().reshape() };
-    let input: DmTensor<bf16, Chip, Cluster, QuantRows, m![P128 / 32 % 2, Qf % 1024]> =
+    let input: DmTensor<bf16, Chip, Cluster, QuantRows, m![P128 / 4 % 2, Qf % 1024]> =
         flat.to_dm(&mut device.tdma);
     let (q, scale) = quantize_local(device, &input);
     let scales: DmTensor<f32, Chip, Cluster, Parts, m![P128%64,1#8]> =
@@ -235,8 +235,8 @@ fn partials(
         device
             .sub
             .begin(q.view())
-            .fetch::<m![P128 / 32 % 2], m![Qf % 1024]>()
-            .switch::<Parts, m![P128 / 32 % 2, P128 % 8, P128 / 8 % 4]>(
+            .fetch::<m![P128 / 4 % 2], m![Qf % 1024]>()
+            .switch::<Parts, m![P128 / 4 % 2, P128 % 4, P128 / 8 % 8]>(
                 SwitchConfig::CustomBroadcast { ring_size: 32 },
             )
             .collect::<m![P128 % 8, P128 / 8 % 8, Qf / 32 % 32], m![Qf % 32]>()
@@ -317,7 +317,7 @@ pub fn quantize_full_input(
     sout: &mut HbmTensor<f32, Chip, m![P128,Qf/1024,1#8]>,
 ) {
     let flat: HbmTensorView<'_, bf16, Chip, m![P128, Qf]> = unsafe { input.view().reshape() };
-    let x: DmTensor<bf16, Chip, Cluster, QuantRows, m![P128 / 32 % 2, Qf % 1024]> =
+    let x: DmTensor<bf16, Chip, Cluster, QuantRows, m![P128 / 4 % 2, Qf % 1024]> =
         flat.to_dm(&mut device.tdma);
     let (q, s) = quantize_local(device, &x);
     q.view().to_hbm_view(&mut device.tdma, qout.view_mut());
