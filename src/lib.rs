@@ -10,6 +10,7 @@ use furiosa_opt_std::prelude::*;
 
 pub mod api;
 pub mod axes;
+pub mod ops_int4_group960_projection;
 pub mod host;
 pub mod ops;
 pub mod ops_batch_io;
