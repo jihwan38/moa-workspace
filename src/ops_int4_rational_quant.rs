@@ -10,13 +10,14 @@ type Row = m![B % 8 # 256];
 type Shards = m![B % 8, H / 960, 1 # 8];
 type Comparisons = m![B % 8, H / 960, Threshold];
 
-/// `odds` must contain exactly [1,3,5,7,9,11,13,15]. The last threshold
+/// `odds` must contain exactly [1,3,5,7,9,11,13,15] in the live lane of
+/// each padded eight-I32 record (aligned per-slice HBM transfer). The last threshold
 /// cannot pass when A>=abs(x), so all eight lanes can use the same reduction.
 #[device(chip = 1)]
 pub fn quantize_row(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![B, H]>,
-    odds: &HbmTensor<i32, Chip, m![Threshold]>,
+    odds: &HbmTensor<i32, Chip, m![Threshold, 1 # 8]>,
     output: &mut HbmTensor<i32, Chip, m![B, H]>,
     scales: &mut HbmTensor<f32, Chip, m![B]>,
 ) {
