@@ -96,12 +96,14 @@ fn project_sliding_one(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,Ns,
  weight:&DmTensor<bf16,Chip,Cluster,Parts,m![H%120,Qs%1024]>,
  scale:&HbmTensor<bf16,Chip,m![H]>,output:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
     let flat:HbmTensorView<'_,bf16,Chip,m![P128,Qs]>=unsafe{input.view().reshape()};
-    let ingress:DmTensor<bf16,Chip,Cluster,m![Qs/1024,1#64],m![P128%64,Qs%1024]>=flat.to_dm(&mut device.tdma);
-    let input:DmTensor<bf16,Chip,Cluster,Parts,m![P128%64,Qs%1024]>=ingress.to_dm(&mut device.tdma);
     let mut partial:DmTensor<bf16,Chip,Cluster,Parts,m![H%120,P128%64]>=DmTensor::new();
     for chunk in 0..2 {
+        // A32-row source and32-row broadcast destination coexist within SRAM.
+        let ingress:DmTensor<bf16,Chip,Cluster,m![Qs/1024,1#64],m![P128%32,Qs%1024]>=flat
+            .tile::<m![P128/32%2],1,m![P128/64,1#2,P128%32,Qs]>(chunk).to_dm(&mut device.tdma);
+        let input:DmTensor<bf16,Chip,Cluster,Parts,m![P128%32,Qs%1024]>=ingress.to_dm(&mut device.tdma);
         let x:TrfTensor<bf16,Chip,Cluster,Parts,m![P128%8],m![P128/8%4,Qs%1024]>=device.sub
-            .begin(input.view().tile::<m![P128/32%2],1,m![1#2,P128%32,Qs%1024]>(chunk))
+            .begin(input.view())
             .fetch::<m![P128%8,P128/8%4,Qs/16%64],m![Qs%16]>().collect::<m![P128%8,P128/8%4,Qs/16%64],m![Qs%16]>().to_trf();
         device.main.begin(weight.view())
             .fetch::<m![H%120,Qs/16%64],m![Qs%16]>().collect::<m![H%120,Qs/16%64],m![Qs%16]>()
@@ -142,12 +144,14 @@ fn project_full_one(device:&mut Device,input:&HbmTensor<bf16,Chip,m![P128,Gf,Df]
  weight:&DmTensor<bf16,Chip,Cluster,FullParts,m![H%120,Qf%1024]>,
  scale:&HbmTensor<bf16,Chip,m![H]>,output:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
     let flat:HbmTensorView<'_,bf16,Chip,m![P128,Qf]>=unsafe{input.view().reshape()};
-    let ingress:DmTensor<bf16,Chip,Cluster,m![Qf/1024,1#32],m![P128%64,Qf%1024]>=flat.to_dm(&mut device.tdma);
-    let input:DmTensor<bf16,Chip,Cluster,FullParts,m![P128%64,Qf%1024]>=ingress.to_dm(&mut device.tdma);
     let mut partial:DmTensor<bf16,Chip,Cluster,FullParts,m![H%120,P128%64]>=DmTensor::new();
     for chunk in 0..2 {
+        // A32-row source and32-row broadcast destination coexist within SRAM.
+        let ingress:DmTensor<bf16,Chip,Cluster,m![Qf/1024,1#32],m![P128%32,Qf%1024]>=flat
+            .tile::<m![P128/32%2],1,m![P128/64,1#2,P128%32,Qf]>(chunk).to_dm(&mut device.tdma);
+        let input:DmTensor<bf16,Chip,Cluster,FullParts,m![P128%32,Qf%1024]>=ingress.to_dm(&mut device.tdma);
         let x:TrfTensor<bf16,Chip,Cluster,FullParts,m![P128%8],m![P128/8%4,Qf%1024]>=device.sub
-            .begin(input.view().tile::<m![P128/32%2],1,m![1#2,P128%32,Qf%1024]>(chunk))
+            .begin(input.view())
             .fetch::<m![P128%8,P128/8%4,Qf/16%64],m![Qf%16]>().collect::<m![P128%8,P128/8%4,Qf/16%64],m![Qf%16]>().to_trf();
         device.main.begin(weight.view())
             .fetch::<m![H%120,Qf/16%64],m![Qf%16]>().collect::<m![H%120,Qf/16%64],m![Qf%16]>()
