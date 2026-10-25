@@ -273,3 +273,10 @@ pub mod ops_group_ffn_projection_storegroup;
 pub mod ops_fixed_e4_quality;
 
 pub mod ops_fixed_e4_quality_diagnostic;
+
+pub mod ops_fixed_e4_prompt_codec;
+pub mod ops_fixed_e4_prompt;
+pub mod ops_fixed_e4_wide;
+pub mod ops_fixed_e4_wide_original;
+pub mod ops_fixed_e4_fused;
+pub mod ops_fixed_e4_commit_wide;

@@ -1,0 +1,28 @@
+{
+  "base": "98662213",
+  "owner": "/root/round2_path",
+  "scope": "Prompt device kernels only; e2e owns host/scalar/model, batch owns independent-decode/live1..16 commit.",
+  "control": "q022 fixed scale1 E4-roundtripped BF16 pools/readers; all producer hooks retained",
+  "change": "Replace only sliding pool HBM datatype with f8e4m3 and its byte offsets; lookup gathered codes into original BF16 DM before unchanged attention. Recast rounded current BF16 scratch for E4 commits.",
+  "unchanged": [
+    "Rc physical32/queryR64",
+    "Masks/causalwindow/currentchunk BF16 arithmetic",
+    "Fullattention and Q/O/FFN",
+    "Current BF16 chunk scratch",
+    "Prompt128 old reads finish before commit",
+    "Partial B16 onlyVALID rows committed by batch-owned wrappers",
+    "Separate chronological same-owner P128 launches",
+    "All q022 quantization hooks from token0"
+  ],
+  "gates": [
+    "Source body equivalence except explicit pool/codec boundaries",
+    "Host check and actual called kernel resource compile with no hidden HBM spill",
+    "Codec recast idempotence at signed zero and finite extremes",
+    "Strict candidate/control attention and full cache bytes using independent affine map, all32rings/remap/wrap/partial masks/current chunk poison",
+    "Wholemodel/allowner surrogate equivalence under root before activation"
+  ],
+  "target": "/round2/ffn-k256/target",
+  "kernel_output": "/round2/ffn-k256/target/furiosa-kernels-fixed-e4-prompt-a001",
+  "arena_dispatch": "root only",
+  "precision_claim": "Intended exact match to q022 surrogate; not exact original BF16 model. Not yet compiled or measured."
+}
