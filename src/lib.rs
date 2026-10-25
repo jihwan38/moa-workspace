@@ -253,3 +253,5 @@ pub mod ops_b16_prefix;
 pub mod ops_decode32_output;
 
 pub mod ops_output_h64_native;
+
+pub mod ops_output_full_native;
