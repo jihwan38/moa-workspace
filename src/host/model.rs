@@ -525,11 +525,20 @@ impl Model {
     pub async fn advance_prefill_tail384(
         &mut self, device:&mut Device, workspace:&mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.advance_prefill_tail384_measured(device,workspace,None).await
+    }
+    pub(crate) async fn advance_prefill_tail384_measured(
+        &mut self, device:&mut Device, workspace:&mut Workspace,
+        mut timing:Option<&mut PrefillAdvanceTiming>,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        if let Some(timing)=timing.as_mut() {**timing=PrefillAdvanceTiming::default();}
         let state=self.active_tail384.as_mut().ok_or("no Tail384 is active")?;
         let group=self.group.as_mut().ok_or("grouped scratch is missing")?;
-        if !group.advance_tail384(device,&self.weights,state,workspace,&mut self.prefill).await? {
-            return Ok(None);
-        }
+        let mark=timing.as_ref().map(|_|std::time::Instant::now());
+        let complete=group.advance_tail384(device,&self.weights,state,workspace,&mut self.prefill).await?;
+        if let Some(timing)=timing.as_mut() {timing.layer=Some(mark.unwrap().elapsed());}
+        if !complete {return Ok(None);}
+        let mark=timing.as_ref().map(|_|std::time::Instant::now());
         let owners=state.owners();
         for owner in 0..owners {
             std::mem::swap(&mut self.logits[owner],&mut workspace.logits);
@@ -538,6 +547,7 @@ impl Model {
             result?;
         }
         self.active_tail384=None;
+        if let Some(timing)=timing.as_mut() {timing.finish=Some(mark.unwrap().elapsed());}
         Ok(Some(&self.logits[..owners]))
     }
 

@@ -32,6 +32,10 @@ const PROMPT512_ENABLED: bool = true;
 const PROMPT_PAIR512_ENABLED: bool = true;
 /// Two real P128 quarters share the P512 dense path; inactive quarters own no KV.
 const TAIL256_ENABLED: bool = true;
+/// Three actual owners can fill512 before any tensor-padded tail is selected.
+const THREE_OWNER512_ENABLED: bool = true;
+/// Three real quarters share P512 dense work, with no inactive KV owner.
+const TAIL384_ENABLED: bool = true;
 /// Diagnostic candidates flip these constants globally, never from request data.
 /// Public TPOT averages request latency; the private evaluator's exact formula
 /// is unverified. This candidate needs measured output-gap and HTTP gates.
@@ -328,6 +332,9 @@ impl ReadyInput {
     fn groupable(self) -> bool {
         self.count == crate::axes::P128::SIZE
             && self.position % crate::axes::Tf::SIZE + self.count <= crate::axes::Tf::SIZE
+    }
+    fn aligned_quarter(self) -> bool {
+        self.groupable() && self.position % crate::axes::P128::SIZE == 0
     }
 }
 
@@ -671,6 +678,8 @@ impl Worker {
                 && scheduled.iter().all(|s| matches!(s.count, 128 | 256 | 384))
                 && scheduled.iter().map(|s| s.count).sum::<usize>() == crate::axes::P512::SIZE;
             let tail256 = decode_width == 0 && is_tail256(&scheduled);
+            let tail384 = decode_width == 0 && is_tail384(&scheduled);
+            let three_owner512 = decode_width == 0 && is_three_owner512(&scheduled);
             let cost_width = prompt_cost_width(&scheduled);
             let credited = CREDIT_SCHEDULER_ENABLED && credit_opportunity && decode_width == 0;
             let mut immediate_chunk_trace = None;
@@ -728,10 +737,18 @@ impl Worker {
                             blocks: &sessions[index].blocks,
                         })
                         .collect();
-                    if grouped || paired384128 || tail256 {
+                    if grouped || paired384128 || three_owner512 || tail384 || tail256 {
                         if active_rings.is_empty() {
                             let mark = Instant::now();
-                            if tail256 && sequences.len() == 1 {
+                            if three_owner512 {
+                                self.model.start_prefill_three_owner512(
+                                    &mut self.device, &sequences, &mut self.workspace,
+                                ).await?;
+                            } else if tail384 {
+                                self.model.start_prefill_tail384(
+                                    &mut self.device, &sequences, &mut self.workspace,
+                                ).await?;
+                            } else if tail256 && sequences.len() == 1 {
                                 self.model.start_prefill256(
                                     &mut self.device, &sequences[0], &mut self.workspace,
                                 ).await?;
@@ -750,7 +767,17 @@ impl Worker {
                             }
                             prompt_phases.preparation = Some(mark.elapsed());
                         }
-                        let outputs = if tail256 {
+                        let outputs = if three_owner512 {
+                            self.model.advance_prefill_three_owner512_measured(
+                                &mut self.device, &mut self.workspace,
+                                Some(&mut prompt_phases.advance),
+                            ).await?
+                        } else if tail384 {
+                            self.model.advance_prefill_tail384_measured(
+                                &mut self.device, &mut self.workspace,
+                                Some(&mut prompt_phases.advance),
+                            ).await?
+                        } else if tail256 {
                             self.model.advance_prefill_tail256_measured(
                                 &mut self.device, &mut self.workspace,
                                 Some(&mut prompt_phases.advance),
@@ -1218,6 +1245,42 @@ fn is_tail256(inputs: &[ScheduledInput]) -> bool {
             && b.count == crate::axes::P128::SIZE)
 }
 
+/// The extra quarter belongs to the earliest eligible actual owner. No session
+/// is skipped or repeated in the public scheduling list.
+fn three_owner512_counts(rows: [ReadyInput; 3]) -> Option<[usize; 3]> {
+    if !THREE_OWNER512_ENABLED || rows.iter().any(|r| !r.aligned_quarter()) {
+        return None;
+    }
+    let double=rows.iter().position(|r| r.prompt256)?;
+    let mut counts=[crate::axes::P128::SIZE;3];
+    counts[double]*=2;
+    Some(counts)
+}
+
+fn tail384_pair_counts(first: ReadyInput, second: ReadyInput) -> Option<[usize; 2]> {
+    if !TAIL384_ENABLED || first.prompt512
+        || [first,second].iter().any(|r| !r.aligned_quarter()) {
+        return None;
+    }
+    if first.prompt256 {Some([256,128])}
+    else if second.prompt256 {Some([128,256])}
+    else {None}
+}
+
+fn tail384_triple_supported(rows: [ReadyInput; 3]) -> bool {
+    TAIL384_ENABLED && !rows[0].prompt512 && rows.iter().all(|r| r.aligned_quarter())
+}
+
+fn is_three_owner512(inputs: &[ScheduledInput]) -> bool {
+    inputs.len()==3 && inputs.iter().all(|r|matches!(r.count,128|256))
+        && inputs.iter().map(|r|r.count).sum::<usize>()==512
+}
+
+fn is_tail384(inputs: &[ScheduledInput]) -> bool {
+    (1..=3).contains(&inputs.len()) && inputs.iter().all(|r|matches!(r.count,128|256|384))
+        && inputs.iter().map(|r|r.count).sum::<usize>()==384
+}
+
 /// Four independent requests keep priority. A validated two-owner selection
 /// keeps both owner identities and fills512 rows; a singleton may use512. Active ranges are
 /// copied exactly until the corresponding model checkpoint completes.
@@ -1229,7 +1292,11 @@ fn schedule_inputs(
 ) -> Vec<ScheduledInput> {
     let pair = if active.is_empty() && selected.len() == 2 {
         prompt_pair_counts(available[selected[0]], available[selected[1]])
+            .or_else(||tail384_pair_counts(available[selected[0]],available[selected[1]]))
     } else { None };
+    let triple = if active.is_empty() && selected.len()==3 {
+        three_owner512_counts([available[selected[0]],available[selected[1]],available[selected[2]]])
+    } else {None};
     selected
         .iter()
         .enumerate()
@@ -1243,12 +1310,19 @@ fn schedule_inputs(
                 position: ready.position,
                 count: if let Some(counts) = pair {
                     counts[row]
+                } else if let Some(counts) = triple {
+                    counts[row]
                 } else if prompt512_enabled
                     && active.is_empty()
                     && selected.len() == 1
                     && ready.prompt512
                 {
                     crate::axes::P512::SIZE
+                } else if TAIL384_ENABLED && prompt512_enabled
+                    && active.is_empty() && selected.len()==1
+                    && ready.prompt384 && ready.aligned_quarter()
+                {
+                    3 * crate::axes::P128::SIZE
                 } else if TAIL256_ENABLED && prompt512_enabled
                     && active.is_empty() && selected.len() == 1
                     && ready.prompt256 && ready.groupable()
@@ -1263,10 +1337,10 @@ fn schedule_inputs(
         .collect()
 }
 
-/// Charge actual dense work: Tail256 also executes four tensor quarters even
-/// though only its one/two real owners attend and commit cache positions.
+/// Charge actual dense work: both padded tails execute four tensor quarters,
+/// while only real owner positions attend and commit cache entries.
 fn prompt_cost_width(inputs: &[ScheduledInput]) -> usize {
-    if is_tail256(inputs)
+    if is_tail256(inputs) || is_tail384(inputs)
         || inputs.iter().map(|input| input.count).sum::<usize>() >= crate::axes::P512::SIZE {
         4
     } else {
@@ -1309,9 +1383,18 @@ fn pending_prompt(
             .all(|&index| available[index].groupable());
     let pair = !group && group_enabled && pending.len() >= 2
         && prompt_pair_counts(available[pending[0]], available[pending[1]]).is_some();
-    let tail_pair = !group && !pair && group_enabled && pending.len() >= 2
-        && tail256_pair_supported(available[pending[0]], available[pending[1]]);
-    pending.truncate(if group { 4 } else if pair || tail_pair { 2 } else { 1 });
+    let first_three = (group_enabled && pending.len()>=3).then(||
+        [available[pending[0]],available[pending[1]],available[pending[2]]]);
+    let three_owner512 = !group && !pair
+        && first_three.is_some_and(|rows|three_owner512_counts(rows).is_some());
+    let tail_triple = !group && !pair && !three_owner512
+        && first_three.is_some_and(tail384_triple_supported);
+    let tail_pair = !group && !pair && !three_owner512 && !tail_triple
+        && group_enabled && pending.len() >= 2
+        && (tail384_pair_counts(available[pending[0]],available[pending[1]]).is_some()
+            || tail256_pair_supported(available[pending[0]], available[pending[1]]));
+    pending.truncate(if group {4} else if pair {2} else if three_owner512 || tail_triple {3}
+        else if tail_pair {2} else {1});
     pending
 }
 
@@ -1392,6 +1475,174 @@ mod tests {
             .collect()
     }
 
+    fn packed_ready(counts:&[usize])->Vec<ReadyInput> {
+        counts.iter().enumerate().map(|(ring,&count)|ReadyInput{ring,position:0,
+            count:count.min(128),prompt512:count>=512,prompt384:count>=384,prompt256:count>=256}).collect()
+    }
+    fn planned(counts:&[usize])->Vec<ScheduledInput> {
+        let work=packed_ready(counts);let selected=pending_prompt(64,&work,0,&[],true);
+        schedule_inputs(&work,&selected,&[],true)
+    }
+
+    #[test]
+    fn real512_quad_pair_triple_single_all_precede_padded_routes() {
+        for (input,expected) in [
+            (vec![256,128,128,128],vec![128;4]),
+            (vec![384,128,128],vec![384,128]),
+            (vec![128,384,128],vec![128,384]),
+            (vec![256,256,128],vec![256,256]),
+            (vec![256,128,128],vec![256,128,128]),
+            (vec![128,256,128],vec![128,256,128]),
+            (vec![128,128,256],vec![128,128,256]),
+            (vec![512],vec![512]),
+        ] {
+            let plan=planned(&input);
+            assert_eq!(plan.iter().map(|r|r.count).collect::<Vec<_>>(),expected);
+            assert_eq!(prompt_cost_width(&plan),4);
+            assert!(!is_tail384(&plan));assert!(!is_tail256(&plan));
+            assert_eq!(is_three_owner512(&plan),plan.len()==3);
+        }
+        let plan=planned(&[16,512,512,512]);
+        assert_eq!(plan,vec![ScheduledInput{ring:0,position:0,count:16}]);
+    }
+
+    #[test]
+    fn all_tail384_shapes_keep_real_owner_counts_and_dense_cost_four() {
+        for counts in [vec![384],vec![256,128],vec![128,256],vec![128,128,128]] {
+            let plan=planned(&counts);
+            assert_eq!(plan.iter().map(|r|r.count).collect::<Vec<_>>(),counts);
+            assert!(is_tail384(&plan));assert!(!is_three_owner512(&plan));
+            assert!(!is_tail256(&plan));assert_eq!(prompt_cost_width(&plan),4);
+        }
+        for counts in [vec![256],vec![128,128]] {
+            let plan=planned(&counts);assert!(is_tail256(&plan));assert_eq!(prompt_cost_width(&plan),4);
+        }
+        assert_eq!(prompt_cost_width(&planned(&[128])),1);
+        for counts in [vec![384],vec![256,128],vec![128,128,256]] {
+            let work=packed_ready(&counts);let selected=pending_prompt(64,&work,0,&[],false);
+            assert_eq!(selected,vec![0]);
+            assert_eq!(schedule_inputs(&work,&selected,&[],false)[0].count,128);
+        }
+    }
+
+    #[test]
+    fn larger_packing_keeps_cyclic_order_and_never_skips_a_short_owner() {
+        let mut work=packed_ready(&[128,128,128,16]);
+        for (r,ring) in work.iter_mut().zip([7,2,31,63]){r.ring=ring;}
+        assert_eq!(pending_prompt(64,&work,3,&[],true),vec![0,2]);
+        assert_eq!(pending_prompt(64,&work,60,&[],true),vec![3]);
+        work[0].position=1;
+        assert_eq!(pending_prompt(64,&work,3,&[],true),vec![0]);
+        work[0].position=448;
+        assert_eq!(pending_prompt(64,&work,3,&[],true),vec![0]);
+        work[0].position=0;work[3].count=128;
+        let mut next=3;let mut prefer=true;
+        assert_eq!(select_work_in(64,&work,&mut prefer,&mut next,&[],true),vec![0,2,3,1]);
+        assert_eq!(next,3);
+    }
+
+    #[test]
+    fn three_owner_checkpoint_survives_decoder_compaction_and_cancelled_owner() {
+        let mut pool=Some(PageReservations::new(64,256,CONTEXT).unwrap());
+        let (decoder,_decoder_rx)=session(pool.as_mut().unwrap(),1,1);
+        let (mut a,a_rx)=session(pool.as_mut().unwrap(),2048,4);
+        let (mut b,_b_rx)=session(pool.as_mut().unwrap(),2048,4);
+        let (mut c,_c_rx)=session(pool.as_mut().unwrap(),2048,4);
+        advance_prompt_to(&mut a,1792);advance_prompt_to(&mut b,1920);advance_prompt_to(&mut c,1920);
+        let mut sessions=vec![decoder,a,b,c];let mut free=vec![];let mut rings=vec![];
+        let available=ready_sessions(&sessions);let selected=pending_prompt(64,&available,0,&[],true);
+        assert_eq!(selected,vec![1,2,3]);let active=schedule_inputs(&available,&selected,&[],true);
+        assert_eq!(active.iter().map(|r|r.count).collect::<Vec<_>>(),vec![256,128,128]);
+        let active_rings:Vec<_>=active.iter().map(|r|r.ring).collect();
+        let mut prefer=false;let mut next=4;
+        let selected=select_work_in(64,&available,&mut prefer,&mut next,&active_rings,true);
+        assert_eq!(selected,vec![0]);
+        complete_selected(&mut sessions,&selected,Some(&[SampleOutput::Greedy(3)]),&mut pool,&mut free,&mut rings).unwrap();
+        let available=ready_sessions(&sessions);
+        let resumed=select_work_in(64,&available,&mut prefer,&mut next,&active_rings,true);
+        assert_eq!(resumed,vec![0,1,2]);assert_eq!(next,4);
+        assert_eq!(schedule_inputs(&available,&resumed,&active,false),active);
+        let pages=pool.as_ref().unwrap().available_pages();drop(a_rx);
+        assert!(!complete_work(&mut sessions,&active,None,&mut pool,&mut free,&mut rings).unwrap());
+        assert!(complete_work(&mut sessions,&active,Some(&[SampleOutput::Greedy(3),SampleOutput::Greedy(4)]),&mut pool,&mut free,&mut rings).is_err());
+        assert_eq!(sessions.iter().map(|s|s.generation.input().1).collect::<Vec<_>>(),vec![1792,1920,1920]);
+        assert_eq!(pool.as_ref().unwrap().available_pages(),pages);
+        assert!(complete_work(&mut sessions,&active,Some(&[SampleOutput::Greedy(3),SampleOutput::Greedy(4),SampleOutput::Greedy(5)]),&mut pool,&mut free,&mut rings).unwrap());
+        assert_eq!(sessions.iter().map(|s|s.blocks.sliding).collect::<Vec<_>>(),vec![active[1].ring,active[2].ring]);
+        assert_eq!(sessions.iter().map(|s|s.generation.input().1).collect::<Vec<_>>(),vec![2048,2048]);
+        assert_eq!(sessions.iter().map(|s|s.generation.input().0.token).collect::<Vec<_>>(),vec![4,5]);
+        assert_eq!(pool.as_ref().unwrap().available_pages(),pages+Workspace::blocks_for(2052));
+        assert!(free.is_empty()&&rings.is_empty());
+    }
+
+    #[test]
+    fn tail384_shapes_complete_final_outputs_without_sampling_intermediate_ranges() {
+        for counts in [vec![384],vec![256,128],vec![128,256],vec![128,128,128]] {
+            let mut pool=Some(PageReservations::new(64,256,CONTEXT).unwrap());
+            let mut sessions=Vec::new();let mut receivers=Vec::new();
+            for &count in &counts {let (mut s,rx)=session(pool.as_mut().unwrap(),2048,4);advance_prompt_to(&mut s,2048-count);sessions.push(s);receivers.push(rx);}
+            let available=ready_sessions(&sessions);let selected=pending_prompt(64,&available,0,&[],true);
+            let active=schedule_inputs(&available,&selected,&[],true);
+            assert!(is_tail384(&active));assert_eq!(active.iter().map(|r|r.count).collect::<Vec<_>>(),counts);
+            let outputs:Vec<_>=(0..counts.len()).map(|owner|SampleOutput::Greedy(3+owner)).collect();
+            complete_work(&mut sessions,&active,Some(&outputs),&mut pool,&mut vec![],&mut vec![]).unwrap();
+            for (owner,s) in sessions.iter().enumerate(){assert_eq!(s.generation.input().1,2048);assert_eq!(s.generation.input().0.token,3+owner);}
+        }
+        //384 of a448-token prompt is a nonfinal range, so no logits are sampled.
+        let mut pool=Some(PageReservations::new(64,256,CONTEXT).unwrap());
+        let (a,_rx)=session(pool.as_mut().unwrap(),448,4);let mut sessions=vec![a];
+        let available=ready_sessions(&sessions);let active=schedule_inputs(&available,&[0],&[],true);
+        assert_eq!(active[0].count,384);
+        complete_work(&mut sessions,&active,Some(&[SampleOutput::Logits(vec![])]),&mut pool,&mut vec![],&mut vec![]).unwrap();
+        assert_eq!(sessions[0].generation.input().1,384);assert_eq!(sessions[0].generation.completion_tokens(),0);
+        assert!(sessions[0].generation.is_prefilling());
+    }
+
+    #[test]
+    fn exact_route_classifiers_reject_partial_and_ambiguous_shapes() {
+        for counts in [vec![384,128,0],vec![256,256],vec![128,128,128,128],vec![255,128,129]] {
+            let rows:Vec<_>=counts.iter().enumerate().map(|(ring,&count)|ScheduledInput{ring,position:0,count}).collect();
+            assert!(!is_three_owner512(&rows));assert!(!is_tail384(&rows));
+        }
+        for counts in [vec![256,128,128],vec![128,256,128],vec![128,128,256],vec![384],vec![128,128,128]] {
+            let rows:Vec<_>=counts.iter().enumerate().map(|(ring,&count)|ScheduledInput{ring,position:0,count}).collect();
+            assert_eq!(prompt_cost_width(&rows),4);
+            let start=Instant::now();let mut cadence=DecodeCadence::new();
+            cadence.prompt_cost=[Duration::from_millis(2),Duration::from_millis(16)];
+            cadence.observe_decode(start,1,Duration::from_millis(70));
+            assert!(!cadence.prompt_fits(start+Duration::from_millis(5),1,prompt_cost_width(&rows)));
+        }
+    }
+
+    #[test]
+    fn three_owner_completion_keeps_unfinished_cohort_deadline_and_real_event_credit() {
+        let mut pool=Some(PageReservations::new(64,256,CONTEXT).unwrap());
+        let mut sessions=Vec::new();let mut receivers=Vec::new();let start=Instant::now();
+        for count in [256,128,128,16] {
+            let (mut s,rx)=session(pool.as_mut().unwrap(),count,4);s.timing.received=start;
+            sessions.push(s);receivers.push(rx);
+        }
+        let available=ready_sessions(&sessions);let selected=pending_prompt(64,&available,0,&[],true);
+        let active=schedule_inputs(&available,&selected,&[],true);
+        assert!(is_three_owner512(&active));
+        let pages=pool.as_ref().unwrap().available_pages();
+        let mut cohort=StartupCohort::default();cohort.maybe_start(&mut sessions,&active,start);
+        assert!(cohort.active());
+        complete_work(&mut sessions,&active,Some(&[SampleOutput::Greedy(3),SampleOutput::Greedy(4),SampleOutput::Greedy(5)]),&mut pool,&mut vec![],&mut vec![]).unwrap();
+        assert!(sessions[..3].iter().all(|s|!cohort.allows(s)&&s.timing.progress.first.is_none()));
+        assert!(cohort.allows(&sessions[3]));assert_eq!(pool.as_ref().unwrap().available_pages(),pages);
+        let deadline=start+startup_cohort::RECEIPT_BUDGET;
+        assert_eq!(cohort.release_reason(&sessions,deadline-Duration::from_nanos(1)),None);
+        assert_eq!(cohort.release_reason(&sessions,deadline),Some("deadline"));
+        cohort.release(&mut sessions,&mut pool,&mut vec![],&mut vec![],deadline,"deadline");
+        for (owner,text) in ["a","b","c"].into_iter().enumerate(){
+            assert!(matches!(receivers[owner].try_recv(),Ok(StreamEvent::Delta(t)) if t==text));
+            assert_eq!(sessions[owner].timing.progress.first,Some(deadline));
+        }
+        assert!(sessions[3].generation.is_prefilling());
+        assert_eq!(sessions[3].generation.input().1,0);
+    }
+
     #[test]
     fn tail256_preserves_real512_priority_cyclic_order_and_disabled_fallback() {
         let mut work = ready_inputs(&[(7,128),(2,128),(31,128),(63,128)]);
@@ -1422,7 +1673,7 @@ mod tests {
     fn tail256_does_not_bypass_short_or_unaligned_oldest_prompt() {
         let mut work = ready_inputs(&[(7,128),(2,128),(31,128)]);
         work[0].position = 1920; work[1].position = 1920;
-        assert_eq!(pending_prompt(64,&work,3,&[],true),vec![0,2]);
+        assert_eq!(pending_prompt(64,&work,3,&[],true),vec![0,2,1]);
         work[0].count = 16;
         assert_eq!(pending_prompt(64,&work,3,&[],true),vec![0]);
         work[0].count = 128; work[0].position = 1; work[0].prompt256 = true;
@@ -1510,7 +1761,9 @@ mod tests {
         let mut pool=Some(PageReservations::new(64,256,CONTEXT).unwrap());
         let (a,_a_rx)=session(pool.as_mut().unwrap(),384,4);
         let mut sessions=vec![a];let available=ready_sessions(&sessions);
-        let single=schedule_inputs(&available,&[0],&[],true);
+        // An already prepared Tail256 cannot expand when a larger route is enabled.
+        let retained=[ScheduledInput{ring:available[0].ring,position:0,count:256}];
+        let single=schedule_inputs(&available,&[0],&retained,true);
         assert_eq!(single[0].count,256);
         complete_work(&mut sessions,&single,Some(&[SampleOutput::Logits(vec![])]),&mut pool,&mut vec![],&mut vec![]).unwrap();
         assert!(sessions[0].generation.is_prefilling());
@@ -1519,7 +1772,9 @@ mod tests {
         let (b,_b_rx)=session(pool.as_mut().unwrap(),256,4);
         sessions.push(b);let available=ready_sessions(&sessions);
         let selected=pending_prompt(64,&available,0,&[],true);
-        let pair=schedule_inputs(&available,&selected,&[],true);
+        let retained:Vec<_>=selected.iter().map(|&i|ScheduledInput{ring:available[i].ring,
+            position:available[i].position,count:128}).collect();
+        let pair=schedule_inputs(&available,&selected,&retained,true);
         assert!(is_tail256(&pair));
         complete_work(&mut sessions,&pair,Some(&[SampleOutput::Greedy(3),SampleOutput::Logits(vec![])]),&mut pool,&mut vec![],&mut vec![]).unwrap();
         assert!(!sessions[0].generation.is_prefilling());
@@ -1806,13 +2061,13 @@ mod tests {
         assert_eq!(pending_prompt(64, &work, 0, &[], true), vec![3]);
         work.remove(3);
         work[0].position = 449; // Synthetic malformed chunk: the model must not group across a page.
-        // The first two complete rows can execute together without including or
+        // The first three complete rows can execute together without including or
         // skipping over the malformed fourth row.
-        assert_eq!(pending_prompt(64, &work, 62, &[], true), vec![1, 3]);
+        assert_eq!(pending_prompt(64, &work, 62, &[], true), vec![1, 3, 2]);
         work[0].position = 384;
         assert_eq!(pending_prompt(64, &work, 62, &[], true), vec![1, 3, 2, 0]);
         assert_eq!(pending_prompt(64, &work, 62, &[], false), vec![1]);
-        assert_eq!(pending_prompt(64, &work[..3], 62, &[], true), vec![1, 2]);
+        assert_eq!(pending_prompt(64, &work[..3], 62, &[], true), vec![1, 2, 0]);
     }
 
     fn tokenizer() -> &'static Tokenizer {
