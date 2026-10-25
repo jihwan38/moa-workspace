@@ -1,6 +1,6 @@
 //! Current serving decoder with independently computed real prompt histories.
 //! Diagnostic compute/select costs only; these are not HTTP throughput scores.
-use furiosa_opt_gemma4::{axes::*, host::{generate::read_logits, greedy::GreedySelector,
+use furiosa_opt_gemma4::{LAYERS, axes::*, host::{generate::read_logits, greedy::GreedySelector,
     load, model::{ForwardOutput, Input, Model, Sequence}, runtime::{Blocks, Workspace},
     sampling::{sample, SamplingConfig}}, ops};
 use furiosa_opt_std::prelude::*;
