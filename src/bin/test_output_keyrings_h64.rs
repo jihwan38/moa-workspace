@@ -1,3 +1,5 @@
+#[path="support/npu_profile.rs"]
+mod npu_profile;
 use furiosa_opt_gemma4::{Chip,axes::*,ops_output_p128_keyrings_h64 as op,ops_output_p128_four_keyrings as retained,ops_output_p128_parallel_gather as control};
 use furiosa_opt_std::prelude::*;
 fn hash(i:usize,seed:usize)->usize {let mut x=(i as u64).wrapping_add(seed as u64);x=(x^(x>>30)).wrapping_mul(0xbf58476d1ce4e5b9);x=(x^(x>>27)).wrapping_mul(0x94d049bb133111eb);(x^(x>>31))as usize}
@@ -35,10 +37,18 @@ macro_rules! fixture {($device:ident,$seed:ident,$input:ty,$axis:ident,$single:i
             }
             println!("OUTPUT_KEYRINGS_H64_ABBA axis={} variant={variant} ms={} scope=10completedsets_nohostread",stringify!($axis),start.elapsed().as_secs_f64()*1000.0/10.0);
         }
+        if std::env::var_os("FURIOSA_OPT_PROFILE").is_some() {
+            PROFILE.with(|p| p.enable(true));
+            let[a,b,c,d]=outputs.as_mut_slice() else {unreachable!()};
+            launch(op::$four,(&mut $device,&inputs[0],&inputs[1],&inputs[2],&inputs[3],&weights,&scales,a,b,c,d)).await.unwrap();
+            PROFILE.with(|p| p.enable(false));
+        }
     }
 }};}
+thread_local! { static PROFILE: npu_profile::Collector = npu_profile::Collector::default(); }
 #[tokio::main]
 async fn main(){
+    PROFILE.with(|p| tracing::subscriber::set_global_default(p.clone()).unwrap());
     let mut device=Device::new(op::project_sliding_output_four.topology()).unwrap();
     for seed in [31,79] {
         fixture!(device,seed,m![P128,Ns,Gs,Ds],Qs,project_sliding_output_batch,project_sliding_output_four);
