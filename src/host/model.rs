@@ -503,6 +503,27 @@ impl Model {
         Ok(())
     }
 
+    /// Isolated exact causal pruning; only absolute-position-zero quarters use it.
+    pub async fn start_prefill512_nohistory(
+        &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill512(device, sequence, workspace).await?;
+        match self.active_prefill.as_mut().unwrap() {
+            ActivePrefill::Prompt512(state) => state.prune_empty_history(),
+            _ => unreachable!("start_prefill512 owns Prompt512 state"),
+        }
+        Ok(())
+    }
+
+    /// Isolated exact causal pruning across independent prompt owners.
+    pub async fn start_prefill_group_nohistory(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_group(device, sequences, workspace).await?;
+        self.active_group.as_mut().unwrap().prune_empty_history();
+        Ok(())
+    }
+
     /// Diagnostic control for the same chronological Prompt512 execution,
     /// changing only the exact norm/quantization fusion launch boundary.
     pub async fn start_prefill512_original_norms(

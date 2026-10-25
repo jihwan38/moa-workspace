@@ -49,6 +49,7 @@ pub(crate) struct PreparedWide {
     logits: bool,
     native_qkv: bool,
     exact_sliding_attention: bool,
+    prune_empty_history: bool,
     direct_full_attention: bool,
     compact_full_statistics: bool,
     next_layer: usize,
@@ -284,6 +285,7 @@ impl WidePrefill {
             exact_sliding_attention: EXACT_SLIDING_ATTENTION_ENABLED,
             direct_full_attention: DIRECT_FULL_ATTENTION_ENABLED,
             compact_full_statistics: COMPACT_FULL_STATISTICS_ENABLED,
+            prune_empty_history: false,
             next_layer: 0,
             segments,
             native,
@@ -639,7 +641,11 @@ impl WidePrefill {
                 let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else { unreachable!() };
             // All queries use the immutable old ring; committing sooner evicts keys
             // still needed by earlier rows when the128-token chunk wraps the ring.
-            if state.exact_sliding_attention {
+            if state.exact_sliding_attention && state.prune_empty_history && state.start_position == 0 {
+            launch(crate::ops_sliding_wide_head_rows::sliding_attention_first_p128,
+                (device, &self.head_q_s, &self.head_k_s, &self.head_v_s,
+                 &meta.chunk_mask, &mut self.attn_s)).await?;
+            } else if state.exact_sliding_attention {
             launch(
                 crate::ops_sliding_wide_head_rows::sliding_attention_p128,
                 (
