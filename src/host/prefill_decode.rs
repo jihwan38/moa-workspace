@@ -31,6 +31,7 @@ impl Prefill {
         output_rows: &[usize],
         materialize_rows: bool,
         attention_output_composed: bool,
+        up_ingress: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -168,6 +169,7 @@ impl Prefill {
                         &offsets,
                         pooled.as_ref(),
                         attention_output_composed,
+                        up_ingress,
                     )
                     .await?
                 }
@@ -181,6 +183,7 @@ impl Prefill {
                         sequences,
                         &offsets,
                         pooled.as_ref(),
+                        up_ingress,
                     )
                     .await?
                 }
@@ -235,6 +238,7 @@ impl Prefill {
         offsets: &[RowOffsets],
         pooled: Option<&PooledStep>,
         attention_output_composed: bool,
+        up_ingress: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output && ws.is_canonical();
@@ -422,7 +426,7 @@ impl Prefill {
         if self.epilogue_fused && self.staged_ffn {
             return self.post_attention_ffn_native(device, &layer.mlp,
                 &layer.post_attention_norm, &layer.pre_feedforward_norm,
-                &layer.post_feedforward_norm, &layer.layer_scalar).await;
+                &layer.post_feedforward_norm, &layer.layer_scalar, up_ingress && ws.is_canonical()).await;
         }
         launch(
             crate::ops_norm_batch::post_attention_b16,
@@ -455,6 +459,7 @@ impl Prefill {
         sequences: &[Sequence<'_>],
         offsets: &[RowOffsets],
         pooled: Option<&PooledStep>,
+        up_ingress: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output && ws.is_canonical();
@@ -698,7 +703,7 @@ impl Prefill {
         if self.epilogue_fused && self.staged_ffn {
             return self.post_attention_ffn_native(device, &layer.mlp,
                 &layer.post_attention_norm, &layer.pre_feedforward_norm,
-                &layer.post_feedforward_norm, &layer.layer_scalar).await;
+                &layer.post_feedforward_norm, &layer.layer_scalar, up_ingress && ws.is_canonical()).await;
         }
         launch(
             crate::ops_norm_batch::post_attention_b16,

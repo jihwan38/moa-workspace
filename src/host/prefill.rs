@@ -817,15 +817,25 @@ impl Prefill {
         post_attention: &HbmTensor<bf16, Chip, m![H]>,
         pre: &HbmTensor<bf16, Chip, m![H]>, post: &HbmTensor<bf16, Chip, m![H]>,
         gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
+        up_ingress: bool,
     ) -> Result<()> {
         let mut mark = std::time::Instant::now();
         let n = &weights.native_fp8;
+        if up_ingress {
+        launch(crate::ops_b16_ingress_epilogue::post_attention_ffn,
+            (device, &mut self.projected, &mut self.x, post_attention, pre, post, gate,
+             &mut self.norm, &n.up, &n.gate, &n.down, &n.up_dequant, &n.gate_dequant, &n.down_dequant,
+             &weights.up_global_scale, &weights.gate_global_scale, &weights.down_global_scale,
+             &mut self.native_q_input, &mut self.native_input_scale, &mut self.native_hidden,
+             &mut self.native_q_hidden, &mut self.native_hidden_scale)).await?;
+        } else {
         launch(crate::ops_b16_ffn_epilogue::post_attention_ffn,
             (device, &mut self.projected, &mut self.x, post_attention, pre, post, gate,
              &mut self.norm, &n.up, &n.gate, &n.down, &n.up_dequant, &n.gate_dequant, &n.down_dequant,
              &weights.up_global_scale, &weights.gate_global_scale, &weights.down_global_scale,
              &mut self.native_q_input, &mut self.native_input_scale, &mut self.native_hidden,
              &mut self.native_q_hidden, &mut self.native_hidden_scale)).await?;
+        }
         self.record_profile("ffn.post_attention_epilogue_fused", &mut mark);
         Ok(())
     }

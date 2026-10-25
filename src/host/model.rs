@@ -93,6 +93,8 @@ enum Dispatch {
     Serial,
     Automatic,
     B16AttentionOutputDiagnostic,
+    B16UpIngressDiagnostic,
+    OriginalB16UpIngressDiagnostic,
     OriginalB16AttentionOutputDiagnostic,
     WideDiagnostic,
     NativeQkvDiagnostic,
@@ -111,7 +113,7 @@ impl Dispatch {
         WidePrefill::supports(sequence)
             && match self {
                 Self::Serial => false,
-                Self::Automatic | Self::B16AttentionOutputDiagnostic | Self::OriginalB16AttentionOutputDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
+                Self::Automatic | Self::B16UpIngressDiagnostic | Self::OriginalB16UpIngressDiagnostic | Self::B16AttentionOutputDiagnostic | Self::OriginalB16AttentionOutputDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
                 Self::WideDiagnostic | Self::NativeQkvDiagnostic | Self::Bf16QkvDiagnostic | Self::OriginalAttentionDiagnostic | Self::OriginalFullAttentionDiagnostic | Self::DirectFullAttentionDiagnostic => true,
                 Self::Decode64Diagnostic | Self::Decode32Diagnostic | Self::Decode32OutputDiagnostic | Self::OriginalDecodeSlidingDiagnostic | Self::OriginalDecodeHeadRowsDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
             }
@@ -1257,6 +1259,36 @@ impl Model {
         })
     }
 
+    /// Per-call exact B16 shared UP activation ingress diagnostic. Automatic
+    /// remains the original ingress; all width/cache/output policies are equal.
+    pub async fn forward_outputs_b16_up_ingress(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        let layout = self.forward_sequences_inner(
+            device,sequences,workspace,Dispatch::B16UpIngressDiagnostic,true,
+        ).await?;
+        Ok(match layout {
+            OutputLayout::Blocked64=>ForwardOutput::Blocked64(self.decode64.as_ref().unwrap().blocked_logits(),sequences.len()),
+            OutputLayout::Batch16=>ForwardOutput::Batch16(self.prefill.decode_logits(),sequences.len()),
+            OutputLayout::Rows=>ForwardOutput::Rows(&self.logits[..sequences.len()]),
+        })
+    }
+
+    /// Explicit original ingress control, retaining current prefix, attention/O,
+    /// epilogue composition and R32 selections. No selector persists after call.
+    pub async fn forward_outputs_original_b16_up_ingress(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        let layout = self.forward_sequences_inner(
+            device,sequences,workspace,Dispatch::OriginalB16UpIngressDiagnostic,true,
+        ).await?;
+        Ok(match layout {
+            OutputLayout::Blocked64=>ForwardOutput::Blocked64(self.decode64.as_ref().unwrap().blocked_logits(),sequences.len()),
+            OutputLayout::Batch16=>ForwardOutput::Batch16(self.prefill.decode_logits(),sequences.len()),
+            OutputLayout::Rows=>ForwardOutput::Rows(&self.logits[..sequences.len()]),
+        })
+    }
+
     /// Per-call exact B16 commit/attention/O composition diagnostic. All other
     /// dispatch and output-layout choices match Automatic, including R32/R64.
     /// No mutable selector survives completion, cancellation, or an error.
@@ -1551,8 +1583,8 @@ impl Model {
                         output_layout == OutputLayout::Rows,
                         dispatch != Dispatch::OriginalDecodeSlidingDiagnostic,
                         dispatch != Dispatch::OriginalDecodeHeadRowsDiagnostic,
-                        matches!(dispatch, Dispatch::Automatic | Dispatch::B16AttentionOutputDiagnostic | Dispatch::OriginalB16AttentionOutputDiagnostic | Dispatch::Decode32Diagnostic | Dispatch::Decode32OutputDiagnostic),
-                        matches!(dispatch, Dispatch::Automatic | Dispatch::B16AttentionOutputDiagnostic | Dispatch::OriginalB16AttentionOutputDiagnostic | Dispatch::Decode32OutputDiagnostic),
+                        matches!(dispatch, Dispatch::Automatic | Dispatch::B16UpIngressDiagnostic | Dispatch::OriginalB16UpIngressDiagnostic | Dispatch::B16AttentionOutputDiagnostic | Dispatch::OriginalB16AttentionOutputDiagnostic | Dispatch::Decode32Diagnostic | Dispatch::Decode32OutputDiagnostic),
+                        matches!(dispatch, Dispatch::Automatic | Dispatch::B16UpIngressDiagnostic | Dispatch::OriginalB16UpIngressDiagnostic | Dispatch::B16AttentionOutputDiagnostic | Dispatch::OriginalB16AttentionOutputDiagnostic | Dispatch::Decode32OutputDiagnostic),
                     )
                     .await?;
             } else {
@@ -1565,7 +1597,8 @@ impl Model {
                         &mut self.logits,
                         &singletons,
                         output_layout == OutputLayout::Rows,
-                        matches!(dispatch, Dispatch::Automatic | Dispatch::B16AttentionOutputDiagnostic) && singletons.len() == sequences.len(),
+                        matches!(dispatch, Dispatch::Automatic | Dispatch::B16UpIngressDiagnostic | Dispatch::OriginalB16UpIngressDiagnostic | Dispatch::B16AttentionOutputDiagnostic) && singletons.len() == sequences.len(),
+                        dispatch == Dispatch::B16UpIngressDiagnostic && singletons.len() == sequences.len(),
                     )
                     .await?;
             }

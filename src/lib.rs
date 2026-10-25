@@ -261,3 +261,5 @@ pub mod ops_native_fp8_p512_core_globals;
 pub mod ops_ffn_projection_clusters;
 pub mod ops_ffn_projection_join;
 pub mod ops_group_ffn_projection;
+pub mod ops_b16_up_ingress;
+pub mod ops_b16_ingress_epilogue;
