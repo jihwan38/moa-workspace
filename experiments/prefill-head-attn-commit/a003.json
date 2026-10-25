@@ -1,0 +1,55 @@
+{
+  "source_commit": "39be987667437d8be9ef6adcbdbf7ad54d9138bd",
+  "source_hashes_verified": 326,
+  "run": "/home/jihwan38/moa-worktrees/round2/runs/a003-prefill-head-attn-commit-model",
+  "default_activation": false,
+  "features": "none; plain release build",
+  "build_target": "owned worktree target, fresh dependencies",
+  "host_check": "server and3 model probes passed",
+  "host_tests": "80 passed,0failed,1filtered by host::",
+  "binaries": {
+    "server": {
+      "path": "/home/jihwan38/moa-worktrees/round2/prefill-head-attn-commit/target/release/server",
+      "sha256": "7467da4ace9f64a1f9e9a17a0646d5c57790e1abe9d458e4fa48ae1e1066c2a2",
+      "size": 32028016
+    },
+    "compare_fused_head_attention_prompt": {
+      "path": "/home/jihwan38/moa-worktrees/round2/prefill-head-attn-commit/target/release/compare_fused_head_attention_prompt",
+      "sha256": "5de7fa517cc765ffc9dca067e90b180f93ccbae5c5ce6862b359f7f506824f00",
+      "size": 25406816
+    },
+    "compare_fused_head_attention_group": {
+      "path": "/home/jihwan38/moa-worktrees/round2/prefill-head-attn-commit/target/release/compare_fused_head_attention_group",
+      "sha256": "e6dfd0099fb81c06f8038796b86b20036cc2845ed64ada9339a77017a856d6ca",
+      "size": 25414416
+    },
+    "compare_fused_head_attention_pair": {
+      "path": "/home/jihwan38/moa-worktrees/round2/prefill-head-attn-commit/target/release/compare_fused_head_attention_pair",
+      "sha256": "01268d96ccfa451a591836f55b934fa2f4e0a5905f87e0f30e0347af33c61322",
+      "size": 25442672
+    }
+  },
+  "suggested_gates": [
+    [
+      "compare_fused_head_attention_prompt",
+      "896",
+      "1"
+    ],
+    [
+      "compare_fused_head_attention_group",
+      "0",
+      "128",
+      "896",
+      "1024",
+      "1"
+    ],
+    [
+      "compare_fused_head_attention_pair",
+      "1664",
+      "1920",
+      "1"
+    ]
+  ],
+  "control": "Both executions retain all existing QKV/norm/FFN/output/history-pruning selectors; only PreparedWide.fused_head_attention changes.",
+  "cache_proof": "All48 layer K/V bytes, full1024 sliding ring and every reserved full page, compared between disjoint physical owners after prompt, outside measured model time."
+}
