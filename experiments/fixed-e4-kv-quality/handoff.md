@@ -1,9 +1,11 @@
+> FRESH OFF REPAIR READY: a007 uses a unique public kernel-output directory. All13 affected entries differ correctly and are bound into the captured ELFs;297 unaffected kernels match ON. OFF head/scalar negative runtime controls are still pending. a006 remains quarantined.
+
 > CONTROL QUARANTINE: a006 OFF contains cached ON device graphs. Use no cross-flag numerical conclusions from a006; see cache-failure.md. ON producer proof remains valid. Fresh isolated OFF a007 is being gated.
 
 # Root-only dispatch handoff
 
 ON worktree `/round2/fixed-e4-kv-quality-on`, source375bdcf4, captured prefix `/round2/runs/a005-fixed-e4-on-probes-build/built/target/release/`.
-OFF worktree `/round2/fixed-e4-kv-quality-model`, sourceaa544f40 (runtime identical8c9016d7), captured prefix `/round2/runs/a006-fixed-e4-off-probes-build/built/target/release/`.
+OFF worktree `/round2/fixed-e4-kv-quality-model`, a007 captured build source220524d8 (runtime identical8c9016d7), captured prefix `/round2/runs/a007-fixed-e4-off-isolated-kernels-build/built/target/release/`.
 Do not use later shared-target outputs. Exact hashes are in build-pair.json and original run.json.
 
 Head/scalar ON actual already pass. Next paired jobs must use the same executable basename/arguments on both flags:
