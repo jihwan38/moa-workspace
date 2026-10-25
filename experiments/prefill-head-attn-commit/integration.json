@@ -1,0 +1,39 @@
+{
+  "status": "all requested complete-chain and whole-model exact gates PASS",
+  "functional_commits": [
+    "cafd06b",
+    "e721fd8"
+  ],
+  "probe_and_cache_helper_commit": "bd6721b",
+  "production_activation": "After cherry-pick into current root, change only src/host/prefill_wide.rs FUSED_HEAD_ATTENTION_ENABLED fromfalse totrue. Keep original_head_attention methods as explicit per-execution controls. This frozen experiment tree stays defaultfalse to preserve its build provenance.",
+  "scope": "Only native128live + blockedQKV + canonicalBF16 + exact sliding attention. Preserve first128 pruning selector. Standalone/nonblocked Wide, partial chunks, all full attention, and API dispatch unchanged. Rejoins existing deferred O and FFN. No cache allocation or request metadata change.",
+  "gates": {
+    "micro": 319173,
+    "same_owner512": 319197,
+    "four_owner_mixed": 319198,
+    "two_owner_and_reset": 319200
+  },
+  "wholemodel_exact_logit_checks": 169,
+  "wholemodel_exact_logits": 44302336,
+  "wholemodel_compared_cache_bytes_one_side": 3313500160,
+  "complete_times_ms": {
+    "prompt512_896": [
+      158.912,
+      146.148
+    ],
+    "group_0_128_896_1024": [
+      159.248,
+      148.04
+    ],
+    "pair_1664_1920": [
+      162.265,
+      151.961
+    ],
+    "pair_reset0": [
+      147.139,
+      139.942
+    ]
+  },
+  "evidence_limits": "Not HTTP or official score. Ordered single paired model timings. Fresh all6 public and combined-source serving gates remain root-owned. CPU micro attention reference has established rounding tolerance; all-original-kernel/model/cache comparisons are strict bytes/bits.",
+  "future_E4_caution": "Current ws.is_canonical implies SlidingCanonical BF16 in this root. Any future E4 storage port must retain explicit variant gating and must not bypass codecs."
+}
