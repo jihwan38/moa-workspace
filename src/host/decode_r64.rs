@@ -184,6 +184,7 @@ impl Decode64 {
         output_rows: &[usize],
         extract_rows: bool,
         allow_prefix768: bool,
+        use_head_rows: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -273,7 +274,7 @@ impl Decode64 {
         for (index, layer) in weights.layers.iter().enumerate() {
             match layer {
                 Layer::Sliding(layer) => {
-                    self.decode_sliding(device, ws, index, layer, &rope_s, &metadata)
+                    self.decode_sliding(device, ws, index, layer, &rope_s, &metadata, use_head_rows)
                         .await?
                 }
                 Layer::Full(layer) => {
@@ -328,6 +329,7 @@ impl Decode64 {
         layer: &SlidingLayer,
         rope: &HbmTensor<i32, Chip, m![R64]>,
         metadata: &Step64,
+        use_head_rows: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output;
@@ -430,6 +432,10 @@ impl Decode64 {
                 ),
             )
             .await?;
+        } else if use_head_rows {
+            launch(crate::ops_request_sliding_r64_head_rows::sliding_attention_r64,
+                (device,&self.q_s,&*k,&*v,&metadata.ring_offsets,
+                 &metadata.sliding_mask,&mut self.attn_s)).await?;
         } else {
         launch(
             crate::ops_request_sliding_r64::sliding_attention_r64,

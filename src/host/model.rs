@@ -96,6 +96,7 @@ enum Dispatch {
     Bf16QkvDiagnostic,
     Decode64Diagnostic,
     OriginalDecodeSlidingDiagnostic,
+    OriginalDecodeHeadRowsDiagnostic,
 }
 impl Dispatch {
     fn use_wide(self, sequence: &Sequence<'_>) -> bool {
@@ -104,7 +105,7 @@ impl Dispatch {
                 Self::Serial => false,
                 Self::Automatic => sequence.inputs.len() == crate::axes::P128::SIZE,
                 Self::WideDiagnostic | Self::NativeQkvDiagnostic | Self::Bf16QkvDiagnostic | Self::OriginalAttentionDiagnostic | Self::OriginalFullAttentionDiagnostic | Self::DirectFullAttentionDiagnostic => true,
-                Self::Decode64Diagnostic | Self::OriginalDecodeSlidingDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
+                Self::Decode64Diagnostic | Self::OriginalDecodeSlidingDiagnostic | Self::OriginalDecodeHeadRowsDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
             }
     }
 }
@@ -729,6 +730,22 @@ impl Model {
         Ok(&self.logits[..sequences.len()])
     }
 
+    /// Matched control: disable only full-window head-row placement in this call.
+    /// Existing prefix512/prefix768/mixed512 routes and all R64 arithmetic remain.
+    pub async fn forward_sequences_r64_original_head_rows(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        if !workspace.is_canonical() {
+            return Err("R64 requires canonical KV storage".into());
+        }
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::OriginalDecodeHeadRowsDiagnostic, false)
+            .await?;
+        Ok(&self.logits[..sequences.len()])
+    }
+
     /// Compute one actual R64 step, then compare both vocabulary heads on its identical final norm.
     /// Returned raw buffers use BlockedLogits order; KV advances exactly once.
     /// This explicit diagnostic always reruns the original head as its reference.
@@ -797,7 +814,7 @@ impl Model {
         let use_r64 = workspace.is_canonical()
             && independent
             && (1..=crate::axes::R64::SIZE).contains(&singletons.len())
-            && (matches!(dispatch, Dispatch::Decode64Diagnostic | Dispatch::OriginalDecodeSlidingDiagnostic)
+            && (matches!(dispatch, Dispatch::Decode64Diagnostic | Dispatch::OriginalDecodeSlidingDiagnostic | Dispatch::OriginalDecodeHeadRowsDiagnostic)
                 || (dispatch != Dispatch::Serial && singletons.len() > crate::axes::B::SIZE));
         let batched_singletons = use_r64
             || (dispatch != Dispatch::Serial
@@ -834,6 +851,7 @@ impl Model {
                         &singletons,
                         output_layout == OutputLayout::Rows,
                         dispatch != Dispatch::OriginalDecodeSlidingDiagnostic,
+                        dispatch != Dispatch::OriginalDecodeHeadRowsDiagnostic,
                     )
                     .await?;
             } else {

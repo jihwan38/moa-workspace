@@ -228,3 +228,4 @@ pub mod ops_request_sliding_r64_prefix768;
 pub mod ops_norm_shardquant;
 
 pub mod ops_norm_quarters;
+pub mod ops_request_sliding_r64_head_rows;
