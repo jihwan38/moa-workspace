@@ -1,0 +1,41 @@
+{
+  "base_commit": "bf4bf767c86c8f274ef32a2e549bfab2b8125eb7",
+  "trigger": {
+    "actual_job": 322961,
+    "actual_pack_us": {
+      "H3840": [
+        48.7598125,
+        50.2060625
+      ],
+      "L15360": [
+        146.995625,
+        148.0588125
+      ]
+    },
+    "actual_per_operation_trace": false,
+    "static_blocked_store_cycles": {
+      "H3840": 36504,
+      "L15360": 142715
+    }
+  },
+  "hypothesis": "Explicit real DM redistribution of packed words into contiguous output blocks may remove repeated fragmented HBM store setup. Charge both added DM movement and final HBM store. No assumed speedup.",
+  "mapping": {
+    "input_parts": "[H/960,P512%256/4] = 4*64 slices",
+    "input_local": "[P512%4,H%960/8] = 4*120 contiguous I32 words",
+    "hidden_parts": "[L/960,P512%256/16] = 16*16 slices",
+    "hidden_local": "[P512%16,L%960/8] = 16*120 contiguous I32 words",
+    "cluster": "P512/256 unchanged, two clusters",
+    "output": "Original blocked I4 byte ABI unchanged"
+  },
+  "source_changes": "Make existing pack_dm helper crate-visible without changing its body; new disconnected wrappers stage the resulting DM with real to_dm before output store. No quantizer/model or raw-ABI changes.",
+  "gates": {
+    "original_H_resource_HOLD": "52085 > 50000 remains preserved",
+    "new_H_resource_max_cycles": 41668,
+    "new_L_resource_max_cycles": 144501,
+    "no_dram_stack": true,
+    "correctness": "Reuse unchanged full49,152,000-code/24,576,000-byte strict pack probe plus six invalid bindings; any future actual variant must retain independent encoders and full post-reuse checks.",
+    "promotion": "No model promotion from standalone packing; complete quantize/pack/consume cost still required"
+  },
+  "owner_target": "/round2/r64-server/target",
+  "device_run_started": false
+}
