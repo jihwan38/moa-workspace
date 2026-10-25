@@ -748,7 +748,7 @@ impl Model {
     ) -> Result<usize, Box<dyn std::error::Error>> {
         validate_physical_pages(a,workspace.physical_full_pages())?;
         validate_physical_pages(b,workspace.physical_full_pages())?;
-        if !workspace.is_canonical() || a.sliding>=64 || b.sliding>=64 {
+        if !workspace.is_canonical() || a.sliding>=workspace.requests() || b.sliding>=workspace.requests() {
             return Err("cache comparison needs canonical reservations".into());
         }
         Ok(super::kv_diagnostic::compare_canonical_kv(device,workspace,a,b).await?/2)
