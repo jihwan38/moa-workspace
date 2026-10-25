@@ -1,3 +1,5 @@
+> a007 OFF runtime head/scalar controls PASS r1330/1331. Corrected model512 r1334/1335 has substantial drift (34/72 top1 changes); see model512-result.md. No public quality claim.
+
 > FRESH OFF REPAIR READY: a007 uses a unique public kernel-output directory. All13 affected entries differ correctly and are bound into the captured ELFs;297 unaffected kernels match ON. OFF head/scalar negative runtime controls are still pending. a006 remains quarantined.
 
 > CONTROL QUARANTINE: a006 OFF contains cached ON device graphs. Use no cross-flag numerical conclusions from a006; see cache-failure.md. ON producer proof remains valid. Fresh isolated OFF a007 is being gated.
