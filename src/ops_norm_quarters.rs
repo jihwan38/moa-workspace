@@ -104,30 +104,26 @@ pub(crate) fn normalize(
         .commit()
 }
 pub(crate) fn residual_add(
-    device: &mut Device,
-    x: &DmTensor<bf16, Chip, Cluster, Shards, m![Q4,P128%2,H % 480]>,
-    previous: &DmTensor<bf16, Chip, Cluster, Shards, m![Q4,P128%2,H%480]>,
-) -> DmTensor<bf16, Chip, Cluster, Shards, m![Q4,P128%2,H % 480]> {
-    let previous: VrfTensor<f32, Chip, Cluster, Shards, m![Q4,P128%2,H % 480]> = device
-        .sub
-        .begin(previous.view())
-        .fetch::<m![Q4,P128%2,H / 16 % 30], m![H % 16]>()
-        .fetch_cast::<f32>()
-        .collect::<m![Q4,P128%2,H / 8 % 60], m![H % 8]>()
-        .to_vrf();
-    device
-        .main
-        .begin(x.view())
-        .fetch::<m![Q4,P128%2,H / 16 % 30], m![H % 16]>()
-        .fetch_cast::<f32>()
-        .collect::<m![Q4,P128%2,H / 8 % 60], m![H % 8]>()
-        .vector_init()
-        .vector_intra_slice_tag(TagMode::Zero)
-        .vector_clip(ClipBinaryOpF32::Add, &previous)
-        .vector_final()
-        .cast::<bf16, m![H % 8 # 16]>()
-        .commit_trim::<m![H % 8]>()
-        .commit()
+    device:&mut Device,
+    x:&DmTensor<bf16,Chip,Cluster,Shards,m![Q4,P128%2,H%480]>,
+    previous:&DmTensor<bf16,Chip,Cluster,Shards,m![Q4,P128%2,H%480]>,
+) -> DmTensor<bf16,Chip,Cluster,Shards,m![Q4,P128%2,H%480]> {
+    let mut result:DmTensor<bf16,Chip,Cluster,Shards,m![Q4,P128%2,H%480]>=DmTensor::new();
+    // Two quarters are7680F32bytes/slice; four would exceed the8192-byte VRF.
+    for half in 0..2 {
+        let previous:VrfTensor<f32,Chip,Cluster,Shards,m![Q4=2,P128%2,H%480]>=device.sub
+            .begin(previous.view().tile::<m![Q4],2,m![Q4=2#4,P128%2,H%480]>(2*half))
+            .fetch::<m![Q4=2,P128%2,H/16%30],m![H%16]>().fetch_cast::<f32>()
+            .collect::<m![Q4=2,P128%2,H/8%60],m![H%8]>().to_vrf();
+        device.main.begin(x.view().tile::<m![Q4],2,m![Q4=2#4,P128%2,H%480]>(2*half))
+            .fetch::<m![Q4=2,P128%2,H/16%30],m![H%16]>().fetch_cast::<f32>()
+            .collect::<m![Q4=2,P128%2,H/8%60],m![H%8]>()
+            .vector_init().vector_intra_slice_tag(TagMode::Zero)
+            .vector_clip(ClipBinaryOpF32::Add,&previous).vector_final()
+            .cast::<bf16,m![H%8#16]>().commit_trim::<m![H%8]>()
+            .commit_view(result.view_mut().tile::<m![Q4],2,m![Q4=2#{!}4,P128%2,H%480]>(2*half));
+    }
+    result
 }
 type ScalarRows = m![P128/2%32,1#8];
 fn quantize_shards(device:&mut Device,
