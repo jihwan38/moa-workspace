@@ -251,8 +251,7 @@ fn stage_down(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,P512L960>,
     chunk!(3usize);
 }
 
-#[device(chip=1)]
-pub fn ffn_core(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,P512H960>,xscale:&HbmTensor<f32,Chip,m![P512]>,
+pub(crate) fn ffn_core_stage(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,P512H960>,xscale:&HbmTensor<f32,Chip,m![P512]>,
  up:&HbmTensor<f8e4m3,Chip,UpWeight>,gate:&HbmTensor<f8e4m3,Chip,UpWeight>,down:&HbmTensor<f8e4m3,Chip,DownWeight>,
  us:&HbmTensor<f32,Chip,m![L]>,gs:&HbmTensor<f32,Chip,m![L]>,ds:&HbmTensor<f32,Chip,m![H]>,
  ug:&HbmTensor<f32,Chip,m![1]>,gg:&HbmTensor<f32,Chip,m![1]>,dg:&HbmTensor<f32,Chip,m![1]>,
@@ -263,4 +262,15 @@ pub fn ffn_core(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,P512H960>,xscale
  stage_up(device,input,xscale,gate,gs,gate_output);
  stage_geglu_quantize(device,up_output,gate_output,ug,gg,hidden_quant,hidden_scale);
  stage_down(device,hidden_quant,hidden_scale,down,ds,dg,output);
+}
+
+#[device(chip = 1)]
+pub fn ffn_core(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,P512H960>,xscale:&HbmTensor<f32,Chip,m![P512]>,
+ up:&HbmTensor<f8e4m3,Chip,UpWeight>,gate:&HbmTensor<f8e4m3,Chip,UpWeight>,down:&HbmTensor<f8e4m3,Chip,DownWeight>,
+ us:&HbmTensor<f32,Chip,m![L]>,gs:&HbmTensor<f32,Chip,m![L]>,ds:&HbmTensor<f32,Chip,m![H]>,
+ ug:&HbmTensor<f32,Chip,m![1]>,gg:&HbmTensor<f32,Chip,m![1]>,dg:&HbmTensor<f32,Chip,m![1]>,
+ up_output:&mut HbmTensor<bf16,Chip,P512L240>,gate_output:&mut HbmTensor<bf16,Chip,P512L240>,
+ hidden_quant:&mut HbmTensor<f8e4m3,Chip,P512L960>,hidden_scale:&mut HbmTensor<f32,Chip,m![P512]>,
+ output:&mut HbmTensor<bf16,Chip,crate::ops_native_fp8_p512_downblocked::Output>) {
+    ffn_core_stage(device, input, xscale, up, gate, down, us, gs, ds, ug, gg, dg, up_output, gate_output, hidden_quant, hidden_scale, output);
 }

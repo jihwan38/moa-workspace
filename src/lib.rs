@@ -253,3 +253,5 @@ pub mod ops_b16_prefix;
 pub mod ops_decode32_output;
 
 pub mod ops_b16_attention_output;
+pub mod ops_group_ffn_epilogue;
+pub mod ops_native_fp8_p512_core_globals;

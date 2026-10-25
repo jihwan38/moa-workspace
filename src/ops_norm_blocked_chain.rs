@@ -86,8 +86,7 @@ fn post_attention(
     // Same rounded state feeds quantization and the persisted FFN residual.
     store(device, updated, residual);
 }
-#[device(chip = 1)]
-pub fn post_attention_sliding(
+pub(crate) fn post_attention_sliding_stage(
     device: &mut Device,
     a: &HbmTensor<bf16, Chip, Output>,
     b: &HbmTensor<bf16, Chip, Output>,
@@ -113,8 +112,23 @@ pub fn post_attention_sliding(
     let input: DmTensor<bf16, Chip, Cluster, Shards, Local> = input.to_dm(&mut device.tdma);
     post_attention(device, &input, post, pre, residual, q, scale);
 }
+
 #[device(chip = 1)]
-pub fn post_attention_full(
+pub fn post_attention_sliding(
+    device: &mut Device,
+    a: &HbmTensor<bf16, Chip, Output>,
+    b: &HbmTensor<bf16, Chip, Output>,
+    c: &HbmTensor<bf16, Chip, Output>,
+    d: &HbmTensor<bf16, Chip, Output>,
+    post: &HbmTensor<bf16, Chip, m![H]>,
+    pre: &HbmTensor<bf16, Chip, m![H]>,
+    residual: &mut HbmTensor<bf16, Chip, Residual>,
+    q: &mut HbmTensor<f8e4m3, Chip, P512H960>,
+    scale: &mut HbmTensor<f32, Chip, m![P512]>,
+) {
+    post_attention_sliding_stage(device, a, b, c, d, post, pre, residual, q, scale);
+}
+pub(crate) fn post_attention_full_stage(
     device: &mut Device,
     a: &HbmTensor<bf16, Chip, m![P128, H]>,
     b: &HbmTensor<bf16, Chip, m![P128, H]>,
@@ -132,4 +146,20 @@ pub fn post_attention_full(
     load_residual(device, c, 2, &mut input);
     load_residual(device, d, 3, &mut input);
     post_attention(device, &input, post, pre, residual, q, scale);
+}
+
+#[device(chip = 1)]
+pub fn post_attention_full(
+    device: &mut Device,
+    a: &HbmTensor<bf16, Chip, m![P128, H]>,
+    b: &HbmTensor<bf16, Chip, m![P128, H]>,
+    c: &HbmTensor<bf16, Chip, m![P128, H]>,
+    d: &HbmTensor<bf16, Chip, m![P128, H]>,
+    post: &HbmTensor<bf16, Chip, m![H]>,
+    pre: &HbmTensor<bf16, Chip, m![H]>,
+    residual: &mut HbmTensor<bf16, Chip, Residual>,
+    q: &mut HbmTensor<f8e4m3, Chip, P512H960>,
+    scale: &mut HbmTensor<f32, Chip, m![P512]>,
+) {
+    post_attention_full_stage(device, a, b, c, d, post, pre, residual, q, scale);
 }

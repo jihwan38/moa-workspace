@@ -79,8 +79,7 @@ pub fn unpack_four(
     store_residual(device, &input, 2, c);
     store_residual(device, &input, 3, d);
 }
-#[device(chip = 1)]
-pub fn post_feedforward(
+pub(crate) fn post_feedforward_stage(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, Output>,
     weight: &HbmTensor<bf16, Chip, m![H]>,
@@ -100,4 +99,15 @@ pub fn post_feedforward(
     let residual_dm = residual_add(device, &normalized, &previous);
     let output = crate::ops_norm_quarter_post::gate(device, &residual_dm, layer_gate);
     store(device, output, residual);
+}
+
+#[device(chip = 1)]
+pub fn post_feedforward(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, Output>,
+    weight: &HbmTensor<bf16, Chip, m![H]>,
+    layer_gate: &HbmTensor<bf16, Chip, m![1#8]>,
+    residual: &mut HbmTensor<bf16, Chip, Residual>,
+) {
+    post_feedforward_stage(device, input, weight, layer_gate, residual);
 }
