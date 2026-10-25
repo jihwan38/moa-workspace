@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Read completed fixed GSM32 runs; never execute a model or change selection."""
+import argparse
 import hashlib
 import importlib.util
 import json
 from collections import Counter
+from itertools import combinations
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -23,6 +25,12 @@ def canonical(value):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--include-q021", action="store_true")
+    args = parser.parse_args()
+    runs = dict(RUNS)
+    if args.include_q021:
+        runs["q021-b16-f4-mse-lm-fp8"] = ["r1326", "r1327"]
     manifests = json.loads((HERE / "prepared-evaluations.json").read_text())
     selected = [json.loads(line) for line in (HERE / "selected-train.jsonl").read_text().splitlines()]
     dataset = json.loads((HERE / "dataset-manifest.json").read_text())
@@ -34,7 +42,7 @@ def main():
               "official_score": False, "runs": [], "candidates": {}, "paired": []}
     per_candidate = {}
     request_hashes = {}
-    for candidate, names in RUNS.items():
+    for candidate, names in runs.items():
         accumulated = {}
         for shard, prefix in enumerate(names, 1):
             matches = list((ROOT / "runs").glob(prefix + "-*"))
@@ -134,8 +142,35 @@ def main():
         "Arena duration includes startup; completion lengths differ, so these quality runs do not estimate throughput speedup.",
         "Single execution of each frozen shard/model, no response-conditioned filtering or retry.",
     ]
-    (HERE / "actual-c081-q020.json").write_text(json.dumps(result, indent=2) + "\n")
+    if args.include_q021:
+        # Preserve the original two-candidate artifact and its original schema.
+        result["all_candidate_pairs"] = {}
+        for left, right in combinations(runs, 2):
+            aa, bb = per_candidate[left], per_candidate[right]
+            assert aa.keys() == bb.keys()
+            for key in aa:
+                assert aa[key]["usage"]["prompt_tokens"] == bb[key]["usage"]["prompt_tokens"]
+            result["all_candidate_pairs"][left + " vs " + right] = {
+                "both_correct": sum(aa[k]["passed"] and bb[k]["passed"] for k in aa),
+                "both_incorrect": sum(not aa[k]["passed"] and not bb[k]["passed"] for k in aa),
+                "left_only_correct": sum(aa[k]["passed"] and not bb[k]["passed"] for k in aa),
+                "right_only_correct": sum(not aa[k]["passed"] and bb[k]["passed"] for k in aa),
+                "same_extracted_answer": sum(aa[k]["answer"] == bb[k]["answer"] for k in aa),
+                "same_output_bytes": sum(aa[k]["output_sha256"] == bb[k]["output_sha256"] for k in aa),
+                "discordant_ids": [k for k in aa if aa[k]["passed"] != bb[k]["passed"]],
+                "same_prompt_usage_per_id": True,
+            }
+        result["all_candidate_rows"] = [
+            {"id": f"gsm8k.train.{index:06d}",
+             **{name: per_candidate[name][f"gsm8k.train.{index:06d}"] for name in runs}}
+            for index in dataset["indices"]
+        ]
+        result["prior_two_candidate_report_sha256"] = sha((HERE / "actual-c081-q020.json").read_bytes())
+    output = "actual-c081-q020-q021.json" if args.include_q021 else "actual-c081-q020.json"
+    (HERE / output).write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({k: result[k] for k in ["candidates", "paired_summary"]}, indent=2))
+    if args.include_q021:
+        print(json.dumps(result["all_candidate_pairs"], indent=2))
 
 
 if __name__ == "__main__":
