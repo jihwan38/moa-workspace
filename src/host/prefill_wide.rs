@@ -606,7 +606,7 @@ impl WidePrefill {
             // still needed by earlier rows when the128-token chunk wraps the ring.
             if state.exact_sliding_attention {
             launch(
-                crate::ops_sliding_wide_exact_sum::sliding_attention_p128,
+                crate::ops_sliding_wide_head_rows::sliding_attention_p128,
                 (
                     device,
                     &self.head_q_s,
