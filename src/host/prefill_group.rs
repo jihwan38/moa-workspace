@@ -32,6 +32,7 @@ impl BlockedQkv {
 }
 pub(crate) struct GroupPrefill {
     blocked: [BlockedQkv; 4],
+    output_s: [HbmTensor<bf16, Chip, crate::ops_output_p128_h64_blocked::Output>; 4],
     rows: [WidePrefill; 4],
     norm: HbmTensor<bf16, Chip, m![P512, H]>,
     projected: HbmTensor<bf16, Chip, crate::ops_native_fp8_p512_downblocked::Output>,
@@ -50,6 +51,7 @@ pub(crate) struct PreparedGroup {
     states: [PreparedWide; 4],
     // Owned by this prepared execution; no persistent Model mode survives cancellation.
     fused_norms: bool,
+    blocked_output: bool,
 }
 /// Four chronological chunks of one request. Only its single allocation may be
 /// exposed to the scheduler; the four copies below are execution metadata.
@@ -58,12 +60,14 @@ pub(crate) struct PreparedPrompt512 {
 }
 impl PreparedPrompt512 {
     pub(crate) fn original_norms(&mut self) { self.chunks.fused_norms = false; }
+    pub(crate) fn original_output(&mut self) { self.chunks.blocked_output = false; }
     pub(crate) fn blocks(&self) -> &runtime::Blocks {
         &self.chunks.states[0].blocks
     }
 }
 impl PreparedGroup {
     pub(crate) fn original_norms(&mut self) { self.fused_norms = false; }
+    pub(crate) fn original_output(&mut self) { self.blocked_output = false; }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 4] {
         [
             &self.states[0].blocks,
@@ -93,6 +97,12 @@ impl GroupPrefill {
             blocked: [
                 BlockedQkv::new(device).await?, BlockedQkv::new(device).await?,
                 BlockedQkv::new(device).await?, BlockedQkv::new(device).await?,
+            ],
+            output_s: [
+                zero!(bf16, crate::ops_output_p128_h64_blocked::Output),
+                zero!(bf16, crate::ops_output_p128_h64_blocked::Output),
+                zero!(bf16, crate::ops_output_p128_h64_blocked::Output),
+                zero!(bf16, crate::ops_output_p128_h64_blocked::Output),
             ],
             rows: [
                 WidePrefill::new(device).await?,
@@ -184,6 +194,7 @@ impl GroupPrefill {
         debug_assert_eq!(sequences.len(), 4);
         Ok(PreparedGroup {
             fused_norms: true,
+            blocked_output: true,
             states: [
                 self.rows[0]
                     .prepare(device, weights, &sequences[0], scratch, true)
@@ -335,10 +346,17 @@ impl GroupPrefill {
         let [a, b, c, d] = &mut self.rows;
         match layer {
             Layer::Sliding(l) => {
+                if state.blocked_output && state.fused_norms {
+                    let [oa, ob, oc, od] = &mut self.output_s;
+                    launch(crate::ops_output_p128_h64_blocked::project_sliding_output_four,
+                        (device, &a.attn_s, &b.attn_s, &c.attn_s, &d.attn_s,
+                         &l.o_weight, &l.o_weight_scale, oa, ob, oc, od)).await?;
+                } else {
                 launch(crate::ops_output_p128_keyrings_h64::project_sliding_output_four,
                     (device, &a.attn_s, &b.attn_s, &c.attn_s, &d.attn_s,
                      &l.o_weight, &l.o_weight_scale, &mut a.projected,
                      &mut b.projected, &mut c.projected, &mut d.projected)).await?;
+                }
             }
             Layer::Full(l) => {
                 launch(crate::ops_output_p128_four_keyrings::project_full_output_four,
@@ -369,10 +387,17 @@ impl GroupPrefill {
         let mut mark = scratch.profile_mark();
         if state.fused_norms {
             let [a, b, c, d] = &mut self.rows;
+            if state.blocked_output && matches!(layer, Layer::Sliding(_)) {
+                launch(crate::ops_norm_fused::post_attention_ffn_input_four_blocked,
+                    (device, &self.output_s[0], &self.output_s[1], &self.output_s[2], &self.output_s[3],
+                     post_attention, pre, &mut a.x, &mut b.x, &mut c.x, &mut d.x,
+                     &mut self.q_input, &mut self.input_scale)).await?;
+            } else {
             launch(crate::ops_norm_fused::post_attention_ffn_input_four,
                 (device, &a.projected, &b.projected, &c.projected, &d.projected,
                  post_attention, pre, &mut a.x, &mut b.x, &mut c.x, &mut d.x,
                  &mut self.q_input, &mut self.input_scale)).await?;
+            }
             scratch.record_optional_profile("group.ffn.fused_norm_quantize", &mut mark);
         } else {
             for row in &mut self.rows {
