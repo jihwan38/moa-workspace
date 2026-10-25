@@ -2,7 +2,7 @@
 //! Numerical operations match the scalar control; no cache copy or host window is used.
 use crate::Chip;
 use crate::axes::*;
-use crate::device_e154::layout::{self, Cluster, Replicated, Slice};
+use crate::device_e154::layout::{Cluster, Slice};
 use crate::device_e154::{shared, sliding};
 use crate::ops_pool_views::Rc64;
 use furiosa_opt_std::prelude::*;

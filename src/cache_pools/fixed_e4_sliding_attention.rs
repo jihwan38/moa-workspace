@@ -24,7 +24,7 @@ pub(crate) fn attend(
         .gather::<m![Rc64], m![Ts, Ns, Ds]>()
         .by_byte_offsets(base)
         .to_dm(&mut device.tdma);
-    let k = crate::ops_fixed_e4_storage::decode_rows::<_,_,m![Ts%8,Ns]>(device, &k);
+    let k = crate::ops_fixed_e4_storage::decode_head_rows::<_,_,m![Ts%8]>(device, &k);
     let k_trf: TrfTensor<bf16, Chip, Cluster, KvRowsAcrossSlices, m![Ts % 8], m![Ns, Ds]> = device
         .sub
         .begin(k.view())
