@@ -29,7 +29,7 @@ fn one(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![P128,H]>,
     let partial:DmTensor<f32,Chip,Cluster,Parts,m![P128,Joined/8,HBlock,Joined%8]>=device.main
         .begin(input.view()).fetch::<m![P128],m![H960%16]>()
         .switch::<Parts,m![P128,HBlock,H960/16]>(SwitchConfig::CustomBroadcast{ring_size:256})
-        .collect::<m![P128,HBlock,H960/16],m![H960%16]>()
+        .collect::<m![P128,HBlock,H960/32],m![H960%32]>()
         .contract_outer::<m![P128,Joined/8,HBlock,H960/64],m![H960%64],_,_,_>(weight)
         .contract_packet::<m![1]>().contract_time::<m![P128,Joined/8,HBlock]>()
         .contract_lane::<m![P128,Joined/8,HBlock],m![Joined%8]>(LaneMode::Interleaved)
