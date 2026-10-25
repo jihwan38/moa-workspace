@@ -1,0 +1,273 @@
+//! Original scalar attention arithmetic with an whole-pool byte-offset ABI.
+use furiosa_opt_std::prelude::*;
+
+use crate::axes::{Ds, Gs, Ns, Ts};
+use crate::device::layout::{Cluster, Slice};
+use crate::ops_pool_views::Rc64;
+use crate::{Chip, EPS};
+
+pub(crate) fn attend(
+    device: &mut Device,
+    q: &HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
+    k: &HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+    v: &HbmTensor<f8e4m3, Chip, m![Rc64, Ts, Ns, Ds]>,
+    base: &HbmTensor<i32, Chip, m![1]>,
+    mask: &HbmTensor<f32, Chip, m![Ts]>,
+    out: &mut HbmTensor<bf16, Chip, m![Ns, Gs, Ds]>,
+) {
+    type KvRowsAcrossSlices = m![Ts / 8, 1 # 2];
+    type KvHeadAndRows = m![Ns, Ts / 32];
+
+    let q: DmTensor<bf16, Chip, Cluster, KvRowsAcrossSlices, m![Ns, Gs, Ds]> =
+        q.to_dm(&mut device.tdma);
+    let k: DmTensor<f8e4m3, Chip, Cluster, KvRowsAcrossSlices, m![Ts % 8, Ns, Ds]> = k
+        .gather::<m![Rc64], m![Ts, Ns, Ds]>()
+        .by_byte_offsets(base)
+        .to_dm(&mut device.tdma);
+    let k = crate::ops_fixed_e4_storage::decode_rows::<_,_,m![Ts%8,Ns]>(device, &k);
+    let k_trf: TrfTensor<bf16, Chip, Cluster, KvRowsAcrossSlices, m![Ts % 8], m![Ns, Ds]> = device
+        .sub
+        .begin(k.view())
+        .fetch::<m![Ts % 8, Ns, Ds / 16], m![Ds % 16]>()
+        .collect::<m![Ts % 8, Ns, Ds / 16], m![Ds % 16]>()
+        .to_trf();
+
+    let qk: DmTensor<bf16, Chip, Cluster, KvRowsAcrossSlices, m![Ns, Gs, Ts % 8]> = device
+        .main
+        .begin(q.view())
+        .fetch::<m![Ns, Gs, Ds / 16], m![Ds % 16]>()
+        .collect::<m![Ns, Gs, Ds / 16], m![Ds % 16]>()
+        .contract_outer::<m![Ns, Gs, Ds / 32], m![Ds % 32], _, _, _>(&k_trf)
+        .contract_packet::<m![1]>()
+        .contract_time::<m![Ns, Gs]>()
+        .contract_lane::<m![Ns, Gs], m![Ts % 8]>(LaneMode::Interleaved)
+        .cast::<bf16, m![Ts % 8 # 16]>()
+        .commit_trim::<m![Ts % 8]>()
+        .commit();
+
+    let qk: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ts]> = device
+        .main
+        .begin(qk.view())
+        .fetch::<m![Ns, Gs], m![Ts % 8 # 16]>()
+        .switch::<Slice, m![Ns, Gs, Ts / 8]>(SwitchConfig::Broadcast1 {
+            slice1: 128,
+            slice0: 2,
+        })
+        .collect::<m![Ns, Gs, Ts / 8], m![Ts % 8 # 16]>()
+        .commit_trim::<m![Ts % 8]>()
+        .commit();
+
+    let qk = premax_mask(device, &qk, mask);
+
+    let max: DmTensor<f32, Chip, Cluster, Slice, m![Ns, Gs]> = device
+        .main
+        .begin(qk.view())
+        .fetch::<m![Ns, Gs, Ts / 16], m![Ts % 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![Ns, Gs, Ts / 4], m![Ts % 4]>()
+        .vector_intra_slice_reduce::<Ts, m![Ns, Gs], m![1 # 4]>(IntraSliceReduceOpF32::Max)
+        .vector_widen_pad::<m![1 # 8]>()
+        .vector_final()
+        .transpose::<m![Ns, Gs / 2], m![Gs % 2 # 8]>()
+        .commit_trim::<m![Gs % 2]>()
+        .commit();
+    let max_vrf: VrfTensor<f32, Chip, Cluster, Slice, m![Ns, Gs]> = device
+        .sub
+        .begin(max.view())
+        .fetch::<m![Ns / 4], m![Ns % 4, Gs]>()
+        .collect::<m![Ns / 4], m![Ns % 4, Gs]>()
+        .to_vrf();
+
+    let exp: DmTensor<f32, Chip, Cluster, Slice, m![Ns, Gs, Ts]> = device
+        .main
+        .begin(qk.view())
+        .fetch::<m![Ns, Gs, Ts / 16], m![Ts % 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![Ns, Gs, Ts / 4], m![Ts % 4]>()
+        .vector_fp_binary(FpBinaryOp::SubF, &max_vrf)
+        .vector_fp_unary(FpUnaryOp::Exp)
+        .vector_widen_concat::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .vector_final()
+        .commit_trim::<m![Ts % 8]>()
+        .commit();
+
+    let mask: DmTensor<f32, Chip, Cluster, Slice, m![Ts]> = mask.to_dm(&mut device.tdma);
+    let mask_vrf: VrfTensor<f32, Chip, Cluster, Slice, m![Ts]> = device
+        .sub
+        .begin(mask.view())
+        .fetch::<m![Ts / 8], m![Ts % 8]>()
+        .collect::<m![Ts / 8], m![Ts % 8]>()
+        .to_vrf();
+
+    let exp: DmTensor<f32, Chip, Cluster, Slice, m![Ns, Gs, Ts]> = device
+        .main
+        .begin(exp.view())
+        .fetch::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .collect::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Min, &mask_vrf)
+        .vector_final()
+        .commit_trim::<m![Ts % 8]>()
+        .commit();
+
+    let sum: DmTensor<f32, Chip, Cluster, Slice, m![Ns, Gs]> = device
+        .main
+        .begin(exp.view())
+        .fetch::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .collect::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![Ns, Gs, Ts / 4], m![Ts % 4]>()
+        .vector_intra_slice_reduce::<Ts, m![Ns, Gs], m![1 # 4]>(IntraSliceReduceOpF32::Add)
+        .vector_widen_pad::<m![1 # 8]>()
+        .vector_clip(ClipBinaryOpF32::Add, EPS)
+        .vector_final()
+        .transpose::<m![Ns, Gs / 2], m![Gs % 2 # 8]>()
+        .commit_trim::<m![Gs % 2]>()
+        .commit();
+    let sum_vrf: VrfTensor<f32, Chip, Cluster, Slice, m![Ns, Gs]> = device
+        .sub
+        .begin(sum.view())
+        .fetch::<m![Ns / 4], m![Ns % 4, Gs]>()
+        .collect::<m![Ns / 4], m![Ns % 4, Gs]>()
+        .to_vrf();
+
+    let attention_weights: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ts]> = device
+        .main
+        .begin(exp.view())
+        .fetch::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .collect::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .cast::<bf16, m![Ts % 8 # 16]>()
+        .commit_trim::<m![Ts % 8]>()
+        .commit();
+    let attention_weights: DmTensor<bf16, Chip, Cluster, KvHeadAndRows, m![Gs, Ts % 32]> =
+        attention_weights.to_dm(&mut device.tdma);
+
+    let v: DmTensor<f8e4m3, Chip, Cluster, KvHeadAndRows, m![Ts % 32, Ds]> = v
+        .gather::<m![Rc64], m![Ts, Ns, Ds]>()
+        .by_byte_offsets(base)
+        .to_dm(&mut device.tdma);
+    let v = crate::ops_fixed_e4_storage::decode_rows::<_,_,m![Ts%32]>(device, &v);
+    let v: DmTensor<bf16, Chip, Cluster, KvHeadAndRows, m![Ds, Ts % 32]> = device
+        .main
+        .begin(v.view())
+        .fetch::<m![Ds / 8, Ts % 32], m![Ds % 8 # 16]>()
+        .collect::<m![Ds / 8, Ts % 32], m![Ds % 8 # 16]>()
+        .transpose::<m![Ds / 8, Ts / 4 % 8, Ds % 8], m![Ts % 4 # 16]>()
+        .commit_trim::<m![Ts % 4]>()
+        .commit();
+    let v_trf: TrfTensor<bf16, Chip, Cluster, KvHeadAndRows, m![Ds % 8], m![Ds / 8, Ts % 32]> =
+        device
+            .sub
+            .begin(v.view())
+            .fetch::<m![Ds % 8, Ds / 8, Ts / 16 % 2], m![Ts % 16]>()
+            .collect::<m![Ds % 8, Ds / 8, Ts / 16 % 2], m![Ts % 16]>()
+            .to_trf();
+
+    let contraction: DmTensor<bf16, Chip, Cluster, KvHeadAndRows, m![Gs, Ds]> = device
+        .main
+        .begin(attention_weights.view())
+        .fetch::<m![Gs, Ts / 16 % 2], m![Ts % 16]>()
+        .collect::<m![Gs, Ts / 16 % 2], m![Ts % 16]>()
+        .contract_outer::<m![Gs, Ds / 8], m![Ts % 32], _, _, _>(&v_trf)
+        .contract_packet::<m![1]>()
+        .contract_time::<m![Gs, Ds / 8]>()
+        .contract_lane::<m![Gs, Ds / 8], m![Ds % 8]>(LaneMode::Interleaved)
+        .cast::<bf16, m![Ds % 8 # 16]>()
+        .commit_trim::<m![Ds % 8]>()
+        .commit();
+    let combined: DmTensor<bf16, Chip, Cluster, m![Ns, 1 # 32], m![Gs, Ds]> = device
+        .main
+        .begin(contraction.view())
+        .fetch::<m![Gs, Ds / 16], m![Ds % 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![Gs, Ds / 8], m![Ds % 8]>()
+        .vector_init()
+        .vector_inter_slice_reduce::<m![Ns, 1 # 32], m![Gs, Ds / 8]>(InterSliceReduceOpF32::Add)
+        .vector_final()
+        .cast::<bf16, m![Ds % 8 # 16]>()
+        .commit_trim::<m![Ds % 8]>()
+        .commit();
+    let combined: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> =
+        combined.to_dm(&mut device.tdma);
+
+    let output: DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ds]> = device
+        .main
+        .begin(combined.view())
+        .fetch::<m![Ns, Gs, Ds / 16], m![Ds % 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![Ns, Gs, Ds / 8], m![Ds % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![Ns, Gs, Ds / 4], m![Ds % 4]>()
+        .vector_fp_div(&sum_vrf)
+        .vector_widen_concat::<m![Ns, Gs, Ds / 8], m![Ds % 8]>()
+        .vector_final()
+        .cast::<bf16, m![Ds % 8 # 16]>()
+        .commit_trim::<m![Ds % 8]>()
+        .commit();
+
+    output.view().to_hbm_view(&mut device.tdma, out.view_mut());
+}
+
+// Host masks are 1 for visible entries and 0 otherwise. Clamp also accepts the
+// older probe convention (+infinity/0). Mask before maximum so stale, invisible
+// cache contents cannot alter BF16 softmax scaling or another request's result.
+fn premax_mask(
+    device: &mut Device,
+    qk: &DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ts]>,
+    mask: &HbmTensor<f32, Chip, m![Ts]>,
+) -> DmTensor<bf16, Chip, Cluster, Slice, m![Ns, Gs, Ts]> {
+    let mask: DmTensor<f32, Chip, Cluster, Slice, m![Ts]> = mask.to_dm(&mut device.tdma);
+    let bounded: DmTensor<f32, Chip, Cluster, Slice, m![Ts]> = device
+        .main
+        .begin(mask.view())
+        .fetch::<m![Ts / 8], m![Ts % 8]>()
+        .collect::<m![Ts / 8], m![Ts % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Min, 1.0f32)
+        .vector_final()
+        .commit_trim::<m![Ts % 8]>()
+        .commit();
+    let additive: DmTensor<f32, Chip, Cluster, Slice, m![Ts]> = device
+        .main
+        .begin(bounded.view())
+        .fetch::<m![Ts / 8], m![Ts % 8]>()
+        .collect::<m![Ts / 8], m![Ts % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![Ts / 4], m![Ts % 4]>()
+        .vector_fp_binary(FpBinaryOp::SubF, 1.0f32)
+        .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 1e30f32)
+        .vector_widen_concat::<m![Ts / 8], m![Ts % 8]>()
+        .vector_final()
+        .commit_trim::<m![Ts % 8]>()
+        .commit();
+    let additive: VrfTensor<f32, Chip, Cluster, Slice, m![Ts]> = device
+        .sub
+        .begin(additive.view())
+        .fetch::<m![Ts / 8], m![Ts % 8]>()
+        .collect::<m![Ts / 8], m![Ts % 8]>()
+        .to_vrf();
+    device
+        .main
+        .begin(qk.view())
+        .fetch::<m![Ns, Gs, Ts / 16], m![Ts % 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![Ns, Gs, Ts / 8], m![Ts % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_clip(ClipBinaryOpF32::Add, &additive)
+        .vector_final()
+        .cast::<bf16, m![Ts % 8 # 16]>()
+        .commit_trim::<m![Ts % 8]>()
+        .commit()
+}
