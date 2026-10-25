@@ -380,6 +380,11 @@ impl Prefill {
             .await?;
         }
         self.record_profile("sliding.output", &mut profile_mark);
+        if self.epilogue_fused && self.staged_ffn {
+            return self.post_attention_ffn_native(device, &layer.mlp,
+                &layer.post_attention_norm, &layer.pre_feedforward_norm,
+                &layer.post_feedforward_norm, &layer.layer_scalar).await;
+        }
         launch(
             crate::ops_norm_batch::post_attention_b16,
             (
@@ -639,6 +644,11 @@ impl Prefill {
             .await?;
         }
         self.record_profile("full.output", &mut profile_mark);
+        if self.epilogue_fused && self.staged_ffn {
+            return self.post_attention_ffn_native(device, &layer.mlp,
+                &layer.post_attention_norm, &layer.pre_feedforward_norm,
+                &layer.post_feedforward_norm, &layer.layer_scalar).await;
+        }
         launch(
             crate::ops_norm_batch::post_attention_b16,
             (

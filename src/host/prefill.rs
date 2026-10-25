@@ -51,6 +51,7 @@ pub(crate) struct Prefill {
     // Dedicated decode raw layouts; canonical scratch remains available to prompts and diagnostics.
     decode_blocked_output: bool,
     staged_ffn: bool,
+    epilogue_fused: bool,
     output_hsplit: bool,
     decode_q_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::QueryOutput>,
     decode_k_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::KeyOutput>,
@@ -96,6 +97,10 @@ pub(crate) struct Prefill {
 }
 
 impl Prefill {
+    pub(crate) fn set_epilogue_fused(&mut self, enabled: bool) {
+        self.epilogue_fused = enabled;
+    }
+
     pub(crate) fn set_staged_ffn(&mut self, enabled: bool) {
         self.staged_ffn = enabled;
     }
@@ -151,6 +156,7 @@ impl Prefill {
         Ok(Self {
             decode_blocked_output: true,
             staged_ffn: true,
+            epilogue_fused: false,
             output_hsplit: true,
             decode_q_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::QueryOutput),
             decode_k_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::KeyOutput),
@@ -795,6 +801,24 @@ impl Prefill {
         self.record_profile("ffn.post_norm_residual_gate", &mut profile_mark);
         Ok(())
     }
+    async fn post_attention_ffn_native(
+        &mut self, device: &mut Device, weights: &MlpWeights,
+        post_attention: &HbmTensor<bf16, Chip, m![H]>,
+        pre: &HbmTensor<bf16, Chip, m![H]>, post: &HbmTensor<bf16, Chip, m![H]>,
+        gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
+    ) -> Result<()> {
+        let mut mark = std::time::Instant::now();
+        let n = &weights.native_fp8;
+        launch(crate::ops_b16_ffn_epilogue::post_attention_ffn,
+            (device, &mut self.projected, &mut self.x, post_attention, pre, post, gate,
+             &mut self.norm, &n.up, &n.gate, &n.down, &n.up_dequant, &n.gate_dequant, &n.down_dequant,
+             &weights.up_global_scale, &weights.gate_global_scale, &weights.down_global_scale,
+             &mut self.native_q_input, &mut self.native_input_scale, &mut self.native_hidden,
+             &mut self.native_q_hidden, &mut self.native_hidden_scale)).await?;
+        self.record_profile("ffn.post_attention_epilogue_fused", &mut mark);
+        Ok(())
+    }
+
     // Independent decode shares the same FP8 arithmetic already used by R64.
     async fn ffn_native(
         &mut self,

@@ -121,6 +121,11 @@ impl Model {
         self.prefill.set_output_hsplit(enabled);
     }
 
+    /// Scoped exact post-attention and FFN launch-composition diagnostic.
+    pub fn set_b16_epilogue_fused(&mut self, enabled: bool) {
+        self.prefill.set_epilogue_fused(enabled);
+    }
+
     /// Diagnostic B16 FFN dispatch control; scratch, norms and caches stay unchanged.
     pub fn set_b16_staged_ffn(&mut self, enabled: bool) {
         self.prefill.set_staged_ffn(enabled);
