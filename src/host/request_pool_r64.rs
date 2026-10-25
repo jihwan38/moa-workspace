@@ -118,11 +118,13 @@ fn sliding_short_group_mask(positions: impl IntoIterator<Item = usize>) -> u8 {
     })
 }
 
-/// Keep every existing512-eligible live group on its faster current route.
+/// Keep every existing512-eligible group, including inactive groups, on its
+/// faster current route. Actual C7 history gate showed a4.77ms attention regression
+/// when global768 replaced the seven cheaper inactive512 groups.
 /// Only unwrapped histories below768 can omit the final quarter of the ring.
 fn prefix768_eligible(positions: impl IntoIterator<Item = usize>) -> bool {
     let positions: Vec<_> = positions.into_iter().collect();
-    !positions.is_empty() && positions.len() <= R64::SIZE
+    positions.len() > R64::SIZE - 8 && positions.len() <= R64::SIZE
         && positions.iter().all(|&p| p < 768)
         && positions.chunks(8).all(|group| group.iter().any(|&p| p >= 512))
 }
@@ -135,8 +137,10 @@ mod tests {
     fn prefix768_preserves512_priority_and_rejects_future_or_wrapped_history() {
         assert!(prefix768_eligible([512;64]));
         assert!(prefix768_eligible([767;64]));
-        assert!(prefix768_eligible([512;7]));
-        assert!(prefix768_eligible([639;17]));
+        assert!(!prefix768_eligible([512;7]));
+        assert!(!prefix768_eligible([639;17]));
+        assert!(!prefix768_eligible([512;56]));
+        assert!(prefix768_eligible([512;57]));
         assert!(!prefix768_eligible([511;64]));
         assert!(!prefix768_eligible([768;64]));
         assert!(!prefix768_eligible([1024;64]));

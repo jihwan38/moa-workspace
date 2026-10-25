@@ -1,0 +1,35 @@
+{
+  "uniform": {
+    "job": 318828,
+    "log": "/round2/runs/r638-prefix768-uniform-submit/arena.log",
+    "status": "PASS",
+    "all_logits": 52166656,
+    "duration_seconds": 27.95,
+    "source": "d60de60",
+    "warm_C64_forward_ms": [
+      92.027,
+      90.316
+    ],
+    "warm_C64_attention_ms": [
+      29.820893,
+      28.189889
+    ]
+  },
+  "mixed_original": {
+    "job": 318829,
+    "status": "TIMEOUT",
+    "timeout_seconds": 70,
+    "startup_ms": 6325.301,
+    "first_fill_ms": 34144.146,
+    "note": "No arithmetic failure; phase0completed before second refill exceeded limit. Split into bounded complete matched passes."
+  },
+  "partial_width_regression": {
+    "live": 7,
+    "control_attention_ms": 24.089896,
+    "candidate_attention_ms": 28.863176,
+    "control_model_ms": 81.552,
+    "candidate_model_ms": 85.782,
+    "cause": "Global768 replaced seven inactive512 groups with larger payloads",
+    "fix": "Require all8 R8 groups occupied/non-short (live>=57), plus all active positions<768; preserve current512/mixed for smaller widths"
+  }
+}

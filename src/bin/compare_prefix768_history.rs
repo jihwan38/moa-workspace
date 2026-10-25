@@ -23,48 +23,80 @@ fn input(request: usize, position: usize, logits: bool) -> Input<'static> {
         audio: None,
     }
 }
-fn prefix(mixed: bool) -> [usize; N] {
-    std::array::from_fn(|r| {
-        if mixed {
-            [511, 512, 767, 768, 1023, 1024, 639, 0][r / 8]
-        } else {
-            512
+fn prefix(mode: &str) -> Vec<usize> {
+    match mode {
+        "uniform" => vec![512; N],
+        "mixed-low" => (0..32).map(|r| [511, 512, 767, 639][r / 8]).collect(),
+        "mixed-high" => (0..32).map(|r| [768, 1023, 1024, 0][r / 8]).collect(),
+        "mixed-edge" => {
+            let mut p = vec![512; N];
+            for (r, v) in [
+                (0, 511),
+                (8, 767),
+                (16, 768),
+                (24, 1023),
+                (32, 1024),
+                (40, 0),
+                (48, 639),
+            ] {
+                p[r] = v;
+            }
+            p
         }
-    })
+        _ => unreachable!(),
+    }
 }
-fn selected(mixed: bool, step: usize) -> Vec<usize> {
-    if mixed {
-        match step {
-            0 => (0..N).collect(),
-            1 => (8..16).chain(48..56).collect(),
-            2 => (0..8).collect(),
-            3 => (16..24).collect(),
-            4 => (0..N).map(|r| (r * 17 + 5) % N).collect(),
-            _ => unreachable!(),
-        }
-    } else {
-        match step {
+fn selected(mode: &str, step: usize) -> Vec<usize> {
+    match mode {
+        "uniform" => match step {
             0 => (0..N).collect(),
             1 => (0..N).rev().collect(),
             2 => vec![63, 7, 8, 31, 32, 0, 16],
             3 => (0..N).map(|r| (r * 17 + 5) % N).collect(),
             _ => unreachable!(),
-        }
+        },
+        "mixed-low" => match step {
+            0 => (0..32).collect(),
+            1 => (8..16).chain(24..32).collect(),
+            2 => (0..8).collect(),
+            3 => (16..24).collect(),
+            4 => (0..32).map(|r| (r * 17 + 5) % 32).collect(),
+            _ => unreachable!(),
+        },
+        "mixed-high" => match step {
+            0 => (0..32).collect(),
+            1 => (0..8).collect(),
+            2 => (8..16).collect(),
+            3 => (24..32).collect(),
+            4 => (0..32).map(|r| (r * 17 + 5) % 32).collect(),
+            _ => unreachable!(),
+        },
+        "mixed-edge" => match step {
+            0 => (0..N).filter(|r| ![16, 24, 32].contains(r)).collect(),
+            1 => (0..N).collect(),
+            2 => (0..N).filter(|r| ![8, 16, 24, 32].contains(r)).collect(),
+            3 => vec![63, 7, 8, 31, 32, 0, 16],
+            4 => (0..N).map(|r| (r * 17 + 5) % N).collect(),
+            _ => unreachable!(),
+        },
+        _ => unreachable!(),
     }
 }
 fn eligible(positions: &[usize]) -> bool {
-    positions.iter().all(|&p| p < 768) && positions.chunks(8).all(|g| g.iter().any(|&p| p >= 512))
+    positions.len() > 56
+        && positions.iter().all(|&p| p < 768)
+        && positions.chunks(8).all(|g| g.iter().any(|&p| p >= 512))
 }
 async fn fill(
     device: &mut Device,
     model: &mut Model,
     ws: &mut Workspace,
     blocks: &[Blocks],
-    prefix: &[usize; N],
+    prefix: &[usize],
     phase: usize,
 ) -> Result<()> {
     let begin = Instant::now();
-    for request in 0..N {
+    for request in 0..prefix.len() {
         let mut position = 0;
         while position < prefix[request] {
             let remain = prefix[request] - position;
@@ -146,8 +178,8 @@ fn check(actual: &[u8], expected: &[u8], step: usize, request: usize) {
 #[tokio::main]
 async fn main() -> Result<()> {
     let mode = std::env::args().nth(1).unwrap_or_else(|| "uniform".into());
-    assert!(mode == "uniform" || mode == "mixed");
-    let mixed = mode == "mixed";
+    assert!(["uniform", "mixed-low", "mixed-high", "mixed-edge"].contains(&mode.as_str()));
+
     let total = Instant::now();
     let mut device = Device::new(ops::embed_token.topology())?;
     let weights = load::load_weights(&mut device).await?;
@@ -157,14 +189,14 @@ async fn main() -> Result<()> {
         "PREFIX768_STARTUP mode={mode} ms={:.3}",
         total.elapsed().as_secs_f64() * 1000.0
     );
-    let prefix = prefix(mixed);
-    let steps = if mixed { 5 } else { 4 };
+    let prefix = prefix(&mode);
+    let steps = if mode == "uniform" { 4 } else { 5 };
     let mut expected: Vec<Vec<Vec<u8>>> = Vec::new();
     let mut checked = 0;
     for phase in 0..2 {
         // Reuse the same physical pool with a different bijective ring/page map.
         // Every request recomputes its own entire causal prefix from position0.
-        let blocks: Vec<_> = (0..N)
+        let blocks: Vec<_> = (0..prefix.len())
             .map(|r| {
                 let slot = if phase == 0 {
                     (r * 13 + 31) % N
@@ -178,9 +210,9 @@ async fn main() -> Result<()> {
             })
             .collect();
         fill(&mut device, &mut model, &mut ws, &blocks, &prefix, phase).await?;
-        let mut positions = prefix;
+        let mut positions = prefix.clone();
         for step in 0..steps {
-            let chosen = selected(mixed, step);
+            let chosen = selected(&mode, step);
             let rows: Vec<_> = chosen
                 .iter()
                 .map(|&r| [input(r, positions[r], true)])
@@ -196,11 +228,15 @@ async fn main() -> Result<()> {
                 .collect();
             let pos: Vec<_> = chosen.iter().map(|&r| positions[r]).collect();
             let use768 = eligible(&pos);
-            if !mixed {
-                assert!(use768);
-            } else {
-                assert_eq!(use768, matches!(step, 1 | 2));
-            }
+            let expected_policy = match mode.as_str() {
+                "uniform" => step != 2,
+                "mixed-edge" => matches!(step, 0 | 2),
+                _ => false,
+            };
+            assert_eq!(
+                use768, expected_policy,
+                "production eligibility step={step}"
+            );
             model.begin_stage_profile();
             let begin = Instant::now();
             let outputs = if phase == 0 {
@@ -243,7 +279,13 @@ async fn main() -> Result<()> {
             }
         }
     }
-    let expected_rows = if mixed { 160 } else { 199 };
+    let expected_rows = match mode.as_str() {
+        "uniform" => 199,
+        "mixed-low" => 96,
+        "mixed-high" => 88,
+        "mixed-edge" => 256,
+        _ => unreachable!(),
+    };
     assert_eq!(checked, expected_rows * W::SIZE);
     println!(
         "PASS prefix768 same-R64 history mode={mode} all_logits={checked} independent_refill_and_slot_reset=true total_ms={:.3}",
