@@ -1,0 +1,364 @@
+{
+  "result": "RESOURCE_PASS_ONLY_NO_ACTUAL_DEVICE_GATE",
+  "compiled_source_commit": "b896e36e1defc8641d0f17a720edc01ffc4a5cb0",
+  "function": "ops_int4_rational_lut_hidden::quantize_row",
+  "estimated_total_cycles": 55439,
+  "gate_cycles": 120000,
+  "gate_pass": true,
+  "memory_classes": [
+    "DramIO(0)",
+    "DramIO(1)",
+    "DramIO(2)",
+    "DramIO(3)",
+    "Spm",
+    "Sram",
+    "Vrf"
+  ],
+  "shape": {
+    "rows": 512,
+    "width": 15360,
+    "input_bf16_bytes": 15728640,
+    "output_i32_bytes": 31457280,
+    "scale_bytes": 2048,
+    "table_bytes": 4096
+  },
+  "full_tensor_allocation_proof": {
+    "input_hbm": {
+      "lifetime": {
+        "begin": 1003,
+        "end": 14515
+      },
+      "iteration_index": null,
+      "allocation": {
+        "buffer_type": "DramIO(0)",
+        "address": 0,
+        "size": 15728640,
+        "physical_pages": []
+      }
+    },
+    "output_hbm": {
+      "lifetime": {
+        "begin": 28474,
+        "end": 54839
+      },
+      "iteration_index": null,
+      "allocation": {
+        "buffer_type": "DramIO(2)",
+        "address": 0,
+        "size": 31457280,
+        "physical_pages": []
+      }
+    },
+    "input_sram": {
+      "lifetime": {
+        "begin": 1003,
+        "end": 28474
+      },
+      "iteration_index": null,
+      "allocation": {
+        "buffer_type": "Sram",
+        "address": 0,
+        "size": 15728640,
+        "physical_pages": [
+          0
+        ]
+      }
+    },
+    "output_sram": {
+      "lifetime": {
+        "begin": 24353,
+        "end": 54839
+      },
+      "iteration_index": null,
+      "allocation": {
+        "buffer_type": "Sram",
+        "address": 16777216,
+        "size": 31457280,
+        "physical_pages": [
+          1,
+          2
+        ]
+      }
+    },
+    "distinct_sram_allocations": true,
+    "co_live_cycles": [
+      24353,
+      28474
+    ],
+    "combined_full_tensor_bytes": 47185920,
+    "note": "Sum covers these two full tensors, not a claim about totalpeak SRAM including other auxiliaries."
+  },
+  "operations": [
+    {
+      "id": "@3",
+      "kind": "dma.dto_s",
+      "begin": 1003,
+      "end": 14515,
+      "cycles": 13512,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:20:57"
+    },
+    {
+      "id": "@10",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 14515,
+      "end": 18636,
+      "cycles": 4121,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:21:63"
+    },
+    {
+      "id": "@15",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 18636,
+      "end": 18918,
+      "cycles": 282,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:39:66"
+    },
+    {
+      "id": "@20",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 18918,
+      "end": 19200,
+      "cycles": 282,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:32:64"
+    },
+    {
+      "id": "@22",
+      "kind": "dma.sto_s",
+      "begin": 18921,
+      "end": 19637,
+      "cycles": 716,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:51:9"
+    },
+    {
+      "id": "@28",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 19637,
+      "end": 20158,
+      "cycles": 521,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:52:77"
+    },
+    {
+      "id": "@31",
+      "kind": "dma_command",
+      "begin": 20158,
+      "end": 20626,
+      "cycles": 468,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:55:79"
+    },
+    {
+      "id": "@33",
+      "kind": "dma.sto_s",
+      "begin": 20626,
+      "end": 21342,
+      "cycles": 716,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:87:9"
+    },
+    {
+      "id": "@40",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 21342,
+      "end": 21863,
+      "cycles": 521,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:88:82"
+    },
+    {
+      "id": "@43",
+      "kind": "dma.sto_d",
+      "begin": 21863,
+      "end": 22281,
+      "cycles": 418,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:91:5"
+    },
+    {
+      "id": "@51",
+      "kind": "dma_command_gather",
+      "begin": 22281,
+      "end": 22940,
+      "cycles": 659,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:56:68"
+    },
+    {
+      "id": "@53",
+      "kind": "dma_command_gather",
+      "begin": 22940,
+      "end": 23599,
+      "cycles": 659,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:56:68"
+    },
+    {
+      "id": "@58",
+      "kind": "rngd_cmd.sto_vrf",
+      "begin": 23599,
+      "end": 23866,
+      "cycles": 267,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:60:66"
+    },
+    {
+      "id": "@64",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 24066,
+      "end": 24350,
+      "cycles": 284,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:64:70"
+    },
+    {
+      "id": "@70",
+      "kind": "rngd_cmd.tu_exec",
+      "begin": 24353,
+      "end": 28474,
+      "cycles": 4121,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:72:60"
+    },
+    {
+      "id": "@73",
+      "kind": "dma.sto_d",
+      "begin": 28474,
+      "end": 54839,
+      "cycles": 26365,
+      "source": "--> src/ops_int4_rational_lut_hidden.rs:83:5"
+    }
+  ],
+  "source_check": {
+    "kernel_transform": "Only named H\u2192L substitution from actual-validated compactP512 body, ignoringtitlecomment",
+    "oracle": "Original width-generic quotient/remainder function byte-identical; all15360elements consumed by probe",
+    "fixtures": "Case0 maximaonlylast2columns,512distinct scales; full15360bijective permutations plus signedties/FTZ/floor/extremes",
+    "cpu_tests": "6/6PASS,a001,0filtered",
+    "host_typecheck": "PASS,a002,10.36s",
+    "review": "round2_path pending atrecordcreation"
+  },
+  "unchanged_files": [
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/Cargo.toml",
+      "bytes": 718,
+      "sha256": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/src/bin/support/rational_a4_oracle.rs",
+      "bytes": 5295,
+      "sha256": "1b2beeb44d58c1ce98c9c4b04363a14792ac39df67a58c7b87fe6cae336bfec1"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/src/ops_int4_rational_lut.rs",
+      "bytes": 5130,
+      "sha256": "92ff8c7d39439e13e6756998433e17afd07fd1fb49dea597a2280a3f809f556f"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/src/ops_int4_rational_lut_p512.rs",
+      "bytes": 5270,
+      "sha256": "ad4cae98735a6f506c00ae295093403c1205693fbff113ec0e2688f035131e44"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/src/ops_int4_rational_lut_p512_compact.rs",
+      "bytes": 5876,
+      "sha256": "a7a57c584a46ba98aec2c2a587debf44aa1d574aa566f95ee073aab988ff35b0"
+    }
+  ],
+  "scope": [
+    "Compiler resource only, not measuredhiddenwidth speed",
+    "No standalone device ELF or Arena execution",
+    "No integer packing/consumer, completeFFN or modelquality claim",
+    "Original H3840 actualevidence remains separate"
+  ],
+  "references": [
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/Cargo.lock",
+      "bytes": 93783,
+      "sha256": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/src/axes.rs",
+      "bytes": 467,
+      "sha256": "24dd212dc454c2a1ccb56e5f786b695fe85e5119fc11831e04bba56ebbbd5e31"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/src/ops_int4_rational_lut_hidden.rs",
+      "bytes": 5888,
+      "sha256": "e18d92cf5380917f1b4cbfa8d8196681b79ec5d3a81cc5151c0ec4cb1477b2ab"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/src/bin/test_int4_rational_lut_hidden.rs",
+      "bytes": 6173,
+      "sha256": "87224f4aa3528e38023f6187ca1b131ce74c6016b12b3cdf0c837edd08b6c718"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/src/bin/support/rational_a4_hidden_fixture.rs",
+      "bytes": 6710,
+      "sha256": "ec54d0d048607ec98d238245d9bf2509c6d6e55248d222f28bbcf0694370c021"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/experiments/int4-rational-lut-hidden/plan.json",
+      "bytes": 2041,
+      "sha256": "6d60b296ccb590093a222a73c689ee8dafffb0fc90d2beec4a726284d11b71fe"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/experiments/int4-rational-lut-hidden/source-equivalence.json",
+      "bytes": 300,
+      "sha256": "1ef8c3f67b7fc1da7ea31ac1e2c788050c0cbaf03a5495458a7a86d90e4262bb"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/experiments/int4-rational-lut-hidden/hidden-schedule.json",
+      "bytes": 49178,
+      "sha256": "c8533dbebc76df797d4fc9a90f56e677885a7b96a7a9d85af63b2ddb9ff7718d"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a001-rational-hidden-fixture-cpu/run.json",
+      "bytes": 922,
+      "sha256": "813d866577b5e8ea82b2bd1f778dcffac49479f4ce16d2593f01ccc4642b6eb9"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a001-rational-hidden-fixture-cpu/output.log",
+      "bytes": 512,
+      "sha256": "b11503cb6063f8a8aa285e8782437fa26a75ff0d0ac0524b875508d2abf83aae"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a001-rational-hidden-fixture-cpu/source-hashes.json",
+      "bytes": 41487,
+      "sha256": "6407abbffffc11f0f720e333f50106421a97c2d8651b079c960a24e505bd6ed6"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a002-rational-hidden-probe-check/run.json",
+      "bytes": 1008,
+      "sha256": "a4beeb8ab09e4e54965660a4a5283fffa855f58786af57aacf1920c44186aeaf"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a002-rational-hidden-probe-check/output.log",
+      "bytes": 6175,
+      "sha256": "112274f84701832227454c7ca478abbb2c461d4e4d6d8f91ae47b57be6242080"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a002-rational-hidden-probe-check/source-hashes.json",
+      "bytes": 41487,
+      "sha256": "6407abbffffc11f0f720e333f50106421a97c2d8651b079c960a24e505bd6ed6"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a003-rational-hidden-resource/run.json",
+      "bytes": 1286,
+      "sha256": "b9df852aca234bb8b9b454bb2f3a4ae989110739bc8b68a0f4be0e7069adba92"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a003-rational-hidden-resource/output.log",
+      "bytes": 5288,
+      "sha256": "b36a473841550891b8bf038f2e122fdadba42a3016821536251f7762a4aafdad"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/a003-rational-hidden-resource/source-hashes.json",
+      "bytes": 41487,
+      "sha256": "6407abbffffc11f0f720e333f50106421a97c2d8651b079c960a24e505bd6ed6"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/experiments/int4-rational-lut-hidden/kernel-out-a003/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_rational_lut_hidden::quantize_row.bin",
+      "bytes": 65024,
+      "sha256": "1a878582cf18d94b338aac1fc97126366046f67db79007bd4f596feae897684b"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/experiments/int4-rational-lut-hidden/kernel-out-a003/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_rational_lut_hidden::quantize_row.edf",
+      "bytes": 80643,
+      "sha256": "e7dd7f0599080ee1583bfe285df5dd283c2f9996f83a9996ed629f4696d590c3"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/int4-rational-lut-hidden/experiments/int4-rational-lut-hidden/kernel-out-a003/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_rational_lut_hidden::quantize_row.hash",
+      "bytes": 6395,
+      "sha256": "a9db23e470462e4cf80efd77b2e3016290749d5dd1ee9592230e227a4ac20321"
+    }
+  ]
+}
