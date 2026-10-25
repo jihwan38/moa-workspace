@@ -1,0 +1,3 @@
+# Pairwise inter-slice O reduction experiment held
+
+The proposed exact pair tree aimed to remove full-partial gathering. r490 exposed an invalid BF16 fetch packet; r493 repaired that but found the VRU requires the reduced axis innermost. r496/eb333fe padded the K shard axis itself and compiled. Arena318521 then hit a device launch watchdog (5.3s), before any numerical result. The prototype is not correct/fast evidence and is not used in serving. All source and failed logs remain. A separate pure-transfer experiment retains the original gather and exact arithmetic, addressing the measured activation replication cost instead.
