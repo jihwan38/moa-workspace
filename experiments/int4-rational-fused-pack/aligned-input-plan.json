@@ -1,0 +1,12 @@
+{
+  "base_checkpoint": "51011496",
+  "scope": "One additional H3840 fused resource variant; then strict probe source/check only. No ELF/Arena/model activation.",
+  "original_variant_preserved": {"function":"quantize_pack_input","cycles":55312,"gate":58072,"status":"RESOURCE_PASS_ONLY"},
+  "candidate": "quantize_pack_input_aligned: same quantize_codes and pack_codes, then actual DM staging to [H/960,P512%256/16,1#4] slices and [P512%16,H%960/8] local words before identical blocked HBM store",
+  "staging_source": "int4-pack-input-aligned 15a335b6, source review PASS, resource19994; actual pending at preregistration",
+  "coverage": "64 live leaders at physical slice4*(16*h+r), each16rows*120words; all512 rows and245760 words exactly once",
+  "memory": "Charge physical1#4 padding, full codes/packed/staged lifetimes and real redistribution; no canonical I32 HBM bridge or new dtype alias",
+  "gate": {"complete_resource_max_cycles":32399,"baseline_cycles":40499,"minimum_reduction":0.20,"no_dram_stack":true},
+  "future_actual": "Primary H control is original compact quantizer then aligned pack only if that separate pack passes actual gate; historical83.6us control remains separate. Hidden control remains quantizer plus validated staged pack around157us. No actual gain inferred from resource.",
+  "strict_probe": "All4 retained full-row fixtures per width, untouched quotient oracle; independent pair-byte and word-nibble blocked encoding; every512 scale and all packed bytes; candidate-first separate poisoned buffers; full input/table/shifts immutable; cross-case row/column permutations; post-timing/profile whole-output checks; complete paired quant+pack ABBA; root-only future<=70s per width execution"
+}
