@@ -1,0 +1,69 @@
+{
+  "end_cycles": 2428542,
+  "DramStack": false,
+  "operations": [
+    {
+      "id": "@12",
+      "kind": "dma.sto_s",
+      "count": 1,
+      "cycles": 33203,
+      "source": "--> src/ops_b16_lm_storegroup.rs:82:9\n\nresult.to_dm(&mut device.tdma)"
+    },
+    {
+      "id": "@14",
+      "kind": "dma.sto_d",
+      "count": 1,
+      "cycles": 7284,
+      "source": "--> src/ops_b16_lm_storegroup.rs:83:5\n\nresult.view().to_hbm_view(&mut device.tdma, out.view_mut())"
+    },
+    {
+      "id": "@2",
+      "kind": "dma.dto_s",
+      "count": 1,
+      "cycles": 286155,
+      "source": "--> src/ops_b16_lm_storegroup.rs:14:64\n\ninput.to_dm(&mut device.tdma)"
+    },
+    {
+      "id": "@3.4",
+      "kind": "dma.dto_s",
+      "count": 16,
+      "cycles": 1684544,
+      "source": "--> src/ops_b16_lm_storegroup.rs:18:74\n\nweight\n.view()\n.tile::<m![W / 16384], 1, m![1 # 16, W % 16384, H]>(band)\n.to_dm(&mut device.tdma)"
+    },
+    {
+      "id": "@3.5.15",
+      "kind": "rngd_cmd.tu_exec",
+      "count": 32,
+      "cycles": 254240,
+      "source": "--> src/ops_b16_lm_storegroup.rs:28:79\n\ndevice.main\n.begin(weight.view())\n.fetch::<m![W % 32, H / 16], m![H % 16]>()\n.collect::<m![W % 32, H / 16], m![H % 16]>()\n.contract_outer::<m![W % 32, H / 32], m![H % 32], _, _, _>(&x)\n.contract_packet::<m![1]>()\n.contract_time::<m![W % 32]>()\n.contract_lane::<m![W % 32], m![B = 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![B = 8 # 16]>()\n.commit_trim::<m![B = 8]>()\n.commit()"
+    },
+    {
+      "id": "@3.5.20",
+      "kind": "rngd_cmd.tu_exec",
+      "count": 32,
+      "cycles": 11040,
+      "source": "--> src/ops_b16_lm_storegroup.rs:39:81\n\ndevice.main\n.begin(dot.view())\n.fetch::<m![W % 32], m![B = 8]>()\n.fetch_cast::<f32>()\n.collect::<m![W % 32], m![B = 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![W % 32, B = 8 / 4], m![B = 8 % 4]>()\n.vector_fp_div(LOGIT_SOFTCAP)\n.vector_widen_concat::<m![W % 32], m![B = 8]>()\n.vector_final()\n.commit_trim::<m![B = 8]>()\n.commit()"
+    },
+    {
+      "id": "@3.5.25",
+      "kind": "rngd_cmd.tu_exec",
+      "count": 32,
+      "cycles": 11040,
+      "source": "--> src/ops_b16_lm_storegroup.rs:52:13\n\ndevice.main\n.begin(scaled.view())\n.fetch::<m![W % 32], m![B = 8]>()\n.collect::<m![W % 32], m![B = 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![W % 32, B = 8 / 4], m![B = 8 % 4]>()\n.vector_fp_unary(FpUnaryOp::Tanh)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), LOGIT_SOFTCAP)\n.vector_widen_concat::<m![W % 32], m![B = 8]>()\n.vector_final()\n.cast::<bf16, m![B = 8 # 16]>()\n.commit_trim::<m![B = 8]>()\n.commit_view(band_result.view_mut()\n    .tile::<m![B], 8, m![W % 32, B = 8 #{!} 16]>(chunk * 8))"
+    },
+    {
+      "id": "@3.9",
+      "kind": "dma.sto_s",
+      "count": 16,
+      "cycles": 15152,
+      "source": "--> src/ops_b16_lm_storegroup.rs:68:9\n\nband_result.view().to_dm_view(&mut device.tdma, result.view_mut()\n.tile::<m![W / 16384], 1, m![1 #{!} 16, W % 32, B]>(band))"
+    },
+    {
+      "id": "@9",
+      "kind": "rngd_cmd.tu_exec",
+      "count": 1,
+      "cycles": 2320,
+      "source": "--> src/ops_b16_lm_storegroup.rs:71:81\n\ndevice.main\n.begin(result.view())\n.fetch::<m![W / 16384, W % 32], m![B]>()\n.collect::<m![W / 16384, W % 32], m![B]>()\n.transpose::<m![W / 16384, W / 4 % 8, B], m![W % 4 # 16]>()\n.commit_trim::<m![W % 4]>()\n.commit()"
+    }
+  ]
+}

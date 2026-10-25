@@ -1,0 +1,5 @@
+# Exact output-store fallback
+
+Root authorized after r1132 actual final canonical store consumed~2.07M/6.75M Task cycles. Keep every original `ops_batch_io::logits_batch` operation through its final BF16 output transpose byte-identical. Then move its DM `[B,Wband,W32]`, slice`W/32%256`, into DM `[B,Wband,W128]`, slice`[W/128%64,1#4]` with a real named-axis `to_dm`, and store the same canonical `[B,W]` HBM. No reinterpret, arithmetic reassociation, new persistent memory, host dispatch or source mutation to the control.
+
+Resource gate must include the new DM movement and final store, fit SRAM/TRF without DramStack, and have a positive cost bound. The separate strict probe is copied from the failed H960 gate with only its candidate module changed: same supplied embedding, original final RMS, three non-dyadic fixtures/two row permutations, every vocabulary bit, arbitrary/all-ban selections, independent F64 samples, candidate-first separate poisoned outputs, immutable inputs, inclusive ABBA and actual trace. H960 source/ELF/evidence remain frozen and held.

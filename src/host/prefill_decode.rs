@@ -198,7 +198,7 @@ impl Prefill {
             .await?;
             self.record_profile("logits.norm", &mut profile_mark);
             launch(
-                ops_batch_io::logits_batch,
+                crate::ops_b16_lm_storegroup::logits_batch,
                 (
                     device,
                     &self.norm,

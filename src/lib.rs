@@ -264,3 +264,5 @@ pub mod ops_group_ffn_projection;
 pub mod ops_b16_up_ingress;
 pub mod ops_b16_ingress_epilogue;
 pub mod ops_qkv_weight_stationary;
+
+pub mod ops_b16_lm_storegroup;
