@@ -62,6 +62,17 @@ pub(crate) struct PreparedGroup {
 pub(crate) struct PreparedPrompt512 {
     chunks: PreparedGroup,
 }
+/// Three chronological quarters from owner A and one quarter from independent
+/// owner B. Repeated A metadata is private; only two allocations are exposed.
+pub(crate) struct PreparedPrompt384128 {
+    chunks: PreparedGroup,
+}
+impl PreparedPrompt384128 {
+    pub(crate) fn blocks(&self) -> [&runtime::Blocks; 2] {
+        [&self.chunks.states[0].blocks, &self.chunks.states[3].blocks]
+    }
+}
+
 impl PreparedPrompt512 {
     pub(crate) fn original_norms(&mut self) { self.chunks.fused_norms = false; }
     pub(crate) fn original_output(&mut self) { self.chunks.blocked_output = false; }
@@ -195,7 +206,38 @@ impl GroupPrefill {
         })
     }
 
-    /// Only the two validated constructors above call this execution helper.
+    pub(crate) fn supports_prompt384128(sequences: &[Sequence<'_>]) -> bool {
+        sequences.len() == 2
+            && sequences[0].inputs.len() == 3 * P128::SIZE
+            && sequences[1].inputs.len() == P128::SIZE
+            && sequences.iter().all(|sequence| {
+                sequence.start_position % P128::SIZE == 0
+                    && sequence.start_position.checked_add(sequence.inputs.len()).is_some()
+                    && sequence.inputs[..sequence.inputs.len() - 1].iter().all(|input| !input.logits)
+            })
+            && crate::host::request_pool::independent_sequences(sequences)
+    }
+
+    /// Validate the two actual owners before deriving A0/A1/A2/B0 internally.
+    /// Ordinary independent-quarter validation remains unchanged.
+    pub(crate) async fn prepare_prompt384128(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        sequences: &[Sequence<'_>],
+        scratch: &mut Prefill,
+    ) -> Result<PreparedPrompt384128> {
+        if !Self::supports_prompt384128(sequences) {
+            return Err("Prompt384128 needs independent384/128 ranges aligned to128 with final-only logits".into());
+        }
+        let chunks = prompt384128_chunks(sequences);
+        debug_assert!(chunks.iter().all(WidePrefill::supports));
+        Ok(PreparedPrompt384128 {
+            chunks: self.prepare_rows(device, weights, &chunks, scratch).await?,
+        })
+    }
+
+    /// Only validated constructors above call this execution helper.
     async fn prepare_rows(
         &mut self,
         device: &mut Device,
@@ -254,6 +296,20 @@ impl GroupPrefill {
         self.finish(3, device, weights, &state.chunks, ws, scratch)
             .await
     }
+    pub(crate) async fn advance_prompt384128(
+        &mut self, device: &mut Device, weights: &Weights,
+        state: &mut PreparedPrompt384128, ws: &mut Workspace, scratch: &mut Prefill,
+    ) -> Result<bool> {
+        // Quarter order is A0,A1,A2,B0, retaining each owner's causal commits.
+        self.advance_layer(device, weights, &mut state.chunks, ws, scratch).await
+    }
+    pub(crate) async fn finish_prompt384128(
+        &mut self, owner: usize, device: &mut Device, weights: &Weights,
+        state: &PreparedPrompt384128, ws: &mut Workspace, scratch: &mut Prefill,
+    ) -> Result<()> {
+        self.finish([2, 3][owner], device, weights, &state.chunks, ws, scratch).await
+    }
+
     pub(crate) async fn advance_layer(
         &mut self,
         device: &mut Device,
@@ -562,6 +618,22 @@ impl GroupPrefill {
     }
 }
 
+/// Caller has validated exact lengths, alignment, checked ends and independent owners.
+fn prompt384128_chunks<'a>(sequences: &[Sequence<'a>]) -> Vec<Sequence<'a>> {
+    let a = sequences[0].inputs;
+    let mut chunks: Vec<_> = a.chunks_exact(P128::SIZE).enumerate().map(|(quarter, inputs)| Sequence {
+        inputs,
+        start_position: sequences[0].start_position + quarter * P128::SIZE,
+        blocks: sequences[0].blocks,
+    }).collect();
+    chunks.push(Sequence {
+        inputs: sequences[1].inputs,
+        start_position: sequences[1].start_position,
+        blocks: sequences[1].blocks,
+    });
+    chunks
+}
+
 #[cfg(test)]
 mod prompt512_tests {
     use super::*;
@@ -617,5 +689,60 @@ mod prompt512_tests {
             start_position: 0,
             blocks: &blocks
         }));
+    }
+}
+
+#[cfg(test)]
+mod prompt384128_tests {
+    use super::*;
+    use crate::host::model::Input;
+    fn inputs(count: usize, base: usize) -> Vec<Input<'static>> {
+        (0..count).map(|i| Input {token:base+i,soft:None,logits:i+1==count,image:None,audio:None}).collect()
+    }
+    fn allocations() -> [runtime::Blocks;2] {
+        [runtime::Blocks{sliding:3,full:vec![255,9,13,23,42]},
+         runtime::Blocks{sliding:61,full:vec![254,8,12,22,41]}]
+    }
+    #[test]
+    fn two_owners_derive_three_chronological_a_quarters_and_one_b() {
+        let a=inputs(384,100);let b=inputs(128,1000);let blocks=allocations();
+        for [sa,sb] in [[0,0],[384,128],[896,384],[1664,1920]] {
+            let owners=[Sequence{inputs:&a,start_position:sa,blocks:&blocks[0]},
+                Sequence{inputs:&b,start_position:sb,blocks:&blocks[1]}];
+            assert!(GroupPrefill::supports_prompt384128(&owners));
+            let quarters=prompt384128_chunks(&owners);
+            assert_eq!(quarters.len(),4);
+            assert_eq!(quarters.iter().map(|s|s.start_position).collect::<Vec<_>>(),vec![sa,sa+128,sa+256,sb]);
+            assert_eq!(quarters.iter().map(|s|s.inputs[0].token).collect::<Vec<_>>(),vec![100,228,356,1000]);
+            assert_eq!(quarters.iter().map(|s|s.blocks.sliding).collect::<Vec<_>>(),vec![3,3,3,61]);
+            assert_eq!(quarters.iter().map(|s|s.inputs.last().unwrap().logits).collect::<Vec<_>>(),vec![false,false,true,true]);
+            assert!(quarters.iter().all(WidePrefill::supports));
+            assert!(!GroupPrefill::supports(&quarters),"ordinary independent-quarter guard must reject repeated A");
+        }
+    }
+    #[test]
+    fn rejects_wrong_lengths_alignment_overflow_and_intermediate_outputs() {
+        let mut a=inputs(384,100);let mut b=inputs(128,1000);let blocks=allocations();
+        for (sa,sb,na,nb) in [(1,0,384,128),(0,1,384,128),(0,0,383,128),(0,0,384,127),
+            (0,0,0,128),(usize::MAX-127,0,384,128),(0,usize::MAX-127,384,128)] {
+            assert!(!GroupPrefill::supports_prompt384128(&[
+                Sequence{inputs:&a[..na],start_position:sa,blocks:&blocks[0]},
+                Sequence{inputs:&b[..nb],start_position:sb,blocks:&blocks[1]}]));
+        }
+        assert!(!GroupPrefill::supports_prompt384128(&[]));
+        assert!(!GroupPrefill::supports_prompt384128(&[Sequence{inputs:&a,start_position:0,blocks:&blocks[0]}]));
+        a[127].logits=true;
+        assert!(!GroupPrefill::supports_prompt384128(&[Sequence{inputs:&a,start_position:0,blocks:&blocks[0]},Sequence{inputs:&b,start_position:0,blocks:&blocks[1]}]));
+        a[127].logits=false;b[0].logits=true;
+        assert!(!GroupPrefill::supports_prompt384128(&[Sequence{inputs:&a,start_position:0,blocks:&blocks[0]},Sequence{inputs:&b,start_position:0,blocks:&blocks[1]}]));
+    }
+    #[test]
+    fn rejects_shared_rings_pages_and_duplicate_owner_pages() {
+        let a=inputs(384,100);let b=inputs(128,1000);
+        for mode in 0..3 {
+            let mut blocks=allocations();
+            match mode {0=>blocks[1].sliding=blocks[0].sliding,1=>blocks[1].full[0]=blocks[0].full[0],_=>blocks[0].full[1]=blocks[0].full[0]}
+            assert!(!GroupPrefill::supports_prompt384128(&[Sequence{inputs:&a,start_position:0,blocks:&blocks[0]},Sequence{inputs:&b,start_position:0,blocks:&blocks[1]}]));
+        }
     }
 }

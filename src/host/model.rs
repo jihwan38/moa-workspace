@@ -5,7 +5,7 @@ use crate::{Chip, axes::{B, W}};
 use furiosa_opt_std::prelude::*;
 
 pub use super::prefill::StageTiming;
-use super::prefill::wide::group::{GroupPrefill, PreparedGroup, PreparedPrompt512};
+use super::prefill::wide::group::{GroupPrefill, PreparedGroup, PreparedPrompt512, PreparedPrompt384128};
 use super::prefill::{
     Prefill, PreparedNarrow,
     wide::{PreparedWide, WidePrefill},
@@ -63,6 +63,7 @@ pub struct Model {
     wide: WidePrefill,
     group: Option<GroupPrefill>,
     active_group: Option<PreparedGroup>,
+    active_prompt384128: Option<PreparedPrompt384128>,
     active_prefill: Option<ActivePrefill>,
     logits: Vec<Logits>,
 }
@@ -178,6 +179,7 @@ impl Model {
             wide: WidePrefill::new(device).await?,
             group: None,
             active_group: None,
+            active_prompt384128: None,
             active_prefill: None,
             logits,
         })
@@ -189,6 +191,7 @@ impl Model {
             .as_ref()
             .map(|state| state.blocks().sliding)
             .or_else(|| self.active_group.as_ref().map(|state|state.blocks()[0].sliding))
+            .or_else(|| self.active_prompt384128.as_ref().map(|state|state.blocks()[0].sliding))
     }
 
     /// Every request allocation held by an active prompt scheduling quantum.
@@ -204,6 +207,9 @@ impl Model {
             blocks.push(active.blocks());
         }
         if let Some(active) = &self.active_group {
+            blocks.extend(active.blocks());
+        }
+        if let Some(active) = &self.active_prompt384128 {
             blocks.extend(active.blocks());
         }
         blocks
@@ -376,6 +382,61 @@ impl Model {
             timing.finish = Some(mark.unwrap().elapsed());
         }
         Ok(Some(&self.logits[..4]))
+    }
+
+    /// Prepare exactly two independent owners:384 consecutive inputs from A,
+    /// then128 from B. The three A quarters are derived here, never supplied by
+    /// callers. Retain both request reservations until the final layer completes.
+    pub async fn start_prefill384_128(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() {
+            return Err("another prefill is in progress".into());
+        }
+        if self.logits.len() < 2 || !workspace.is_canonical()
+            || !GroupPrefill::supports_prompt384128(sequences) {
+            return Err("Prompt384128 needs canonical independent384/128 input ranges".into());
+        }
+        for sequence in sequences {
+            validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
+            validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
+        }
+        self.prepare_group_scratch(device).await?;
+        self.active_prompt384128 = Some(self.group.as_mut().unwrap()
+            .prepare_prompt384128(device, &self.weights, sequences, &mut self.prefill).await?);
+        Ok(())
+    }
+
+    /// Advance exactly one complete layer, returning two owner-ordered outputs
+    /// only at completion. Only each owner's final input can request logits.
+    /// As for other prompt checkpoints, discard Model/Workspace after a failed
+    /// or cancelled in-flight device future; do not retry partial cache writes.
+    pub async fn advance_prefill384_128(
+        &mut self, device: &mut Device, workspace: &mut Workspace,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.advance_prefill384_128_measured(device, workspace, None).await
+    }
+    pub(crate) async fn advance_prefill384_128_measured(
+        &mut self, device: &mut Device, workspace: &mut Workspace,
+        mut timing: Option<&mut PrefillAdvanceTiming>,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        if let Some(timing) = timing.as_mut() { **timing = PrefillAdvanceTiming::default(); }
+        let state = self.active_prompt384128.as_mut().ok_or("no Prompt384128 is active")?;
+        let group = self.group.as_mut().ok_or("grouped scratch is missing")?;
+        let mark = timing.as_ref().map(|_| std::time::Instant::now());
+        let complete = group.advance_prompt384128(device, &self.weights, state, workspace, &mut self.prefill).await?;
+        if let Some(timing) = timing.as_mut() { timing.layer = Some(mark.unwrap().elapsed()); }
+        if !complete { return Ok(None); }
+        let mark = timing.as_ref().map(|_| std::time::Instant::now());
+        for owner in 0..2 {
+            std::mem::swap(&mut self.logits[owner], &mut workspace.logits);
+            let result = group.finish_prompt384128(owner, device, &self.weights, state, workspace, &mut self.prefill).await;
+            std::mem::swap(&mut self.logits[owner], &mut workspace.logits);
+            result?;
+        }
+        self.active_prompt384128 = None;
+        if let Some(timing) = timing.as_mut() { timing.finish = Some(mark.unwrap().elapsed()); }
+        Ok(Some(&self.logits[..2]))
     }
 
     /// Diagnostic: process512 consecutive prompt inputs while retaining exactly
