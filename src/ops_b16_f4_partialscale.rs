@@ -116,7 +116,7 @@ fn matrix_tile(device:&mut Device,
         .fetch::<m![L/8%15],m![L%8]>().collect::<m![L/8%15],m![L%8]>().to_vrf();
     let group:VrfTensor<f32,Chip,UpCluster,UpParts,m![L%120]>=device.sub.begin(group.view())
         .fetch::<m![L/8%15],m![L%8]>().collect::<m![L/8%15],m![L%8]>().to_vrf();
-    device.main.begin(weight.view())
+    let reduced:DmTensor<f32,Chip,UpCluster,UpRows,m![L%120,B]>=device.main.begin(weight.view())
         .fetch::<m![L%120],m![H%960]>().fetch_table_lookup::<f8e4m3>()
         .collect::<m![L%120,H/32%30],m![H%32]>()
         .contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(input)
@@ -127,7 +127,10 @@ fn matrix_tile(device:&mut Device,
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&group)
         .vector_widen_concat::<m![L%120,B/8],m![B%8]>()
         .vector_inter_slice_reduce::<UpRows,m![L%120,B/8]>(InterSliceReduceOpF32::Add)
-        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_final().commit_trim::<m![B%8]>().commit();
+    device.main.begin(reduced.view())
+        .fetch::<m![L%120,B/8],m![B%8]>().collect::<m![L%120,B/8],m![B%8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
         .vector_narrow_split::<m![L%120,B/4],m![B%4]>()
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)
@@ -283,7 +286,7 @@ fn stage_down(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![B,L]>, input_sc
     let x:TrfTensor<f8e4m3,Chip,DownCluster,DownParts,m![B%8],m![B/8,L%960]>=device.sub.begin(input.view())
         .fetch::<m![B%8,B/8,L/32%30],m![L%32]>()
         .collect::<m![B%8,B/8,L/32%30],m![L%32]>().to_trf();
-    let result:DmTensor<bf16,Chip,DownCluster,DownRows,m![H%120,B]>=device.main.begin(weight.view())
+    let reduced:DmTensor<f32,Chip,DownCluster,DownRows,m![H%120,B]>=device.main.begin(weight.view())
         .fetch::<m![H%120],m![L%960]>().fetch_table_lookup::<f8e4m3>()
         .collect::<m![H%120,L/32%30],m![L%32]>()
         .contract_outer::<m![H%120,L/64%15,B/8],m![L%64],_,_,_>(&x)
@@ -294,7 +297,10 @@ fn stage_down(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![B,L]>, input_sc
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&block)
         .vector_widen_concat::<m![H%120,B/8],m![B%8]>()
         .vector_inter_slice_reduce::<DownRows,m![H%120,B/8]>(InterSliceReduceOpF32::Add)
-        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_final().commit_trim::<m![B%8]>().commit();
+    let result:DmTensor<bf16,Chip,DownCluster,DownRows,m![H%120,B]>=device.main.begin(reduced.view())
+        .fetch::<m![H%120,B/8],m![B%8]>().collect::<m![H%120,B/8],m![B%8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
         .vector_narrow_split::<m![H%120,B/4],m![B%4]>()
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)
         .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)
