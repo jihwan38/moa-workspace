@@ -628,6 +628,8 @@ fn prepare_heads(
     let cos: DmTensor<bf16, Chip, Cluster, KRows, m![P128 % 4, Ds]> = cos.to_dm(&mut device.tdma);
     let sin: DmTensor<bf16, Chip, Cluster, KRows, m![P128 % 4, Ds]> = sin.to_dm(&mut device.tdma);
     let k = rope_ds(device, &k, &cos, &sin);
+    let k = crate::ops_fixed_e4_quality::maybe_rows::<_,_,m![P128%4]>(device, k);
+    let v = crate::ops_fixed_e4_quality::maybe_rows::<_,_,m![P128%4]>(device, v);
     k.view().to_hbm_view(&mut device.tdma, k_out.view_mut());
     v.view().to_hbm_view(&mut device.tdma, v_out.view_mut());
     q

@@ -430,6 +430,8 @@ pub fn sliding_heads_r64(
     let cos: DmTensor<bf16, Chip, Cluster, KRows, m![R64%2,Ds]> = cos.to_dm(&mut device.tdma);
     let sin: DmTensor<bf16, Chip, Cluster, KRows, m![R64%2,Ds]> = sin.to_dm(&mut device.tdma);
     let k = rope_ds(device, &k, &cos, &sin);
+    let k = crate::ops_fixed_e4_quality::maybe_rows::<_,_,m![R64%2]>(device, k);
+    let v = crate::ops_fixed_e4_quality::maybe_rows::<_,_,m![R64%2]>(device, v);
     q.view().to_hbm_view(&mut device.tdma, q_out.view_mut());
     k.view().to_hbm_view(&mut device.tdma, k_out.view_mut());
     v.view().to_hbm_view(&mut device.tdma, v_out.view_mut());
