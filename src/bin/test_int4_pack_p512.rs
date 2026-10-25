@@ -1,11 +1,14 @@
-//! Future raw-byte gate only: source preparation does not authorize an ELF/run.
-//! Quantization and GEMM are deliberately absent from this ABI/layout proof.
+//! Integer packing/raw-byte gate and completed-call costs; no quantizer or GEMM.
 use furiosa_opt_gemma4::{
     Chip,
     axes::{H, L, P512},
     i4_p512_raw_adapter as raw, ops_int4_pack_p512 as k,
 };
 use furiosa_opt_std::prelude::*;
+use furiosa_opt_std::runtime::{Buffers, DeviceSend};
+use std::time::Instant;
+#[path = "support/npu_profile.rs"]
+mod npu_profile;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 fn signed(n: usize) -> i32 {
@@ -92,11 +95,34 @@ async fn read<D: MaterializableScalar, E: M>(d: &mut Device, t: &HbmTensor<D, Ch
         .into_buf()
 }
 
+fn reject_bad_owners<P: M, O: M>(
+    packed: &HbmTensor<i32, Chip, P>,
+    output: &HbmTensor<i4, Chip, O>,
+    width: usize,
+) -> Result<()> {
+    let mut valid = Buffers::new();
+    DeviceSend::bind(packed, &mut valid)?;
+    DeviceSend::bind(output, &mut valid)?;
+    raw::validate_bound(&valid, width)?;
+    let other_width = if width == H::SIZE { L::SIZE } else { H::SIZE };
+    assert!(raw::validate_bound(&valid, other_width).is_err());
+    let mut one = Buffers::new();
+    DeviceSend::bind(packed, &mut one)?;
+    assert!(raw::validate_bound(&one, width).is_err());
+    DeviceSend::bind(packed, &mut one)?;
+    assert!(raw::validate_bound(&one, width).is_err(), "aliased owners rejected");
+    // All three failures are read-only validation; no Function::run occurs.
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
+    let collector = npu_profile::Collector::default();
+    tracing::subscriber::set_global_default(collector.clone())?;
     let mut d = Device::new(k::pack_input.topology())?;
     let mut total_codes = 0usize;
     let mut total_packed_bytes = 0usize;
+    let mut owner_rejection_checks = 0usize;
     macro_rules! check_shape {($axis:ty,$packed:ty,$i4:ty,$pack:expr,$reader:expr,$raw:expr)=>{{
         let width=<$axis>::SIZE;
         for case in 0..5 {
@@ -129,6 +155,11 @@ async fn main() -> Result<()> {
             let typed:HbmTensor<i4,Chip,$i4>=upload(&mut d,blocked.clone()).await;
             let mut candidate:HbmTensor<i4,Chip,m![P512,$axis]>=upload(&mut d,vec![0xad;512*width/2]).await;
             let mut control:HbmTensor<i4,Chip,m![P512,$axis]>=upload(&mut d,vec![0x52;512*width/2]).await;
+            if case==0 {
+                reject_bad_owners(&packed,&candidate,width)?;
+                owner_rejection_checks+=3;
+                assert_eq!(read(&mut d,&candidate).await,vec![0xad;512*width/2],"rejected binding changed output");
+            }
             launch($pack,(&mut d,&input,&shifts,&mut packed)).await?;
             assert_eq!(read(&mut d,&packed).await,blocked,"whole blocked packed owner");
             // Candidate first, with independently initialized output. The later
@@ -143,6 +174,42 @@ async fn main() -> Result<()> {
             assert_eq!(read(&mut d,&input).await,input_bytes,"ordinary I32 input immutable");
             let shift_bytes:Vec<u8>=(0..8i32).flat_map(|i|(4*i).to_le_bytes()).collect();
             assert_eq!(read(&mut d,&shifts).await,shift_bytes,"shift table immutable");
+            if case==0 || case==4 {
+                let mut timing=[Vec::new(),Vec::new()];
+                for mode in [0,1,1,0] {
+                    let start=Instant::now();
+                    for _ in 0..16 {
+                        launch($pack,(&mut d,&input,&shifts,&mut packed)).await?;
+                        if mode==1 {$raw(&mut d,&packed,&mut candidate).await?;}
+                    }
+                    timing[mode].push(start.elapsed().as_secs_f64()*1e6/16.0);
+                }
+                assert_eq!(read(&mut d,&packed).await,blocked,"packed bytes after timed reuse");
+                assert_eq!(read(&mut d,&candidate).await,canonical,"raw output after timed reuse");
+                assert_eq!(read(&mut d,&control).await,canonical,"independent typed output unchanged");
+                assert_eq!(read(&mut d,&input).await,input_bytes,"input immutable after timed reuse");
+                assert_eq!(read(&mut d,&shifts).await,shift_bytes,"shifts immutable after timed reuse");
+                assert_eq!(read(&mut d,&typed).await,blocked,"typed source immutable after timed reuse");
+                println!("PACK_P512_TIMING width={width} case={case} repetitions=16 pack_us={:?} pack_plus_raw_copy_us={:?} complete_awaited_calls=true excludes_quantizer_gemm_setup_readback=true",timing[0],timing[1]);
+            }
+            if case==0 && std::env::var_os("FURIOSA_OPT_PROFILE").is_some() {
+                println!("PACK_P512_PROFILE width={width} mode=pack begin");
+                collector.enable(true);
+                launch($pack,(&mut d,&input,&shifts,&mut packed)).await?;
+                collector.enable(false);
+                println!("PACK_P512_PROFILE width={width} mode=pack end");
+                println!("PACK_P512_PROFILE width={width} mode=pack_plus_raw_copy begin");
+                collector.enable(true);
+                launch($pack,(&mut d,&input,&shifts,&mut packed)).await?;
+                $raw(&mut d,&packed,&mut candidate).await?;
+                collector.enable(false);
+                println!("PACK_P512_PROFILE width={width} mode=pack_plus_raw_copy end");
+                assert_eq!(read(&mut d,&packed).await,blocked,"packed bytes after profiling");
+                assert_eq!(read(&mut d,&candidate).await,canonical,"raw bytes after profiling");
+                assert_eq!(read(&mut d,&input).await,input_bytes,"input immutable after profiling");
+                assert_eq!(read(&mut d,&shifts).await,shift_bytes,"shifts immutable after profiling");
+                assert_eq!(read(&mut d,&typed).await,blocked,"typed source immutable after profiling");
+            }
             println!("PACK_P512_CASE width={width} case={case} codes={} packed_bytes={} whole_owner_exact=true typed_raw_canonical_exact=true",values.len(),blocked.len());
             total_codes+=values.len();total_packed_bytes+=blocked.len();
         }
@@ -163,8 +230,11 @@ async fn main() -> Result<()> {
         k::read_hidden,
         raw::read_hidden
     );
+    assert_eq!(total_codes, 49_152_000);
+    assert_eq!(total_packed_bytes, 24_576_000);
+    assert_eq!(owner_rejection_checks, 6);
     println!(
-        "PASS_PACK_P512 codes={total_codes} packed_bytes={total_packed_bytes} scope=integer_packing_and_raw_blocked_layout_only no_quantizer_gemm_model_or_speed_claim=true"
+        "PASS_PACK_P512 codes={total_codes} packed_bytes={total_packed_bytes} owner_rejection_checks={owner_rejection_checks} scope=integer_packing_and_raw_blocked_layout_only no_quantizer_gemm_model_gain_claim=true"
     );
     Ok(())
 }

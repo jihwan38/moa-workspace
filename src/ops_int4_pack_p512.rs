@@ -20,6 +20,23 @@ fn pack_dm<K: AxisName, W: AxisName>(
     input: &HbmTensor<i32, Chip, m![P512, K]>,
     shifts: &HbmTensor<i32, Chip, m![K % 8]>,
 ) -> DmTensor<i32, Chip, Cluster, Rows, m![K / 8]> {
+    // Public AxisName/M size traits make these preconditions compile-time
+    // assertions for each private instantiation, before any unsafe boundary.
+    // Every reshape below fixes Chip/Cluster/Rows to these identical types;
+    // the SDK independently checks all per-memory-level physical extents.
+    const {
+        assert!(K::SIZE > 0 && K::SIZE % 960 == 0);
+        assert!(Nibbles::SIZE == 8);
+        assert!(W::SIZE <= usize::MAX / Nibbles::SIZE);
+        assert!(W::SIZE * Nibbles::SIZE == K::SIZE);
+        assert!(W::SIZE % 2 == 0);
+        assert!(<m![K / 8]>::SIZE == W::SIZE);
+        assert!(<m![K % 8]>::SIZE == Nibbles::SIZE);
+        assert!(<m![W, Nibbles]>::SIZE == <m![K]>::SIZE);
+        assert!(Chip::SIZE == 1 && Cluster::SIZE == 2 && Rows::SIZE == 256);
+        assert!(P512::SIZE == Cluster::SIZE * Rows::SIZE);
+        assert!(core::mem::size_of::<i32>() == 4);
+    };
     let input: DmTensor<i32, Chip, Cluster, Rows, m![K]> = input.to_dm(&mut device.tdma);
     // SAFETY: at every fixed (chip,cluster,slice), canonical local offset k
     // becomes (word=k/8,nibble=k%8), whose row-major offset is 8*word+nibble=k.
