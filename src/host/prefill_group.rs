@@ -70,12 +70,14 @@ pub(crate) struct PreparedGroup {
     blocked_residual: bool,
     composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
+    weight_stationary_qkv: bool,
 }
 /// Exactly two actual P128 execution states; padding has no request metadata.
 pub(crate) struct PreparedTail256 {
     preload_ffn_globals: bool,
     composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
+    weight_stationary_qkv: bool,
     states: [PreparedWide; 2],
     owners: usize,
 }
@@ -85,6 +87,13 @@ impl PreparedTail256 {
             return Err("O producer must be selected before the first layer".into());
         }
         self.weight_stationary_output = enabled;
+        Ok(())
+    }
+    pub(crate) fn weight_stationary_qkv(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("sliding QKV producer must be selected before the first layer".into());
+        }
+        self.weight_stationary_qkv = enabled;
         Ok(())
     }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
@@ -128,6 +137,7 @@ pub(crate) struct PreparedTail384 {
     preload_ffn_globals: bool,
     composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
+    weight_stationary_qkv: bool,
     states: [PreparedWide; 3],
     owner_first_rows: Vec<usize>,
     owner_final_rows: Vec<usize>,
@@ -138,6 +148,13 @@ impl PreparedTail384 {
             return Err("O producer must be selected before the first layer".into());
         }
         self.weight_stationary_output = enabled;
+        Ok(())
+    }
+    pub(crate) fn weight_stationary_qkv(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("sliding QKV producer must be selected before the first layer".into());
+        }
+        self.weight_stationary_qkv = enabled;
         Ok(())
     }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
@@ -182,6 +199,9 @@ impl PreparedThreeOwner512 {
     pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
         self.chunks.weight_stationary_output(enabled)
     }
+    pub(crate) fn weight_stationary_qkv(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.weight_stationary_qkv(enabled)
+    }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
         self.chunks.preload_ffn_globals(enabled)
     }
@@ -201,13 +221,14 @@ struct GroupExecution {
     quarter_norm: bool, fused_ffn_core: bool, preload_ffn_globals: bool, quarter_postnorm: bool,
     blocked_residual: bool, composed_ffn_epilogue: bool, projection_owned_ffn: bool,
     weight_stationary_output: bool,
+    weight_stationary_qkv: bool,
 }
 impl GroupExecution {
     fn production() -> Self {
         Self { fused_norms:true, blocked_output:true, shard_quant:true,
             quarter_norm:true, fused_ffn_core:true, preload_ffn_globals:true, quarter_postnorm:true,
             blocked_residual:true, composed_ffn_epilogue:true, projection_owned_ffn:false,
-            weight_stationary_output:true }
+            weight_stationary_output:true, weight_stationary_qkv:false }
     }
 }
 /// Four chronological chunks of one request. Only its single allocation may be
@@ -226,6 +247,9 @@ pub(crate) struct PreparedPrompt384128 {
 impl PreparedPrompt384128 {
     pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
         self.chunks.weight_stationary_output(enabled)
+    }
+    pub(crate) fn weight_stationary_qkv(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.weight_stationary_qkv(enabled)
     }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
         self.chunks.preload_ffn_globals(enabled)
@@ -248,6 +272,9 @@ impl PreparedPrompt384128 {
 impl PreparedPrompt512 {
     pub(crate) fn weight_stationary_output(&mut self, enabled: bool) -> Result<()> {
         self.chunks.weight_stationary_output(enabled)
+    }
+    pub(crate) fn weight_stationary_qkv(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.weight_stationary_qkv(enabled)
     }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
         self.chunks.preload_ffn_globals(enabled)
@@ -280,6 +307,13 @@ impl PreparedGroup {
             return Err("O producer must be selected before the first layer".into());
         }
         self.weight_stationary_output = enabled;
+        Ok(())
+    }
+    pub(crate) fn weight_stationary_qkv(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("sliding QKV producer must be selected before the first layer".into());
+        }
+        self.weight_stationary_qkv = enabled;
         Ok(())
     }
     pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
@@ -581,6 +615,7 @@ impl GroupPrefill {
             blocked_residual: true,
             composed_ffn_epilogue: true, projection_owned_ffn: self.has_projection_storage(),
             weight_stationary_output: true,
+            weight_stationary_qkv: false,
             states: [
                 self.rows[0]
                     .prepare_with_media_batch(device, weights, &sequences[0], scratch, true, batched_media)
@@ -635,7 +670,7 @@ impl GroupPrefill {
                 std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
         }
         Ok(PreparedTail256 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:self.has_projection_storage(),
-            weight_stationary_output:true, owners:sequences.len(), states:[
+            weight_stationary_output:true, weight_stationary_qkv:false, owners:sequences.len(), states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
         ]})
@@ -649,6 +684,7 @@ impl GroupPrefill {
         execution.projection_owned_ffn = state.projection_owned_ffn;
         execution.preload_ffn_globals = state.preload_ffn_globals;
         execution.weight_stationary_output = state.weight_stationary_output;
+        execution.weight_stationary_qkv = state.weight_stationary_qkv;
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
     pub(crate) async fn finish_tail256(
@@ -699,7 +735,7 @@ impl GroupPrefill {
         padding_row.attn_f=HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
             std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
         Ok(PreparedTail384 { preload_ffn_globals:true, composed_ffn_epilogue:true, projection_owned_ffn:self.has_projection_storage(),
-            weight_stationary_output:true, owner_first_rows, owner_final_rows, states:[
+            weight_stationary_output:true, weight_stationary_qkv:false, owner_first_rows, owner_final_rows, states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
             self.rows[2].prepare_with_media_batch(device,weights,&chunks[2],scratch,true,batched_media).await?,
@@ -714,6 +750,7 @@ impl GroupPrefill {
         execution.projection_owned_ffn = state.projection_owned_ffn;
         execution.preload_ffn_globals = state.preload_ffn_globals;
         execution.weight_stationary_output = state.weight_stationary_output;
+        execution.weight_stationary_qkv = state.weight_stationary_qkv;
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
     pub(crate) async fn finish_tail384(
@@ -794,6 +831,7 @@ impl GroupPrefill {
             projection_owned_ffn:state.projection_owned_ffn,
             preload_ffn_globals:state.preload_ffn_globals,
             weight_stationary_output:state.weight_stationary_output,
+            weight_stationary_qkv:state.weight_stationary_qkv,
         };
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
@@ -858,6 +896,19 @@ impl GroupPrefill {
         let [oa, ob, oc, od] = &mut self.blocked;
         match layer {
             Layer::Sliding(l) => {
+                if execution.weight_stationary_qkv {
+                    // Named candidate factors have the identical blocked Q/K/V
+                    // byte order. Each view borrows its existing row owner.
+                    launch(crate::ops_qkv_weight_stationary::project_sliding_qkv_four,
+                        (device, &a.qkv_input, &a.qkv_scale, &b.qkv_input, &b.qkv_scale,
+                         &c.qkv_input, &c.qkv_scale, &d.qkv_input, &d.qkv_scale,
+                         &l.q_weight, &l.k_weight, &l.v_weight,
+                         &l.q_weight_scale, &l.k_weight_scale, &l.v_weight_scale,
+                         unsafe { (oa.q_s.view_mut().reshape(), oa.k_s.view_mut().reshape(), oa.v_s.view_mut().reshape()) },
+                         unsafe { (ob.q_s.view_mut().reshape(), ob.k_s.view_mut().reshape(), ob.v_s.view_mut().reshape()) },
+                         unsafe { (oc.q_s.view_mut().reshape(), oc.k_s.view_mut().reshape(), oc.v_s.view_mut().reshape()) },
+                         unsafe { (od.q_s.view_mut().reshape(), od.k_s.view_mut().reshape(), od.v_s.view_mut().reshape()) })).await?;
+                } else {
                 launch(crate::ops_qkv_shared_ingress::project_sliding_qkv_four,
                     (device, &a.qkv_input, &a.qkv_scale, &b.qkv_input, &b.qkv_scale,
                      &c.qkv_input, &c.qkv_scale, &d.qkv_input, &d.qkv_scale,
@@ -867,6 +918,7 @@ impl GroupPrefill {
                      (&mut ob.q_s, &mut ob.k_s, &mut ob.v_s),
                      (&mut oc.q_s, &mut oc.k_s, &mut oc.v_s),
                      (&mut od.q_s, &mut od.k_s, &mut od.v_s))).await?;
+                }
             }
             Layer::Full(l) => {
                 launch(crate::ops_qk_shared_ingress::project_full_qk_four,
