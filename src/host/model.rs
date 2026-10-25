@@ -95,6 +95,7 @@ enum Dispatch {
     DirectFullAttentionDiagnostic,
     Bf16QkvDiagnostic,
     Decode64Diagnostic,
+    OriginalDecodeSlidingDiagnostic,
 }
 impl Dispatch {
     fn use_wide(self, sequence: &Sequence<'_>) -> bool {
@@ -103,7 +104,7 @@ impl Dispatch {
                 Self::Serial => false,
                 Self::Automatic => sequence.inputs.len() == crate::axes::P128::SIZE,
                 Self::WideDiagnostic | Self::NativeQkvDiagnostic | Self::Bf16QkvDiagnostic | Self::OriginalAttentionDiagnostic | Self::OriginalFullAttentionDiagnostic | Self::DirectFullAttentionDiagnostic => true,
-                Self::Decode64Diagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
+                Self::Decode64Diagnostic | Self::OriginalDecodeSlidingDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
             }
     }
 }
@@ -662,6 +663,22 @@ impl Model {
         Ok(&self.logits[..sequences.len()])
     }
 
+    /// Matched R64 control: disable only prefix768; retain existing512/mixed/full
+    /// attention, exact request histories, all projection and LM arithmetic.
+    pub async fn forward_sequences_r64_original_sliding(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        if !workspace.is_canonical() {
+            return Err("R64 requires canonical KV storage".into());
+        }
+        self.forward_sequences_inner(device, sequences, workspace, Dispatch::OriginalDecodeSlidingDiagnostic, false)
+            .await?;
+        Ok(&self.logits[..sequences.len()])
+    }
+
     /// Compute one actual R64 step, then compare both vocabulary heads on its identical final norm.
     /// Returned raw buffers use BlockedLogits order; KV advances exactly once.
     /// This explicit diagnostic always reruns the original head as its reference.
@@ -730,7 +747,7 @@ impl Model {
         let use_r64 = workspace.is_canonical()
             && independent
             && (1..=crate::axes::R64::SIZE).contains(&singletons.len())
-            && (dispatch == Dispatch::Decode64Diagnostic
+            && (matches!(dispatch, Dispatch::Decode64Diagnostic | Dispatch::OriginalDecodeSlidingDiagnostic)
                 || (dispatch != Dispatch::Serial && singletons.len() > crate::axes::B::SIZE));
         let batched_singletons = use_r64
             || (dispatch != Dispatch::Serial
@@ -766,6 +783,7 @@ impl Model {
                         &mut self.logits,
                         &singletons,
                         output_layout == OutputLayout::Rows,
+                        dispatch != Dispatch::OriginalDecodeSlidingDiagnostic,
                     )
                     .await?;
             } else {

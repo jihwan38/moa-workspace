@@ -19,6 +19,7 @@ pub(crate) struct Step64 {
     pub sliding_offsets: HbmTensor<i32, Chip, m![R64]>,
     pub live: usize,
     pub sliding_short_groups: u8,
+    pub sliding_prefix768: bool,
     pub sliding_group_policy: Option<HbmScalar<i32>>,
     pub segments: Vec<PoolOffsets>,
 }
@@ -88,6 +89,7 @@ impl Step64 {
             }
         }
         let sliding_short_groups = sliding_short_group_mask(sequences.iter().map(|s| s.start_position));
+        let sliding_prefix768 = prefix768_eligible(sequences.iter().map(|s| s.start_position));
         let sliding_group_policy = if sliding_short_groups != 0 && sliding_short_groups != 255 {
             Some(HbmScalar::from_host(i32::from(sliding_short_groups), &mut device.pdma).await?)
         } else {
@@ -101,6 +103,7 @@ impl Step64 {
             sliding_offsets,
             live,
             sliding_short_groups,
+            sliding_prefix768,
             sliding_group_policy,
             segments,
         })
@@ -115,9 +118,34 @@ fn sliding_short_group_mask(positions: impl IntoIterator<Item = usize>) -> u8 {
     })
 }
 
+/// Keep every existing512-eligible live group on its faster current route.
+/// Only unwrapped histories below768 can omit the final quarter of the ring.
+fn prefix768_eligible(positions: impl IntoIterator<Item = usize>) -> bool {
+    let positions: Vec<_> = positions.into_iter().collect();
+    !positions.is_empty() && positions.len() <= R64::SIZE
+        && positions.iter().all(|&p| p < 768)
+        && positions.chunks(8).all(|group| group.iter().any(|&p| p >= 512))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::sliding_short_group_mask;
+    use super::{sliding_short_group_mask, prefix768_eligible};
+
+    #[test]
+    fn prefix768_preserves512_priority_and_rejects_future_or_wrapped_history() {
+        assert!(prefix768_eligible([512;64]));
+        assert!(prefix768_eligible([767;64]));
+        assert!(prefix768_eligible([512;7]));
+        assert!(prefix768_eligible([639;17]));
+        assert!(!prefix768_eligible([511;64]));
+        assert!(!prefix768_eligible([768;64]));
+        assert!(!prefix768_eligible([1024;64]));
+        assert!(!prefix768_eligible([]));
+        let mut p=[512;64]; p[8..16].fill(511);
+        assert!(!prefix768_eligible(p));
+        p[15]=512; assert!(prefix768_eligible(p));
+        p[63]=768; assert!(!prefix768_eligible(p));
+    }
 
     #[test]
     fn prefix_policy_tracks_live_group_boundaries_and_ring_wrap() {

@@ -183,6 +183,7 @@ impl Decode64 {
         logits: &mut [Logits],
         output_rows: &[usize],
         extract_rows: bool,
+        allow_prefix768: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -197,7 +198,8 @@ impl Decode64 {
         if !ws.is_canonical() || !super::request_pool::independent_sequences(sequences) {
             return Err("R64 execution requires distinct canonical request allocations".into());
         }
-        let metadata = Step64::new(device, sequences).await?;
+        let mut metadata = Step64::new(device, sequences).await?;
+        metadata.sliding_prefix768 &= allow_prefix768;
         let token_offsets = HostTensor::<i32, m![R64]>::from_vec(
             (0..R64::SIZE)
                 .map(|r| (sequences[r.min(count - 1)].inputs[0].token * H::SIZE * 2) as i32)
@@ -409,6 +411,10 @@ impl Decode64 {
             ),
         )
         .await?;
+        } else if metadata.sliding_prefix768 {
+            launch(crate::ops_request_sliding_r64_prefix768::sliding_attention_r64,
+                (device, &self.q_s, &*k, &*v, &metadata.ring_offsets,
+                 &metadata.sliding_mask, &mut self.attn_s)).await?;
         } else if let Some(policy) = &metadata.sliding_group_policy {
             launch(
                 crate::ops_request_sliding_r64_mixed512::sliding_attention_r64,
