@@ -80,7 +80,7 @@ pub fn quantize_row(
 
     // Real replication into eight independent threshold slices, not a dtype or
     // physical-layout reinterpretation. Two H960 VRFs plus two scalar VRFs use
-    // 7,744 bytes per PE in this pass.
+    // 7,744 bytes per logical slice in this pass (512 slices, not 512 PEs).
     let nd: DmTensor<i32, Chip, Cluster, Comparisons, m![H % 960]> = numerator.to_dm(&mut device.tdma);
     let dd: DmTensor<i32, Chip, Cluster, Comparisons, m![H % 960]> = delta.to_dm(&mut device.tdma);
     let md: DmTensor<i32, Chip, Cluster, Comparisons, m![1 # 8]> = mantissa.to_dm(&mut device.tdma);

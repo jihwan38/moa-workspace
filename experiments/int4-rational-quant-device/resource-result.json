@@ -1,0 +1,727 @@
+{
+  "status": "resource_screen_pass_checkpoint_only",
+  "scope": "B16 x H3840 BF16 to ordinary I32 codes plus16F32scales; no pack or consumer",
+  "compiled_source_commit": "5f3a1a0b",
+  "compiled_kernel_source_sha256": "82f30fd3e4edd70a70972047d099972157b48df4b84a16b9ee7871111dfafef4",
+  "post_compile_source_delta": "comment only: per PE corrected to per logical slice; no new build claimed",
+  "complete_estimated_cycles": 19765,
+  "preregistered_max_cycles": 20000,
+  "prior_power2_estimated_cycles": 9312,
+  "ratio_to_prior_distinct_contract": 2.1225300687285222,
+  "actual_device_us": null,
+  "core_comparison_and_reduce_cycles": 462,
+  "vrf": {
+    "logical_slices": 512,
+    "physical_pes": 8,
+    "live_bytes_total": 3964928,
+    "live_bytes_per_logical_slice": 7744,
+    "allocator_address_envelope_per_logical_slice": 8192,
+    "tensors": [
+      {
+        "tensor": "%T19",
+        "name": "d",
+        "lifetime": {
+          "begin": 12664,
+          "end": 15625
+        },
+        "iteration_index": null,
+        "allocation": {
+          "buffer_type": "Vrf",
+          "address": 2228224,
+          "size": 1966080,
+          "physical_pages": []
+        }
+      },
+      {
+        "tensor": "%T11",
+        "name": "ea",
+        "lifetime": {
+          "begin": 7754,
+          "end": 8422
+        },
+        "iteration_index": null,
+        "allocation": {
+          "buffer_type": "Vrf",
+          "address": 16384,
+          "size": 16384,
+          "physical_pages": []
+        }
+      },
+      {
+        "tensor": "%T18",
+        "name": "n",
+        "lifetime": {
+          "begin": 10109,
+          "end": 15625
+        },
+        "iteration_index": null,
+        "allocation": {
+          "buffer_type": "Vrf",
+          "address": 32768,
+          "size": 1966080,
+          "physical_pages": []
+        }
+      },
+      {
+        "tensor": "%T23",
+        "name": "flip",
+        "lifetime": {
+          "begin": 15625,
+          "end": 16546
+        },
+        "iteration_index": null,
+        "allocation": {
+          "buffer_type": "Vrf",
+          "address": 32768,
+          "size": 1966080,
+          "physical_pages": []
+        }
+      },
+      {
+        "tensor": "%T21",
+        "name": "odd",
+        "lifetime": {
+          "begin": 3558,
+          "end": 15625
+        },
+        "iteration_index": null,
+        "allocation": {
+          "buffer_type": "Vrf",
+          "address": 0,
+          "size": 16384,
+          "physical_pages": []
+        }
+      },
+      {
+        "tensor": "%T20",
+        "name": "m",
+        "lifetime": {
+          "begin": 14896,
+          "end": 15625
+        },
+        "iteration_index": null,
+        "allocation": {
+          "buffer_type": "Vrf",
+          "address": 1998848,
+          "size": 16384,
+          "physical_pages": []
+        }
+      }
+    ]
+  },
+  "dram_allocations": [
+    "DramIO(0)",
+    "DramIO(1)",
+    "DramIO(2)",
+    "DramIO(3)"
+  ],
+  "runtime_hbm_scratch": false,
+  "operators": [
+    {
+      "operator": "@1",
+      "kind": "dma.dto_s",
+      "inputs": [
+        "%T0"
+      ],
+      "outputs": [
+        "%T4"
+      ],
+      "cycles": 1091,
+      "spans": [
+        {
+          "begin": 1003,
+          "end": 2094
+        }
+      ]
+    },
+    {
+      "operator": "@7",
+      "kind": "rngd_cmd.tu_exec",
+      "inputs": [
+        "%T4"
+      ],
+      "outputs": [
+        "%T5"
+      ],
+      "cycles": 1241,
+      "spans": [
+        {
+          "begin": 2094,
+          "end": 3335
+        }
+      ]
+    },
+    {
+      "operator": "@8",
+      "kind": "dma.dto_s",
+      "inputs": [
+        "%T1"
+      ],
+      "outputs": [
+        "%T17"
+      ],
+      "cycles": 1464,
+      "spans": [
+        {
+          "begin": 2094,
+          "end": 3558
+        }
+      ]
+    },
+    {
+      "operator": "@13",
+      "kind": "rngd_cmd.tu_exec",
+      "inputs": [
+        "%T5"
+      ],
+      "outputs": [
+        "%T7"
+      ],
+      "cycles": 282,
+      "spans": [
+        {
+          "begin": 3335,
+          "end": 3617
+        }
+      ]
+    },
+    {
+      "operator": "@16",
+      "kind": "rngd_cmd.sto_vrf",
+      "inputs": [
+        "%T17"
+      ],
+      "outputs": [
+        "%T21"
+      ],
+      "cycles": 267,
+      "spans": [
+        {
+          "begin": 3558,
+          "end": 3825
+        }
+      ]
+    },
+    {
+      "operator": "@18",
+      "kind": "dma.sto_s",
+      "inputs": [
+        "%T4"
+      ],
+      "outputs": [
+        "%T9"
+      ],
+      "cycles": 2436,
+      "spans": [
+        {
+          "begin": 3758,
+          "end": 6194
+        }
+      ]
+    },
+    {
+      "operator": "@22",
+      "kind": "rngd_cmd.tu_exec",
+      "inputs": [
+        "%T5"
+      ],
+      "outputs": [
+        "%T8"
+      ],
+      "cycles": 282,
+      "spans": [
+        {
+          "begin": 3758,
+          "end": 4040
+        }
+      ]
+    },
+    {
+      "operator": "@29",
+      "kind": "rngd_cmd.tu_exec",
+      "inputs": [
+        "%T5"
+      ],
+      "outputs": [
+        "%T6"
+      ],
+      "cycles": 282,
+      "spans": [
+        {
+          "begin": 4040,
+          "end": 4322
+        }
+      ]
+    },
+    {
+      "operator": "@38",
+      "kind": "rngd_cmd.tu_exec",
+      "inputs": [
+        "%T9"
+      ],
+      "outputs": [
+        "%T13"
+      ],
+      "cycles": 401,
+      "spans": [
+        {
+          "begin": 6194,
+          "end": 6595
+        }
+      ]
+    },
+    {
+      "operator": "@39",
+      "kind": "dma.sto_s",
+      "inputs": [
+        "%T7"
+      ],
+      "outputs": [
+        "%T10"
+      ],
+      "cycles": 1560,
+      "spans": [
+        {
+          "begin": 6194,
+          "end": 7754
+        }
+      ]
+    },
+    {
+      "operator": "@48",
+      "kind": "rngd_cmd.sto_vrf",
+      "inputs": [
+        "%T10"
+      ],
+      "outputs": [
+        "%T11"
+      ],
+      "cycles": 267,
+      "spans": [
+        {
+          "begin": 7754,
+          "end": 8021
+        }
+      ]
+    },
+    {
+      "operator": "@49",
+      "kind": "dma.sto_s",
+      "inputs": [
+        "%T13"
+      ],
+      "outputs": [
+        "%T14"
+      ],
+      "cycles": 2355,
+      "spans": [
+        {
+          "begin": 7754,
+          "end": 10109
+        }
+      ]
+    },
+    {
+      "operator": "@53",
+      "kind": "rngd_cmd.tu_exec",
+      "inputs": [
+        "%T9",
+        "%T11"
+      ],
+      "outputs": [
+        "%T12"
+      ],
+      "cycles": 401,
+      "spans": [
+        {
+          "begin": 8021,
+          "end": 8422
+        }
+      ]
+    },
+    {
+      "operator": "@58",
+      "kind": "rngd_cmd.sto_vrf",
+      "inputs": [
+        "%T14"
+      ],
+      "outputs": [
+        "%T18"
+      ],
+      "cycles": 743,
+      "spans": [
+        {
+          "begin": 10109,
+          "end": 10852
+        }
+      ]
+    },
+    {
+      "operator": "@60",
+      "kind": "dma.sto_s",
+      "inputs": [
+        "%T12"
+      ],
+      "outputs": [
+        "%T15"
+      ],
+      "cycles": 2355,
+      "spans": [
+        {
+          "begin": 10309,
+          "end": 12664
+        }
+      ]
+    },
+    {
+      "operator": "@65",
+      "kind": "rngd_cmd.sto_vrf",
+      "inputs": [
+        "%T15"
+      ],
+      "outputs": [
+        "%T19"
+      ],
+      "cycles": 743,
+      "spans": [
+        {
+          "begin": 12664,
+          "end": 13407
+        }
+      ]
+    },
+    {
+      "operator": "@66",
+      "kind": "dma.sto_s",
+      "inputs": [
+        "%T8"
+      ],
+      "outputs": [
+        "%T16"
+      ],
+      "cycles": 2232,
+      "spans": [
+        {
+          "begin": 12664,
+          "end": 14896
+        }
+      ]
+    },
+    {
+      "operator": "@74",
+      "kind": "rngd_cmd.sto_vrf",
+      "inputs": [
+        "%T16"
+      ],
+      "outputs": [
+        "%T20"
+      ],
+      "cycles": 267,
+      "spans": [
+        {
+          "begin": 14896,
+          "end": 15163
+        }
+      ]
+    },
+    {
+      "operator": "@75",
+      "kind": "dma.sto_d",
+      "inputs": [
+        "%T6",
+        "%T3"
+      ],
+      "outputs": [
+        "%T28"
+      ],
+      "cycles": 3543,
+      "spans": [
+        {
+          "begin": 14896,
+          "end": 18439
+        }
+      ]
+    },
+    {
+      "operator": "@79",
+      "kind": "rngd_cmd.tu_exec",
+      "inputs": [
+        "%T14",
+        "%T20",
+        "%T19",
+        "%T21",
+        "%T18"
+      ],
+      "outputs": [
+        "%T22"
+      ],
+      "cycles": 462,
+      "spans": [
+        {
+          "begin": 15163,
+          "end": 15625
+        }
+      ]
+    },
+    {
+      "operator": "@84",
+      "kind": "rngd_cmd.tu_exec",
+      "inputs": [
+        "%T9"
+      ],
+      "outputs": [
+        "%T23"
+      ],
+      "cycles": 520,
+      "spans": [
+        {
+          "begin": 15625,
+          "end": 16145
+        }
+      ]
+    },
+    {
+      "operator": "@89",
+      "kind": "rngd_cmd.tu_exec",
+      "inputs": [
+        "%T22",
+        "%T23"
+      ],
+      "outputs": [
+        "%T24"
+      ],
+      "cycles": 401,
+      "spans": [
+        {
+          "begin": 16145,
+          "end": 16546
+        }
+      ]
+    },
+    {
+      "operator": "@92",
+      "kind": "dma.sto_d",
+      "inputs": [
+        "%T24",
+        "%T2"
+      ],
+      "outputs": [
+        "%T26"
+      ],
+      "cycles": 726,
+      "spans": [
+        {
+          "begin": 18439,
+          "end": 19165
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "final_probe_typecheck": "a009 PASS13.64s",
+    "standalone_cpu_oracle_tests": "a006 3 passed,0failed",
+    "initial_resource_failure": "a007 immutable odds4B stride fails8B DMAalignment; repaired only padded32B records",
+    "peer_review": "batch_kernels source1d33d1e2 arithmetic/mapping read-only PASS; actualallocation checked separately"
+  },
+  "missing_gates": [
+    "device code/scale correctness and immutability",
+    "complete quantizer actual timing",
+    "pack-inclusive I4consumer layout/cost",
+    "actual model activation and weight quality",
+    "complete supplied-weight FFN performance"
+  ],
+  "scope_limits": [
+    "All512logical slices already consumed by16rows*4H960shards*8thresholds; noP512 extrapolation",
+    "19765 is a compiler estimate, not measured latency",
+    "No device probe ELF was built or executed",
+    "No model/official/final source change",
+    "Prototype stopped after root wind-down instruction"
+  ],
+  "references": [
+    {
+      "path": "int4-rational-quant-device/experiments/int4-rational-quant-device/a008-schedule.json",
+      "sha256": "df9ef483772357de5ea97e438642e24c70605370da73d13bcbac9924b2dcc684",
+      "bytes": 57052
+    },
+    {
+      "path": "int4-rational-quant-device/experiments/int4-rational-quant-device/plan.json",
+      "sha256": "da80cec3e342435f886d3d2d3fd2e0f37b1ca3720d151ed5f790ead157b76b07",
+      "bytes": 2718
+    },
+    {
+      "path": "int4-rational-quant-device/Cargo.toml",
+      "sha256": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+      "bytes": 718
+    },
+    {
+      "path": "int4-rational-quant-device/Cargo.lock",
+      "sha256": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+      "bytes": 93783
+    },
+    {
+      "path": "int4-rational-quant-device/src/ops_int4_rational_quant.rs",
+      "sha256": "d7e579e7b26436341172d4b3283e0b3f8482b6b3566319b0e25ae90f1d36cd77",
+      "bytes": 7918
+    },
+    {
+      "path": "int4-rational-quant-device/src/bin/test_int4_rational_quant.rs",
+      "sha256": "680faaf0c833c527fff08c9096588e227ce3bef0a008adfc44f2b7d01ea73795",
+      "bytes": 3879
+    },
+    {
+      "path": "int4-rational-quant-device/src/bin/support/rational_a4_oracle.rs",
+      "sha256": "1b2beeb44d58c1ce98c9c4b04363a14792ac39df67a58c7b87fe6cae336bfec1",
+      "bytes": 5295
+    },
+    {
+      "path": "int4-rational-quant-device/experiments/int4-rational-quant-device/kernel-out-a002/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_rational_quant::quantize_row.bin",
+      "sha256": "ba3e655f08235b30c40a873a5fb4392ba96a451ff3450dd525c5f2ee0cbb6722",
+      "bytes": 75264
+    },
+    {
+      "path": "int4-rational-quant-device/experiments/int4-rational-quant-device/kernel-out-a002/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_rational_quant::quantize_row.hash",
+      "sha256": "f10b09d02b62f07332c6cd1b84aeb495fb63812058c04ef5e893194566f2e1c0",
+      "bytes": 6029
+    },
+    {
+      "path": "int4-rational-quant-device/experiments/int4-rational-quant-device/kernel-out-a002/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_rational_quant::quantize_row.edf",
+      "sha256": "1157f232b9dad58eec6d7dee6e742614718c25a01f60c95451248c75de9dbcd0",
+      "bytes": 89935
+    },
+    {
+      "path": "runs/a001-rational-a4-hostcheck/run.json",
+      "sha256": "b4298e0c97d8a589385e59ce7830f3658a669f3330bbbc08b615259e30de605c",
+      "bytes": 926
+    },
+    {
+      "path": "runs/a001-rational-a4-hostcheck/source-hashes.json",
+      "sha256": "ac2ef74c70719e50b8cc06810b7ba5be570da640d03fb583f9da1f950e3f5626",
+      "bytes": 40377
+    },
+    {
+      "path": "runs/a001-rational-a4-hostcheck/output.log",
+      "sha256": "13c81b85417ee195b18b0bf0d71d6bc009ea3420f8aff81fb522c36be013e124",
+      "bytes": 15408
+    },
+    {
+      "path": "runs/a002-rational-a4-probecheck/run.json",
+      "sha256": "23e1709c24c35396383df3da3ef87c40f855029d0e3848834963a1ba744fd73a",
+      "bytes": 945
+    },
+    {
+      "path": "runs/a002-rational-a4-probecheck/source-hashes.json",
+      "sha256": "213b6cd2789c33e26b7cd1f6560947179f1923020731a93587617510424b0d46",
+      "bytes": 40597
+    },
+    {
+      "path": "runs/a002-rational-a4-probecheck/output.log",
+      "sha256": "209c3599124aa3aca5b8591a13c581c07c33ad968cd6c9ea8978c2441118439b",
+      "bytes": 8304
+    },
+    {
+      "path": "runs/a003-rational-a4-oraclecompile/run.json",
+      "sha256": "d9c500fa843f6ff3c8ca01acfa752e1cc2c6947e1a01c1b58f203522156a4b45",
+      "bytes": 719
+    },
+    {
+      "path": "runs/a003-rational-a4-oraclecompile/source-hashes.json",
+      "sha256": "213b6cd2789c33e26b7cd1f6560947179f1923020731a93587617510424b0d46",
+      "bytes": 40597
+    },
+    {
+      "path": "runs/a003-rational-a4-oraclecompile/output.log",
+      "sha256": "2a64715ecbfb2d1be9b9c24736366e36d628f74c8c74078b059d3d5d615ea18a",
+      "bytes": 683
+    },
+    {
+      "path": "runs/a004-rational-a4-probecheck/run.json",
+      "sha256": "5e9b138288077bff5a6eb099059992f4ecd64cd3713b5d8ea327db14f452ef88",
+      "bytes": 948
+    },
+    {
+      "path": "runs/a004-rational-a4-probecheck/source-hashes.json",
+      "sha256": "5dd9da482a42a1de6e7e1de667a315befb5ed1db26eee62f47b8d3a2012f7e14",
+      "bytes": 40597
+    },
+    {
+      "path": "runs/a004-rational-a4-probecheck/output.log",
+      "sha256": "f572228f567ca574a553010bce1dafc9fa7ca422cea4fe5371f86613797c20ea",
+      "bytes": 5405
+    },
+    {
+      "path": "runs/a005-rational-a4-oraclecompile/run.json",
+      "sha256": "5e5609129461600205bce529dadb90aa8a652654974faf825d8e22b475fbc170",
+      "bytes": 726
+    },
+    {
+      "path": "runs/a005-rational-a4-oraclecompile/source-hashes.json",
+      "sha256": "5dd9da482a42a1de6e7e1de667a315befb5ed1db26eee62f47b8d3a2012f7e14",
+      "bytes": 40597
+    },
+    {
+      "path": "runs/a005-rational-a4-oraclecompile/output.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "runs/a006-rational-a4-oracletests/run.json",
+      "sha256": "62937ab85ce1125e81c7b874f523ad62b276d5edb0231a39d8857adca1c54cef",
+      "bytes": 684
+    },
+    {
+      "path": "runs/a006-rational-a4-oracletests/source-hashes.json",
+      "sha256": "5dd9da482a42a1de6e7e1de667a315befb5ed1db26eee62f47b8d3a2012f7e14",
+      "bytes": 40597
+    },
+    {
+      "path": "runs/a006-rational-a4-oracletests/output.log",
+      "sha256": "b723663fb9b13ff851349d9cde35b7a1f4cb51035a72334dcb46046717bc883a",
+      "bytes": 298
+    },
+    {
+      "path": "runs/a007-rational-a4-resource/run.json",
+      "sha256": "7d16544528e30cb0c5bc71267c1948771582c55976d13ca9952a6bd252ae75ad",
+      "bytes": 1336
+    },
+    {
+      "path": "runs/a007-rational-a4-resource/source-hashes.json",
+      "sha256": "5dd9da482a42a1de6e7e1de667a315befb5ed1db26eee62f47b8d3a2012f7e14",
+      "bytes": 40597
+    },
+    {
+      "path": "runs/a007-rational-a4-resource/output.log",
+      "sha256": "cb72dadb087d4fcc365b71d2f3619cc99ad0939eb9d88b85bcb0c8e20f8b462e",
+      "bytes": 8870
+    },
+    {
+      "path": "runs/a008-rational-a4-resource/run.json",
+      "sha256": "51af665a9bbe1d6ee3e0cabadd7a65253b4f3b87bfce4e5b0b3f71de3dd55087",
+      "bytes": 1328
+    },
+    {
+      "path": "runs/a008-rational-a4-resource/source-hashes.json",
+      "sha256": "3add584c3c487a337f83c98aafff69fea44a970c894f3f1db4fe93cf2f590956",
+      "bytes": 40597
+    },
+    {
+      "path": "runs/a008-rational-a4-resource/output.log",
+      "sha256": "6067791611037245a731db7f113ea556334f430dc898b41f2ba134dceead9043",
+      "bytes": 5278
+    },
+    {
+      "path": "runs/a009-rational-a4-final-probecheck/run.json",
+      "sha256": "e146442e0a171c7c60cf047fcf670ea5b4592c7f162a03591b671641937d8d59",
+      "bytes": 1178
+    },
+    {
+      "path": "runs/a009-rational-a4-final-probecheck/source-hashes.json",
+      "sha256": "3add584c3c487a337f83c98aafff69fea44a970c894f3f1db4fe93cf2f590956",
+      "bytes": 40597
+    },
+    {
+      "path": "runs/a009-rational-a4-final-probecheck/output.log",
+      "sha256": "23806aaf18d3a954056e9a0c2cff13f167ba8cb2ae010f13a262e07ee35304d7",
+      "bytes": 5405
+    }
+  ]
+}
