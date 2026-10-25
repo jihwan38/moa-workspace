@@ -4,7 +4,7 @@
 use super::*;
 
 pub(super) const ENABLED: bool = true;
-pub(super) const RECEIPT_BUDGET: Duration = Duration::from_millis(3250);
+pub(super) const RECEIPT_BUDGET: Duration = Duration::from_millis(3750);
 
 #[derive(Default)]
 pub(super) struct StartupDelivery {
