@@ -3,7 +3,7 @@
 use furiosa_opt_std::prelude::*;
 use crate::{Chip, axes::{B, H}};
 
-axes![Mantissa = 128];
+axes![Mantissa = 128, Record = 8];
 type Cluster = m![B / 8];
 type Rows = m![B % 8 # 256];
 
@@ -13,7 +13,7 @@ type Rows = m![B % 8 # 256];
 pub fn quantize_row(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![B, H]>,
-    table: &HbmTensor<i32, Chip, m![Mantissa, 1 # 8]>,
+    table: &HbmTensor<i32, Chip, m![Mantissa, Record]>,
     output: &mut HbmTensor<i32, Chip, m![B, H]>,
     scales: &mut HbmTensor<f32, Chip, m![B]>,
 ) {
@@ -52,12 +52,12 @@ pub fn quantize_row(
         .fetch::<m![B % 8], m![1 # 8]>().collect::<m![B % 8], m![1 # 8]>()
         .transpose::<m![B % 8 / 2], m![B % 2 # 8]>().commit_trim::<m![B % 2]>().commit();
     let positions: SpmTensor<i32, Chip, Cluster, m![1 # 4], m![B % 8]> = packed.to_spm(&mut device.tdma);
-    let selected: DmTensor<i32, Chip, Cluster, Rows, m![1 # 8]> = table
-        .gather::<m![Mantissa], m![1 # 8]>()
+    let selected: DmTensor<i32, Chip, Cluster, Rows, m![Record]> = table
+        .gather::<m![Mantissa], m![Record]>()
         .by_positions::<m![B]>(&positions)
         .to_dm(&mut device.tdma);
-    let u_bits: VrfTensor<i32, Chip, Cluster, Rows, m![1 # 8]> = device.sub.begin(selected.view())
-        .fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+    let u_bits: VrfTensor<i32, Chip, Cluster, Rows, m![1 # 8]> = device.sub.begin(selected.view().tile::<m![Record], 1, m![Record = 1 # 8]>(0))
+        .fetch::<m![1], m![Record = 1 # 8]>().collect::<m![1], m![Record = 1 # 8]>().to_vrf();
     // The proof bounds the constructed positive normal T exponent to1..241.
     // Keep this multiplier separate from the reconstruction scale A*RN32(1/7).
     let multiplier: VrfTensor<f32, Chip, Cluster, Rows, m![1 # 8]> = device.sub.begin(amax.view())

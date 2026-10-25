@@ -1,6 +1,6 @@
 //! Strict exact-rational A4 code/scale foundation, not a model-quality test.
 use furiosa_opt_gemma4::{Chip, axes::{B,H}, ops_int4_rational_lut as op};
-use op::Mantissa;
+use op::{Mantissa, Record};
 use furiosa_opt_std::prelude::*;
 #[path="support/npu_profile.rs"] mod npu_profile;
 #[path="support/rational_a4_oracle.rs"] mod oracle;
@@ -18,7 +18,7 @@ async fn main()->Result<(),Box<dyn std::error::Error>> {
         let u=7*((1u32<<20).div_ceil(m));
         [(u as f32).to_bits() as i32,0,0,0,0,0,0,0]
     }).collect();
-    let odds=HostTensor::<i32,m![Mantissa,1#8]>::from_vec(table_values).to_hbm(&mut d.pdma).await?;
+    let odds=HostTensor::<i32,m![Mantissa,Record]>::from_vec(table_values).to_hbm(&mut d.pdma).await?;
     let odd_bytes=raw(&mut d,&odds).await;
     let mut total_codes=0usize;
     let mut total_scales=0usize;
