@@ -225,6 +225,17 @@ impl Prefill {
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output && ws.is_canonical();
+        if self.prefix_fused && blocked {
+            launch(crate::ops_b16_prefix::sliding,
+                (device, &self.x, &layer.input_norm,
+                 &layer.q_weight, &layer.k_weight, &layer.v_weight,
+                 &layer.q_weight_scale, &layer.k_weight_scale, &layer.v_weight_scale,
+                 &layer.q_norm, &layer.k_norm, rope, &ws.cos_s, &ws.sin_s,
+                 &mut self.norm, &mut self.native_q_input, &mut self.native_qkv_scale,
+                 &mut self.decode_q_blocked_s, &mut self.decode_k_blocked_s,
+                 &mut self.decode_v_blocked_s, &mut self.q_s, &mut self.k_s, &mut self.v_s)).await?;
+            self.record_profile("sliding.prefix_fused", &mut profile_mark);
+        } else {
         launch(
             crate::ops_norm_batch::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
@@ -287,6 +298,7 @@ impl Prefill {
         .await?;
         }
         self.record_profile("sliding.heads_rope", &mut profile_mark);
+        }
         if ws.is_canonical() {
             let metadata = pooled.ok_or("canonical decode requires independent rows")?;
             let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
@@ -419,6 +431,16 @@ impl Prefill {
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output && ws.is_canonical();
+        if self.prefix_fused && blocked {
+            launch(crate::ops_b16_prefix::full,
+                (device, &self.x, &layer.input_norm,
+                 &layer.q_weight, &layer.k_weight, &layer.q_weight_scale, &layer.k_weight_scale,
+                 &layer.q_norm, &layer.k_norm, rope, &ws.cos_f, &ws.sin_f,
+                 &mut self.norm, &mut self.native_q_input, &mut self.native_qkv_scale,
+                 &mut self.decode_q_blocked_f, &mut self.decode_k_blocked_f,
+                 &mut self.q_f, &mut self.k_f, &mut self.v_f)).await?;
+            self.record_profile("full.prefix_fused", &mut profile_mark);
+        } else {
         launch(
             crate::ops_norm_batch::rmsnorm_b16,
             (device, &self.x, &layer.input_norm, &mut self.norm),
@@ -479,6 +501,7 @@ impl Prefill {
         .await?;
         }
         self.record_profile("full.heads_rope", &mut profile_mark);
+        }
         if ws.is_canonical() {
             let metadata = pooled.ok_or("canonical decode requires independent rows")?;
             let runtime::KvCache::FullCanonical { k, v } = &mut ws.kv_cache[index] else {

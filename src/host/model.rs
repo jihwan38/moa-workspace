@@ -124,6 +124,11 @@ impl Model {
         self.prefill.set_output_hsplit(enabled);
     }
 
+    /// Scoped exact RMS/QKV/head launch-composition diagnostic.
+    /// The original four-call prefix remains available as a control.
+    pub fn set_b16_prefix_fused(&mut self, enabled: bool) {
+        self.prefill.set_prefix_fused(enabled);
+    }
     /// Scoped exact post-attention and FFN launch-composition diagnostic.
     pub fn set_b16_epilogue_fused(&mut self, enabled: bool) {
         self.prefill.set_epilogue_fused(enabled);
