@@ -3,7 +3,7 @@
 //! finishes prefill until the barrier opens; external TTFT includes this delay.
 use super::*;
 
-pub(super) const ENABLED: bool = false;
+pub(super) const ENABLED: bool = true;
 pub(super) const RECEIPT_BUDGET: Duration = Duration::from_millis(3250);
 
 #[derive(Default)]
