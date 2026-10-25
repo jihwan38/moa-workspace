@@ -55,6 +55,9 @@ pub struct Sequence<'a> {
     pub blocks: &'a Blocks,
 }
 
+/// Research default: retain original BF16 B16 LM until model/task-quality gates.
+const B16_LM_FP8_ENABLED: bool = false;
+
 pub struct Model {
     weights: load::Weights,
     decode: runtime::Decode,
@@ -92,6 +95,8 @@ impl ActivePrefill {
 enum Dispatch {
     Serial,
     Automatic,
+    B16LmFp8Diagnostic,
+    OriginalB16LmDiagnostic,
     B16AttentionOutputDiagnostic,
     B16UpIngressDiagnostic,
     OriginalB16UpIngressDiagnostic,
@@ -113,7 +118,7 @@ impl Dispatch {
         WidePrefill::supports(sequence)
             && match self {
                 Self::Serial => false,
-                Self::Automatic | Self::B16UpIngressDiagnostic | Self::OriginalB16UpIngressDiagnostic | Self::B16AttentionOutputDiagnostic | Self::OriginalB16AttentionOutputDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
+                Self::Automatic | Self::B16LmFp8Diagnostic | Self::OriginalB16LmDiagnostic | Self::B16UpIngressDiagnostic | Self::OriginalB16UpIngressDiagnostic | Self::B16AttentionOutputDiagnostic | Self::OriginalB16AttentionOutputDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
                 Self::WideDiagnostic | Self::NativeQkvDiagnostic | Self::Bf16QkvDiagnostic | Self::OriginalAttentionDiagnostic | Self::OriginalFullAttentionDiagnostic | Self::DirectFullAttentionDiagnostic => true,
                 Self::Decode64Diagnostic | Self::Decode32Diagnostic | Self::Decode32OutputDiagnostic | Self::OriginalDecodeSlidingDiagnostic | Self::OriginalDecodeHeadRowsDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
             }
@@ -121,6 +126,14 @@ impl Dispatch {
 }
 
 impl Model {
+    /// Immutable startup shadow; original embedding remains authoritative for inputs.
+    pub async fn prepare_b16_lm_fp8(&mut self, device:&mut Device) -> Result<(),Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() {
+            return Err("B16 LM shadow must be prepared without an active prompt".into());
+        }
+        self.prefill.prepare_lm_fp8(device,&self.weights).await
+    }
+
     /// Diagnostic storage-control gate. Serving defaults to blocked decode outputs.
     /// This changes only projection scratch layout and its matching head consumer;
     /// request histories, attention, arithmetic and logits selection are unchanged.
@@ -191,7 +204,7 @@ impl Model {
                     .await?,
             );
         }
-        Ok(Self {
+        let mut model=Self {
             weights,
             decode: workspace.begin_decode(device).await?,
             prefill: Prefill::new(device).await?,
@@ -209,7 +222,9 @@ impl Model {
             active_three_owner512: None,
             active_prefill: None,
             logits,
-        })
+        };
+        if B16_LM_FP8_ENABLED { model.prepare_b16_lm_fp8(device).await?; }
+        Ok(model)
     }
 
     /// Physical ring currently owning a persistent prompt checkpoint, if any.
@@ -1297,6 +1312,30 @@ impl Model {
         })
     }
 
+    /// Per-call research route: only B16 terminal LM uses the prepared E4 shadow.
+    /// All width/precision/cache decisions otherwise use Automatic. No mode persists.
+    pub async fn forward_outputs_b16_lm_fp8(
+        &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
+    ) -> Result<ForwardOutput<'_>,Box<dyn std::error::Error>> {
+        self.forward_outputs_lm_dispatch(device,sequences,workspace,Dispatch::B16LmFp8Diagnostic).await
+    }
+    /// Explicit original BF16 LM control, including when a future source default is enabled.
+    pub async fn forward_outputs_original_b16_lm(
+        &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
+    ) -> Result<ForwardOutput<'_>,Box<dyn std::error::Error>> {
+        self.forward_outputs_lm_dispatch(device,sequences,workspace,Dispatch::OriginalB16LmDiagnostic).await
+    }
+    async fn forward_outputs_lm_dispatch(
+        &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace, dispatch:Dispatch,
+    ) -> Result<ForwardOutput<'_>,Box<dyn std::error::Error>> {
+        let layout=self.forward_sequences_inner(device,sequences,workspace,dispatch,true).await?;
+        Ok(match layout {
+            OutputLayout::Blocked64=>ForwardOutput::Blocked64(self.decode64.as_ref().unwrap().blocked_logits(),sequences.len()),
+            OutputLayout::Batch16=>ForwardOutput::Batch16(self.prefill.decode_logits(),sequences.len()),
+            OutputLayout::Rows=>ForwardOutput::Rows(&self.logits[..sequences.len()]),
+        })
+    }
+
     /// Explicit exact B16 shared UP ingress path, also enabled for Automatic
     /// after matched model/cache gates. All width/cache/output policies are equal.
     pub async fn forward_outputs_b16_up_ingress(
@@ -1548,6 +1587,19 @@ impl Model {
         dispatch: Dispatch,
         prefer_native: bool,
     ) -> Result<OutputLayout, Box<dyn std::error::Error>> {
+        let lm_fp8=match dispatch {
+            Dispatch::B16LmFp8Diagnostic=>true,
+            Dispatch::OriginalB16LmDiagnostic=>false,
+            Dispatch::Automatic=>B16_LM_FP8_ENABLED,
+            _=>false,
+        };
+        if lm_fp8 && !self.prefill.has_lm_fp8() {
+            return Err("B16 FP8 LM shadow was not prepared before forward".into());
+        }
+        // Normalize diagnostic dispatch before all existing precision/owner choices.
+        let dispatch=if matches!(dispatch,Dispatch::B16LmFp8Diagnostic|Dispatch::OriginalB16LmDiagnostic) {
+            Dispatch::Automatic
+        } else { dispatch };
         if sequences.len() > self.logits.len() {
             return Err("too many request sequences".into());
         }
@@ -1637,6 +1689,7 @@ impl Model {
                         output_layout == OutputLayout::Rows,
                         matches!(dispatch, Dispatch::Automatic | Dispatch::B16UpIngressDiagnostic | Dispatch::OriginalB16UpIngressDiagnostic | Dispatch::B16AttentionOutputDiagnostic) && singletons.len() == sequences.len(),
                         matches!(dispatch, Dispatch::Automatic | Dispatch::B16UpIngressDiagnostic) && singletons.len() == sequences.len(),
+                        lm_fp8,
                     )
                     .await?;
             }

@@ -32,6 +32,7 @@ impl Prefill {
         materialize_rows: bool,
         attention_output_composed: bool,
         up_ingress: bool,
+        lm_fp8: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -197,6 +198,14 @@ impl Prefill {
             )
             .await?;
             self.record_profile("logits.norm", &mut profile_mark);
+            if lm_fp8 {
+                let shadow=self.lm_fp8.as_ref().ok_or("B16 FP8 LM shadow was not prepared")?;
+                launch(crate::ops_query_b16_native_fp8::quantize_input,
+                    (device,&self.norm,&mut self.native_q_input,&mut self.native_qkv_scale)).await?;
+                launch(crate::ops_b16_lm_fp8::logits_quantized,
+                    (device,&self.native_q_input,&self.native_qkv_scale,
+                     &shadow.weight,&shadow.scale,&mut self.logits_batch)).await?;
+            } else {
             launch(
                 crate::ops_b16_lm_storegroup::logits_batch,
                 (
@@ -207,6 +216,7 @@ impl Prefill {
                 ),
             )
             .await?;
+            }
             self.record_profile("logits.projection", &mut profile_mark);
             for (row, sequence) in sequences.iter().enumerate() {
                 if materialize_rows && sequence.inputs[0].logits {
