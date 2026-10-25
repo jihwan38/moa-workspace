@@ -272,3 +272,6 @@ pub mod ops_group_ffn_projection_storegroup;
 
 pub mod ops_ffn_f4_projection;
 pub mod ops_group_ffn_f4_projection;
+
+pub mod ops_ffn_f4_predecode;
+pub mod ops_group_ffn_f4_predecode;
