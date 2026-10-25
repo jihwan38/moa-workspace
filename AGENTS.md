@@ -1,11 +1,11 @@
 # Ownership and scope
 
-This isolated tree is owned by `/root/e2e_evidence` for the exact 20-bit
-reciprocal-table BF16 A4 foundation. Base: `a384b467947b73f98fbc4378f0acb9891430dbe8`.
+Owned by `/root/batch_kernels` for the H3840-only packed-word staging experiment
+from `11e8118be33de43ef0b1cdd8ef7f2763b3c54312`.
 
-Only the new LUT quantizer, independent probe, and evidence may change. The model,
-official candidate, Cargo dependencies, and existing device kernels stay intact.
-Use `/round2/prefill-head-attn-commit/target` exclusively and a new empty
-`FURIOSA_OPT_OUT_DIR`. Root alone dispatches Arena. Initial authorization ends at
-source/type checks and exact resource compilation; no device ELF build or model
-activation before the resource report.
+Only the new disconnected H wrapper, additive export, and experiment evidence
+may change. Original pack arithmetic, hidden kernels, ABI, dependencies, model,
+and serving behavior remain unchanged. Host check and one exact resource
+compile are authorized; no device ELF or Arena. Use the exclusive
+`/round2/tail256-model/target`, fresh package tracking, and a new empty
+`FURIOSA_OPT_OUT_DIR`. Preserve both prior H HOLDs and the41668-cycle gate.

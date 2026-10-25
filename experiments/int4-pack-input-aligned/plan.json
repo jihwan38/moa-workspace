@@ -1,0 +1,51 @@
+{
+  "base_commit": "11e8118be33de43ef0b1cdd8ef7f2763b3c54312",
+  "source_control": "src/ops_int4_pack_p512.rs::pack_input and preserved src/ops_int4_pack_staged_store.rs::pack_input",
+  "scope": "One H3840 staging mapping only; no pack arithmetic, raw binding, output ABI, hidden kernel, quantization, model, or serving change.",
+  "trigger": {
+    "original_H_resource_cycles": 52085,
+    "original_H_gate_max": 50000,
+    "original_H_status": "HOLD",
+    "four_row_H_resource_cycles": 54722,
+    "four_row_H_store_cycles": 35968,
+    "four_row_H_status": "HOLD",
+    "sixteen_row_L_store_cycles": 3679,
+    "sixteen_row_L_dm_move_cycles": 7772
+  },
+  "hypothesis": "The H4/L16 common contiguous DMA tails and destination address phases differ. Reuse the observed L16 local interval for H with padded slice placement. This tests a store-lowering/transfer-efficiency hypothesis; private TDMA burst thresholds and a hardware alignment cause are NOT established by the public source or these estimates.",
+  "mapping": {
+    "cluster": "P512/256 (2)",
+    "slice": "[H/960,P512%256/16,1#4] (4*16 live leaders,256 physical slices)",
+    "element": "[P512%16,H%960/8] (16*120 I32=7680 bytes/live slice)",
+    "leader_index": "s=4*(16*h+r), h=0..3,r=0..15; only trailing-padding coordinate0 is live",
+    "reconstruct": "p=256*c+16*r+j, k_word=120*h+w; c=0..1,j=0..15,w=0..119",
+    "blocked_output_word_offset": "(((c*4+h)*256+16*r+j)*120+w)",
+    "coverage": "2*4*16*16*120=245760 words =512*3840/8, each exactly once; p includes all512 rows. Padding is physical placement only, with no extra logical owner/row. All4 PEs/cluster retain16 live leaders.",
+    "tail_bytes": 7680,
+    "tail_start_alignment_bytes": 512,
+    "transfer": "Original dense row-owned packed DM -> actual TDMA redistribution -> unchanged blocked HBM; no reshape or host alias shortcut."
+  },
+  "memory_bound": {
+    "original_dense_packed_live_bytes": 983040,
+    "staged_live_bytes": 983040,
+    "staged_physical_upper_bytes": 3932160,
+    "staged_physical_per_slice_bytes": 7680,
+    "note": "Compiler allocation is authoritative; padding plus both source/destination lifetimes must be reported, no DramStack accepted."
+  },
+  "gates": {
+    "H_complete_resource_max_cycles": 41668,
+    "no_dram_stack": true,
+    "new_shapes": 1,
+    "host_check": true,
+    "device_elf_authorized": false,
+    "arena_authorized": false,
+    "actual_correctness_required_before_future_claim": "Full established row tags, independent pair-byte/nibble oracle, all16 top fields, true permutations, all512 rows, immutable owner/table and checked raw binding. No new device execution in this resource phase."
+  },
+  "provenance": {
+    "original_dependencies": true,
+    "target": "/round2/tail256-model/target",
+    "unique_out_dir": "experiments/int4-pack-input-aligned/kernel-out-a002",
+    "root_owns_actual_execution": true
+  },
+  "result": null
+}
