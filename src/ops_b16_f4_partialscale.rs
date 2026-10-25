@@ -344,3 +344,55 @@ pub(crate) fn batch_ffn_stages(device:&mut Device,input:&HbmTensor<bf16,Chip,m![
  stage_quantize_ffn(device,hidden,qhidden,hscale);
  stage_down(device,qhidden,hscale,down,down_block,ds,dg,output);
 }
+
+/// Probe-only local scaled F32 partials, before the four-part reduction.
+#[device(chip=1)]
+pub fn debug_up_partials(device:&mut Device,
+ input:&HbmTensor<f8e4m3,Chip,m![B,H]>,weight:&HbmTensor<f4e2m1,Chip,UpWeight>,
+ scales:&HbmTensor<f32,Chip,UpBlockScale>,output:&mut HbmTensor<f32,Chip,m![B,L,H/960]>) {
+ let input:DmTensor<f8e4m3,Chip,UpCluster,UpInputRows,m![H%960]>=input.to_dm(&mut device.tdma);
+ let weight:DmTensor<f4e2m1,Chip,UpCluster,UpParts,m![L%120,H%960]>=weight.to_dm(&mut device.tdma);
+ let scales:DmTensor<f32,Chip,UpCluster,UpParts,m![L%120]>=scales.to_dm(&mut device.tdma);
+ let scales:VrfTensor<f32,Chip,UpCluster,UpParts,m![L%120]>=device.sub.begin(scales.view())
+  .fetch::<m![L/8%15],m![L%8]>().collect::<m![L/8%15],m![L%8]>().to_vrf();
+ let x:TrfTensor<f8e4m3,Chip,UpCluster,UpParts,m![B%8],m![B/8,H%960]>=device.sub.begin(input.view())
+  .fetch::<m![1],m![H%960]>().switch::<UpParts,m![B%8,B/8]>(SwitchConfig::CustomBroadcast{ring_size:256})
+  .collect::<m![B%8,B/8,H/32%30],m![H%32]>().to_trf();
+ let partial:DmTensor<f32,Chip,UpCluster,UpParts,m![L%120,B]>=device.main.begin(weight.view())
+  .fetch::<m![L%120],m![H%960]>().fetch_table_lookup::<f8e4m3>()
+  .collect::<m![L%120,H/32%30],m![H%32]>()
+  .contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(&x)
+  .contract_packet::<m![1]>().contract_time::<m![L%120,B/8]>()
+  .contract_lane::<m![L%120,B/8],m![B%8]>(LaneMode::Interleaved)
+  .vector_init().vector_intra_slice_tag(TagMode::Zero)
+  .vector_narrow_split::<m![L%120,B/4],m![B%4]>()
+  .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&scales)
+  .vector_widen_concat::<m![L%120,B/8],m![B%8]>().vector_final()
+  .commit_trim::<m![B%8]>().commit();
+ partial.view().to_hbm_view(&mut device.tdma,output.view_mut());
+}
+/// Probe-only local scaled F32 partials, before the sixteen-part reduction.
+#[device(chip=1)]
+pub fn debug_down_partials(device:&mut Device,
+ input:&HbmTensor<f8e4m3,Chip,m![B,L]>,weight:&HbmTensor<f4e2m1,Chip,DownWeight>,
+ scales:&HbmTensor<f32,Chip,DownBlockScale>,output:&mut HbmTensor<f32,Chip,m![B,H,L/960]>) {
+ let input:DmTensor<f8e4m3,Chip,DownCluster,DownParts,m![B,L%960]>=input.to_dm(&mut device.tdma);
+ let weight:DmTensor<f4e2m1,Chip,DownCluster,DownParts,m![H%120,L%960]>=weight.to_dm(&mut device.tdma);
+ let scales:DmTensor<f32,Chip,DownCluster,DownParts,m![H%120]>=scales.to_dm(&mut device.tdma);
+ let scales:VrfTensor<f32,Chip,DownCluster,DownParts,m![H%120]>=device.sub.begin(scales.view())
+  .fetch::<m![H/8%15],m![H%8]>().collect::<m![H/8%15],m![H%8]>().to_vrf();
+ let x:TrfTensor<f8e4m3,Chip,DownCluster,DownParts,m![B%8],m![B/8,L%960]>=device.sub.begin(input.view())
+  .fetch::<m![B%8,B/8,L/32%30],m![L%32]>().collect::<m![B%8,B/8,L/32%30],m![L%32]>().to_trf();
+ let partial:DmTensor<f32,Chip,DownCluster,DownParts,m![H%120,B]>=device.main.begin(weight.view())
+  .fetch::<m![H%120],m![L%960]>().fetch_table_lookup::<f8e4m3>()
+  .collect::<m![H%120,L/32%30],m![L%32]>()
+  .contract_outer::<m![H%120,L/64%15,B/8],m![L%64],_,_,_>(&x)
+  .contract_packet::<m![1]>().contract_time::<m![H%120,B/8]>()
+  .contract_lane::<m![H%120,B/8],m![B%8]>(LaneMode::Interleaved)
+  .vector_init().vector_intra_slice_tag(TagMode::Zero)
+  .vector_narrow_split::<m![H%120,B/4],m![B%4]>()
+  .vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&scales)
+  .vector_widen_concat::<m![H%120,B/8],m![B%8]>().vector_final()
+  .commit_trim::<m![B%8]>().commit();
+ partial.view().to_hbm_view(&mut device.tdma,output.view_mut());
+}

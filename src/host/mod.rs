@@ -32,3 +32,7 @@ pub mod b16_metadata_diagnostic;
 pub mod b16_attention_output_diagnostic;
 mod b16_attention_output;
 pub mod group_ffn_epilogue_diagnostic;
+
+pub mod b16_f4_partialscale_diagnostic;
+
+pub mod f4_group960;

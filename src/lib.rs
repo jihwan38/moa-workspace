@@ -272,3 +272,6 @@ pub mod ops_group_ffn_projection_storegroup;
 
 pub mod ops_b16_f4_partialscale;
 pub mod ops_b16_f4_partialscale_epilogue;
+
+pub mod ops_b16_f4_partialscale_dense;
+pub mod ops_b16_f4_partialscale_dense_epilogue;
