@@ -3,20 +3,21 @@
 //! No activation quantization and no shared mutable inputs.
 use crate::{Chip, axes::{H, P128, Qs, Ns, Gs, Ds}};
 use furiosa_opt_std::prelude::*;
+axes![KBlock = 4, K1024 = 1024];
 type Cluster = m![H/1920];
 type Parts = m![H/8%240#256];
-type InputParts = m![Qs/16];
+type InputParts = m![KBlock,K1024/16];
 pub type Output = m![P128,H];
 
 fn pair(device: &mut Device,
-    partial: &DmTensor<bf16,Chip,Cluster,Parts,m![P128,Qs/1024,H%8]>,
+    partial: &DmTensor<bf16,Chip,Cluster,Parts,m![P128,KBlock,H%8]>,
     offset: usize) -> DmTensor<bf16,Chip,Cluster,Parts,m![P128,H%8]> {
     let left: VrfTensor<f32,Chip,Cluster,Parts,m![P128,H%8]> = device.sub
-        .begin(partial.view().tile::<m![Qs/1024],1,m![P128,1#4,H%8]>(offset))
+        .begin(partial.view().tile::<m![KBlock],1,m![P128,1#4,H%8]>(offset))
         .fetch::<m![P128],m![H%8]>().fetch_cast::<f32>()
         .collect::<m![P128],m![H%8]>().to_vrf();
     device.main
-        .begin(partial.view().tile::<m![Qs/1024],1,m![P128,1#4,H%8]>(offset+1))
+        .begin(partial.view().tile::<m![KBlock],1,m![P128,1#4,H%8]>(offset+1))
         .fetch::<m![P128],m![H%8]>().fetch_cast::<f32>()
         .collect::<m![P128],m![H%8]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
@@ -26,21 +27,21 @@ fn pair(device: &mut Device,
 
 fn one(device: &mut Device,
     input: &HbmTensor<bf16,Chip,m![P128,Ns,Gs,Ds]>,
-    weight: &TrfTensor<bf16,Chip,Cluster,Parts,m![H%8],m![Qs]>,
+    weight: &TrfTensor<bf16,Chip,Cluster,Parts,m![H%8],m![KBlock,K1024]>,
     scale: &VrfTensor<f32,Chip,Cluster,Parts,m![H%8]>,
     output: &mut HbmTensor<bf16,Chip,Output>) {
     // Named-axis input distribution: each slice owns 16 contiguous K values.
     // The Switch broadcasts these values to output-channel slices without
     // materializing the full P128 x Qs activation separately in every slice.
-    let flat: HbmTensorView<'_,bf16,Chip,m![P128,Qs]> = unsafe { input.view().reshape() };
-    let input: DmTensor<bf16,Chip,Cluster,InputParts,m![P128,Qs%16]> = flat.to_dm(&mut device.tdma);
-    let partial: DmTensor<bf16,Chip,Cluster,Parts,m![P128,Qs/1024,H%8]> = device.main
-        .begin(input.view()).fetch::<m![P128],m![Qs%16]>()
-        .switch::<Parts,m![P128,Qs/16]>(SwitchConfig::CustomBroadcast{ring_size:256})
-        .collect::<m![P128,Qs/16],m![Qs%16]>()
-        .contract_outer::<m![P128,Qs/32],m![Qs%32],_,_,_>(weight)
-        .contract_packet::<m![1]>().contract_time::<m![P128,Qs/1024]>()
-        .contract_lane::<m![P128,Qs/1024],m![H%8]>(LaneMode::Interleaved)
+    let flat: HbmTensorView<'_,bf16,Chip,m![P128,KBlock,K1024]> = unsafe { input.view().reshape() };
+    let input: DmTensor<bf16,Chip,Cluster,InputParts,m![P128,K1024%16]> = flat.to_dm(&mut device.tdma);
+    let partial: DmTensor<bf16,Chip,Cluster,Parts,m![P128,KBlock,H%8]> = device.main
+        .begin(input.view()).fetch::<m![P128],m![K1024%16]>()
+        .switch::<Parts,m![P128,KBlock,K1024/16]>(SwitchConfig::CustomBroadcast{ring_size:256})
+        .collect::<m![P128,KBlock,K1024/16],m![K1024%16]>()
+        .contract_outer::<m![P128,KBlock,K1024/32],m![K1024%32],_,_,_>(weight)
+        .contract_packet::<m![1]>().contract_time::<m![P128,KBlock]>()
+        .contract_lane::<m![P128,KBlock],m![H%8]>(LaneMode::Interleaved)
         .cast::<bf16,m![H%8#16]>().commit_trim::<m![H%8]>().commit();
     let p01 = pair(device,&partial,0usize);
     let p23 = pair(device,&partial,2usize);
@@ -76,13 +77,14 @@ pub fn project_sliding_output_four(device: &mut Device,
     ob: &mut HbmTensor<bf16,Chip,Output>,
     oc: &mut HbmTensor<bf16,Chip,Output>,
     od: &mut HbmTensor<bf16,Chip,Output>) {
-    let packed: DmTensor<f8e4m3,Chip,Cluster,Parts,m![H%8,Qs]> = weight.to_dm(&mut device.tdma);
-    let weight: DmTensor<bf16,Chip,Cluster,Parts,m![H%8,Qs]> = device.main.begin(packed.view())
-        .fetch::<m![H%8,Qs/32],m![Qs%32]>().fetch_table_lookup::<bf16>()
-        .collect::<m![H%8,Qs/16],m![Qs%16]>().commit_trim::<m![Qs%16]>().commit();
-    let weight: TrfTensor<bf16,Chip,Cluster,Parts,m![H%8],m![Qs]> = device.sub.begin(weight.view())
-        .fetch::<m![H%8,Qs/16],m![Qs%16]>()
-        .collect::<m![H%8,Qs/16],m![Qs%16]>().to_trf();
+    let weight_view: HbmTensorView<'_,f8e4m3,Chip,m![H,KBlock,K1024]> = unsafe { weight.view().reshape() };
+    let packed: DmTensor<f8e4m3,Chip,Cluster,Parts,m![H%8,KBlock,K1024]> = weight_view.to_dm(&mut device.tdma);
+    let weight: DmTensor<bf16,Chip,Cluster,Parts,m![H%8,KBlock,K1024]> = device.main.begin(packed.view())
+        .fetch::<m![H%8,KBlock,K1024/32],m![K1024%32]>().fetch_table_lookup::<bf16>()
+        .collect::<m![H%8,KBlock,K1024/16],m![K1024%16]>().commit_trim::<m![K1024%16]>().commit();
+    let weight: TrfTensor<bf16,Chip,Cluster,Parts,m![H%8],m![KBlock,K1024]> = device.sub.begin(weight.view())
+        .fetch::<m![H%8,KBlock,K1024/16],m![K1024%16]>()
+        .collect::<m![H%8,KBlock,K1024/16],m![K1024%16]>().to_trf();
     let scale: DmTensor<bf16,Chip,Cluster,Parts,m![H%8]> = scale.to_dm(&mut device.tdma);
     let scale: VrfTensor<f32,Chip,Cluster,Parts,m![H%8]> = device.sub.begin(scale.view())
         .fetch::<m![1],m![H%8]>().fetch_cast::<f32>()
