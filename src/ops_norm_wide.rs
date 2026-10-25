@@ -127,7 +127,7 @@ pub(crate) fn residual_add(
         .commit_trim::<m![H % 8]>()
         .commit()
 }
-fn gate(
+pub(crate) fn gate(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, Shards, m![P128%2,H % 480]>,
     scalar: &HbmTensor<bf16, Chip, m![1 # 8]>,

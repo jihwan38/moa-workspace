@@ -110,3 +110,46 @@ pub fn normalize_qkv_four(
     normalize_quantize_one(device, c, weight, qc, sc);
     normalize_quantize_one(device, d, weight, qd, sd);
 }
+
+fn post_feedforward_one(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, crate::ops_native_fp8_p512_downblocked::Output>,
+    weight: &HbmTensor<bf16, Chip, m![H]>,
+    layer_gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
+    group: usize,
+    residual: &mut HbmTensor<bf16, Chip, m![P128, H]>,
+) {
+    // Read the producer's H240 blocks directly into the original H480 RMS
+    // shards. Physical quarter selection is unchanged from unpack_hidden_group.
+    let input: DmTensor<bf16, Chip, m![P512%256=128/64],
+        m![P512%256=128/2%32, H/480], m![P512%256=128%2, H%480]> = input.view()
+        .tile::<m![P512/256], 1,
+            m![P512/256=1#2, H/240, P512%256, H%240]>(group / 2)
+        .tile::<m![P512%256], 128,
+            m![P512/256=1#2, H/240, P512%256=128#256, H%240]>(128 * (group % 2))
+        .to_dm(&mut device.tdma);
+    let input: DmTensor<bf16, Chip, Cluster, Shards, m![P128%2, H%480]> =
+        unsafe { input.reshape() };
+    let output = normalize(device, &input, weight);
+    let output = residual_add(device, &output, residual);
+    let output = crate::ops_norm_wide::gate(device, &output, layer_gate);
+    output.view().to_hbm_view(&mut device.tdma, residual.view_mut());
+}
+
+/// Consume blocked FFN output without materializing four canonical projections.
+#[device(chip = 1)]
+pub fn post_feedforward_four(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, crate::ops_native_fp8_p512_downblocked::Output>,
+    weight: &HbmTensor<bf16, Chip, m![H]>,
+    layer_gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
+    a: &mut HbmTensor<bf16, Chip, m![P128, H]>,
+    b: &mut HbmTensor<bf16, Chip, m![P128, H]>,
+    c: &mut HbmTensor<bf16, Chip, m![P128, H]>,
+    d: &mut HbmTensor<bf16, Chip, m![P128, H]>,
+) {
+    post_feedforward_one(device, input, weight, layer_gate, 0, a);
+    post_feedforward_one(device, input, weight, layer_gate, 1, b);
+    post_feedforward_one(device, input, weight, layer_gate, 2, c);
+    post_feedforward_one(device, input, weight, layer_gate, 3, d);
+}

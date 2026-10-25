@@ -66,3 +66,16 @@ Existing compare_prompt_group also checks four independent request owners.
 Host tests before QKV call adoption passed62/62; final checks follow.
 
 Final combined host suite a029 passed62/62. a028 is preserved as an immediate unresolved-lib-export merge-marker failure before compilation; only both module exports were retained to repair it. No runtime behavior changed in that repair.
+
+## Direct blocked post-FFN consumer
+
+Whole-model318719 measured remaining FFN unpack1.980ms and postnorm8.347ms over
+48layers. The bounded next prototype reads each H240-blocked producer quarter
+directly into original H480 RMS shards, then reuses original normalize, residual
+add and gate with every BF16 boundary unchanged. All four x checkpoints persist.
+It removes two BF16[P512,H] transfers (360MiB/48layers) and four launches/layer.
+The gate independently packs blocked bytes on CPU, compares every residual bit
+against original unpack+fourpostnorm, checks immutable input, F64 samples, signed
+layer gates and complete5vs1 ABBA. No host/default changes before its actual gate.
+
+Direct blocked postFFN candidate a031 compiled in26.66s on first attempt. The producer H240 quarters read directly into H480 shards; the original norm/residual/gate helpers are reused. Actual parity/performance remains pending root.
