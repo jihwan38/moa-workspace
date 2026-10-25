@@ -5,7 +5,7 @@ use furiosa_opt_std::prelude::*;
 use super::{load::{Weights,Layer},native_fp8_weights::NativeFp8Weights};
 type Result<T>=std::result::Result<T,Box<dyn std::error::Error>>;
 
-/// q019 research quality candidate: explicit MseDyadic startup, B16-only dispatch.
+/// q020 research candidate: exact parallel MseDyadic startup, B16-only dispatch.
 pub const ENABLED:bool=true;
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
@@ -44,7 +44,7 @@ async fn projection<E:M,S:M>(device:&mut Device,source:&HbmTensor<f8e4m3,Chip,E>
  let begin=std::time::Instant::now();
  let packed=match quantizer {
   F4Quantizer::PowerOfTwoRange=>super::f4_group960::quantize_blocked_e4_packed(&raw,rows,cols)?,
-  F4Quantizer::MseDyadic=>super::f4_group960_mse::quantize_blocked_e4_mse(&raw,rows,cols)?,
+  F4Quantizer::MseDyadic=>super::f4_group960_mse::quantize_blocked_e4_mse_parallel(&raw,rows,cols)?,
  };
  let encode_ms=begin.elapsed().as_secs_f64()*1000.;
  if packed.packed_f4.len()*2!=E::SIZE || packed.group_scales.len()!=S::SIZE {
