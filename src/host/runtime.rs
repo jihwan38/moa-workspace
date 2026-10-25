@@ -1,6 +1,6 @@
 use furiosa_opt_std::prelude::*;
 
-use crate::axes::{Aa, Df, Ds, E, Gf, Gs, H, Mv, Ns, P128, Pv, Rv, Tf, Ts, W};
+use crate::axes::{Aa, B, Df, Ds, E, Gf, Gs, H, Mv, Ns, P128, Pv, Rv, Tf, Ts, W};
 use crate::host::load::{FullLayer, Layer, SlidingLayer, Weights};
 use crate::ops_pool_views::Rc64;
 use crate::ops_request_attention::Fc;
@@ -112,6 +112,96 @@ pub async fn encode_audio_frame(
     )
     .await?;
     Ok(output)
+}
+
+/// Encode independent patches from this preparation call. Only the returned
+/// prefix `patches.len()` is live; padding must never be inserted into a prompt.
+/// Positions use the same clamped BF16 col+row lookup as the scalar encoder.
+pub(crate) async fn encode_vision_patches_b16(
+    device:&mut Device, weights:&Weights, patches:&[(&[bf16],(usize,usize))],
+) -> Result<HbmTensor<bf16,Chip,m![B,H]>,Error> {
+    assert!(!patches.is_empty() && patches.len() <= B::SIZE);
+    assert!(patches.iter().all(|(pixels,_)| pixels.len()==Rv::SIZE));
+    let mut pixels=vec![bf16::from_f32(0.);B::SIZE*Rv::SIZE];
+    let mut positions=vec![bf16::from_f32(0.);B::SIZE*Mv::SIZE];
+    for (r,(patch,(col,row))) in patches.iter().enumerate() {
+        pixels[r*Rv::SIZE..(r+1)*Rv::SIZE].copy_from_slice(patch);
+        positions[r*Mv::SIZE..(r+1)*Mv::SIZE].copy_from_slice(&gather_pos_embedding(weights,*col,*row));
+    }
+    let pixels=HostTensor::<bf16,m![B,Rv]>::from_vec(pixels).to_hbm(&mut device.pdma).await?;
+    let positions=HostTensor::<bf16,m![B,Mv]>::from_vec(positions).to_hbm(&mut device.pdma).await?;
+    let mut output=HostTensor::<bf16,m![B,H]>::zero().to_hbm(&mut device.pdma).await?;
+    let v=&weights.vision;
+    launch(crate::ops_vision_b16::encode_patches,
+        (device,&pixels,&positions,&v.patch_ln1_weight,&v.patch_ln1_bias,
+         &v.patch_dense_weight,&v.patch_dense_bias,&v.patch_ln2_weight,&v.patch_ln2_bias,
+         &v.pos_norm_weight,&v.pos_norm_bias,&v.embedding_projection_weight,&mut output)).await?;
+    Ok(output)
+}
+
+/// Pack independent frame values in caller order; inactive output rows are zero
+/// inputs and must not be scattered over text/image embeddings by the caller.
+fn pack_audio_frames(frames: &[&[bf16]], capacity: usize)
+    -> Result<Vec<bf16>, Box<dyn std::error::Error>> {
+    if frames.is_empty() || frames.len() > capacity {
+        return Err(format!("audio batch needs1..={capacity} frames").into());
+    }
+    if frames.iter().any(|frame| frame.len() != Aa::SIZE) {
+        return Err("every audio frame must be Aa-wide".into());
+    }
+    let mut packed = vec![bf16::from_f32(0.0); capacity * Aa::SIZE];
+    for (row, frame) in frames.iter().enumerate() {
+        packed[row * Aa::SIZE..(row + 1) * Aa::SIZE].copy_from_slice(frame);
+    }
+    Ok(packed)
+}
+
+/// Exact scalar audio arithmetic for up to16 independent frames. This helper
+/// uploads one packed input and receives a fresh fully written device output;
+/// it never allocates/uploads a zero output or modifies hidden/KV storage.
+pub async fn encode_audio_frames_b16(
+    device: &mut Device,
+    projection: &HbmTensor<bf16, Chip, m![H,Aa]>,
+    frames: &[&[bf16]],
+) -> Result<HbmTensor<bf16, Chip, m![B,H]>, Box<dyn std::error::Error>> {
+    let input = HostTensor::<bf16,m![B,Aa]>::from_vec(pack_audio_frames(frames,B::SIZE)?)
+        .to_hbm(&mut device.pdma).await?;
+    Ok(launch(crate::ops_audio_batch::audio_project_b16,
+        (device, &input, projection)).await?)
+}
+
+/// P128 counterpart. Only frames.len() rows are live; their order is unchanged.
+pub async fn encode_audio_frames_p128(
+    device: &mut Device,
+    projection: &HbmTensor<bf16, Chip, m![H,Aa]>,
+    frames: &[&[bf16]],
+) -> Result<HbmTensor<bf16, Chip, m![P128,H]>, Box<dyn std::error::Error>> {
+    let input = HostTensor::<bf16,m![P128,Aa]>::from_vec(pack_audio_frames(frames,P128::SIZE)?)
+        .to_hbm(&mut device.pdma).await?;
+    Ok(launch(crate::ops_audio_batch::audio_project_p128,
+        (device, &input, projection)).await?)
+}
+
+#[cfg(test)]
+mod audio_batch_tests {
+    use super::*;
+    #[test]
+    fn packing_preserves_independent_rows_order_and_zero_padding() {
+        let a=vec![bf16::from_f32(0.25); Aa::SIZE];
+        let b=vec![bf16::from_f32(-0.5); Aa::SIZE];
+        let packed=pack_audio_frames(&[&b,&a,&b],B::SIZE).unwrap();
+        assert_eq!(&packed[..Aa::SIZE],b.as_slice());
+        assert_eq!(&packed[Aa::SIZE..2*Aa::SIZE],a.as_slice());
+        assert_eq!(&packed[2*Aa::SIZE..3*Aa::SIZE],b.as_slice());
+        assert!(packed[3*Aa::SIZE..].iter().all(|x|x.to_bits()==0));
+    }
+    #[test]
+    fn invalid_frames_are_rejected_before_device_allocation() {
+        let a=vec![bf16::from_f32(0.25); Aa::SIZE];
+        assert!(pack_audio_frames(&[],B::SIZE).is_err());
+        assert!(pack_audio_frames(&vec![a.as_slice(); B::SIZE+1],B::SIZE).is_err());
+        assert!(pack_audio_frames(&[&a[..Aa::SIZE-1]],B::SIZE).is_err());
+    }
 }
 
 pub(crate) enum KvCache {

@@ -192,7 +192,7 @@ fn rms_ov(
         .commit()
 }
 
-fn rmsnorm_without_weight(
+pub(crate) fn rmsnorm_without_weight(
     device: &mut Device,
     x: &DmTensor<bf16, Chip, Cluster, Slice, m![Ov]>,
 ) -> DmTensor<bf16, Chip, Cluster, Slice, m![Ov]> {

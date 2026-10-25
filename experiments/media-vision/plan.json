@@ -1,0 +1,14 @@
+{
+  "base": "7d6b102",
+  "control": "WidePrefill::prepare -> runtime::encode_vision_patch per SoftToken::Image -> patch_embed/add_position_and_norm/project_to_text_embedding, with perpatchhost uploads/zeroallocations/insert. Scalarprojection uses6912input nineK768BF16partialbalancedtree and3840input fiveK768partials.",
+  "evidence": "r739 seq43/61 image-containing512chunk339ms vsordinary146ms; media exact attribution to measuredperpatchprobe pending. Source showsperpatchscalar path, notinferencefromfoldernames.",
+  "proposal": "Sixteen independent visionpatches occupy two clusters andeight rowgroupspercluster. All scalar layernorm/RMS routines arealreadygenericandretained. Replicate eachrow across32 outputcolumn slices, sameK768BF16partial/tree, originalnorm/addposition/globalembeddingboundaries. Dense output[B,H]. No requestresultreuse.",
+  "removed_work": "Batchhostuploads, allocationsandkernelcalls across16 patches; exposeparallelism acrossotherwise unusedscalar row/slice slots. Noassumedgainuntilinclusive16scalarvsbatchtest.",
+  "gates": [
+    "perstage/fullscalarNPUallBF16bitcomparison, candidatefirst separateNaN outputs",
+    "independentCPU BF16partial/tree sampleoracle andrandom/sharp/zero/constantinputs",
+    "rowpermutation/padding/positionvariants",
+    "complete16patchABBA andactualtrace",
+    "thenrealimageembeddings/finalallvocab/publicVQA plusall6 andlongmixed"
+  ]
+}

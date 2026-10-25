@@ -5,6 +5,25 @@ use crate::axes::*;
 use crate::device::layout::{Cluster, Slice};
 use crate::device::{shared, vision};
 
+/// Diagnostic boundary from the original scalar patch encoder.
+#[device(chip = 1)]
+pub fn normalized_patch(device:&mut Device, x:&HbmTensor<bf16,Chip,m![Rv]>,
+    weight:&HbmTensor<bf16,Chip,m![Rv]>, bias:&HbmTensor<bf16,Chip,m![Rv]>,
+    out:&mut HbmTensor<bf16,Chip,m![Rv]>) {
+    let x:DmTensor<bf16,Chip,Cluster,Slice,m![Rv]>=x.to_dm(&mut device.tdma);
+    let x=vision::layernorm::normalize_patch(device,&x,weight,bias);
+    x.view().to_hbm_view(&mut device.tdma,out.view_mut());
+}
+
+/// Diagnostic boundary from the original scalar text projection.
+#[device(chip = 1)]
+pub fn text_rms_input(device:&mut Device, x:&HbmTensor<bf16,Chip,m![Ov]>,
+    out:&mut HbmTensor<bf16,Chip,m![Ov]>) {
+    let x:DmTensor<bf16,Chip,Cluster,Slice,m![Ov]>=x.to_dm(&mut device.tdma);
+    let x=vision::projection::rmsnorm_without_weight(device,&x);
+    x.view().to_hbm_view(&mut device.tdma,out.view_mut());
+}
+
 #[device(chip = 1)]
 pub fn patch_embed(
     device: &mut Device,

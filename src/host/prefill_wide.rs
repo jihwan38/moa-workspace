@@ -7,6 +7,10 @@ use crate::ops_prefill_tiles as tiles;
 #[path = "prefill_group.rs"]
 pub(crate) mod group;
 
+#[cfg(test)]
+#[path = "media_rows_tests.rs"]
+mod media_rows_tests;
+
 // Source-only serving default; explicit diagnostic keeps the original reduction.
 const EXACT_SLIDING_ATTENTION_ENABLED: bool = true;
 // Pure movement change: original page recurrence and masks remain unchanged.
@@ -14,6 +18,8 @@ const DIRECT_FULL_ATTENTION_ENABLED: bool = true;
 const COMPACT_FULL_STATISTICS_ENABLED: bool = true;
 // Exact first128 path passed current-kernel, computed-history and ownership gates.
 const EMPTY_HISTORY_PRUNING_ENABLED: bool = true;
+// Scoped probes select before preparation. Activate only after full-model gates.
+pub(crate) const MEDIA_BATCH_ENABLED: bool = false;
 
 pub(crate) struct WidePrefill {
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
@@ -41,6 +47,7 @@ pub(crate) struct WidePrefill {
     sum_f: HbmTensor<f32, Chip, m![P128, Gf, 1 # 8]>,
     full_line_mask: HbmTensor<f32, Chip, m![P128, Tf]>,
     tile_indices: Vec<HbmTensor<i32, Chip, m![1]>>,
+    media_row_offsets: Vec<HbmTensor<i32, Chip, m![1]>>,
 }
 /// Everything needed after embedding preparation is owned; no request/media
 /// references survive a scheduling yield. Wide tensors remain in WidePrefill.
@@ -113,6 +120,32 @@ struct Segment {
     commits: CommitOffsets,
 }
 
+type ImageRow<'a> = (usize, &'a [bf16], (usize, usize));
+type AudioRow<'a> = (usize, &'a [bf16]);
+fn collect_media_rows<'a>(sequence: &Sequence<'a>) -> Result<(Vec<ImageRow<'a>>, Vec<AudioRow<'a>>)> {
+    let mut images = Vec::new();
+    let mut audio = Vec::new();
+    for (row, input) in sequence.inputs.iter().enumerate() {
+        match input.soft {
+            Some(SoftToken::Image(index)) => {
+                let image = input.image.ok_or("image is missing")?;
+                let pixels = image.pixels.get(index).ok_or("image patch index is out of bounds")?;
+                let position = image.positions.get(index).ok_or("image position index is out of bounds")?;
+                if pixels.len() != crate::axes::Rv::SIZE { return Err("vision patch must be Rv-wide".into()); }
+                images.push((row, pixels.as_slice(), *position));
+            }
+            Some(SoftToken::Audio(index)) => {
+                let media = input.audio.ok_or("audio is missing")?;
+                let samples = media.frames.get(index).ok_or("audio frame index is out of bounds")?;
+                if samples.len() != crate::axes::Aa::SIZE { return Err("audio frame must be Aa-wide".into()); }
+                audio.push((row, samples.as_slice()));
+            }
+            None => {}
+        }
+    }
+    Ok((images, audio))
+}
+
 impl WidePrefill {
     pub(crate) async fn new(device: &mut Device) -> Result<Self> {
         macro_rules! zero {
@@ -129,6 +162,12 @@ impl WidePrefill {
                     .to_hbm(&mut device.pdma)
                     .await?,
             );
+        }
+        let mut media_row_offsets = Vec::with_capacity(P128::SIZE);
+        for row in 0..P128::SIZE {
+            media_row_offsets.push(HostTensor::<i32, m![1]>::from_vec(
+                [(row * H::SIZE * 2) as i32]
+            ).to_hbm(&mut device.pdma).await?);
         }
         Ok(Self {
             qkv_input: HostTensor::<f8e4m3, m![P128,H]>::zero().to_hbm(&mut device.pdma).await?,
@@ -162,7 +201,11 @@ impl WidePrefill {
                 .to_hbm(&mut device.pdma)
                 .await?,
             tile_indices,
+            media_row_offsets,
         })
+    }
+    pub(crate) async fn embedding_snapshot(&self, device: &mut Device) -> Result<Vec<bf16>> {
+        Ok(self.x.to_host::<m![P128, H]>(&mut device.pdma).await?.into_vec())
     }
     pub(crate) fn supports(sequence: &Sequence<'_>) -> bool {
         let count = sequence.inputs.len();
@@ -179,11 +222,24 @@ impl WidePrefill {
         scratch: &mut Prefill,
         canonical: bool,
     ) -> Result<PreparedWide> {
+        self.prepare_with_media_batch(device, weights, sequence, scratch, canonical, MEDIA_BATCH_ENABLED).await
+    }
+
+    pub(crate) async fn prepare_with_media_batch(
+        &mut self, device: &mut Device, weights: &Weights,
+        sequence: &Sequence<'_>, scratch: &mut Prefill, canonical: bool,
+        batched_media: bool,
+    ) -> Result<PreparedWide> {
         if !Self::supports(sequence) {
             return Err("unsupported P128 prompt shape".into());
         }
         let mut mark = scratch.profile_mark();
         let count = sequence.inputs.len();
+        // Resolve and validate every live media reference before touching x.
+        // These borrowed views exist only until this preparation call completes.
+        let (images, audio) = if batched_media {
+            collect_media_rows(sequence)?
+        } else { (Vec::new(), Vec::new()) };
         for tile in 0..self.tile_indices.len() {
             let offsets = HostTensor::<i32, m![B]>::from_vec(
                 (0..B::SIZE)
@@ -200,7 +256,7 @@ impl WidePrefill {
                 (device, &weights.embedding_table, &offsets, &mut scratch.x),
             )
             .await?;
-            for row in 0..B::SIZE {
+            for row in 0..if batched_media { 0 } else { B::SIZE } {
                 let Some(input) = sequence.inputs.get(tile * B::SIZE + row) else {
                     break;
                 };
@@ -235,6 +291,38 @@ impl WidePrefill {
                 (device, &scratch.x, &self.tile_indices[tile], &mut self.x),
             )
             .await?;
+        }
+        // Every ordinary embedding tile is already stored, so subsequent
+        // stores cannot overwrite a scattered media row. Only live indices
+        // from the sequence are written; padded encoder outputs are discarded.
+        for rows in images.chunks(B::SIZE) {
+            let patches: Vec<_> = rows.iter().map(|(_, pixels, pos)| (*pixels, *pos)).collect();
+            let encoded = runtime::encode_vision_patches_b16(device, weights, &patches).await?;
+            for (source, &(target, _, _)) in rows.iter().enumerate() {
+                launch(crate::ops_media_rows::insert_b16_in_p128,
+                    (device, &encoded, &self.media_row_offsets[source],
+                     &self.media_row_offsets[target], &mut self.x)).await?;
+            }
+        }
+        if !audio.is_empty() {
+            let frames: Vec<_> = audio.iter().map(|(_, samples)| *samples).collect();
+            if frames.len() <= B::SIZE {
+                let encoded = runtime::encode_audio_frames_b16(
+                    device, &weights.audio.embedding_projection_weight, &frames).await?;
+                for (source, &(target, _)) in audio.iter().enumerate() {
+                    launch(crate::ops_media_rows::insert_b16_in_p128,
+                        (device, &encoded, &self.media_row_offsets[source],
+                         &self.media_row_offsets[target], &mut self.x)).await?;
+                }
+            } else {
+                let encoded = runtime::encode_audio_frames_p128(
+                    device, &weights.audio.embedding_projection_weight, &frames).await?;
+                for (source, &(target, _)) in audio.iter().enumerate() {
+                    launch(crate::ops_media_rows::insert_p128_in_p128,
+                        (device, &encoded, &self.media_row_offsets[source],
+                         &self.media_row_offsets[target], &mut self.x)).await?;
+                }
+            }
         }
         let mut segments = Vec::new();
         for tile in 0..if count == P128::SIZE {
