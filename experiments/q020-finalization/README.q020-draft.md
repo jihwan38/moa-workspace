@@ -80,6 +80,11 @@ Use the organizer's SDK0.9 baseline environment and provided model/tokenizer fil
 
 ```sh
 cd candidates/q020
+q020_build_root="$(mktemp -d "${TMPDIR:-/tmp}/q020-build.XXXXXX")"
+export CARGO_TARGET_DIR="$q020_build_root/cargo"
+export FURIOSA_OPT_OUT_DIR="$q020_build_root/device-kernels"
+export CARGO_INCREMENTAL=0
+mkdir -p "$CARGO_TARGET_DIR" "$FURIOSA_OPT_OUT_DIR"
 cargo check --locked --bin server
 cargo furiosa-opt build --release --bin server
 ```
@@ -94,10 +99,19 @@ revision alone is insufficient to recover the recorded build inputs.
 The captured local server SHA256 is
 `ba8cc68d6610a05634319bdb5741017ba4fa79bb4902cc11c77f33d2b163f817`.
 The [candidate manifest](candidates/q020/candidate.json) records its build inputs.
-Rebuild in isolated package and device-kernel output directories to avoid stale
+The recipe uses fresh package and device-kernel output directories to avoid stale
 shared build artifacts. The organizer replaces `src/api/` during source grading;
-q020 retains the existing API integration, and its official source-only result
-is still pending.
+q020 retains the existing API integration, and its official source-only result is
+still pending.
+
+The planned source-only C16 submission, from `candidates/q020`, is:
+
+```sh
+moa-submitter submit --source . --concurrency 16
+```
+
+This command is documented as a future action; this draft does not assert that
+it has run or that q020 has passed official evaluation.
 
 Recorded q020 local evidence consists of:
 
@@ -110,6 +124,14 @@ Recorded q020 local evidence consists of:
   requests: **174.04 generated tokens/s**, TTFT p90 **3765.21ms**, and estimated
   TPOT p90 **38.33ms**. This is a local warm96 result, not an official score or a
   guarantee for the official workload length.
+
+The [HTTP validation record](candidates/q020/evidence/q020-http-validation.json)
+binds the public/performance results to the frozen source and ELF. The
+[GSM32 report](candidates/q020/evidence/external-gsm32-c081-q020.json) preserves the
+fixed sample and paired outcomes. The
+[candidate note](candidates/q020/evidence/q020-candidate-note.json) records source
+and transformation details, while [preparation.json](candidates/q020/preparation.json)
+maps historical log paths to the bundled, hashed evidence files.
 
 Official q020 submission identification, private accuracy and performance will
 be recorded only after an actual organizer result is available.
