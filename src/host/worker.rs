@@ -25,7 +25,7 @@ const PROMPT512_ENABLED: bool = true;
 /// is unverified. This candidate needs measured output-gap and HTTP gates.
 const CREDIT_SCHEDULER_ENABLED: bool = true;
 const SCHEDULER_TRACE_ENABLED: bool = true;
-const DECODE_CREDIT_TARGET: Duration = Duration::from_millis(90);
+const DECODE_CREDIT_TARGET: Duration = Duration::from_millis(95);
 /// A soft per-delta bound complements the earned average budget. Slow model
 /// work and the existing minimum-progress quantum can exceed a prediction.
 const DECODE_GAP_SOFTCAP: Duration = Duration::from_millis(150);
@@ -1195,8 +1195,8 @@ mod tests {
         assert!(cadence.prompt_fits(start, 0, 1));
         cadence.prompt_cost[0] = Duration::from_millis(3);
         cadence.observe_decode(start, 4, Duration::from_millis(30));
-        assert!(cadence.prompt_fits(start + Duration::from_millis(55), 4, 1));
-        assert!(!cadence.prompt_fits(start + Duration::from_millis(58), 4, 1));
+        assert!(cadence.prompt_fits(start + Duration::from_millis(62), 4, 1));
+        assert!(!cadence.prompt_fits(start + Duration::from_millis(63), 4, 1));
         assert!(
             !cadence.prompt_fits(start, 5, 1),
             "changed width needs its own observation"
@@ -1212,9 +1212,9 @@ mod tests {
         let start = Instant::now();
         let mut cadence = DecodeCadence::new();
         cadence.observe_decode(start, 2, Duration::from_millis(30));
-        assert!(cadence.prompt_fits(start + Duration::from_millis(40), 2, 1));
+        assert!(cadence.prompt_fits(start + Duration::from_millis(41), 2, 1));
         cadence.observe_prompt(Duration::from_millis(25), 1);
-        assert!(!cadence.prompt_fits(start + Duration::from_millis(40), 2, 1));
+        assert!(!cadence.prompt_fits(start + Duration::from_millis(41), 2, 1));
     }
     #[test]
     fn canonical64_scheduler_visits_high_slots_and_keeps_all_ready_decoders() {
@@ -2015,7 +2015,7 @@ mod tests {
         progress.tokens = 1;
         progress.emitted(start + Duration::from_millis(100));
         assert_eq!(progress.deadline_overruns, 1);
-        assert_eq!(progress.max_deadline_overrun, Duration::from_millis(10));
+        assert_eq!(progress.max_deadline_overrun, Duration::from_millis(5));
         progress.tokens = 100;
         progress.emitted(start + Duration::from_millis(270));
         assert_eq!(progress.deadline_overruns, 2);
