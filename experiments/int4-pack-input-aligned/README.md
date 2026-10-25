@@ -30,3 +30,26 @@ is the maximum LIR lifetime endpoint. The historical original-pack report used
 the schedule-view endpoint: original H is51,982 LIR /52,085 timeline; four-row
 H is54,722 /54,825 and this candidate is19,994 /20,097. The candidate passes
 the unchanged41,668 cap under either metric. All prior HOLDs remain intact.
+
+The subsequent root-authorized standalone diagnostic is frozen at source
+`58dadd8eb1ff4e30d7075bba73b0c961ef2e9be0`. Host check passed in10.44 seconds;
+the fresh six-image build passed in34.81 seconds. Its captured executable is
+`/round2/runs/a004-int4-pack-input-aligned-build/built/target/release/test_int4_pack_input_aligned`,
+SHA256 `9900b5af49813e0e3a8ad167ccea3f8d9f3ba540ce78153999a378ff4ef23715`.
+All405 source/config inputs match. All six embedded kernels match the new empty
+output directory, and the original five kernels match root's frozen hidden-only
+A/B executable exactly. The sixth aligned-H image also matches its resource
+compile image. No captured ELF was modified during inspection.
+
+`actual-plan.json` fixes a20-percent per-case H gain: worst candidate sample
+must be at most80percent of the best original sample, separately for cases0/4.
+The probe completes all49,152,000-code /24,576,000-packed-byte checks and six
+invalid bindings before asserting that speed criterion. L keeps the existing
+staged/original comparison; the failed four-row H candidate is never executed.
+Both correctness and performance still await root's single bounded device run.
+
+Replay the artifact/source checks without compilation or device execution:
+
+```sh
+python3 experiments/int4-pack-input-aligned/audit_build.py
+```
