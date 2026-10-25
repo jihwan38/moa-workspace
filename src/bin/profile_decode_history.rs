@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pages = (context + steps).div_ceil(512);
     let mut device = Device::new(ops::embed_token.topology())?;
     let weights = load::load_weights(&mut device).await?;
-    let mut ws = Workspace::new_canonical64(&mut device, &weights, 2048, 256).await?;
+    let mut ws = Workspace::new_canonical64(&mut device, &weights, 2048, 64).await?;
     let mut model = Model::new(&mut device, weights, &mut ws).await?;
     let mut selector = GreedySelector::new(&mut device).await?;
     let blocks: Vec<_> = (0..width).map(|slot| {
