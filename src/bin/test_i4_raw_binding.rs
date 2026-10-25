@@ -1,6 +1,7 @@
 //! Integer ABI proof only. No model quantizer, dtype cast, unsafe code or SDK change.
 use furiosa_opt_gemma4::{Chip,axes::{B,H},ops_i4_raw_binding as k,i4_raw_adapter as raw,ops_int4_pack_words as pack};
 use furiosa_opt_std::prelude::*;
+use pack::PackNibbles;
 use std::time::Instant;
 #[path="support/npu_profile.rs"] mod npu_profile;
 type Result<T>=std::result::Result<T,Box<dyn std::error::Error>>;
@@ -45,7 +46,7 @@ async fn main()->Result<()> {
   let weight:HbmTensor<i4,Chip,k::Weight>=upload(&mut d,ww.clone()).await;
   let packed_owner:HbmTensor<i32,Chip,k::PackedWords>=HostTensor::<i32,k::PackedWords>::from_vec(hostwords).to_hbm(&mut d.pdma).await?;
   let code_input:HbmTensor<i32,Chip,pack::Codes>=HostTensor::<i32,pack::Codes>::from_vec(x.clone()).to_hbm(&mut d.pdma).await?;
-  let shifts:HbmTensor<i32,Chip,m![pack::PackNibbles]>=HostTensor::<i32,m![pack::PackNibbles]>::from_vec((0..8).map(|n|n*4).collect()).to_hbm(&mut d.pdma).await?;
+  let shifts:HbmTensor<i32,Chip,m![PackNibbles]>=HostTensor::<i32,m![PackNibbles]>::from_vec((0..8).map(|n|n*4).collect()).to_hbm(&mut d.pdma).await?;
   let mut device_words:HbmTensor<i32,Chip,pack::PackedWords>=HostTensor::<i32,pack::PackedWords>::from_vec(vec![0x13579bdf;B::SIZE*H::SIZE/8]).to_hbm(&mut d.pdma).await?;
   let poison:Vec<u8>=(0..k::RawM32::SIZE*B::SIZE).flat_map(|i|(0x6a09e667i32^(i as i32)).to_le_bytes()).collect();
   let mut candidate:HbmTensor<i32,Chip,k::Output>=upload(&mut d,poison.clone()).await;
