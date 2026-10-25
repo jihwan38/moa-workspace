@@ -19,7 +19,7 @@ pub type Residual = m![
 type Cluster = m![P128 / 64];
 type Shards = m![P128 / 2 % 32, H / 480];
 type Local = m![Q4, P128 % 2, H % 480];
-fn load(
+pub(crate) fn load(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, Residual>,
 ) -> DmTensor<bf16, Chip, Cluster, Shards, Local> {
@@ -32,7 +32,7 @@ fn load(
     > = input.to_dm(&mut device.tdma);
     unsafe { input.reshape() }
 }
-fn store(
+pub(crate) fn store(
     device: &mut Device,
     input: DmTensor<bf16, Chip, Cluster, Shards, Local>,
     output: &mut HbmTensor<bf16, Chip, Residual>,

@@ -234,3 +234,5 @@ pub mod ops_native_fp8_p512_core_fused;
 pub mod ops_norm_quarter_post;
 
 pub mod ops_norm_blocked_residual;
+
+pub mod ops_norm_blocked_chain;

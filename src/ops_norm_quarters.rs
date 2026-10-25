@@ -126,7 +126,7 @@ pub(crate) fn residual_add(
     result
 }
 type ScalarRows = m![P128/2%32,1#8];
-fn quantize_shards(device:&mut Device,
+pub(crate) fn quantize_shards(device:&mut Device,
     x:&DmTensor<bf16,Chip,Cluster,Shards,m![Q4,P128%2,H%480]>)
     -> (DmTensor<f8e4m3,Chip,Cluster,Shards,m![Q4,P128%2,H%480]>,
         DmTensor<f32,Chip,Cluster,ScalarRows,m![Q4,P128%2,1#8]>) {
@@ -161,7 +161,7 @@ fn quantize_shards(device:&mut Device,
     (q,scale)
 }
 
-fn load_projected(device:&mut Device,input:&HbmTensor<bf16,Chip,Output>,group:usize,
+pub(crate) fn load_projected(device:&mut Device,input:&HbmTensor<bf16,Chip,Output>,group:usize,
     target:&mut DmTensor<bf16,Chip,Cluster,Bridge,m![Q4,P128%2,H%960]>) {
     input.view().to_dm_view(&mut device.tdma,
         target.view_mut().tile::<m![Q4],1,m![Q4=1#{!}4,P128%2,H%960]>(group));

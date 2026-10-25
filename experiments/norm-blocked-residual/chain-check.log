@@ -1,0 +1,72 @@
+    Updating crates.io index
+     Locking 383 packages to latest Rust 1.97.0-nightly compatible versions
+      Adding generic-array v0.14.7 (available: v0.14.9)
+      Adding rand v0.9.5 (available: v0.10.3)
+      Adding safetensors v0.4.5 (available: v0.8.0)
+    Checking furiosa-opt-gemma4 v0.1.0 (/round2/norm-blocked-residual-server)
+warning: unused import: `ops_batch`
+  --> src/host/prefill.rs:12:40
+   |
+12 |     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
+   |                                        ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ops_batch_r64 as linear`
+  --> src/host/decode_r64.rs:12:20
+   |
+12 |     Chip, axes::*, ops_batch_r64 as linear, ops_commit_r64 as commit, ops_norm_r64 as norm,
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_keyrings_h64.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_h64_blocked.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+error[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope
+    --> src/ops_norm_blocked_chain.rs:27:10
+     |
+  24 |       let input: DmTensor<bf16, Chip, Cluster, Shards, m![Q4 = 1, P128 % 2, H % 480]> = input
+     |                                                                                         -----
+     |                                                                                         |
+     |  _______________________________________________________________________________________method `to_dm` is available on `&furiosa_opt_std::prelude::DmTensor<furiosa_opt_std::prelude::bf16, furiosa_opt_std::prelude::Broadcast<1>, furiosa_opt_std::prelude::Stride<furiosa_opt_std::prelude::Symbol<axes::P128>, furiosa_opt_std::prelude::Broadcast<64>>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Modulo<furiosa_opt_std::prelude::Stride<furiosa_opt_std::prelude::Symbol<axes::P128>, furiosa_opt_std::prelude::Broadcast<2>>, furiosa_opt_std::prelude::Broadcast<32>>, furiosa_opt_std::prelude::Stride<furiosa_opt_std::prelude::Symbol<axes::H>, furiosa_opt_std::prelude::Broadcast<480>>>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Symbol<Q4>, furiosa_opt_std::prelude::Pair<furiosa_opt_std::prelude::Modulo<furiosa_opt_std::prelude::Symbol<axes::P128>, furiosa_opt_std::prelude::Broadcast<2>>, furiosa_opt_std::prelude::Modulo<furiosa_opt_std::prelude::Symbol<axes::H>, furiosa_opt_std::prelude::Broadcast<480>>>>>`
+     | |
+  25 | |         .view()
+  26 | |         .tile::<m![Q4], 1, m![Q4=1#4,P128%2,H%480]>(group)
+  27 | |         .to_dm(&mut device.tdma);
+     | |_________-^^^^^
+     |
+help: there is a method `to_dm_view` with a similar name, but with different arguments
+    --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory.rs:1039:5
+     |
+1039 | /     pub fn to_dm_view<Chip2: M, Cluster2: M, Slice2: M, Element2: M>(
+1040 | |         self,
+1041 | |         _dma: &mut DmaContext<{ Dma::Tensor }, B>,
+1042 | |         mut dst: DmTensorViewMut<'l, D, Chip2, Cluster2, Slice2, Element2, B>,
+1043 | |     ) {
+     | |_____^
+     = note: the full name for the type has been written to '/round2/attention/target/debug/deps/furiosa_opt_gemma4-fb614c123d8f155d.long-type-13144324393402644622.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `furiosa-opt-gemma4` (lib) generated 6 warnings
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 6 warnings emitted
