@@ -54,6 +54,7 @@ pub(crate) struct PreparedGroup {
     blocked_output: bool,
     shard_quant: bool,
     quarter_norm: bool,
+    fused_ffn_core: bool,
 }
 /// Four chronological chunks of one request. Only its single allocation may be
 /// exposed to the scheduler; the four copies below are execution metadata.
@@ -65,6 +66,7 @@ impl PreparedPrompt512 {
     pub(crate) fn original_output(&mut self) { self.chunks.blocked_output = false; }
     pub(crate) fn original_shard_quant(&mut self) { self.chunks.shard_quant = false; }
     pub(crate) fn original_quarter_norm(&mut self) { self.chunks.quarter_norm = false; }
+    pub(crate) fn original_ffn_core(&mut self) { self.chunks.fused_ffn_core = false; }
     pub(crate) fn blocks(&self) -> &runtime::Blocks {
         &self.chunks.states[0].blocks
     }
@@ -74,6 +76,7 @@ impl PreparedGroup {
     pub(crate) fn original_output(&mut self) { self.blocked_output = false; }
     pub(crate) fn original_shard_quant(&mut self) { self.shard_quant = false; }
     pub(crate) fn original_quarter_norm(&mut self) { self.quarter_norm = false; }
+    pub(crate) fn original_ffn_core(&mut self) { self.fused_ffn_core = false; }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 4] {
         [
             &self.states[0].blocks,
@@ -203,6 +206,7 @@ impl GroupPrefill {
             blocked_output: true,
             shard_quant: true,
             quarter_norm: true,
+            fused_ffn_core: true,
             states: [
                 self.rows[0]
                     .prepare(device, weights, &sequences[0], scratch, true)
@@ -454,6 +458,16 @@ impl GroupPrefill {
             .await?;
             scratch.record_optional_profile("group.ffn.quantize_hidden", &mut mark);
         }
+        if state.fused_ffn_core {
+            launch(crate::ops_native_fp8_p512_core_fused::ffn_core,
+                (device, &self.q_input, &self.input_scale,
+                 &mlp.native_fp8.up, &mlp.native_fp8.gate, &mlp.native_fp8.down,
+                 &mlp.native_fp8.up_dequant, &mlp.native_fp8.gate_dequant, &mlp.native_fp8.down_dequant,
+                 &mlp.up_global_scale, &mlp.gate_global_scale, &mlp.down_global_scale,
+                 &mut self.up, &mut self.gate, &mut self.q_hidden, &mut self.hidden_scale,
+                 &mut self.projected)).await?;
+            scratch.record_optional_profile("group.ffn.core", &mut mark);
+        } else {
         launch(
             crate::ops_native_fp8_p512_ingress::project_up_scaled,
             (device, &self.q_input, &self.input_scale, &mlp.native_fp8.up,
@@ -486,6 +500,7 @@ impl GroupPrefill {
         )
         .await?;
         scratch.record_optional_profile("group.ffn.down", &mut mark);
+        }
         if state.fused_norms {
             let [a, b, c, d] = &mut self.rows;
             launch(crate::ops_norm_fused::post_feedforward_four,
