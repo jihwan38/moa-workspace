@@ -7,6 +7,9 @@ use crate::ops_prefill_tiles as tiles;
 #[path = "prefill_group.rs"]
 pub(crate) mod group;
 
+// Source-only serving default; explicit diagnostic keeps the original reduction.
+const EXACT_SLIDING_ATTENTION_ENABLED: bool = true;
+
 pub(crate) struct WidePrefill {
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
     qkv_scale: HbmTensor<f32, Chip, m![P128, 1 # 8]>,
@@ -40,6 +43,7 @@ pub(crate) struct PreparedWide {
     count: usize,
     logits: bool,
     native_qkv: bool,
+    exact_sliding_attention: bool,
     next_layer: usize,
     segments: Vec<Segment>,
     native: Option<NativeMetadata>,
@@ -52,6 +56,7 @@ struct NativeMetadata {
     chunk_mask: HbmTensor<f32, Chip, m![P128, Pk128]>,
     full_mask: HbmTensor<f32, Chip, m![P128, Tf]>,
     sliding_offsets: HbmTensor<i32, Chip, m![P128]>,
+    sliding_cluster_bases: HbmTensor<i32, Chip, m![P128/64]>,
     full_offsets: HbmTensor<i32, Chip, m![P128]>,
 }
 impl NativeMetadata {
@@ -68,6 +73,9 @@ impl NativeMetadata {
         Ok(Self {
             rope_s: ints!(|row| ((start + row) * Ds::SIZE * 2) as i32),
             rope_f: ints!(|row| ((start + row) * Df::SIZE * 2) as i32),
+            sliding_cluster_bases: HostTensor::<i32, m![P128/64]>::from_vec(
+                [((blocks.map_or(0, |b| b.sliding) * Ts::SIZE * Ns::SIZE * Ds::SIZE * 2) as i32); 2],
+            ).to_hbm(&mut device.pdma).await?,
             sliding_offsets: ints!(
                 |row| ((blocks.map_or(0, |b| b.sliding) * Ts::SIZE + (start + row) % Ts::SIZE) * Ns::SIZE * Ds::SIZE * 2) as i32
             ),
@@ -264,6 +272,7 @@ impl WidePrefill {
             count,
             logits: sequence.inputs.last().unwrap().logits,
             native_qkv: count == P128::SIZE,
+            exact_sliding_attention: EXACT_SLIDING_ATTENTION_ENABLED,
             next_layer: 0,
             segments,
             native,
@@ -381,6 +390,17 @@ impl WidePrefill {
         ws: &mut Workspace, scratch: &mut Prefill,
     ) -> Result<()> {
         self.run_with_qkv(device, weights, sequence, ws, scratch, false).await
+    }
+
+    /// Original attention diagnostic scoped to this execution; no mutable global selector.
+    pub(crate) async fn run_original_attention(
+        &mut self, device: &mut Device, weights: &Weights, sequence: &Sequence<'_>,
+        ws: &mut Workspace, scratch: &mut Prefill,
+    ) -> Result<()> {
+        let mut state = self.prepare(device, weights, sequence, scratch, ws.is_canonical()).await?;
+        state.exact_sliding_attention = false;
+        while !self.advance_layer(device, weights, &mut state, ws, scratch).await? {}
+        self.finish(device, weights, &state, ws, scratch).await
     }
 
     async fn run_with_qkv(
@@ -584,6 +604,24 @@ impl WidePrefill {
                 let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else { unreachable!() };
             // All queries use the immutable old ring; committing sooner evicts keys
             // still needed by earlier rows when the128-token chunk wraps the ring.
+            if state.exact_sliding_attention {
+            launch(
+                crate::ops_sliding_wide_exact::sliding_attention_p128,
+                (
+                    device,
+                    &self.head_q_s,
+                    &*k,
+                    &*v,
+                    &meta.sliding_cluster_bases,
+                    &self.head_k_s,
+                    &self.head_v_s,
+                    &meta.old_mask,
+                    &meta.chunk_mask,
+                    &mut self.attn_s,
+                ),
+            )
+            .await?;
+            } else {
             launch(
                 crate::ops_sliding_wide_pool::sliding_attention_p128,
                 (
@@ -600,6 +638,7 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            }
             scratch.record_optional_profile("wide.sliding.attention", &mut mark);
             launch(
                 crate::ops_commit_wide_pool::commit_sliding_kv_p128,
