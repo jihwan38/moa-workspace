@@ -15,6 +15,8 @@ use std::time::{Duration, Instant};
 #[path = "startup_cohort.rs"]
 mod startup_cohort;
 use startup_cohort::{StartupCohort, StartupDelivery};
+#[path = "chunk_trace.rs"]
+mod chunk_trace;
 
 /// Requests computed together; more wait in the queue.
 pub const CAPACITY: usize = crate::axes::B::SIZE;
@@ -467,6 +469,10 @@ impl Worker {
         let mut request_id = 0u64;
         let mut trace = SchedulerTrace::new();
         let mut cohort = StartupCohort::default();
+        // Process-level diagnostics only; disabled unless explicitly requested.
+        let chunk_trace_enabled = SCHEDULER_TRACE_ENABLED && chunk_trace::enabled();
+        let mut active_chunk_trace = None::<chunk_trace::ChunkTrace>;
+        let mut chunk_sequence = 0usize;
         loop {
             // Flush before any potentially blocking receive, including held Done/EOS.
             if let Some(reason) = cohort.release_reason(&sessions, Instant::now()) {
@@ -649,6 +655,16 @@ impl Worker {
             let grouped = selected.len() == 4 && decode_width == 0;
             let cost_width = prompt_cost_width(&scheduled);
             let credited = CREDIT_SCHEDULER_ENABLED && credit_opportunity && decode_width == 0;
+            let mut immediate_chunk_trace = None;
+            if chunk_trace_enabled && (decode_width > 0 || active_work.is_empty()) {
+                let snapshot = chunk_trace::ChunkTrace::capture(
+                    chunk_sequence, &sessions, &scheduled, &available, cohort.active(),
+                    ready, pending.len(), Instant::now(),
+                );
+                chunk_sequence += usize::from(snapshot.is_some());
+                if decode_width == 0 { active_chunk_trace = snapshot; }
+                else { immediate_chunk_trace = snapshot; }
+            }
             if decode_width == 0 && active_work.is_empty() {
                 active_work.clone_from(&scheduled);
             }
@@ -927,6 +943,7 @@ impl Worker {
             match completed {
                 Ok(false) => {
                     let elapsed = work_started.elapsed();
+                    if let Some(snapshot) = &mut active_chunk_trace { snapshot.observe(elapsed); }
                     cadence.observe_prompt(prompt_phases.recurring_cost(elapsed), cost_width);
                     if SCHEDULER_TRACE_ENABLED {
                         trace.work(0, &scheduled, elapsed, credited);
@@ -972,6 +989,15 @@ impl Worker {
             }
             let finished = Instant::now();
             let elapsed = finished.duration_since(work_started);
+            let completed_chunk = if decode_width == 0 {
+                active_chunk_trace.take()
+            } else {
+                immediate_chunk_trace.take()
+            };
+            if let Some(mut snapshot) = completed_chunk {
+                snapshot.observe(elapsed);
+                snapshot.report(finished);
+            }
             if SCHEDULER_TRACE_ENABLED {
                 trace.work(decode_width, &scheduled, elapsed, credited);
                 if sessions.is_empty() && pending.is_empty() {
@@ -2206,6 +2232,55 @@ mod tests {
             )
             .unwrap()
         );
+    }
+
+    #[test]
+    fn exact_remaining_prompt_lengths_survive512_tail_decode_and_terminal_phases() {
+        let mut pool = PageReservations::new(64, 256, CONTEXT).unwrap();
+        let (mut session, _receiver) = session(&mut pool, 1025, 2);
+        assert_eq!(session.generation.remaining_prompt_inputs(), Some(1025));
+        assert!(session.generation.advance_inputs(512, &[], |_| true).unwrap().is_none());
+        assert_eq!(session.generation.remaining_prompt_inputs(), Some(513));
+        assert!(session.generation.advance_inputs(512, &[], |_| true).unwrap().is_none());
+        assert_eq!(session.generation.remaining_prompt_inputs(), Some(1));
+        assert!(session.generation.advance_inputs_greedy(1, 3, |_| true).unwrap().is_none());
+        assert_eq!(session.generation.remaining_prompt_inputs(), None);
+        assert!(session.generation.advance_inputs_greedy(1, 4, |_| true).unwrap().is_some());
+        assert_eq!(session.generation.remaining_prompt_inputs(), None);
+    }
+
+    #[test]
+    fn chunk_trace_is_read_only_and_survives_cancelled_receivers_and_session_reordering() {
+        let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
+        let (a, ar) = session(pool.as_mut().unwrap(), 1025, 2);
+        let (mut b, _br) = session(pool.as_mut().unwrap(), 1, 3);
+        b.generation.advance_inputs_greedy(1, 3, |_| true).unwrap();
+        drop(ar); // Diagnostics never probe the channel or release its reservation.
+        let mut sessions = vec![a, b];
+        let available: Vec<_> = sessions.iter().map(|s| ready_input(s, true)).collect();
+        let work = [ScheduledInput { ring: sessions[0].blocks.sliding, position: 0, count: 512 }];
+        let now = Instant::now();
+        let snapshot = chunk_trace::ChunkTrace::capture(3, &sessions, &work, &available,
+            false, 1, 0, now).unwrap();
+        let line = snapshot.compact(now);
+        assert!(line.contains("owners=1 tokens=512"));
+        assert!(line.contains(&format!("rows={}:{}:0:512:1025",
+            sessions[0].timing.id, sessions[0].blocks.sliding)));
+        assert!(!complete_work(&mut sessions, &work, None, &mut pool,
+            &mut vec![], &mut vec![]).unwrap());
+        assert_eq!(sessions[0].generation.remaining_prompt_inputs(), Some(1025));
+        assert!(sessions[0].reservation.is_some());
+        sessions.swap(0, 1);
+        assert_eq!(snapshot.compact(now), line);
+        let decoder = [ScheduledInput { ring: sessions[0].blocks.sliding,
+            position: sessions[0].generation.input().1, count: 1 }];
+        let available: Vec<_> = sessions.iter().map(|s| ready_input(s, true)).collect();
+        assert!(chunk_trace::ChunkTrace::capture(4, &sessions, &decoder, &available,
+            false, 1, 0, now).is_none());
+        assert!(complete_work(&mut sessions, &work, Some(&[SampleOutput::Logits(vec![])]),
+            &mut pool, &mut vec![], &mut vec![]).unwrap());
+        assert_eq!(sessions[1].generation.remaining_prompt_inputs(), Some(513));
+        assert_eq!(snapshot.compact(now), line); // Captured remaining is the scheduling-time value.
     }
 
     #[test]

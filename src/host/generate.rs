@@ -325,6 +325,15 @@ impl Generation {
         matches!(self.phase, Phase::Prompt(_))
     }
 
+    /// Exact unsampled prompt inputs, before page/chunk limits are applied.
+    /// Diagnostics may query terminal or decoding sessions without calling input().
+    pub(crate) fn remaining_prompt_inputs(&self) -> Option<usize> {
+        match self.phase {
+            Phase::Prompt(position) => Some(self.request.prompt_ids.len() - position),
+            Phase::Decode(_) | Phase::Complete => None,
+        }
+    }
+
     pub(crate) fn finishes_prompt(&self, count: usize) -> bool {
         matches!(self.phase, Phase::Prompt(position)
             if count > 0 && position.checked_add(count) == Some(self.request.prompt_ids.len()))

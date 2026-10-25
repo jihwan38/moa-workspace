@@ -154,7 +154,6 @@ impl StartupCohort {
             false
         }
     }
-    #[cfg(test)]
     pub(super) fn active(&self) -> bool {
         self.active.is_some()
     }
