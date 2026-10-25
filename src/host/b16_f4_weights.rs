@@ -5,8 +5,8 @@ use furiosa_opt_std::prelude::*;
 use super::{load::{Weights,Layer},native_fp8_weights::NativeFp8Weights};
 type Result<T>=std::result::Result<T,Box<dyn std::error::Error>>;
 
-/// Research-only; Automatic serving remains on the current E4 path.
-pub const ENABLED:bool=false;
+/// q019 research quality candidate: explicit MseDyadic startup, B16-only dispatch.
+pub const ENABLED:bool=true;
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum F4Quantizer { PowerOfTwoRange, MseDyadic }
