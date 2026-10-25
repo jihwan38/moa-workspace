@@ -33,7 +33,10 @@ fn old_scores(
     type KeyRows = m![Ts / 8, 1 # 2];
     let q: DmTensor<bf16, Chip, Cluster, KeyRows, m![B%8, Ns, Gs, Ds]> = q.to_dm(&mut device.tdma);
     let k: DmTensor<f8e4m3,Chip,crate::device::layout::Cluster,KeyRows,m![Ts%8,Ns,Ds]>=k.gather::<m![Rc64],m![Ts,Ns,Ds]>().by_byte_offsets(base).to_dm(&mut device.tdma);
-    let k = crate::ops_fixed_e4_prompt_codec::decode_rows::<_,_,m![Ts%8,Ns]>(device, &k);
+    let k: DmTensor<bf16,Chip,crate::device::layout::Cluster,KeyRows,m![Ts%8,Ns,Ds]> = device.main.begin(k.view())
+        .fetch::<m![Ts%8,Ns,Ds/32],m![Ds%32]>().fetch_table_lookup::<bf16>()
+        .collect::<m![Ts%8,Ns,Ds/16],m![Ds%16]>()
+        .commit_trim::<m![Ds%16]>().commit();
     let k: DmTensor<bf16, Chip, Cluster, KeyRows, m![Ts % 8, Ns, Ds]> = k.to_dm(&mut device.tdma);
     let kt: TrfTensor<bf16, Chip, Cluster, KeyRows, m![Ts % 8], m![Ns, Ds]> = device
         .sub
