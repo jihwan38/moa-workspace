@@ -223,3 +223,4 @@ pub mod ops_output_p128_h64_blocked;
 pub mod ops_native_fp8_r64_staged_fused;
 
 pub mod ops_native_fp8_b16_staged_fused;
+pub mod ops_request_sliding_r64_prefix768;

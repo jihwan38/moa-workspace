@@ -1,0 +1,56 @@
+        let k: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Ts % 32, Ds]> = pool_k
+            .gather::<m![Rc64], m![Ts, Ns, Ds]>()
+            .by_byte_offsets(&index)
+            .to_dm(&mut device.tdma);
+        let kt: TrfTensor<bf16, Chip, Cluster, KeyRows, m![Ts % 8], m![R64 % 4, Ts / 8 % 4, Ds]> =
+            device
+                .sub
+                .begin(k.view())
+                .fetch::<m![Ts % 8, R64 % 4, Ts / 8 % 4, Ds / 16], m![Ds % 16]>()
+                .collect::<m![Ts % 8, R64 % 4, Ts / 8 % 4, Ds / 16], m![Ds % 16]>()
+                .to_trf();
+        let scores: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Gs, Ts % 32]> = device
+            .main
+            .begin(q.view())
+            .fetch::<m![R64 % 4, Gs, Ds / 16], m![Ds % 16]>()
+            .collect::<m![R64 % 4, Gs, Ds / 16], m![Ds % 16]>()
+            .contract_outer::<m![R64 % 4, Gs, Ds / 32, Ts / 8 % 4], m![Ds % 32], _, _, _>(&kt)
+            .contract_packet::<m![1]>()
+            .contract_time::<m![R64 % 4, Gs, Ts / 8 % 4]>()
+            .contract_lane::<m![R64 % 4, Gs, Ts / 8 % 4], m![Ts % 8]>(LaneMode::Interleaved)
+            .cast::<bf16, m![Ts%8 # 16]>()
+            .commit_trim::<m![Ts % 8]>()
+            .commit();
+
+===V===
+        let v: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Ts % 32, Ds]> = pool_v
+            .gather::<m![Rc64], m![Ts, Ns, Ds]>()
+            .by_byte_offsets(&index)
+            .to_dm(&mut device.tdma);
+        let v: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Ds, Ts % 32]> = device
+            .main
+            .begin(v.view())
+            .fetch::<m![R64 % 4, Ds / 8, Ts % 32], m![Ds%8 # 16]>()
+            .collect::<m![R64 % 4, Ds / 8, Ts % 32], m![Ds%8 # 16]>()
+            .transpose::<m![R64 % 4, Ds / 8, Ts / 4 % 8, Ds % 8], m![Ts%4 # 16]>()
+            .commit_trim::<m![Ts % 4]>()
+            .commit();
+        let vt: TrfTensor<bf16, Chip, Cluster, KeyRows, m![Ds % 8], m![R64 % 4, Ds / 8, Ts % 32]> =
+            device
+                .sub
+                .begin(v.view())
+                .fetch::<m![Ds % 8, R64 % 4, Ds / 8, Ts / 16 % 2], m![Ts % 16]>()
+                .collect::<m![Ds % 8, R64 % 4, Ds / 8, Ts / 16 % 2], m![Ts % 16]>()
+                .to_trf();
+        let partial: DmTensor<bf16, Chip, Cluster, KeyRows, m![R64 % 4, Gs, Ds]> = device
+            .main
+            .begin(weights.view())
+            .fetch::<m![R64 % 4, Gs, Ts / 16 % 2], m![Ts % 16]>()
+            .collect::<m![R64 % 4, Gs, Ts / 16 % 2], m![Ts % 16]>()
+            .contract_outer::<m![R64 % 4, Gs, Ds / 8], m![Ts % 32], _, _, _>(&vt)
+            .contract_packet::<m![1]>()
+            .contract_time::<m![R64 % 4, Gs, Ds / 8]>()
+            .contract_lane::<m![R64 % 4, Gs, Ds / 8], m![Ds % 8]>(LaneMode::Interleaved)
+            .cast::<bf16, m![Ds%8 # 16]>()
+            .commit_trim::<m![Ds % 8]>()
+            .commit();

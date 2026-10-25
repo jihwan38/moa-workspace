@@ -1,0 +1,48 @@
+warning: unused import: `ops_batch`
+  --> src/host/prefill.rs:12:40
+   |
+12 |     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
+   |                                        ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ops_batch_r64 as linear`
+  --> src/host/decode_r64.rs:12:20
+   |
+12 |     Chip, axes::*, ops_batch_r64 as linear, ops_commit_r64 as commit, ops_norm_r64 as norm,
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_keyrings_h64.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+error[E0599]: no method named `to_hbm_view` found for struct `furiosa_opt_std::prelude::DmTensor<D, Chip, Cluster, Slice, Element, B>` in the current scope
+   --> src/ops_request_sliding_r64_prefix768.rs:327:4
+    |
+327 |  x.to_hbm_view(&mut device.tdma,out.view_mut());
+    |    ^^^^^^^^^^^
+    |
+help: there is a method `to_hbm` with a similar name, but with different arguments
+   --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory.rs:931:5
+    |
+931 |     pub fn to_hbm<Element2: M>(&self, _dma: &mut DmaContext<{ Dma::Tensor }, B>) -> HbmTensor<D, Chip, Element2, B> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: the full name for the type has been written to '/round2/r64-prefix768/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-34e6c686e5f91da9.long-type-6237778974746021881.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 1 previous error; 5 warnings emitted
