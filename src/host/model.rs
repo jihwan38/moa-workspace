@@ -390,12 +390,23 @@ impl Model {
     pub async fn start_prefill384_128(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        if !GroupPrefill::supports_prompt384128(sequences) {
+            return Err("Prompt384128 needs ordered384/128 input ranges".into());
+        }
+        self.start_prefill_pair512(device, sequences, workspace).await
+    }
+
+    /// Pack two owners' chronological quarters without reordering the owners.
+    /// Legal input lengths are128+384,256+256, or384+128; no padding is executed.
+    pub async fn start_prefill_pair512(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
         if self.logits.len() < 2 || !workspace.is_canonical()
-            || !GroupPrefill::supports_prompt384128(sequences) {
-            return Err("Prompt384128 needs canonical independent384/128 input ranges".into());
+            || !GroupPrefill::supports_prompt_pair512(sequences) {
+            return Err("PromptPair512 needs canonical independent input ranges totaling512".into());
         }
         for sequence in sequences {
             validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
@@ -403,8 +414,14 @@ impl Model {
         }
         self.prepare_group_scratch(device).await?;
         self.active_prompt384128 = Some(self.group.as_mut().unwrap()
-            .prepare_prompt384128(device, &self.weights, sequences, &mut self.prefill).await?);
+            .prepare_prompt_pair512(device, &self.weights, sequences, &mut self.prefill).await?);
         Ok(())
+    }
+
+    pub async fn advance_prefill_pair512(
+        &mut self, device: &mut Device, workspace: &mut Workspace,
+    ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.advance_prefill384_128(device, workspace).await
     }
 
     /// Advance exactly one complete layer, returning two owner-ordered outputs

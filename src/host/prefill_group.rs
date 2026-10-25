@@ -62,14 +62,17 @@ pub(crate) struct PreparedGroup {
 pub(crate) struct PreparedPrompt512 {
     chunks: PreparedGroup,
 }
-/// Three chronological quarters from owner A and one quarter from independent
-/// owner B. Repeated A metadata is private; only two allocations are exposed.
+/// Two independent owners contribute four chronological P128 quarters in total.
+/// The historical name remains for compatibility with the 384+128 diagnostic.
+/// Repeated metadata is private; only the two real allocations are exposed.
 pub(crate) struct PreparedPrompt384128 {
     chunks: PreparedGroup,
+    second_owner_row: usize,
+    final_rows: [usize; 2],
 }
 impl PreparedPrompt384128 {
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 2] {
-        [&self.chunks.states[0].blocks, &self.chunks.states[3].blocks]
+        [&self.chunks.states[0].blocks, &self.chunks.states[self.second_owner_row].blocks]
     }
 }
 
@@ -210,6 +213,13 @@ impl GroupPrefill {
         sequences.len() == 2
             && sequences[0].inputs.len() == 3 * P128::SIZE
             && sequences[1].inputs.len() == P128::SIZE
+            && Self::supports_prompt_pair512(sequences)
+    }
+
+    pub(crate) fn supports_prompt_pair512(sequences: &[Sequence<'_>]) -> bool {
+        sequences.len() == 2
+            && sequences.iter().all(|s| matches!(s.inputs.len(), 128 | 256 | 384))
+            && sequences[0].inputs.len() + sequences[1].inputs.len() == P512::SIZE
             && sequences.iter().all(|sequence| {
                 sequence.start_position % P128::SIZE == 0
                     && sequence.start_position.checked_add(sequence.inputs.len()).is_some()
@@ -230,10 +240,26 @@ impl GroupPrefill {
         if !Self::supports_prompt384128(sequences) {
             return Err("Prompt384128 needs independent384/128 ranges aligned to128 with final-only logits".into());
         }
-        let chunks = prompt384128_chunks(sequences);
+        self.prepare_prompt_pair512(device, weights, sequences, scratch).await
+    }
+
+    pub(crate) async fn prepare_prompt_pair512(
+        &mut self,
+        device: &mut Device,
+        weights: &Weights,
+        sequences: &[Sequence<'_>],
+        scratch: &mut Prefill,
+    ) -> Result<PreparedPrompt384128> {
+        if !Self::supports_prompt_pair512(sequences) {
+            return Err("PromptPair512 needs two independent aligned128/256/384 ranges totaling512, with final-only logits".into());
+        }
+        let chunks = prompt_pair512_chunks(sequences);
+        let second_owner_row = sequences[0].inputs.len() / P128::SIZE;
         debug_assert!(chunks.iter().all(WidePrefill::supports));
         Ok(PreparedPrompt384128 {
             chunks: self.prepare_rows(device, weights, &chunks, scratch).await?,
+            second_owner_row,
+            final_rows: [second_owner_row - 1, 3],
         })
     }
 
@@ -300,14 +326,14 @@ impl GroupPrefill {
         &mut self, device: &mut Device, weights: &Weights,
         state: &mut PreparedPrompt384128, ws: &mut Workspace, scratch: &mut Prefill,
     ) -> Result<bool> {
-        // Quarter order is A0,A1,A2,B0, retaining each owner's causal commits.
+        // All A quarters precede all B quarters; each owner's commits are causal.
         self.advance_layer(device, weights, &mut state.chunks, ws, scratch).await
     }
     pub(crate) async fn finish_prompt384128(
         &mut self, owner: usize, device: &mut Device, weights: &Weights,
         state: &PreparedPrompt384128, ws: &mut Workspace, scratch: &mut Prefill,
     ) -> Result<()> {
-        self.finish([2, 3][owner], device, weights, &state.chunks, ws, scratch).await
+        self.finish(state.final_rows[owner], device, weights, &state.chunks, ws, scratch).await
     }
 
     pub(crate) async fn advance_layer(
@@ -620,18 +646,17 @@ impl GroupPrefill {
 
 /// Caller has validated exact lengths, alignment, checked ends and independent owners.
 fn prompt384128_chunks<'a>(sequences: &[Sequence<'a>]) -> Vec<Sequence<'a>> {
-    let a = sequences[0].inputs;
-    let mut chunks: Vec<_> = a.chunks_exact(P128::SIZE).enumerate().map(|(quarter, inputs)| Sequence {
-        inputs,
-        start_position: sequences[0].start_position + quarter * P128::SIZE,
-        blocks: sequences[0].blocks,
-    }).collect();
-    chunks.push(Sequence {
-        inputs: sequences[1].inputs,
-        start_position: sequences[1].start_position,
-        blocks: sequences[1].blocks,
-    });
-    chunks
+    prompt_pair512_chunks(sequences)
+}
+
+fn prompt_pair512_chunks<'a>(sequences: &[Sequence<'a>]) -> Vec<Sequence<'a>> {
+    sequences.iter().flat_map(|sequence| {
+        sequence.inputs.chunks_exact(P128::SIZE).enumerate().map(move |(quarter, inputs)| Sequence {
+            inputs,
+            start_position: sequence.start_position + quarter * P128::SIZE,
+            blocks: sequence.blocks,
+        })
+    }).collect()
 }
 
 #[cfg(test)]
@@ -702,6 +727,41 @@ mod prompt384128_tests {
     fn allocations() -> [runtime::Blocks;2] {
         [runtime::Blocks{sliding:3,full:vec![255,9,13,23,42]},
          runtime::Blocks{sliding:61,full:vec![254,8,12,22,41]}]
+    }
+    #[test]
+    fn all_pair_partitions_preserve_owner_order_and_final_quarters() {
+        for count in [128,256,384] {
+            let a=inputs(count,100);let b=inputs(512-count,1000);let blocks=allocations();
+            let owners=[Sequence{inputs:&a,start_position:2048-count,blocks:&blocks[0]},
+                Sequence{inputs:&b,start_position:2048-(512-count),blocks:&blocks[1]}];
+            assert!(GroupPrefill::supports_prompt_pair512(&owners));
+            assert_eq!(GroupPrefill::supports_prompt384128(&owners),count==384);
+            let quarters=prompt_pair512_chunks(&owners);assert_eq!(quarters.len(),4);
+            let split=count/128;
+            for (row,q) in quarters.iter().enumerate() {
+                let owner=usize::from(row>=split);let local=if owner==0{row}else{row-split};
+                assert_eq!(q.blocks.sliding,blocks[owner].sliding);
+                assert_eq!(q.start_position,owners[owner].start_position+local*128);
+                assert_eq!(q.inputs[0].token,if owner==0{100+128*local}else{1000+128*local});
+                assert_eq!(q.inputs.last().unwrap().logits,row==split-1||row==3);
+            }
+            assert!(!GroupPrefill::supports(&quarters));
+        }
+    }
+    #[test]
+    fn generic_pair_rejects_incomplete_overfull_and_aliased_owners() {
+        let data=inputs(512,100);let blocks=allocations();
+        for (a,b) in [(0,512),(128,128),(128,256),(256,384),(384,384),(512,0)] {
+            assert!(!GroupPrefill::supports_prompt_pair512(&[
+                Sequence{inputs:&data[..a],start_position:0,blocks:&blocks[0]},
+                Sequence{inputs:&data[..b],start_position:0,blocks:&blocks[1]}]));
+        }
+        for count in [128,256,384] {
+            let a=inputs(count,100);let b=inputs(512-count,1000);
+            assert!(!GroupPrefill::supports_prompt_pair512(&[
+                Sequence{inputs:&a,start_position:0,blocks:&blocks[0]},
+                Sequence{inputs:&b,start_position:0,blocks:&blocks[0]}]));
+        }
     }
     #[test]
     fn two_owners_derive_three_chronological_a_quarters_and_one_b() {
