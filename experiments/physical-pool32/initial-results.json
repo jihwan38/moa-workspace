@@ -1,0 +1,111 @@
+{
+  "source": "07718f0739a16f439c3725e31cb61ba4bcd480d5",
+  "host_tests": {
+    "passed": 131,
+    "failed": 0,
+    "filtered": 0,
+    "run": "a003-physical-pool32-cpu"
+  },
+  "scope": "initial compact32 CPU-address and same-program paired-model gates; no physical64 comparison executed yet",
+  "runs": [
+    {
+      "run": "r1209-physical32-micro",
+      "status": {
+        "id": 321226,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-r1209-physical32-micro",
+        "status": "SUCCEEDED",
+        "created_at": "2026-10-25T14:09:28Z",
+        "started_at": "2026-10-25T14:09:28Z",
+        "finished_at": "2026-10-25T14:09:32Z",
+        "duration_sec": 4.343363988,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log_sha256": "b92e566c41d0f6c9d5c43a5f6b3a5fb1ef1597886f5a47bab959c88de5ec1af2",
+      "pass_lines": [
+        "PASS physical_pool=32 unchanged_query64 fixed32_live_rings all_cells_zero_read_write_live_prefix_neighbors_source_full255"
+      ],
+      "comparisons": 71,
+      "bf16_values": 469827584
+    },
+    {
+      "run": "r1210-physical32-group-case0",
+      "status": {
+        "id": 321227,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-r1210-physical32-group-case0",
+        "status": "SUCCEEDED",
+        "created_at": "2026-10-25T14:09:28Z",
+        "started_at": "2026-10-25T14:09:28Z",
+        "finished_at": "2026-10-25T14:09:42Z",
+        "duration_sec": 13.047287605,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log_sha256": "554cce5a64e12417850feb2619304762e7e45ba36551b0e62e3a8382c2339604",
+      "pass_lines": [
+        "PASS physical32 same-c079 paired owners: all_vocab/cache/reset/B16interleaves; no old64-model equivalence inferred"
+      ],
+      "digest_events": 87,
+      "reported_logit_values": 20185088,
+      "paired_cache_bytes": 3774873600,
+      "memory_lines": [
+        "PHYSICAL_POOL_GROUP_MEMORY label=before_join capacity=51002675200 available=19980931072 largest=19980710400",
+        "PHYSICAL_POOL_GROUP_MEMORY label=after_join capacity=51002675200 available=14281223424 largest=14281044480",
+        "PHYSICAL_POOL_GROUP_MEMORY label=all_model_routes_complete capacity=51002675200 available=14276537856 largest=14273201664"
+      ],
+      "timing_lines": [
+        "PHYSICAL_POOL_GROUP_PASS case=0 round=0 control_ms=127.967781 candidate_ms=127.481150",
+        "PHYSICAL_POOL_GROUP_PASS case=0 round=1 control_ms=116.749355 candidate_ms=116.458612"
+      ]
+    },
+    {
+      "run": "r1211-physical32-history512-w17",
+      "status": {
+        "id": 321228,
+        "owner": "jihwan38",
+        "mine": true,
+        "name": "beef-r1211-physical32-history512-w17",
+        "status": "SUCCEEDED",
+        "created_at": "2026-10-25T14:09:39Z",
+        "started_at": "2026-10-25T14:09:39Z",
+        "finished_at": "2026-10-25T14:09:52Z",
+        "duration_sec": 12.603345765,
+        "exit_code": 0,
+        "device_id": null
+      },
+      "log_sha256": "211648abecef1796d36e263f9a01ad7520e62f8ae4d27cfb620b48c797800db4",
+      "pass_lines": [
+        "PASS physical_history physical=32 prefix=512 width=17 paired_logits=12845056 full_reserved_cache_exact rounds=1; cross_program_equality_requires_separate_digest_match"
+      ],
+      "digest_events": 112,
+      "reported_logit_values": 27000832,
+      "paired_cache_bytes": 3170893824,
+      "memory_lines": [
+        "PHYSICAL_HISTORY_MEMORY label=prepared physical=32 capacity=51002675200 available=14281223424 largest=14281044480",
+        "PHYSICAL_HISTORY_MEMORY label=warm physical=32 capacity=51002675200 available=14276297216 largest=14275456768"
+      ],
+      "timing_lines": [
+        "PHYSICAL_HISTORY_STEP label=r0_layer0 width=17 model_ms=70.577007 paired_values=2097152",
+        "PHYSICAL_HISTORY_STEP label=r0_layer1 width=17 model_ms=65.175721 paired_values=2097152",
+        "PHYSICAL_HISTORY_STEP label=r0_layer23 width=17 model_ms=65.482305 paired_values=2097152",
+        "PHYSICAL_HISTORY_STEP label=r0_layer24 width=17 model_ms=65.348874 paired_values=2097152",
+        "PHYSICAL_HISTORY_STEP label=r0_layer46 width=17 model_ms=65.345333 paired_values=2097152",
+        "PHYSICAL_HISTORY_STEP label=r0_layer47 width=17 model_ms=65.079849 paired_values=2097152"
+      ]
+    }
+  ],
+  "parser_checks": [
+    "complete group/history logs self-match",
+    "changed digest rejects",
+    "missing final PASS rejects"
+  ],
+  "limits": [
+    "Group bf16_values legacy field actually contains bytes; use KV_ALL_BYTES_EXACT compared_bytes",
+    "No serving quality, throughput or >32 queue measurement yet",
+    "Remaining10 group cases and1024/8064 histories root queued separately"
+  ]
+}

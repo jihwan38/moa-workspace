@@ -1,0 +1,61 @@
+{
+  "source": "07718f0739a16f439c3725e31cb61ba4bcd480d5",
+  "build_run": "a002-physical-pool32-diagnostic-build",
+  "source_hashes_verified": 393,
+  "lock_update": {
+    "before": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "after": "365d3c4fc8768160fa69d99a515b042d8f800bd088bdc9c3c550a4e250e16ff3",
+    "only_change": "added already-resolved ring to root package dependencies; all package versions/checksums unchanged",
+    "built_lock": "Cargo.lock.built"
+  },
+  "build_result": {
+    "name": "a002-physical-pool32-diagnostic-build",
+    "purpose": "Build exact physical32 micro, bounded11-owner routes and17to32/8192 history probes plus plain server; no serving activation",
+    "started_at": "2026-10-25T14:00:48.748547+00:00",
+    "worktree": "/home/jihwan38/moa-worktrees/round2/physical-pool32",
+    "commit": "07718f0739a16f439c3725e31cb61ba4bcd480d5",
+    "status": "?? experiments/physical-pool32/b16-attention-schedule.json\n?? experiments/physical-pool32/zero-pool-schedule.json\n",
+    "command": [
+      "docker",
+      "exec",
+      "--workdir",
+      "/round2/physical-pool32",
+      "-e",
+      "CARGO_TARGET_DIR=/round2/ffn-k256/target",
+      "-e",
+      "CARGO_INCREMENTAL=0",
+      "moa2026-round2",
+      "bash",
+      "-lc",
+      "set -e\ncargo check --bin test_physical_pool --bin compare_physical_pool_group --bin compare_physical_pool_history --bin server > experiments/physical-pool32/check-diagnostics.log 2>&1\ncargo furiosa-opt build --release --bin test_physical_pool --bin compare_physical_pool_group --bin compare_physical_pool_history --bin server > experiments/physical-pool32/build-diagnostics.log 2>&1"
+    ],
+    "result": "command_succeeded",
+    "exit_code": 0,
+    "pid": 3421532,
+    "finished_at": "2026-10-25T14:07:42.495981+00:00"
+  },
+  "artifacts": {
+    "test_physical_pool": {
+      "path": "/round2/physical-pool32/experiments/physical-pool32/artifacts/test_physical_pool-07718f07",
+      "sha256": "15a3de31a441b5f39ad61c9c7e5bcc0fa773e62a3f99cc0a4a3ba6c174d559b4",
+      "size": 3191968
+    },
+    "compare_physical_pool_group": {
+      "path": "/round2/physical-pool32/experiments/physical-pool32/artifacts/compare_physical_pool_group-07718f07",
+      "sha256": "7895f7305878d77f9b9359dc444f367bb5322e1f3f39db506353a7dba9f4c320",
+      "size": 32586624
+    },
+    "compare_physical_pool_history": {
+      "path": "/round2/physical-pool32/experiments/physical-pool32/artifacts/compare_physical_pool_history-07718f07",
+      "sha256": "8669b0c9f00c8b394e0a82e157221aa2bc1f9abfa47c6196da2e720fc86fe1b8",
+      "size": 32492896
+    },
+    "server": {
+      "path": "/round2/physical-pool32/experiments/physical-pool32/artifacts/server-07718f07",
+      "sha256": "99057060357e614978c1bb41c841d7c1405188acef53faeb92bf45d66b0b54fd",
+      "size": 39024976
+    }
+  },
+  "npu_status": "not run; root dispatch only",
+  "review": "f316 source/ownership and07718f07 bounded probes independently reviewed by e2e_evidence; no blocker found"
+}
