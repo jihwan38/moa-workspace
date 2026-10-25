@@ -1,5 +1,5 @@
 //! CPU construction/oracle only. No candidate device helper is imported.
-use furiosa_opt_std::prelude::{bf16, f8e4m3};
+use furiosa_opt_std::prelude::bf16;
 use std::collections::BTreeMap;
 #[path = "rational_a4_oracle.rs"]
 mod rational;
@@ -44,7 +44,9 @@ fn f4_decode(code: u8) -> f32 {
 }
 fn e4_code(q: i8) -> u8 {
     assert!((-7..=7).contains(&q));
-    let b = f8e4m3::from_f32(q as f32).to_bits();
+    // Exact E4M3 encodings of integers0..7; no unavailable SDK bit accessor.
+    let magnitude = [0x00u8,0x38,0x40,0x44,0x48,0x4a,0x4c,0x4e][q.unsigned_abs() as usize];
+    let b = magnitude | if q < 0 { 0x80 } else { 0 };
     assert_eq!(e4_decode(b), q as f32, "independent dense E4 signed-code check");
     b
 }

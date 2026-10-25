@@ -6,7 +6,7 @@ use furiosa_opt_std::prelude::*;
 use std::{fs::File,time::Instant};
 #[path="support/npu_profile.rs"] mod npu_profile;
 #[path="support/int4_group960_fixture.rs"] mod cpu;
-use cpu::{Result,InputCpu,WeightCpu,HIDDEN,EXPANDED,TOKENS};
+use cpu::{Result,InputCpu,WeightCpu,HIDDEN,EXPANDED};
 
 async fn upload<D:MaterializableScalar,E:M>(d:&mut Device,b:Vec<u8>)->Result<HbmTensor<D,Chip,E>> {
     assert_eq!(b.len()*8,E::SIZE*D::BITS);
