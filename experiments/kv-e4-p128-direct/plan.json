@@ -1,0 +1,18 @@
+{
+  "base": "5bcd94a (tested storage source67d586f)",
+  "control": "ops_kv_e4_pool::dequant_ring + ops_sliding_wide::sliding_attention_p128",
+  "candidate": "direct whole E4 pool + scalar data/scale ring bases; dequantize old K/V in DM before original score/value arithmetic",
+  "removed_work": "8MiB BF16 scratch writes +8MiB scratch rereads and one device launch per sliding layer/chunk",
+  "added_work": "none intended; same E4 reconstruction inside consumer, DM distribution preserved",
+  "invariants": [
+    "Same old/current masks and original P128 BF16 score/value partial boundaries",
+    "Current K/V already captured/reconstructed, immutable during attention",
+    "No cache writes inside candidate; retained capture commits remain after attention",
+    "No host routing adoption before exact and timing gate"
+  ],
+  "gates": [
+    "All BF16 output bits vs reconstruct+owned control at first/middle/last physical rings and causal boundary starts",
+    "Independent CPU samples on reconstructed values, future/expired invariance",
+    "ABBA completed-kernel timings including reconstruction in control"
+  ]
+}

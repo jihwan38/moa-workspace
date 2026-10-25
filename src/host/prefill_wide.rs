@@ -7,6 +7,9 @@ use crate::ops_prefill_tiles as tiles;
 #[path = "prefill_group.rs"]
 pub(crate) mod group;
 
+// The explicit reconstruction path remains available for diagnostic comparison.
+const DIRECT_E4_P128_READER: bool = true;
+
 pub(crate) struct WidePrefill {
     e4_capture:Option<crate::host::kv_e4::Captured128>,
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
@@ -590,9 +593,16 @@ impl WidePrefill {
             if let runtime::KvCache::SlidingE4(pool)=&mut ws.kv_cache[index] {
                 let capture=self.e4_capture.as_mut().expect("E4 P128 capture");
                 capture.capture(device,&mut self.head_k_s,&mut self.head_v_s).await?;
-                let ring_scratch=ws.e4_ring.as_mut().expect("E4 ring scratch");
-                pool.read_ring(device,&ws.e4_data_bases[ring],&ws.e4_scale_bases[ring],ring_scratch).await?;
-                launch(crate::ops_sliding_wide::sliding_attention_p128,(device,&self.head_q_s,&ring_scratch.k,&ring_scratch.v,&self.head_k_s,&self.head_v_s,&meta.old_mask,&meta.chunk_mask,&mut self.attn_s)).await?;
+                if DIRECT_E4_P128_READER {
+                    launch(crate::ops_sliding_wide_e4_pool::sliding_attention_p128,
+                        (device,&self.head_q_s,&pool.k,&pool.ks,&pool.v,&pool.vs,
+                         &ws.e4_data_bases[ring],&ws.e4_scale_bases[ring],
+                         &self.head_k_s,&self.head_v_s,&meta.old_mask,&meta.chunk_mask,&mut self.attn_s)).await?;
+                } else {
+                    let ring_scratch=ws.e4_ring.as_mut().expect("E4 ring scratch");
+                    pool.read_ring(device,&ws.e4_data_bases[ring],&ws.e4_scale_bases[ring],ring_scratch).await?;
+                    launch(crate::ops_sliding_wide::sliding_attention_p128,(device,&self.head_q_s,&ring_scratch.k,&ring_scratch.v,&self.head_k_s,&self.head_v_s,&meta.old_mask,&meta.chunk_mask,&mut self.attn_s)).await?;
+                }
                 meta.e4.as_ref().expect("E4 P128 metadata").commit(device,capture,pool).await?;
             } else if ws.is_canonical() {
                 let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else { unreachable!() };

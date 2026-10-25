@@ -194,3 +194,4 @@ pub mod ops_cache_pools_e4;
 pub mod ops_qkv_shared_blocked;
 pub mod ops_qk_shared_blocked;
 pub mod ops_head_wide_blocked;
+pub mod ops_sliding_wide_e4_pool;
