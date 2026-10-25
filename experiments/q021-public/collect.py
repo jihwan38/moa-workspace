@@ -93,17 +93,24 @@ harnesses = [json.loads((ROOT / 'evaluations' / f'{candidate}-c16-warm-r96/harne
 assert harnesses[0]['accuracy_helper_sha256'] == harnesses[1]['accuracy_helper_sha256']
 gain = (c16['summary']['metrics']['generated_tokens_per_second'] /
         control['summary']['metrics']['generated_tokens_per_second'] - 1)
+c15_control = performance('r1332-q020-c15-warm-r90-submit', 15, 90, 'q020-b16-f4-mse-parallel')
+c15_repeat = performance('r1333-q021-c15-warm-r90-repeat-submit', 15, 90)
+assert c15_control['request_shape_sha256'] == c15_repeat['request_shape_sha256'] == c15['request_shape_sha256']
+c15_gain = c15_repeat['summary']['metrics']['generated_tokens_per_second'] / c15_control['summary']['metrics']['generated_tokens_per_second'] - 1
 result = {
     'candidate': CANDIDATE, 'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
     'quality': quality, 'external_gsm_train32': external,
     'performance': [c16, c15], 'matched_q020_control': control,
     'matched_c16_relative_tps_gain': gain,
+    'matched_c15_control': c15_control, 'matched_c15_q021_repeat': c15_repeat,
+    'matched_c15_relative_tps_gain': c15_gain,
+    'selection': 'q021 quality passes, but no material HTTP speed gain established: C16 flat and matched C15+0.36%, below observed run variation. Keep q020 as the simpler measured candidate; retain q021 as a validated alternate.',
     'scope': 'Approximate MSE F4 B16 FFN and FP8 B16 LM; byte-identical parallel CPU startup. '
              'Six organizer examples repeated over124 requests, plus32 distinct preregistered public TRAIN questions. '
-             'One matched-size C16 comparison, C15 standalone. No official240/225-request performance, '
+             'One matched-size C16 comparison and a matched C15 pair plus an earlier standalone C15 run. No official240/225-request performance, '
              'private quality, global accuracy improvement or original-model equivalence claim.',
 }
 destination = ROOT / 'r64-server/evidence/q021-http-validation.json'
 destination.write_text(json.dumps(result, indent=2) + '\n')
 print(json.dumps({'public': '124/124', 'external_train': '32/32', 'C16_tps': c16['summary']['metrics']['generated_tokens_per_second'],
-                  'C15_tps': c15['summary']['metrics']['generated_tokens_per_second'], 'matched_C16_gain': gain}))
+                  'C15_tps': c15['summary']['metrics']['generated_tokens_per_second'], 'matched_C16_gain': gain, 'matched_C15_gain': c15_gain}))
