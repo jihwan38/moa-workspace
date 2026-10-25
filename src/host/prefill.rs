@@ -156,7 +156,7 @@ impl Prefill {
         Ok(Self {
             decode_blocked_output: true,
             staged_ffn: true,
-            epilogue_fused: false,
+            epilogue_fused: true,
             output_hsplit: true,
             decode_q_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::QueryOutput),
             decode_k_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::KeyOutput),
