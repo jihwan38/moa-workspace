@@ -1,0 +1,1633 @@
+{
+  "decision": "HOLD without resource build: no defensible >=10% complete gain from this bounded change",
+  "scope": "Same B16 geometry, fixed E4 K cache; new query quantization is approximate. Actual span accounting is not an Amdahl proof or wall-time prediction.",
+  "attribution": "Source/resource topology plus repeated unique span signatures; actual spans contain no source/profile IDs. No cross-graph ordinal-only matching.",
+  "logs": [
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/b16-fixed-e4-kv-micro/experiments/b16-fixed-e4-kv-micro/r1289-arena.log",
+      "sha256": "1abf7157696ee58cfb70bb76081c45534173cae3b590112809c37ae1996c5e49"
+    },
+    {
+      "path": "/home/jihwan38/moa-worktrees/round2/b16-fixed-e4-kv-micro/experiments/b16-fixed-e4-kv-micro/r1290-arena.log",
+      "sha256": "03b50989e1db416423ec3b759ff413b8a5902d633f85f6a04a92c26a30b080a1"
+    }
+  ],
+  "resource_path": "/home/jihwan38/moa-worktrees/round2/b16-fixed-e4-kv/experiments/b16-fixed-e4-kv/candidate-schedule.json",
+  "resource_sha256": "d83db19af41d6417b4b278895796196c3d260c5d20589cefc5bd044610bda1da",
+  "resource_operations": {
+    "@40.44": {
+      "kind": "rngd_cmd.tu_exec",
+      "source": "--> src/ops_b16_fixed_e4_reader.rs:166:81\n\ndevice.main.begin(k.view())\n.fetch::<m![B % 4, Ts % 32, Ds / 32], m![Ds % 32]>()\n.fetch_table_lookup::<bf16>()\n.collect::<m![B % 4, Ts % 32, Ds / 16], m![Ds % 16]>()\n.commit_trim::<m![Ds % 16]>()\n.commit()",
+      "timeline": [
+        {
+          "lifetime": {
+            "begin": 32684,
+            "end": 38067
+          },
+          "iteration_index": [
+            0
+          ],
+          "resources": [
+            "MainContext"
+          ],
+          "util": {
+            "total_util": 0.0,
+            "base_util": 0.0,
+            "efficiency": 0.0
+          }
+        },
+        {
+          "lifetime": {
+            "begin": 99718,
+            "end": 105101
+          },
+          "iteration_index": [
+            1
+          ],
+          "resources": [
+            "MainContext"
+          ],
+          "util": {
+            "total_util": 0.0,
+            "base_util": 0.0,
+            "efficiency": 0.0
+          }
+        }
+      ]
+    },
+    "@40.59": {
+      "kind": "rngd_cmd.tu_exec",
+      "source": "--> src/ops_b16_fixed_e4_reader.rs:173:13\n\ndevice\n.sub\n.begin(k.view())\n.fetch::<m![Ts % 8, B % 4, Ts / 8 % 4, Ds / 16], m![Ds % 16]>()\n.collect::<m![Ts % 8, B % 4, Ts / 8 % 4, Ds / 16], m![Ds % 16]>()\n.to_trf()",
+      "timeline": [
+        {
+          "lifetime": {
+            "begin": 38067,
+            "end": 46522
+          },
+          "iteration_index": [
+            0
+          ],
+          "resources": [
+            "SubContext"
+          ],
+          "util": {
+            "total_util": 0.0,
+            "base_util": 0.0,
+            "efficiency": 0.0
+          }
+        },
+        {
+          "lifetime": {
+            "begin": 105101,
+            "end": 113556
+          },
+          "iteration_index": [
+            1
+          ],
+          "resources": [
+            "SubContext"
+          ],
+          "util": {
+            "total_util": 0.0,
+            "base_util": 0.0,
+            "efficiency": 0.0
+          }
+        }
+      ]
+    },
+    "@40.88": {
+      "kind": "rngd_cmd.tu_exec",
+      "source": "--> src/ops_b16_fixed_e4_reader.rs:179:86\n\ndevice\n.main\n.begin(q.view())\n.fetch::<m![B % 4, Gs, Ds / 16], m![Ds % 16]>()\n.collect::<m![B % 4, Gs, Ds / 16], m![Ds % 16]>()\n.contract_outer::<m![B % 4, Gs, Ds / 32, Ts / 8 % 4], m![Ds % 32], _, _, _>(&kt)\n.contract_packet::<m![1]>()\n.contract_time::<m![B % 4, Gs, Ts / 8 % 4]>()\n.contract_lane::<m![B % 4, Gs, Ts / 8 % 4], m![Ts % 8]>(LaneMode::Interleaved)\n.cast::<bf16, m![Ts%8 # 16]>()\n.commit_trim::<m![Ts % 8]>()\n.commit()",
+      "timeline": [
+        {
+          "lifetime": {
+            "begin": 56563,
+            "end": 57087
+          },
+          "iteration_index": [
+            0
+          ],
+          "resources": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "util": {
+            "total_util": 0.0,
+            "base_util": 0.0,
+            "efficiency": 0.0
+          }
+        },
+        {
+          "lifetime": {
+            "begin": 123597,
+            "end": 124121
+          },
+          "iteration_index": [
+            1
+          ],
+          "resources": [
+            "MainContext",
+            "VectorEngine"
+          ],
+          "util": {
+            "total_util": 0.0,
+            "base_util": 0.0,
+            "efficiency": 0.0
+          }
+        }
+      ]
+    }
+  },
+  "profiles": [
+    {
+      "log": "r1289-arena.log",
+      "label": "PROFILE_VARIANT case=0 live=16 candidate=true",
+      "cluster": 0,
+      "Task_cycles": 389031,
+      "groups": [
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17477385236,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 17477385236,
+            "end_cycle": 17477396825
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17477396832,
+            "dur": 16783,
+            "tid": 0,
+            "begin_cycle": 17477396832,
+            "end_cycle": 17477413615
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17477357201,
+            "dur": 28033,
+            "tid": 0,
+            "begin_cycle": 17477357201,
+            "end_cycle": 17477385234
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17477388071,
+            "dur": 28565,
+            "tid": 0,
+            "begin_cycle": 17477388071,
+            "end_cycle": 17477416636
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17477423626,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 17477423626,
+            "end_cycle": 17477435215
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17477435217,
+            "dur": 1160,
+            "tid": 0,
+            "begin_cycle": 17477435217,
+            "end_cycle": 17477436377
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 17477357144,
+            "dur": 5379,
+            "tid": 0,
+            "begin_cycle": 17477357144,
+            "end_cycle": 17477362523
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17477354912,
+            "dur": 2230,
+            "tid": 0,
+            "begin_cycle": 17477354912,
+            "end_cycle": 17477357142
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 3021
+        },
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17477515294,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 17477515294,
+            "end_cycle": 17477526883
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17477526890,
+            "dur": 16783,
+            "tid": 0,
+            "begin_cycle": 17477526890,
+            "end_cycle": 17477543673
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17477486949,
+            "dur": 28343,
+            "tid": 0,
+            "begin_cycle": 17477486949,
+            "end_cycle": 17477515292
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17477517927,
+            "dur": 29473,
+            "tid": 0,
+            "begin_cycle": 17477517927,
+            "end_cycle": 17477547400
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17477554390,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 17477554390,
+            "end_cycle": 17477565979
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17477565981,
+            "dur": 1164,
+            "tid": 0,
+            "begin_cycle": 17477565981,
+            "end_cycle": 17477567145
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 17477486892,
+            "dur": 5379,
+            "tid": 0,
+            "begin_cycle": 17477486892,
+            "end_cycle": 17477492271
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17477484930,
+            "dur": 1960,
+            "tid": 0,
+            "begin_cycle": 17477484930,
+            "end_cycle": 17477486890
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 3727
+        }
+      ],
+      "K_decode_cycles": 23178,
+      "QK_cycles": 2324,
+      "K_table_DMA_cycles": 4190,
+      "K_table_outside_K_gather_cycles": 114,
+      "decode_plus_entire_QK_over_task": 0.0655526166295231,
+      "plus_table_DMA_over_task": 0.0763229665502235,
+      "generous_current_schedule_credit_over_task": 0.07661600232372227
+    },
+    {
+      "log": "r1289-arena.log",
+      "label": "PROFILE_VARIANT case=0 live=16 candidate=true",
+      "cluster": 1,
+      "Task_cycles": 387782,
+      "groups": [
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17155757100,
+            "dur": 11589,
+            "tid": 1,
+            "begin_cycle": 17155757100,
+            "end_cycle": 17155768689
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17155768696,
+            "dur": 16783,
+            "tid": 1,
+            "begin_cycle": 17155768696,
+            "end_cycle": 17155785479
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17155728438,
+            "dur": 28660,
+            "tid": 1,
+            "begin_cycle": 17155728438,
+            "end_cycle": 17155757098
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17155760023,
+            "dur": 28593,
+            "tid": 1,
+            "begin_cycle": 17155760023,
+            "end_cycle": 17155788616
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17155795596,
+            "dur": 11589,
+            "tid": 1,
+            "begin_cycle": 17155795596,
+            "end_cycle": 17155807185
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17155807187,
+            "dur": 1170,
+            "tid": 1,
+            "begin_cycle": 17155807187,
+            "end_cycle": 17155808357
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 17155727922,
+            "dur": 5379,
+            "tid": 1,
+            "begin_cycle": 17155727922,
+            "end_cycle": 17155733301
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17155725966,
+            "dur": 1954,
+            "tid": 1,
+            "begin_cycle": 17155725966,
+            "end_cycle": 17155727920
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 4863,
+          "K_TRF_ready_before_V_gather_end": 3137
+        },
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17155887398,
+            "dur": 11589,
+            "tid": 1,
+            "begin_cycle": 17155887398,
+            "end_cycle": 17155898987
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17155898994,
+            "dur": 16783,
+            "tid": 1,
+            "begin_cycle": 17155898994,
+            "end_cycle": 17155915777
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17155858915,
+            "dur": 28481,
+            "tid": 1,
+            "begin_cycle": 17155858915,
+            "end_cycle": 17155887396
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17155890057,
+            "dur": 29501,
+            "tid": 1,
+            "begin_cycle": 17155890057,
+            "end_cycle": 17155919558
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17155926570,
+            "dur": 11589,
+            "tid": 1,
+            "begin_cycle": 17155926570,
+            "end_cycle": 17155938159
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17155938161,
+            "dur": 1160,
+            "tid": 1,
+            "begin_cycle": 17155938161,
+            "end_cycle": 17155939321
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 17155858858,
+            "dur": 5379,
+            "tid": 1,
+            "begin_cycle": 17155858858,
+            "end_cycle": 17155864237
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17155856904,
+            "dur": 1952,
+            "tid": 1,
+            "begin_cycle": 17155856904,
+            "end_cycle": 17155858856
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 3781
+        }
+      ],
+      "K_decode_cycles": 23178,
+      "QK_cycles": 2330,
+      "K_table_DMA_cycles": 3906,
+      "K_table_outside_K_gather_cycles": 573,
+      "decode_plus_entire_QK_over_task": 0.06577922647260574,
+      "plus_table_DMA_over_task": 0.07585189616846578,
+      "generous_current_schedule_credit_over_task": 0.07732953050940992
+    },
+    {
+      "log": "r1289-arena.log",
+      "label": "PROFILE_VARIANT case=1 live=14 candidate=true",
+      "cluster": 0,
+      "Task_cycles": 384895,
+      "groups": [
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33204147402,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 33204147402,
+            "end_cycle": 33204158991
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33204158998,
+            "dur": 16783,
+            "tid": 0,
+            "begin_cycle": 33204158998,
+            "end_cycle": 33204175781
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33204119113,
+            "dur": 28287,
+            "tid": 0,
+            "begin_cycle": 33204119113,
+            "end_cycle": 33204147400
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33204150299,
+            "dur": 28811,
+            "tid": 0,
+            "begin_cycle": 33204150299,
+            "end_cycle": 33204179110
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33204186082,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 33204186082,
+            "end_cycle": 33204197671
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33204197673,
+            "dur": 1156,
+            "tid": 0,
+            "begin_cycle": 33204197673,
+            "end_cycle": 33204198829
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 33204119056,
+            "dur": 5379,
+            "tid": 0,
+            "begin_cycle": 33204119056,
+            "end_cycle": 33204124435
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33204117112,
+            "dur": 1942,
+            "tid": 0,
+            "begin_cycle": 33204117112,
+            "end_cycle": 33204119054
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 3329
+        },
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33204278032,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 33204278032,
+            "end_cycle": 33204289621
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33204289628,
+            "dur": 16783,
+            "tid": 0,
+            "begin_cycle": 33204289628,
+            "end_cycle": 33204306411
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33204249427,
+            "dur": 28603,
+            "tid": 0,
+            "begin_cycle": 33204249427,
+            "end_cycle": 33204278030
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33204280377,
+            "dur": 28453,
+            "tid": 0,
+            "begin_cycle": 33204280377,
+            "end_cycle": 33204308830
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33204315802,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 33204315802,
+            "end_cycle": 33204327391
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33204327393,
+            "dur": 1160,
+            "tid": 0,
+            "begin_cycle": 33204327393,
+            "end_cycle": 33204328553
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 33204249370,
+            "dur": 5379,
+            "tid": 0,
+            "begin_cycle": 33204249370,
+            "end_cycle": 33204254749
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33204247426,
+            "dur": 1942,
+            "tid": 0,
+            "begin_cycle": 33204247426,
+            "end_cycle": 33204249368
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 2419
+        }
+      ],
+      "K_decode_cycles": 23178,
+      "QK_cycles": 2316,
+      "K_table_DMA_cycles": 3884,
+      "K_table_outside_K_gather_cycles": 114,
+      "decode_plus_entire_QK_over_task": 0.06623624624897699,
+      "plus_table_DMA_over_task": 0.07632731004559686,
+      "generous_current_schedule_credit_over_task": 0.07662349471933905
+    },
+    {
+      "log": "r1289-arena.log",
+      "label": "PROFILE_VARIANT case=1 live=14 candidate=true",
+      "cluster": 1,
+      "Task_cycles": 384143,
+      "groups": [
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 32882519732,
+            "dur": 11589,
+            "tid": 1,
+            "begin_cycle": 32882519732,
+            "end_cycle": 32882531321
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 32882531328,
+            "dur": 16783,
+            "tid": 1,
+            "begin_cycle": 32882531328,
+            "end_cycle": 32882548111
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 32882491208,
+            "dur": 28522,
+            "tid": 1,
+            "begin_cycle": 32882491208,
+            "end_cycle": 32882519730
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 32882522611,
+            "dur": 28885,
+            "tid": 1,
+            "begin_cycle": 32882522611,
+            "end_cycle": 32882551496
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 32882558468,
+            "dur": 11589,
+            "tid": 1,
+            "begin_cycle": 32882558468,
+            "end_cycle": 32882570057
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 32882570059,
+            "dur": 1162,
+            "tid": 1,
+            "begin_cycle": 32882570059,
+            "end_cycle": 32882571221
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 32882490632,
+            "dur": 5379,
+            "tid": 1,
+            "begin_cycle": 32882490632,
+            "end_cycle": 32882496011
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 32882488658,
+            "dur": 1972,
+            "tid": 1,
+            "begin_cycle": 32882488658,
+            "end_cycle": 32882490630
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 4803,
+          "K_TRF_ready_before_V_gather_end": 3385
+        },
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 32882650856,
+            "dur": 11589,
+            "tid": 1,
+            "begin_cycle": 32882650856,
+            "end_cycle": 32882662445
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 32882662452,
+            "dur": 16783,
+            "tid": 1,
+            "begin_cycle": 32882662452,
+            "end_cycle": 32882679235
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 32882622387,
+            "dur": 28467,
+            "tid": 1,
+            "begin_cycle": 32882622387,
+            "end_cycle": 32882650854
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 32882653143,
+            "dur": 28003,
+            "tid": 1,
+            "begin_cycle": 32882653143,
+            "end_cycle": 32882681146
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 32882688080,
+            "dur": 11589,
+            "tid": 1,
+            "begin_cycle": 32882688080,
+            "end_cycle": 32882699669
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 32882699671,
+            "dur": 1174,
+            "tid": 1,
+            "begin_cycle": 32882699671,
+            "end_cycle": 32882700845
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 32882622330,
+            "dur": 5379,
+            "tid": 1,
+            "begin_cycle": 32882622330,
+            "end_cycle": 32882627709
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 32882619880,
+            "dur": 2448,
+            "tid": 1,
+            "begin_cycle": 32882619880,
+            "end_cycle": 32882622328
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 1911
+        }
+      ],
+      "K_decode_cycles": 23178,
+      "QK_cycles": 2336,
+      "K_table_DMA_cycles": 4420,
+      "K_table_outside_K_gather_cycles": 633,
+      "decode_plus_entire_QK_over_task": 0.06641797455635011,
+      "plus_table_DMA_over_task": 0.07792410638746508,
+      "generous_current_schedule_credit_over_task": 0.07957193024472657
+    },
+    {
+      "log": "r1290-arena.log",
+      "label": "PROFILE_VARIANT case=2 live=16 candidate=true",
+      "cluster": 0,
+      "Task_cycles": 388435,
+      "groups": [
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17320222298,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 17320222298,
+            "end_cycle": 17320233887
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17320233894,
+            "dur": 16783,
+            "tid": 0,
+            "begin_cycle": 17320233894,
+            "end_cycle": 17320250677
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17320193595,
+            "dur": 28701,
+            "tid": 0,
+            "begin_cycle": 17320193595,
+            "end_cycle": 17320222296
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17320225071,
+            "dur": 28953,
+            "tid": 0,
+            "begin_cycle": 17320225071,
+            "end_cycle": 17320254024
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17320261012,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 17320261012,
+            "end_cycle": 17320272601
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17320272603,
+            "dur": 1160,
+            "tid": 0,
+            "begin_cycle": 17320272603,
+            "end_cycle": 17320273763
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 17320193538,
+            "dur": 5379,
+            "tid": 0,
+            "begin_cycle": 17320193538,
+            "end_cycle": 17320198917
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17320191574,
+            "dur": 1962,
+            "tid": 0,
+            "begin_cycle": 17320191574,
+            "end_cycle": 17320193536
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 3347
+        },
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17320353350,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 17320353350,
+            "end_cycle": 17320364939
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17320364946,
+            "dur": 16783,
+            "tid": 0,
+            "begin_cycle": 17320364946,
+            "end_cycle": 17320381729
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17320324971,
+            "dur": 28377,
+            "tid": 0,
+            "begin_cycle": 17320324971,
+            "end_cycle": 17320353348
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17320355629,
+            "dur": 28809,
+            "tid": 0,
+            "begin_cycle": 17320355629,
+            "end_cycle": 17320384438
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17320391344,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 17320391344,
+            "end_cycle": 17320402933
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17320402935,
+            "dur": 1148,
+            "tid": 0,
+            "begin_cycle": 17320402935,
+            "end_cycle": 17320404083
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 17320324914,
+            "dur": 5379,
+            "tid": 0,
+            "begin_cycle": 17320324914,
+            "end_cycle": 17320330293
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17320322304,
+            "dur": 2608,
+            "tid": 0,
+            "begin_cycle": 17320322304,
+            "end_cycle": 17320324912
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 2709
+        }
+      ],
+      "K_decode_cycles": 23178,
+      "QK_cycles": 2308,
+      "K_table_DMA_cycles": 4570,
+      "K_table_outside_K_gather_cycles": 114,
+      "decode_plus_entire_QK_over_task": 0.06561200715692458,
+      "plus_table_DMA_over_task": 0.07737716735103685,
+      "generous_current_schedule_credit_over_task": 0.07767065274756395
+    },
+    {
+      "log": "r1290-arena.log",
+      "label": "PROFILE_VARIANT case=2 live=16 candidate=true",
+      "cluster": 1,
+      "Task_cycles": 386178,
+      "groups": [
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17181524486,
+            "dur": 11591,
+            "tid": 1,
+            "begin_cycle": 17181524486,
+            "end_cycle": 17181536077
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17181536084,
+            "dur": 16785,
+            "tid": 1,
+            "begin_cycle": 17181536084,
+            "end_cycle": 17181552869
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17181495570,
+            "dur": 28914,
+            "tid": 1,
+            "begin_cycle": 17181495570,
+            "end_cycle": 17181524484
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17181527125,
+            "dur": 29197,
+            "tid": 1,
+            "begin_cycle": 17181527125,
+            "end_cycle": 17181556322
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17181563302,
+            "dur": 11591,
+            "tid": 1,
+            "begin_cycle": 17181563302,
+            "end_cycle": 17181574893
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17181574895,
+            "dur": 1166,
+            "tid": 1,
+            "begin_cycle": 17181574895,
+            "end_cycle": 17181576061
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 17181495022,
+            "dur": 5381,
+            "tid": 1,
+            "begin_cycle": 17181495022,
+            "end_cycle": 17181500403
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17181493066,
+            "dur": 1954,
+            "tid": 1,
+            "begin_cycle": 17181493066,
+            "end_cycle": 17181495020
+          },
+          "K_TRF_overlap_V_gather": 16785,
+          "K_table_overlap_K_gather": 4833,
+          "K_TRF_ready_before_V_gather_end": 3453
+        },
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17181654820,
+            "dur": 11591,
+            "tid": 1,
+            "begin_cycle": 17181654820,
+            "end_cycle": 17181666411
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17181666418,
+            "dur": 16785,
+            "tid": 1,
+            "begin_cycle": 17181666418,
+            "end_cycle": 17181683203
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17181626653,
+            "dur": 28165,
+            "tid": 1,
+            "begin_cycle": 17181626653,
+            "end_cycle": 17181654818
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17181657291,
+            "dur": 28653,
+            "tid": 1,
+            "begin_cycle": 17181657291,
+            "end_cycle": 17181685944
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17181692924,
+            "dur": 11591,
+            "tid": 1,
+            "begin_cycle": 17181692924,
+            "end_cycle": 17181704515
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 17181704517,
+            "dur": 1168,
+            "tid": 1,
+            "begin_cycle": 17181704517,
+            "end_cycle": 17181705685
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 17181626596,
+            "dur": 5381,
+            "tid": 1,
+            "begin_cycle": 17181626596,
+            "end_cycle": 17181631977
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 17181624640,
+            "dur": 1954,
+            "tid": 1,
+            "begin_cycle": 17181624640,
+            "end_cycle": 17181626594
+          },
+          "K_TRF_overlap_V_gather": 16785,
+          "K_table_overlap_K_gather": 5324,
+          "K_TRF_ready_before_V_gather_end": 2741
+        }
+      ],
+      "K_decode_cycles": 23182,
+      "QK_cycles": 2334,
+      "K_table_DMA_cycles": 3908,
+      "K_table_outside_K_gather_cycles": 605,
+      "decode_plus_entire_QK_over_task": 0.06607315797378412,
+      "plus_table_DMA_over_task": 0.0761928437145565,
+      "generous_current_schedule_credit_over_task": 0.07775947878957372
+    },
+    {
+      "log": "r1290-arena.log",
+      "label": "PROFILE_VARIANT case=3 live=14 candidate=true",
+      "cluster": 0,
+      "Task_cycles": 387286,
+      "groups": [
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33478141818,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 33478141818,
+            "end_cycle": 33478153407
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33478153414,
+            "dur": 16783,
+            "tid": 0,
+            "begin_cycle": 33478153414,
+            "end_cycle": 33478170197
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33478113375,
+            "dur": 28441,
+            "tid": 0,
+            "begin_cycle": 33478113375,
+            "end_cycle": 33478141816
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33478144359,
+            "dur": 28291,
+            "tid": 0,
+            "begin_cycle": 33478144359,
+            "end_cycle": 33478172650
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33478179618,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 33478179618,
+            "end_cycle": 33478191207
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33478191209,
+            "dur": 1166,
+            "tid": 0,
+            "begin_cycle": 33478191209,
+            "end_cycle": 33478192375
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 33478113318,
+            "dur": 5379,
+            "tid": 0,
+            "begin_cycle": 33478113318,
+            "end_cycle": 33478118697
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33478111372,
+            "dur": 1944,
+            "tid": 0,
+            "begin_cycle": 33478111372,
+            "end_cycle": 33478113316
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 2453
+        },
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33478272034,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 33478272034,
+            "end_cycle": 33478283623
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33478283630,
+            "dur": 16783,
+            "tid": 0,
+            "begin_cycle": 33478283630,
+            "end_cycle": 33478300413
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33478243895,
+            "dur": 28137,
+            "tid": 0,
+            "begin_cycle": 33478243895,
+            "end_cycle": 33478272032
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33478274443,
+            "dur": 28547,
+            "tid": 0,
+            "begin_cycle": 33478274443,
+            "end_cycle": 33478302990
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33478309960,
+            "dur": 11589,
+            "tid": 0,
+            "begin_cycle": 33478309960,
+            "end_cycle": 33478321549
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33478321551,
+            "dur": 1136,
+            "tid": 0,
+            "begin_cycle": 33478321551,
+            "end_cycle": 33478322687
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 33478243838,
+            "dur": 5379,
+            "tid": 0,
+            "begin_cycle": 33478243838,
+            "end_cycle": 33478249217
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33478241282,
+            "dur": 2554,
+            "tid": 0,
+            "begin_cycle": 33478241282,
+            "end_cycle": 33478243836
+          },
+          "K_TRF_overlap_V_gather": 16783,
+          "K_table_overlap_K_gather": 5322,
+          "K_TRF_ready_before_V_gather_end": 2577
+        }
+      ],
+      "K_decode_cycles": 23178,
+      "QK_cycles": 2302,
+      "K_table_DMA_cycles": 4498,
+      "K_table_outside_K_gather_cycles": 114,
+      "decode_plus_entire_QK_over_task": 0.06579117241521769,
+      "plus_table_DMA_over_task": 0.07740532836198571,
+      "generous_current_schedule_credit_over_task": 0.0776996844709078
+    },
+    {
+      "log": "r1290-arena.log",
+      "label": "PROFILE_VARIANT case=3 live=14 candidate=true",
+      "cluster": 1,
+      "Task_cycles": 386599,
+      "groups": [
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33339444748,
+            "dur": 11591,
+            "tid": 1,
+            "begin_cycle": 33339444748,
+            "end_cycle": 33339456339
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33339456346,
+            "dur": 16785,
+            "tid": 1,
+            "begin_cycle": 33339456346,
+            "end_cycle": 33339473131
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33339416312,
+            "dur": 28434,
+            "tid": 1,
+            "begin_cycle": 33339416312,
+            "end_cycle": 33339444746
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33339447381,
+            "dur": 28937,
+            "tid": 1,
+            "begin_cycle": 33339447381,
+            "end_cycle": 33339476318
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33339483290,
+            "dur": 11591,
+            "tid": 1,
+            "begin_cycle": 33339483290,
+            "end_cycle": 33339494881
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33339494883,
+            "dur": 1142,
+            "tid": 1,
+            "begin_cycle": 33339494883,
+            "end_cycle": 33339496025
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 33339415814,
+            "dur": 5381,
+            "tid": 1,
+            "begin_cycle": 33339415814,
+            "end_cycle": 33339421195
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33339413840,
+            "dur": 1972,
+            "tid": 1,
+            "begin_cycle": 33339413840,
+            "end_cycle": 33339415812
+          },
+          "K_TRF_overlap_V_gather": 16785,
+          "K_table_overlap_K_gather": 4883,
+          "K_TRF_ready_before_V_gather_end": 3187
+        },
+        {
+          "K_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33339575012,
+            "dur": 11591,
+            "tid": 1,
+            "begin_cycle": 33339575012,
+            "end_cycle": 33339586603
+          },
+          "K_TRF": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33339586610,
+            "dur": 16785,
+            "tid": 1,
+            "begin_cycle": 33339586610,
+            "end_cycle": 33339603395
+          },
+          "K_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33339546513,
+            "dur": 28497,
+            "tid": 1,
+            "begin_cycle": 33339546513,
+            "end_cycle": 33339575010
+          },
+          "V_gather": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33339577617,
+            "dur": 28935,
+            "tid": 1,
+            "begin_cycle": 33339577617,
+            "end_cycle": 33339606552
+          },
+          "V_decode": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33339613524,
+            "dur": 11591,
+            "tid": 1,
+            "begin_cycle": 33339613524,
+            "end_cycle": 33339625115
+          },
+          "QK": {
+            "cat": "NPU",
+            "name": "Renegade::TuExec",
+            "ph": "Complete",
+            "ts": 33339625117,
+            "dur": 1056,
+            "tid": 1,
+            "begin_cycle": 33339625117,
+            "end_cycle": 33339626173
+          },
+          "K_table": {
+            "cat": "NPU",
+            "name": "Renegade::StoTab",
+            "ph": "Complete",
+            "ts": 33339546456,
+            "dur": 5381,
+            "tid": 1,
+            "begin_cycle": 33339546456,
+            "end_cycle": 33339551837
+          },
+          "K_table_DMA": {
+            "cat": "NPU",
+            "name": "DMA",
+            "ph": "Complete",
+            "ts": 33339544224,
+            "dur": 2230,
+            "tid": 1,
+            "begin_cycle": 33339544224,
+            "end_cycle": 33339546454
+          },
+          "K_TRF_overlap_V_gather": 16785,
+          "K_table_overlap_K_gather": 5324,
+          "K_TRF_ready_before_V_gather_end": 3157
+        }
+      ],
+      "K_decode_cycles": 23182,
+      "QK_cycles": 2198,
+      "K_table_DMA_cycles": 4202,
+      "K_table_outside_K_gather_cycles": 555,
+      "decode_plus_entire_QK_over_task": 0.06564941968292727,
+      "plus_table_DMA_over_task": 0.07651856316234651,
+      "generous_current_schedule_credit_over_task": 0.07795415921924267
+    }
+  ],
+  "means": {
+    "Task_cycles": 386793.625,
+    "K_decode_cycles": 23179,
+    "QK_cycles": 2306,
+    "K_table_DMA_cycles": 4197.25,
+    "K_table_outside_K_gather_cycles": 352.75,
+    "decode_plus_entire_QK_over_task": 0.0658889776420387,
+    "plus_table_DMA_over_task": 0.0767400227177096,
+    "generous_current_schedule_credit_over_task": 0.07765311662806075
+  }
+}
