@@ -271,3 +271,4 @@ pub mod ops_norm_blocked_chain_storegroup;
 pub mod ops_group_ffn_projection_storegroup;
 
 pub mod ops_i4_raw_binding;
+pub mod i4_raw_adapter;
