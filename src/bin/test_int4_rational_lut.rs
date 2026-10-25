@@ -179,3 +179,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if mode != "b16" { full512(&mut d, &profile).await?; }
     println!("PASS_RATIONAL_LUT_A4_REQUEST mode={mode} no_model_quality_or_complete_FFN_claim");
     Ok(())
+}
