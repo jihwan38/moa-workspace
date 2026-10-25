@@ -50,6 +50,7 @@ pub(crate) struct PreparedNarrow {
 pub(crate) struct Prefill {
     // Dedicated decode raw layouts; canonical scratch remains available to prompts and diagnostics.
     decode_blocked_output: bool,
+    output_hsplit: bool,
     decode_q_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::QueryOutput>,
     decode_k_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::KeyOutput>,
     decode_v_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::KeyOutput>,
@@ -94,6 +95,10 @@ pub(crate) struct Prefill {
 }
 
 impl Prefill {
+    pub(crate) fn set_output_hsplit(&mut self, enabled: bool) {
+        self.output_hsplit = enabled;
+    }
+
     pub(crate) fn set_decode_blocked_output(&mut self, enabled: bool) {
         self.decode_blocked_output = enabled;
     }
@@ -140,6 +145,7 @@ impl Prefill {
         }
         Ok(Self {
             decode_blocked_output: true,
+            output_hsplit: true,
             decode_q_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::QueryOutput),
             decode_k_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::KeyOutput),
             decode_v_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::KeyOutput),
@@ -509,17 +515,31 @@ impl Prefill {
                 .await?;
         }
         self.record_profile("sliding.attention", &mut profile_mark);
-        launch(
-            crate::ops_output_b16_parallel_gather::project_sliding_output_batch,
-            (
-                device,
-                &self.attn_s,
-                &layer.o_weight,
-                &layer.o_weight_scale,
-                &mut self.projected,
-            ),
-        )
-        .await?;
+        if self.output_hsplit {
+            launch(
+                crate::ops_output_b16_hsplit::project_sliding_output_batch,
+                (
+                    device,
+                    &self.attn_s,
+                    &layer.o_weight,
+                    &layer.o_weight_scale,
+                    unsafe { self.projected.view_mut().reshape() },
+                ),
+            )
+            .await?;
+        } else {
+            launch(
+                crate::ops_output_b16_parallel_gather::project_sliding_output_batch,
+                (
+                    device,
+                    &self.attn_s,
+                    &layer.o_weight,
+                    &layer.o_weight_scale,
+                    &mut self.projected,
+                ),
+            )
+            .await?;
+        }
         self.record_profile("sliding.output", &mut profile_mark);
         launch(
             crate::ops_norm_batch::post_attention_b16,
@@ -680,17 +700,31 @@ impl Prefill {
         )
         .await?;
         self.record_profile("full.attention", &mut profile_mark);
-        launch(
-            crate::ops_output_b16_parallel_gather::project_full_output_batch,
-            (
-                device,
-                &self.divided_f,
-                &layer.o_weight,
-                &layer.o_weight_scale,
-                &mut self.projected,
-            ),
-        )
-        .await?;
+        if self.output_hsplit {
+            launch(
+                crate::ops_output_b16_hsplit::project_full_output_batch,
+                (
+                    device,
+                    &self.divided_f,
+                    &layer.o_weight,
+                    &layer.o_weight_scale,
+                    unsafe { self.projected.view_mut().reshape() },
+                ),
+            )
+            .await?;
+        } else {
+            launch(
+                crate::ops_output_b16_parallel_gather::project_full_output_batch,
+                (
+                    device,
+                    &self.divided_f,
+                    &layer.o_weight,
+                    &layer.o_weight_scale,
+                    &mut self.projected,
+                ),
+            )
+            .await?;
+        }
         self.record_profile("full.output", &mut profile_mark);
         launch(
             crate::ops_norm_batch::post_attention_b16,

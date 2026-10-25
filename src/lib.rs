@@ -197,3 +197,5 @@ pub mod ops_head_r64_blocked;
 pub mod ops_head_b16_blocked;
 
 pub mod ops_output_r64_trf32;
+
+pub mod ops_output_b16_hsplit;

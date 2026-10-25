@@ -349,17 +349,31 @@ impl Prefill {
             }
         }
         self.record_profile("sliding.attention", &mut profile_mark);
-        launch(
-            crate::ops_output_b16_parallel_gather::project_sliding_output_batch,
-            (
-                device,
-                &self.attn_s,
-                &layer.o_weight,
-                &layer.o_weight_scale,
-                &mut self.projected,
-            ),
-        )
-        .await?;
+        if self.output_hsplit {
+            launch(
+                crate::ops_output_b16_hsplit::project_sliding_output_batch,
+                (
+                    device,
+                    &self.attn_s,
+                    &layer.o_weight,
+                    &layer.o_weight_scale,
+                    unsafe { self.projected.view_mut().reshape() },
+                ),
+            )
+            .await?;
+        } else {
+            launch(
+                crate::ops_output_b16_parallel_gather::project_sliding_output_batch,
+                (
+                    device,
+                    &self.attn_s,
+                    &layer.o_weight,
+                    &layer.o_weight_scale,
+                    &mut self.projected,
+                ),
+            )
+            .await?;
+        }
         self.record_profile("sliding.output", &mut profile_mark);
         launch(
             crate::ops_norm_batch::post_attention_b16,
@@ -594,17 +608,31 @@ impl Prefill {
             }
         }
         self.record_profile("full.attention", &mut profile_mark);
-        launch(
-            crate::ops_output_b16_parallel_gather::project_full_output_batch,
-            (
-                device,
-                &self.divided_f,
-                &layer.o_weight,
-                &layer.o_weight_scale,
-                &mut self.projected,
-            ),
-        )
-        .await?;
+        if self.output_hsplit {
+            launch(
+                crate::ops_output_b16_hsplit::project_full_output_batch,
+                (
+                    device,
+                    &self.divided_f,
+                    &layer.o_weight,
+                    &layer.o_weight_scale,
+                    unsafe { self.projected.view_mut().reshape() },
+                ),
+            )
+            .await?;
+        } else {
+            launch(
+                crate::ops_output_b16_parallel_gather::project_full_output_batch,
+                (
+                    device,
+                    &self.divided_f,
+                    &layer.o_weight,
+                    &layer.o_weight_scale,
+                    &mut self.projected,
+                ),
+            )
+            .await?;
+        }
         self.record_profile("full.output", &mut profile_mark);
         launch(
             crate::ops_norm_batch::post_attention_b16,

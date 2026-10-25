@@ -100,6 +100,11 @@ impl Model {
     /// Diagnostic storage-control gate. Serving defaults to blocked decode outputs.
     /// This changes only projection scratch layout and its matching head consumer;
     /// request histories, attention, arithmetic and logits selection are unchanged.
+    /// Diagnostic control: both choices use identical BF16 partial arithmetic.
+    pub fn set_b16_output_hsplit(&mut self, enabled: bool) {
+        self.prefill.set_output_hsplit(enabled);
+    }
+
     pub fn set_decode_blocked_output(&mut self, enabled: bool) {
         self.prefill.set_decode_blocked_output(enabled);
         if let Some(decode) = &mut self.decode64 {
