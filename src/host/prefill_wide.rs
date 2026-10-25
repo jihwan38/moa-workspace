@@ -9,6 +9,8 @@ pub(crate) mod group;
 
 // Source-only serving default; explicit diagnostic keeps the original reduction.
 const EXACT_SLIDING_ATTENTION_ENABLED: bool = true;
+// Pure movement change: original page recurrence and masks remain unchanged.
+const DIRECT_FULL_ATTENTION_ENABLED: bool = true;
 
 pub(crate) struct WidePrefill {
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
@@ -44,6 +46,7 @@ pub(crate) struct PreparedWide {
     logits: bool,
     native_qkv: bool,
     exact_sliding_attention: bool,
+    direct_full_attention: bool,
     next_layer: usize,
     segments: Vec<Segment>,
     native: Option<NativeMetadata>,
@@ -273,6 +276,7 @@ impl WidePrefill {
             logits: sequence.inputs.last().unwrap().logits,
             native_qkv: count == P128::SIZE,
             exact_sliding_attention: EXACT_SLIDING_ATTENTION_ENABLED,
+            direct_full_attention: DIRECT_FULL_ATTENTION_ENABLED,
             next_layer: 0,
             segments,
             native,
@@ -399,6 +403,18 @@ impl WidePrefill {
     ) -> Result<()> {
         let mut state = self.prepare(device, weights, sequence, scratch, ws.is_canonical()).await?;
         state.exact_sliding_attention = false;
+        while !self.advance_layer(device, weights, &mut state, ws, scratch).await? {}
+        self.finish(device, weights, &state, ws, scratch).await
+    }
+
+    /// Isolate only the full-page movement change; native QKV and sliding
+    /// attention stay on the ordinary path. State is private to this execution.
+    pub(crate) async fn run_original_full_attention(
+        &mut self, device: &mut Device, weights: &Weights, sequence: &Sequence<'_>,
+        ws: &mut Workspace, scratch: &mut Prefill,
+    ) -> Result<()> {
+        let mut state = self.prepare(device, weights, sequence, scratch, ws.is_canonical()).await?;
+        state.direct_full_attention = false;
         while !self.advance_layer(device, weights, &mut state, ws, scratch).await? {}
         self.finish(device, weights, &state, ws, scratch).await
     }
@@ -935,24 +951,30 @@ impl WidePrefill {
                 } else {
                     &self.full_line_mask
                 };
-                let args = (
-                    &mut *device,
-                    &self.head_q_f,
-                    &*k,
-                    &*v,
-                    &ws.cache_page_offsets[blocks[current]],
-                    mask,
-                    &mut self.max_f,
-                    &mut self.sum_f,
-                    &mut self.accum_f,
-                );
-                if current == 0 {
-                    launch(crate::ops_full_wide_pool::full_attention_first_page_p128, args).await?;
-            scratch.record_optional_profile("wide.full.attention", &mut mark);
+                if state.direct_full_attention {
+                    let args = (
+                        &mut *device, &self.head_q_f, &*k, &*v,
+                        &ws.cache_full_head_offsets[blocks[current]], mask,
+                        &mut self.max_f, &mut self.sum_f, &mut self.accum_f,
+                    );
+                    if current == 0 {
+                        launch(crate::ops_full_wide_direct::full_attention_first_page_p128, args).await?;
+                    } else {
+                        launch(crate::ops_full_wide_direct::full_attention_next_page_p128, args).await?;
+                    }
                 } else {
-                    launch(crate::ops_full_wide_pool::full_attention_next_page_p128, args).await?;
-            scratch.record_optional_profile("wide.full.attention", &mut mark);
+                    let args = (
+                        &mut *device, &self.head_q_f, &*k, &*v,
+                        &ws.cache_page_offsets[blocks[current]], mask,
+                        &mut self.max_f, &mut self.sum_f, &mut self.accum_f,
+                    );
+                    if current == 0 {
+                        launch(crate::ops_full_wide_pool::full_attention_first_page_p128, args).await?;
+                    } else {
+                        launch(crate::ops_full_wide_pool::full_attention_next_page_p128, args).await?;
+                    }
                 }
+                scratch.record_optional_profile("wide.full.attention", &mut mark);
             }
             } else {
                 let (k, v) = ws.kv_cache[index].as_full_mut();

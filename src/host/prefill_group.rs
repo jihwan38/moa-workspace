@@ -256,7 +256,7 @@ impl GroupPrefill {
         let [oa, ob, oc, od] = &mut self.blocked;
         match layer {
             Layer::Sliding(l) => {
-                launch(crate::ops_qkv_shared_blocked::project_sliding_qkv_four,
+                launch(crate::ops_qkv_shared_ingress::project_sliding_qkv_four,
                     (device, &a.qkv_input, &a.qkv_scale, &b.qkv_input, &b.qkv_scale,
                      &c.qkv_input, &c.qkv_scale, &d.qkv_input, &d.qkv_scale,
                      &l.q_weight, &l.k_weight, &l.v_weight,

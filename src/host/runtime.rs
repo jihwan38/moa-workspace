@@ -1,6 +1,6 @@
 use furiosa_opt_std::prelude::*;
 
-use crate::axes::{Aa, Df, Ds, E, Gf, Gs, H, Mv, Ns, Pv, Rv, Tf, Ts, W};
+use crate::axes::{Aa, Df, Ds, E, Gf, Gs, H, Mv, Ns, P128, Pv, Rv, Tf, Ts, W};
 use crate::host::load::{FullLayer, Layer, SlidingLayer, Weights};
 use crate::ops_pool_views::Rc64;
 use crate::ops_request_attention::Fc;
@@ -187,6 +187,9 @@ pub struct Workspace {
     physical_full_pages: usize,
     pub(crate) cache_ring_offsets: Vec<HbmTensor<i32, Chip, m![1]>>,
     pub(crate) cache_page_offsets: Vec<HbmTensor<i32, Chip, m![1]>>,
+    // Immutable per-physical-page indices: one identical absolute byte offset for
+    // each query-cluster/head pair. Allocated once, never uploaded per prompt.
+    pub(crate) cache_full_head_offsets: Vec<HbmTensor<i32, Chip, m![P128/64,Gf]>>,
     pub(crate) blocks: Blocks,
     offset_kv_s: HbmTensor<i32, Chip, m![1]>,
     offset_kv_f: HbmTensor<i32, Chip, m![1]>,
@@ -318,6 +321,7 @@ impl Workspace {
         }
         let mut cache_ring_offsets = Vec::new();
         let mut cache_page_offsets = Vec::new();
+        let mut cache_full_head_offsets = Vec::new();
         if canonical {
             for ring in 0..requests {
                 cache_ring_offsets.push(
@@ -329,6 +333,11 @@ impl Workspace {
                 );
             }
             for page in 0..pool {
+                cache_full_head_offsets.push(
+                    HostTensor::<i32, m![P128/64,Gf]>::from_vec(
+                        [(page * Tf::SIZE * Df::SIZE * 2) as i32; 2 * Gf::SIZE],
+                    ).to_hbm(&mut device.pdma).await?,
+                );
                 cache_page_offsets.push(
                     HostTensor::<i32, m![1]>::from_vec([(page * Tf::SIZE * Df::SIZE * 2) as i32])
                         .to_hbm(&mut device.pdma)
@@ -367,6 +376,7 @@ impl Workspace {
             physical_full_pages: pool,
             cache_ring_offsets,
             cache_page_offsets,
+            cache_full_head_offsets,
             blocks: Blocks::default(),
             offset_kv_s,
             offset_kv_f,
