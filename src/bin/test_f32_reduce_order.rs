@@ -1,5 +1,5 @@
 //! Diagnostic: no candidate kernel is selected or arithmetic gate relaxed.
-use furiosa_opt_gemma4::{Chip,ops_f32_reduce_order as op};
+use furiosa_opt_gemma4::ops_f32_reduce_order as op;
 use furiosa_opt_std::prelude::*;
 fn hash(mut v:u64)->u64 {v=(v^(v>>30)).wrapping_mul(0xbf58476d1ce4e5b9);v=(v^(v>>27)).wrapping_mul(0x94d049bb133111eb);v^(v>>31)}
 fn add(a:f32,b:f32)->f32 { // explicit binary F32 boundary; avoid any possible excess precision.
@@ -11,6 +11,8 @@ async fn main() {
     let permutations:Vec<[usize;4]>=(0..4).flat_map(|a|(0..4).flat_map(move|b|(0..4).flat_map(move|c|(0..4).filter_map(move|e|if a!=b&&a!=c&&a!=e&&b!=c&&b!=e&&c!=e{Some([a,b,c,e])}else{None})))).collect();
     let mut balanced_mismatches=[0usize;3];let mut sequential_mismatches=vec![0usize;24];let mut samples=0usize;
     let mut output=HostTensor::<f32,op::Outputs>::zero().to_hbm(&mut d.pdma).await.unwrap();
+    let mut local_output=HostTensor::<f32,op::Outputs>::zero().to_hbm(&mut d.pdma).await.unwrap();
+    let mut local_mismatches=0usize;
     for seed in 0..256usize {
         let mut values=Vec::with_capacity(64*4*8);let mut rows=Vec::new();
         for row in 0..64usize {
@@ -27,8 +29,14 @@ async fn main() {
         let input=HostTensor::<f32,op::Inputs>::from_vec(values.clone()).to_hbm(&mut d.pdma).await.unwrap();
         launch(op::sum_four,(&mut d,&input,&mut output)).await.unwrap();
         let got:HostTensor<f32,op::Outputs>=output.to_host(&mut d.pdma).await.unwrap();let got=got.into_vec();
+        launch(op::sum_four_local,(&mut d,&input,&mut local_output)).await.unwrap();
+        let local:HostTensor<f32,op::Outputs>=local_output.to_host(&mut d.pdma).await.unwrap();let local=local.into_vec();
         for (row,x) in rows.into_iter().enumerate() {
             let actual=got[row*8];assert!(actual.is_finite());
+            if actual.to_bits()!=local[row*8].to_bits() {
+                if local_mismatches<8 {println!("F32_LOCAL_DIFF row={samples} inputs={x:?} inter={actual} intra={}",local[row*8]);}
+                local_mismatches+=1;
+            }
             let candidates=[add(add(x[0],x[1]),add(x[2],x[3])),add(add(x[0],x[2]),add(x[1],x[3])),add(add(x[0],x[3]),add(x[1],x[2]))];
             for (i,v) in candidates.into_iter().enumerate() {balanced_mismatches[i]+=usize::from(actual.to_bits()!=v.to_bits());}
             for (i,p) in permutations.iter().enumerate() {let v=add(add(add(x[p[0]],x[p[1]]),x[p[2]]),x[p[3]]);sequential_mismatches[i]+=usize::from(actual.to_bits()!=v.to_bits());}
@@ -38,6 +46,7 @@ async fn main() {
         let reread:HostTensor<f32,op::Inputs>=input.to_host(&mut d.pdma).await.unwrap();assert!(reread.into_vec().iter().zip(&values).all(|(a,b)|a.to_bits()==b.to_bits()));
     }
     println!("F32_SUM_ORDER samples={samples} balanced_01_23__02_13__03_12={balanced_mismatches:?}");
+    println!("F32_LOCAL_COMPARISON samples={samples} bit_mismatches={local_mismatches}; no wholemodelclaim");
     for (p,n) in permutations.iter().zip(&sequential_mismatches) {println!("F32_SUM_LEFT_FOLD order={p:?} mismatches={n}");}
     println!("DIAGNOSTIC_COMPLETE finite inputsimmutable; no candidate or wholemodel correctness claim");
 }

@@ -16,3 +16,17 @@ pub fn sum_four(device:&mut Device,input:&HbmTensor<f32,Chip,Inputs>,output:&mut
         .vector_final().commit_trim::<m![1#8]>().commit();
     sum.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
+
+/// Same four values in local time; independently compared against sum_four.
+#[device(chip=1)]
+pub fn sum_four_local(device:&mut Device,input:&HbmTensor<f32,Chip,Inputs>,output:&mut HbmTensor<f32,Chip,Outputs>) {
+    let input:DmTensor<f32,Chip,Cluster,Rows,m![K4,1#8]>=input.to_dm(&mut device.tdma);
+    let sum:DmTensor<f32,Chip,Cluster,Rows,m![1#8]>=device.main.begin(input.view())
+        .fetch::<m![K4],m![1#8]>().collect::<m![K4],m![1#8]>()
+        .vector_init().vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_trim::<m![1#4]>()
+        .vector_intra_slice_reduce::<K4,m![1],m![1#4]>(IntraSliceReduceOpF32::Add)
+        .vector_widen_pad::<m![1#8]>().vector_final()
+        .commit_trim::<m![1#8]>().commit();
+    sum.view().to_hbm_view(&mut device.tdma,output.view_mut());
+}
