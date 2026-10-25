@@ -484,7 +484,9 @@ impl Worker {
         let mut active_work = Vec::<ScheduledInput>::new();
         let mut request_id = 0u64;
         let mut trace = SchedulerTrace::new();
-        let mut cohort = StartupCohort::new(startup_cohort::RECOVERY_ENABLED);
+        let mut cohort = StartupCohort::with_late_admission(
+            startup_cohort::RECOVERY_ENABLED, startup_cohort::LATE_ADMISSION_ENABLED,
+        );
         // Process-level diagnostics only; disabled unless explicitly requested.
         let chunk_trace_enabled = SCHEDULER_TRACE_ENABLED && chunk_trace::enabled();
         let mut active_chunk_trace = None::<chunk_trace::ChunkTrace>;
@@ -591,6 +593,12 @@ impl Worker {
                         timing: request.timing,
                     });
                 }
+            }
+            if startup_cohort::ENABLED {
+                // FIFO reservations are settled. Ready/expired release wins
+                // before late joins and before any index-based work selection.
+                cohort.after_admission(&mut sessions, &mut reservations, &mut free,
+                    &mut rings, Instant::now());
             }
             if sessions.is_empty() {
                 continue;

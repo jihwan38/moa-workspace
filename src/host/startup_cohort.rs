@@ -10,6 +10,9 @@ pub(super) const ENABLED: bool = true;
 // (r1130 versus r1129). Retain its explicit lifecycle tests, but keep serving
 // on the established cohort policy pending a distinct measured repair.
 pub(super) const RECOVERY_ENABLED: bool = false;
+/// Independent research activation; requires recovery as well. Arrival timing
+/// can change membership, but cannot extend a request's original receipt budget.
+pub(super) const LATE_ADMISSION_ENABLED: bool = false;
 pub(super) const RECEIPT_BUDGET: Duration = Duration::from_millis(3750);
 
 #[derive(Default)]
@@ -138,12 +141,16 @@ struct Snapshot {
 #[derive(Default)]
 pub(super) struct StartupCohort {
     recovery: bool,
+    late_admission: bool,
     attempted: bool,
     active: Option<Snapshot>,
 }
 impl StartupCohort {
     pub(super) fn new(recovery: bool) -> Self {
         Self { recovery, ..Self::default() }
+    }
+    pub(super) fn with_late_admission(recovery: bool, late_admission: bool) -> Self {
+        Self { late_admission: recovery && late_admission, ..Self::new(recovery) }
     }
     pub(super) fn reset_idle(&mut self) {
         assert!(self.active.is_none());
@@ -153,7 +160,7 @@ impl StartupCohort {
     /// Rearm only before any remaining generation enters Decode, including a
     /// decoder whose text is still hidden by channel or stop-prefix handling.
     /// This changes eligibility only: receipt times, allocations and any active
-    /// model prompt checkpoint remain untouched. An existing snapshot never grows.
+    /// model prompt checkpoint remain untouched. Legacy snapshots never grow.
     pub(super) fn rearm_prefill_only(&mut self, sessions: &[Session]) -> bool {
         if !self.recovery
             && self.attempted
@@ -250,6 +257,70 @@ impl StartupCohort {
             && !session.delivery.held()
             && !session.delivery.once_participated()
     }
+    /// Called after FIFO admission, before deriving any Session indices or work.
+    /// Release wins over joining, including expiration during admission itself.
+    /// This method has no await and never changes an active model checkpoint.
+    pub(super) fn after_admission(
+        &mut self,
+        sessions: &mut Vec<Session>,
+        reservations: &mut Option<PageReservations>,
+        free: &mut Vec<usize>,
+        rings: &mut Vec<usize>,
+        now: Instant,
+    ) {
+        if !self.late_admission || self.active.is_none() {
+            return;
+        }
+        if let Some(reason) = self.release_reason(sessions, now) {
+            self.release(sessions, reservations, free, rings, now, reason);
+            return;
+        }
+        let added: Vec<_> = sessions.iter().filter(|s| Self::fresh_member(s))
+            .map(|s| s.timing.id).collect();
+        if added.is_empty() {
+            return;
+        }
+        let snapshot = self.active.as_ref().unwrap();
+        let oldest_receipt = sessions.iter().filter(|s| Self::fresh_member(s))
+            .map(|s| s.timing.received).min().unwrap().min(snapshot.oldest_receipt);
+        let deadline = snapshot.deadline.min(oldest_receipt + RECEIPT_BUDGET);
+        if now >= deadline {
+            // Do not hold/mark the newly admitted expired request, nor skip it
+            // to admit a younger subset. The ordinary capture check also rejects it.
+            self.release(sessions, reservations, free, rings, now, "late-expired");
+            return;
+        }
+        let trace_detail = SCHEDULER_TRACE_ENABLED.then(|| {
+            let previous = snapshot.members.iter().map(u64::to_string)
+                .collect::<Vec<_>>().join(",");
+            let joined = sessions.iter().filter(|s| added.contains(&s.timing.id))
+                .map(|s| format!("{}:{}:{}", s.timing.id, s.blocks.sliding,
+                    s.generation.remaining_prompt_inputs().unwrap()))
+                .collect::<Vec<_>>().join(",");
+            format!(" previous={} added={} old_oldest_ms={:.3} old_left_ms={:.3} elapsed_ms={:.3}",
+                previous, joined,
+                now.saturating_duration_since(snapshot.oldest_receipt).as_secs_f64()*1000.0,
+                snapshot.deadline.saturating_duration_since(now).as_secs_f64()*1000.0,
+                now.saturating_duration_since(snapshot.started).as_secs_f64()*1000.0)
+        });
+        for session in sessions.iter_mut().filter(|s| added.contains(&s.timing.id)) {
+            assert!(Self::fresh_member(session));
+            session.delivery.hold(false, now);
+        }
+        let snapshot = self.active.as_mut().unwrap();
+        snapshot.members.extend(added);
+        snapshot.oldest_receipt = oldest_receipt;
+        snapshot.deadline = deadline;
+        // started is deliberately unchanged. Every appended owner retains its
+        // reservation until this same snapshot releases, bounding total membership.
+        if let Some(detail) = trace_detail {
+            self.trace_recovery_details(sessions, now, "join", &detail);
+        }
+    }
+    #[cfg(test)]
+    pub(super) fn snapshot_state(&self) -> Option<(&[u64], Instant, Instant)> {
+        self.active.as_ref().map(|s| (s.members.as_slice(), s.started, s.deadline))
+    }
     fn maybe_start_recovery(
         &mut self,
         sessions: &mut [Session],
@@ -289,6 +360,9 @@ impl StartupCohort {
         self.trace_recovery(sessions, now, "start");
     }
     fn trace_recovery(&self, sessions: &[Session], now: Instant, action: &str) {
+        self.trace_recovery_details(sessions, now, action, "");
+    }
+    fn trace_recovery_details(&self, sessions: &[Session], now: Instant, action: &str, detail: &str) {
         if !self.recovery || !SCHEDULER_TRACE_ENABLED {
             return;
         }
@@ -304,10 +378,10 @@ impl StartupCohort {
             !snapshot.members.contains(&s.timing.id) && self.allows(s)
         }).map(|s| format!("{}:{}:{}",s.timing.id,s.blocks.sliding,
             s.generation.remaining_prompt_inputs().unwrap_or(0))).collect();
-        eprintln!("SCHED_RECOVERY action={} members={} passthrough={} oldest_ms={:.3} left_ms={:.3}",
+        eprintln!("SCHED_RECOVERY action={} members={} passthrough={} oldest_ms={:.3} left_ms={:.3}{}",
             action,members.join(","),passthrough.join(","),
             now.saturating_duration_since(snapshot.oldest_receipt).as_secs_f64()*1000.0,
-            snapshot.deadline.saturating_duration_since(now).as_secs_f64()*1000.0);
+            snapshot.deadline.saturating_duration_since(now).as_secs_f64()*1000.0, detail);
     }
     pub(super) fn release_reason(
         &self,
