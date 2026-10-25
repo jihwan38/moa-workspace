@@ -84,6 +84,7 @@ async fn project_down(d:&mut Device,w:&WeightsGpu,x:&InputGpu<P512L960>,out:&mut
 async fn main()->Result<()> {
     if std::env::args().len()!=1 {return Err("this preregistered probe accepts no layer/fixture overrides; layer0 and two fixed row orders only".into());}
     let profile=npu_profile::Collector::default();tracing::subscriber::set_global_default(profile.clone())?;
+    cpu::validate_integer_encodings();
     cpu::check_output_layout(EXPANDED);cpu::check_output_layout(HIDDEN);
     let startup=Instant::now();let path=load::model_dir()?.join("model.safetensors");let file=File::open(&path)?;
     // Read-only file mapping, identical to existing provided-weight diagnostics.

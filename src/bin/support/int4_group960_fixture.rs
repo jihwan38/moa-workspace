@@ -50,6 +50,9 @@ fn e4_code(q: i8) -> u8 {
     assert_eq!(e4_decode(b), q as f32, "independent dense E4 signed-code check");
     b
 }
+pub fn validate_integer_encodings() {
+    for q in -7i8..=7 { assert_eq!(e4_decode(e4_code(q)), q as f32); }
+}
 fn put_codes(packed: &mut [u8], dense: &mut [u8], start: usize, codes: &[i32]) {
     assert_eq!(start % 2, 0); assert_eq!(codes.len() % 2, 0);
     for (j, pair) in codes.chunks_exact(2).enumerate() {
