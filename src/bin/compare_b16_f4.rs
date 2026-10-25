@@ -50,6 +50,49 @@ fn memory(_: &Device, _: &str) -> Result<()> {
     Ok(())
 }
 
+/// Read actual owning-buffer metadata before any model work. This catches a
+/// stale shared-target library even when the requested admission count is32.
+fn storage_identity(w: &Workspace) -> Result<()> {
+    use furiosa_opt_gemma4::{axes::*, ops_pool_views::Rc64, ops_request_attention::Fc};
+    assert!(w.is_canonical());
+    assert_eq!((Rc64::SIZE, R64::SIZE, Fc::SIZE), (32, 64, 256));
+    assert_eq!((w.requests(), w.physical_full_pages(), w.capacity()), (32, 256, 2048));
+    #[cfg(backend = "npu")]
+    {
+        use furiosa_opt_gemma4::host::runtime::KvCache;
+        use furiosa_opt_std::runtime::{Buffers, DeviceSend};
+        let sliding_bytes = 32 * Ts::SIZE * Ns::SIZE * Ds::SIZE * 2;
+        let full_bytes = 256 * Tf::SIZE * Df::SIZE * 2;
+        let (mut sliding, mut full, mut bytes) = (0, 0, 0usize);
+        for cache in &w.kv_cache {
+            let mut bound = Buffers::new();
+            let expected = match cache {
+                KvCache::SlidingCanonical { k, v } => {
+                    DeviceSend::bind(k, &mut bound)?;
+                    DeviceSend::bind(v, &mut bound)?;
+                    sliding += 1;
+                    sliding_bytes
+                }
+                KvCache::FullCanonical { k, v } => {
+                    DeviceSend::bind(k, &mut bound)?;
+                    DeviceSend::bind(v, &mut bound)?;
+                    full += 1;
+                    full_bytes
+                }
+                _ => return Err("diagnostic requires canonical BF16 owning pools".into()),
+            };
+            assert_eq!(bound.len(), 2);
+            for buffer in bound.iter() {
+                assert_eq!(buffer.size(), expected, "actual owning KV buffer extent");
+                bytes += buffer.size();
+            }
+        }
+        assert_eq!((sliding, full, bytes), (40, 8, 12_884_901_888));
+        println!("B16_F4_STORAGE_IDENTITY physical_rings=32 admission=32 query_rows=64 full_pages=256 context=2048 sliding_layers={sliding} full_layers={full} allocated_kv_bytes={bytes} verified_owning_buffers=true");
+    }
+    Ok(())
+}
+
 async fn fill(
     d: &mut Device,
     m: &mut Model,
@@ -381,6 +424,7 @@ async fn main() -> Result<()> {
     let mut d = Device::new(ops::embed_token.topology())?;
     let weights = load::load_weights(&mut d).await?;
     let mut w = Workspace::new_canonical64(&mut d, &weights, 2048, 32).await?;
+    storage_identity(&w)?;
     let mut m = Model::new(&mut d, weights, &mut w).await?;
     m.prepare_group_scratch(&mut d).await?;
     m.prepare_projection_owned_ffn(&mut d).await?;
