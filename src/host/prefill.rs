@@ -110,6 +110,8 @@ impl Prefill {
         self.compact_decode_metadata = enabled;
     }
 
+    pub(crate) fn supports_f4_decode(&self) -> bool { self.staged_ffn && self.epilogue_fused }
+
     pub(crate) fn set_staged_ffn(&mut self, enabled: bool) {
         self.staged_ffn = enabled;
     }
@@ -818,10 +820,19 @@ impl Prefill {
         pre: &HbmTensor<bf16, Chip, m![H]>, post: &HbmTensor<bf16, Chip, m![H]>,
         gate: &HbmTensor<bf16, Chip, m![1 # 8]>,
         up_ingress: bool,
+        f4: Option<&super::b16_f4_weights::LayerWeights>,
     ) -> Result<()> {
         let mut mark = std::time::Instant::now();
         let n = &weights.native_fp8;
-        if up_ingress {
+        if let Some(f4)=f4 {
+        launch(crate::ops_b16_f4_partialscale_epilogue::post_attention_ffn,
+            (device,&mut self.projected,&mut self.x,post_attention,pre,post,gate,
+             &mut self.norm,&f4.up,&f4.gate,&f4.down,(&f4.up_scale,&f4.gate_scale,&f4.down_scale),
+             &n.up_dequant,&n.gate_dequant,&n.down_dequant,
+             &weights.up_global_scale,&weights.gate_global_scale,&weights.down_global_scale,
+             &mut self.native_q_input,&mut self.native_input_scale,&mut self.native_hidden,
+             &mut self.native_q_hidden,&mut self.native_hidden_scale)).await?;
+        } else if up_ingress {
         launch(crate::ops_b16_ingress_epilogue::post_attention_ffn,
             (device, &mut self.projected, &mut self.x, post_attention, pre, post, gate,
              &mut self.norm, &n.up, &n.gate, &n.down, &n.up_dequant, &n.gate_dequant, &n.down_dequant,

@@ -57,6 +57,7 @@ pub struct Sequence<'a> {
 
 pub struct Model {
     weights: load::Weights,
+    b16_f4: Option<super::b16_f4_weights::Shadow>,
     decode: runtime::Decode,
     prefill: Prefill,
     decode64: Option<super::decode_r64::Decode64>,
@@ -92,6 +93,8 @@ impl ActivePrefill {
 enum Dispatch {
     Serial,
     Automatic,
+    B16F4Diagnostic,
+    OriginalB16F4Diagnostic,
     B16AttentionOutputDiagnostic,
     B16UpIngressDiagnostic,
     OriginalB16UpIngressDiagnostic,
@@ -113,7 +116,7 @@ impl Dispatch {
         WidePrefill::supports(sequence)
             && match self {
                 Self::Serial => false,
-                Self::Automatic | Self::B16UpIngressDiagnostic | Self::OriginalB16UpIngressDiagnostic | Self::B16AttentionOutputDiagnostic | Self::OriginalB16AttentionOutputDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
+                Self::Automatic | Self::B16F4Diagnostic | Self::OriginalB16F4Diagnostic | Self::B16UpIngressDiagnostic | Self::OriginalB16UpIngressDiagnostic | Self::B16AttentionOutputDiagnostic | Self::OriginalB16AttentionOutputDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
                 Self::WideDiagnostic | Self::NativeQkvDiagnostic | Self::Bf16QkvDiagnostic | Self::OriginalAttentionDiagnostic | Self::OriginalFullAttentionDiagnostic | Self::DirectFullAttentionDiagnostic => true,
                 Self::Decode64Diagnostic | Self::Decode32Diagnostic | Self::Decode32OutputDiagnostic | Self::OriginalDecodeSlidingDiagnostic | Self::OriginalDecodeHeadRowsDiagnostic => sequence.inputs.len() == crate::axes::P128::SIZE,
             }
@@ -191,8 +194,9 @@ impl Model {
                     .await?,
             );
         }
-        Ok(Self {
+        let mut model = Self {
             weights,
+            b16_f4: None,
             decode: workspace.begin_decode(device).await?,
             prefill: Prefill::new(device).await?,
             decode64: if workspace.is_canonical() {
@@ -209,8 +213,31 @@ impl Model {
             active_three_owner512: None,
             active_prefill: None,
             logits,
-        })
+        };
+        if super::b16_f4_weights::ENABLED { model.prepare_b16_f4(device).await?; }
+        Ok(model)
     }
+
+    /// Build the immutable48-layer shadow without publishing any partial state.
+    /// A canceled/failed future drops local owners and preserves original E4.
+    pub async fn prepare_b16_f4(&mut self, device:&mut Device)
+        -> Result<super::b16_f4_weights::StartupTiming,Box<dyn std::error::Error>> {
+        self.prepare_b16_f4_with_quantizer(device,super::b16_f4_weights::F4Quantizer::PowerOfTwoRange).await
+    }
+    pub async fn prepare_b16_f4_with_quantizer(&mut self, device:&mut Device,
+        quantizer:super::b16_f4_weights::F4Quantizer)
+        -> Result<super::b16_f4_weights::StartupTiming,Box<dyn std::error::Error>> {
+        if !self.active_allocations().is_empty() {return Err("cannot prepare F4 weights during active prefill".into());}
+        if let Some(shadow)=&self.b16_f4 {
+            if shadow.quantizer!=quantizer {return Err("F4 shadow quantizer is immutable after preparation".into());}
+            return Ok(shadow.timing.clone());
+        }
+        let shadow=super::b16_f4_weights::Shadow::prepare(device,&self.weights,quantizer).await?;
+        let timing=shadow.timing.clone();
+        self.b16_f4=Some(shadow);
+        Ok(timing)
+    }
+    pub fn b16_f4_ready(&self)->bool {self.b16_f4.is_some()}
 
     /// Physical ring currently owning a persistent prompt checkpoint, if any.
     pub fn active_prefill_ring(&self) -> Option<usize> {
@@ -1297,6 +1324,26 @@ impl Model {
         })
     }
 
+    /// Approximate B16 FFN only; other width/layout/precision dispatch is Automatic.
+    /// The selection is local to this awaited call, including cancellation/error.
+    pub async fn forward_outputs_b16_f4(&mut self,device:&mut Device,sequences:&[Sequence<'_>],workspace:&mut Workspace)
+        -> Result<ForwardOutput<'_>,Box<dyn std::error::Error>> {
+        self.forward_outputs_f4_mode(device,sequences,workspace,Dispatch::B16F4Diagnostic).await
+    }
+    pub async fn forward_outputs_original_b16_f4(&mut self,device:&mut Device,sequences:&[Sequence<'_>],workspace:&mut Workspace)
+        -> Result<ForwardOutput<'_>,Box<dyn std::error::Error>> {
+        self.forward_outputs_f4_mode(device,sequences,workspace,Dispatch::OriginalB16F4Diagnostic).await
+    }
+    async fn forward_outputs_f4_mode(&mut self,device:&mut Device,sequences:&[Sequence<'_>],workspace:&mut Workspace,dispatch:Dispatch)
+        -> Result<ForwardOutput<'_>,Box<dyn std::error::Error>> {
+        let layout=self.forward_sequences_inner(device,sequences,workspace,dispatch,true).await?;
+        Ok(match layout {
+            OutputLayout::Blocked64=>ForwardOutput::Blocked64(self.decode64.as_ref().unwrap().blocked_logits(),sequences.len()),
+            OutputLayout::Batch16=>ForwardOutput::Batch16(self.prefill.decode_logits(),sequences.len()),
+            OutputLayout::Rows=>ForwardOutput::Rows(&self.logits[..sequences.len()]),
+        })
+    }
+
     /// Explicit exact B16 shared UP ingress path, also enabled for Automatic
     /// after matched model/cache gates. All width/cache/output policies are equal.
     pub async fn forward_outputs_b16_up_ingress(
@@ -1548,6 +1595,10 @@ impl Model {
         dispatch: Dispatch,
         prefer_native: bool,
     ) -> Result<OutputLayout, Box<dyn std::error::Error>> {
+        let requested_f4=dispatch==Dispatch::B16F4Diagnostic
+            || (dispatch==Dispatch::Automatic && super::b16_f4_weights::ENABLED);
+        // Normalize before every unrelated precision/width/scratch selector.
+        let dispatch=match dispatch {Dispatch::B16F4Diagnostic|Dispatch::OriginalB16F4Diagnostic=>Dispatch::Automatic,other=>other};
         if sequences.len() > self.logits.len() {
             return Err("too many request sequences".into());
         }
@@ -1589,6 +1640,11 @@ impl Model {
             || (dispatch != Dispatch::Serial
                 && independent
                 && (2..=crate::axes::B::SIZE).contains(&singletons.len()));
+        let f4_weights = if requested_f4 && !use_r64 && batched_singletons
+            && workspace.is_canonical() && singletons.len()==sequences.len()
+            && self.prefill.supports_f4_decode() {
+            Some(self.b16_f4.as_ref().ok_or("B16 F4 weights have not been prepared")?.layers.as_slice())
+        } else {None};
         // Mixed prompt/decode calls retain the existing scalar-row contract.
         let output_layout = if prefer_native && batched_singletons
             && singletons.len() == sequences.len()
@@ -1637,6 +1693,7 @@ impl Model {
                         output_layout == OutputLayout::Rows,
                         matches!(dispatch, Dispatch::Automatic | Dispatch::B16UpIngressDiagnostic | Dispatch::OriginalB16UpIngressDiagnostic | Dispatch::B16AttentionOutputDiagnostic) && singletons.len() == sequences.len(),
                         matches!(dispatch, Dispatch::Automatic | Dispatch::B16UpIngressDiagnostic) && singletons.len() == sequences.len(),
+                        f4_weights,
                     )
                     .await?;
             }

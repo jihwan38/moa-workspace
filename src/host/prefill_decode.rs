@@ -32,6 +32,7 @@ impl Prefill {
         materialize_rows: bool,
         attention_output_composed: bool,
         up_ingress: bool,
+        f4_weights: Option<&[super::super::b16_f4_weights::LayerWeights]>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -42,6 +43,11 @@ impl Prefill {
             || sequences.iter().any(|s| s.inputs.len() != 1)
         {
             return Err("invalid independent-request batch".into());
+        }
+        if let Some(shadow)=f4_weights {
+            if shadow.len()!=weights.layers.len() || !ws.is_canonical() || !self.supports_f4_decode() {
+                return Err("invalid B16 F4 shadow or FFN route".into());
+            }
         }
         let distinct = super::super::request_pool::independent_sequences(sequences);
         let pooled = if distinct && ws.is_canonical() {
@@ -170,6 +176,7 @@ impl Prefill {
                         pooled.as_ref(),
                         attention_output_composed,
                         up_ingress,
+                        f4_weights.map(|layers| &layers[index]),
                     )
                     .await?
                 }
@@ -184,6 +191,7 @@ impl Prefill {
                         &offsets,
                         pooled.as_ref(),
                         up_ingress,
+                        f4_weights.map(|layers| &layers[index]),
                     )
                     .await?
                 }
@@ -239,6 +247,7 @@ impl Prefill {
         pooled: Option<&PooledStep>,
         attention_output_composed: bool,
         up_ingress: bool,
+        f4_weights: Option<&super::super::b16_f4_weights::LayerWeights>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output && ws.is_canonical();
@@ -426,7 +435,7 @@ impl Prefill {
         if self.epilogue_fused && self.staged_ffn {
             return self.post_attention_ffn_native(device, &layer.mlp,
                 &layer.post_attention_norm, &layer.pre_feedforward_norm,
-                &layer.post_feedforward_norm, &layer.layer_scalar, up_ingress && ws.is_canonical()).await;
+                &layer.post_feedforward_norm, &layer.layer_scalar, up_ingress && ws.is_canonical(), f4_weights).await;
         }
         launch(
             crate::ops_norm_batch::post_attention_b16,
@@ -460,6 +469,7 @@ impl Prefill {
         offsets: &[RowOffsets],
         pooled: Option<&PooledStep>,
         up_ingress: bool,
+        f4_weights: Option<&super::super::b16_f4_weights::LayerWeights>,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output && ws.is_canonical();
@@ -703,7 +713,7 @@ impl Prefill {
         if self.epilogue_fused && self.staged_ffn {
             return self.post_attention_ffn_native(device, &layer.mlp,
                 &layer.post_attention_norm, &layer.pre_feedforward_norm,
-                &layer.post_feedforward_norm, &layer.layer_scalar, up_ingress && ws.is_canonical()).await;
+                &layer.post_feedforward_norm, &layer.layer_scalar, up_ingress && ws.is_canonical(), f4_weights).await;
         }
         launch(
             crate::ops_norm_batch::post_attention_b16,
