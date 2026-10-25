@@ -26,20 +26,20 @@ fn one(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![P128,H]>,
         .transpose::<m![P128/2],m![P128%2#8]>().commit_trim::<m![P128%2]>().commit();
     let xs:VrfTensor<f32,Chip,Cluster,Parts,m![P128]>=device.sub.begin(xs.view())
         .fetch::<m![P128/8],m![P128%8]>().collect::<m![P128/8],m![P128%8]>().to_vrf();
-    let partial:DmTensor<f32,Chip,Cluster,Parts,m![P128,Joined/8,HBlock,Joined%8]>=device.main
+    let partial:DmTensor<f32,Chip,Cluster,Parts,m![P128,HBlock,Joined]>=device.main
         .begin(input.view()).fetch::<m![P128],m![H960%32]>()
         .switch::<Parts,m![P128,HBlock,H960/32]>(SwitchConfig::CustomBroadcast{ring_size:256})
         .collect::<m![P128,HBlock,H960/32],m![H960%32]>()
-        .contract_outer::<m![P128,Joined/8,HBlock,H960/64],m![H960%64],_,_,_>(weight)
-        .contract_packet::<m![1]>().contract_time::<m![P128,Joined/8,HBlock]>()
-        .contract_lane::<m![P128,Joined/8,HBlock],m![Joined%8]>(LaneMode::Interleaved)
+        .contract_outer::<m![P128,HBlock,H960/64,Joined/8],m![H960%64],_,_,_>(weight)
+        .contract_packet::<m![1]>().contract_time::<m![P128,HBlock,Joined/8]>()
+        .contract_lane::<m![P128,HBlock,Joined/8],m![Joined%8]>(LaneMode::Interleaved)
         .commit_trim::<m![Joined%8]>().commit();
     // The tested local four-way Add matches the original four-slice F32 Add.
     let sum:DmTensor<f32,Chip,Cluster,Parts,m![P128,Joined]>=device.main.begin(partial.view())
-        .fetch::<m![P128,Joined/8,HBlock],m![Joined%8]>()
-        .collect::<m![P128,Joined/8,HBlock],m![Joined%8]>()
+        .fetch::<m![P128,HBlock,Joined/8],m![Joined%8]>()
+        .collect::<m![P128,HBlock,Joined/8],m![Joined%8]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
-        .vector_narrow_split::<m![P128,Joined/8,HBlock,Joined/4%2],m![Joined%4]>()
+        .vector_narrow_split::<m![P128,HBlock,Joined/4],m![Joined%4]>()
         .vector_intra_slice_reduce::<HBlock,m![P128,Joined/4],m![Joined%4]>(IntraSliceReduceOpF32::Add)
         .vector_widen_concat::<m![P128,Joined/8],m![Joined%8]>().vector_final()
         .commit_trim::<m![Joined%8]>().commit();
