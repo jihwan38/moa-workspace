@@ -1,0 +1,75 @@
+{
+  "authorization": "Parent LUT actual322891/322892 passed; root authorizes one bounded pack correctness/measured-cost ELF, root-only Arena",
+  "prior_resource_screen": {
+    "source": "9f9a276293eef64d8de4fb26f8b070c8e5d65a9f",
+    "H_cycles": 52085,
+    "H_cap": 50000,
+    "H_status": "HOLD remains unchanged",
+    "L_cycles": 180627,
+    "L_cap": 200000,
+    "L_status": "PASS",
+    "no_DramStack": true
+  },
+  "changes": "Compile-time public-trait dimension assertions before consumed same-wire DM reshapes; complete-call timing/profiling and ownership rejection checks in existing independent byte probe. No geometry, packing math, quantizer or consumer tuning.",
+  "input_shapes": [
+    [
+      512,
+      3840
+    ],
+    [
+      512,
+      15360
+    ]
+  ],
+  "fixtures_per_shape": 5,
+  "expected_codes": 49152000,
+  "expected_packed_bytes": 24576000,
+  "correctness": [
+    "All bytes and nibbles versus independent pair and inverse-index eight-field host encoders",
+    "All16 signed top nibbles, explicit nine-bit row tags in every960 shard, mixed absolute row/channel payload",
+    "Signed endpoints and zero; true row/channel permutation",
+    "Candidate-first separate poison output; exact raw-I32-owner reader versus ordinary typed-I4 reader and CPU canonical bytes",
+    "Whole input, shift table, typed source and packed owner immutability; repeated awaited raw-owner reuse",
+    "Read-only validation rejects aliased owners, wrong count and mismatched width before any launch"
+  ],
+  "preconditions": [
+    "K>0 and K divisible960",
+    "W<=usizeMAX/8 and W*8=K",
+    "W even; K/8=W; Nibbles=8; shift mapping size8",
+    "Identical Chip/Cluster/Rows types on all consumed same-wire I32 reshapes; SDK preserves each memory-level extent",
+    "Byte offset proofs retained; blocked DMA remains real and included"
+  ],
+  "timing": {
+    "cases": [
+      0,
+      4
+    ],
+    "order": [
+      "pack",
+      "pack_plus_raw_copy",
+      "pack_plus_raw_copy",
+      "pack"
+    ],
+    "awaited_repetitions_per_sample": 16,
+    "separate_H_L": true,
+    "included": "Complete awaited pack call including canonicalI32 input DMA, shift load, bit packing, pair compaction and blocked output DMA; second mode additionally includes checked public raw-I4 reader call",
+    "excluded": "CPU fixture/oracles, allocations/uploads/downloads, negative checks and profiling",
+    "not_claimed": "Reader is byte-layout copy, not GEMM; packing timing is not full quantizer/FFN/model latency"
+  },
+  "profile": "One pack-only and one pack+raw-copy call per shape on case0, outside timings, optional FURIOSA_OPT_PROFILE, explicitly labeled",
+  "run": {
+    "root_only": true,
+    "count": 1,
+    "timeout_seconds": 70,
+    "args": [],
+    "no_auto_retry": true
+  },
+  "actual_acceptance": "All exact/owner checks and final count marker must pass; record separate complete H/L samples and operation traces. No preset runtime gain claim and no retroactive relaxation of the H static screen.",
+  "build": "Original dependencies/lock; own tail256-model target; fresh-package and new empty FURIOSA_OPT_OUT_DIR; capture standalone ELF after source hash verification. Freeze source and peer review before build.",
+  "not_authorized": [
+    "No serving/model integration",
+    "No Arena by subagent",
+    "No geometry/kernel tuning",
+    "No quantizer or weight precision changes"
+  ]
+}
