@@ -1,0 +1,204 @@
+{
+  "date": "2026-10-26",
+  "decision": "Percent-scale optional latency/memory improvement, not a supported route from174.0933 toward796 TPS. HOLD native-QK expansion; no new kernel/model experiment justified by this audit.",
+  "actions": "Read existing source/logs/artifacts and write this evidence only. No production edits, builds, tests, Arena or activation.",
+  "source_checkpoint": "084f1bf4bf09ad62817f42c4b30a826165dfbcec",
+  "actual_b16": {
+    "functional_source": "27e9bde8ff29b6221fcff5b2d38085cc7845d40a",
+    "kernel_base": "4bf039b2",
+    "evidence_commit": "b355d6d8",
+    "jobs": [
+      321461,
+      321462
+    ],
+    "bf16_us": 238.7783489375,
+    "fixed_e4_us": 201.2868489375,
+    "time_saved_fraction": 0.15701381706853734,
+    "scope": "One completed launch: append + sliding attention + supplied O; two B8 groups, live14/16, physical64-slot fixture. All conversion included; setup/uploads/allocations/metadata/downloads excluded equally. Synthetic Q/K/V/history, real O weights only.",
+    "intended_exact_bytes": 2031616,
+    "cache_comparison_bytes": 17716740096,
+    "codec": "All65280 finite BF16 patterns: nearest-even E4, finite overflow saturates signed448, signed zero preserved. Nonfinite codec semantics excluded.",
+    "original_bf16_attention_relative_l2_range": [
+      0.023864,
+      0.136314
+    ],
+    "profile_cluster0": {
+      "task": [
+        458334,
+        387412
+      ],
+      "dma_union": [
+        353638,
+        251635
+      ],
+      "tu_union": [
+        169096,
+        231236
+      ],
+      "table_load_union": [
+        5380,
+        26895
+      ]
+    },
+    "profile_caveat": "Raw engine spans overlap; no summed critical-path claim or assumed frequency conversion.",
+    "artifact": {
+      "path": "runs/a003-b16-fixed-e4-kv-micro-clean-build/built/target/release/test_b16_fixed_e4_kv",
+      "sha256": "0bcaf01a375418d4dde5d1d4aeffddc2d88dc0bec6d0650ad234b6ad01b2e9a0",
+      "bytes": 4529824,
+      "scope": "Validated oldRc64 micro, not a currentRc32 port artifact."
+    }
+  },
+  "payload_and_memory": {
+    "full_b16_gather_formula": "16*1024*8*256*2(K,V)*element_bytes; source gather payload, not an HBM hardware counter.",
+    "bf16_b16_gather_bytes": 134217728,
+    "e4_b16_gather_bytes": 67108864,
+    "physical_rings": 32,
+    "sliding_layers": 40,
+    "full_layers": 8,
+    "bf16_sliding_bytes": 10737418240,
+    "e4_sliding_bytes": 5368709120,
+    "unchanged_full_bytes": 2147483648,
+    "logical_total_kv_bytes": [
+      12884901888,
+      7516192768
+    ],
+    "caveat": "5GiB logical savings; current port allocator/startup proof remains pending. Existing q020 admission32 already coversC16, so no automatic useful-concurrency gain."
+  },
+  "conditional_q020_whole_serving": {
+    "log": "runs/r1301-q020-c16-warm-r96-submit/arena.log",
+    "local_tps": 174.041458,
+    "source_commit": "d52f0c08504d4827948abd8536b2d0011645fcce",
+    "worker_source_sha256": "1249772dcc47370952d7f8e3b6072b1b0fe853f5966ea4eb291794847e9ccef5",
+    "accounting": "WorkCost compact=count:mean_ms/max_ms. Subtract first warm16 SCHED_TOTAL(line286) from final(line406); phase counters are subsets, not added again. Means are rounded0.01ms.",
+    "measured_requests": 96,
+    "window_seconds": 35.301934,
+    "decode_calls_by_width": {
+      "16": 377,
+      "12": 1,
+      "4": 1
+    },
+    "decode_seconds": 14.04052,
+    "prompt_inclusive_seconds": 21.09216,
+    "estimated_decode_fraction": 0.39772665146334474,
+    "estimated_prompt_fraction": 0.5974788803355645,
+    "assumed_saved_ms_per_decode": 1.49966,
+    "assumed_saved_seconds": 0.56837114,
+    "conditional_window_reduction_fraction": 0.016100283344249636,
+    "conditional_throughput_multiplier": 1.016363744263464,
+    "official_baseline_tps_parent_reported": 174.0933,
+    "conditional_official_scale_tps": 176.94211823918252,
+    "fixed_work_zero_decode_multiplier": 1.6603756457590262,
+    "scope": "Counterfactual only: transfer measured14/16-row delta to all379 calls, keep work/cadence/prefill unchanged. Does not include new prompt/head codec costs, Rc32 effects, host effects, latency-phase changes, or q021 LM changes; not a measured HTTP prediction or universal bound."
+  },
+  "native_qk_no_go": {
+    "evidence_commit": "aac2eb20",
+    "complete_control_us": 201.2868489375,
+    "actual_mean_task_cycles": 386793.625,
+    "overcredited_removal_cycles": {
+      "two_k_decode": 23179,
+      "entire_two_qk": 2306,
+      "k_lookup_table_hbm": 4197.25,
+      "table_load_outside_gather": 352.75
+    },
+    "gross_removal_fraction_rounded": 0.0777,
+    "required_complete_gain": 0.1,
+    "decision": "HOLD without resource build. This already credits allQK and some overlapping work before adding query quantization/native contraction/rescaling. All16 K->TRF spans are hidden by V gather; no separate K transpose exists.",
+    "prior_evidence": "Old scaledR64 native-QK conservative6.7-7.3% incremental gain excluded append/metadata; query-head-first added16DMA and regressed. P128 native-QK complete resource123624->123627 was flat. No severalfold mechanism established."
+  },
+  "current_rc32_coverage": {
+    "functional_device_commit": "e2d021f2",
+    "resource_estimated_cycles": {
+      "b16_complete": 204984,
+      "r32_conditional_reader": 504824,
+      "r64_headrows": 520240
+    },
+    "resource_scope": "One/two32-byte index DramStack bounces only; R32 schedule contains alternatives and is not a wall-time comparison. Every resource used a fresh FURIOSA_OPT_OUT_DIR.",
+    "status": "No Rc32 runtime/model ELF or actual compressed-cache test. Two probes typechecked before final timing-only source correction; final bytes require recheck/build.",
+    "unbuilt_probes": [
+      "src/bin/test_fixed_e4_decode_b16.rs",
+      "src/bin/test_fixed_e4_decode_readers.rs"
+    ],
+    "remaining": "AllB16live1..16; R32prefix/full/mixed; R64prefix512/mixed512/HeadRows/prefix768/oldfull; scalar/prompt commits; full cache/logit/owner/interleave model parity; owning-buffer memory proof and same-lineage HTTP."
+  },
+  "lineage": {
+    "q020": "Official baseline: MSE B16 F4FFN + exact parallel CPU startup + originalBF16 LM + BF16 cache.",
+    "q022": "98662213 onq021: MSE B16FFN + B16 FP8LM + fixedE4 head roundtrip stored inBF16. Public124/124 and fixed externalTRAIN32/32 passed; this is numerical-surrogate evidence, not compressed storage evidence.",
+    "port": "Device084f1bf4 and host functional340919dd inheritq022. Comparing them directly toq020 changes more than storage; isolate storage onidenticalq022 arms before attributing gain."
+  },
+  "next_gate_if_latency_margin_is_worth_finishing": {
+    "priority": "Optional existing-port completion, not a high-ceiling optimization. Do not build nativeQK under the failed10% screen.",
+    "source": "fixed-e4-kv-decode@084f1bf4",
+    "build": "Recheck final probes, then recorded fresh-package release build/capture with unique public FURIOSA_OPT_OUT_DIR, originalCargo/lock, owned target. No currentRc32 executable exists.",
+    "first_root_only_runs": [
+      "test_fixed_e4_decode_b16 13 14 (live14)",
+      "test_fixed_e4_decode_b16 15 16 (live16)"
+    ],
+    "then": "AllremainingB16 widths and readercases0..9; require allintended output/pool bytes, poison/idempotence and unchanged metadata. Next sameq022 BF16-versusE4 complete model/cache comparison. No activation from resources oroldRc64 micro."
+  },
+  "bindings": [
+    {
+      "path": "b16-fixed-e4-kv-micro/experiments/b16-fixed-e4-kv-micro/actual.json",
+      "sha256": "5f3fd76f80ef29b7b5177493178ed0574aff8bbc58de40c72588ec7dcc91fa17"
+    },
+    {
+      "path": "b16-fixed-e4-kv-micro/experiments/b16-fixed-e4-kv-micro/actual-result.md",
+      "sha256": "b8b0d02ccfaeb02cac123a0d4263e9b9818aa54c05cfe098a51f672b7ac91aba"
+    },
+    {
+      "path": "b16-fixed-e4-kv-micro/experiments/fixed-e4-native-qk-audit/result.json",
+      "sha256": "b3aca5aae6bfd78c6fee3eec42f90af895d9791d4e9bd50121bda0d4e72163dd"
+    },
+    {
+      "path": "runs/r1289-b16-fixed-e4-kv-part0/arena.log",
+      "sha256": "1abf7157696ee58cfb70bb76081c45534173cae3b590112809c37ae1996c5e49"
+    },
+    {
+      "path": "runs/r1290-b16-fixed-e4-kv-part1/arena.log",
+      "sha256": "03b50989e1db416423ec3b759ff413b8a5902d633f85f6a04a92c26a30b080a1"
+    },
+    {
+      "path": "runs/r1301-q020-c16-warm-r96-submit/arena.log",
+      "sha256": "6f4f435d0e220b6e79c67014a9c11d48b0aee1c4bd2007b26e862b2f3bdbaa6e"
+    },
+    {
+      "path": "r64-server/evidence/q022-surrogate-quality.json",
+      "sha256": "23949489272603aa6754ea4190ede65fd2a100a8455c57dc2d8d26562894c6c8"
+    },
+    {
+      "path": "fixed-e4-kv-decode/src/ops_fixed_e4_b16.rs",
+      "sha256": "169e7a45ebac663dcdba26173cbfb5a13dfe492acd92f22aa3e778c871b436fe"
+    },
+    {
+      "path": "fixed-e4-kv-decode/src/ops_fixed_e4_commit.rs",
+      "sha256": "ded250bae79a60d2801e26dacb25892fa82724742f42f8e31eee30e53c976227"
+    },
+    {
+      "path": "fixed-e4-kv-decode/experiments/fixed-e4-kv-decode/checkpoint.md",
+      "sha256": "5397d2b19dbee3431e07d351474dab4be8bb3fde3ccf1a4cb5385bf48d48e149"
+    },
+    {
+      "path": "fixed-e4-kv-decode/experiments/fixed-e4-kv-decode/resource-summary.json",
+      "sha256": "3f0295a984143191841d74e5b2a85a36ff0f884e4634806d2e8202b0d6cc66a0"
+    },
+    {
+      "path": "b16-fixed-e4-kv-micro/src/ops_b16_fixed_e4_commit.rs",
+      "sha256": "fb9f94a1877a54c104aa1f1d03b6bf326b9ed365a380cb616a3b3ef2fbf0c962"
+    },
+    {
+      "path": "b16-fixed-e4-kv-micro/src/ops_b16_fixed_e4_reader.rs",
+      "sha256": "e9303877f36cf4e0689e8006317ffb60c60999027eb366880f66f21e9a64533a"
+    },
+    {
+      "path": "b16-fixed-e4-kv-micro/src/ops_b16_fixed_e4_attention.rs",
+      "sha256": "801ec64344382fb581246788dc80d7a228198bd5a40fc6c161d18c3c0d229d16"
+    },
+    {
+      "path": "b16-fixed-e4-kv-micro/src/host/b16_fixed_e4_kv_diagnostic.rs",
+      "sha256": "a623385217db6dee4fa073ac4b5e451892a467bc982f7ba288c87492f73c502c"
+    },
+    {
+      "path": "b16-fixed-e4-kv-micro/src/host/fixed_e4_codec.rs",
+      "sha256": "21cd127fd57e35db845f4da3bbbd5e014b857a7b7a4a2cce9c8c85897dfd0ec9"
+    }
+  ]
+}
