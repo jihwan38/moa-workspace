@@ -24,3 +24,10 @@ Root owns Arena/model/quality decisions. The missing-shadow rejection assertion 
 specifically an OFF-source probe precondition, so a later ON-source rerun must skip
 that assertion or use an explicit unprepared constructor; per-call original control
 itself does not depend on the default.
+
+Independent e2e read-only review of frozen e759c4fc passed. It verified normalized
+Automatic dispatch, scratch/checkpoint separation, disjoint paired/prompt ownership,
+48-interleave completion before narrow reuse, teacher forcing, exact unchanged
+routes/caches and own-logit greedy checks. No concrete reference/lifetime blocker.
+Multi-token task evaluations are required: one-token prompt-only requests do not
+exercise the B16 decode head. The default remains OFF and no model gate is claimed.
