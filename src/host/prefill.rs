@@ -156,6 +156,8 @@ impl Prefill {
         }
     }
 
+    pub(crate) fn storage_element_bytes(&self) -> usize { self.sliding_element_bytes }
+
     pub(crate) async fn new(device: &mut Device, sliding_element_bytes: usize) -> Result<Self> {
         macro_rules! zero {
             ($dtype:ty, $mapping:ty) => {

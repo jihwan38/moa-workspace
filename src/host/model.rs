@@ -212,6 +212,19 @@ impl Model {
         })
     }
 
+    /// A Model's prepared metadata is bound to the storage dtype selected at
+    /// construction. Reject another workspace dtype before any device mutation.
+    fn check_storage_workspace(&self, workspace:&Workspace) -> Result<(),Box<dyn std::error::Error>> {
+        storage_width_compatible(self.prefill.storage_element_bytes(), workspace.sliding_element_bytes())
+    }
+
+    /// Consume scratch after a completed diagnostic pass, keeping exact loaded
+    /// weights for a fresh workspace with another storage dtype.
+    pub fn into_weights_for_storage_diagnostic(self) -> Result<load::Weights, Box<dyn std::error::Error>> {
+        if !self.active_prefill_rings().is_empty() {return Err("active storage diagnostic checkpoint".into());}
+        Ok(self.weights)
+    }
+
     /// Physical ring currently owning a persistent prompt checkpoint, if any.
     pub fn active_prefill_ring(&self) -> Option<usize> {
         self.active_prefill
@@ -389,6 +402,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group_with_media_batch(device, sequences, workspace, super::prefill::wide::MEDIA_BATCH_ENABLED).await
     }
 
@@ -401,6 +415,7 @@ impl Model {
         workspace: &mut Workspace,
         batched_media: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
@@ -433,6 +448,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().original_norms();
         Ok(())
@@ -444,6 +460,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().original_output();
         Ok(())
@@ -455,6 +472,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().original_shard_quant();
         Ok(())
@@ -466,6 +484,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().original_quarter_norm();
         Ok(())
@@ -478,6 +497,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().original_ffn_core();
         Ok(())
@@ -489,6 +509,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().original_quarter_postnorm();
         Ok(())
@@ -500,6 +521,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().original_blocked_residual();
         Ok(())
@@ -512,6 +534,7 @@ impl Model {
         device: &mut Device,
         workspace: &mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.advance_prefill_group_measured(device, workspace, None)
             .await
     }
@@ -521,6 +544,7 @@ impl Model {
         workspace: &mut Workspace,
         mut timing: Option<&mut PrefillAdvanceTiming>,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if let Some(timing) = timing.as_mut() {
             **timing = PrefillAdvanceTiming::default();
         }
@@ -567,6 +591,7 @@ impl Model {
     pub async fn start_prefill256(
         &mut self, device:&mut Device, sequence:&Sequence<'_>, workspace:&mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if sequence.inputs.len()!=256 { return Err("Prompt256 needs256 inputs".into()); }
         self.start_prefill_tail256_with_padding(device,std::slice::from_ref(sequence),workspace,bf16::from_bits(0)).await
     }
@@ -574,6 +599,7 @@ impl Model {
     pub async fn start_prefill_pair256(
         &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if sequences.len()!=2 { return Err("Pair256 needs two owners".into()); }
         self.start_prefill_tail256_with_padding(device,sequences,workspace,bf16::from_bits(0)).await
     }
@@ -583,6 +609,7 @@ impl Model {
         &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
         padding:bf16,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !self.active_allocations().is_empty() { return Err("another prefill is in progress".into()); }
         if !workspace.is_canonical() || sequences.len()>self.logits.len()
             || !GroupPrefill::supports_tail256(sequences) {
@@ -604,12 +631,14 @@ impl Model {
     pub async fn advance_prefill_tail256(
         &mut self, device:&mut Device, workspace:&mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.advance_prefill_tail256_measured(device, workspace, None).await
     }
     pub(crate) async fn advance_prefill_tail256_measured(
         &mut self, device:&mut Device, workspace:&mut Workspace,
         mut timing: Option<&mut PrefillAdvanceTiming>,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if let Some(timing) = timing.as_mut() { **timing = PrefillAdvanceTiming::default(); }
         let state=self.active_tail256.as_mut().ok_or("no Tail256 is active")?;
         let group=self.group.as_mut().ok_or("grouped scratch is missing")?;
@@ -635,6 +664,7 @@ impl Model {
     pub async fn start_prefill_tail384(
         &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_tail384_with_padding(device,sequences,workspace,bf16::from_bits(0)).await
     }
     /// Scoped padding-independence diagnostic, with no persistent model selector.
@@ -642,6 +672,7 @@ impl Model {
         &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
         padding:bf16,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !self.active_allocations().is_empty() { return Err("another prefill is in progress".into()); }
         if !workspace.is_canonical() || sequences.len()>self.logits.len()
             || !GroupPrefill::supports_tail384(sequences) {
@@ -662,12 +693,14 @@ impl Model {
     pub async fn advance_prefill_tail384(
         &mut self, device:&mut Device, workspace:&mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.advance_prefill_tail384_measured(device,workspace,None).await
     }
     pub(crate) async fn advance_prefill_tail384_measured(
         &mut self, device:&mut Device, workspace:&mut Workspace,
         mut timing:Option<&mut PrefillAdvanceTiming>,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if let Some(timing)=timing.as_mut() {**timing=PrefillAdvanceTiming::default();}
         let state=self.active_tail384.as_mut().ok_or("no Tail384 is active")?;
         let group=self.group.as_mut().ok_or("grouped scratch is missing")?;
@@ -694,6 +727,7 @@ impl Model {
     pub async fn start_prefill_three_owner512(
         &mut self, device:&mut Device, sequences:&[Sequence<'_>], workspace:&mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !self.active_allocations().is_empty() { return Err("another prefill is in progress".into()); }
         if !workspace.is_canonical() || self.logits.len()<3
             || !GroupPrefill::supports_three_owner512(sequences) {
@@ -715,12 +749,14 @@ impl Model {
     pub async fn advance_prefill_three_owner512(
         &mut self, device:&mut Device, workspace:&mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.advance_prefill_three_owner512_measured(device,workspace,None).await
     }
     pub(crate) async fn advance_prefill_three_owner512_measured(
         &mut self, device:&mut Device, workspace:&mut Workspace,
         mut timing:Option<&mut PrefillAdvanceTiming>,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if let Some(timing)=timing.as_mut() { **timing=PrefillAdvanceTiming::default(); }
         let state=self.active_three_owner512.as_mut().ok_or("no ThreeOwner512 is active")?;
         let group=self.group.as_mut().ok_or("grouped scratch is missing")?;
@@ -746,6 +782,7 @@ impl Model {
     pub async fn compare_canonical_kv(
         &self, device:&mut Device, workspace:&Workspace, a:&Blocks, b:&Blocks,
     ) -> Result<usize, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         validate_physical_pages(a,workspace.physical_full_pages())?;
         validate_physical_pages(b,workspace.physical_full_pages())?;
         if !workspace.is_canonical() || a.sliding>=workspace.requests() || b.sliding>=workspace.requests() {
@@ -760,6 +797,7 @@ impl Model {
     pub async fn start_prefill384_128(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !GroupPrefill::supports_prompt384128(sequences) {
             return Err("Prompt384128 needs ordered384/128 input ranges".into());
         }
@@ -771,6 +809,7 @@ impl Model {
     pub async fn start_prefill_pair512(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_pair512_with_media_batch(device, sequences, workspace, super::prefill::wide::MEDIA_BATCH_ENABLED).await
     }
 
@@ -780,6 +819,7 @@ impl Model {
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
         batched_media: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
@@ -800,6 +840,7 @@ impl Model {
     pub async fn advance_prefill_pair512(
         &mut self, device: &mut Device, workspace: &mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.advance_prefill384_128(device, workspace).await
     }
 
@@ -807,6 +848,7 @@ impl Model {
     pub async fn start_prefill384_128_original_blocked_residual(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill384_128(device, sequences, workspace).await?;
         self.active_prompt384128.as_mut().unwrap().original_blocked_residual();
         Ok(())
@@ -819,12 +861,14 @@ impl Model {
     pub async fn advance_prefill384_128(
         &mut self, device: &mut Device, workspace: &mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.advance_prefill384_128_measured(device, workspace, None).await
     }
     pub(crate) async fn advance_prefill384_128_measured(
         &mut self, device: &mut Device, workspace: &mut Workspace,
         mut timing: Option<&mut PrefillAdvanceTiming>,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if let Some(timing) = timing.as_mut() { **timing = PrefillAdvanceTiming::default(); }
         let state = self.active_prompt384128.as_mut().ok_or("no Prompt384128 is active")?;
         let group = self.group.as_mut().ok_or("grouped scratch is missing")?;
@@ -854,6 +898,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512_with_media_batch(device, sequence, workspace, super::prefill::wide::MEDIA_BATCH_ENABLED).await
     }
 
@@ -866,6 +911,7 @@ impl Model {
         workspace: &mut Workspace,
         batched_media: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
@@ -887,6 +933,7 @@ impl Model {
     pub async fn start_prefill512_fused_head_attention(
         &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.fused_head_attention(true),
@@ -899,6 +946,7 @@ impl Model {
     pub async fn start_prefill_group_fused_head_attention(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().fused_head_attention(true);
         Ok(())
@@ -908,6 +956,7 @@ impl Model {
     pub async fn start_prefill_pair512_fused_head_attention(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_pair512(device, sequences, workspace).await?;
         self.active_prompt384128.as_mut().unwrap().fused_head_attention(true);
         Ok(())
@@ -917,6 +966,7 @@ impl Model {
     pub async fn start_prefill512_original_head_attention(
         &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.fused_head_attention(false),
@@ -929,6 +979,7 @@ impl Model {
     pub async fn start_prefill_group_original_head_attention(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().fused_head_attention(false);
         Ok(())
@@ -938,6 +989,7 @@ impl Model {
     pub async fn start_prefill_pair512_original_head_attention(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_pair512(device, sequences, workspace).await?;
         self.active_prompt384128.as_mut().unwrap().fused_head_attention(false);
         Ok(())
@@ -947,6 +999,7 @@ impl Model {
     pub async fn start_prefill512_original_history(
         &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_empty_history(),
@@ -959,6 +1012,7 @@ impl Model {
     pub async fn start_prefill_group_original_history(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().original_empty_history();
         Ok(())
@@ -968,6 +1022,7 @@ impl Model {
     pub async fn start_prefill512_nohistory(
         &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.prune_empty_history(),
@@ -980,6 +1035,7 @@ impl Model {
     pub async fn start_prefill_group_nohistory(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_group(device, sequences, workspace).await?;
         self.active_group.as_mut().unwrap().prune_empty_history();
         Ok(())
@@ -993,6 +1049,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_norms(),
@@ -1007,6 +1064,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_output(),
@@ -1021,6 +1079,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_shard_quant(),
@@ -1035,6 +1094,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_quarter_norm(),
@@ -1049,6 +1109,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_ffn_core(),
@@ -1063,6 +1124,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_quarter_postnorm(),
@@ -1077,6 +1139,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_blocked_residual(),
@@ -1094,6 +1157,7 @@ impl Model {
         sequence: &Sequence<'_>,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.start_prefill_with_media_batch(device, sequence, workspace, super::prefill::wide::MEDIA_BATCH_ENABLED).await
     }
 
@@ -1106,6 +1170,7 @@ impl Model {
         workspace: &mut Workspace,
         batched_media: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !self.active_allocations().is_empty() {
             return Err("another prefill is in progress".into());
         }
@@ -1145,6 +1210,7 @@ impl Model {
     pub async fn compare_media_prepare(
         &mut self, device: &mut Device, sequence: &Sequence<'_>, workspace: &mut Workspace,
     ) -> Result<(Vec<bf16>, Vec<bf16>), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !self.active_allocations().is_empty() { return Err("another prefill is in progress".into()); }
         validate_sequence(sequence, workspace.capacity(), workspace.requests())?;
         validate_physical_pages(sequence.blocks, workspace.physical_full_pages())?;
@@ -1165,6 +1231,7 @@ impl Model {
         device: &mut Device,
         workspace: &mut Workspace,
     ) -> Result<Option<&Logits>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.advance_prefill_measured(device, workspace, None).await
     }
     pub(crate) async fn advance_prefill_measured(
@@ -1173,6 +1240,7 @@ impl Model {
         workspace: &mut Workspace,
         mut timing: Option<&mut PrefillAdvanceTiming>,
     ) -> Result<Option<&Logits>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if let Some(timing) = timing.as_mut() {
             **timing = PrefillAdvanceTiming::default();
         }
@@ -1248,6 +1316,7 @@ impl Model {
         blocks: &[&Blocks],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if inputs.len() != positions.len() || inputs.len() != blocks.len() {
             return Err("incompatible batch dimensions".into());
         }
@@ -1274,6 +1343,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_sequences_inner(device, sequences, workspace, Dispatch::Automatic, false)
             .await?;
         Ok(&self.logits[..sequences.len()])
@@ -1287,6 +1357,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         let layout = self.forward_sequences_inner(
             device, sequences, workspace, Dispatch::Automatic, true,
         ).await?;
@@ -1302,6 +1373,7 @@ impl Model {
     pub async fn forward_outputs_b16_up_ingress(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         let layout = self.forward_sequences_inner(
             device,sequences,workspace,Dispatch::B16UpIngressDiagnostic,true,
         ).await?;
@@ -1317,6 +1389,7 @@ impl Model {
     pub async fn forward_outputs_original_b16_up_ingress(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         let layout = self.forward_sequences_inner(
             device,sequences,workspace,Dispatch::OriginalB16UpIngressDiagnostic,true,
         ).await?;
@@ -1333,6 +1406,7 @@ impl Model {
     pub async fn forward_outputs_b16_attention_output(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         let layout = self.forward_sequences_inner(
             device,sequences,workspace,Dispatch::B16AttentionOutputDiagnostic,true,
         ).await?;
@@ -1348,6 +1422,7 @@ impl Model {
     pub async fn forward_outputs_original_b16_attention_output(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         let layout = self.forward_sequences_inner(
             device,sequences,workspace,Dispatch::OriginalB16AttentionOutputDiagnostic,true,
         ).await?;
@@ -1365,6 +1440,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_sequences_inner(device, sequences, workspace, Dispatch::Serial, false)
             .await?;
         Ok(&self.logits[..sequences.len()])
@@ -1377,6 +1453,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_sequences_inner(device, sequences, workspace, Dispatch::WideDiagnostic, false)
             .await?;
         Ok(&self.logits[..sequences.len()])
@@ -1390,6 +1467,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_sequences_inner(device, sequences, workspace, Dispatch::NativeQkvDiagnostic, false).await?;
         Ok(&self.logits[..sequences.len()])
     }
@@ -1399,6 +1477,7 @@ impl Model {
     pub async fn forward_sequences_original_attention(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_sequences_inner(device, sequences, workspace, Dispatch::OriginalAttentionDiagnostic, false).await?;
         Ok(&self.logits[..sequences.len()])
     }
@@ -1408,6 +1487,7 @@ impl Model {
     pub async fn forward_sequences_original_full_attention(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_sequences_inner(device, sequences, workspace, Dispatch::OriginalFullAttentionDiagnostic, false).await?;
         Ok(&self.logits[..sequences.len()])
     }
@@ -1417,6 +1497,7 @@ impl Model {
     pub async fn forward_sequences_direct_full_attention(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_sequences_inner(device, sequences, workspace, Dispatch::DirectFullAttentionDiagnostic, false).await?;
         Ok(&self.logits[..sequences.len()])
     }
@@ -1428,6 +1509,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_sequences_inner(device, sequences, workspace, Dispatch::Bf16QkvDiagnostic, false).await?;
         Ok(&self.logits[..sequences.len()])
     }
@@ -1441,6 +1523,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !workspace.is_canonical() {
             return Err("R64 requires canonical KV storage".into());
         }
@@ -1454,6 +1537,7 @@ impl Model {
     pub async fn forward_outputs_capacity32(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_outputs_decode_diagnostic(device,sequences,workspace,Dispatch::Decode32Diagnostic).await
     }
     /// Scoped exact32 O diagnostic; every other stage matches capacity32 control.
@@ -1461,17 +1545,20 @@ impl Model {
     pub async fn forward_outputs_capacity32_output(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_outputs_decode_diagnostic(device,sequences,workspace,Dispatch::Decode32OutputDiagnostic).await
     }
     /// Matched exact reference with identical native logits ABI and complete64-row work.
     pub async fn forward_outputs_capacity64(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         self.forward_outputs_decode_diagnostic(device,sequences,workspace,Dispatch::Decode64Diagnostic).await
     }
     async fn forward_outputs_decode_diagnostic(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace, dispatch:Dispatch,
     ) -> Result<ForwardOutput<'_>, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !workspace.is_canonical() || sequences.is_empty() || sequences.iter().any(|s|s.inputs.len()!=1) {
             return Err("capacity diagnostic needs independent canonical singleton rows".into());
         }
@@ -1491,6 +1578,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !workspace.is_canonical() {
             return Err("R64 requires canonical KV storage".into());
         }
@@ -1507,6 +1595,7 @@ impl Model {
         sequences: &[Sequence<'_>],
         workspace: &mut Workspace,
     ) -> Result<&[Logits], Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if !workspace.is_canonical() {
             return Err("R64 requires canonical KV storage".into());
         }
@@ -1521,6 +1610,7 @@ impl Model {
     pub async fn compare_lm_projections(
         &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
     ) -> Result<(Vec<u8>, Vec<u8>, [f64; 2]), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if sequences.is_empty() || sequences.iter().any(|s| s.inputs.len() != 1 || !s.inputs[0].logits) {
             return Err("LM comparison requires single-token rows with requested logits".into());
         }
@@ -1548,6 +1638,7 @@ impl Model {
         dispatch: Dispatch,
         prefer_native: bool,
     ) -> Result<OutputLayout, Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         if sequences.len() > self.logits.len() {
             return Err("too many request sequences".into());
         }
@@ -1698,6 +1789,7 @@ impl Model {
         position: usize,
         workspace: &mut Workspace,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.check_storage_workspace(workspace)?;
         let embedding = match input.soft {
             Some(SoftToken::Image(index)) => {
                 let image = input.image.ok_or("image is missing")?;
@@ -1925,5 +2017,19 @@ mod tests {
             )
             .is_err()
         );
+    }
+}
+
+fn storage_width_compatible(model_width:usize,workspace_width:usize) -> Result<(),Box<dyn std::error::Error>> {
+    if model_width!=workspace_width {return Err("Model/workspace sliding storage dtype mismatch".into());}
+    Ok(())
+}
+#[cfg(test)]
+mod fixed_e4_storage_tests {
+    #[test]
+    fn model_rejects_cross_dtype_workspace_before_preparation() {
+        for width in [1,2] {assert!(super::storage_width_compatible(width,width).is_ok());}
+        assert!(super::storage_width_compatible(1,2).is_err());
+        assert!(super::storage_width_compatible(2,1).is_err());
     }
 }

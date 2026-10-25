@@ -1161,3 +1161,21 @@ mod tests {
         assert!(independent_sequences(&sequences));
     }
 }
+
+#[cfg(test)]
+mod fixed_e4_metadata_tests {
+    use super::*;
+    #[test]
+    fn storage_dtype_changes_only_byte_addresses_not_visibility_or_owner_order() {
+        let blocks=[Blocks{sliding:31,full:vec![255]},Blocks{sliding:0,full:vec![0]}];
+        let tokens=[super::super::model::Input{token:2,soft:None,logits:false,image:None,audio:None}];
+        for position in [0,511,512,767,1023,1024,32767] {
+            let sequences=[Sequence{inputs:&tokens,start_position:position,blocks:&blocks[0]},Sequence{inputs:&tokens,start_position:position,blocks:&blocks[1]}];
+            let (old,mask)=sliding_vectors_rows_bytes(16,&sequences,2);
+            let (new,mask_e4)=sliding_vectors_rows_bytes(16,&sequences,1);
+            assert_eq!(mask,mask_e4);assert_eq!(new[0],31*2_097_152);assert_eq!(new[1],0);
+            assert!(old.iter().zip(&new).all(|(a,b)|*a==2*b));
+            assert!(mask[2*Ts::SIZE..].iter().all(|&x|x==0.0));
+        }
+    }
+}
