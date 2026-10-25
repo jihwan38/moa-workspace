@@ -3463,5 +3463,6 @@ mod tests {
         assert!(sessions.iter().all(|s| !s.delivery.held()));
     }
     include!("recovery_cohort_tests.rs");
+    include!("recovery_late_admission_tests.rs");
 
 }
