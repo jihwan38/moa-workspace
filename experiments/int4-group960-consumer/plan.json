@@ -1,0 +1,17 @@
+{
+  "base_commit": "5eed6639be93d9872469c6d47c1b320325277f18",
+  "scope": "Source and resource feasibility of per960 I4 projection consumers; no quantizer, host/model activation, standalone ELF or Arena execution",
+  "references": ["batch-kernels/src/ops_native_i4_p512_bound.rs: legal K64/P128 contraction", "p512-f4-partialscale-micro/src/ops_ffn_f4_projection.rs: group scaling before F32 shard sum", "src/ops_ffn_projection_clusters.rs: current joined UP/GATE ownership and output layout"],
+  "input_reference": "Signed I4 codes in [-7,7], canonical P512H960/P512L960 blocked order. Input row scales are from the separately specified activation quantizer.",
+  "weight_reference": "Per960 CPU-quantized BF16(provided F4*provided E4) before the original separate global scale. Group scales contain source amplitude; no extra native-E4 row_dequant factor.",
+  "up_gate": "Projection-owned clusters preserve current joined weights/output. Four P128 chunks cover all512 tokens per projection; K64 I4 packets, 61440-byte TRF.",
+  "down": "Token-owned clusters, two P128 chunks each, original blocked output and separate BF16/global boundary.",
+  "local_arithmetic": "I32 dot over960 -> exact numeric F32 conversion -> group scale -> original 4/16-shard F32 sum -> activation row scale -> BF16. Separate vector Mul0 and Mul1 aim to avoid an intermediate F32 DM tensor; lowering is unverified.",
+  "integer_dot_abs_bound": 47040,
+  "resource_gates": {"joined_upgate_max_cycles":480000,"down_max_cycles":240000,"dram_stack_allowed":false},
+  "included_costs": ["all weight and scale ingress", "real input redistribution", "group scaling and shard reduction", "all512 rows", "joined output/transposition", "original DOWN global-scale boundary"],
+  "excluded_and_not_claimed": ["activation quantization", "integer packing and public raw binding", "GeGLU", "full FFN or whole-model speed", "weight/model approximation quality"],
+  "failure_policy": "Preserve failed lowering/resource evidence; only concrete correctness/lowering repairs, no gate relaxation or parameter sweep",
+  "next_gates": "Independent source review, intended-code dot/layout/device oracle, then complete quantize/pack/UPGATE/GeGLU/hiddenquant/pack/DOWN against current production graph with all movement counted",
+  "build": "Original dependencies and locked Cargo; root-owned r64-server target only; fresh package and new empty kernel output directories"
+}
