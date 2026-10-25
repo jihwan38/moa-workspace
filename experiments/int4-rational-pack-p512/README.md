@@ -12,7 +12,7 @@ The preregistered resource gate is **not fully passed**:
 
 These are static compiler timelines, not measured latency. Neither schedule has
 DramStack. Both perform the entire shape in one kernel; no P128 tiling or extra
-launch is hidden. Source/probe typecheck passed in a004. No standalone ELF,
+launch is hidden. Source/probe typecheck passed in a004 and, after the coverage repair, a005. No standalone ELF,
 device execution, quantizer/GEMM integration, or model validation was performed.
 
 The hidden schedule allocates the complete 31,457,280-byte I32 tensor in SRAM
@@ -53,7 +53,8 @@ alignment and non-overlap, and retains the borrowed owners through await.
 
 `src/bin/test_int4_pack_p512.rs` contains a future byte gate: independent
 pair-nibble and inverse-index eight-field encoders, all 16 signed top nibbles,
-endpoints/zero, a true row/channel permutation, candidate-first raw binding versus
+endpoints/zero, explicit nine-bit identities for all 512 rows in every K960 block,
+a true row/channel permutation, candidate-first raw binding versus
 typed I4 readers, and complete input/table/output immutability. It verifies the
 blocked-byte ABI only; it does not establish a GEMM or quantization result.
 
@@ -63,3 +64,8 @@ Reproduce the static report with
 `provenance.json` binds source/config, copied run records/logs, and compiled
 resource artifacts. Original Cargo.toml, Cargo.lock and toolchain are retained.
 The first failed variant and input-cap miss are not relaxed or erased.
+
+Peer review found that the original fixture repeated token rows modulo16. Probe-only
+commit c2746fda replaces that fixture and asserts every full row identity; no
+device result ever used the inadequate fixture. Kernel/resource source 9f9a2762
+and both frozen schedules are unchanged.
