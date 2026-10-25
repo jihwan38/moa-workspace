@@ -167,6 +167,7 @@ pub(crate) fn sliding_attention_b16_stage(
             .fetch::<m![B % 4, Ts % 32, Ds / 32], m![Ds % 32]>()
             .fetch_table_lookup::<bf16>()
             .collect::<m![B % 4, Ts % 32, Ds / 16], m![Ds % 16]>()
+            .commit_trim::<m![Ds % 16]>()
             .commit();
         let kt: TrfTensor<bf16, Chip, Cluster, KeyRows, m![Ts % 8], m![B % 4, Ts / 8 % 4, Ds]> =
             device
