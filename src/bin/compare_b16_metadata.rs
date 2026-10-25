@@ -15,7 +15,7 @@ fn selected(step:usize)->Vec<usize>{match step{
  0=>vec![0],1=>vec![1,16],2=>(0..8).map(|i|(i*7+2)%17).collect(),
  3=>(0..10).map(|i|(i*3+4)%17).collect(),4=>(0..16).rev().collect(),
  5=>(0..17).collect(),6=>vec![2,16],7=>(0..10).map(|i|(i*5+2)%17).collect(),
- _=>(0..17).rev().collect(),
+ _=>(0..8).rev().collect(),
 }}
 fn check(pass:usize,step:usize,request:usize,a:&[u16],b:&[u16]){
  assert_eq!(a.len(),b.len());let mut differences=0;
@@ -30,6 +30,8 @@ async fn main()->Result<()>{
  let mut model=Model::new(&mut d,weights,&mut ws).await?;model.prepare_group_scratch(&mut d).await?;
  let mut expected:Vec<Vec<Vec<u16>>>=Vec::new();let mut checked=0usize;
  let mut reservations:Vec<Vec<Blocks>>=Vec::new();
+ let mut prompt_expected=Vec::new();
+ let prompt_blocks=[Blocks{sliding:50,full:vec![80,81,82,83]},Blocks{sliding:51,full:vec![84,85,86,87]}];
  for pass in 0..2{
   model.set_b16_compact_decode_metadata(pass==1);
   let blocks:Vec<_>=(0..17).map(|r|{let slot=if pass==0{r}else{32+r};Blocks{sliding:slot,full:(0..4).map(|p|if pass==0{r*4+p}else{255-(r*4+p)}).collect()}}).collect();
@@ -46,18 +48,28 @@ async fn main()->Result<()>{
    model.forward_sequences(&mut d,&[Sequence{inputs:&ins,start_position:pos,blocks:&blocks[16]}],&mut ws).await?;
   }
   println!("B16_METADATA_FILL pass={pass} actual_history_tokens=8704 ms={:.3}",fill.elapsed().as_secs_f64()*1000.0);
+  let active=&prompt_blocks[pass];
+  for pos in (0..896).step_by(128) {
+   let ins:Vec<_>=(pos..pos+128).map(|p|input(99,p,false)).collect();
+   model.forward_sequences(&mut d,&[Sequence{inputs:&ins,start_position:pos,blocks:active}],&mut ws).await?;
+  }
+  let prompt:Vec<_>=(896..1024).map(|p|input(99,p,p==1023)).collect();
+  model.start_prefill(&mut d,&Sequence{inputs:&prompt,start_position:896,blocks:active},&mut ws).await?;
   let mut positions=[512usize;17];
-  for step in 0..9{
+  for step in 0..10{
    let chosen=selected(step);
    if step==6{for &r in &chosen{positions[r]=0;}}
    // Interleave a short prompt after decode to exercise Prefill's retained canonical raw buffers.
-   if step==7{
+   if step==8{
     let request=2;let ins:Vec<_>=(positions[request]..positions[request]+31).map(|p|input(request,p,false)).collect();
-    model.forward_sequences(&mut d,&[Sequence{inputs:&ins,start_position:positions[request],blocks:&blocks[request]}],&mut ws).await?;
+    for (chunk,inputs) in ins.chunks(16).enumerate() {
+     model.forward_sequences(&mut d,&[Sequence{inputs,start_position:positions[request]+chunk*16,blocks:&blocks[request]}],&mut ws).await?;
+    }
     positions[request]+=31;
    }
    let ins:Vec<_>=chosen.iter().map(|&r|[input(r,positions[r],true)]).collect();
    let seq:Vec<_>=chosen.iter().enumerate().map(|(i,&r)|Sequence{inputs:&ins[i],start_position:positions[r],blocks:&blocks[r]}).collect();
+   model.set_decode_blocked_output(step!=8); // This B16 step tests canonical-output fallback, then step9 re-enters fused blocked mode.
    model.begin_stage_profile();let start=Instant::now();let out=model.forward_sequences(&mut d,&seq,&mut ws).await?;
    let model_ms=start.elapsed().as_secs_f64()*1000.0;let mut found=Vec::new();
    for(i,x)in out.iter().enumerate(){let values=raw(&mut d,x).await?;if pass==1{check(pass,step,chosen[i],&expected[step][i],&values);sampling_check(step,chosen[i],&expected[step][i],&values);checked+=values.len();}found.push(values);}
@@ -65,13 +77,21 @@ async fn main()->Result<()>{
    println!("B16_METADATA_STEP pass={pass} compact_metadata={} step={step} live={} model_ms={model_ms:.3} logits_bitdiff=0",pass==1,chosen.len());
    for stage in model.take_stage_profile(){println!("B16_METADATA_STAGE pass={pass} step={step} stage={} calls={} total_ms={:.6}",stage.stage,stage.calls,stage.milliseconds);}
    for r in chosen{positions[r]+=1;}
+   if step<8 {for quantum in 0..6 {
+    if let Some(out)=model.advance_prefill(&mut d,&mut ws).await? {
+     assert_eq!((step,quantum),(7,5));let values=raw(&mut d,out).await?;
+     if pass==0 {prompt_expected=values;}else{check(pass,99,99,&prompt_expected,&values);checked+=values.len();}
+    }else{assert_ne!((step,quantum),(7,5));}
+   }}
   }
+  model.set_decode_blocked_output(true);
  }
  for owner in 0..17 {
   let values=model.compare_canonical_kv(&mut d,&ws,&reservations[0][owner],&reservations[1][owner]).await?;
   println!("B16_METADATA_CACHE owner={owner} bf16_values={values} bitdiff=0");
  }
- println!("PASS B16 compact metadata actual model checked={checked} BF16logits;scalar width1, B16 widths2/8/10/16 and R64 width17;512-token histories,physical pool remap,full-page transition,position0 reuse,and31-token prompt interleave;CPU greedy and seeded stochastic parity;elapsed_s={:.3};timing diagnostic not HTTP/SLO",started.elapsed().as_secs_f64());Ok(())
+ let prompt_values=model.compare_canonical_kv(&mut d,&ws,&prompt_blocks[0],&prompt_blocks[1]).await?;println!("B16_METADATA_PROMPT_CACHE bf16_values={prompt_values} bitdiff=0");
+ println!("PASS B16 compact metadata actual model checked={checked} BF16logits;scalar width1, B16 widths2/8/10/16 and R64 width17;512-token histories,physical pool remap,full-page transition,position0 reuse,48 active-P128 quanta, canonical-output fallback and31-token prompt reuse;CPU greedy and seeded stochastic parity;elapsed_s={:.3};timing diagnostic not HTTP/SLO",started.elapsed().as_secs_f64());Ok(())
 }
 
 fn sampling_check(step:usize,request:usize,a:&[u16],b:&[u16]) {
