@@ -112,6 +112,10 @@ def main():
             packed = prefix.with_suffix('.packed').read_bytes()
             expanded = prefix.with_suffix('.dense').read_bytes()
             scales = struct.unpack('<' + str(len(blocked) // 960) + 'I', prefix.with_suffix('.scales').read_bytes())
+            fast = work / (label + '-fast')
+            subprocess.run([str(driver), 'quantize-packed', str(rows), str(cols), str(path), str(fast)], check=True)
+            assert fast.with_suffix('.packed').read_bytes() == packed
+            assert fast.with_suffix('.scales').read_bytes() == prefix.with_suffix('.scales').read_bytes()
             assert len(packed) == len(data) // 2 and len(expanded) == len(data)
             canonical_codes = bytearray(len(data))
             canonical_scales = []
@@ -151,17 +155,21 @@ def main():
                        packed_bytes=rows * cols, fixture_rows=rows, fixture_cols=cols,
                        original_packed_sha256=digest, permuted_packed_sha256=digest_p,
                        true_same_data_permutation=True)
+        checked['packed_only_exact_values'] = 2 * rows * cols
+        checked['packed_only_exact_group_scales'] = 2 * rows * (cols // 960)
         # Both NaN signs are rejected; shape validation also precedes allocation.
         for bad in (127, 255):
             path = work / 'bad.input'
             raw = bytearray(240 * 960)
             raw[1919] = bad
             path.write_bytes(raw)
-            result = subprocess.run([str(driver), 'quantize', '240', '960', str(path), str(work / 'bad')], capture_output=True)
-            assert result.returncode != 0 and b'NonFinite' in result.stderr
+            for method in ('quantize', 'quantize-packed'):
+                result = subprocess.run([str(driver), method, '240', '960', str(path), str(work / 'bad')], capture_output=True)
+                assert result.returncode != 0 and b'NonFinite' in result.stderr
         for r, c in ((0, 960), (239, 960), (240, 959), (240, 0)):
-            result = subprocess.run([str(driver), 'quantize', str(r), str(c), str(path), str(work / 'bad')], capture_output=True)
-            assert result.returncode != 0 and b'InvalidShape' in result.stderr
+            for method in ('quantize', 'quantize-packed'):
+                result = subprocess.run([str(driver), method, str(r), str(c), str(path), str(work / 'bad')], capture_output=True)
+                assert result.returncode != 0 and b'InvalidShape' in result.stderr
         checked['nonfinite_group_rejections'] = 2
         checked['invalid_shape_rejections'] = 4
     checked.update(status='PASS', oracle='Python Fraction nearest-code and while-loop scale selection, compared against compiled Rust helper',

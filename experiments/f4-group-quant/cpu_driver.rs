@@ -33,22 +33,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .collect();
             std::fs::write(format!("{prefix}.f4"), f4)?;
         }
-        Some("quantize") => {
+        Some("quantize") | Some("quantize-packed") => {
             let rows = args[2].parse()?;
             let cols = args[3].parse()?;
             let raw = std::fs::read(&args[4])?;
-            let result = quantize_blocked_e4(&raw, rows, cols)?;
             let prefix = &args[5];
-            std::fs::write(format!("{prefix}.packed"), result.packed_f4)?;
-            std::fs::write(format!("{prefix}.dense"), result.dense_e4_codes)?;
-            let scales: Vec<u8> = result
-                .group_scales
+            let scales = if args[1] == "quantize" {
+                let result = quantize_blocked_e4(&raw, rows, cols)?;
+                std::fs::write(format!("{prefix}.packed"), result.packed_f4)?;
+                std::fs::write(format!("{prefix}.dense"), result.dense_e4_codes)?;
+                result.group_scales
+            } else {
+                let result = quantize_blocked_e4_packed(&raw, rows, cols)?;
+                std::fs::write(format!("{prefix}.packed"), result.packed_f4)?;
+                result.group_scales
+            };
+            let scales: Vec<u8> = scales
                 .iter()
                 .flat_map(|s| s.to_bits().to_le_bytes())
                 .collect();
             std::fs::write(format!("{prefix}.scales"), scales)?;
         }
-        _ => return Err("expected tables PREFIX or quantize ROWS COLS INPUT PREFIX".into()),
+        _ => {
+            return Err("expected tables PREFIX or quantize[-packed] ROWS COLS INPUT PREFIX".into());
+        }
     }
     Ok(())
 }
