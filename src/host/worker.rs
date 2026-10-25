@@ -484,7 +484,7 @@ impl Worker {
         let mut active_work = Vec::<ScheduledInput>::new();
         let mut request_id = 0u64;
         let mut trace = SchedulerTrace::new();
-        let mut cohort = StartupCohort::default();
+        let mut cohort = StartupCohort::new(startup_cohort::RECOVERY_ENABLED);
         // Process-level diagnostics only; disabled unless explicitly requested.
         let chunk_trace_enabled = SCHEDULER_TRACE_ENABLED && chunk_trace::enabled();
         let mut active_chunk_trace = None::<chunk_trace::ChunkTrace>;

@@ -4,6 +4,9 @@
 use super::*;
 
 pub(super) const ENABLED: bool = true;
+/// Process-wide policy selection; isolated candidate activation changes this
+/// constant, never request content, evaluation flags, or the receipt budget.
+pub(super) const RECOVERY_ENABLED: bool = false;
 pub(super) const RECEIPT_BUDGET: Duration = Duration::from_millis(3750);
 
 #[derive(Default)]
@@ -11,6 +14,9 @@ pub(super) struct StartupDelivery {
     buffered: Option<Vec<StreamEvent>>,
     terminal: bool,
     ready_at: Option<Instant>,
+    // Request-owned history survives release and Session-vector compaction.
+    // A newly admitted Session starts false even when its physical ring is reused.
+    once_participated: bool,
 }
 impl StartupDelivery {
     pub(super) fn held(&self) -> bool {
@@ -19,8 +25,12 @@ impl StartupDelivery {
     pub(super) fn terminal(&self) -> bool {
         self.terminal
     }
+    pub(super) fn once_participated(&self) -> bool {
+        self.once_participated
+    }
     fn hold(&mut self, ready: bool, now: Instant) {
         assert!(self.buffered.is_none() && !self.terminal);
+        self.once_participated = true;
         self.buffered = Some(Vec::new());
         self.ready_at = ready.then_some(now);
     }
@@ -124,10 +134,14 @@ struct Snapshot {
 
 #[derive(Default)]
 pub(super) struct StartupCohort {
+    recovery: bool,
     attempted: bool,
     active: Option<Snapshot>,
 }
 impl StartupCohort {
+    pub(super) fn new(recovery: bool) -> Self {
+        Self { recovery, ..Self::default() }
+    }
     pub(super) fn reset_idle(&mut self) {
         assert!(self.active.is_none());
         self.attempted = false;
@@ -138,7 +152,8 @@ impl StartupCohort {
     /// This changes eligibility only: receipt times, allocations and any active
     /// model prompt checkpoint remain untouched. An existing snapshot never grows.
     pub(super) fn rearm_prefill_only(&mut self, sessions: &[Session]) -> bool {
-        if self.attempted
+        if !self.recovery
+            && self.attempted
             && self.active.is_none()
             && !sessions.is_empty()
             && sessions.iter().all(|s| {
@@ -163,7 +178,12 @@ impl StartupCohort {
             && self
                 .active
                 .as_ref()
-                .is_none_or(|s| s.members.contains(&session.timing.id))
+                .is_none_or(|s| {
+                    s.members.contains(&session.timing.id)
+                        || (self.recovery
+                            && (!session.generation.is_prefilling()
+                                || session.delivery.once_participated()))
+                })
     }
     /// Snapshot at the first completed prompt's sampling boundary. Arrivals
     /// during its prefill may join; subsequent arrivals cannot extend the wait.
@@ -173,6 +193,10 @@ impl StartupCohort {
         scheduled: &[ScheduledInput],
         now: Instant,
     ) {
+        if self.recovery {
+            self.maybe_start_recovery(sessions, scheduled, now);
+            return;
+        }
         if self.attempted || self.active.is_some() {
             return;
         }
@@ -216,6 +240,72 @@ impl StartupCohort {
             deadline,
         });
     }
+    fn fresh_member(session: &Session) -> bool {
+        session.generation.is_prefilling()
+            && session.timing.progress.first.is_none()
+            && !session.delivery.terminal()
+            && !session.delivery.held()
+            && !session.delivery.once_participated()
+    }
+    fn maybe_start_recovery(
+        &mut self,
+        sessions: &mut [Session],
+        scheduled: &[ScheduledInput],
+        now: Instant,
+    ) {
+        if self.active.is_some() {
+            return;
+        }
+        // Capture before complete_work advances the actually computed final
+        // prompt row. Existing decode rows in a mixed result remain unheld.
+        if !scheduled.iter().any(|input| sessions.iter().any(|session| {
+            session.blocks.sliding == input.ring
+                && Self::fresh_member(session)
+                && session.generation.finishes_prompt(input.count)
+        })) {
+            return;
+        }
+        let members: Vec<_> = sessions.iter().filter(|s| Self::fresh_member(s))
+            .map(|s| s.timing.id).collect();
+        if members.len() < 2 {
+            return;
+        }
+        let oldest_receipt = sessions.iter().filter(|s| Self::fresh_member(s))
+            .map(|s| s.timing.received).min().unwrap();
+        let deadline = oldest_receipt + RECEIPT_BUDGET;
+        // An expired otherwise-eligible older request cannot be omitted to
+        // make a younger subset fit. Admission never changes received.
+        if now >= deadline {
+            return;
+        }
+        for session in sessions.iter_mut().filter(|s| members.contains(&s.timing.id)) {
+            assert!(Self::fresh_member(session));
+            session.delivery.hold(false, now);
+        }
+        self.active = Some(Snapshot { members, started: now, oldest_receipt, deadline });
+        self.trace_recovery(sessions, now, "start");
+    }
+    fn trace_recovery(&self, sessions: &[Session], now: Instant, action: &str) {
+        if !self.recovery || !SCHEDULER_TRACE_ENABLED {
+            return;
+        }
+        let Some(snapshot) = &self.active else { return; };
+        let members: Vec<_> = snapshot.members.iter().map(|id| {
+            sessions.iter().find(|s| s.timing.id == *id).map_or_else(
+                || format!("{id}:gone"),
+                |s| format!("{}:{}:{}:{}", id, s.blocks.sliding,
+                    s.generation.remaining_prompt_inputs().unwrap_or(0),
+                    usize::from(s.delivery.terminal() || !s.generation.is_prefilling())))
+        }).collect();
+        let passthrough: Vec<_> = sessions.iter().filter(|s| {
+            !snapshot.members.contains(&s.timing.id) && self.allows(s)
+        }).map(|s| format!("{}:{}:{}",s.timing.id,s.blocks.sliding,
+            s.generation.remaining_prompt_inputs().unwrap_or(0))).collect();
+        eprintln!("SCHED_RECOVERY action={} members={} passthrough={} oldest_ms={:.3} left_ms={:.3}",
+            action,members.join(","),passthrough.join(","),
+            now.saturating_duration_since(snapshot.oldest_receipt).as_secs_f64()*1000.0,
+            snapshot.deadline.saturating_duration_since(now).as_secs_f64()*1000.0);
+    }
     pub(super) fn release_reason(
         &self,
         sessions: &[Session],
@@ -244,6 +334,7 @@ impl StartupCohort {
         now: Instant,
         reason: &str,
     ) {
+        self.trace_recovery(sessions, now, reason);
         let Some(snapshot) = self.active.take() else {
             return;
         };
