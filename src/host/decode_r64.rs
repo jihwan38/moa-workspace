@@ -197,6 +197,7 @@ impl Decode64 {
         allow_prefix768: bool,
         use_head_rows: bool,
         use_capacity32: bool,
+        use_output32: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let count = sequences.len();
@@ -214,6 +215,7 @@ impl Decode64 {
         let mut metadata = Step64::new(device, sequences).await?;
         metadata.sliding_prefix768 &= allow_prefix768;
         let capacity32 = use_capacity32 && (17..=32).contains(&count) && self.staged_ffn;
+        let output32 = capacity32 && use_output32;
         let policy32 = if capacity32 {
             Some(HbmScalar::<i32>::from_host(i32::from(metadata.sliding_short_groups), &mut device.pdma).await?)
         } else { None };
@@ -290,11 +292,11 @@ impl Decode64 {
         for (index, layer) in weights.layers.iter().enumerate() {
             match layer {
                 Layer::Sliding(layer) => {
-                    self.decode_sliding(device, ws, index, layer, &rope_s, &metadata, use_head_rows, policy32.as_ref())
+                    self.decode_sliding(device, ws, index, layer, &rope_s, &metadata, use_head_rows, policy32.as_ref(), output32)
                         .await?
                 }
                 Layer::Full(layer) => {
-                    self.decode_full(device, ws, index, layer, &rope_f, &metadata, capacity32)
+                    self.decode_full(device, ws, index, layer, &rope_f, &metadata, capacity32, output32)
                         .await?
                 }
             }
@@ -352,6 +354,7 @@ impl Decode64 {
         metadata: &Step64,
         use_head_rows: bool,
         policy32: Option<&HbmScalar<i32>>,
+        output32: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output;
@@ -478,6 +481,10 @@ impl Decode64 {
         .await?;
         }
         self.record_profile("r64.sliding.attention", &mut profile_mark);
+        if output32 {
+            launch(crate::ops_decode32_output::project_sliding_output_batch,
+                (device, &self.attn_s, &layer.o_weight, &layer.o_weight_scale, &mut self.projected)).await?;
+        } else {
         launch(
             crate::ops_output_r64_trf32::project_sliding_output_batch,
             (
@@ -489,6 +496,7 @@ impl Decode64 {
             ),
         )
         .await?;
+        }
         self.record_profile("r64.sliding.output", &mut profile_mark);
         launch(
             norm::post_attention_r64,
@@ -521,6 +529,7 @@ impl Decode64 {
         rope: &HbmTensor<i32, Chip, m![R64]>,
         metadata: &Step64,
         capacity32: bool,
+        output32: bool,
     ) -> Result<()> {
         let mut profile_mark = std::time::Instant::now();
         let blocked = self.decode_blocked_output;
@@ -621,6 +630,10 @@ impl Decode64 {
         )
         .await?;
         self.record_profile("r64.full.attention", &mut profile_mark);
+        if output32 {
+            launch(crate::ops_decode32_output::project_full_output_batch,
+                (device, &self.divided_f, &layer.o_weight, &layer.o_weight_scale, &mut self.projected)).await?;
+        } else {
         launch(
             crate::ops_output_r64_trf32::project_full_output_batch,
             (
@@ -632,6 +645,7 @@ impl Decode64 {
             ),
         )
         .await?;
+        }
         self.record_profile("r64.full.output", &mut profile_mark);
         launch(
             norm::post_attention_r64,
