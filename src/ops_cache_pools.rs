@@ -45,7 +45,7 @@ pub fn sliding_project_qkv(
     let v: DmTensor<bf16, Chip, Cluster, m![1 # 32, Ns], m![Ds]> = sliding::rmsnorm::normalize_value(device, &v);
 
     let (q, k) = sliding::rope::apply_rope(device, &q, &k, rope_offset, cos, sin);
-    let k = crate::ops_fixed_e4_quality::maybe_ds(device, k);
+    let k = crate::ops_fixed_e4_quality::maybe_rows::<_,_,m![Ns]>(device, k);
     let v = crate::ops_fixed_e4_quality::maybe_ds(device, v);
 
     q.view().to_hbm_view(&mut device.tdma, q_out.view_mut());
