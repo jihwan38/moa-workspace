@@ -208,11 +208,8 @@ pub mod ops_native_fp8_p512_ingress;
 
 pub mod ops_sliding_wide_head_rows;
 
-<<<<<<< HEAD
 pub mod ops_output_p128_four_keyrings;
 pub mod ops_output_p128_keyrings_h64;
-=======
 pub mod ops_full_wide_direct;
->>>>>>> 1509641 (perf: use exact direct full-page attention for native prompts)
 
 pub mod ops_qkv_shared_ingress;
