@@ -291,9 +291,9 @@ impl Model {
         Err("no grouped512-density prompt is awaiting its first layer".into())
     }
 
-    /// Experimental startup-only storage preparation. It adds immutable joined
-    /// copies of the existing native UP/GATE tensors; no arithmetic or dispatch
-    /// changes until a prepared execution explicitly opts in before layer zero.
+    /// Startup-only immutable joins of existing native UP/GATE tensors.
+    /// Successfully prepared storage enables projection-owned FFN for subsequent
+    /// grouped states. No per-request join or mode survives a prepared state.
     pub async fn prepare_projection_owned_ffn(
         &mut self, device: &mut Device,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -304,8 +304,9 @@ impl Model {
         self.group.as_mut().unwrap().prepare_projection_storage(device, &self.weights).await
     }
 
-    /// Default-off, prepared-state-only diagnostic; existing owner validation,
-    /// attention, norms and per-layer completion rules are unchanged.
+    /// Prepared-state-only FFN control; false retains the original composed
+    /// producer. Storage must already exist before enabling the joined producer.
+    /// Owner validation, attention, norms and completion rules are unchanged.
     pub fn set_active_prefill_projection_owned_ffn(
         &mut self, enabled: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {

@@ -442,6 +442,7 @@ impl Worker {
             let mut model = Model::new(&mut device, weights, &mut workspace).await?;
             if (GROUP_PREFILL_ENABLED || PROMPT512_ENABLED) && canonical {
                 model.prepare_group_scratch(&mut device).await?;
+                model.prepare_projection_owned_ffn(&mut device).await?;
             }
             eprintln!(
                 "startup.model_scratch_ms={:.3}",
