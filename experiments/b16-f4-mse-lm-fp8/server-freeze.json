@@ -1,0 +1,82 @@
+{
+  "candidate": "q021-b16-f4-mse-lm-fp8",
+  "source": "039b440ed0c4d536102082d9fb38106ddf471663",
+  "recorded_build": {
+    "name": "a006-q021-mse-lm-fp8-server-build",
+    "purpose": "Fresh isolated q021 quality server: tested q019 MSE FFN, byte-identical q020 parallel startup, activated q018 B16 FP8 LM after joint model gates",
+    "started_at": "2026-10-25T15:49:13.835294+00:00",
+    "worktree": "/home/jihwan38/moa-worktrees/round2/b16-f4-mse-lm-fp8",
+    "commit": "039b440ed0c4d536102082d9fb38106ddf471663",
+    "status": "",
+    "command": [
+      "docker",
+      "exec",
+      "--workdir",
+      "/round2/b16-f4-mse-lm-fp8",
+      "-e",
+      "CARGO_INCREMENTAL=0",
+      "-e",
+      "CARGO_BUILD_JOBS=4",
+      "-e",
+      "CARGO_TARGET_DIR=/round2/tail256-model/target",
+      "moa2026-round2",
+      "cargo",
+      "furiosa-opt",
+      "build",
+      "--release",
+      "--bin",
+      "server"
+    ],
+    "result": "command_succeeded",
+    "exit_code": 0,
+    "fresh_package": {
+      "refreshed_files": 399,
+      "contents_changed": false,
+      "target_exclusivity": "caller must coordinate"
+    },
+    "pid": 3869901,
+    "finished_at": "2026-10-25T15:49:48.942928+00:00",
+    "built_artifacts": {
+      "target/release/server": {
+        "source_path": "/home/jihwan38/moa-worktrees/round2/b16-f4-mse-lm-fp8/target/release/server",
+        "path": "/home/jihwan38/moa-worktrees/round2/runs/a006-q021-mse-lm-fp8-server-build/built/target/release/server",
+        "sha256": "7d89bb85e53fd9cd1cfcc44ebeaed4226aafe5f9cdb2063ac270ddcf4a272072",
+        "size": 39419376
+      }
+    },
+    "build_inputs_unchanged": true
+  },
+  "verified_source_hashes": 399,
+  "source_delta_vs_q020": [
+    "src/bin/compare_b16_f4_mse_lm_fp8.rs",
+    "src/host/model.rs",
+    "src/host/prefill.rs",
+    "src/host/prefill_decode.rs",
+    "src/lib.rs",
+    "src/ops_b16_lm_fp8.rs"
+  ],
+  "q020_parallel_files_byte_identical": true,
+  "q018_lm_kernel_byte_identical": true,
+  "original_Cargo_toml_sha256": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+  "original_Cargo_lock_sha256": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+  "library_tests": {
+    "passed": 134,
+    "failed": 0,
+    "ignored": 0,
+    "filtered": 0
+  },
+  "plain_server_check": "PASS10.43s",
+  "independent_review": "round2_path source/control and activation/import PASS; final change after review is comment only",
+  "actual_model_gates": {
+    "runs": [
+      1303,
+      1304,
+      1305
+    ],
+    "source": "553c44c6",
+    "all_pass": true,
+    "evidence_commit": "57401dcc"
+  },
+  "task_quality_and_http": "PENDING root dispatch; no new accuracy claim",
+  "target_free": true
+}
