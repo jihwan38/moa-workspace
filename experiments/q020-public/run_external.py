@@ -12,20 +12,21 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 parser = argparse.ArgumentParser(__doc__)
-parser.add_argument('--candidate', choices=['q020', 'q021'], default='q020')
+parser.add_argument('--candidate', choices=['q020', 'q021', 'q022'], default='q020')
 args = parser.parse_args()
-is_q021 = args.candidate == 'q021'
-PLAN = ROOT / 'external-quality/experiments/external-gsm32' / ('q021-dispatch-plan.json' if is_q021 else 'dispatch-plan.json')
-STATE = ROOT / 'state' / ('external-gsm32-q021-status.json' if is_q021 else 'external-gsm32-status.json')
+single_candidate = args.candidate != 'q020'
+PLAN = ROOT / 'external-quality/experiments/external-gsm32' / (f'{args.candidate}-dispatch-plan.json' if single_candidate else 'dispatch-plan.json')
+STATE = ROOT / 'state' / (f'external-gsm32-{args.candidate}-status.json' if single_candidate else 'external-gsm32-status.json')
 assert not STATE.exists(), 'Inspect prior state; do not restart an active queue'
 lock = (ROOT / 'state/automatic-arena-queue.lock').open('a+')
 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
 source = json.loads(PLAN.read_text())
 assert source['stop_on_failure'] is False
-assert len(source['jobs']) == (2 if is_q021 else 4)
+assert len(source['jobs']) == (2 if single_candidate else 4)
 # Compare each shard on both frozen candidates before advancing to the next.
 pending = []
-for number, index in enumerate([0, 1] if is_q021 else [0, 2, 1, 3], start=1326 if is_q021 else 1308):
+for number, index in enumerate([0, 1] if single_candidate else [0, 2, 1, 3],
+                               start={'q020': 1308, 'q021': 1326, 'q022': 1366}[args.candidate]):
     item = dict(source['jobs'][index])
     evaluation = Path(item['evaluation']).name
     item['name'] = f'r{number}-{evaluation}'
