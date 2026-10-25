@@ -91,3 +91,29 @@ output files. Both pack kernel blobs are byte-identical to their earlier
 resource-compiled blobs, so the const assertions did not add device work.
 `actual-build.json` and `actual-build-registry.json` preserve those bindings.
 No execution result is claimed by this build evidence.
+
+Root's single actual run **322961** subsequently passed in 1.433910345 seconds.
+All ten fixtures checked 49,152,000 codes and 24,576,000 packed bytes, including
+all signed top nibbles, full row/shard identity, a true permutation, typed/raw
+reader equality, post-reuse immutability and six invalid-owner rejections.
+
+| Complete awaited call | H3840, µs | L15360, µs |
+|---|---:|---:|
+| Pack only, range | 48.760–50.206 | 146.996–148.059 |
+| Pack only, mean | 49.407 | 147.752 |
+| Pack + raw I4 layout copy, range | 96.992–99.432 | 186.125–186.543 |
+
+Each range contains four samples of 16 calls, from the original and permuted
+fixtures in ABBA order. Setup, host oracles, uploads and downloads are excluded.
+The raw consumer here is a layout copy, **not a GEMM**. Activation quantization,
+GeGLU, the complete FFN and model behavior were not measured. The original input
+resource screen remains **HOLD52,085>50,000**; the actual numerical pass and
+cost measurements do not relabel that screen or establish a serving gain.
+
+The collected log contains **zero** `NPU_SPAN` or profile-marker records and the
+Arena records list is empty. Consequently, this run provides no per-operation
+actual DMA/TU attribution. The earlier store spans remain static estimates only;
+no profile rerun was performed. Reproduce all exact-count, timing and artifact
+checks with `python3 experiments/int4-rational-pack-p512/analyze_actual.py`.
+The copied raw files are under `actual-322961/`, and the deterministic report is
+`actual-result-322961.json`.
