@@ -18,8 +18,9 @@ const DIRECT_FULL_ATTENTION_ENABLED: bool = true;
 const COMPACT_FULL_STATISTICS_ENABLED: bool = true;
 // Exact first128 path passed current-kernel, computed-history and ownership gates.
 const EMPTY_HISTORY_PRUNING_ENABLED: bool = true;
-// Scoped probes select before preparation. Activate only after full-model gates.
-pub(crate) const MEDIA_BATCH_ENABLED: bool = false;
+// Exact media encoders passed independent scalar/CPU gates and29,589,504
+// full-model/embedding comparisons inr783. Explicit per-call controls remain.
+pub(crate) const MEDIA_BATCH_ENABLED: bool = true;
 
 pub(crate) struct WidePrefill {
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
