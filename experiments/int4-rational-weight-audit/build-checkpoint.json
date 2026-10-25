@@ -1,0 +1,79 @@
+{
+  "status": "HOST_BUILD_AND_SOURCE_REVIEW_PASS; ACTUAL_PROVIDED_WEIGHT_RUN_NOT_PERFORMED_BY_THIS_AGENT",
+  "functional_commit": "a34c3a6be35dd729f372be80221cf9f407eec1f8",
+  "source_bin": "src/bin/audit_int4_rational_weights.rs",
+  "source_bin_sha256": "6c1820c4fa8f840bf6826297057d846d7851f9412dc32e5ed2e8f4740fe5c9b2",
+  "build": {
+    "run": "runs/a001-int4-rational-weight-host-build",
+    "command": [
+      "docker",
+      "exec",
+      "--workdir",
+      "/round2/int4-rational-weight-audit",
+      "-e",
+      "CARGO_INCREMENTAL=0",
+      "-e",
+      "CARGO_BUILD_JOBS=4",
+      "-e",
+      "CARGO_TARGET_DIR=/round2/tail256-model/target",
+      "moa2026-round2",
+      "cargo",
+      "build",
+      "--release",
+      "--locked",
+      "--bin",
+      "audit_int4_rational_weights",
+      "--config",
+      "profile.release.package.furiosa-opt-gemma4.debug=0"
+    ],
+    "result": "command_succeeded",
+    "exit_code": 0,
+    "started_at": "2026-10-25T22:06:18.691588+00:00",
+    "finished_at": "2026-10-25T22:19:51.801843+00:00",
+    "build_inputs_unchanged": true,
+    "source_hash_manifest_sha256": "47ffcad26da1202377bd4e6fe352c6e6d75e402aaabc43387672b2232e1b4334"
+  },
+  "artifact": {
+    "path": "/round2/runs/a001-int4-rational-weight-host-build/built/target/release/audit_int4_rational_weights",
+    "sha256": "d255fbc5446f784681bebcc19ea8c95f1bbd9835738b5de2988608856e22b92e",
+    "bytes": 26172184,
+    "readelf_furiosa_kernels_section_bytes": 0
+  },
+  "original_inputs": {
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "rust-toolchain.toml": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+  },
+  "independent_source_review": {
+    "reviewer": "/root/round2_path",
+    "reviewed_commit": "a34c3a6be35dd729f372be80221cf9f407eec1f8",
+    "result": "PASS",
+    "verified": [
+      "Same r1194 row selection, layers/projections, nibble/per16 decode and BF16-before-global reference",
+      "Same coarse power2 scale floor/doubling/ties-away baseline",
+      "New independent i64 quotient and separate RN32(A*RN32(1/7)) scale",
+      "9 projections,576 sampled rows,4423680 source values,17694720 code-bound checks"
+    ],
+    "limits": [
+      "Compiled 65280-pattern loop checks range at A=maxfinite only; not exhaustive pair equivalence",
+      "FNV fingerprints cover selected inputs, are noncryptographic and are not a whole-model SHA",
+      "Host elapsed time includes decode plus four audits; not encoder-only or NPU throughput"
+    ]
+  },
+  "execution_status": {
+    "provided_weights_read": false,
+    "binary_executed": false,
+    "compiled_oracle_selfchecks_executed": false,
+    "device_kernel_compilation": false,
+    "arena_submission_by_this_agent": false,
+    "model_or_production_changes": false
+  },
+  "handoff": {
+    "arguments": [],
+    "model_path": "Resolved by unchanged host::load::model_dir() from RNGD_MODEL_DIR",
+    "prospective_execution_owner": "root only",
+    "result_scope": "Provided-weight reconstruction diagnostic only; no model/activation accuracy or complete A4W4 timing claim"
+  },
+  "preservation": "Old r742/r751 failed DivF gates untouched; r742 synthetic0.1319 explicitly excluded; no final/frozen candidate changes",
+  "checkpoint": "Existing build completed and captured; no new experiment or execution started while scope decision is pending"
+}
