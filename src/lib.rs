@@ -273,3 +273,19 @@ pub mod ops_group_ffn_projection_storegroup;
 pub mod ops_fixed_e4_quality;
 
 pub mod ops_fixed_e4_quality_diagnostic;
+
+pub mod ops_fixed_e4_commit;
+
+pub mod ops_fixed_e4_b16;
+
+pub mod ops_fixed_e4_decode32;
+
+pub mod ops_fixed_e4_r64;
+
+pub mod ops_fixed_e4_r64_prefix512;
+
+pub mod ops_fixed_e4_r64_mixed512;
+
+pub mod ops_fixed_e4_r64_head_rows;
+
+pub mod ops_fixed_e4_r64_prefix768;
