@@ -1,0 +1,36 @@
+{
+  "reviewer": "round2_path; read-only source and prior evidence review, no new execution",
+  "purpose": "Concrete remaining complete-chain gate after exact rational quantizer proof and actual supplied-weight diagnostic322813",
+  "existing_i4": {
+    "symbol": "ops_native_i4_p512_bound::project_up_scaled",
+    "scope": "Legal K64/P128, H960 shards, 61440-byte TRF; current scaled variant sums I32 partials before applying one row scale",
+    "measured_projection_us_approx": [298,204],
+    "excludes": "New activation quantization, packing, layout adaptation, joins and complete FFN",
+    "compute_rate_claim": "CE spans barely changed; no demonstrated full-rate K128 path"
+  },
+  "proposed_per960_consumer": {
+    "reuse_reference": "ops_ffn_f4_projection::{stage_upgate,stage_down}",
+    "flow": ["K64 I4 contraction over each960", "local I32 partial", "numeric F32 conversion", "that partial's weight-group scale", "F32 inter-slice sum over4 UP/GATE or16 DOWN shards", "activation scale", "original BF16/global boundary"],
+    "local_integer_dot_abs_bound": 47040,
+    "local_integer_to_f32_exact": true,
+    "combined_graph_compiled": false,
+    "scale_reference_warning": "Diagnostic322813 quantizes BF16(providedF4*providedE4) directly. Its weight scales already contain source amplitude; do not multiply old native-E4 row_dequant again. Existing F4 partialscale instead quantizes current E4 codes and retains that row scale.",
+    "weight_scale_bytes_per_layer": 737280
+  },
+  "packing_boundary": {
+    "existing_symbols": ["ops_int4_pack_words", "i4_raw_adapter"],
+    "validated_scope": "Dense B16xH3840 packed I32 owner to public raw I4 consumer binding",
+    "missing": "Actual P512 blocked input and hidden packing, public binding and complete launch/layout costs; existing adapter establishes a host boundary, not an in-graph alias",
+    "b16_pack_plus_consumer_us": 58.3,
+    "b16_consumer_only_us": 17.4,
+    "p512_i32_input_intermediate_bytes_if_materialized": 7864320,
+    "p512_i32_hidden_intermediate_bytes_if_materialized": 31457280
+  },
+  "complete_gate": ["BF16 input", "p20 activation A4 and pack", "UP/GATE with per960 weight scaling", "original BF16/global/GeGLU boundaries", "p20 hiddenL15360 A4 and pack", "DOWN", "current postnorm/residual"],
+  "comparison_control": "Current complete production graph, including joined projection-owned UP/GATE. Prior measured I4 uses token-owned clusters; adaptation and joins must be counted.",
+  "prior_f4_complete_chain": {"control_us_approx":1061,"candidate_us_approx":980,"measured_gain_percent_range":[7.3,7.8],"decision":"HOLD below original gate"},
+  "next_probe_recommendation": "If quantizer resource/device gates justify continuation, per960W4 complete chain is more informative than rowW4-only because it includes necessary scaling and has lower sampled weight reconstruction error.",
+  "model_quality_verified": false,
+  "new_complete_chain_speed_verified": false,
+  "top3_path_demonstrated": false
+}
