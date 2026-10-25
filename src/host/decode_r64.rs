@@ -15,6 +15,13 @@ use crate::{
 use furiosa_opt_std::prelude::*;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 pub(crate) struct Decode64 {
+    // Owned once per model; the fused FFN materializes each validated HBM boundary.
+    staged_ffn: bool,
+    ffn_qinput: HbmTensor<f8e4m3, Chip, crate::ops_native_fp8_r64_staged_fused::Input>,
+    ffn_xscale: HbmTensor<f32, Chip, m![R64]>,
+    ffn_hidden: HbmTensor<bf16, Chip, crate::ops_native_fp8_r64_staged_fused::Hidden>,
+    ffn_qhidden: HbmTensor<f8e4m3, Chip, crate::ops_native_fp8_r64_staged_fused::QuantHidden>,
+    ffn_hscale: HbmTensor<f32, Chip, m![R64]>,
     // Dedicated decode raw layouts; canonical scratch remains available to prompts and diagnostics.
     decode_blocked_output: bool,
     decode_q_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_r64::QueryOutput>,
@@ -56,6 +63,10 @@ pub(crate) struct Decode64 {
 }
 
 impl Decode64 {
+    pub(crate) fn set_staged_ffn(&mut self, enabled: bool) {
+        self.staged_ffn = enabled;
+    }
+
     pub(crate) fn set_decode_blocked_output(&mut self, enabled: bool) {
         self.decode_blocked_output = enabled;
     }
@@ -119,6 +130,12 @@ impl Decode64 {
             );
         }
         Ok(Self {
+            staged_ffn: true,
+            ffn_qinput: zero!(f8e4m3, crate::ops_native_fp8_r64_staged_fused::Input),
+            ffn_xscale: zero!(f32, m![R64]),
+            ffn_hidden: zero!(bf16, crate::ops_native_fp8_r64_staged_fused::Hidden),
+            ffn_qhidden: zero!(f8e4m3, crate::ops_native_fp8_r64_staged_fused::QuantHidden),
+            ffn_hscale: zero!(f32, m![R64]),
             decode_blocked_output: true,
             decode_q_blocked_s: zero!(bf16, crate::ops_qkv_blocked_r64::QueryOutput),
             decode_k_blocked_s: zero!(bf16, crate::ops_qkv_blocked_r64::KeyOutput),
@@ -607,6 +624,31 @@ impl Decode64 {
         let mut profile_mark = std::time::Instant::now();
         launch(norm::rmsnorm_r64, (device, &self.x, pre, &mut self.norm)).await?;
         self.record_profile("r64.ffn.pre_norm", &mut profile_mark);
+        if self.staged_ffn {
+        launch(
+            crate::ops_native_fp8_r64_staged_fused::batch_ffn,
+            (
+                device,
+                &self.norm,
+                &weights.native_fp8.up,
+                &weights.native_fp8.gate,
+                &weights.native_fp8.down,
+                &weights.native_fp8.up_dequant,
+                &weights.native_fp8.gate_dequant,
+                &weights.native_fp8.down_dequant,
+                &weights.up_global_scale,
+                &weights.gate_global_scale,
+                &weights.down_global_scale,
+                &mut self.ffn_qinput,
+                &mut self.ffn_xscale,
+                &mut self.ffn_hidden,
+                &mut self.ffn_qhidden,
+                &mut self.ffn_hscale,
+                &mut self.projected,
+            ),
+        )
+        .await?;
+        } else {
         launch(
             crate::ops_native_fp8_r64_local_reuse::batch_ffn_partitioned_input,
             (
@@ -625,6 +667,7 @@ impl Decode64 {
             ),
         )
         .await?;
+        }
         self.record_profile("r64.ffn.core", &mut profile_mark);
         launch(
             norm::post_feedforward_r64,

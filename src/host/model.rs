@@ -117,6 +117,13 @@ impl Model {
         self.prefill.set_output_hsplit(enabled);
     }
 
+    /// Diagnostic arithmetic control for R64 FFN only; both paths use identical norms and caches.
+    pub fn set_r64_staged_ffn(&mut self, enabled: bool) {
+        if let Some(decode) = &mut self.decode64 {
+            decode.set_staged_ffn(enabled);
+        }
+    }
+
     pub fn set_decode_blocked_output(&mut self, enabled: bool) {
         self.prefill.set_decode_blocked_output(enabled);
         if let Some(decode) = &mut self.decode64 {
