@@ -582,8 +582,8 @@ pub async fn generate(
     }
 }
 
-/// An explicit512-row limit opts into four chronological P128 chunks. Existing
-/// callers keep their page-local P128/B16 policy; short tails never pad to512.
+/// Explicit512/384 limits opt into four/three chronological P128 chunks.
+/// Existing128/B16 callers retain their page-local policy; no short tail pads.
 fn prompt_chunk_count(position: usize, remaining: usize, limit: usize) -> usize {
     if limit >= P512::SIZE
         && remaining >= P512::SIZE
@@ -591,6 +591,13 @@ fn prompt_chunk_count(position: usize, remaining: usize, limit: usize) -> usize 
         && position.checked_add(P512::SIZE).is_some()
     {
         return P512::SIZE;
+    }
+    if limit == 3 * P128::SIZE
+        && remaining >= 3 * P128::SIZE
+        && position % P128::SIZE == 0
+        && position.checked_add(3 * P128::SIZE).is_some()
+    {
+        return 3 * P128::SIZE;
     }
     let available = remaining.min(limit).min(Tf::SIZE - position % Tf::SIZE);
     if available >= P128::SIZE {
@@ -602,6 +609,21 @@ fn prompt_chunk_count(position: usize, remaining: usize, limit: usize) -> usize 
 
 #[cfg(test)]
 mod chunk_tests {
+    #[test]
+    fn explicit384_limit_preserves_existing_limits_and_checks_boundaries() {
+        for start in [0,384,896,1664] {
+            assert_eq!(super::prompt_chunk_count(start,384,384),384);
+            assert_eq!(super::prompt_chunk_count(start,1024,384),384);
+            assert_eq!(super::prompt_chunk_count(start,384,128),128);
+            assert_eq!(super::prompt_chunk_count(start,384,512),128);
+            assert_eq!(super::prompt_chunk_count(start,512,512),512);
+        }
+        assert_eq!(super::prompt_chunk_count(0,383,384),128);
+        assert_eq!(super::prompt_chunk_count(0,384,383),128);
+        assert_eq!(super::prompt_chunk_count(500,384,384),12);
+        assert_ne!(super::prompt_chunk_count(usize::MAX-127,384,384),384);
+    }
+
     use super::*;
 
     #[test]

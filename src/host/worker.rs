@@ -26,6 +26,8 @@ pub const CONTEXT: usize = 8192;
 const GROUP_PREFILL_ENABLED: bool = true;
 /// Keep disabled until the chronological model and HTTP gates pass.
 const PROMPT512_ENABLED: bool = true;
+/// Pack an aligned384-row owner with the next128-row owner after quad priority.
+const PROMPT384128_ENABLED: bool = true;
 /// Diagnostic candidates flip these constants globally, never from request data.
 /// Public TPOT averages request latency; the private evaluator's exact formula
 /// is unverified. This candidate needs measured output-gap and HTTP gates.
@@ -305,6 +307,7 @@ struct ReadyInput {
     position: usize,
     count: usize,
     prompt512: bool,
+    prompt384: bool,
 }
 
 /// Stable request identity and the exact input range whose model state is in
@@ -653,6 +656,9 @@ impl Worker {
                 0
             };
             let grouped = selected.len() == 4 && decode_width == 0;
+            let paired384128 = decode_width == 0 && scheduled.len() == 2
+                && scheduled[0].count == 3 * crate::axes::P128::SIZE
+                && scheduled[1].count == crate::axes::P128::SIZE;
             let cost_width = prompt_cost_width(&scheduled);
             let credited = CREDIT_SCHEDULER_ENABLED && credit_opportunity && decode_width == 0;
             let mut immediate_chunk_trace = None;
@@ -710,29 +716,32 @@ impl Worker {
                             blocks: &sessions[index].blocks,
                         })
                         .collect();
-                    if grouped {
+                    if grouped || paired384128 {
                         if active_rings.is_empty() {
                             let mark = Instant::now();
-                            self.model
-                                .start_prefill_group(
-                                    &mut self.device,
-                                    &sequences,
-                                    &mut self.workspace,
-                                )
-                                .await?;
+                            if paired384128 {
+                                self.model.start_prefill384_128(
+                                    &mut self.device, &sequences, &mut self.workspace,
+                                ).await?;
+                            } else {
+                                self.model.start_prefill_group(
+                                    &mut self.device, &sequences, &mut self.workspace,
+                                ).await?;
+                            }
                             prompt_phases.preparation = Some(mark.elapsed());
                         }
-                        let Some(outputs) = self
-                            .model
-                            .advance_prefill_group_measured(
-                                &mut self.device,
-                                &mut self.workspace,
+                        let outputs = if paired384128 {
+                            self.model.advance_prefill384_128_measured(
+                                &mut self.device, &mut self.workspace,
                                 Some(&mut prompt_phases.advance),
-                            )
-                            .await?
-                        else {
-                            return Ok(None);
+                            ).await?
+                        } else {
+                            self.model.advance_prefill_group_measured(
+                                &mut self.device, &mut self.workspace,
+                                Some(&mut prompt_phases.advance),
+                            ).await?
                         };
+                        let Some(outputs) = outputs else { return Ok(None); };
                         if outputs.len() != sequences.len() {
                             return Err("grouped output count does not match its requests".into());
                         }
@@ -1140,6 +1149,7 @@ fn ready_input(session: &Session, allowed: bool) -> ReadyInput {
             position: 0,
             count: 0,
             prompt512: false,
+            prompt384: false,
         };
     }
     ReadyInput {
@@ -1148,21 +1158,28 @@ fn ready_input(session: &Session, allowed: bool) -> ReadyInput {
         count: session.generation.input_count(PREFILL_CHUNK),
         prompt512: session.generation.input_count(crate::axes::P512::SIZE)
             == crate::axes::P512::SIZE,
+        prompt384: session.generation.input_count(3 * crate::axes::P128::SIZE)
+            == 3 * crate::axes::P128::SIZE,
     }
 }
 
-/// Four independent requests take priority because `pending_prompt` selects
-/// them first. Only its single-request fallback can expand to512 chronological
-/// rows. Active ranges are copied exactly until that model checkpoint completes.
+/// Four independent requests keep priority. A validated two-owner selection
+/// expands only A to384 rows; a singleton may expand to512. Active ranges are
+/// copied exactly until the corresponding model checkpoint completes.
 fn schedule_inputs(
     available: &[ReadyInput],
     selected: &[usize],
     active: &[ScheduledInput],
     prompt512_enabled: bool,
 ) -> Vec<ScheduledInput> {
+    let pair = PROMPT384128_ENABLED && active.is_empty() && selected.len() == 2
+        && available[selected[0]].prompt384
+        && selected.iter().all(|&i| available[i].groupable()
+            && available[i].position % crate::axes::P128::SIZE == 0);
     selected
         .iter()
-        .map(|&index| {
+        .enumerate()
+        .map(|(row, &index)| {
             let ready = available[index];
             if let Some(input) = active.iter().find(|input| input.ring == ready.ring) {
                 return *input;
@@ -1170,7 +1187,9 @@ fn schedule_inputs(
             ScheduledInput {
                 ring: ready.ring,
                 position: ready.position,
-                count: if prompt512_enabled
+                count: if pair && row == 0 {
+                    3 * crate::axes::P128::SIZE
+                } else if prompt512_enabled
                     && active.is_empty()
                     && selected.len() == 1
                     && ready.prompt512
@@ -1226,7 +1245,11 @@ fn pending_prompt(
         && pending[..4]
             .iter()
             .all(|&index| available[index].groupable());
-    pending.truncate(if group { 4 } else { 1 });
+    let pair = !group && group_enabled && PROMPT384128_ENABLED && pending.len() >= 2
+        && available[pending[0]].prompt384
+        && pending[..2].iter().all(|&i| available[i].groupable()
+            && available[i].position % crate::axes::P128::SIZE == 0);
+    pending.truncate(if group { 4 } else if pair { 2 } else { 1 });
     pending
 }
 
@@ -1276,6 +1299,7 @@ fn select_work(
             position: 0,
             count,
             prompt512: false,
+            prompt384: false,
         })
         .collect();
     select_work_in(
@@ -1299,9 +1323,89 @@ mod tests {
                 position: 0,
                 count,
                 prompt512: false,
+            prompt384: false,
             })
             .collect()
     }
+    #[test]
+    fn two_owner384128_keeps_quad_priority_single512_fallback_and_short_tail_turn() {
+        let mut work=ready_inputs(&[(7,128),(2,128),(31,128),(63,128)]);
+        work[0].position=1664;work[0].prompt384=true;work[0].prompt512=true;
+        work[1].position=1920;
+        let quad=pending_prompt(64,&work,3,&[],true);
+        assert_eq!(quad.len(),4);
+        assert!(schedule_inputs(&work,&quad,&[],true).iter().all(|r|r.count==128));
+        let selected=pending_prompt(64,&work[..2],3,&[],true);
+        assert_eq!(selected,vec![0,1]);
+        let scheduled=schedule_inputs(&work[..2],&selected,&[],true);
+        assert_eq!(scheduled,vec![ScheduledInput{ring:7,position:1664,count:384},ScheduledInput{ring:2,position:1920,count:128}]);
+        assert_eq!(prompt_cost_width(&scheduled),4);
+        let single=pending_prompt(64,&work[..2],3,&[],false);
+        assert_eq!(single,vec![0]);
+        assert_eq!(schedule_inputs(&work[..2],&single,&[],true)[0].count,512);
+        work[0].count=16;work[0].prompt384=false;work[0].prompt512=false;
+        assert_eq!(pending_prompt(64,&work[..2],3,&[],true),vec![0]);
+        work[0].count=128;work[0].prompt384=true;work[0].position=1665;
+        assert_eq!(pending_prompt(64,&work[..2],3,&[],true),vec![0]);
+    }
+
+    #[test]
+    fn pair384128_retains_both_ranges_through_decoder_removal_and_cancelled_owner() {
+        let mut pool=Some(PageReservations::new(64,256,CONTEXT).unwrap());
+        let (decoder,_decoder_rx)=session(pool.as_mut().unwrap(),1,4);
+        let (mut a,a_rx)=session(pool.as_mut().unwrap(),2048,4);
+        let (mut b,_b_rx)=session(pool.as_mut().unwrap(),2048,4);
+        advance_prompt_to(&mut a,1664);advance_prompt_to(&mut b,1920);
+        let mut sessions=vec![decoder,a,b];let mut free=vec![];let mut rings=vec![];
+        let work=ready_sessions(&sessions);
+        let selected=pending_prompt(64,&work,0,&[],true);
+        assert_eq!(selected,vec![1,2]);
+        let active=schedule_inputs(&work,&selected,&[],true);
+        assert_eq!(active.iter().map(|s|s.count).collect::<Vec<_>>(),vec![384,128]);
+        let active_rings:Vec<_>=active.iter().map(|s|s.ring).collect();
+        let mut prefer=false;let mut next=3;
+        let decoder=select_work_in(64,&work,&mut prefer,&mut next,&active_rings,true);
+        assert_eq!(decoder,vec![0]);
+        complete_selected(&mut sessions,&decoder,Some(&[SampleOutput::Greedy(1)]),&mut pool,&mut free,&mut rings).unwrap();
+        assert_eq!(sessions.len(),2);
+        let work=ready_sessions(&sessions);
+        let resumed=select_work_in(64,&work,&mut prefer,&mut next,&active_rings,true);
+        assert_eq!(resumed,vec![0,1]);assert_eq!(next,3);
+        assert_eq!(schedule_inputs(&work,&resumed,&active,true),active);
+        let available=pool.as_ref().unwrap().available_pages();
+        drop(a_rx);
+        assert!(!complete_work(&mut sessions,&active,None,&mut pool,&mut free,&mut rings).unwrap());
+        assert!(complete_work(&mut sessions,&active,Some(&[SampleOutput::Greedy(3)]),&mut pool,&mut free,&mut rings).is_err());
+        assert_eq!(sessions.iter().map(|s|s.generation.input().1).collect::<Vec<_>>(),vec![1664,1920]);
+        assert_eq!(pool.as_ref().unwrap().available_pages(),available);
+        let outputs=[SampleOutput::Greedy(3),SampleOutput::Greedy(4)];
+        assert!(complete_work(&mut sessions,&active,Some(&outputs),&mut pool,&mut free,&mut rings).unwrap());
+        assert_eq!(sessions.len(),1);assert_eq!(sessions[0].blocks.sliding,active[1].ring);
+        assert_eq!(sessions[0].generation.input().1,2048);
+        assert_eq!(sessions[0].generation.input().0.token,4);
+        assert_eq!(pool.as_ref().unwrap().available_pages(),available+Workspace::blocks_for(2052));
+        assert!(free.is_empty()&&rings.is_empty());
+    }
+
+    #[test]
+    fn pair384128_advances_nonfinal_a_without_sampling_it() {
+        let mut pool=Some(PageReservations::new(64,256,CONTEXT).unwrap());
+        let (a,_a_rx)=session(pool.as_mut().unwrap(),512,4);
+        let (b,_b_rx)=session(pool.as_mut().unwrap(),128,4);
+        let mut sessions=vec![a,b];let work=ready_sessions(&sessions);
+        let selected=pending_prompt(64,&work,0,&[],true);
+        assert_eq!(selected,vec![0,1]);let scheduled=schedule_inputs(&work,&selected,&[],true);
+        assert_eq!(scheduled.iter().map(|s|s.count).collect::<Vec<_>>(),vec![384,128]);
+        let outputs=[SampleOutput::Logits(vec![]),SampleOutput::Greedy(4)];
+        assert!(complete_work(&mut sessions,&scheduled,Some(&outputs),&mut pool,&mut vec![],&mut vec![]).unwrap());
+        assert!(sessions[0].generation.is_prefilling());
+        assert_eq!(sessions[0].generation.input().1,384);
+        assert_eq!(sessions[0].generation.completion_tokens(),0);
+        assert!(!sessions[1].generation.is_prefilling());
+        assert_eq!(sessions[1].generation.input().1,128);
+        assert_eq!(sessions[1].generation.completion_tokens(),1);
+    }
+
     #[test]
     fn measured_decode_budget_fits_multiple_prompt_layers_and_reserves_next_round() {
         let start = Instant::now();
@@ -1352,6 +1456,7 @@ mod tests {
                 position: 0,
                 count: 1,
                 prompt512: false,
+            prompt384: false,
             })
             .collect();
         assert_eq!(
@@ -1443,6 +1548,7 @@ mod tests {
                 position: 509,
                 count: 3,
                 prompt512: false,
+            prompt384: false,
             },
         );
         assert_eq!(pending_prompt(64, &work, 62, &[], true), vec![1]);
@@ -1540,6 +1646,8 @@ mod tests {
                 count: s.generation.input_count(PREFILL_CHUNK),
                 prompt512: s.generation.input_count(crate::axes::P512::SIZE)
                     == crate::axes::P512::SIZE,
+                prompt384: s.generation.input_count(3 * crate::axes::P128::SIZE)
+                    == 3 * crate::axes::P128::SIZE,
             })
             .collect()
     }
