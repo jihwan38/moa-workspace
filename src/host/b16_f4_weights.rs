@@ -9,7 +9,7 @@ type Result<T>=std::result::Result<T,Box<dyn std::error::Error>>;
 pub const ENABLED:bool=false;
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum F4Quantizer { PowerOfTwoRange }
+pub enum F4Quantizer { PowerOfTwoRange, MseDyadic }
 
 #[derive(Clone,Debug,Default)]
 pub struct StartupTiming {
@@ -44,6 +44,7 @@ async fn projection<E:M,S:M>(device:&mut Device,source:&HbmTensor<f8e4m3,Chip,E>
  let begin=std::time::Instant::now();
  let packed=match quantizer {
   F4Quantizer::PowerOfTwoRange=>super::f4_group960::quantize_blocked_e4_packed(&raw,rows,cols)?,
+  F4Quantizer::MseDyadic=>super::f4_group960_mse::quantize_blocked_e4_mse(&raw,rows,cols)?,
  };
  let encode_ms=begin.elapsed().as_secs_f64()*1000.;
  if packed.packed_f4.len()*2!=E::SIZE || packed.group_scales.len()!=S::SIZE {

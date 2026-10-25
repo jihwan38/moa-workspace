@@ -367,6 +367,11 @@ async fn main() -> Result<()> {
         .parse::<usize>()?;
     assert!(["model", "guards"].contains(&mode.as_str()));
     assert!([512, 1024].contains(&prefix));
+    let quantizer = match std::env::args().nth(3).as_deref().unwrap_or("power2") {
+        "power2" => b16_f4_weights::F4Quantizer::PowerOfTwoRange,
+        "mse" => b16_f4_weights::F4Quantizer::MseDyadic,
+        _ => return Err("quantizer must be power2 or mse".into()),
+    };
     assert!(
         !b16_f4_weights::ENABLED,
         "this frozen diagnostic requires explicit default-off setup"
@@ -397,18 +402,31 @@ async fn main() -> Result<()> {
     );
     memory(&d, "all_original_workspaces_before_shadow")?;
     let startup = Instant::now();
-    let timing = m.prepare_b16_f4(&mut d).await?;
+    let timing = m.prepare_b16_f4_with_quantizer(&mut d, quantizer).await?;
     assert!(m.b16_f4_ready());
     assert_eq!(timing.projections, LAYERS * 3);
     let first = format!("{timing:?}");
-    let second = format!("{:?}", m.prepare_b16_f4(&mut d).await?);
+    let second = format!(
+        "{:?}",
+        m.prepare_b16_f4_with_quantizer(&mut d, quantizer).await?
+    );
     assert_eq!(
         first, second,
         "idempotent prepare returns the original completed timing"
     );
     println!(
-        "B16_F4_STARTUP elapsed_ms={:.6} timing={timing:?} idempotent=true",
+        "B16_F4_STARTUP quantizer={quantizer:?} elapsed_ms={:.6} timing={timing:?} idempotent=true",
         startup.elapsed().as_secs_f64() * 1000.0
+    );
+    let other = match quantizer {
+        b16_f4_weights::F4Quantizer::PowerOfTwoRange => b16_f4_weights::F4Quantizer::MseDyadic,
+        b16_f4_weights::F4Quantizer::MseDyadic => b16_f4_weights::F4Quantizer::PowerOfTwoRange,
+    };
+    assert!(
+        m.prepare_b16_f4_with_quantizer(&mut d, other)
+            .await
+            .is_err(),
+        "published immutable shadow cannot switch quantizer"
     );
     memory(&d, "all_original_workspaces_and_complete_shadow")?;
     if mode == "model" {
@@ -418,7 +436,7 @@ async fn main() -> Result<()> {
     }
     memory(&d, "completed")?;
     println!(
-        "B16_F4_FINISHED mode={mode} prefix={prefix} elapsed_s={:.6} no_public_quality_claim=true no_activation=true",
+        "B16_F4_FINISHED mode={mode} prefix={prefix} quantizer={quantizer:?} elapsed_s={:.6} no_public_quality_claim=true no_activation=true",
         begin.elapsed().as_secs_f64()
     );
     Ok(())
