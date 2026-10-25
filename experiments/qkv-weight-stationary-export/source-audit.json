@@ -1,0 +1,84 @@
+{
+  "base": "a8b4d0f",
+  "default_off_import": "2058412",
+  "activation": "24a2ef9",
+  "frozen_model_gate_source": "fc3f009",
+  "source_files_changed": [
+    "src/bin/compare_weight_stationary_qkv.rs",
+    "src/host/model.rs",
+    "src/host/prefill_group.rs",
+    "src/lib.rs",
+    "src/ops_qkv_weight_stationary.rs"
+  ],
+  "conflict_resolution": "Only lib append conflicted; retain both B16UP modules and new QKV export. Model setter merged without conflict.",
+  "checks": {
+    "src/ops_qkv_weight_stationary.rs": {
+      "sha256": "f8d5947c75200fc8447bebca7c9348105d981949f6427754928ef4d75bdb58aa",
+      "identical_to_frozen": true
+    },
+    "src/host/worker.rs": {
+      "sha256": "9c148a076988cb904b5874ae1a897030aaf0af66ef0c101f4a218972439ac687",
+      "identical_to_current_base": true
+    },
+    "src/host/startup_cohort.rs": {
+      "sha256": "d4a48c43b8eccf0162506b2462df1a572eef9a5a7addd44fdf463239730fe59e",
+      "identical_to_current_base": true
+    },
+    "src/host/prefill.rs": {
+      "sha256": "afc939557eeb9546dd728fd0fe408d6d172c8898f2d1d42ec6102004f9dbfef6",
+      "identical_to_current_base": true
+    },
+    "src/host/prefill_decode.rs": {
+      "sha256": "72e1249603bc3497af1a169ad6a39058ff9beb998156d2bef10cce9dd30b3720",
+      "identical_to_current_base": true
+    },
+    "src/host/decode_r64.rs": {
+      "sha256": "8d71e4100f41588a905d86aa1f99c744ca037b3a1a198dd09daad2a763e497ed",
+      "identical_to_current_base": true
+    },
+    "src/host/prefill_wide.rs": {
+      "sha256": "6126c3aeefe98b1a35fbace1e700aef05604ad5afc591a97bb01437d5d8e38ad",
+      "identical_to_current_base": true
+    },
+    "src/ops_b16_up_ingress.rs": {
+      "sha256": "0ce3ed8f5b54ef9dd21eb5e99222fe84da774a3382de6bf5114c5d88f864ffa6",
+      "identical_to_current_base": true
+    },
+    "src/ops_b16_ingress_epilogue.rs": {
+      "sha256": "b99582ebfcb565ccf4661716c6f3c6446b5ace8f62f54bbec87070b7376ac0eb",
+      "identical_to_current_base": true
+    },
+    "src/ops_ffn_projection_clusters.rs": {
+      "sha256": "24190dd57f563fd85280f2ea438bd0d7c4ec71536671d63da37739a1a99cf27f",
+      "identical_to_current_base": true
+    },
+    "src/ops_group_ffn_projection.rs": {
+      "sha256": "dde2f0df359497785d5cc4d9218e03b00da48925fc6ed514c7d8166d87baa443",
+      "identical_to_current_base": true
+    },
+    "src/ops_output_weight_stationary.rs": {
+      "sha256": "5dabbb7350d405cdc5c51651b7e176970b9ee4952623f78ef0a31d824722060f",
+      "identical_to_current_base": true
+    },
+    "src/ops_full_output_weight_stationary.rs": {
+      "sha256": "6f94d3caed9ea819b09205cf00364582ffab97bef5669e81a0629223b092f15f",
+      "identical_to_current_base": true
+    },
+    "src/host/model.rs": {
+      "sha256": "ebdcd44e431f44d6fbeee010d11f358cceb5c861143489069b1b366ac5eccf7b",
+      "only_change_new_scoped_qkv_setter": true,
+      "all_current_B16UP_fields_dispatch_preserved": true
+    },
+    "src/host/prefill_group.rs": {
+      "sha256": "14577586fff7fe1465aade7c065d5461a737dbbef884dceb468caddf636a3feb",
+      "only_difference_from_all11_gate": "four QKV defaults true",
+      "state_propagations_preserved": true
+    },
+    "src/bin/compare_weight_stationary_qkv.rs": {
+      "sha256": "9be70c5d0beed9649d253929c396285c710b36bd2e0308eb619285d32eb867b0",
+      "functional_probe_identical": true,
+      "explicit_false_true_arms": true
+    }
+  },
+  "functional_scope": "Grouped sliding QKV producer only; no Worker/B16/R32/fullQK/O/FFN/quantizer/attention/KV changes."
+}
