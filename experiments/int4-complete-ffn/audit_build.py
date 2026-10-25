@@ -58,7 +58,10 @@ def main():
     compare_entries('q020_frozen_server', 'runs/a003-q020-mse-parallel-server-build/built/target/release/server',
                     ['ops_group_ffn_projection_storegroup::sliding_projection_owned',
                      'ops_norm_blocked_residual::post_feedforward', 'ops_norm_wide::post_attention_p128',
-                     'ops_norm_wide::rmsnorm_p128', 'ops_norm_wide::post_feedforward_p128'], required=False)
+                     'ops_norm_wide::rmsnorm_p128', 'ops_norm_wide::post_feedforward_p128',
+                     'ops_prepack_alloc::prepack_up', 'ops_prepack_alloc::reblock_up',
+                     'ops_prepack_alloc::prepack_down', 'ops_prepack_alloc::reblock_down',
+                     'ops_ffn_projection_join::join'], required=False)
     for name, directory in [('prefix_sliding_bf16', 'a002'), ('geglu_bf16', 'a004')]:
         full = 'furiosa_opt_gemma4::ops_int4_ffn_bridges::' + name
         path = root / f'int4-complete-ffn-bridges/experiments/int4-complete-ffn-bridges/kernel-out-{directory}/furiosa-opt-gemma4/{full}.bin'
