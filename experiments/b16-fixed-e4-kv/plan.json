@@ -1,0 +1,14 @@
+{
+  "base": "fb44a66d",
+  "scope": "coupled fixed E4 cache representation and consumer dataflow, resource-only first",
+  "control": "same-tree current ops_b16_attention_output::sliding_16, canonical BF16KV, original outputHsplit",
+  "prior": "d51f4a73 currentB16audit; oldE4 scaledcache c030C3regressed, C64long positive/C4negative. Oldreader code+Scale8+F32 reconstruct; nativeQK/codec-beforebroadcast held. No claim globallynew beforepeerhistoryaudit.",
+  "change": "Append bf16\u2192f32\u2192f8e4m3 withfixedscale1; ownE4pool noamax/noScale8 arrays. ReadE4codes with BF16lookup at existing consumer. OriginalBF16QK/PV/softmax and outputprojection retained; evaluate lookup fusedinto KTRF/Vtranspose ifpubliclegal, retain explicitdecode fallback only ifcompilerneedsit.",
+  "removed": "HalfBF16historybytes; oldadaptivecodec max/scale/division and all pertoken/head scale reads/multiplication; no KV reuse acrossrequests",
+  "added": "E4code conversion onliveappend, read lookup/table loads, explicitrepresentation/rangeerror",
+  "numerical_contract": "Approximate unscaled E4 cache; finiteoverflow/underflow and taskquality unproven. No data-dependentrouting/calibration or prompt special cases. Intended reference will be BF16 roundtripE4 and originalBF16 drift separate.",
+  "first_stop": "Resource complete live16 commit+attention+O >=10pct improvement with no new DramStack beyondknown tinyindexbounce; otherwiseHOLD currentprototype, nohost. Compilelegality repair only concretepublicmapping fixes.",
+  "later_gates": "Actual independenthistory256/1024/ringwrap/poison/partiallive micro includingcodec+commit+attention+O, intendedbits+originaldrift thenfullmodel/public/private; no currenthostport",
+  "owner": "root",
+  "target": "exclusive r64-server/target"
+}
