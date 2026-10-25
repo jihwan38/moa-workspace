@@ -207,3 +207,23 @@ pub fn pack_hidden_control(
         dense.to_dm(&mut device.tdma);
     staged.view().to_hbm_view(&mut device.tdma, output.view_mut());
 }
+
+/// Distinct aligned-H variant; original H implementation above remains frozen.
+#[device(chip = 1)]
+pub fn quantize_pack_input_aligned(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![P512, H]>,
+    table: &HbmTensor<i32, Chip, m![Mantissa, Record]>,
+    shifts: &HbmTensor<i32, Chip, m![H % 8]>,
+    output: &mut HbmTensor<i32, Chip, PackedInput>,
+    scales: &mut HbmTensor<f32, Chip, m![P512]>,
+) {
+    let (codes, scale) = quantize_codes::<H>(device, input, table);
+    let dense = pack_codes::<H, original::InputWords>(device, codes, shifts);
+    // Only the reviewed real staging differs from quantize_pack_input.
+    let staged: DmTensor<i32, Chip, Cluster,
+        m![H / 960, P512 % 256 / 16, 1 # 4], m![P512 % 16, H % 960 / 8]> =
+        dense.to_dm(&mut device.tdma);
+    staged.view().to_hbm_view(&mut device.tdma, output.view_mut());
+    store_scales(device, scale, scales);
+}

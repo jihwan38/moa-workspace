@@ -280,3 +280,5 @@ pub mod ops_int4_rational_lut_hidden;
 
 pub mod ops_int4_pack_p512;
 pub mod ops_int4_rational_fused_pack;
+
+pub mod ops_int4_pack_input_aligned;
