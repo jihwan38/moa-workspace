@@ -125,7 +125,10 @@ pub fn project_sliding_output_four(device:&mut Device,a:&HbmTensor<bf16,Chip,m![
 fn restore_one(device:&mut Device,input:&HbmTensor<bf16,Chip,Output>,output:&mut HbmTensor<bf16,Chip,m![P128,H]>) {
     // The normalizer's H480 partitions make this a conservative complete ABI
     // adapter. The eventual direct consumer can avoid this extra HBM tensor.
-    let x:DmTensor<bf16,Chip,Cluster,m![P128/2%32,H/480],m![P128%2,H%480]>=input.to_dm(&mut device.tdma);
+    // H64 and H480 are not nested factors in SDK0.9. Route through their
+    // least common multiple H960, then split into the unchanged RMS shards.
+    let x:DmTensor<bf16,Chip,Cluster,m![P128/2%32,H/960,1#2],m![P128%2,H%960]>=input.to_dm(&mut device.tdma);
+    let x:DmTensor<bf16,Chip,Cluster,m![P128/2%32,H/480],m![P128%2,H%480]>=x.to_dm(&mut device.tdma);
     x.view().to_hbm_view(&mut device.tdma,output.view_mut());
 }
 #[device(chip=1)]
