@@ -6,7 +6,7 @@ use crate::{Chip,axes::{P128,H,Qs,Ps}};
 axes![OutputHalf=2, OutputGroup=256, Joined=16, HBlock=4, H960=960];
 type Cluster=m![OutputHalf];
 type Parts=m![OutputGroup];
-type InputParts=m![HBlock,H960/32 #64];
+type InputParts=m![HBlock,H960/32,1#2];
 type StoreParts=m![OutputGroup/8,P128/32,1#2];
 pub type QueryOutput=m![P128/64,OutputHalf,OutputGroup/8,P128%64,OutputGroup%8,Joined=8];
 pub type KeyOutput=m![P128/64,OutputHalf,OutputGroup/8,P128%64,OutputGroup%8,Joined=4];
