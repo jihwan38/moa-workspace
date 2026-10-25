@@ -1,0 +1,13 @@
+{
+  "base": "2e7226c6",
+  "scope": "P512 F4 decoder lifetime/dataflow replacement, not tile sweep",
+  "original_control": "same-tree ops_group_ffn_projection_storegroup::sliding_projection_owned currentc079 math",
+  "prior_inline_f4": "ops_group_ffn_f4_projection::sliding_projection_owned dffea370, actualr1225-r1228 gain7.3-7.8pct BELOW10gate HOLD",
+  "mechanism": "Expand packed F4 into unscaled E4 DM ONCE before all8UPGATE/4DOWN querychunks, retaining per960 F32 scales afterlocaldot andoriginalreduction/quantizers/norms. Reuse decodedDM, remove repeated fetch-LUT andtableloads from12dotchunks.",
+  "added": "Real fullE4weight DM and oneMainlookup pass per projectionstage; originalF4inputDMAhalf remains; no claimsbeforelifetime/resourceproof",
+  "distinct_from": "oldgroup16 exactreconstruction restoredsupplied scales beforeE4dot; this usesunchanged approximateF4group960code definition andpostdot scale",
+  "first_stop": "Same-treecompleteFFNresource >=10pctvsoriginal andfasterthaninlineF4 withno newDramStack; otherwiseHOLD withoutactualmicro. No parameter sweep.",
+  "later": "Actualcompletechain>=10pctoriginal andintendedbitsallstages/sameF4codes; originalapproximationqualityseparate, nohostyet",
+  "owner": "root",
+  "target": "exclusive r64-server/target"
+}
