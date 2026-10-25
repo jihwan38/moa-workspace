@@ -214,11 +214,18 @@ pub(crate) fn sliding_attention_b16_stage(
             .gather::<m![Rc64], m![Ts, Ns, Ds]>()
             .by_byte_offsets(&index)
             .to_dm(&mut device.tdma);
+        // Preserve the original transpose packet exactly. Main E4 lookup has
+        // a full32-code packet and therefore needs this explicit BF16 DM boundary.
+        let v: DmTensor<bf16, Chip, Cluster, KeyRows, m![B % 4, Ts % 32, Ds]> = device.main.begin(v.view())
+            .fetch::<m![B % 4, Ts % 32, Ds / 32], m![Ds % 32]>()
+            .fetch_table_lookup::<bf16>()
+            .collect::<m![B % 4, Ts % 32, Ds / 16], m![Ds % 16]>()
+            .commit_trim::<m![Ds % 16]>()
+            .commit();
         let v: DmTensor<bf16, Chip, Cluster, KeyRows, m![B % 4, Ds, Ts % 32]> = device
             .main
             .begin(v.view())
-            .fetch::<m![B % 4, Ds / 8, Ts % 32], m![Ds%8 # 32]>()
-            .fetch_table_lookup::<bf16>()
+            .fetch::<m![B % 4, Ds / 8, Ts % 32], m![Ds%8 # 16]>()
             .collect::<m![B % 4, Ds / 8, Ts % 32], m![Ds%8 # 16]>()
             .transpose::<m![B % 4, Ds / 8, Ts / 4 % 8, Ds % 8], m![Ts%4 # 16]>()
             .commit_trim::<m![Ts % 4]>()
