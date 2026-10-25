@@ -5,6 +5,9 @@ use furiosa_opt_gemma4::{
     ops_int4_rational_lut_p512_compact as compact,
 };
 use furiosa_opt_std::prelude::*;
+use op::{Mantissa as B16Mantissa, Record as B16Record};
+use original::{Mantissa as OriginalMantissa, Record as OriginalRecord};
+use compact::{Mantissa as CompactMantissa, Record as CompactRecord};
 #[path = "support/npu_profile.rs"] mod npu_profile;
 #[path = "support/rational_a4_oracle.rs"] mod oracle;
 #[path = "support/rational_a4_p512_fixture.rs"] mod p512;
@@ -58,7 +61,7 @@ fn verify(tag: &str, case: usize, qr: Vec<u8>, sr: Vec<u8>, expected: &[i32], sc
 async fn b16(d: &mut Device, profile: &npu_profile::Collector) -> Result<(), Box<dyn std::error::Error>> {
     let values = table_values();
     let table_bytes: Vec<u8> = values.iter().flat_map(|x| x.to_le_bytes()).collect();
-    let table = HostTensor::<i32, m![op::Mantissa, op::Record]>::from_vec(values).to_hbm(&mut d.pdma).await?;
+    let table = HostTensor::<i32, m![B16Mantissa, B16Record]>::from_vec(values).to_hbm(&mut d.pdma).await?;
     assert_eq!(raw(d, &table).await, table_bytes, "all4096 table bytes initialized");
     let mut total_codes = 0usize;
     let mut total_scales = 0usize;
@@ -97,8 +100,8 @@ async fn b16(d: &mut Device, profile: &npu_profile::Collector) -> Result<(), Box
 async fn full512(d: &mut Device, profile: &npu_profile::Collector) -> Result<(), Box<dyn std::error::Error>> {
     let values = table_values();
     let table_bytes: Vec<u8> = values.iter().flat_map(|x| x.to_le_bytes()).collect();
-    let candidate_table = HostTensor::<i32, m![compact::Mantissa, compact::Record]>::from_vec(values.iter().copied()).to_hbm(&mut d.pdma).await?;
-    let original_table = HostTensor::<i32, m![original::Mantissa, original::Record]>::from_vec(values).to_hbm(&mut d.pdma).await?;
+    let candidate_table = HostTensor::<i32, m![CompactMantissa, CompactRecord]>::from_vec(values.iter().copied()).to_hbm(&mut d.pdma).await?;
+    let original_table = HostTensor::<i32, m![OriginalMantissa, OriginalRecord]>::from_vec(values).to_hbm(&mut d.pdma).await?;
     assert_eq!(raw(d, &candidate_table).await, table_bytes);
     assert_eq!(raw(d, &original_table).await, table_bytes);
     let mut saved: Vec<(Vec<i32>, Vec<u32>)> = Vec::new();
