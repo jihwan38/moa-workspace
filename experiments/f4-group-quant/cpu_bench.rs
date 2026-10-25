@@ -1,5 +1,7 @@
 #[path = "../../src/host/f4_group960.rs"]
 mod f4_group960;
+#[path = "../../src/host/f4_group960_mse.rs"]
+mod f4_group960_mse;
 use std::{hint::black_box, time::Instant};
 
 fn memory() -> String {
@@ -42,6 +44,11 @@ fn main() {
             "packed" => {
                 let result =
                     f4_group960::quantize_blocked_e4_packed(black_box(&raw), rows, cols).unwrap();
+                (result.packed_f4, Vec::new(), result.group_scales)
+            }
+            "mse" => {
+                let result =
+                    f4_group960_mse::quantize_blocked_e4_mse(black_box(&raw), rows, cols).unwrap();
                 (result.packed_f4, Vec::new(), result.group_scales)
             }
             _ => panic!("unknown variant"),
