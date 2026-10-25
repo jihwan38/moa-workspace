@@ -236,7 +236,7 @@ fn reconstruct_up(device:&mut Device,
         .begin(block.view()).fetch::<m![L%120],m![H/240%4#8]>()
         .collect::<m![L%120],m![H/240%4#8]>().to_vrf();
     device.main.begin(packed.view())
-        .fetch::<m![L%120,H/32%30],m![H%32]>()
+        .fetch::<m![L%120],m![H%960]>()
         .fetch_table_lookup::<f8e4m3>().fetch_cast::<f32>()
         .collect::<m![L%120,H/8%120],m![H%8]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
@@ -258,7 +258,7 @@ fn reconstruct_down(device:&mut Device,
         .begin(block.view()).fetch::<m![H%120],m![L/240%4#8]>()
         .collect::<m![H%120],m![L/240%4#8]>().to_vrf();
     device.main.begin(packed.view())
-        .fetch::<m![H%120,L/32%30],m![L%32]>()
+        .fetch::<m![H%120],m![L%960]>()
         .fetch_table_lookup::<f8e4m3>().fetch_cast::<f32>()
         .collect::<m![H%120,L/8%120],m![L%8]>()
         .vector_init().vector_intra_slice_tag(TagMode::Zero)
