@@ -1,0 +1,7 @@
+# Exact blocked H64 output stores
+
+Control 6145a1c/r607/318777 measures .526-.527ms for all fourP128 projections. Actual per-cluster task length 1,052,662-1,053,760 trace units. Four final output DMAs last 77,276-213,897 units each and occupy the tail from about700k to1053k; weight read64k and four partial gathers22-24k are smaller. The standalone dump attempts r611/r612 failed after emitting partial IR (duplicate IR kind); these are not successful compile evidence. Their source locations corroborate the final four dma.sto_d operations, but actual timings come only from318777.
+
+Change only output HBM ABI from[P128,H] to[P128/64,H/64,P128%64,H%64]. A slice stores one contiguous8192-byte block instead of64strided128-byte rows. Original H64K1024 dot, BF16 partial tree and scales remain unchanged. Added consumer movement is measured by an independent four-row canonical restoration using the original normalizer H480 distribution. A future direct norm consumer may avoid the restore write/read, but no serving adoption yet.
+
+Gate: independently NaN-initialized blocked bytes checked by explicit CPU indexing; separate canonical restore compared against original exact O for two seeds, two input orders and all four outputs. ABC-CBA compares original, blocked-only, blocked+restore; no hostreads timed. NPU profiling outside timing. A genuine complete path win and whole-model gate are required before production.
