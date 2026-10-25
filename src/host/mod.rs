@@ -36,3 +36,5 @@ pub mod group_ffn_epilogue_diagnostic;
 pub mod b16_f4_partialscale_diagnostic;
 
 pub mod f4_group960;
+
+pub mod f4_group960_mse;

@@ -3,7 +3,7 @@ use furiosa_opt_std::prelude::*;
 use crate::{Chip,axes::{B,H,L},ops_b16_f4_partialscale as k,
  ops_b16_f4_partialscale_epilogue as candidate,ops_b16_f4_partialscale_dense_epilogue as intended,
  ops_b16_ingress_epilogue as original};
-use super::{load::{self,Layer,MlpWeights},f4_group960::{quantize_blocked_e4,PackedF4Groups}};
+use super::{load::{self,Layer,MlpWeights},f4_group960::PackedF4Groups,f4_group960_mse::quantize_blocked_e4_mse};
 type Result<T>=std::result::Result<T,Box<dyn std::error::Error>>;
 async fn read<D:MaterializableScalar,E:M>(d:&mut Device,x:&HbmTensor<D,Chip,E>)->Result<Vec<u8>> {
  Ok(x.to_host::<E>(&mut d.pdma).await?.into_inner().into_buf())
@@ -22,7 +22,11 @@ fn group_index(row:usize,part:usize,cols:usize)->usize{((row/240)*(cols/960)+par
 struct Projection<E:M,S:M>{packed:HbmTensor<f4e2m1,Chip,E>,dense:HbmTensor<f8e4m3,Chip,E>,scales:HbmTensor<f32,Chip,S>,cpu:PackedF4Groups,old:Vec<u8>}
 impl<E:M,S:M> Projection<E,S>{
  async fn new(d:&mut Device,x:&HbmTensor<f8e4m3,Chip,E>,rows:usize,cols:usize,label:&str,row_scale:&[f32])->Result<Self>{
-  let old=read(d,x).await?;let start=std::time::Instant::now();let cpu=quantize_blocked_e4(&old,rows,cols)?;
+  let old=read(d,x).await?;let start=std::time::Instant::now();let fitted=quantize_blocked_e4_mse(&old,rows,cols)?;
+  // Exact fixed-LUT E2M1 expansion; the fitted group scales remain separate.
+  let e4_codes=[0x00u8,0x30,0x38,0x3c,0x40,0x44,0x48,0x4c,0x80,0xb0,0xb8,0xbc,0xc0,0xc4,0xc8,0xcc];
+  let dense_e4_codes=fitted.packed_f4.iter().flat_map(|&b|[e4_codes[(b&15)as usize],e4_codes[(b>>4)as usize]]).collect();
+  let cpu=PackedF4Groups{packed_f4:fitted.packed_f4,group_scales:fitted.group_scales,dense_e4_codes};
   assert_eq!(cpu.packed_f4.len()*2,E::SIZE);assert_eq!(cpu.dense_e4_codes.len(),E::SIZE);assert_eq!(cpu.group_scales.len(),S::SIZE);
   let mut e2=0.;let mut v2=0.;let mut we2=0.;let mut wv2=0.;let mut max=0f64;
   for (g,(&scale,chunk)) in cpu.group_scales.iter().zip(old.chunks_exact(960)).enumerate(){
@@ -91,6 +95,7 @@ async fn cpu_checks(d:&mut Device,s:&Scratch,snap:&[Vec<u8>],q:&Packed,w:&MlpWei
  println!("F4_CPU_FINAL label={label} samples=64 max_abs={max} original_BF16_dot_and_global_boundaries=true");Ok(())
 }
 pub async fn run(profile:&impl Fn(bool))->Result<()> {
+ println!("F4_QUANTIZER mode=MSE_dyadic25 source=8e7ce99e original_ceilmax_gate=r1204_r1205 separate_group_scale=true");
  let start_case=std::env::args().nth(1).unwrap_or_else(||"0".into()).parse::<usize>()?;let end_case=std::env::args().nth(2).unwrap_or_else(||"4".into()).parse::<usize>()?;assert!(start_case<end_case&&end_case<=4);
  let mut d=Device::new(candidate::post_attention_ffn.topology())?;let weights=load::load_weights(&mut d).await?;let signed=HostTensor::<bf16,m![1#8]>::from_vec([bf16::from_f32(-0.75);8]).to_hbm(&mut d.pdma).await?;
  let mut exact_bytes=0usize;let mut immutable_bytes=0usize;let mut times=[Vec::<f64>::new(),Vec::new()];
