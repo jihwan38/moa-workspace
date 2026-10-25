@@ -100,7 +100,7 @@ fn reduce_pair<Source: M, Target: M>(
     let mut output: DmTensor<bf16, Chip, Cluster, Target, m![H%120,P128%64]> = DmTensor::new();
     for chunk in 0..4 {
         device.main.begin(input.view().tile::<m![P128%64],16,m![H%120,P128%64=16#64]>(16*chunk))
-            .fetch::<m![H%120,P128%64=16/8],m![P128%64=16%8]>()
+            .fetch::<m![H%120],m![P128%64=16]>()
             .fetch_cast::<f32>()
             .collect::<m![H%120,P128%64=16/8],m![P128%64=16%8]>()
             .vector_init()
