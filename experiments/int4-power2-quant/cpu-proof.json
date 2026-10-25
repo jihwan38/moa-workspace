@@ -1,0 +1,154 @@
+{
+  "status": "PASS",
+  "finite_abs_bf16_scale_patterns": 32640,
+  "admissible_finite_bf16_power2_products": 8375520,
+  "scale_exp_range": [
+    -114,
+    126
+  ],
+  "rounding": "nearest ties away from zero",
+  "ftz": "BF16/F32 subnormal inputs before max and multiplication; tiny products also flush, integercode remains0",
+  "fixture_survey": [
+    {
+      "fixture": "gaussian",
+      "width": 3840,
+      "rows": 16,
+      "metrics": {
+        "3840": {
+          "relative_l2": 0.27519671556262376,
+          "zero_fraction": 0.358740234375,
+          "scale_count": 16
+        },
+        "960": {
+          "relative_l2": 0.20451671252400103,
+          "zero_fraction": 0.25735677083333336,
+          "scale_count": 64
+        }
+      }
+    },
+    {
+      "fixture": "laplace",
+      "width": 3840,
+      "rows": 16,
+      "metrics": {
+        "3840": {
+          "relative_l2": 0.3762835475366804,
+          "zero_fraction": 0.613916015625,
+          "scale_count": 16
+        },
+        "960": {
+          "relative_l2": 0.3088948074623597,
+          "zero_fraction": 0.5124674479166667,
+          "scale_count": 64
+        }
+      }
+    },
+    {
+      "fixture": "block_scales",
+      "width": 3840,
+      "rows": 16,
+      "metrics": {
+        "3840": {
+          "relative_l2": 0.26374084190867547,
+          "zero_fraction": 0.669775390625,
+          "scale_count": 16
+        },
+        "960": {
+          "relative_l2": 0.19548370685759933,
+          "zero_fraction": 0.2734375,
+          "scale_count": 64
+        }
+      }
+    },
+    {
+      "fixture": "sparse_outliers",
+      "width": 3840,
+      "rows": 16,
+      "metrics": {
+        "3840": {
+          "relative_l2": 0.43373111312680357,
+          "zero_fraction": 0.9989583333333333,
+          "scale_count": 16
+        },
+        "960": {
+          "relative_l2": 0.43373111312680357,
+          "zero_fraction": 0.9989583333333333,
+          "scale_count": 64
+        }
+      }
+    },
+    {
+      "fixture": "gaussian",
+      "width": 15360,
+      "rows": 16,
+      "metrics": {
+        "15360": {
+          "relative_l2": 0.2884494758794718,
+          "zero_fraction": 0.38162027994791664,
+          "scale_count": 16
+        },
+        "960": {
+          "relative_l2": 0.20109622916168995,
+          "zero_fraction": 0.2546468098958333,
+          "scale_count": 256
+        }
+      }
+    },
+    {
+      "fixture": "laplace",
+      "width": 15360,
+      "rows": 16,
+      "metrics": {
+        "15360": {
+          "relative_l2": 0.3862014957224861,
+          "zero_fraction": 0.6305582682291667,
+          "scale_count": 16
+        },
+        "960": {
+          "relative_l2": 0.32453159167084716,
+          "zero_fraction": 0.53370361328125,
+          "scale_count": 256
+        }
+      }
+    },
+    {
+      "fixture": "block_scales",
+      "width": 15360,
+      "rows": 16,
+      "metrics": {
+        "15360": {
+          "relative_l2": 0.3700007930896424,
+          "zero_fraction": 0.8202189127604167,
+          "scale_count": 16
+        },
+        "960": {
+          "relative_l2": 0.2120741933404978,
+          "zero_fraction": 0.2584635416666667,
+          "scale_count": 256
+        }
+      }
+    },
+    {
+      "fixture": "sparse_outliers",
+      "width": 15360,
+      "rows": 16,
+      "metrics": {
+        "15360": {
+          "relative_l2": 0.43442595685319846,
+          "zero_fraction": 0.9989583333333333,
+          "scale_count": 16
+        },
+        "960": {
+          "relative_l2": 0.43442595685319846,
+          "zero_fraction": 0.9989583333333333,
+          "scale_count": 256
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "No provided weight files or captured model activations available locally. Fixtures are generic deterministic distributions, not model-quality evidence.",
+    "Row vs960block scale changes consumer metadata and dot scaling, not just quantizer cost.",
+    "Old amax/7 DivF guard failure remains unrepaired and unadopted."
+  ]
+}
