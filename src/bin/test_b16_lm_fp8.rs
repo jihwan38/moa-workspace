@@ -226,3 +226,10 @@ async fn main()->Result<()> {
  assert_eq!(total[2],0,"intended algorithm F64 oracle");
  println!("PASS intended quantization/algorithm, all384 approximation selections reported; original LM equivalence and task accuracy NOT claimed");Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+ use super::*;
+ #[test]
+ fn cpu_encoder_matches_sdk_on_finite_bf16_power2_domain() {selftest_encoding();}
+}
