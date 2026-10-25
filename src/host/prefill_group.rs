@@ -222,65 +222,25 @@ impl GroupPrefill {
         }
         scratch.record_optional_profile("group.qkv.norm_quantize", &mut mark);
         let [a, b, c, d] = &mut self.rows;
-        macro_rules! project_four {
-            ($kernel:path, $weight:expr, $scale:expr, $field:ident) => {
-                launch(
-                    $kernel,
-                    (
-                        device,
-                        &a.qkv_input,
-                        &a.qkv_scale,
-                        &b.qkv_input,
-                        &b.qkv_scale,
-                        &c.qkv_input,
-                        &c.qkv_scale,
-                        &d.qkv_input,
-                        &d.qkv_scale,
-                        $weight,
-                        $scale,
-                        &mut a.$field,
-                        &mut b.$field,
-                        &mut c.$field,
-                        &mut d.$field,
-                    ),
-                )
-                .await?
-            };
-        }
         match layer {
             Layer::Sliding(l) => {
-                project_four!(
-                    crate::ops_qkv_native_four::project_query_four,
-                    &l.q_weight,
-                    &l.q_weight_scale,
-                    q_s
-                );
-                project_four!(
-                    crate::ops_qkv_native_four::project_sliding_kv_four,
-                    &l.k_weight,
-                    &l.k_weight_scale,
-                    k_s
-                );
-                project_four!(
-                    crate::ops_qkv_native_four::project_sliding_kv_four,
-                    &l.v_weight,
-                    &l.v_weight_scale,
-                    v_s
-                );
+                launch(crate::ops_qkv_native_shared::project_sliding_qkv_four,
+                    (device, &a.qkv_input, &a.qkv_scale, &b.qkv_input, &b.qkv_scale,
+                     &c.qkv_input, &c.qkv_scale, &d.qkv_input, &d.qkv_scale,
+                     &l.q_weight, &l.k_weight, &l.v_weight,
+                     &l.q_weight_scale, &l.k_weight_scale, &l.v_weight_scale,
+                     (&mut a.q_s, &mut a.k_s, &mut a.v_s),
+                     (&mut b.q_s, &mut b.k_s, &mut b.v_s),
+                     (&mut c.q_s, &mut c.k_s, &mut c.v_s),
+                     (&mut d.q_s, &mut d.k_s, &mut d.v_s))).await?;
             }
             Layer::Full(l) => {
-                project_four!(
-                    crate::ops_qkv_native_four::project_full_query_four,
-                    &l.q_weight,
-                    &l.q_weight_scale,
-                    q_f
-                );
-                project_four!(
-                    crate::ops_qkv_native_four::project_full_key_four,
-                    &l.k_weight,
-                    &l.k_weight_scale,
-                    k_f
-                );
+                launch(crate::ops_qk_native_shared::project_full_qk_four,
+                    (device, &a.qkv_input, &a.qkv_scale, &b.qkv_input, &b.qkv_scale,
+                     &c.qkv_input, &c.qkv_scale, &d.qkv_input, &d.qkv_scale,
+                     &l.q_weight, &l.k_weight, &l.q_weight_scale, &l.k_weight_scale,
+                     (&mut a.q_f, &mut a.k_f), (&mut b.q_f, &mut b.k_f),
+                     (&mut c.q_f, &mut c.k_f), (&mut d.q_f, &mut d.k_f))).await?;
             }
         }
         scratch.record_optional_profile("group.qkv.projections", &mut mark);

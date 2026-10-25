@@ -176,3 +176,6 @@ pub mod ops_qkv_b16_native_prequant;
 pub mod ops_native_fp8_p512_pipeline;
 
 pub mod ops_output_p128_four;
+
+pub mod ops_qkv_native_shared;
+pub mod ops_qk_native_shared;
