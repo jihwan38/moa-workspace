@@ -102,3 +102,5 @@ pub mod ops_qkv_b16_native_prequant;
 
 pub mod ops_output_p128_four;
 pub mod ops_output_p128_parallel_gather;
+
+pub mod ops_output_p128_four_trf32;

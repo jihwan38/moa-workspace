@@ -1,0 +1,9 @@
+{
+  "control": "996ff63 ops_output_p128_four:8x8-rowBF16 contractions per64rowcluster",
+  "change": "32-rowTRF:2 contractions per64 rows, same originalE4->BF16weight, K1024partials and BF16additiontree",
+  "removed_work": "six repeatedweightDMfetch/collect stages perinput; four independentinputs stillretainoneHBMweightread",
+  "added_work": "larger64KiBTRF residency andcontractiontime axis",
+  "correctness": "2seeds*2orders*sliding/full, alloutputs exact vscanonicalfour independent and retainedTRF8control; zero/signedscales",
+  "measure": "ABBA complete4rowgroup launch walltime againstretainedTRF8, traceactualDMA/compute/resourcepeaks",
+  "gate": "compile and exact NPU then measurablefullprojectiongain beforeadoption"
+}
