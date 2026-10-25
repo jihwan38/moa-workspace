@@ -182,9 +182,23 @@
     4113
   ],
   "scale_rule_unchanged": "RN32(A*RN32(1/7))",
+  "fp32_product_route": {
+    "formula": "U=7*ceil(2^20/Ma); T=U*2^(114-ea); code=round_ties_away(FP32(x*T))",
+    "multiplier_construction": "F32bits(U) + signed((114-ea)<<23), reinterpreted asF32",
+    "exact_normal_multiplier_cases": 30720,
+    "encoded_multiplier_exponent_range": [
+      1,
+      241
+    ],
+    "exact_normal_product_magnitude_cases": 90176,
+    "finite_signed_boundary_cases": 134340,
+    "integer_product_upper_bound": 14622720,
+    "proof": "Mx*U<2^24, so relevant normal products are exact binary32; delta>=5 stays below0.435792 and rounds0 even after underflow/FTZ",
+    "device_semantics_required": "Actual MulF and FpToFxp(31) must pass independent device oracle; CPU proof alone does not establish NPU equivalence"
+  },
   "device_lookup_implemented": false,
   "device_equivalence_verified": false,
   "performance_gain": null,
   "model_quality_verified": false,
-  "script_sha256": "f499d027dc9b4daa84c5b55562bee1c239bee7e892e180d2ae3d9664f5f663f8"
+  "script_sha256": "9ef8bdc3e87ba916906791e045b0386bd5ba27251576a35733048357695a4423"
 }

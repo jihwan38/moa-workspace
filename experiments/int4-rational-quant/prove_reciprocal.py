@@ -3,7 +3,9 @@
 from fractions import Fraction
 import hashlib
 import json
+import math
 from pathlib import Path
+import struct
 
 
 def reference(mx, ma, delta):
@@ -17,6 +19,80 @@ def reciprocal_code(mx, ma, delta, precision):
     return (7 * mx * reciprocal + (1 << (precision - 1 + delta))) >> (
         precision + delta
     )
+
+
+def f32_bits(value):
+    return struct.unpack('<I', struct.pack('<f', value))[0]
+
+
+def from_f32_bits(bits):
+    return struct.unpack('<f', struct.pack('<I', bits))[0]
+
+
+def row_multiplier(ma, ea):
+    u = 7 * (((1 << 20) + ma - 1) // ma)
+    # Signed integer addition; no float division or scale-rounding step.
+    bits = f32_bits(float(u)) + ((114 - ea) << 23)
+    assert 0 < bits < 0x7f800000
+    return from_f32_bits(bits), bits
+
+
+def prove_fp32_route():
+    scale_cases = 0
+    exponents = set()
+    for ma in range(128, 256):
+        u = 7 * (((1 << 20) + ma - 1) // ma)
+        for ea in range(15, 255):
+            scale, bits = row_multiplier(ma, ea)
+            assert Fraction(scale) == Fraction(u) * Fraction(2) ** (114 - ea)
+            exponents.add((bits >> 23) & 255)
+            scale_cases += 1
+    assert min(exponents) == 1 and max(exponents) == 241
+
+    core_cases = 0
+    for delta in range(6):
+        for ma in range(128, 256):
+            scale, _ = row_multiplier(ma, 127)
+            for mx in range(128, 256):
+                if delta == 0 and mx > ma:
+                    continue
+                x = float(Fraction(mx) * Fraction(2) ** (-7 - delta))
+                product = from_f32_bits(f32_bits(x * scale))
+                assert Fraction(product) == Fraction(x) * Fraction(scale)
+                assert math.floor(product + 0.5) == reference(mx, ma, delta)
+                core_cases += 1
+
+    boundary_cases = 0
+    for a_bits in [15 << 7, 0x3f80, 0x3fdf, 0x7f7f]:
+        ea, ma = a_bits >> 7, 128 + (a_bits & 127)
+        scale, _ = row_multiplier(ma, ea)
+        for bits in range(65536):
+            absolute = bits & 0x7fff
+            if absolute >= 0x7f80 or absolute > a_bits:
+                continue
+            x = from_f32_bits(bits << 16)
+            if absolute & 0x7f80 == 0:
+                x, expected = 0.0, 0
+            else:
+                mx, ex = 128 + (absolute & 127), absolute >> 7
+                expected = reference(mx, ma, ea - ex)
+                if bits & 0x8000:
+                    expected = -expected
+            product = from_f32_bits(f32_bits(x * scale))
+            actual = math.floor(abs(product) + 0.5) * (-1 if product < 0 else 1)
+            assert actual == expected, (bits, a_bits, actual, expected)
+            boundary_cases += 1
+    return {
+        "formula": "U=7*ceil(2^20/Ma); T=U*2^(114-ea); code=round_ties_away(FP32(x*T))",
+        "multiplier_construction": "F32bits(U) + signed((114-ea)<<23), reinterpreted asF32",
+        "exact_normal_multiplier_cases": scale_cases,
+        "encoded_multiplier_exponent_range": [min(exponents), max(exponents)],
+        "exact_normal_product_magnitude_cases": core_cases,
+        "finite_signed_boundary_cases": boundary_cases,
+        "integer_product_upper_bound": 14622720,
+        "proof": "Mx*U<2^24, so relevant normal products are exact binary32; delta>=5 stays below0.435792 and rounds0 even after underflow/FTZ",
+        "device_semantics_required": "Actual MulF and FpToFxp(31) must pass independent device oracle; CPU proof alone does not establish NPU equivalence",
+    }
 
 
 def main():
@@ -72,6 +148,7 @@ def main():
         "reciprocal_table_u32_le_sha256": hashlib.sha256(table_bytes).hexdigest(),
         "reciprocal_table_ma128_through255": table,
         "scale_rule_unchanged": "RN32(A*RN32(1/7))",
+        "fp32_product_route": prove_fp32_route(),
         "device_lookup_implemented": False,
         "device_equivalence_verified": False,
         "performance_gain": None,
