@@ -1,0 +1,693 @@
+{
+  "decision": "HOLD: only0.63percent completeepilogue resource decrease versus required10percent; no quantizer/NPU/model",
+  "scope": "New approximategroup240 FP4, not originalNVFP4 exactness",
+  "graphs": {
+    "control": {
+      "sha256": "6c89d2008b037c5e51be417d4e042ae37932c2f6940a43387d3eaef04aaacece",
+      "cycles": 258933,
+      "counts": {
+        "index_access": 6,
+        "raw.profile": 150,
+        "raw.load_sfr": 46,
+        "raw.sync_acquire": 10,
+        "dma.dto_s": 27,
+        "raw.wait": 109,
+        "cluster_sync": 9,
+        "rngd_cmd.tu_exec": 46,
+        "raw.sync_release": 10,
+        "core_imp_cmd": 8,
+        "raw.page_table_update": 6,
+        "rngd_cmd.sto_vrf": 18,
+        "dma.sto_d": 9,
+        "raw.update_base_timestamp": 2,
+        "scratchpad": 1,
+        "low_level_reshape": 3,
+        "index_write": 2
+      },
+      "overlapping_duration_sums": {
+        "index_access": 36,
+        "raw.profile": 0,
+        "raw.load_sfr": 7990,
+        "raw.sync_acquire": 2000,
+        "dma.dto_s": 183574,
+        "raw.wait": 242573,
+        "cluster_sync": 0,
+        "rngd_cmd.tu_exec": 60693,
+        "raw.sync_release": 3000,
+        "core_imp_cmd": 120,
+        "raw.page_table_update": 45,
+        "rngd_cmd.sto_vrf": 5938,
+        "dma.sto_d": 50251,
+        "raw.update_base_timestamp": 0,
+        "scratchpad": 0,
+        "low_level_reshape": 0,
+        "index_write": 12
+      },
+      "unexpected_dram": [],
+      "tu": [
+        {
+          "duration": 282,
+          "begin": 169363,
+          "end": 169645,
+          "description": "--> src/ops_b16_up_ingress.rs:65:69\n\ndevice.main.begin(amax.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)\n.vector_reinterpret::<f32>().vector_narrow_trim::<m![1 #4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),0.0078125f32)\n.vector_widen_pad::<m![1 #8]>().vector_final()\n.commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "duration": 383,
+          "begin": 236325,
+          "end": 236708,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 752,
+          "begin": 241011,
+          "end": 241763,
+          "description": "--> src/ops_b16_up_ingress.rs:282:73\n\ndevice.main.begin(result.view())\n.fetch::<m![B/16,H%120],m![B%16]>().collect::<m![B/16,H%120],m![B%16]>()\n.transpose::<m![B/16,H/4%30,B%16],m![H%4#16]>().commit_trim::<m![H%4]>().commit()"
+        },
+        {
+          "duration": 521,
+          "begin": 135047,
+          "end": 135568,
+          "description": "--> src/ops_b16_up_ingress.rs:140:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 521,
+          "begin": 139069,
+          "end": 139590,
+          "description": "--> src/ops_b16_up_ingress.rs:140:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 419,
+          "begin": 13573,
+          "end": 13992,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 3896,
+          "begin": 128393,
+          "end": 132289,
+          "description": "--> src/ops_b16_up_ingress.rs:113:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![L%120,H/32%30],m![H%32]>().collect::<m![L%120,H/32%30],m![H%32]>()\n.contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(input)\n.contract_packet::<m![1]>().contract_time::<m![L%120,B/8]>()\n.contract_lane::<m![L%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_inter_slice_reduce::<UpRows,m![L%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "duration": 763,
+          "begin": 134017,
+          "end": 134780,
+          "description": "--> src/ops_b16_up_ingress.rs:166:74\n\ndevice\n.sub\n.begin(gate.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.70710678118f32)\n.vector_fp_unary(FpUnaryOp::Erf)\n.vector_fp_binary(FpBinaryOp::AddF, 1f32)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), Stash)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 763,
+          "begin": 138039,
+          "end": 138802,
+          "description": "--> src/ops_b16_up_ingress.rs:166:74\n\ndevice\n.sub\n.begin(gate.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.70710678118f32)\n.vector_fp_unary(FpUnaryOp::Erf)\n.vector_fp_binary(FpBinaryOp::AddF, 1f32)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), Stash)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 4121,
+          "begin": 165242,
+          "end": 169363,
+          "description": "--> src/ops_b16_up_ingress.rs:54:69\n\ndevice.main.begin(x.view())\n.fetch::<m![L /16],m![L %16]>().fetch_cast::<f32>()\n.collect::<m![L /8],m![L %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![L /4],m![L %4]>()\n.vector_intra_slice_reduce::<L,m![1],m![1 #4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 #8]>()\n.vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "duration": 521,
+          "begin": 133496,
+          "end": 134017,
+          "description": "--> src/ops_b16_up_ingress.rs:140:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 521,
+          "begin": 137518,
+          "end": 138039,
+          "description": "--> src/ops_b16_up_ingress.rs:140:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 282,
+          "begin": 2715,
+          "end": 2997,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 324,
+          "begin": 4244,
+          "end": 4568,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 761,
+          "begin": 240250,
+          "end": 241011,
+          "description": "--> src/ops_b16_up_ingress.rs:274:73\n\ndevice.main.begin(result.view())\n.fetch::<m![H%120,B/8],m![B%8]>().fetch_cast::<f32>()\n.collect::<m![H%120,B/8],m![B%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&global)\n.vector_widen_concat::<m![H%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 13172,
+          "end": 13573,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 250492,
+          "end": 250893,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 752,
+          "begin": 140412,
+          "end": 141164,
+          "description": "--> src/ops_b16_up_ingress.rs:240:65\n\ndevice.main.begin(hidden.view())\n.fetch::<m![B/16,L%120],m![B%16]>().collect::<m![B/16,L%120],m![B%16]>()\n.transpose::<m![B/16,L/4%30,B%16],m![L%4#16]>().commit_trim::<m![L%4]>().commit()"
+        },
+        {
+          "duration": 282,
+          "begin": 251312,
+          "end": 251594,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 251861,
+          "end": 252262,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 2183,
+          "begin": 233792,
+          "end": 235975,
+          "description": "--> src/ops_b16_up_ingress.rs:259:78\n\ndevice.sub.begin(input.view())\n.fetch::<m![B%8,B/8,L/32%30],m![L%32]>()\n.collect::<m![B%8,B/8,L/32%30],m![L%32]>().to_trf()"
+        },
+        {
+          "duration": 521,
+          "begin": 135790,
+          "end": 136311,
+          "description": "--> src/ops_b16_up_ingress.rs:190:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit_view(output)"
+        },
+        {
+          "duration": 521,
+          "begin": 139812,
+          "end": 140333,
+          "description": "--> src/ops_b16_up_ingress.rs:190:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit_view(output)"
+        },
+        {
+          "duration": 419,
+          "begin": 2296,
+          "end": 2715,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 324,
+          "begin": 252262,
+          "end": 252586,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 383,
+          "begin": 162307,
+          "end": 162690,
+          "description": "--> src/ops_norm_batch.rs:110:72\n\ndevice\n.sub\n.begin(previous.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 401,
+          "begin": 14541,
+          "end": 14942,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 282,
+          "begin": 71278,
+          "end": 71560,
+          "description": "--> src/ops_b16_up_ingress.rs:31:69\n\ndevice.main.begin(amax.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)\n.vector_reinterpret::<f32>().vector_narrow_trim::<m![1 #4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),0.0078125f32)\n.vector_widen_pad::<m![1 #8]>().vector_final()\n.commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "duration": 19765,
+          "begin": 79224,
+          "end": 98989,
+          "description": "--> src/ops_b16_up_ingress.rs:233:74\n\ndevice.sub.begin(input.view())\n.fetch::<m![1],m![H%960]>()\n.switch::<UpParts,m![B%8,B/8]>(SwitchConfig::CustomBroadcast{ring_size:256})\n.collect::<m![B%8,B/8,H/32%30],m![H%32]>().to_trf()"
+        },
+        {
+          "duration": 401,
+          "begin": 252927,
+          "end": 253328,
+          "description": "--> src/ops_norm_batch.rs:144:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scalar)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 1241,
+          "begin": 71827,
+          "end": 73068,
+          "description": "--> src/ops_b16_up_ingress.rs:41:65\n\ndevice.main.begin(x.view())\n.fetch::<m![H /16],m![H %16]>().fetch_cast::<f32>()\n.collect::<m![H /8],m![H %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H /4],m![H %4]>()\n.vector_fp_binary(FpBinaryOp::DivF,&sv)\n.vector_widen_concat::<m![H /8],m![H %8]>().vector_final()\n.cast::<f8e4m3,m![H %8 #32]>().commit_trim::<m![H %8]>().commit()"
+        },
+        {
+          "duration": 265,
+          "begin": 236787,
+          "end": 237052,
+          "description": "--> src/ops_norm_batch.rs:137:68\n\ndevice\n.sub\n.begin(scalar.view())\n.fetch::<m![1], m![1 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 383,
+          "begin": 2952,
+          "end": 3335,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 341,
+          "begin": 4568,
+          "end": 4909,
+          "description": "--> src/ops_norm_batch.rs:117:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &previous)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 383,
+          "begin": 4044,
+          "end": 4427,
+          "description": "--> src/ops_norm_batch.rs:110:72\n\ndevice\n.sub\n.begin(previous.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 1241,
+          "begin": 70037,
+          "end": 71278,
+          "description": "--> src/ops_b16_up_ingress.rs:20:69\n\ndevice.main.begin(x.view())\n.fetch::<m![H /16],m![H %16]>().fetch_cast::<f32>()\n.collect::<m![H /8],m![H %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H /4],m![H %4]>()\n.vector_intra_slice_reduce::<H,m![1],m![1 #4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 #8]>()\n.vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "duration": 341,
+          "begin": 252586,
+          "end": 252927,
+          "description": "--> src/ops_norm_batch.rs:117:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &previous)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 324,
+          "begin": 14942,
+          "end": 15266,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 383,
+          "begin": 11627,
+          "end": 12010,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 4121,
+          "begin": 169912,
+          "end": 174033,
+          "description": "--> src/ops_b16_up_ingress.rs:75:65\n\ndevice.main.begin(x.view())\n.fetch::<m![L /16],m![L %16]>().fetch_cast::<f32>()\n.collect::<m![L /8],m![L %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L /4],m![L %4]>()\n.vector_fp_binary(FpBinaryOp::DivF,&sv)\n.vector_widen_concat::<m![L /8],m![L %8]>().vector_final()\n.cast::<f8e4m3,m![L %8 #32]>().commit_trim::<m![L %8]>().commit()"
+        },
+        {
+          "duration": 419,
+          "begin": 250893,
+          "end": 251312,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 282,
+          "begin": 13992,
+          "end": 14274,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 3602,
+          "end": 4003,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 3896,
+          "begin": 98989,
+          "end": 102885,
+          "description": "--> src/ops_b16_up_ingress.rs:113:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![L%120,H/32%30],m![H%32]>().collect::<m![L%120,H/32%30],m![H%32]>()\n.contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(input)\n.contract_packet::<m![1]>().contract_time::<m![L%120,B/8]>()\n.contract_lane::<m![L%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_inter_slice_reduce::<UpRows,m![L%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "duration": 4004,
+          "begin": 236246,
+          "end": 240250,
+          "description": "--> src/ops_b16_up_ingress.rs:262:69\n\ndevice.main.begin(weight.view())\n.fetch::<m![H%120,L/32%30],m![L%32]>().collect::<m![H%120,L/32%30],m![L%32]>()\n.contract_outer::<m![H%120,L/64%15,B/8],m![L%64],_,_,_>(&x)\n.contract_packet::<m![1]>().contract_time::<m![H%120,B/8]>()\n.contract_lane::<m![H%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_inter_slice_reduce::<DownRows,m![H%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![H%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 1895,
+          "end": 2296,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        }
+      ]
+    },
+    "candidate": {
+      "sha256": "d1c3d98daa0201b618cd2980c3c8e05b434262f8b588ea1804c2575429dd0518",
+      "cycles": 257301,
+      "counts": {
+        "raw.profile": 168,
+        "raw.wait": 124,
+        "raw.load_sfr": 49,
+        "rngd_cmd.sto_vrf": 21,
+        "dma.dto_s": 33,
+        "raw.sync_acquire": 10,
+        "low_level_reshape": 3,
+        "rngd_cmd.tu_exec": 49,
+        "cluster_sync": 9,
+        "dma.sto_d": 9,
+        "raw.update_base_timestamp": 2,
+        "index_write": 2,
+        "raw.sync_release": 10,
+        "raw.page_table_update": 11,
+        "rngd_cmd.sto_tab": 3,
+        "index_access": 6,
+        "core_imp_cmd": 8,
+        "scratchpad": 1
+      },
+      "overlapping_duration_sums": {
+        "raw.profile": 0,
+        "raw.wait": 239587,
+        "raw.load_sfr": 8590,
+        "rngd_cmd.sto_vrf": 8167,
+        "dma.dto_s": 152750,
+        "raw.sync_acquire": 2000,
+        "low_level_reshape": 0,
+        "rngd_cmd.tu_exec": 147933,
+        "cluster_sync": 0,
+        "dma.sto_d": 50251,
+        "raw.update_base_timestamp": 0,
+        "index_write": 12,
+        "raw.sync_release": 3000,
+        "raw.page_table_update": 72,
+        "rngd_cmd.sto_tab": 3102,
+        "index_access": 36,
+        "core_imp_cmd": 120,
+        "scratchpad": 0
+      },
+      "unexpected_dram": [],
+      "tu": [
+        {
+          "duration": 3896,
+          "begin": 130438,
+          "end": 134334,
+          "description": "--> src/ops_b16_f4_group240.rs:117:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![L%120,H/32%30],m![H%32]>().collect::<m![L%120,H/32%30],m![H%32]>()\n.contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(input)\n.contract_packet::<m![1]>().contract_time::<m![L%120,B/8]>()\n.contract_lane::<m![L%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_inter_slice_reduce::<UpRows,m![L%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 27123,
+          "end": 27524,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 16116,
+          "end": 16517,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 282,
+          "begin": 184929,
+          "end": 185211,
+          "description": "--> src/ops_b16_f4_group240.rs:69:69\n\ndevice.main.begin(amax.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)\n.vector_reinterpret::<f32>().vector_narrow_trim::<m![1 #4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),0.0078125f32)\n.vector_widen_pad::<m![1 #8]>().vector_final()\n.commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "duration": 282,
+          "begin": 249680,
+          "end": 249962,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 29080,
+          "begin": 205534,
+          "end": 234614,
+          "description": "--> src/ops_b16_f4_group240.rs:260:5\n\ndevice.main.begin(packed.view())\n.fetch::<m![H%120],m![L%960]>()\n.fetch_table_lookup::<f8e4m3>().fetch_cast::<f32>()\n.collect::<m![H%120,L/8%120],m![L%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,L/4%240],m![L%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&scales)\n.vector_widen_concat::<m![H%120,L/8%120],m![L%8]>()\n.vector_final().cast::<f8e4m3,m![L%8#32]>().commit_trim::<m![L%8]>().commit()"
+        },
+        {
+          "duration": 282,
+          "begin": 16936,
+          "end": 17218,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 1241,
+          "begin": 80833,
+          "end": 82074,
+          "description": "--> src/ops_b16_f4_group240.rs:24:69\n\ndevice.main.begin(x.view())\n.fetch::<m![H /16],m![H %16]>().fetch_cast::<f32>()\n.collect::<m![H /8],m![H %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![H /4],m![H %4]>()\n.vector_intra_slice_reduce::<H,m![1],m![1 #4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 #8]>()\n.vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 250229,
+          "end": 250630,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 4121,
+          "begin": 180808,
+          "end": 184929,
+          "description": "--> src/ops_b16_f4_group240.rs:58:69\n\ndevice.main.begin(x.view())\n.fetch::<m![L /16],m![L %16]>().fetch_cast::<f32>()\n.collect::<m![L /8],m![L %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7fff_ffffi32)\n.vector_reinterpret::<f32>()\n.vector_narrow_split::<m![L /4],m![L %4]>()\n.vector_intra_slice_reduce::<L,m![1],m![1 #4]>(IntraSliceReduceOpF32::Max)\n.vector_widen_pad::<m![1 #8]>()\n.vector_clip(ClipBinaryOpF32::Max,1.925929944387236e-34f32)\n.vector_final().commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "duration": 324,
+          "begin": 250630,
+          "end": 250954,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 1241,
+          "begin": 82623,
+          "end": 83864,
+          "description": "--> src/ops_b16_f4_group240.rs:45:65\n\ndevice.main.begin(x.view())\n.fetch::<m![H /16],m![H %16]>().fetch_cast::<f32>()\n.collect::<m![H /8],m![H %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H /4],m![H %4]>()\n.vector_fp_binary(FpBinaryOp::DivF,&sv)\n.vector_widen_concat::<m![H /8],m![H %8]>().vector_final()\n.cast::<f8e4m3,m![H %8 #32]>().commit_trim::<m![H %8]>().commit()"
+        },
+        {
+          "duration": 4121,
+          "begin": 185478,
+          "end": 189599,
+          "description": "--> src/ops_b16_f4_group240.rs:79:65\n\ndevice.main.begin(x.view())\n.fetch::<m![L /16],m![L %16]>().fetch_cast::<f32>()\n.collect::<m![L /8],m![L %8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L /4],m![L %4]>()\n.vector_fp_binary(FpBinaryOp::DivF,&sv)\n.vector_widen_concat::<m![L /8],m![L %8]>().vector_final()\n.cast::<f8e4m3,m![L %8 #32]>().commit_trim::<m![L %8]>().commit()"
+        },
+        {
+          "duration": 2183,
+          "begin": 224915,
+          "end": 227098,
+          "description": "--> src/ops_b16_f4_group240.rs:309:78\n\ndevice.sub.begin(input.view())\n.fetch::<m![B%8,B/8,L/32%30],m![L%32]>()\n.collect::<m![B%8,B/8,L/32%30],m![L%32]>().to_trf()"
+        },
+        {
+          "duration": 419,
+          "begin": 249261,
+          "end": 249680,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 383,
+          "begin": 18026,
+          "end": 18409,
+          "description": "--> src/ops_norm_batch.rs:110:72\n\ndevice\n.sub\n.begin(previous.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 419,
+          "begin": 27524,
+          "end": 27943,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 17947,
+          "end": 18348,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 383,
+          "begin": 17564,
+          "end": 17947,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 521,
+          "begin": 137092,
+          "end": 137613,
+          "description": "--> src/ops_b16_f4_group240.rs:144:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 521,
+          "begin": 141114,
+          "end": 141635,
+          "description": "--> src/ops_b16_f4_group240.rs:144:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 521,
+          "begin": 135541,
+          "end": 136062,
+          "description": "--> src/ops_b16_f4_group240.rs:144:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 521,
+          "begin": 139563,
+          "end": 140084,
+          "description": "--> src/ops_b16_f4_group240.rs:144:5\n\ndevice\n.main\n.begin(input)\n.fetch::<m![L % 120], m![B=8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scale)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 752,
+          "begin": 142457,
+          "end": 143209,
+          "description": "--> src/ops_b16_f4_group240.rs:289:65\n\ndevice.main.begin(hidden.view())\n.fetch::<m![B/16,L%120],m![B%16]>().collect::<m![B/16,L%120],m![B%16]>()\n.transpose::<m![B/16,L/4%30,B%16],m![L%4#16]>().commit_trim::<m![L%4]>().commit()"
+        },
+        {
+          "duration": 19765,
+          "begin": 102419,
+          "end": 122184,
+          "description": "--> src/ops_b16_f4_group240.rs:282:74\n\ndevice.sub.begin(input.view())\n.fetch::<m![1],m![H%960]>()\n.switch::<UpParts,m![B%8,B/8]>(SwitchConfig::CustomBroadcast{ring_size:256})\n.collect::<m![B%8,B/8,H/32%30],m![H%32]>().to_trf()"
+        },
+        {
+          "duration": 383,
+          "begin": 25609,
+          "end": 25992,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 265,
+          "begin": 228696,
+          "end": 228961,
+          "description": "--> src/ops_norm_batch.rs:137:68\n\ndevice\n.sub\n.begin(scalar.view())\n.fetch::<m![1], m![1 # 8]>()\n.fetch_cast::<f32>()\n.collect::<m![1], m![1 # 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 341,
+          "begin": 18672,
+          "end": 19013,
+          "description": "--> src/ops_norm_batch.rs:117:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &previous)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 248860,
+          "end": 249261,
+          "description": "--> src/ops_norm_batch.rs:16:80\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), Stash)\n.vector_intra_slice_reduce::<H, m![1], m![1 # 4]>(IntraSliceReduceOpF32::Add)\n.vector_fp_div(H_F32)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 282,
+          "begin": 82074,
+          "end": 82356,
+          "description": "--> src/ops_b16_f4_group240.rs:35:69\n\ndevice.main.begin(amax.view())\n.fetch::<m![1],m![1 #8]>().collect::<m![1],m![1 #8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_reinterpret::<i32>().vector_logic(LogicBinaryOpI32::BitAnd,0x7f80_0000i32)\n.vector_reinterpret::<f32>().vector_narrow_trim::<m![1 #4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),0.0078125f32)\n.vector_widen_pad::<m![1 #8]>().vector_final()\n.commit_trim::<m![1 #8]>().commit()"
+        },
+        {
+          "duration": 383,
+          "begin": 227448,
+          "end": 227831,
+          "description": "--> src/ops_norm_batch.rs:63:82\n\ndevice\n.sub\n.begin(weight_dm.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 29080,
+          "begin": 51753,
+          "end": 80833,
+          "description": "--> src/ops_b16_f4_group240.rs:238:5\n\ndevice.main.begin(packed.view())\n.fetch::<m![L%120],m![H%960]>()\n.fetch_table_lookup::<f8e4m3>().fetch_cast::<f32>()\n.collect::<m![L%120,H/8%120],m![H%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,H/4%240],m![H%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&scales)\n.vector_widen_concat::<m![L%120,H/8%120],m![H%8]>()\n.vector_final().cast::<f8e4m3,m![H%8#32]>().commit_trim::<m![H%8]>().commit()"
+        },
+        {
+          "duration": 324,
+          "begin": 18348,
+          "end": 18672,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 29080,
+          "begin": 97462,
+          "end": 126542,
+          "description": "--> src/ops_b16_f4_group240.rs:238:5\n\ndevice.main.begin(packed.view())\n.fetch::<m![L%120],m![H%960]>()\n.fetch_table_lookup::<f8e4m3>().fetch_cast::<f32>()\n.collect::<m![L%120,H/8%120],m![H%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,H/4%240],m![H%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&scales)\n.vector_widen_concat::<m![L%120,H/8%120],m![H%8]>()\n.vector_final().cast::<f8e4m3,m![H%8#32]>().commit_trim::<m![H%8]>().commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 28492,
+          "end": 28893,
+          "description": "--> src/ops_norm_batch.rs:78:81\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::DivF, &rms_vrf)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &weight_vrf)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 761,
+          "begin": 238618,
+          "end": 239379,
+          "description": "--> src/ops_b16_f4_group240.rs:324:73\n\ndevice.main.begin(result.view())\n.fetch::<m![H%120,B/8],m![B%8]>().fetch_cast::<f32>()\n.collect::<m![H%120,B/8],m![B%8]>()\n.vector_init().vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&global)\n.vector_widen_concat::<m![H%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "duration": 324,
+          "begin": 28893,
+          "end": 29217,
+          "description": "--> src/ops_norm_batch.rs:94:5\n\ndevice\n.main\n.begin(normalized.view())\n.fetch::<m![H / 8 % 60], m![H % 8]>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 383,
+          "begin": 234693,
+          "end": 235076,
+          "description": "--> src/ops_norm_batch.rs:110:72\n\ndevice\n.sub\n.begin(previous.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.to_vrf()"
+        },
+        {
+          "duration": 341,
+          "begin": 250954,
+          "end": 251295,
+          "description": "--> src/ops_norm_batch.rs:117:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, &previous)\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 419,
+          "begin": 16517,
+          "end": 16936,
+          "description": "--> src/ops_norm_batch.rs:33:94\n\ndevice\n.main\n.begin(mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_inter_slice_reduce::<m![B, 1 # 2, Dummy8], m![1]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_clip(ClipBinaryOpF32::Add, EPS)\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 4004,
+          "begin": 234614,
+          "end": 238618,
+          "description": "--> src/ops_b16_f4_group240.rs:312:69\n\ndevice.main.begin(weight.view())\n.fetch::<m![H%120,L/32%30],m![L%32]>().collect::<m![H%120,L/32%30],m![L%32]>()\n.contract_outer::<m![H%120,L/64%15,B/8],m![L%64],_,_,_>(&x)\n.contract_packet::<m![1]>().contract_time::<m![H%120,B/8]>()\n.contract_lane::<m![H%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_inter_slice_reduce::<DownRows,m![H%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![H%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "duration": 521,
+          "begin": 137835,
+          "end": 138356,
+          "description": "--> src/ops_b16_f4_group240.rs:194:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit_view(output)"
+        },
+        {
+          "duration": 521,
+          "begin": 141857,
+          "end": 142378,
+          "description": "--> src/ops_b16_f4_group240.rs:194:5\n\ndevice\n.main\n.begin(up.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &gelu)\n.vector_fp_div(2f32)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.cast::<bf16, m![B=8 % 8 # 16]>()\n.commit_trim::<m![B=8 % 8]>()\n.commit_view(output)"
+        },
+        {
+          "duration": 3896,
+          "begin": 126542,
+          "end": 130438,
+          "description": "--> src/ops_b16_f4_group240.rs:117:5\n\ndevice.main.begin(weight.view())\n.fetch::<m![L%120,H/32%30],m![H%32]>().collect::<m![L%120,H/32%30],m![H%32]>()\n.contract_outer::<m![L%120,H/64%15,B/8],m![H%64],_,_,_>(input)\n.contract_packet::<m![1]>().contract_time::<m![L%120,B/8]>()\n.contract_lane::<m![L%120,B/8],m![B%8]>(LaneMode::Interleaved)\n.vector_init().vector_inter_slice_reduce::<UpRows,m![L%120,B/8]>(InterSliceReduceOpF32::Add)\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L%120,B/4],m![B%4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0),&xs)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1),&ws)\n.vector_widen_concat::<m![L%120,B/8],m![B%8]>()\n.vector_final().cast::<bf16,m![B%8#16]>().commit_trim::<m![B%8]>().commit()"
+        },
+        {
+          "duration": 282,
+          "begin": 27943,
+          "end": 28225,
+          "description": "--> src/ops_norm_batch.rs:46:78\n\ndevice\n.main\n.begin(reduced_mean_square.view())\n.fetch::<m![1], m![1 # 8]>()\n.collect::<m![1], m![1 # 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_trim::<m![1 # 4]>()\n.vector_fp_unary(FpUnaryOp::Sqrt)\n.vector_widen_pad::<m![1 # 8]>()\n.vector_final()\n.commit_trim::<m![1 # 8]>()\n.commit()"
+        },
+        {
+          "duration": 752,
+          "begin": 239379,
+          "end": 240131,
+          "description": "--> src/ops_b16_f4_group240.rs:332:73\n\ndevice.main.begin(result.view())\n.fetch::<m![B/16,H%120],m![B%16]>().collect::<m![B/16,H%120],m![B%16]>()\n.transpose::<m![B/16,H/4%30,B%16],m![H%4#16]>().commit_trim::<m![H%4]>().commit()"
+        },
+        {
+          "duration": 401,
+          "begin": 251295,
+          "end": 251696,
+          "description": "--> src/ops_norm_batch.rs:144:5\n\ndevice\n.main\n.begin(x.view())\n.fetch::<m![H / 16 % 30], m![H % 16]>()\n.fetch_cast::<f32>()\n.collect::<m![H / 8 % 60], m![H % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![H / 4 % 120], m![H % 4]>()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), &scalar)\n.vector_widen_concat::<m![H / 8 % 60], m![H % 8]>()\n.vector_final()\n.cast::<bf16, m![H % 8 # 16]>()\n.commit_trim::<m![H % 8]>()\n.commit()"
+        },
+        {
+          "duration": 763,
+          "begin": 136062,
+          "end": 136825,
+          "description": "--> src/ops_b16_f4_group240.rs:170:74\n\ndevice\n.sub\n.begin(gate.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.70710678118f32)\n.vector_fp_unary(FpUnaryOp::Erf)\n.vector_fp_binary(FpBinaryOp::AddF, 1f32)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), Stash)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        },
+        {
+          "duration": 763,
+          "begin": 140084,
+          "end": 140847,
+          "description": "--> src/ops_b16_f4_group240.rs:170:74\n\ndevice\n.sub\n.begin(gate.view())\n.fetch::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.fetch_cast::<f32>()\n.collect::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_init()\n.vector_intra_slice_tag(TagMode::Zero)\n.vector_narrow_split::<m![L % 120, B=8 / 4], m![B=8 % 4]>()\n.vector_stash()\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul0), 0.70710678118f32)\n.vector_fp_unary(FpUnaryOp::Erf)\n.vector_fp_binary(FpBinaryOp::AddF, 1f32)\n.vector_fp_binary(FpBinaryOp::MulF(FpMulAlu::Mul1), Stash)\n.vector_widen_concat::<m![L % 120, B=8 / 8], m![B=8 % 8]>()\n.vector_final()\n.commit_trim::<m![B=8 % 8]>()\n.commit()"
+        }
+      ]
+    }
+  },
+  "relative_gain": 0.006302788752302724,
+  "provenance": [
+    {
+      "run": "r1186-f4-group240-resource",
+      "source": "241c363ad78a63f075682eef37a5ef884c6757ed",
+      "exit": 1,
+      "source_mismatches": [
+        "src/ops_b16_f4_group240.rs"
+      ]
+    },
+    {
+      "run": "r1189-f4-group240-resource",
+      "source": "7c40d9300615277c8e73b18ef0eef09d9649ffb7",
+      "exit": 0,
+      "source_mismatches": []
+    },
+    {
+      "run": "r1190-f4-group240-control-resource",
+      "source": "7c40d9300615277c8e73b18ef0eef09d9649ffb7",
+      "exit": 0,
+      "source_mismatches": []
+    }
+  ],
+  "mechanism": "Weight reconstruction TU work remains dominant despite removing12smalltiles/perrowDivF. DMA sums decrease30,824; TU sums increase87,240. These spans overlap. Threefullrowreconstructions stillprocess345600weights/PE.",
+  "next_distinct_hypothesis": "DirectF4lookup-to-E4 contraction with perH960/L960 scale after localdot before interslice reduction could scale onlyoutputpartials, avoiding expandedE4DM. Differentcoarserquantization requiresnewqualitygate."
+}
