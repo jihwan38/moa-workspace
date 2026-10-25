@@ -53,6 +53,7 @@ pub(crate) struct Prefill {
     staged_ffn: bool,
     epilogue_fused: bool,
     prefix_fused: bool,
+    compact_decode_metadata: bool,
     output_hsplit: bool,
     decode_q_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::QueryOutput>,
     decode_k_blocked_s: HbmTensor<bf16, Chip, crate::ops_qkv_blocked_b16::KeyOutput>,
@@ -103,6 +104,10 @@ impl Prefill {
     }
     pub(crate) fn set_epilogue_fused(&mut self, enabled: bool) {
         self.epilogue_fused = enabled;
+    }
+
+    pub(crate) fn set_compact_decode_metadata(&mut self, enabled: bool) {
+        self.compact_decode_metadata = enabled;
     }
 
     pub(crate) fn set_staged_ffn(&mut self, enabled: bool) {
@@ -162,6 +167,7 @@ impl Prefill {
             staged_ffn: true,
             epilogue_fused: true,
             prefix_fused: true,
+            compact_decode_metadata: false,
             output_hsplit: true,
             decode_q_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::QueryOutput),
             decode_k_blocked_s: zero!(bf16, crate::ops_qkv_blocked_b16::KeyOutput),

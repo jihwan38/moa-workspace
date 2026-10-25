@@ -134,6 +134,11 @@ impl Model {
         self.prefill.set_epilogue_fused(enabled);
     }
 
+    /// Diagnostic control for omitting legacy offsets unused by pooled B16.
+    pub fn set_b16_compact_decode_metadata(&mut self, enabled: bool) {
+        self.prefill.set_compact_decode_metadata(enabled);
+    }
+
     /// Diagnostic B16 FFN dispatch control; scratch, norms and caches stay unchanged.
     pub fn set_b16_staged_ffn(&mut self, enabled: bool) {
         self.prefill.set_staged_ffn(enabled);

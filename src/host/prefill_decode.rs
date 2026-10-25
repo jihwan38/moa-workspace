@@ -6,10 +6,14 @@ use super::*;
 use crate::ops_decode;
 
 struct RowOffsets {
+    legacy: Option<LegacyRowOffsets>,
+    logits: Option<HbmTensor<i32, Chip, m![1]>>,
+}
+
+struct LegacyRowOffsets {
     row: HbmTensor<i32, Chip, m![1]>,
     kv_s: HbmTensor<i32, Chip, m![1]>,
     kv_f: HbmTensor<i32, Chip, m![1]>,
-    logits: Option<HbmTensor<i32, Chip, m![1]>>,
 }
 
 impl Prefill {
@@ -110,20 +114,26 @@ impl Prefill {
             }
             let position = sequence.start_position;
             offsets.push(RowOffsets {
-                row: HostTensor::<i32, m![1]>::from_vec([row as i32])
-                    .to_hbm(&mut device.pdma)
-                    .await?,
-                kv_s: HostTensor::<i32, m![1]>::from_vec([((position % Ts::SIZE)
-                    * Ns::SIZE
-                    * Ds::SIZE
-                    * 2) as i32])
-                .to_hbm(&mut device.pdma)
-                .await?,
-                kv_f: HostTensor::<i32, m![1]>::from_vec([
-                    ((position % Tf::SIZE) * Df::SIZE * 2) as i32
-                ])
-                .to_hbm(&mut device.pdma)
-                .await?,
+                legacy: if !self.compact_decode_metadata || pooled.is_none() {
+                    Some(LegacyRowOffsets {
+                        row: HostTensor::<i32, m![1]>::from_vec([row as i32])
+                            .to_hbm(&mut device.pdma)
+                            .await?,
+                        kv_s: HostTensor::<i32, m![1]>::from_vec([((position % Ts::SIZE)
+                            * Ns::SIZE
+                            * Ds::SIZE
+                            * 2) as i32])
+                        .to_hbm(&mut device.pdma)
+                        .await?,
+                        kv_f: HostTensor::<i32, m![1]>::from_vec([
+                            ((position % Tf::SIZE) * Df::SIZE * 2) as i32
+                        ])
+                        .to_hbm(&mut device.pdma)
+                        .await?,
+                    })
+                } else {
+                    None
+                },
                 logits: if materialize_rows && input.logits { Some(HostTensor::<i32, m![1]>::from_vec([(row * W::SIZE * 2) as i32])
                     .to_hbm(&mut device.pdma)
                     .await?) } else { None },
@@ -347,6 +357,7 @@ impl Prefill {
             let (k, v) = ws.kv_cache[index].as_sliding_mut();
             for (row, sequence) in sequences.iter().enumerate() {
                 let ring = sequence.blocks.sliding;
+                let offsets = offsets[row].legacy.as_ref().ok_or("unpooled sliding offsets missing")?;
                 launch(
                     ops_decode::sliding_attention_row,
                     (
@@ -354,8 +365,8 @@ impl Prefill {
                         &self.q_s,
                         &self.k_s,
                         &self.v_s,
-                        &offsets[row].row,
-                        &offsets[row].kv_s,
+                        &offsets.row,
+                        &offsets.kv_s,
                         &mut k[ring],
                         &mut v[ring],
                         &ws.mask_s[sequence.start_position.min(Ts::SIZE - 1)],
@@ -587,6 +598,7 @@ impl Prefill {
         } else {
             let (k, v) = ws.kv_cache[index].as_full_mut();
             for (row, sequence) in sequences.iter().enumerate() {
+                let offsets = offsets[row].legacy.as_ref().ok_or("unpooled full offsets missing")?;
                 let position = sequence.start_position;
                 let page = position / Tf::SIZE;
                 let blocks = &sequence.blocks.full;
@@ -597,8 +609,8 @@ impl Prefill {
                         &self.q_f,
                         &self.k_f,
                         &self.v_f,
-                        &offsets[row].row,
-                        &offsets[row].kv_f,
+                        &offsets.row,
+                        &offsets.kv_f,
                         &mut k[blocks[page]],
                         &mut v[blocks[page]],
                         &mut self.decode_q_f,
@@ -633,7 +645,7 @@ impl Prefill {
                         device,
                         &self.decode_attn_f,
                         &self.decode_sum_f,
-                        &offsets[row].row,
+                        &offsets.row,
                         &mut self.divided_f,
                     ),
                 )
