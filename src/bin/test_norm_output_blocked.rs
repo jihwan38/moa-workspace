@@ -1,6 +1,6 @@
+//! Independent-output exact oracle and complete-chain ABBA timing for norm fusion.
 #[path="support/npu_profile.rs"]
 mod npu_profile;
-//! Independent-output exact oracle and complete-chain ABBA timing for norm fusion.
 use furiosa_opt_gemma4::{Chip, EPS, axes::*, ops_norm_fused as fused,
     ops_batch_layouts::P512H960, ops_output_p128_h64_blocked::Output};
 use furiosa_opt_std::prelude::*;
