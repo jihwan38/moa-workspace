@@ -281,3 +281,10 @@ pub mod ops_int4_rational_lut_p512_compact;
 pub mod ops_int4_group960_reference;
 
 pub mod i4_group960_raw_adapter;
+
+pub mod ops_int4_pack_p512;
+
+pub mod ops_int4_rational_lut_p512_compact;
+
+pub mod ops_int4_rational_fused_pack;
+pub mod ops_int4_complete_reference;

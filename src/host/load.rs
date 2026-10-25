@@ -226,7 +226,7 @@ async fn load_mlp_projection<E: M, Es: M>(
     ))
 }
 
-async fn load_mlp(
+pub(crate) async fn load_mlp(
     device: &mut Device,
     tensors: &safetensors::SafeTensors<'_>,
     prefix: &str,
