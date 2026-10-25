@@ -24,3 +24,22 @@ Build a023 failed before execution: selecting one P512/256 half introduces skipp
 Build a024 rejected the explicit H/960 padding as duplicated extent (4MiB output for2MiB allocation). The skipped marker belongs on the selected P512/256=1#{!}2 factor itself, not another H/960 factor; a025 repairs that metadata only.
 
 Build a025 passed in28.44s with skipped padding placed on P512/256=1#{!}2. The probe is ready for root-owned NPU execution; compilation is not a numerical or performance gate. Parent branch host cargo check had already passed. Independent source review by batch_kernels found no concrete arithmetic/quarter-mapping defect.
+
+## Actual post-attention fusion microkernel gate
+
+Root Arena318702, runs/r570-norm-fused-submit/arena.log, passed all3seeded
+quarter permutations: each1,966,080 FP8 bytes,512 FP32 scales and1,966,080
+persisted BF16 residual values matched original kernels exactly. Independent
+F64 residual NRMSE was0,1.245e-5,6.247e-6. Complete10-launch controls were
+405.9–427.1us; fused1-launch samples263.3–291.7us. The improvement is measured
+only for this complete microkernel chain, not yet a whole-model throughput gain.
+
+## Second bounded QKV ingress fusion
+
+normalize_qkv_four removes the normalized BF16 write+read and seven launches
+from four RMS+quantizer calls. It reuses the same H480 normalizer and full-row
+quantizer, returning four existing row-major FP8 inputs/padded scales. Build
+a026 passed32.29s. The independent candidate-first poison oracle compares all
+1,966,080 bytes and512 live scales for3seeded/permuted groups; padded scalar
+lanes are explicitly skipped because their values have no contract. Complete
+8vs1-launch ABBA timing decides adoption. This second path has no NPU gate yet.

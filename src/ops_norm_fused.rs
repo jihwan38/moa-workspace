@@ -69,3 +69,44 @@ pub fn post_attention_ffn_input_four(
     one(device, c, post, pre, rc, 2, quantized, scales);
     one(device, d, post, pre, rd, 3, quantized, scales);
 }
+
+fn normalize_quantize_one(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![P128, H]>,
+    weight: &HbmTensor<bf16, Chip, m![H]>,
+    output: &mut HbmTensor<f8e4m3, Chip, m![P128, H]>,
+    scale: &mut HbmTensor<f32, Chip, m![P128, 1 # 8]>,
+) {
+    let input: DmTensor<bf16, Chip, Cluster, Shards, m![P128 % 2, H % 480]> =
+        input.to_dm(&mut device.tdma);
+    let normalized = normalize(device, &input, weight);
+    let normalized: DmTensor<bf16, Chip, Cluster, QuantRows, m![H]> =
+        normalized.to_dm(&mut device.tdma);
+    let (quantized, scales) = crate::ops_query_native_fp8::quantize_hidden(device, &normalized);
+    quantized.view().to_hbm_view(&mut device.tdma, output.view_mut());
+    scales.view().to_hbm_view(&mut device.tdma, scale.view_mut());
+}
+
+/// Same row-major QKV ingress ABI as four original RMS + quantizer calls.
+#[device(chip = 1)]
+pub fn normalize_qkv_four(
+    device: &mut Device,
+    a: &HbmTensor<bf16, Chip, m![P128, H]>,
+    b: &HbmTensor<bf16, Chip, m![P128, H]>,
+    c: &HbmTensor<bf16, Chip, m![P128, H]>,
+    d: &HbmTensor<bf16, Chip, m![P128, H]>,
+    weight: &HbmTensor<bf16, Chip, m![H]>,
+    qa: &mut HbmTensor<f8e4m3, Chip, m![P128, H]>,
+    sa: &mut HbmTensor<f32, Chip, m![P128, 1 # 8]>,
+    qb: &mut HbmTensor<f8e4m3, Chip, m![P128, H]>,
+    sb: &mut HbmTensor<f32, Chip, m![P128, 1 # 8]>,
+    qc: &mut HbmTensor<f8e4m3, Chip, m![P128, H]>,
+    sc: &mut HbmTensor<f32, Chip, m![P128, 1 # 8]>,
+    qd: &mut HbmTensor<f8e4m3, Chip, m![P128, H]>,
+    sd: &mut HbmTensor<f32, Chip, m![P128, 1 # 8]>,
+) {
+    normalize_quantize_one(device, a, weight, qa, sa);
+    normalize_quantize_one(device, b, weight, qb, sb);
+    normalize_quantize_one(device, c, weight, qc, sc);
+    normalize_quantize_one(device, d, weight, qd, sd);
+}
