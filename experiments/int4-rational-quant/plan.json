@@ -1,0 +1,19 @@
+{
+  "base_commit": "507b9555fe600bbf447e58279d418e2d29868015",
+  "purpose": "Resolve a genuinely unfinished precision prerequisite for the legal K64 A4/W4 path without relaxing the old floating-division oracle.",
+  "prior_failure": "r742 stopped on 34 hidden activation code differences out of 7864320 before complete timing; r751 observed DivF near-half differences. Both results remain failures under their original contract.",
+  "new_contract": {
+    "input": "Finite BF16 values, subnormals flushed to zero, one independent row per quantization scale.",
+    "amax": "A = max(2^-112, max(abs(x))) after FTZ; A is exactly representable BF16.",
+    "code": "sign(x) * floor(7 * abs(x) / A + 1/2), bounded to [-7,7]; division here is exact rational arithmetic.",
+    "reconstruction_scale": "RN32(A * RN32(1/7)); explicitly separate from code selection and from old DivF scale semantics.",
+    "integer_implementation": "For normalized BF16 x=Mx*2^(ex-134), A=Ma*2^(ea-134), delta=ea-ex. If delta>=5 or x is FTZ zero, return 0. Otherwise count 14*Mx >= (2*k+1)*(Ma<<delta) for k=0..6 and restore sign."
+  },
+  "expected_removed_work": "No floating division in code selection, therefore no ambiguous floating quotient at a mathematical half-tie.",
+  "expected_added_work": "Integer exponent/mantissa extraction, comparison/shift operations, scale construction and required dense I32-to-I4 packing; actual device cost is unknown.",
+  "cpu_gate": "Independent Fraction nearest-code oracle for every normalized mantissa pair with relevant exponent difference; finite-BF16 boundary cases, signs, FTZ and floor; exact nearest non-tie threshold distance.",
+  "device_gate": "Not authorized by this plan alone: first obtain a concrete public-operation schedule and inclusive cost bound. Any floating bias alternative requires a separate actual error/correctness gate, not an assumed DivF bound.",
+  "complete_gate": "Quantize, scale, pack, real H/L layouts, launch boundaries, supplied-weight FFN and actual model quality must all be measured before adoption. A projection-only speedup or INT4 hardware peak is insufficient.",
+  "top3_claim": false,
+  "official_candidate_unchanged": "f5abd3e8"
+}

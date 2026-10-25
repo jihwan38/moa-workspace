@@ -1,0 +1,35 @@
+{
+  "contract": {
+    "input": "Finite BF16 values, subnormals flushed to zero, one independent row per quantization scale.",
+    "amax": "A = max(2^-112, max(abs(x))) after FTZ; A is exactly representable BF16.",
+    "code": "sign(x) * floor(7 * abs(x) / A + 1/2), bounded to [-7,7]; division here is exact rational arithmetic.",
+    "reconstruction_scale": "RN32(A * RN32(1/7)); explicitly separate from code selection and from old DivF scale semantics.",
+    "integer_implementation": "For normalized BF16 x=Mx*2^(ex-134), A=Ma*2^(ea-134), delta=ea-ex. If delta>=5 or x is FTZ zero, return 0. Otherwise count 14*Mx >= (2*k+1)*(Ma<<delta) for k=0..6 and restore sign."
+  },
+  "proof_program_sha256": "02048d20f52490623b573c05f2343d8c1d3812440ae433b3f2ca04debddaa37f",
+  "normalized_signed_cases": 147584,
+  "finite_bit_pattern_boundary_cases": 163070,
+  "mathematical_half_ties_positive": 218,
+  "minimum_non_tie_distance_from_half": "1/3568",
+  "minimum_non_tie_distance_float": 0.0002802690582959641,
+  "minimum_gap_witness": {
+    "mx": 255,
+    "ma": 223,
+    "exponent_difference": 4
+  },
+  "maximum_integer_threshold": 53040,
+  "maximum_clamped_eight_lane_threshold": 122400,
+  "scale_cases": 30720,
+  "maximum_scale_relative_error": 1.0172526041666667e-07,
+  "bias_alternative": {
+    "candidate_magnitude_bias": "1/65536",
+    "sufficient_total_quotient_and_bias_add_error_bound_strict": "1/65536",
+    "hardware_error_bound_established": false,
+    "note": "Not an implementation or proof for DivF. Quotient approximation plus bias-add rounding must be bounded below both bias and gap-minus-bias; old tests are unchanged."
+  },
+  "result": "CPU_CODE_RULE_PROVED_FOR_FINITE_BF16_WITH_FTZ_AND_FLOOR",
+  "device_compiled": false,
+  "device_correctness": false,
+  "model_quality": false,
+  "performance_gain": null
+}
