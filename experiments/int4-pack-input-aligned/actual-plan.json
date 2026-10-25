@@ -1,0 +1,57 @@
+{
+  "resource_source": "15a335b6",
+  "resource_evidence": "040adbc2",
+  "root_review": "PASS of wrapper mapping, real DM movement and unchanged original pack/ABI",
+  "change": "Clone the existing frozen test_int4_pack_staged_store. H candidate uses only aligned16row wrapper; H baseline remains original. L retains staged16row versus original. Failed four-row H wrapper is not launched.",
+  "expected_registry": [
+    "ops_int4_pack_input_aligned::pack_input",
+    "ops_int4_pack_staged_store::pack_hidden",
+    "ops_int4_pack_p512::pack_input",
+    "ops_int4_pack_p512::pack_hidden",
+    "ops_int4_pack_p512::read_input",
+    "ops_int4_pack_p512::read_hidden"
+  ],
+  "expected_unchanged_images": "The existing five-image root hidden A/B artifact supplies all controls and hidden candidate; all five must remain byte-identical. Only aligned input adds a sixth image.",
+  "correctness": {
+    "codes": 49152000,
+    "packed_bytes": 24576000,
+    "independent_original_packed_bytes": 24576000,
+    "rejected_bindings": 6,
+    "fixtures_per_shape": 5,
+    "immutable_post_checks": "All original source/table/packed/typed owners and outputs retained after timed reuse/profiling. Independent physical word and pair/nibble oracles; all512 row identity; signed top fields; exact row/channel permutation."
+  },
+  "timing": {
+    "sequence": "candidate,original,original,candidate",
+    "awaited_calls_per_sample": 16,
+    "cases_per_width": [
+      0,
+      4
+    ],
+    "complete_scope": "Entire pack including real DM redistribution, padding, blocked store and launch completion; separately report pack+checked raw layout copy. Setup/upload/readback excluded equally. No quantizer, GEMM or full FFN.",
+    "H_actual_gate": {
+      "minimum_gain_each_case": 0.2,
+      "comparison": "max(candidate_us) <= 0.8 * min(original_us), independently for H case0 andH case4",
+      "all_correctness_checks_complete_before_speed_assertion": true
+    },
+    "L": "Unchanged staged versus original results reported; no transfer of H claim to fullFFN."
+  },
+  "prior_holds": {
+    "original_H": "52085 > 50000 originalresource",
+    "H_four_rows": "54722 > 41668 stagingresource"
+  },
+  "execution": {
+    "root_only": true,
+    "max_jobs": 1,
+    "timeout_seconds": 70,
+    "standalone_elf_authorized": true,
+    "model_or_serving_authorized": false,
+    "profile": "Root should set FURIOSA_OPT_PROFILE=trace to collect optional profile spans; absence must remain NOT_COLLECTED, never inferred."
+  },
+  "fresh_build": {
+    "target": "/round2/tail256-model/target",
+    "out_dir": "experiments/int4-pack-input-aligned/kernel-out-a004",
+    "original_dependencies": true,
+    "capture": "target/release/test_int4_pack_input_aligned"
+  },
+  "prior_probe_sha256": "5dd65e81bb1967f7a2ff333d2a0b0d7c11c7d16a28b65535184d864dd2d9d946"
+}
