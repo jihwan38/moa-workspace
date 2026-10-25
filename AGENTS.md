@@ -1,11 +1,12 @@
 # Ownership and scope
 
-Owned by `/root/e2e_evidence` for the full P512 × L15360 exact-rational LUT
-quantizer prerequisite. Base: `7f48ae7efdeb0e819642978f170a773c74e3f5a3`.
+Owned by `/root/e2e_evidence` for full P512 H3840/L15360 exact-rational
+quantization plus packing. Base: `814c33b7`.
 
-Only new hidden-width kernel/probe/fixtures/evidence and the lib export may change.
-Preserve all verified B16/P512H3840 kernels, the independent quotient oracle,
+Keep validated standalone quantizers and original packing controls unchanged.
+Only new disconnected fused helpers/wrappers, imported original pack controls,
+lib exports and experiment evidence may change. Preserve the independent oracle,
 original Cargo dependencies, model, and official candidate. Reuse only
 `/round2/prefill-head-attn-commit/target` and a unique empty kernel output directory.
-Authorization is source/check/resource only; no standalone device ELF, Arena or
-model activation until root reviews the resource/source gates. Root alone runs Arena.
+Authorization is source/check/resource only; no device ELF, Arena or model
+activation. Root alone runs Arena.

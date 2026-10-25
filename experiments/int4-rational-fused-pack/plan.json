@@ -1,0 +1,49 @@
+{
+  "base": "814c33b7",
+  "scope": "Source/check/resource only, complete P512 quantization plus packing; no ELF/Arena/model activation",
+  "contract": "Finite BF16 FTZ; A=max(2^-112,rowamax); exact signed roundaway(7*abs(x)/A); reconstruction scale RN32(A*RN32(1/7)); low-nibble-first signed codes packed into ordinary I32 words",
+  "provenance": {
+    "input_quantizer": "ops_int4_rational_lut_p512_compact.rs at 814c33b7; actual 322892",
+    "hidden_quantizer": "ops_int4_rational_lut_hidden.rs at 814c33b7; actual 322970",
+    "pack_body_and_original_controls": "ops_int4_pack_p512.rs at bf4bf767; actual 322961",
+    "hidden_staging": "ops_int4_pack_staged_store.rs at 60705649; actual 322987 with probe4db27c40/build11e8118b, source review PASS, resource49254",
+    "failed_input_staging": "54722 cycles, HOLD; excluded entirely"
+  },
+  "dataflow": [
+    "Canonical BF16[P512,K] HBM to unchanged rowwise DM",
+    "Unchanged amax/index packing/SPM/generated table gather/multiplier arithmetic to exact I32 codes DM and scale DM",
+    "Same-wire Word/Nibble8 DM regrouping with original const proofs, unchanged signed-nibble mask/shift/AddSat/commit",
+    "H: original real blocked HBM store; L: reviewed real DM staging then blocked HBM store",
+    "Unchanged full-record scale movement/two-row compaction/canonical512 F32 HBM store"
+  ],
+  "traffic": {
+    "removed": "Canonical I32 codes HBM write followed by pack input HBM read; 15 MiB total H, 60 MiB total L",
+    "retained": "BF16 input load, generated LUT/index/SPM path, shift table load, packed output store, all512 scale stores",
+    "added": "L only: real packed-DM staging from row slices to K-group/row-group slices; no H staging",
+    "output_abi": "Ordinary I32[P512/256,K/960,P512%256,K%960/8], identical bytes to blocked I4 consumer; no dtype reinterpret"
+  },
+  "memory_obligations": {
+    "rows": 512,
+    "input": {"width":3840,"bf16_bytes":3932160,"codes_dm_bytes":7864320,"packed_bytes":983040},
+    "hidden": {"width":15360,"bf16_bytes":15728640,"codes_dm_bytes":31457280,"packed_bytes":3932160,"staged_packed_bytes":3932160},
+    "scale_bytes":2048,
+    "table_bytes":4096,
+    "conservative_hidden_main_tensor_sum_bytes":55050240,
+    "not_peak_claim": "Inspect actual allocations and overlapping lifetimes for input/codes/packed/staged plus all auxiliaries; do not infer free aliasing or omit intermediate DM"
+  },
+  "resource_gate": {
+    "no_dram_stack":true,
+    "all_hbm": "Only explicit BF16 input, immutable table/shifts, packed output and scales; no canonical code bridge",
+    "baseline_separate_cycles": {"input":72590,"hidden_original_pack":236065,"hidden_staged_pack":104693},
+    "minimum_reduction_vs_current_separate":0.20,
+    "maximum_cycles": {"input":58072,"hidden":83754},
+    "extra_reporting": "Retain original hidden pack baseline separately; primary gate uses now-validated staged hidden"
+  },
+  "future_complete_actual_gate": {
+    "minimum_reduction":0.20,
+    "control": "Same-job unchanged quantize then original H pack or validated staged hidden pack, both awaited; compare all scales/packed codes via CPU quotient and independent byte packing; no current actual authorization",
+    "current_separate_actual_approx_us": {"input":83.6,"hidden_staged":157.0,"hidden_original":233.7},
+    "timing_scope": "Full quantize plus pack only; no consumer/GEMM/FFN/model claim"
+  },
+  "target": "/round2/prefill-head-attn-commit/target"
+}
