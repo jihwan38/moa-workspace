@@ -1,0 +1,28 @@
+{
+  "status": "ISOLATED PROTOTYPE, no speed/exactness claim",
+  "base": "91e5dd7",
+  "control": "ops_qkv_shared_ingress::project_sliding_qkv_four",
+  "hypothesis": "Own output channels across both clusters; load Q8/K4/V4 E4 rows per slice into one real joined DM16-row tile, then one61440B TRF retained acrossfourP128 inputs. Original weights remain canonical separateHBM; no startup duplicate allocation. HBM reads fall from2copies/outputweights acrossPclusters to1copy globally, inputstreamsMainSwitch to outputparts.",
+  "layout": {
+    "cluster": "OutputHalf2",
+    "parts": "OutputGroup256",
+    "weight_local": "Combined16 x H4 x K960; TrfLane Combined%8, Time Combined/8 x H4 x K960",
+    "input_local": "H4 x K960/16=240 active slices within256; eachP128 x K960%16",
+    "outputs": "Q8/K4/V4 slices of result, realDMjoin adjacentgroups to Q64/K32; original fourP128 blocked outputABI"
+  },
+  "arithmetic": "Preserve original15xK64CE sum perH960, retain4F32partials and exact local sequentialsum4 fromr1027; xscaleF32 thenBF16, originalchannelBF16scale thenBF16. No new quantization.",
+  "added_costs": [
+    "real3HBM-to-local-DM join tiles included in kernel",
+    "oneTRFweightfill",
+    "mainSwitch replicatedinputtime2 for16outputs acrossLane8",
+    "local4partialF32reduction and original2BF16boundaries",
+    "realDMoutputjoin Q64/K32 before all12HBM outputs"
+  ],
+  "gates": [
+    "SDKbuild/resources noDramStack or hiddenHBMscratch",
+    "candidatefirst NaNoutputs,all12buffers/permutations/immutableinputsweights",
+    "synthetic bounded dyadic independentF64 plusprovidedlayers0/6/46 and randomFP8 codes/scales",
+    "completecurrent4P128QKV vsnew ABBA andactualtrace",
+    "fullmodelall11 beforehostactivation"
+  ]
+}
