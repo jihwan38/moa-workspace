@@ -1,11 +1,15 @@
 # Ownership and scope
 
-This isolated tree is owned by `/root/e2e_evidence` for the exact 20-bit
-reciprocal-table BF16 A4 foundation. Base: `a384b467947b73f98fbc4378f0acb9891430dbe8`.
+Owned by `/root/round2_path`, based on frozen `0f053b7f`.
+Only the standalone layer0 intended-code I4 projection probe, independent dense-E4
+reference, supporting CPU oracle, and evidence may change. No model or Worker
+changes, no dependency edits, no official-candidate changes.
 
-Only the new LUT quantizer, independent probe, and evidence may change. The model,
-official candidate, Cargo dependencies, and existing device kernels stay intact.
-Use `/round2/prefill-head-attn-commit/target` exclusively and a new empty
-`FURIOSA_OPT_OUT_DIR`. Root alone dispatches Arena. Initial authorization ends at
-source/type checks and exact resource compilation; no device ELF build or model
-activation before the resource report.
+Current authorization: source preparation only. Do not run device builds, source
+checks, tests, or Arena. A later expressly approved source check must reuse
+`/round2/ffn-k256/target` and any future device build needs a unique fresh public
+`FURIOSA_OPT_OUT_DIR`. Root alone runs Arena.
+
+Preserve candidate UP/GATE resource356610 cycles (gate480000) and DOWN245684
+(gate240000; HOLD), both noDramStack. This projection-only oracle does not include
+activation quantization, device packing, GeGLU, full FFN, or model-quality proof.

@@ -276,3 +276,5 @@ pub mod ops_int4_rational_lut;
 pub mod ops_int4_rational_lut_p512;
 
 pub mod ops_int4_rational_lut_p512_compact;
+
+pub mod ops_int4_group960_reference;
