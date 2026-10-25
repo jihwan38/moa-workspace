@@ -257,6 +257,40 @@ impl Model {
         Ok(())
     }
 
+    /// Exact grouped FFN launch-composition diagnostic, off for each newly
+    /// prepared state. The selector belongs to that state and can change only
+    /// before its first layer; no model-wide mode survives completion or drop.
+    pub fn set_active_prefill_ffn_epilogue_composed(
+        &mut self, enabled: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(state) = self.active_group.as_mut() { return state.composed_ffn_epilogue(enabled); }
+        if let Some(state) = self.active_prompt384128.as_mut() { return state.composed_ffn_epilogue(enabled); }
+        if let Some(state) = self.active_tail256.as_mut() { return state.composed_ffn_epilogue(enabled); }
+        if let Some(state) = self.active_tail384.as_mut() { return state.composed_ffn_epilogue(enabled); }
+        if let Some(state) = self.active_three_owner512.as_mut() { return state.composed_ffn_epilogue(enabled); }
+        if let Some(ActivePrefill::Prompt512(state)) = self.active_prefill.as_mut() {
+            return state.composed_ffn_epilogue(enabled);
+        }
+        Err("no grouped512-density prompt is awaiting its first layer".into())
+    }
+
+    /// Scoped exact FFN-global-load diagnostic. The default is off for every
+    /// newly prepared owner shape. Selection is permitted only before layer0;
+    /// no persistent Model or Worker mode survives completion/cancellation.
+    pub fn set_active_prefill_ffn_global_preload(
+        &mut self, enabled:bool,
+    ) -> Result<(),Box<dyn std::error::Error>> {
+        if let Some(state)=self.active_group.as_mut() {return state.preload_ffn_globals(enabled);}
+        if let Some(state)=self.active_prompt384128.as_mut() {return state.preload_ffn_globals(enabled);}
+        if let Some(state)=self.active_tail256.as_mut() {return state.preload_ffn_globals(enabled);}
+        if let Some(state)=self.active_tail384.as_mut() {return state.preload_ffn_globals(enabled);}
+        if let Some(state)=self.active_three_owner512.as_mut() {return state.preload_ffn_globals(enabled);}
+        if let Some(ActivePrefill::Prompt512(state))=self.active_prefill.as_mut() {
+            return state.preload_ffn_globals(enabled);
+        }
+        Err("no grouped512-density prompt is awaiting its first layer".into())
+    }
+
     /// Four full P128 chunks share QKV weight reads and blocked P512 FFN.
     /// Keep all four reservations until advance_prefill_group returns four final outputs.
     pub async fn start_prefill_group(

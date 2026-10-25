@@ -56,15 +56,33 @@ pub(crate) struct PreparedGroup {
     shard_quant: bool,
     quarter_norm: bool,
     fused_ffn_core: bool,
+    preload_ffn_globals: bool,
     quarter_postnorm: bool,
     blocked_residual: bool,
+    composed_ffn_epilogue: bool,
 }
 /// Exactly two actual P128 execution states; padding has no request metadata.
 pub(crate) struct PreparedTail256 {
+    preload_ffn_globals: bool,
+    composed_ffn_epilogue: bool,
     states: [PreparedWide; 2],
     owners: usize,
 }
 impl PreparedTail256 {
+    pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("FFN global preload must be selected before the first layer".into());
+        }
+        self.preload_ffn_globals = enabled;
+        Ok(())
+    }
+    pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("FFN epilogue composition must be selected before the first layer".into());
+        }
+        self.composed_ffn_epilogue = enabled;
+        Ok(())
+    }
     pub(crate) fn blocks(&self) -> Vec<&runtime::Blocks> {
         if self.owners == 1 { vec![&self.states[0].blocks] }
         else { vec![&self.states[0].blocks, &self.states[1].blocks] }
@@ -77,11 +95,27 @@ impl PreparedTail256 {
 }
 /// Three real chronological quarters; the fourth tensor quarter has no owner.
 pub(crate) struct PreparedTail384 {
+    preload_ffn_globals: bool,
+    composed_ffn_epilogue: bool,
     states: [PreparedWide; 3],
     owner_first_rows: Vec<usize>,
     owner_final_rows: Vec<usize>,
 }
 impl PreparedTail384 {
+    pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("FFN global preload must be selected before the first layer".into());
+        }
+        self.preload_ffn_globals = enabled;
+        Ok(())
+    }
+    pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("FFN epilogue composition must be selected before the first layer".into());
+        }
+        self.composed_ffn_epilogue = enabled;
+        Ok(())
+    }
     pub(crate) fn blocks(&self) -> Vec<&runtime::Blocks> {
         self.owner_first_rows.iter().map(|&row| &self.states[row].blocks).collect()
     }
@@ -95,6 +129,12 @@ pub(crate) struct PreparedThreeOwner512 {
     owner_final_rows: [usize; 3],
 }
 impl PreparedThreeOwner512 {
+    pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.preload_ffn_globals(enabled)
+    }
+    pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.composed_ffn_epilogue(enabled)
+    }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 3] {
         self.owner_first_rows.map(|row| &self.chunks.states[row].blocks)
     }
@@ -102,14 +142,14 @@ impl PreparedThreeOwner512 {
 #[derive(Clone, Copy)]
 struct GroupExecution {
     fused_norms: bool, blocked_output: bool, shard_quant: bool,
-    quarter_norm: bool, fused_ffn_core: bool, quarter_postnorm: bool,
-    blocked_residual: bool,
+    quarter_norm: bool, fused_ffn_core: bool, preload_ffn_globals: bool, quarter_postnorm: bool,
+    blocked_residual: bool, composed_ffn_epilogue: bool,
 }
 impl GroupExecution {
     fn production() -> Self {
         Self { fused_norms:true, blocked_output:true, shard_quant:true,
-            quarter_norm:true, fused_ffn_core:true, quarter_postnorm:true,
-            blocked_residual:true }
+            quarter_norm:true, fused_ffn_core:true, preload_ffn_globals:false, quarter_postnorm:true,
+            blocked_residual:true, composed_ffn_epilogue:false }
     }
 }
 /// Four chronological chunks of one request. Only its single allocation may be
@@ -126,6 +166,12 @@ pub(crate) struct PreparedPrompt384128 {
     final_rows: [usize; 2],
 }
 impl PreparedPrompt384128 {
+    pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.preload_ffn_globals(enabled)
+    }
+    pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.composed_ffn_epilogue(enabled)
+    }
     pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
         self.chunks.fused_head_attention(enabled);
     }
@@ -136,6 +182,12 @@ impl PreparedPrompt384128 {
 }
 
 impl PreparedPrompt512 {
+    pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.preload_ffn_globals(enabled)
+    }
+    pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
+        self.chunks.composed_ffn_epilogue(enabled)
+    }
     pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
         self.chunks.fused_head_attention(enabled);
     }
@@ -153,6 +205,23 @@ impl PreparedPrompt512 {
     }
 }
 impl PreparedGroup {
+    pub(crate) fn preload_ffn_globals(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("FFN global preload must be selected before the first layer".into());
+        }
+        if enabled && !self.fused_ffn_core {
+            return Err("FFN global preload requires the current single-launch core".into());
+        }
+        self.preload_ffn_globals = enabled;
+        Ok(())
+    }
+    pub(crate) fn composed_ffn_epilogue(&mut self, enabled: bool) -> Result<()> {
+        if self.states.iter().any(|state| state.next_layer != 0) {
+            return Err("FFN epilogue composition must be selected before the first layer".into());
+        }
+        self.composed_ffn_epilogue = enabled;
+        Ok(())
+    }
     pub(crate) fn fused_head_attention(&mut self, enabled: bool) {
         for state in &mut self.states { state.fused_head_attention = enabled; }
     }
@@ -401,8 +470,10 @@ impl GroupPrefill {
             shard_quant: true,
             quarter_norm: true,
             fused_ffn_core: true,
+            preload_ffn_globals: false,
             quarter_postnorm: true,
             blocked_residual: true,
+            composed_ffn_epilogue: false,
             states: [
                 self.rows[0]
                     .prepare_with_media_batch(device, weights, &sequences[0], scratch, true, batched_media)
@@ -456,7 +527,7 @@ impl GroupPrefill {
             row.attn_f = HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
                 std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
         }
-        Ok(PreparedTail256 { owners:sequences.len(), states:[
+        Ok(PreparedTail256 { preload_ffn_globals:false, composed_ffn_epilogue:false, owners:sequences.len(), states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
         ]})
@@ -465,7 +536,10 @@ impl GroupPrefill {
         &mut self, device:&mut Device, weights:&Weights, state:&mut PreparedTail256,
         ws:&mut Workspace, scratch:&mut Prefill,
     ) -> Result<bool> {
-        self.advance_rows(device,weights,&mut state.states,GroupExecution::production(),ws,scratch).await
+        let mut execution = GroupExecution::production();
+        execution.composed_ffn_epilogue = state.composed_ffn_epilogue;
+        execution.preload_ffn_globals = state.preload_ffn_globals;
+        self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
     pub(crate) async fn finish_tail256(
         &mut self, owner:usize, device:&mut Device, weights:&Weights,
@@ -514,7 +588,7 @@ impl GroupPrefill {
             std::iter::repeat_n(padding,P128::SIZE*Ns::SIZE*Gs::SIZE*Ds::SIZE)).to_hbm(&mut device.pdma).await?;
         padding_row.attn_f=HostTensor::<bf16,m![P128,Gf,Df]>::from_vec(
             std::iter::repeat_n(padding,P128::SIZE*Gf::SIZE*Df::SIZE)).to_hbm(&mut device.pdma).await?;
-        Ok(PreparedTail384 { owner_first_rows, owner_final_rows, states:[
+        Ok(PreparedTail384 { preload_ffn_globals:false, composed_ffn_epilogue:false, owner_first_rows, owner_final_rows, states:[
             self.rows[0].prepare_with_media_batch(device,weights,&chunks[0],scratch,true,batched_media).await?,
             self.rows[1].prepare_with_media_batch(device,weights,&chunks[1],scratch,true,batched_media).await?,
             self.rows[2].prepare_with_media_batch(device,weights,&chunks[2],scratch,true,batched_media).await?,
@@ -524,7 +598,10 @@ impl GroupPrefill {
         &mut self, device:&mut Device, weights:&Weights, state:&mut PreparedTail384,
         ws:&mut Workspace, scratch:&mut Prefill,
     ) -> Result<bool> {
-        self.advance_rows(device,weights,&mut state.states,GroupExecution::production(),ws,scratch).await
+        let mut execution = GroupExecution::production();
+        execution.composed_ffn_epilogue = state.composed_ffn_epilogue;
+        execution.preload_ffn_globals = state.preload_ffn_globals;
+        self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
     pub(crate) async fn finish_tail384(
         &mut self, owner:usize, device:&mut Device, weights:&Weights,
@@ -600,6 +677,8 @@ impl GroupPrefill {
             shard_quant:state.shard_quant, quarter_norm:state.quarter_norm,
             fused_ffn_core:state.fused_ffn_core, quarter_postnorm:state.quarter_postnorm,
             blocked_residual:state.uses_blocked_residual(),
+            composed_ffn_epilogue:state.composed_ffn_epilogue,
+            preload_ffn_globals:state.preload_ffn_globals,
         };
         self.advance_rows(device,weights,&mut state.states,execution,ws,scratch).await
     }
@@ -762,6 +841,50 @@ impl GroupPrefill {
             ),
         };
         let mut mark = scratch.profile_mark();
+        if execution.composed_ffn_epilogue && blocked_residual && execution.fused_ffn_core {
+            let [a, b, c, d] = &self.rows;
+            let norms = (post_attention, pre, post, gate);
+            if execution.preload_ffn_globals {
+            match layer {
+                Layer::Sliding(_) => launch(crate::ops_group_ffn_epilogue::sliding_globals,
+                    (device, (&self.output_s[0], &self.output_s[1], &self.output_s[2], &self.output_s[3]),
+                     norms, &mut self.residual_blocked,
+                     &mlp.native_fp8.up, &mlp.native_fp8.gate, &mlp.native_fp8.down,
+                     &mlp.native_fp8.up_dequant, &mlp.native_fp8.gate_dequant, &mlp.native_fp8.down_dequant,
+                     &mlp.up_global_scale, &mlp.gate_global_scale, &mlp.down_global_scale,
+                     &mut self.q_input, &mut self.input_scale, &mut self.up, &mut self.gate,
+                     &mut self.q_hidden, &mut self.hidden_scale, &mut self.projected)).await?,
+                Layer::Full(_) => launch(crate::ops_group_ffn_epilogue::full_globals,
+                    (device, (&a.projected, &b.projected, &c.projected, &d.projected),
+                     norms, &mut self.residual_blocked,
+                     &mlp.native_fp8.up, &mlp.native_fp8.gate, &mlp.native_fp8.down,
+                     &mlp.native_fp8.up_dequant, &mlp.native_fp8.gate_dequant, &mlp.native_fp8.down_dequant,
+                     &mlp.up_global_scale, &mlp.gate_global_scale, &mlp.down_global_scale,
+                     &mut self.q_input, &mut self.input_scale, &mut self.up, &mut self.gate,
+                     &mut self.q_hidden, &mut self.hidden_scale, &mut self.projected)).await?,
+            }
+            } else {
+            match layer {
+                Layer::Sliding(_) => launch(crate::ops_group_ffn_epilogue::sliding,
+                    (device, (&self.output_s[0], &self.output_s[1], &self.output_s[2], &self.output_s[3]),
+                     norms, &mut self.residual_blocked,
+                     &mlp.native_fp8.up, &mlp.native_fp8.gate, &mlp.native_fp8.down,
+                     &mlp.native_fp8.up_dequant, &mlp.native_fp8.gate_dequant, &mlp.native_fp8.down_dequant,
+                     &mlp.up_global_scale, &mlp.gate_global_scale, &mlp.down_global_scale,
+                     &mut self.q_input, &mut self.input_scale, &mut self.up, &mut self.gate,
+                     &mut self.q_hidden, &mut self.hidden_scale, &mut self.projected)).await?,
+                Layer::Full(_) => launch(crate::ops_group_ffn_epilogue::full,
+                    (device, (&a.projected, &b.projected, &c.projected, &d.projected),
+                     norms, &mut self.residual_blocked,
+                     &mlp.native_fp8.up, &mlp.native_fp8.gate, &mlp.native_fp8.down,
+                     &mlp.native_fp8.up_dequant, &mlp.native_fp8.gate_dequant, &mlp.native_fp8.down_dequant,
+                     &mlp.up_global_scale, &mlp.gate_global_scale, &mlp.down_global_scale,
+                     &mut self.q_input, &mut self.input_scale, &mut self.up, &mut self.gate,
+                     &mut self.q_hidden, &mut self.hidden_scale, &mut self.projected)).await?,
+            }
+            }
+            scratch.record_optional_profile("group.ffn.composed_epilogue", &mut mark);
+        } else {
         if blocked_residual {
             let [a, b, c, d] = &self.rows;
             match layer {
@@ -837,6 +960,15 @@ impl GroupPrefill {
             scratch.record_optional_profile("group.ffn.quantize_hidden", &mut mark);
         }
         if execution.fused_ffn_core {
+            if execution.preload_ffn_globals {
+            launch(crate::ops_native_fp8_p512_core_globals::ffn_core,
+                (device, &self.q_input, &self.input_scale,
+                 &mlp.native_fp8.up, &mlp.native_fp8.gate, &mlp.native_fp8.down,
+                 &mlp.native_fp8.up_dequant, &mlp.native_fp8.gate_dequant, &mlp.native_fp8.down_dequant,
+                 &mlp.up_global_scale, &mlp.gate_global_scale, &mlp.down_global_scale,
+                 &mut self.up, &mut self.gate, &mut self.q_hidden, &mut self.hidden_scale,
+                 &mut self.projected)).await?;
+            } else {
             launch(crate::ops_native_fp8_p512_core_fused::ffn_core,
                 (device, &self.q_input, &self.input_scale,
                  &mlp.native_fp8.up, &mlp.native_fp8.gate, &mlp.native_fp8.down,
@@ -844,6 +976,7 @@ impl GroupPrefill {
                  &mlp.up_global_scale, &mlp.gate_global_scale, &mlp.down_global_scale,
                  &mut self.up, &mut self.gate, &mut self.q_hidden, &mut self.hidden_scale,
                  &mut self.projected)).await?;
+            }
             scratch.record_optional_profile("group.ffn.core", &mut mark);
         } else {
         launch(
@@ -918,6 +1051,7 @@ impl GroupPrefill {
                 .await?;
             }
             scratch.record_optional_profile("group.ffn.post_norm", &mut mark);
+        }
         }
         if blocked_residual && index + 1 == weights.layers.len() {
             // Restore all canonical quarters once before any owner-specific finish.
