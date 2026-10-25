@@ -3,6 +3,7 @@ use furiosa_opt_gemma4::{
     Chip,
     axes::{H, L, P512},
     i4_p512_raw_adapter as raw, ops_int4_pack_staged_store as k,
+    ops_int4_pack_p512 as original,
 };
 use furiosa_opt_std::prelude::*;
 use furiosa_opt_std::runtime::{Buffers, DeviceSend};
@@ -119,11 +120,12 @@ fn reject_bad_owners<P: M, O: M>(
 async fn main() -> Result<()> {
     let collector = npu_profile::Collector::default();
     tracing::subscriber::set_global_default(collector.clone())?;
-    let mut d = Device::new(k::pack_input.topology())?;
+    let mut d = Device::new(original::pack_input.topology())?;
     let mut total_codes = 0usize;
     let mut total_packed_bytes = 0usize;
     let mut owner_rejection_checks = 0usize;
-    macro_rules! check_shape {($axis:ty,$packed:ty,$i4:ty,$pack:expr,$reader:expr,$raw:expr)=>{{
+    let mut original_packed_bytes = 0usize;
+    macro_rules! check_shape {($axis:ty,$packed:ty,$i4:ty,$pack:expr,$baseline:expr,$reader:expr,$raw:expr)=>{{
         let width=<$axis>::SIZE;
         for case in 0..5 {
             let values:Vec<i32>=(0..512*width).map(|i|code(case,i/width,i%width,width)).collect();
@@ -152,6 +154,7 @@ async fn main() -> Result<()> {
             let input:HbmTensor<i32,Chip,m![P512,$axis]>=HostTensor::<i32,m![P512,$axis]>::from_vec(values.clone()).to_hbm(&mut d.pdma).await?;
             let shifts:HbmTensor<i32,Chip,m![$axis%8]>=HostTensor::<i32,m![$axis%8]>::from_vec((0..8).map(|i|4*i)).to_hbm(&mut d.pdma).await?;
             let mut packed:HbmTensor<i32,Chip,$packed>=HostTensor::<i32,$packed>::from_vec(std::iter::repeat_n(0x13579bdfi32,512*width/8)).to_hbm(&mut d.pdma).await?;
+            let mut baseline_packed:HbmTensor<i32,Chip,$packed>=HostTensor::<i32,$packed>::from_vec(std::iter::repeat_n(0x2468ace0i32,512*width/8)).to_hbm(&mut d.pdma).await?;
             let typed:HbmTensor<i4,Chip,$i4>=upload(&mut d,blocked.clone()).await;
             let mut candidate:HbmTensor<i4,Chip,m![P512,$axis]>=upload(&mut d,vec![0xad;512*width/2]).await;
             let mut control:HbmTensor<i4,Chip,m![P512,$axis]>=upload(&mut d,vec![0x52;512*width/2]).await;
@@ -162,6 +165,9 @@ async fn main() -> Result<()> {
             }
             launch($pack,(&mut d,&input,&shifts,&mut packed)).await?;
             assert_eq!(read(&mut d,&packed).await,blocked,"whole blocked packed owner");
+            launch($baseline,(&mut d,&input,&shifts,&mut baseline_packed)).await?;
+            assert_eq!(read(&mut d,&baseline_packed).await,blocked,"independent original pack owner");
+            original_packed_bytes+=blocked.len();
             // Candidate first, with independently initialized output. The later
             // normal typed launch embeds the identical reader image.
             $raw(&mut d,&packed,&mut candidate).await?;
@@ -184,6 +190,17 @@ async fn main() -> Result<()> {
                     }
                     timing[mode].push(start.elapsed().as_secs_f64()*1e6/16.0);
                 }
+                let mut paired=[Vec::new(),Vec::new()];
+                for mode in [0,1,1,0] {
+                    let start=Instant::now();
+                    for _ in 0..16 {
+                        if mode==0 {launch($pack,(&mut d,&input,&shifts,&mut packed)).await?;}
+                        else {launch($baseline,(&mut d,&input,&shifts,&mut baseline_packed)).await?;}
+                    }
+                    paired[mode].push(start.elapsed().as_secs_f64()*1e6/16.0);
+                }
+                println!("PACK_STAGED_ABBA width={width} case={case} samples=16 candidate_us={:?} original_us={:?} input_same_function_control={} all_real_DMA_charged=true",paired[0],paired[1],width==H::SIZE);
+                assert_eq!(read(&mut d,&baseline_packed).await,blocked,"original packed bytes after all timed reuse");
                 assert_eq!(read(&mut d,&packed).await,blocked,"packed bytes after timed reuse");
                 assert_eq!(read(&mut d,&candidate).await,canonical,"raw output after timed reuse");
                 assert_eq!(read(&mut d,&control).await,canonical,"independent typed output unchanged");
@@ -192,6 +209,7 @@ async fn main() -> Result<()> {
                 assert_eq!(read(&mut d,&typed).await,blocked,"typed source immutable after timed reuse");
                 println!("PACK_P512_TIMING width={width} case={case} repetitions=16 pack_us={:?} pack_plus_raw_copy_us={:?} complete_awaited_calls=true excludes_quantizer_gemm_setup_readback=true",timing[0],timing[1]);
             }
+            assert_eq!(read(&mut d,&baseline_packed).await,blocked,"original output preserved through all later calls");
             if case==0 && std::env::var_os("FURIOSA_OPT_PROFILE").is_some() {
                 println!("PACK_P512_PROFILE width={width} mode=pack begin");
                 collector.enable(true);
@@ -218,7 +236,8 @@ async fn main() -> Result<()> {
         H,
         k::PackedInput,
         k::I4Input,
-        k::pack_input,
+        original::pack_input,
+        original::pack_input,
         k::read_input,
         raw::read_input
     );
@@ -227,14 +246,17 @@ async fn main() -> Result<()> {
         k::PackedHidden,
         k::I4Hidden,
         k::pack_hidden,
+        original::pack_hidden,
         k::read_hidden,
         raw::read_hidden
     );
     assert_eq!(total_codes, 49_152_000);
     assert_eq!(total_packed_bytes, 24_576_000);
     assert_eq!(owner_rejection_checks, 6);
+    assert_eq!(original_packed_bytes, 24_576_000);
     println!(
         "PASS_PACK_P512 codes={total_codes} packed_bytes={total_packed_bytes} owner_rejection_checks={owner_rejection_checks} scope=integer_packing_and_raw_blocked_layout_only no_quantizer_gemm_model_gain_claim=true"
     );
+    println!("PASS_PACK_STAGED original_packed_bytes={original_packed_bytes} staged_input_executed=false complete_FFN_or_model_claim=false");
     Ok(())
 }
