@@ -2877,6 +2877,44 @@ mod tests {
     }
 
     #[test]
+    fn physical32_slot31_checkpoint_survives_compaction_and_cancel_before_release() {
+        let mut pool = Some(PageReservations::new(32,256,CONTEXT).unwrap());
+        let mut sessions = Vec::new();
+        let mut receivers = Vec::new();
+        for _ in 0..31 {
+            let (s,r) = session(pool.as_mut().unwrap(),1,1);
+            sessions.push(s); receivers.push(r);
+        }
+        let (last,last_rx) = session(pool.as_mut().unwrap(),513,1);
+        assert_eq!(last.blocks.sliding,31);
+        sessions.push(last); drop(last_rx);
+        let active = [ScheduledInput{ring:31,position:0,count:512}];
+        assert!(pool.as_mut().unwrap().try_reserve(1).unwrap().is_none());
+        assert!(!complete_work(&mut sessions,&active,None,&mut pool,&mut vec![],&mut vec![]).unwrap());
+        assert_eq!(sessions[31].generation.input().1,0);
+        let first = cohort_work(&sessions[0]);
+        assert!(complete_work(&mut sessions,&[first],Some(&[SampleOutput::Greedy(3)]),
+            &mut pool,&mut vec![],&mut vec![]).unwrap());
+        assert_eq!(sessions.len(),31);
+        assert_eq!(sessions[30].blocks.sliding,31);
+        let ready = ready_sessions(&sessions);
+        assert_eq!(schedule_inputs(&ready,&[30],&active,true),active);
+        let new = pool.as_mut().unwrap().try_reserve(1).unwrap().unwrap();
+        assert_eq!(new.blocks.sliding,0); // Slot31 is still owned despite receiver cancellation.
+        pool.as_mut().unwrap().release(new).unwrap();
+        assert!(complete_work(&mut sessions,&active,Some(&[SampleOutput::Logits(vec![])]),
+            &mut pool,&mut vec![],&mut vec![]).unwrap());
+        assert_eq!(sessions[30].generation.input().1,512);
+        let finish = [ScheduledInput{ring:31,position:512,count:1}];
+        assert!(complete_work(&mut sessions,&finish,Some(&[SampleOutput::Greedy(3)]),
+            &mut pool,&mut vec![],&mut vec![]).unwrap());
+        assert_eq!(sessions.len(),30);
+        let next = pool.as_mut().unwrap().try_reserve(8192).unwrap().unwrap();
+        assert_eq!(next.blocks.sliding,31);
+        assert_eq!(next.blocks.full.len(),16);
+    }
+
+    #[test]
     fn chunk_trace_is_read_only_and_survives_cancelled_receivers_and_session_reordering() {
         let mut pool = Some(PageReservations::new(64, 256, CONTEXT).unwrap());
         let (a, ar) = session(pool.as_mut().unwrap(), 1025, 2);

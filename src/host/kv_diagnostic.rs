@@ -45,6 +45,9 @@ pub async fn compare_canonical_kv(
         .to_hbm(&mut d.pdma)
         .await?;
     let mut checked = 0;
+    // Diagnostic-only SHA256 makes separately frozen physical64/32 runs
+    // comparable without relabeling an in-process equality gate.
+    let mut digest = ring::digest::Context::new(&ring::digest::SHA256);
     for (layer, cache) in ws.kv_cache.iter().enumerate() {
         match cache {
             KvCache::SlidingCanonical { k, v } => {
@@ -55,6 +58,8 @@ pub async fn compare_canonical_kv(
                 .await?;
                 let ak = raw(d, &sk).await?;
                 let av = raw(d, &sv).await?;
+                digest.update(&ak);
+                digest.update(&av);
                 launch(
                     crate::ops_commit_wide_pool::copy_sliding_pool_to_cache_rc64,
                     (d, k, v, &ws.cache_ring_offsets[b.sliding], &mut sk, &mut sv),
@@ -72,6 +77,8 @@ pub async fn compare_canonical_kv(
                     .await?;
                     let ak = raw(d, &fk).await?;
                     let av = raw(d, &fv).await?;
+                    digest.update(&ak);
+                    digest.update(&av);
                     launch(
                         crate::ops_request_attention::copy_full_pool_to_page,
                         (d, k, v, &ws.cache_page_offsets[pb], &mut fk, &mut fv),
@@ -92,8 +99,9 @@ pub async fn compare_canonical_kv(
             _ => return Err("canonical diagnostic requires canonical BF16 KV".into()),
         }
     }
+    let sha256: String = digest.finish().as_ref().iter().map(|b|format!("{b:02x}")).collect();
     println!(
-        "KV_ALL_BYTES_EXACT ringA={} ringB={} reserved_pages={} compared_bytes={checked}",
+        "KV_ALL_BYTES_EXACT ringA={} ringB={} reserved_pages={} compared_bytes={checked} sha256={sha256}",
         a.sliding,
         b.sliding,
         a.full.len()
