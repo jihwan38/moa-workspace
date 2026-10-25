@@ -326,6 +326,17 @@ impl Model {
         self.active_group.as_mut().unwrap().original_quarter_postnorm();
         Ok(())
     }
+    /// Same prepared execution using the canonical residual storage with every other default kernel unchanged.
+    pub async fn start_prefill_group_original_blocked_residual(
+        &mut self,
+        device: &mut Device,
+        sequences: &[Sequence<'_>],
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill_group(device, sequences, workspace).await?;
+        self.active_group.as_mut().unwrap().original_blocked_residual();
+        Ok(())
+    }
     /// A completed layer is the only safe yield point. On an execution error or
     /// an aborted in-flight future, discard this model/workspace; do not retry
     /// a partially updated group. The caller retains all four allocations.
@@ -422,6 +433,15 @@ impl Model {
         &mut self, device: &mut Device, workspace: &mut Workspace,
     ) -> Result<Option<&[Logits]>, Box<dyn std::error::Error>> {
         self.advance_prefill384_128(device, workspace).await
+    }
+
+    /// Same two-owner execution with canonical residual storage throughout.
+    pub async fn start_prefill384_128_original_blocked_residual(
+        &mut self, device: &mut Device, sequences: &[Sequence<'_>], workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill384_128(device, sequences, workspace).await?;
+        self.active_prompt384128.as_mut().unwrap().original_blocked_residual();
+        Ok(())
     }
 
     /// Advance exactly one complete layer, returning two owner-ordered outputs
@@ -564,6 +584,20 @@ impl Model {
         self.start_prefill512(device, sequence, workspace).await?;
         match self.active_prefill.as_mut().unwrap() {
             ActivePrefill::Prompt512(state) => state.original_quarter_postnorm(),
+            _ => unreachable!("start_prefill512 owns Prompt512 state"),
+        }
+        Ok(())
+    }
+    /// Same prepared execution using the canonical residual storage with every other default kernel unchanged.
+    pub async fn start_prefill512_original_blocked_residual(
+        &mut self,
+        device: &mut Device,
+        sequence: &Sequence<'_>,
+        workspace: &mut Workspace,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.start_prefill512(device, sequence, workspace).await?;
+        match self.active_prefill.as_mut().unwrap() {
+            ActivePrefill::Prompt512(state) => state.original_blocked_residual(),
             _ => unreachable!("start_prefill512 owns Prompt512 state"),
         }
         Ok(())

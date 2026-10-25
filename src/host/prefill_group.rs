@@ -34,6 +34,7 @@ pub(crate) struct GroupPrefill {
     blocked: [BlockedQkv; 4],
     output_s: [HbmTensor<bf16, Chip, crate::ops_output_p128_h64_blocked::Output>; 4],
     rows: [WidePrefill; 4],
+    residual_blocked: HbmTensor<bf16, Chip, crate::ops_norm_blocked_residual::Residual>,
     norm: HbmTensor<bf16, Chip, m![P512, H]>,
     projected: HbmTensor<bf16, Chip, crate::ops_native_fp8_p512_downblocked::Output>,
     zero: HbmTensor<i32, Chip, m![1]>,
@@ -56,6 +57,7 @@ pub(crate) struct PreparedGroup {
     quarter_norm: bool,
     fused_ffn_core: bool,
     quarter_postnorm: bool,
+    blocked_residual: bool,
 }
 /// Four chronological chunks of one request. Only its single allocation may be
 /// exposed to the scheduler; the four copies below are execution metadata.
@@ -71,12 +73,14 @@ pub(crate) struct PreparedPrompt384128 {
     final_rows: [usize; 2],
 }
 impl PreparedPrompt384128 {
+    pub(crate) fn original_blocked_residual(&mut self) { self.chunks.blocked_residual = false; }
     pub(crate) fn blocks(&self) -> [&runtime::Blocks; 2] {
         [&self.chunks.states[0].blocks, &self.chunks.states[self.second_owner_row].blocks]
     }
 }
 
 impl PreparedPrompt512 {
+    pub(crate) fn original_blocked_residual(&mut self) { self.chunks.blocked_residual = false; }
     pub(crate) fn original_norms(&mut self) { self.chunks.fused_norms = false; }
     pub(crate) fn original_output(&mut self) { self.chunks.blocked_output = false; }
     pub(crate) fn original_shard_quant(&mut self) { self.chunks.shard_quant = false; }
@@ -88,6 +92,14 @@ impl PreparedPrompt512 {
     }
 }
 impl PreparedGroup {
+    pub(crate) fn original_blocked_residual(&mut self) { self.blocked_residual = false; }
+    fn uses_blocked_residual(&self) -> bool {
+        // Old diagnostic implementations retain canonical state throughout.
+        // Their timings include this storage fallback; the dedicated storage
+        // control is the isolated comparison. FFN core selection is independent.
+        self.blocked_residual && self.fused_norms && self.blocked_output
+            && self.shard_quant && self.quarter_norm && self.quarter_postnorm
+    }
     pub(crate) fn original_norms(&mut self) { self.fused_norms = false; }
     pub(crate) fn original_output(&mut self) { self.blocked_output = false; }
     pub(crate) fn original_shard_quant(&mut self) { self.shard_quant = false; }
@@ -136,6 +148,7 @@ impl GroupPrefill {
                 WidePrefill::new(device).await?,
                 WidePrefill::new(device).await?,
             ],
+            residual_blocked: zero!(bf16, crate::ops_norm_blocked_residual::Residual),
             norm: zero!(bf16, m![P512, H]),
             projected: zero!(bf16, crate::ops_native_fp8_p512_downblocked::Output),
             zero: offset!(0),
@@ -279,6 +292,7 @@ impl GroupPrefill {
             quarter_norm: true,
             fused_ffn_core: true,
             quarter_postnorm: true,
+            blocked_residual: true,
             states: [
                 self.rows[0]
                     .prepare(device, weights, &sequences[0], scratch, true)
@@ -353,11 +367,26 @@ impl GroupPrefill {
             .get(index)
             .ok_or("grouped prefill layers already complete")?;
         let mut mark = scratch.profile_mark();
+        let blocked_residual = state.uses_blocked_residual();
+        if blocked_residual && index == 0 {
+            let [a, b, c, d] = &self.rows;
+            launch(crate::ops_norm_blocked_residual::pack_four,
+                (device, &a.x, &b.x, &c.x, &d.x, &mut self.residual_blocked)).await?;
+            scratch.record_optional_profile("group.residual.pack", &mut mark);
+        }
         let input_norm = match layer {
             Layer::Sliding(l) => &l.input_norm,
             Layer::Full(l) => &l.input_norm,
         };
-        if state.fused_norms {
+        if blocked_residual {
+            let [a, b, c, d] = &mut self.rows;
+            launch(crate::ops_norm_blocked_chain::normalize_qkv_four,
+                (device, &self.residual_blocked, input_norm,
+                 &mut a.qkv_input, &mut a.qkv_scale,
+                 &mut b.qkv_input, &mut b.qkv_scale,
+                 &mut c.qkv_input, &mut c.qkv_scale,
+                 &mut d.qkv_input, &mut d.qkv_scale)).await?;
+        } else if state.fused_norms {
             let [a, b, c, d] = &mut self.rows;
             launch(crate::ops_norm_fused::normalize_qkv_four,
                 (device, &a.x, &b.x, &c.x, &d.x, input_norm,
@@ -483,7 +512,20 @@ impl GroupPrefill {
             ),
         };
         let mut mark = scratch.profile_mark();
-        if state.fused_norms {
+        if blocked_residual {
+            let [a, b, c, d] = &self.rows;
+            match layer {
+                Layer::Sliding(_) => launch(crate::ops_norm_blocked_chain::post_attention_sliding,
+                    (device, &self.output_s[0], &self.output_s[1], &self.output_s[2], &self.output_s[3],
+                     post_attention, pre, &mut self.residual_blocked,
+                     &mut self.q_input, &mut self.input_scale)).await?,
+                Layer::Full(_) => launch(crate::ops_norm_blocked_chain::post_attention_full,
+                    (device, &a.projected, &b.projected, &c.projected, &d.projected,
+                     post_attention, pre, &mut self.residual_blocked,
+                     &mut self.q_input, &mut self.input_scale)).await?,
+            }
+            scratch.record_optional_profile("group.ffn.blocked_post_pre_norm_quant", &mut mark);
+        } else if state.fused_norms {
             let [a, b, c, d] = &mut self.rows;
             if state.blocked_output && matches!(layer, Layer::Sliding(_)) {
                 if state.shard_quant {
@@ -587,7 +629,11 @@ impl GroupPrefill {
         .await?;
         scratch.record_optional_profile("group.ffn.down", &mut mark);
         }
-        if state.fused_norms {
+        if blocked_residual {
+            launch(crate::ops_norm_blocked_residual::post_feedforward,
+                (device, &self.projected, post, gate, &mut self.residual_blocked)).await?;
+            scratch.record_optional_profile("group.ffn.blocked_post_norm", &mut mark);
+        } else if state.fused_norms {
             let [a, b, c, d] = &mut self.rows;
             if state.quarter_postnorm {
                 launch(crate::ops_norm_quarter_post::post_feedforward_four,
@@ -622,6 +668,13 @@ impl GroupPrefill {
                 .await?;
             }
             scratch.record_optional_profile("group.ffn.post_norm", &mut mark);
+        }
+        if blocked_residual && index + 1 == weights.layers.len() {
+            // Restore all canonical quarters once before any owner-specific finish.
+            let [a, b, c, d] = &mut self.rows;
+            launch(crate::ops_norm_blocked_residual::unpack_four,
+                (device, &self.residual_blocked, &mut a.x, &mut b.x, &mut c.x, &mut d.x)).await?;
+            scratch.record_optional_profile("group.residual.unpack", &mut mark);
         }
         for current in &mut state.states {
             current.next_layer += 1;
