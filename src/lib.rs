@@ -257,3 +257,7 @@ pub mod ops_decode32_output;
 pub mod ops_b16_attention_output;
 pub mod ops_group_ffn_epilogue;
 pub mod ops_native_fp8_p512_core_globals;
+
+pub mod ops_ffn_projection_clusters;
+pub mod ops_ffn_projection_join;
+pub mod ops_group_ffn_projection;
