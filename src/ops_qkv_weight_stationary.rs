@@ -6,7 +6,7 @@ use crate::{Chip,axes::{P128,H,Qs,Ps}};
 axes![OutputHalf=2, OutputGroup=256, Joined=16, HBlock=4, H960=960];
 type Cluster=m![OutputHalf];
 type Parts=m![OutputGroup];
-type InputParts=m![HBlock,H960/16 #64];
+type InputParts=m![HBlock,H960/32 #64];
 type StoreParts=m![OutputGroup/8,P128/32,1#2];
 pub type QueryOutput=m![P128/64,OutputHalf,OutputGroup/8,P128%64,OutputGroup%8,Joined=8];
 pub type KeyOutput=m![P128/64,OutputHalf,OutputGroup/8,P128%64,OutputGroup%8,Joined=4];
@@ -19,7 +19,7 @@ fn one(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![P128,H]>,
     kout:&mut HbmTensor<bf16,Chip,KeyOutput>,
     vout:&mut HbmTensor<bf16,Chip,KeyOutput>) {
     let input:HbmTensorView<'_,f8e4m3,Chip,m![P128,HBlock,H960]>=unsafe{input.view().reshape()};
-    let input:DmTensor<f8e4m3,Chip,Cluster,InputParts,m![P128,H960%16]>=input.to_dm(&mut device.tdma);
+    let input:DmTensor<f8e4m3,Chip,Cluster,InputParts,m![P128,H960%32]>=input.to_dm(&mut device.tdma);
     let xs:DmTensor<f32,Chip,Cluster,Parts,m![P128,1#8]>=xscale.to_dm(&mut device.tdma);
     let xs:DmTensor<f32,Chip,Cluster,Parts,m![P128]>=device.sub.begin(xs.view())
         .fetch::<m![P128],m![1#8]>().collect::<m![P128],m![1#8]>()
@@ -27,8 +27,8 @@ fn one(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,m![P128,H]>,
     let xs:VrfTensor<f32,Chip,Cluster,Parts,m![P128]>=device.sub.begin(xs.view())
         .fetch::<m![P128/8],m![P128%8]>().collect::<m![P128/8],m![P128%8]>().to_vrf();
     let partial:DmTensor<f32,Chip,Cluster,Parts,m![P128,Joined/8,HBlock,Joined%8]>=device.main
-        .begin(input.view()).fetch::<m![P128],m![H960%16]>()
-        .switch::<Parts,m![P128,HBlock,H960/16]>(SwitchConfig::CustomBroadcast{ring_size:256})
+        .begin(input.view()).fetch::<m![P128],m![H960%32]>()
+        .switch::<Parts,m![P128,HBlock,H960/32]>(SwitchConfig::CustomBroadcast{ring_size:256})
         .collect::<m![P128,HBlock,H960/32],m![H960%32]>()
         .contract_outer::<m![P128,Joined/8,HBlock,H960/64],m![H960%64],_,_,_>(weight)
         .contract_packet::<m![1]>().contract_time::<m![P128,Joined/8,HBlock]>()
