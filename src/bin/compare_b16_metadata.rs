@@ -4,6 +4,7 @@ use furiosa_opt_std::prelude::*;
 use std::{time::Instant,collections::HashSet};
 use rand::{SeedableRng,rngs::StdRng};
 use furiosa_opt_gemma4::host::sampling::{sample,SamplingConfig};
+use furiosa_opt_gemma4::host::{greedy::GreedySelector,b16_metadata_diagnostic::collect_retained};
 type Result<T>=std::result::Result<T,Box<dyn std::error::Error>>;
 fn input(request:usize,position:usize,logits:bool)->Input<'static>{Input{token:2+(request*313+position*37)%8000,soft:None,logits,image:None,audio:None}}
 async fn raw(d:&mut Device,x:&Logits)->Result<Vec<u16>>{
@@ -28,6 +29,7 @@ async fn main()->Result<()>{
  let weights=load::load_weights(&mut d).await?;
  let mut ws=Workspace::new_canonical64(&mut d,&weights,2048,64).await?;
  let mut model=Model::new(&mut d,weights,&mut ws).await?;model.prepare_group_scratch(&mut d).await?;
+ let mut selector=GreedySelector::new(&mut d).await?;
  let mut expected:Vec<Vec<Vec<u16>>>=Vec::new();let mut checked=0usize;
  let mut reservations:Vec<Vec<Blocks>>=Vec::new();
  let mut prompt_expected=Vec::new();
@@ -70,9 +72,10 @@ async fn main()->Result<()>{
    let ins:Vec<_>=chosen.iter().map(|&r|[input(r,positions[r],true)]).collect();
    let seq:Vec<_>=chosen.iter().enumerate().map(|(i,&r)|Sequence{inputs:&ins[i],start_position:positions[r],blocks:&blocks[r]}).collect();
    model.set_decode_blocked_output(step!=8); // This B16 step tests canonical-output fallback, then step9 re-enters fused blocked mode.
-   model.begin_stage_profile();let start=Instant::now();let out=model.forward_sequences(&mut d,&seq,&mut ws).await?;
-   let model_ms=start.elapsed().as_secs_f64()*1000.0;let mut found=Vec::new();
-   for(i,x)in out.iter().enumerate(){let values=raw(&mut d,x).await?;if pass==1{check(pass,step,chosen[i],&expected[step][i],&values);sampling_check(step,chosen[i],&expected[step][i],&values);checked+=values.len();}found.push(values);}
+   model.begin_stage_profile();let start=Instant::now();let out=model.forward_outputs(&mut d,&seq,&mut ws).await?;
+   let model_ms=start.elapsed().as_secs_f64()*1000.0;
+   let found=collect_retained(&mut d,&mut selector,out,chosen.len(),if step==2 {2}else{0}).await?;
+   for(i,values)in found.iter().enumerate(){if pass==1{check(pass,step,chosen[i],&expected[step][i],values);sampling_check(step,chosen[i],&expected[step][i],values);checked+=values.len();}}
    if pass==0{expected.push(found);}
    println!("B16_METADATA_STEP pass={pass} compact_metadata={} step={step} live={} model_ms={model_ms:.3} logits_bitdiff=0",pass==1,chosen.len());
    for stage in model.take_stage_profile(){println!("B16_METADATA_STAGE pass={pass} step={step} stage={} calls={} total_ms={:.6}",stage.stage,stage.calls,stage.milliseconds);}
@@ -91,7 +94,7 @@ async fn main()->Result<()>{
   println!("B16_METADATA_CACHE owner={owner} bf16_values={values} bitdiff=0");
  }
  let prompt_values=model.compare_canonical_kv(&mut d,&ws,&prompt_blocks[0],&prompt_blocks[1]).await?;println!("B16_METADATA_PROMPT_CACHE bf16_values={prompt_values} bitdiff=0");
- println!("PASS B16 compact metadata actual model checked={checked} BF16logits;scalar width1, B16 widths2/8/10/16 and R64 width17;512-token histories,physical pool remap,full-page transition,position0 reuse,48 active-P128 quanta, canonical-output fallback and31-token prompt reuse;CPU greedy and seeded stochastic parity;elapsed_s={:.3};timing diagnostic not HTTP/SLO",started.elapsed().as_secs_f64());Ok(())
+ println!("PASS B16 compact metadata actual model checked={checked} BF16logits;scalar width1, B16 widths2/8/10/16 and R64 width17;512-token histories,physical pool remap,full-page transition,position0 reuse,48 active-P128 quanta, canonical-output fallback and31-token prompt reuse;retained native outputs,device greedy/all-banned/None policies and seeded stochastic parity;elapsed_s={:.3};timing diagnostic not HTTP/SLO",started.elapsed().as_secs_f64());Ok(())
 }
 
 fn sampling_check(step:usize,request:usize,a:&[u16],b:&[u16]) {
