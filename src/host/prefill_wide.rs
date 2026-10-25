@@ -8,6 +8,7 @@ use crate::ops_prefill_tiles as tiles;
 pub(crate) mod group;
 
 pub(crate) struct WidePrefill {
+    e4_capture:Option<crate::host::kv_e4::Captured128>,
     qkv_input: HbmTensor<f8e4m3, Chip, m![P128, H]>,
     qkv_scale: HbmTensor<f32, Chip, m![P128, 1 # 8]>,
     x: HbmTensor<bf16, Chip, m![P128, H]>,
@@ -46,6 +47,7 @@ pub(crate) struct PreparedWide {
 }
 /// Metadata is created only for128live rows, so production commits never write padding.
 struct NativeMetadata {
+    e4:Option<crate::host::kv_e4::Commit128>,
     rope_s: HbmTensor<i32, Chip, m![P128]>,
     rope_f: HbmTensor<i32, Chip, m![P128]>,
     old_mask: HbmTensor<f32, Chip, m![P128, Ts]>,
@@ -66,6 +68,7 @@ impl NativeMetadata {
             };
         }
         Ok(Self {
+            e4:if cfg!(feature="kv-e4-quality") {if let Some(b)=blocks{Some(crate::host::kv_e4::Commit128::new(device,b.sliding,start).await?)}else{None}}else{None},
             rope_s: ints!(|row| ((start + row) * Ds::SIZE * 2) as i32),
             rope_f: ints!(|row| ((start + row) * Df::SIZE * 2) as i32),
             sliding_offsets: ints!(
@@ -113,6 +116,7 @@ impl WidePrefill {
             );
         }
         Ok(Self {
+            e4_capture:if cfg!(feature="kv-e4-quality"){Some(crate::host::kv_e4::Captured128::new(device).await?)}else{None},
             qkv_input: HostTensor::<f8e4m3, m![P128,H]>::zero().to_hbm(&mut device.pdma).await?,
             qkv_scale: HostTensor::<f32, m![P128,1#8]>::zero().to_hbm(&mut device.pdma).await?,
             x: zero!(m![P128, H]),
@@ -554,8 +558,18 @@ impl WidePrefill {
                 ),
             )
             .await?;
+            #[cfg(feature = "kv-e4-quality")]
+            if !ws.is_e4(){launch(crate::ops_kv_e4::roundtrip_p128,(device,&mut self.head_k_s,&mut self.head_v_s)).await?;}
+
             scratch.record_optional_profile("wide.sliding.heads", &mut mark);
-            if ws.is_canonical() {
+            if let runtime::KvCache::SlidingE4(pool)=&mut ws.kv_cache[index] {
+                let capture=self.e4_capture.as_mut().expect("E4 P128 capture");
+                capture.capture(device,&mut self.head_k_s,&mut self.head_v_s).await?;
+                let ring_scratch=ws.e4_ring.as_mut().expect("E4 ring scratch");
+                pool.read_ring(device,&ws.e4_data_bases[ring],&ws.e4_scale_bases[ring],ring_scratch).await?;
+                launch(crate::ops_sliding_wide::sliding_attention_p128,(device,&self.head_q_s,&ring_scratch.k,&ring_scratch.v,&self.head_k_s,&self.head_v_s,&meta.old_mask,&meta.chunk_mask,&mut self.attn_s)).await?;
+                meta.e4.as_ref().expect("E4 P128 metadata").commit(device,capture,pool).await?;
+            } else if ws.is_canonical() {
                 let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else { unreachable!() };
             // All queries use the immutable old ring; committing sooner evicts keys
             // still needed by earlier rows when the128-token chunk wraps the ring.
@@ -645,8 +659,18 @@ impl WidePrefill {
                     ),
                 )
                 .await?;
+                #[cfg(feature = "kv-e4-quality")]
+                if !ws.is_e4(){launch(crate::ops_kv_e4::roundtrip_b16,(device,&mut scratch.k_s,&mut scratch.v_s)).await?;}
+
             scratch.record_optional_profile("wide.sliding.heads", &mut mark);
-                if ws.is_canonical() {
+                if let runtime::KvCache::SlidingE4(pool)=&mut ws.kv_cache[index] {
+                    let capture=scratch.e4_capture.as_mut().expect("E4 B16 capture");
+                    capture.capture(device,&mut scratch.k_s,&mut scratch.v_s).await?;
+                    let ring_scratch=ws.e4_ring.as_mut().expect("E4 ring scratch");
+                    pool.read_ring(device,&ws.e4_data_bases[ring],&ws.e4_scale_bases[ring],ring_scratch).await?;
+                    launch(crate::ops_sliding_prompt_clusters::sliding_attention_b16,(device,&scratch.q_s,&ring_scratch.k,&ring_scratch.v,&scratch.k_s,&scratch.v_s,&segment.old_mask,&segment.chunk_mask,&mut scratch.attn_s)).await?;
+                    segment.commits.e4.as_ref().expect("E4 B16 metadata").commit(device,capture,pool).await?;
+                } else if ws.is_canonical() {
                     let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
                         unreachable!()
                     };

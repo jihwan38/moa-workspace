@@ -1,0 +1,202 @@
+warning: unused import: `ops_batch`
+  --> src/host/prefill.rs:12:40
+   |
+12 |     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
+   |                                        ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Replicated`, `Slice`, and `self`
+ --> src/ops_cache_pools_e4.rs:5:34
+  |
+5 | use crate::device_e154::layout::{self, Cluster, Replicated, Slice};
+  |                                  ^^^^           ^^^^^^^^^^  ^^^^^
+
+warning: unused import: `full`
+ --> src/ops_cache_pools_e4.rs:6:26
+  |
+6 | use crate::device_e154::{full, shared, sliding};
+  |                          ^^^^
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `project_output` is never used
+   --> src/device/sliding/projection.rs:178:15
+    |
+178 | pub(crate) fn project_output(
+    |               ^^^^^^^^^^^^^^
+
+warning: type alias `HiddenRows` is never used
+   --> src/device/sliding/projection.rs:198:6
+    |
+198 | type HiddenRows = m![H / 120, 1 # 8];
+    |      ^^^^^^^^^^
+
+warning: function `output_partial` is never used
+   --> src/device/sliding/projection.rs:200:4
+    |
+200 | fn output_partial(
+    |    ^^^^^^^^^^^^^^
+
+warning: function `add_partials` is never used
+   --> src/device/sliding/projection.rs:241:4
+    |
+241 | fn add_partials(
+    |    ^^^^^^^^^^^^
+
+warning: function `apply_output_channel_scale` is never used
+   --> src/device/sliding/projection.rs:268:4
+    |
+268 | fn apply_output_channel_scale(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `feedforward` is never used
+   --> src/device_e154/shared/mlp.rs:537:15
+    |
+537 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `prepare_ffn_fp8_split` is never used
+   --> src/device_e154/shared/mlp.rs:629:15
+    |
+629 | pub(crate) fn prepare_ffn_fp8_split(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device_e154/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_vision` is never used
+  --> src/device_e154/shared/residual.rs:86:15
+   |
+86 | pub(crate) fn add_vision<Cluster: M, Slice: M>(
+   |               ^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device_e154/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_r64_sharded.rs:47:4
+   |
+47 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_sharded.rs:48:4
+   |
+48 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_local_reuse.rs:48:4
+   |
+48 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_r64_local_reuse.rs:47:4
+   |
+47 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: `furiosa-opt-gemma4` (lib) generated 20 warnings (run `cargo fix --lib -p furiosa-opt-gemma4` to apply 5 suggestions)
+    Checking furiosa-opt-gemma4 v0.1.0 (/round2/kv-pool)
+warning: unused imports: `ops_pool_views::Rc64` and `ops_request_sliding_r64 as exact`
+ --> src/bin/test_kv_e4_pool.rs:6:49
+  |
+6 |     Chip, axes::*, ops, ops_kv_e4_pool as pool, ops_pool_views::Rc64,
+  |                                                 ^^^^^^^^^^^^^^^^^^^^
+7 |     ops_request_sliding_b16_e4 as attention, ops_request_sliding_r64 as exact,
+  |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `POS` is never used
+  --> src/bin/test_kv_e4_pool.rs:13:7
+   |
+13 | const POS: [usize; 16] = [
+   |       ^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `position` is never used
+  --> src/bin/test_kv_e4_pool.rs:16:4
+   |
+16 | fn position(r: usize) -> usize {
+   |    ^^^^^^^^
+
+warning: function `slot` is never used
+  --> src/bin/test_kv_e4_pool.rs:19:4
+   |
+19 | fn slot(r: usize) -> usize {
+   |    ^^^^
+
+warning: function `ring` is never used
+  --> src/bin/test_kv_e4_pool.rs:38:4
+   |
+38 | fn ring(r: usize, is_v: bool) -> Vec<f32> {
+   |    ^^^^
+
+warning: function `nearest_e4` is never used
+  --> src/bin/test_kv_e4_pool.rs:89:4
+   |
+89 | fn nearest_e4(x: f32) -> u8 {
+   |    ^^^^^^^^^^
+
+warning: function `check_cpu_quantizer` is never used
+   --> src/bin/test_kv_e4_pool.rs:102:4
+    |
+102 | fn check_cpu_quantizer() {
+    |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `read` is never used
+   --> src/bin/test_kv_e4_pool.rs:187:10
+    |
+187 | async fn read<Mp: M>(d: &mut Device, x: &HbmTensor<bf16, Chip, Mp>) -> Vec<f32> {
+    |          ^^^^
+
+warning: struct `Collector` is never constructed
+ --> src/bin/support/npu_profile.rs:4:12
+  |
+4 | pub struct Collector { enabled:Arc<AtomicBool>, next:Arc<AtomicU64> }
+  |            ^^^^^^^^^
+
+warning: method `enable` is never used
+ --> src/bin/support/npu_profile.rs:5:25
+  |
+5 | impl Collector { pub fn enable(&self, enabled:bool) {self.enabled.store(enabled,Ordering::Relaxed);} }
+  | --------------          ^^^^^^
+  | |
+  | method in this implementation
+
+warning: struct `Fields` is never constructed
+ --> src/bin/support/npu_profile.rs:7:8
+  |
+7 | struct Fields(serde_json::Map<String,serde_json::Value>);
+  |        ^^^^^^
+
+warning: `furiosa-opt-gemma4` (bin "test_kv_e4_pool") generated 11 warnings (run `cargo fix --bin "test_kv_e4_pool" -p furiosa-opt-gemma4` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.54s

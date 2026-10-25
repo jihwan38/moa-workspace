@@ -20,3 +20,5 @@ pub(crate) mod decode_r64;
 pub(crate) mod request_pool_r64;
 
 pub mod greedy;
+
+pub(crate) mod kv_e4;

@@ -15,6 +15,7 @@ use crate::{
 use furiosa_opt_std::prelude::*;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 pub(crate) struct Decode64 {
+    e4_capture:Option<super::kv_e4::Captured16>,
     k_tile_s: HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     v_tile_s: HbmTensor<bf16, Chip, m![B, Ns, Ds]>,
     k_tile_f: HbmTensor<bf16, Chip, m![B, Df]>,
@@ -107,6 +108,7 @@ impl Decode64 {
             );
         }
         Ok(Self {
+            e4_capture:if cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Captured16::new(device).await?)}else{None},
             k_tile_s: zero!(bf16, m![B, Ns, Ds]),
             v_tile_s: zero!(bf16, m![B, Ns, Ds]),
             k_tile_f: zero!(bf16, m![B, Df]),
@@ -324,7 +326,30 @@ impl Decode64 {
             ),
         )
         .await?;
+        #[cfg(feature = "kv-e4-quality")]
+        if !ws.is_e4(){launch(crate::ops_kv_e4::roundtrip_r64,(device,&mut self.k_s,&mut self.v_s)).await?;}
+
         self.record_profile("r64.sliding.heads_rope", &mut profile_mark);
+        if let runtime::KvCache::SlidingE4(pool)=&mut ws.kv_cache[index] {
+            let e4=metadata.e4.as_ref().expect("E4 R64 metadata");
+            if metadata.live==64 {
+                launch(crate::ops_kv_e4::quantize_commit_r64,(device,&self.k_s,&self.v_s,&e4.data,&e4.scale,&mut pool.k,&mut pool.v,&mut pool.ks,&mut pool.vs)).await?;
+            } else {
+                for (tile,commit_e4) in e4.commits.iter().enumerate() {
+                    launch(commit::load_sliding_kv_tile,(device,&self.k_s,&self.v_s,&self.tile_indices[tile],&mut self.k_tile_s,&mut self.v_tile_s)).await?;
+                    let capture=self.e4_capture.as_mut().expect("E4 live-prefix capture");
+                    capture.capture(device,&mut self.k_tile_s,&mut self.v_tile_s).await?;
+                    commit_e4.commit(device,capture,pool).await?;
+                }
+            }
+            if metadata.sliding_short_groups==255 {
+                launch(crate::ops_request_sliding_r64_fp8_mixed512::sliding_attention_prefix512_r64,(device,&self.q_s,&pool.k,&pool.ks,&pool.v,&pool.vs,&e4.ring_data,&e4.ring_scale,&metadata.sliding_mask,&mut self.attn_s)).await?;
+            } else if let Some(policy)=&metadata.sliding_group_policy {
+                launch(crate::ops_request_sliding_r64_fp8_mixed512::sliding_attention_r64,(device,&self.q_s,&pool.k,&pool.ks,&pool.v,&pool.vs,&e4.ring_data,&e4.ring_scale,&metadata.sliding_mask,policy,&mut self.attn_s)).await?;
+            } else {
+                launch(crate::ops_request_sliding_r64_fp8_mixed512::sliding_attention_full_r64,(device,&self.q_s,&pool.k,&pool.ks,&pool.v,&pool.vs,&e4.ring_data,&e4.ring_scale,&metadata.sliding_mask,&mut self.attn_s)).await?;
+            }
+        } else {
         let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
             return Err("sliding layer has wrong pool kind".into());
         };
@@ -372,6 +397,7 @@ impl Decode64 {
             ),
         )
         .await?;
+        }
         }
         self.record_profile("r64.sliding.attention", &mut profile_mark);
         launch(

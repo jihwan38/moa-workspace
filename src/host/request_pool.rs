@@ -230,6 +230,7 @@ pub(crate) struct FullPage {
     pub active: HbmTensor<f32, Chip, m![B,1 # 8]>,
 }
 pub(crate) struct PooledStep {
+    pub e4:Option<super::kv_e4::Step16>,
     pub ring_offsets: HbmTensor<i32, Chip, m![B]>,
     pub sliding_mask: HbmTensor<f32, Chip, m![B, Ts]>,
     pub pages: Vec<FullPage>,
@@ -269,6 +270,7 @@ impl PooledStep {
             });
         }
         Ok(Self {
+            e4:if cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Step16::new(device,sequences).await?)}else{None},
             ring_offsets,
             sliding_mask,
             pages,

@@ -48,6 +48,7 @@ pub(crate) struct PreparedNarrow {
 }
 
 pub(crate) struct Prefill {
+    e4_capture:Option<super::kv_e4::Captured16>,
     profile: Option<std::collections::BTreeMap<&'static str, (usize, std::time::Duration)>>,
     logits_batch: HbmTensor<bf16, Chip, m![B, W]>,
     decode_q_f: HbmTensor<bf16, Chip, m![Gf, Df]>,
@@ -128,6 +129,7 @@ impl Prefill {
         }
         Ok(Self {
             profile: None,
+            e4_capture:if cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Captured16::new(device).await?)}else{None},
             logits_batch: zero!(bf16, m![B, W]),
             decode_q_f: zero!(bf16, m![Gf, Df]),
             decode_max_f: zero!(f32, m![Gf]),
@@ -444,8 +446,18 @@ impl Prefill {
             ),
         )
         .await?;
+        #[cfg(feature = "kv-e4-quality")]
+        if !ws.is_e4() { launch(crate::ops_kv_e4::roundtrip_b16,(device,&mut self.k_s,&mut self.v_s)).await?; }
+
         self.record_profile("sliding.heads_rope", &mut profile_mark);
-        if ws.is_canonical() {
+        if let runtime::KvCache::SlidingE4(pool)=&mut ws.kv_cache[index] {
+            let capture=self.e4_capture.as_mut().expect("E4 capture scratch");
+            capture.capture(device,&mut self.k_s,&mut self.v_s).await?;
+            let scratch=ws.e4_ring.as_mut().expect("E4 ring scratch");
+            pool.read_ring(device,&ws.e4_data_bases[ring],&ws.e4_scale_bases[ring],scratch).await?;
+            launch(crate::ops_sliding_prompt_clusters::sliding_attention_b16,(device,&self.q_s,&scratch.k,&scratch.v,&self.k_s,&self.v_s,old_mask,chunk_mask,&mut self.attn_s)).await?;
+            commits.e4.as_ref().expect("E4 prompt metadata").commit(device,capture,pool).await?;
+        } else if ws.is_canonical() {
             let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
                 unreachable!()
             };
@@ -784,7 +796,7 @@ impl Prefill {
     }
 }
 
-enum CommitOffsets {
+enum CommitShape {
     V1 {
         sliding: HbmTensor<i32, Chip, m![B = 1]>,
         full: HbmTensor<i32, Chip, m![B = 1]>,
@@ -850,7 +862,7 @@ enum CommitOffsets {
         full: HbmTensor<i32, Chip, m![B = 16]>,
     },
 }
-impl CommitOffsets {
+impl CommitShape {
     async fn new(
         device: &mut Device,
         start: usize,
@@ -1466,4 +1478,17 @@ impl CommitOffsets {
         }
         Ok(())
     }
+}
+
+struct CommitOffsets { original:CommitShape,e4:Option<super::kv_e4::Commit16> }
+impl CommitOffsets {
+ async fn new(device:&mut Device,start:usize,count:usize,blocks:Option<&runtime::Blocks>)->Result<Self>{
+  let original=CommitShape::new(device,start,count,blocks).await?;
+  let e4=if cfg!(feature="kv-e4-quality") {if let Some(b)=blocks{Some(super::kv_e4::Commit16::prompt(device,b.sliding,start,count).await?)}else{None}}else{None};
+  Ok(Self{original,e4})
+ }
+ async fn sliding(&self,device:&mut Device,k:&HbmTensor<bf16,Chip,m![B,Ns,Ds]>,v:&HbmTensor<bf16,Chip,m![B,Ns,Ds]>,ck:&mut HbmTensor<bf16,Chip,m![Ts,Ns,Ds]>,cv:&mut HbmTensor<bf16,Chip,m![Ts,Ns,Ds]>)->Result<()>{self.original.sliding(device,k,v,ck,cv).await}
+ async fn full(&self,device:&mut Device,k:&HbmTensor<bf16,Chip,m![B,Df]>,v:&HbmTensor<bf16,Chip,m![B,Df]>,ck:&mut HbmTensor<bf16,Chip,m![Tf,Df]>,cv:&mut HbmTensor<bf16,Chip,m![Tf,Df]>)->Result<()>{self.original.full(device,k,v,ck,cv).await}
+ async fn sliding_pool(&self,device:&mut Device,k:&HbmTensor<bf16,Chip,m![B,Ns,Ds]>,v:&HbmTensor<bf16,Chip,m![B,Ns,Ds]>,ck:&mut HbmTensor<bf16,Chip,m![Rc64,Ts,Ns,Ds]>,cv:&mut HbmTensor<bf16,Chip,m![Rc64,Ts,Ns,Ds]>)->Result<()>{self.original.sliding_pool(device,k,v,ck,cv).await}
+ async fn full_pool(&self,device:&mut Device,k:&HbmTensor<bf16,Chip,m![B,Df]>,v:&HbmTensor<bf16,Chip,m![B,Df]>,ck:&mut HbmTensor<bf16,Chip,m![Fc,Tf,Df]>,cv:&mut HbmTensor<bf16,Chip,m![Fc,Tf,Df]>)->Result<()>{self.original.full_pool(device,k,v,ck,cv).await}
 }

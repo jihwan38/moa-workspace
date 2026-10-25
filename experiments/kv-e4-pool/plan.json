@@ -1,0 +1,15 @@
+{
+  "base": "3dad632 + f079566 (quality feature, same c025 arithmetic)",
+  "quality_source": "c9c0ea6, six public examples passed54 repeated requests",
+  "change": "Rc64 canonical sliding storage becomes sole E4 data plus head-major replicated F32 scales. Full cache remains BF16. Capture prompt E4/scales once before attention, retain exact bytes for post-attention commit.",
+  "control": "Sequential fresh canonical BF16-roundtrip and E4 model passes under kv-e4-quality, identical schedule and all logits compared exactly. Drop first Model+Workspace before second allocation, avoiding memory overlap and LM routing mismatch.",
+  "initial_fallback": "Only selected request/current-layer ring dequantized into one shared8MiB BF16 scratch for scalar/B16/P128 prompt attention. No whole-pool copies or duplicate20GiB sliding cache. Direct E4 independent B16/R64 attention.",
+  "gates": [
+    "device bytes and live-prefix/neighbor preservation for retained capture+commit",
+    "same current-chunk BF16 roundtrip as proven quality codec",
+    "all-logit same-schedule fresh-history model transitions and ring resets exact",
+    "actual throughput including known all-short E4 regression",
+    "later private quality and official evaluation remain separate"
+  ],
+  "scope": "isolated branch, Rc64 only; no root host edits"
+}

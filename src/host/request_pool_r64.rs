@@ -12,6 +12,7 @@ pub(crate) struct FullPage {
     pub active: HbmTensor<f32, Chip, m![R64,1#8]>,
 }
 pub(crate) struct Step64 {
+    pub e4:Option<super::kv_e4::Step64>,
     pub ring_offsets: HbmTensor<i32, Chip, m![R64]>,
     pub sliding_mask: HbmTensor<f32, Chip, m![R64, Ts]>,
     pub pages: Vec<FullPage>,
@@ -94,6 +95,7 @@ impl Step64 {
             None
         };
         Ok(Self {
+            e4:if cfg!(feature="kv-e4-quality"){Some(super::kv_e4::Step64::new(device,sequences).await?)}else{None},
             ring_offsets,
             sliding_mask,
             pages,

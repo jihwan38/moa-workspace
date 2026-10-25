@@ -251,8 +251,18 @@ impl Prefill {
             ),
         )
         .await?;
+        #[cfg(feature = "kv-e4-quality")]
+        if !ws.is_e4(){launch(crate::ops_kv_e4::roundtrip_b16,(device,&mut self.k_s,&mut self.v_s)).await?;}
+
         self.record_profile("sliding.heads_rope", &mut profile_mark);
-        if ws.is_canonical() {
+        if let runtime::KvCache::SlidingE4(pool)=&mut ws.kv_cache[index] {
+            let metadata=pooled.ok_or("E4 decode requires independent rows")?;
+            let e4=metadata.e4.as_ref().expect("E4 decode metadata");
+            let capture=self.e4_capture.as_mut().expect("E4 B16 capture");
+            capture.capture(device,&mut self.k_s,&mut self.v_s).await?;
+            e4.commits[0].commit(device,capture,pool).await?;
+            launch(crate::ops_request_sliding_b16_e4::sliding_attention_b16,(device,&self.q_s,&pool.k,&pool.ks,&pool.v,&pool.vs,&e4.ring_data,&e4.ring_scale,&metadata.sliding_mask,&mut self.attn_s)).await?;
+        } else if ws.is_canonical() {
             let metadata = pooled.ok_or("canonical decode requires independent rows")?;
             let runtime::KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[index] else {
                 return Err("sliding layer has wrong pool kind".into());

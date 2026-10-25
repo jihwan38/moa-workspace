@@ -115,6 +115,7 @@ pub async fn encode_audio_frame(
 }
 
 pub(crate) enum KvCache {
+    SlidingE4(super::kv_e4::Pool),
     /// Canonical request slots: every execution path reads/writes this allocation.
     SlidingCanonical {
         k: HbmTensor<bf16, Chip, m![Rc64, Ts, Ns, Ds]>,
@@ -172,6 +173,11 @@ pub struct Blocks {
 }
 
 pub struct Workspace {
+    pub(crate) e4_ring: Option<super::kv_e4::Ring>,
+    pub(crate) e4_data_bases: Vec<HbmTensor<i32,Chip,m![1]>>,
+    pub(crate) e4_scale_bases: Vec<HbmTensor<i32,Chip,m![1]>>,
+    e4_token_data: HbmTensor<i32,Chip,m![1]>,
+    e4_token_scales: HbmTensor<i32,Chip,m![Ns]>,
     pub(crate) request_pool: Option<super::request_pool::RequestPool>,
     pub(crate) cos_s: HbmTensor<bf16, Chip, m![E, Ds]>,
     pub(crate) sin_s: HbmTensor<bf16, Chip, m![E, Ds]>,
@@ -209,6 +215,8 @@ impl Workspace {
         Ok(())
     }
 
+    pub(crate) fn is_e4(&self)->bool { self.e4_ring.is_some() }
+
     pub(crate) fn is_canonical(&self) -> bool {
         self.canonical
     }
@@ -239,7 +247,7 @@ impl Workspace {
         capacity: usize,
         requests: usize,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::new_storage(device, weights, capacity, requests, false, true).await
+        Self::new_storage(device, weights, capacity, requests, false, true, false).await
     }
 
     /// Diagnostic control with ordinary per-request KV and no duplicate pooled mirror.
@@ -249,7 +257,7 @@ impl Workspace {
         capacity: usize,
         requests: usize,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::new_storage(device, weights, capacity, requests, false, false).await
+        Self::new_storage(device, weights, capacity, requests, false, false, false).await
     }
 
     /// One canonical Rc64/Fc256 allocation per layer. Admission must reserve a
@@ -260,7 +268,14 @@ impl Workspace {
         capacity: usize,
         requests: usize,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::new_storage(device, weights, capacity, requests, true, false).await
+        Self::new_storage(device, weights, capacity, requests, true, false, false).await
+    }
+
+    /// Isolated E4 storage candidate; the feature also enables the same numerical
+    /// codec in BF16 reference workspaces for exact storage-transition comparisons.
+    pub async fn new_canonical64_e4(device:&mut Device,weights:&Weights,capacity:usize,requests:usize)->Result<Self,Box<dyn std::error::Error>> {
+        if !cfg!(feature="kv-e4-quality") { return Err("E4 workspace requires kv-e4-quality".into()); }
+        Self::new_storage(device,weights,capacity,requests,true,false,true).await
     }
 
     async fn new_storage(
@@ -270,6 +285,7 @@ impl Workspace {
         requests: usize,
         canonical: bool,
         mirror_pool: bool,
+        e4: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         if requests == 0 || !(1..=E::SIZE).contains(&capacity) {
             return Err(format!("need at least one request and 1..={} positions", E::SIZE).into());
@@ -297,6 +313,7 @@ impl Workspace {
         let mut kv_cache = Vec::with_capacity(weights.layers.len());
         for layer in &weights.layers {
             let cache = match (layer, canonical) {
+                (Layer::Sliding(_),true) if e4 => KvCache::SlidingE4(super::kv_e4::Pool::new(device).await?),
                 (Layer::Sliding(_), true) => KvCache::SlidingCanonical {
                     k: launch(crate::ops_zero_pool::zero_sliding_pool, &mut *device).await?,
                     v: launch(crate::ops_zero_pool::zero_sliding_pool, &mut *device).await?,
@@ -337,6 +354,14 @@ impl Workspace {
             }
         }
 
+        let mut e4_data_bases=Vec::new();let mut e4_scale_bases=Vec::new();
+        if e4 { for slot in 0..requests {
+            e4_data_bases.push(HostTensor::<i32,m![1]>::from_vec([(slot*Ts::SIZE*Ns::SIZE*Ds::SIZE)as i32]).to_hbm(&mut device.pdma).await?);
+            e4_scale_bases.push(HostTensor::<i32,m![1]>::from_vec([(slot*Ns::SIZE*Ts::SIZE*8*4)as i32]).to_hbm(&mut device.pdma).await?);
+        }}
+        let e4_ring=if e4 {Some(super::kv_e4::Ring::new(device).await?)}else{None};
+        let e4_token_data=zero_offset(device).await?;
+        let e4_token_scales=HostTensor::<i32,m![Ns]>::zero().to_hbm(&mut device.pdma).await?;
         let logits = HostTensor::<bf16, m![W]>::zero()
             .to_hbm(&mut device.pdma)
             .await?;
@@ -352,6 +377,7 @@ impl Workspace {
         };
 
         Ok(Self {
+            e4_ring,e4_data_bases,e4_scale_bases,e4_token_data,e4_token_scales,
             request_pool,
             cos_s,
             sin_s,
@@ -437,6 +463,12 @@ async fn set_position_offsets(
 
     ws.offset_rope_s = offset_rope_s.to_hbm(&mut device.pdma).await?;
     ws.offset_rope_f = offset_rope_f.to_hbm(&mut device.pdma).await?;
+    if ws.is_e4() {
+        let slot=ws.blocks.sliding;let t=pos%Ts::SIZE;
+        ws.e4_token_data=HostTensor::<i32,m![1]>::from_vec([((slot*Ts::SIZE+t)*Ns::SIZE*Ds::SIZE)as i32]).to_hbm(&mut device.pdma).await?;
+        ws.e4_token_scales=HostTensor::<i32,m![Ns]>::from_vec((0..Ns::SIZE).map(|h|(((slot*Ns::SIZE+h)*Ts::SIZE+t)*8*4)as i32)).to_hbm(&mut device.pdma).await?;
+    }
+
     Ok(())
 }
 
@@ -618,7 +650,17 @@ impl Decode {
     ) -> Result<(), Error> {
         let mask_row = pos.min(Ts::SIZE - 1);
         let ring = ws.blocks.sliding;
-        if ws.canonical {
+        if let KvCache::SlidingE4(pool)=&mut ws.kv_cache[layer_index] {
+            launch(crate::ops_cache_pools_e4::sliding_project_qkv,
+                (device,&self.x,&layer.q_weight,&layer.k_weight,&layer.v_weight,
+                 &layer.q_weight_scale,&layer.k_weight_scale,&layer.v_weight_scale,
+                 &layer.input_norm,&layer.q_norm,&layer.k_norm,
+                 &ws.e4_token_data,&ws.e4_token_scales,&ws.offset_rope_s,&ws.cos_s,&ws.sin_s,
+                 &mut pool.k,&mut pool.v,&mut pool.ks,&mut pool.vs,&mut self.q_s)).await?;
+            let scratch=ws.e4_ring.as_mut().expect("E4 ring scratch");
+            pool.read_ring(device,&ws.e4_data_bases[ring],&ws.e4_scale_bases[ring],scratch).await?;
+            launch(ops::sliding_attention,(device,&self.q_s,&scratch.k,&scratch.v,&ws.mask_s[mask_row],&mut self.attn_s)).await?;
+        } else if ws.canonical {
             let KvCache::SlidingCanonical { k, v } = &mut ws.kv_cache[layer_index] else {
                 unreachable!()
             };

@@ -1,0 +1,50 @@
+{
+  "r419-e4-pool-bytes-submit": {
+    "job": 318304,
+    "log": "/home/jihwan38/moa-worktrees/round2/runs/r419-e4-pool-bytes-submit/arena.log",
+    "log_sha256": "0722c1ee07cc252f192bb2c780e7a3523c58f18665df74509b4342f7e593e72b",
+    "pass_line": "PASS retained P128/B16 codec, non-idempotent quantization witness, all live1..16 commits, wrap, full-pool neighbors, scratch reconstruction and B16 reader; elapsed=1.157s"
+  },
+  "r420-e4-pool-model-submit": {
+    "job": 318305,
+    "log": "/home/jihwan38/moa-worktrees/round2/runs/r420-e4-pool-model-submit/arena.log",
+    "log_sha256": "ead9105a89633f770fe804c8d13c8b0ff757e61742a9664ea44979ddb1193b9d",
+    "pass_line": "PASS E4 sole-pool same-schedule model logits_exact=45350912; independentGroup/P128/Prompt512 wrap/partialWide17/B16/R64/scalar/reset64; elapsed=23.525s"
+  },
+  "source_commit": "67d586f62ce9ca89b505d8bb42f02b75ed2be205",
+  "build_features": [
+    "kv-e4-pool"
+  ],
+  "model": {
+    "exact_bf16_values": 45350912,
+    "logit_rows": 173,
+    "sequential_fresh_models": true,
+    "identical_dispatch_and_precision": true,
+    "covered": [
+      "independent GroupP128",
+      "native P128",
+      "Prompt512 at0 and896 with ring wrap",
+      "partial Wide17",
+      "B16 independent decode",
+      "R64 17 then7 then1 then17 regroup",
+      "forced scalar",
+      "append prompt after decode",
+      "reset64 and full64 live commit"
+    ],
+    "control_fill_6927_tokens_ms": 10869.562,
+    "candidate_fill_6927_tokens_ms": 10920.322,
+    "interpretation": "Storage representation parity, not official quality or throughput. Timings are one sequential diagnostic run and do not establish E2E speed."
+  },
+  "memory": {
+    "bf16_canonical_sliding_gib": 20,
+    "e4_canonical_sliding_gib": 11.25,
+    "full_cache_gib": 2,
+    "reconstruction_scratch_mib": 8,
+    "reduction_gib_before_small_captures": 8.7421875
+  },
+  "known_limits": [
+    "All-short E4 attention is slower than warm BF16 prefix kernel.",
+    "Prompt/scalar consumers temporarily reconstruct one old ring; removing that extra transfer is a separate experiment.",
+    "No public HTTP/SLO or official score measured for this sole-storage candidate."
+  ]
+}

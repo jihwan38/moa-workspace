@@ -1,0 +1,70 @@
+{
+  "base": "3dad632 + f079566",
+  "cargo_features": [
+    "kv-e4-pool"
+  ],
+  "implied_features": [
+    "kv-e4-quality"
+  ],
+  "checks": {
+    "default_server_check": "PASS",
+    "feature_server_check": "PASS",
+    "host_tests": "39 passed,0 failed",
+    "server_device_build": "PASS4m32s",
+    "two_probe_device_build": "PASS19.53s"
+  },
+  "binaries": {
+    "server": {
+      "path": "/round2/kv-pool/target/release/server",
+      "sha256": "b3175766b0bf20cf33fe2154384c9c887f7fdd94f280d915282d02c3257c9c5e"
+    },
+    "test_kv_e4_pool": {
+      "path": "/round2/kv-pool/target/release/test_kv_e4_pool",
+      "sha256": "0129f9b09ee9c7b952527df726830b4cd92939db9a04052a76f949c341c2cdb1"
+    },
+    "compare_kv_e4_storage": {
+      "path": "/round2/kv-pool/target/release/compare_kv_e4_storage",
+      "sha256": "cd44b895147c4e404baeaafc2e69819e7c7a9f39d1e4fa3db3097da4ecb6ec29"
+    }
+  },
+  "source_sha256": {
+    "Cargo.toml": "da0eb8b25784a6d0f0fcaae940c52d462440cd1e05933591b1685e1920902a1c",
+    "src/host/decode_r64.rs": "0bf1344ec3fb97466bdfadd8e9c1b8cc339ca5606dd90445ff9a213929030d0e",
+    "src/host/mod.rs": "aaceb498f65cb1de180921d647b8bbe66eef63936c7195ad7fdbcad68c55248a",
+    "src/host/prefill.rs": "c796155f6f992aef9cbd1878f41899ea892f85841ed6e4885ddb2affe96f3cf3",
+    "src/host/prefill_decode.rs": "5c5774f16872d65a199a5afe528ed810001f7f7217590cd80d42ec275c1a76c6",
+    "src/host/prefill_wide.rs": "db7c8ad790c2bbf7e390f17d008202a815f65805859e613b22c450a7f993c89a",
+    "src/host/request_pool.rs": "c7af95a3a7c8bce7f034946103c2334123d18bb034677c42c9b4c1aeac0266d3",
+    "src/host/request_pool_r64.rs": "871d0fb38657cf218e357eb9cd7ad922f49e1933b34ad3b1b681655a7edd23b3",
+    "src/host/runtime.rs": "f2fddabdb41c08dc24cc455c7a4d372ce0652f161762c432d836565e09bb5d12",
+    "src/host/worker.rs": "860ab8a6b0459778a255794bfeadba8ecc8f4d178ad6200b070738729a02a335",
+    "src/lib.rs": "f6aefbae5de386dcf6374e6953226af0707c50557e6934bee988d27becbcfaec",
+    "src/ops_kv_e4.rs": "5e1fb04417f407376088097e2995e9991d8d3d34844a3527894919eb799159a6",
+    "src/host/kv_e4.rs": "abc42ba737404e8477894fcc32a92ec977462dc37cd4a350e96e1f6da4b83327",
+    "src/ops_cache_pools_e4.rs": "ac6fceb9fcbd9bf48e20a24c4aebad45b638f37d57133808c50d7953a6a6f372",
+    "src/ops_kv_e4_pool.rs": "b465ca20b3c99b502d0d68a5d5b4688c6ca090ceb37998dcb26edd13a7e30987",
+    "src/ops_request_sliding_b16_e4.rs": "c99242cc032f809a798821853c7cb12356b0b9a14b5d5b36a2b50960a7157afc",
+    "src/ops_request_sliding_r64_fp8_mixed512.rs": "f653fd037e7a46707f75e8354909340646f5c193ad09b5eddbad772a89abd7b5",
+    "src/bin/test_kv_e4_pool.rs": "0e29654d35133117ff49521173cbf0f87491db16a3ea88616efe2d7d3e13a5a9",
+    "src/bin/compare_kv_e4_storage.rs": "e5fcc66839c64481bfa0159022f9f07f6d0fcb6f77214bded30c596354f8208f"
+  },
+  "commands": [
+    "cargo furiosa-opt build --release --features kv-e4-pool --bin server",
+    "cargo furiosa-opt build --release --features kv-e4-pool --bin test_kv_e4_pool --bin compare_kv_e4_storage"
+  ],
+  "independent_source_review": {
+    "reviewer": "/root/round2_path",
+    "result": "No concrete ownership/order blocker. Sole E4 pool replaces BF16 sliding canonical allocations; one shared Ring is allocated outside layer loop. Prompt capture/attend/commit ordering, scalar and independent decode commit-before-attention, live-prefix guards, no second quantization, group whole-layer yields, and active-allocation guard checked.",
+    "scope": "Source audit, not runtime proof."
+  },
+  "not_yet_verified": [
+    "new retained-capture/commit/reconstruction kernel byte gate",
+    "same-schedule whole-model E4 storage transition parity",
+    "actual E2E performance"
+  ],
+  "known_limits": [
+    "All-short E4 attention526-535us is slower than warm BF16 prefix471us.",
+    "Scalar and prompt paths temporarily reconstruct only one selected ring per layer; extra transfer cost must be measured.",
+    "The control and candidate model passes have identical dispatch/precision and execute sequentially to avoid exceeding HBM."
+  ]
+}

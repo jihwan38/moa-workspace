@@ -1,0 +1,24 @@
+{
+  "base": "3dad632",
+  "tested_source": "67d586f",
+  "feature_contract": {
+    "default": "BF16 storage, E4 codec disabled",
+    "kv-e4-quality": "BF16 storage with E4 roundtrip at every sliding producer",
+    "kv-e4-pool": "implies quality; canonical worker allocates sole E4 sliding storage; quality hooks skipped inside E4 workspace"
+  },
+  "source_groups": {
+    "Cargo.toml,src/lib.rs": "feature declarations and module exports",
+    "src/host/kv_e4.rs": "authoritative E4 pools, shared ring scratch, captures and exact byte-offset metadata",
+    "src/ops_kv_e4.rs,src/ops_kv_e4_pool.rs": "quantize/reconstruct helpers, zero pools, retained capture/commit and ring reconstruction",
+    "src/ops_cache_pools_e4.rs": "scalar E154 QKV with single post-RoPE quantization and canonical E4 commit",
+    "src/ops_request_sliding_b16_e4.rs,src/ops_request_sliding_r64_fp8_scales.rs,src/ops_request_sliding_r64_fp8_mixed512.rs": "direct independent-request E4 attention readers",
+    "src/host/runtime.rs": "sole allocation choice, one shared scratch, scalar routing",
+    "src/host/prefill.rs,src/host/prefill_wide.rs": "capture local K/V before attention, read old ring, then commit retained representation",
+    "src/host/prefill_decode.rs,src/host/decode_r64.rs": "live-prefix commits and direct E4 independent attention",
+    "src/host/request_pool.rs,src/host/request_pool_r64.rs": "per-step E4 addresses once",
+    "src/host/worker.rs": "only opt-in constructor selection; no scheduling changes",
+    "src/ops.rs,src/ops_cache_pools.rs": "quality-only scalar hooks from prior quality candidate",
+    "src/bin/test_kv_e4_pool.rs,src/bin/compare_kv_e4_storage.rs": "independent bytes plus strict matched-route whole-model gates"
+  },
+  "integration": "Export is a single squash atop3dad632, includes feature-dependent hooks and all required modules. Do not blindly overwrite host files: newer root O4/shared-QKV changes are independent continuation/projection edits."
+}
