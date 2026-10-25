@@ -68,10 +68,10 @@ fn recovery_staggered_receipts_never_rehold_and_prior_checkpoint_survives_compac
     let (mut b,b_rx)=session(pool.as_mut().unwrap(),1024,4);
     let (old,old_rx)=session(pool.as_mut().unwrap(),128,2);
     a.timing.received=start;b.timing.received=start+Duration::from_millis(1000);
-    let mut sessions=vec![a,b,old];
-    let old_ring=sessions[2].blocks.sliding;cohort_complete(&mut sessions,old_ring,3,&mut pool);
-    let first=cohort_work(&sessions[0]);let b_ring=sessions[1].blocks.sliding;
-    let b_blocks=sessions[1].blocks.clone();
+    let mut sessions=vec![old,a,b];
+    let old_ring=sessions[0].blocks.sliding;cohort_complete(&mut sessions,old_ring,3,&mut pool);
+    let first=cohort_work(&sessions[1]);let b_ring=sessions[2].blocks.sliding;
+    let b_blocks=sessions[2].blocks.clone();
     let mut cohort=StartupCohort::new(true);
     cohort.maybe_start(&mut sessions,&[first],start+Duration::from_millis(2000));
     cohort_complete(&mut sessions,first.ring,3,&mut pool);
@@ -105,7 +105,12 @@ fn recovery_staggered_receipts_never_rehold_and_prior_checkpoint_survives_compac
     let b=sessions.iter().find(|s|s.blocks.sliding==b_ring).unwrap();
     assert!(!b.delivery.held()&&cohort.allows(b));
     // An unrelated old decoder finishes, shifting Session indices under B's checkpoint.
+    let b_index_before=sessions.iter().position(|s|s.blocks.sliding==b_ring).unwrap();
+    assert_eq!(b_index_before,1);
     cohort_complete(&mut sessions,old_ring,4,&mut pool);
+    let b_index_after=sessions.iter().position(|s|s.blocks.sliding==b_ring).unwrap();
+    assert_eq!(b_index_after+1,b_index_before);
+    assert_eq!(b_index_after,0);
     assert!(matches!(old_rx.try_recv(),Ok(StreamEvent::Delta(t)) if t=="a"));
     assert!(matches!(old_rx.try_recv(),Ok(StreamEvent::Delta(t)) if t=="b"));
     assert!(matches!(old_rx.try_recv(),Ok(StreamEvent::Done(_))));
