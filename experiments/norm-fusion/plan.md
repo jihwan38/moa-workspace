@@ -43,3 +43,26 @@ a026 passed32.29s. The independent candidate-first poison oracle compares all
 1,966,080 bytes and512 live scales for3seeded/permuted groups; padded scalar
 lanes are explicitly skipped because their values have no contract. Complete
 8vs1-launch ABBA timing decides adoption. This second path has no NPU gate yet.
+
+## QKV ingress gate and isolated host integration
+
+Root Arena318707/r574 passed all512rows/scales and independent poison allocations
+for three seeded permutations. Complete original8-launch chain was about289–294us;
+fused1-launch path was53–76us. This validates the second exact fusion at kernel
+scope. No activation precision or RMS association changes were introduced.
+
+Host integration is isolated in norm-fusion-server, rooted at aef145a and updated
+with fad6054's exact full-QK ingress. PreparedGroup owns one fused_norms choice;
+normal constructors enable both proven fusions. Explicit original-norm diagnostic
+constructors retain the previous launch paths only for the just-prepared state.
+They perform normal allocation/alias checks and contain noawait after selecting
+that state. Cancellation retains the existing discard-Model/Workspace policy.
+
+compare_norm_fused compares original grouped Prompt512 versus fused grouped
+Prompt512 with disjoint canonical caches, reversed physical pages, optional
+48same-arithmetic R64 interleaves and four teacher-forced postprompt decode steps.
+Timing excludes host logit reads for both paths and records stage profiles.
+Existing compare_prompt_group also checks four independent request owners.
+Host tests before QKV call adoption passed62/62; final checks follow.
+
+Final combined host suite a029 passed62/62. a028 is preserved as an immediate unresolved-lib-export merge-marker failure before compilation; only both module exports were retained to repair it. No runtime behavior changed in that repair.

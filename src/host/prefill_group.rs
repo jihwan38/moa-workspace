@@ -248,13 +248,23 @@ impl GroupPrefill {
             Layer::Sliding(l) => &l.input_norm,
             Layer::Full(l) => &l.input_norm,
         };
-        for row in &mut self.rows {
-            row.normalize(device, input_norm, scratch).await?;
-            launch(
-                crate::ops_qkv_native_four::quantize_input,
-                (device, &row.norm, &mut row.qkv_input, &mut row.qkv_scale),
-            )
-            .await?;
+        if state.fused_norms {
+            let [a, b, c, d] = &mut self.rows;
+            launch(crate::ops_norm_fused::normalize_qkv_four,
+                (device, &a.x, &b.x, &c.x, &d.x, input_norm,
+                 &mut a.qkv_input, &mut a.qkv_scale,
+                 &mut b.qkv_input, &mut b.qkv_scale,
+                 &mut c.qkv_input, &mut c.qkv_scale,
+                 &mut d.qkv_input, &mut d.qkv_scale)).await?;
+        } else {
+            for row in &mut self.rows {
+                row.normalize(device, input_norm, scratch).await?;
+                launch(
+                    crate::ops_qkv_native_four::quantize_input,
+                    (device, &row.norm, &mut row.qkv_input, &mut row.qkv_scale),
+                )
+                .await?;
+            }
         }
         scratch.record_optional_profile("group.qkv.norm_quantize", &mut mark);
         let [a, b, c, d] = &self.rows;
