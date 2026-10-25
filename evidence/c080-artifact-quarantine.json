@@ -1,0 +1,28 @@
+{
+  "observed_at": "2026-10-25T14:45:57.817917+00:00",
+  "candidate": "c080-physical32",
+  "source": "2d72b26d6459a3d27f4eeef4ac5da31196d23f21",
+  "binary_sha256": "06f9d1d01c21716fddbaef9f300617050872b4ae0791f2a70fe44b3396d58935",
+  "status": "quarantined",
+  "contradiction": {
+    "source": "server\u2192api worker spawn\u2192Worker::new\u2192canonical Workspace requests=Rc::SIZE=32; run cap uses workspace.requests",
+    "run": "r1255-c080-c40-queue-submit",
+    "job": 321321,
+    "runtime": "SCHED_TOTAL d40=63, impossible for recorded source admission32"
+  },
+  "possible_cause": "shared target reused relative source dep-info from physical64 and accepted older-mtime physical32 library; a0052.63s rebuilt server/greedy only, source compile freshness not established",
+  "cause_proven": false,
+  "second_blocker": "ring direct dependency and SHA diagnostics are invalid in organizer src-only build with original Cargo.toml",
+  "disposition": "Preserve source/ELF/logs. Public124/124 and C16 168.722TPS describe this ELF only, not verified physical32 server. No official submission or promotion. Distinct clean c081 source and startup physical storage identity checks pending.",
+  "unaffected": "Separate physical32 vs64 micro/model ELFs passed775 ordered digests and41 matched snapshots with exact10737418240B memory saving.",
+  "tool_changes": [
+    "Optional record_run --fresh-package refreshes package input mtimes without altering bytes. Caller must own target exclusively.",
+    "Optional --capture-artifact verifies all source/config input hashes after command then snapshots ELF and sha256 immediately.",
+    "freeze_candidate prefers captured build artifact, retaining legacy mode with explicit warning."
+  ],
+  "verification": [
+    "Fixture refreshed mtime with unchanged content",
+    "Freeze after later shared-target replacement retained captured original output",
+    "Input mutated during build was rejected with artifact_verification_failed"
+  ]
+}

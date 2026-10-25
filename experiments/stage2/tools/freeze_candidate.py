@@ -29,11 +29,23 @@ subprocess.run(['git', 'archive', commit, '-o', str(source)], cwd=tree, check=Tr
 subprocess.run(['tar', '-xf', str(source), '-C', str(candidate)], check=True)
 binary = candidate / 'target/release/server'
 binary.parent.mkdir(parents=True)
-shutil.copy2(tree / 'target/release/server', binary)
+captured = record.get('built_artifacts', {}).get('target/release/server')
+if captured:
+    assert record['build_inputs_unchanged'], 'build input verification is missing'
+    built_binary = Path(captured['path'])
+    assert hashlib.sha256(built_binary.read_bytes()).hexdigest() == captured['sha256'], 'captured build output changed'
+else:
+    # Legacy records remain reproducible, but a mutable shared target does not
+    # establish which library was linked. New builds should capture their ELF.
+    built_binary = tree / 'target/release/server'
+    print('WARNING: legacy build has no captured artifact; target/library provenance needs separate verification')
+shutil.copy2(built_binary, binary)
 shutil.copy2(tree / 'Cargo.lock', candidate / 'Cargo.lock')
 manifest = dict(source_commit=commit, build_run=args.build_run,
                 binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
                 bytes=binary.stat().st_size, source_hashes=hashes)
+manifest['artifact_captured_at_build'] = bool(captured)
+manifest['fresh_package'] = record.get('fresh_package')
 (candidate / 'candidate.json').write_text(json.dumps(manifest, indent=2) + '\n')
 (run / 'candidate.json').write_text(json.dumps(manifest, indent=2) + '\n')
 print(json.dumps(dict(candidate=str(candidate), commit=commit, sha256=manifest['binary_sha256']), indent=2))
