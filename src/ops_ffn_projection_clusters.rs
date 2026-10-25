@@ -70,7 +70,7 @@ fn stage_upgate(device:&mut Device,input:&HbmTensor<f8e4m3,Chip,P512H960>,
     chunk!(7usize);
 }
 
-fn global_dm(device: &mut Device, global: &HbmTensor<f32, Chip, m![1]>)
+pub(crate) fn global_dm(device: &mut Device, global: &HbmTensor<f32, Chip, m![1]>)
  -> DmTensor<f32, Chip, Cluster, Shards, m![1 # 8]> {
  global.to_dm(&mut device.tdma)
 }
@@ -98,7 +98,7 @@ fn scale_tile(
         .commit_trim::<m![L%8]>()
         .commit()
 }
-fn geglu_tile_into(
+pub(crate) fn geglu_tile_into(
     device: &mut Device,
     up: DmTensorView<'_,bf16,Chip,Cluster,Shards,m![P512%256=64%4=2#4,L%960]>,
     gate: DmTensorView<'_,bf16,Chip,Cluster,Shards,m![P512%256=64%4=2#4,L%960]>,
