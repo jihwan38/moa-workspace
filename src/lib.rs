@@ -282,3 +282,18 @@ pub mod ops_fixed_e4_wide;
 pub mod ops_fixed_e4_wide_original;
 pub mod ops_fixed_e4_fused;
 pub mod ops_fixed_e4_commit_wide;
+pub mod ops_fixed_e4_commit;
+
+pub mod ops_fixed_e4_b16;
+
+pub mod ops_fixed_e4_decode32;
+
+pub mod ops_fixed_e4_r64;
+
+pub mod ops_fixed_e4_r64_prefix512;
+
+pub mod ops_fixed_e4_r64_mixed512;
+
+pub mod ops_fixed_e4_r64_head_rows;
+
+pub mod ops_fixed_e4_r64_prefix768;
