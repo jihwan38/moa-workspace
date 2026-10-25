@@ -1,0 +1,121 @@
+{
+  "source": "89c0097c",
+  "full_source": "89c0097ca947b2a25c7e74442f1099886d233914",
+  "control": "original c079394d60a2 physical64 with fixed32 logical diagnostic schedule",
+  "verified_source_hashes": 394,
+  "build_run": "a004-physical-pool64-control-build",
+  "build": {
+    "name": "a004-physical-pool64-control-build",
+    "purpose": "Build original physical64 storage with identical fixed32-owner diagnostics for separately executed SHA256 model/cache parity",
+    "started_at": "2026-10-25T14:11:01.863175+00:00",
+    "worktree": "/home/jihwan38/moa-worktrees/round2/physical-pool64-control",
+    "commit": "89c0097ca947b2a25c7e74442f1099886d233914",
+    "status": "",
+    "command": [
+      "docker",
+      "exec",
+      "--workdir",
+      "/round2/physical-pool64-control",
+      "-e",
+      "CARGO_TARGET_DIR=/round2/ffn-k256/target",
+      "-e",
+      "CARGO_INCREMENTAL=0",
+      "moa2026-round2",
+      "bash",
+      "-lc",
+      "set -e\ncargo check --bin test_physical_pool --bin compare_physical_pool_group --bin compare_physical_pool_history > experiments/physical-pool64-control/check.log 2>&1\ncargo furiosa-opt build --release --bin test_physical_pool --bin compare_physical_pool_group --bin compare_physical_pool_history > experiments/physical-pool64-control/build.log 2>&1"
+    ],
+    "result": "command_succeeded",
+    "exit_code": 0,
+    "pid": 3523395,
+    "finished_at": "2026-10-25T14:18:54.364028+00:00"
+  },
+  "artifacts": {
+    "test_physical_pool": {
+      "path": "/round2/physical-pool64-control/experiments/physical-pool64-control/artifacts/test_physical_pool-89c0097c",
+      "sha256": "4fe1a93e91f763791f9e462d4055b7e665a71b5ba51824088a96c441c1dab963",
+      "size": 3192320
+    },
+    "compare_physical_pool_group": {
+      "path": "/round2/physical-pool64-control/experiments/physical-pool64-control/artifacts/compare_physical_pool_group-89c0097c",
+      "sha256": "9994f559f994860c301d338f59cd173fa811b0b07dfe7e90f2d04d5a48524982",
+      "size": 32587008
+    },
+    "compare_physical_pool_history": {
+      "path": "/round2/physical-pool64-control/experiments/physical-pool64-control/artifacts/compare_physical_pool_history-89c0097c",
+      "sha256": "61519d51f3122d2dbee5c3b0c34224c39ad4632cad9b796d3ee527fe1f77a215",
+      "size": 32493344
+    }
+  },
+  "npu_status": "not yet run; root dispatch only",
+  "suggested_matched_cases": {
+    "test_physical_pool": [
+      []
+    ],
+    "compare_physical_pool_group": [
+      [
+        "0",
+        "1"
+      ],
+      [
+        "1",
+        "0"
+      ],
+      [
+        "2",
+        "0"
+      ],
+      [
+        "3",
+        "0"
+      ],
+      [
+        "4",
+        "0"
+      ],
+      [
+        "5",
+        "0"
+      ],
+      [
+        "6",
+        "0"
+      ],
+      [
+        "7",
+        "0"
+      ],
+      [
+        "8",
+        "0"
+      ],
+      [
+        "9",
+        "0"
+      ],
+      [
+        "10",
+        "0"
+      ]
+    ],
+    "compare_physical_pool_history": [
+      [
+        "512",
+        "17"
+      ],
+      [
+        "1024",
+        "31"
+      ],
+      [
+        "1024",
+        "32"
+      ],
+      [
+        "8064",
+        "2"
+      ]
+    ]
+  },
+  "comparator": "/round2/physical-pool32/experiments/physical-pool32/compare_program_digests.py CONTROL_ARENA_LOG COMPACT_ARENA_LOG --output RESULT.json"
+}
