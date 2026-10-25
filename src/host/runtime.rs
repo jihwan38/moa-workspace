@@ -1,6 +1,6 @@
 use furiosa_opt_std::prelude::*;
 
-use crate::axes::{Aa, Df, Ds, E, Gf, Gs, H, Mv, Ns, P128, Pv, Rv, Tf, Ts, W};
+use crate::axes::{Aa, B, Df, Ds, E, Gf, Gs, H, Mv, Ns, P128, Pv, Rv, Tf, Ts, W};
 use crate::host::load::{FullLayer, Layer, SlidingLayer, Weights};
 use crate::ops_pool_views::Rc64;
 use crate::ops_request_attention::Fc;
@@ -111,6 +111,31 @@ pub async fn encode_audio_frame(
         ),
     )
     .await?;
+    Ok(output)
+}
+
+/// Encode independent patches from this preparation call. Only the returned
+/// prefix `patches.len()` is live; padding must never be inserted into a prompt.
+/// Positions use the same clamped BF16 col+row lookup as the scalar encoder.
+pub(crate) async fn encode_vision_patches_b16(
+    device:&mut Device, weights:&Weights, patches:&[(&[bf16],(usize,usize))],
+) -> Result<HbmTensor<bf16,Chip,m![B,H]>,Error> {
+    assert!(!patches.is_empty() && patches.len() <= B::SIZE);
+    assert!(patches.iter().all(|(pixels,_)| pixels.len()==Rv::SIZE));
+    let mut pixels=vec![bf16::from_f32(0.);B::SIZE*Rv::SIZE];
+    let mut positions=vec![bf16::from_f32(0.);B::SIZE*Mv::SIZE];
+    for (r,(patch,(col,row))) in patches.iter().enumerate() {
+        pixels[r*Rv::SIZE..(r+1)*Rv::SIZE].copy_from_slice(patch);
+        positions[r*Mv::SIZE..(r+1)*Mv::SIZE].copy_from_slice(&gather_pos_embedding(weights,*col,*row));
+    }
+    let pixels=HostTensor::<bf16,m![B,Rv]>::from_vec(pixels).to_hbm(&mut device.pdma).await?;
+    let positions=HostTensor::<bf16,m![B,Mv]>::from_vec(positions).to_hbm(&mut device.pdma).await?;
+    let mut output=HostTensor::<bf16,m![B,H]>::zero().to_hbm(&mut device.pdma).await?;
+    let v=&weights.vision;
+    launch(crate::ops_vision_b16::encode_patches,
+        (device,&pixels,&positions,&v.patch_ln1_weight,&v.patch_ln1_bias,
+         &v.patch_dense_weight,&v.patch_dense_bias,&v.patch_ln2_weight,&v.patch_ln2_bias,
+         &v.pos_norm_weight,&v.pos_norm_bias,&v.embedding_projection_weight,&mut output)).await?;
     Ok(output)
 }
 

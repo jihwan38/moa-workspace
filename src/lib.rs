@@ -238,3 +238,4 @@ pub mod ops_norm_blocked_residual;
 pub mod ops_norm_blocked_chain;
 
 pub mod ops_vision_b16;
+pub mod ops_media_rows;
