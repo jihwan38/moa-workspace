@@ -1,0 +1,76 @@
+warning: unused import: `ops_batch`
+  --> src/host/prefill.rs:12:40
+   |
+12 |     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
+   |                                        ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ops_batch_r64 as linear`
+  --> src/host/decode_r64.rs:12:20
+   |
+12 |     Chip, axes::*, ops_batch_r64 as linear, ops_commit_r64 as commit, ops_norm_r64 as norm,
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_keyrings_h64.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_h64_blocked.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+error[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope
+    --> src/device/vision/projection_trf.rs:23:66
+     |
+  23 |     let x:DmTensor<bf16,Chip,Cluster,PatchRows,m![B%8,Rv=768]>=x.to_dm(&mut device.tdma);
+     |                                                                  ^^^^^
+     |
+help: there is a method `to_dm_view` with a similar name, but with different arguments
+    --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory.rs:1039:5
+     |
+1039 | /     pub fn to_dm_view<Chip2: M, Cluster2: M, Slice2: M, Element2: M>(
+1040 | |         self,
+1041 | |         _dma: &mut DmaContext<{ Dma::Tensor }, B>,
+1042 | |         mut dst: DmTensorViewMut<'l, D, Chip2, Cluster2, Slice2, Element2, B>,
+1043 | |     ) {
+     | |_____^
+     = note: the full name for the type has been written to '/round2/media-vision-trf/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-34e6c686e5f91da9.long-type-10897510641048979130.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: no method named `to_dm` found for struct `furiosa_opt_std::prelude::DmTensorView<'l, D, Chip, Cluster, Slice, Element, B>` in the current scope
+    --> src/device/vision/projection_trf.rs:162:65
+     |
+ 162 |     let x:DmTensor<bf16,Chip,Cluster,TextRows,m![B%8,Ov=768]>=x.to_dm(&mut device.tdma);
+     |                                                                 ^^^^^
+     |
+help: there is a method `to_dm_view` with a similar name, but with different arguments
+    --> /home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory.rs:1039:5
+     |
+1039 | /     pub fn to_dm_view<Chip2: M, Cluster2: M, Slice2: M, Element2: M>(
+1040 | |         self,
+1041 | |         _dma: &mut DmaContext<{ Dma::Tensor }, B>,
+1042 | |         mut dst: DmTensorViewMut<'l, D, Chip2, Cluster2, Slice2, Element2, B>,
+1043 | |     ) {
+     | |_____^
+     = note: the full name for the type has been written to '/round2/media-vision-trf/target/furiosa-opt/compile/debug/deps/furiosa_opt_gemma4-34e6c686e5f91da9.long-type-12148053571741881722.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `furiosa-opt-gemma4` (lib) due to 2 previous errors; 6 warnings emitted
