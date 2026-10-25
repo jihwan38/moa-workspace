@@ -267,7 +267,7 @@ impl GroupPrefill {
                      (&mut od.q_s, &mut od.k_s, &mut od.v_s))).await?;
             }
             Layer::Full(l) => {
-                launch(crate::ops_qk_shared_blocked::project_full_qk_four,
+                launch(crate::ops_qk_shared_ingress::project_full_qk_four,
                     (device, &a.qkv_input, &a.qkv_scale, &b.qkv_input, &b.qkv_scale,
                      &c.qkv_input, &c.qkv_scale, &d.qkv_input, &d.qkv_scale,
                      &l.q_weight, &l.k_weight, &l.q_weight_scale, &l.k_weight_scale,
