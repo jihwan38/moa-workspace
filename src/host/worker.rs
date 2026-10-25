@@ -3454,4 +3454,6 @@ mod tests {
         assert_eq!(sessions[0].timing.received, received);
         assert!(sessions.iter().all(|s| !s.delivery.held()));
     }
+    include!("recovery_cohort_tests.rs");
+
 }
