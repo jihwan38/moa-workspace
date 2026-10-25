@@ -111,3 +111,5 @@ pub mod ops_output_r64_trf32;
 pub mod ops_output_p128_four_reduce;
 
 pub mod ops_output_p128_four_ingress;
+
+pub mod ops_output_p128_four_switch;
