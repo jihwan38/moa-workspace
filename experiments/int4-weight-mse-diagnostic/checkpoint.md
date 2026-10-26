@@ -23,3 +23,10 @@ Root authorized that one standalone captured build after this evidence commit.
 Source/dependencies are frozen, the prefill target is exclusive, and a new empty
 device output directory is mandatory. Root alone may run Arena. No serving or
 model activation, performance inference, or task-quality claim is authorized.
+
+Fresh a004 build passed in 56.53 seconds at source 49674af1. The captured ELF
+SHA is 64dd3b267d6bfe13003172d57a26414d1daa76a7f0b26ed13a9cb3824e7caefc
+(6,578,216 bytes). audit_build.py verifies all 427 inputs, unchanged 424 inherited
+inputs, exactly 19 prior actual323213 images and all 19 fresh-output bins; q020
+control also matches directly. No CLI arguments are accepted. Root owns actual
+execution; the frozen artifact is under runs/a004-int4-weight-mse-device-build/built.
