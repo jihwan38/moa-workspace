@@ -288,3 +288,5 @@ pub mod ops_int4_rational_fused_pack;
 pub mod ops_int4_complete_reference;
 
 pub mod ops_int4_grouped_activation_quant;
+
+pub mod ops_int4_grouped_activation_store;
