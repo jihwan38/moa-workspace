@@ -295,3 +295,5 @@ pub mod ops_int4_grouped_activation_store;
 
 pub mod ops_int4_grouped_threegraph;
 pub mod i4_grouped_threegraph_raw_adapter;
+
+pub mod ops_int4_hadamard64;
