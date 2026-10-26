@@ -1,0 +1,40 @@
+{
+  "base_checkpoint": "490135d8",
+  "scope": "One distinct real metadata DM regroup; source/host/resource only; no ELF/Arena/serving",
+  "observed_cost": {
+    "H_complete": 60292,
+    "H_offset_store": 17823,
+    "H_scale_store": 17823,
+    "L_complete": 74636,
+    "L_offset_store": 8457,
+    "L_scale_store": 8457
+  },
+  "single_mechanism": "After existing two-token TU scalar compaction, real to_dm gathers all256 row scalars for eachK960 group onto one group leader; then writes the same unpadded [C,K/960,P%256] HBM ABI in1024B contiguous segments. Apply identical mapping to offset and scale stores, H andL. No math, table, quantizer, pack, or input ingress changes.",
+  "source_map": "C=P/256;Slice=[K/960,P%256/G];Local[P%G]; p=256c+Gr+j",
+  "destination_map": "C=P/256;Slice=[K/960,1#(256/G)];Local[P%256]; physical slice=g*(256/G), localp=Gr+j",
+  "bijection": "For each c,g, every source(r,j) has unique localq=Gr+j in0..255; outputHBM offset((c*G+g)*256+q) unchanged. No dtype or unsafe reshape.",
+  "physical_and_live_costs": {
+    "real_DM_payload_each": {
+      "H": 8192,
+      "L": 32768
+    },
+    "physical_DM_owner_each": 524288,
+    "two_extra_moves_logical_bytes": {
+      "H": 16384,
+      "L": 65536
+    },
+    "source_contiguous_bytes": {
+      "H": 16,
+      "L": 64
+    },
+    "destination_contiguous_HBM_bytes_per_live_group_leader": 1024,
+    "active_leaders_per_cluster": {
+      "H": 4,
+      "L": 16
+    },
+    "physical_slices_per_cluster": 256
+  },
+  "prior_evidence": "Original whole-row compact scale path used real leader DM+TUcompaction before long scalar store; current H16 packed output also uses real grouping. This stage uses already-compacted16/64B source fragments, so direct four-byte DMA failure is not reused.",
+  "resource_review": "Count both added DM operations, complete unfolded timeline, allocator/lifetime overlap, original H16packed movement and explicit HBMoffset roundtrip. Require noDramStack and report complete delta against frozen60292/74636. If totalcost does not improve, preserve it without sweep. Static improvement would not prove actual latency or quality.",
+  "preservation": "Old module,probe,schedules,images andresource-result remain immutable; newmodule andcopy-only probealias. Original dependencies and own tailtarget/newOUT_DIR."
+}
