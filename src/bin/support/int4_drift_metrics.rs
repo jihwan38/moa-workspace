@@ -31,7 +31,7 @@ pub fn activations(label:&str,round:usize,bf:&[u8],native:&[u8],ns:&[u8],a4:&cpu
             let x=e4(native[at])*ns[p];let z=a4.codes[p*width+c]as f32*a4.scales[p];e.add(x,y);i.add(z,y);ee.add(x,y);ie.add(z,y);amax=amax.max(y.abs());columns[c]=columns[c].max(y.abs());}
         rows.push(serde_json::json!({"p":p,"amax":amax,"E4_scale":ns[p],"A4_scale":a4.scales[p],"E4":e.json(),"A4":i.json()}));
     }
-    println!("I4_ATTR_ACTIVATION {}",serde_json::json!({"label":label,"round":round,"width":width,"E4":ee.json(),"A4":ie.json(),"rows":rows,"column_absmax":columns,"scope":"all fixed BF16 rows; reconstruction only"}));
+    println!("I4_ATTR_ACTIVATION {}",serde_json::json!({"label":label,"round":round,"width":width,"E4":ee.json(),"A4":ie.json(),"rows":rows,"column_absmax":columns,"scope":"all fixed BF16 rows; reconstruction only","metric":"RN32(code*scale), F64 SSE; not an exact dot-product error decomposition"}));
 }
 pub fn weights(t:&safetensors::SafeTensors<'_>,projection:&str,w:&cpu::WeightCpu,native:&[u8],scales:&[u8])->cpu::Result<()> {
     assert_eq!(native.len(),w.rows*w.cols);let scales=f32s(scales);assert_eq!(scales.len(),w.rows);
@@ -55,7 +55,7 @@ pub fn weights(t:&safetensors::SafeTensors<'_>,projection:&str,w:&cpu::WeightCpu
             ee.add(x,y);ie.add(z,y);er.add(x,y);ir.add(z,y);columns[c][0]=columns[c][0].min(y);columns[c][1]=columns[c][1].max(y);columns[c][2]=columns[c][2].max(x.abs());columns[c][3]=columns[c][3].max(z.abs());}
         rows.push(serde_json::json!([row,(er.error/er.energy.max(1e-300)).sqrt(),(ir.error/ir.energy.max(1e-300)).sqrt(),er.zeros,ir.zeros]));
     }
-    println!("I4_ATTR_WEIGHT {}",serde_json::json!({"projection":projection,"rows":w.rows,"cols":w.cols,"native_codes_exact":native.len(),"native_scale_bits_exact":scales.len(),"E4":ee.json(),"I4":ie.json(),"row_fields":["row","E4_relative_l2","I4_relative_l2","E4_zeros","I4_zeros"],"row_errors":rows,"column_ranges_provided_min_max_E4absmax_I4absmax":columns,"globals_excluded":true,"scope":"direct provided BF16; no native row scale on I4"}));
+    println!("I4_ATTR_WEIGHT {}",serde_json::json!({"projection":projection,"rows":w.rows,"cols":w.cols,"native_codes_exact":native.len(),"native_scale_bits_exact":scales.len(),"E4":ee.json(),"I4":ie.json(),"row_fields":["row","E4_relative_l2","I4_relative_l2","E4_zeros","I4_zeros"],"row_errors":rows,"column_ranges_provided_min_max_E4absmax_I4absmax":columns,"globals_excluded":true,"scope":"direct provided BF16; no native row scale on I4","metric":"RN32(code*scale), F64 SSE; not an exact dot-product error decomposition"}));
     Ok(())
 }
 pub fn interaction(label:&str,round:usize,arms:&[Vec<u8>]) {
