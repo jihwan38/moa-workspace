@@ -8,7 +8,7 @@ def body(text,name):
     a=text.index('async fn '+name+'(');b=text.index('{',a);d=1;i=b+1
     while d:
         d+=(text[i]=='{')-(text[i]=='}');i+=1
-    return re.sub(r'\s+','',text[b:i])
+    return re.sub(r',([)\]])',r'\1',re.sub(r'\s+','',text[b:i]))
 def main():
     files=subprocess.check_output(['git','ls-tree','-r','--name-only',BASE,'src','Cargo.toml','rust-toolchain.toml'],cwd=TREE,text=True).splitlines()
     for n in files:assert (TREE/n).read_bytes()==subprocess.check_output(['git','show',BASE+':'+n],cwd=TREE),n
