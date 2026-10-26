@@ -1,0 +1,902 @@
+{
+  "kernel_images": {
+    "experiments/int4-grouped-activation-projection/kernel-out-a002-upgate/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_grouped_activation_projection::project_upgate.bin": {
+      "bytes": 89600,
+      "sha256": "90cea2644797b9b4b6264a924401476bea10d9f0c43221a4ca47a4a1e711b500"
+    },
+    "experiments/int4-grouped-activation-projection/kernel-out-a003-down/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_grouped_activation_projection::project_down.bin": {
+      "bytes": 58880,
+      "sha256": "2d497e6e46d7beff29531b3bd884798dcb5a35c541424517afd8e1e9e243bc91"
+    }
+  },
+  "limitations": [
+    "No speed prediction from compiler cycle endpoints or sum of overlapping TU spans.",
+    "Dense-E4 reference host-typechecked only; reference device compilation/actual parity pending.",
+    "Group quantization/packing and complete FFN are not in these projection schedules.",
+    "No fullpath10percent gate or model-quality gate has passed."
+  ],
+  "old_complete_speed_gate": "HOLD (actual323067 slower)",
+  "old_down_resource_gate": "HOLD (245684 > 240000); historical branch not changed",
+  "original_dependency_hashes": {
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85"
+  },
+  "projections": {
+    "down": {
+      "endpoint_cycles_removed": 15089,
+      "endpoint_reduction_percent": 6.141629084515068,
+      "grouped": {
+        "all_dot_programs_show_weight_then_activation_then_reduce_then_bf16": true,
+        "bf16_column_sram": [
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 0,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    0,
+                    1
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 79982,
+                  "end": 145982
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T19"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 134217728,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    8,
+                    9
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 138021,
+                  "end": 153995
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T20"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 100663296,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    6,
+                    7
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 153995,
+                  "end": 219995
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T36"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 0,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    2,
+                    3
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 212034,
+                  "end": 227953
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T37"
+          }
+        ],
+        "dram_stack": [],
+        "f32_reduced_column_sram": [],
+        "operator_instances": 109,
+        "operator_kinds": {
+          "cluster_sync": 2,
+          "core_imp_cmd": 8,
+          "dma.dto_s": 7,
+          "dma.sto_d": 2,
+          "index_access": 6,
+          "index_write": 2,
+          "raw.load_sfr": 8,
+          "raw.page_table_update": 7,
+          "raw.profile": 28,
+          "raw.sync_acquire": 2,
+          "raw.sync_release": 2,
+          "raw.update_base_timestamp": 1,
+          "raw.wait": 22,
+          "rngd_cmd.sto_vrf": 4,
+          "rngd_cmd.tu_exec": 8
+        },
+        "path": "int4-grouped-activation-projection/experiments/int4-grouped-activation-projection/down-schedule.json",
+        "sha256": "153f89a0886babc7a0427f9832a711614cd1f29a700712d50929620d5afc5f38",
+        "timeline_begin": 1000,
+        "timeline_endpoint": 230595,
+        "tu_duration_cycles_by_source": {
+          "dot": [
+            58033,
+            58033
+          ],
+          "global": [
+            7961,
+            7961
+          ],
+          "ingress": [
+            7943,
+            7943
+          ],
+          "transpose": [
+            7952,
+            7952
+          ]
+        }
+      },
+      "old": {
+        "all_dot_programs_show_weight_then_activation_then_reduce_then_bf16": false,
+        "bf16_column_sram": [
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 167772160,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    10,
+                    11
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 137164,
+                  "end": 153153
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T20"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 0,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    0,
+                    1
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 145192,
+                  "end": 161111
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T21"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 0,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    2,
+                    3
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 219162,
+                  "end": 235090
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T38"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 33554432,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    0,
+                    1
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 227129,
+                  "end": 243042
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T39"
+          }
+        ],
+        "dram_stack": [],
+        "f32_reduced_column_sram": [
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 100663296,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    0,
+                    1,
+                    6,
+                    7
+                  ],
+                  "size": 62914560
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 79125,
+                  "end": 145125
+                }
+              }
+            ],
+            "declared_size": 62914560,
+            "dtype": "f32",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T19"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 134217728,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    0,
+                    1,
+                    8,
+                    9
+                  ],
+                  "size": 62914560
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 161123,
+                  "end": 227123
+                }
+              }
+            ],
+            "declared_size": 62914560,
+            "dtype": "f32",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 240, 1 # 16), Element: (H % 240, P512 % 256 = 128)]",
+            "tensor": "%T37"
+          }
+        ],
+        "operator_instances": 123,
+        "operator_kinds": {
+          "cluster_sync": 2,
+          "core_imp_cmd": 8,
+          "dma.dto_s": 7,
+          "dma.sto_d": 2,
+          "index_access": 6,
+          "index_write": 2,
+          "raw.load_sfr": 10,
+          "raw.page_table_update": 11,
+          "raw.profile": 32,
+          "raw.sync_acquire": 2,
+          "raw.sync_release": 2,
+          "raw.update_base_timestamp": 1,
+          "raw.wait": 24,
+          "rngd_cmd.sto_vrf": 4,
+          "rngd_cmd.tu_exec": 10
+        },
+        "path": "int4-group960-consumer/experiments/int4-group960-consumer/down-schedule.json",
+        "sha256": "95ccce5242a00f1a74cdea04b4b8601869bc574b52e1a6cfdf92ed151898d326",
+        "timeline_begin": 1000,
+        "timeline_endpoint": 245684,
+        "tu_duration_cycles_by_source": {
+          "dot": [
+            58033,
+            58033
+          ],
+          "global": [
+            7961,
+            7961
+          ],
+          "ingress": [
+            7943,
+            7943
+          ],
+          "post_reduce_scale": [
+            7961,
+            7961
+          ],
+          "transpose": [
+            7952,
+            7952
+          ]
+        }
+      }
+    },
+    "upgate": {
+      "endpoint_cycles_removed": 28945,
+      "endpoint_reduction_percent": 8.116710131516221,
+      "grouped": {
+        "all_dot_programs_show_weight_then_activation_then_reduce_then_bf16": true,
+        "bf16_column_sram": [
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 67108864,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    4,
+                    5
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 54733,
+                  "end": 120616
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T22"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 67108864,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    4,
+                    5
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 121345,
+                  "end": 187228
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T46"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 67108864,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    4,
+                    5
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 187878,
+                  "end": 253761
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T70"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 67108864,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    4,
+                    5
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 254332,
+                  "end": 320209
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T94"
+          }
+        ],
+        "dram_stack": [],
+        "f32_reduced_column_sram": [],
+        "operator_instances": 206,
+        "operator_kinds": {
+          "cluster_sync": 4,
+          "core_imp_cmd": 32,
+          "dma.dto_s": 11,
+          "dma.sto_d": 4,
+          "index_access": 24,
+          "index_write": 8,
+          "raw.load_sfr": 12,
+          "raw.page_table_update": 6,
+          "raw.profile": 42,
+          "raw.sync_acquire": 4,
+          "raw.sync_release": 4,
+          "raw.update_base_timestamp": 1,
+          "raw.wait": 37,
+          "rngd_cmd.sto_vrf": 5,
+          "rngd_cmd.tu_exec": 12
+        },
+        "path": "int4-grouped-activation-projection/experiments/int4-grouped-activation-projection/upgate-schedule.json",
+        "sha256": "918478146b653b78f14e8d8e35a32f6fbccb3bcdddef3165307fe542f2c629a1",
+        "timeline_begin": 0,
+        "timeline_endpoint": 327665,
+        "tu_duration_cycles_by_source": {
+          "dot": [
+            57925,
+            57925,
+            57925,
+            57925
+          ],
+          "ingress": [
+            8523,
+            8523,
+            8523,
+            8523
+          ],
+          "transpose": [
+            7952,
+            7952,
+            7952,
+            7952
+          ]
+        }
+      },
+      "old": {
+        "all_dot_programs_show_weight_then_activation_then_reduce_then_bf16": false,
+        "bf16_column_sram": [
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 167772160,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    8,
+                    9
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 111676,
+                  "end": 127589
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T23"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 67108864,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    10,
+                    11
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 185532,
+                  "end": 201445
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T48"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 67108864,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    12,
+                    13
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 259388,
+                  "end": 275307
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T73"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 0,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    0,
+                    1
+                  ],
+                  "size": 31457280
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 333241,
+                  "end": 349154
+                }
+              }
+            ],
+            "declared_size": 31457280,
+            "dtype": "bf16",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T98"
+          }
+        ],
+        "dram_stack": [],
+        "f32_reduced_column_sram": [
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 67108864,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  "size": 62914560
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 53745,
+                  "end": 119637
+                }
+              }
+            ],
+            "declared_size": 62914560,
+            "dtype": "f32",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T22"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 167772160,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    6,
+                    7,
+                    8,
+                    9
+                  ],
+                  "size": 62914560
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 127601,
+                  "end": 193493
+                }
+              }
+            ],
+            "declared_size": 62914560,
+            "dtype": "f32",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T47"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 167772160,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    8,
+                    9,
+                    10,
+                    11
+                  ],
+                  "size": 62914560
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 201457,
+                  "end": 267349
+                }
+              }
+            ],
+            "declared_size": 62914560,
+            "dtype": "f32",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T72"
+          },
+          {
+            "allocations": [
+              {
+                "allocation": {
+                  "address": 134217728,
+                  "buffer_type": "Sram",
+                  "physical_pages": [
+                    10,
+                    11,
+                    12,
+                    13
+                  ],
+                  "size": 62914560
+                },
+                "iteration_index": null,
+                "lifetime": {
+                  "begin": 275316,
+                  "end": 341202
+                }
+              }
+            ],
+            "declared_size": 62914560,
+            "dtype": "f32",
+            "padded_shape": "MappingShape[Chip: 1, Cluster: FfnProjection, Slice: (L / 240, 1 # 4), Element: (L % 240, P512 % 256 = 128)]",
+            "tensor": "%T97"
+          }
+        ],
+        "operator_instances": 232,
+        "operator_kinds": {
+          "cluster_sync": 4,
+          "core_imp_cmd": 32,
+          "dma.dto_s": 11,
+          "dma.sto_d": 4,
+          "index_access": 24,
+          "index_write": 8,
+          "raw.load_sfr": 16,
+          "raw.page_table_update": 12,
+          "raw.profile": 50,
+          "raw.sync_acquire": 4,
+          "raw.sync_release": 4,
+          "raw.update_base_timestamp": 1,
+          "raw.wait": 41,
+          "rngd_cmd.sto_vrf": 5,
+          "rngd_cmd.tu_exec": 16
+        },
+        "path": "int4-group960-consumer/experiments/int4-group960-consumer/upgate-schedule.json",
+        "sha256": "abeacb72384ec2e5d5dd968c81644748fbade29776d1527842ffacaeb480c8da",
+        "timeline_begin": 0,
+        "timeline_endpoint": 356610,
+        "tu_duration_cycles_by_source": {
+          "dot": [
+            57925,
+            57925,
+            57925,
+            57925
+          ],
+          "ingress": [
+            8523,
+            8523,
+            8523,
+            8523
+          ],
+          "post_reduce_scale": [
+            7961,
+            7961,
+            7961,
+            7961
+          ],
+          "transpose": [
+            7952,
+            7952,
+            7952,
+            7952
+          ]
+        }
+      }
+    }
+  },
+  "removed_postreduce_TU_duration_sum_cycles": 47766,
+  "runs": {
+    "a001-int4-grouped-activation-projection-check": {
+      "command": [
+        "docker",
+        "exec",
+        "--user",
+        "moa",
+        "--workdir",
+        "/round2/int4-grouped-activation-projection",
+        "--env",
+        "CARGO_TARGET_DIR=/round2/ffn-k256/target",
+        "--env",
+        "CARGO_INCREMENTAL=0",
+        "moa2026-round2",
+        "cargo",
+        "check",
+        "--locked",
+        "--bin",
+        "test_int4_grouped_activation_projection"
+      ],
+      "commit": "71cdf45071a90cfc55be8f4376d4974ea0882fa6",
+      "exit_code": 0,
+      "finished_at": "2026-10-26T00:47:55.473999+00:00",
+      "input_hashes_sha256": "dfff31b68b9a7505b8a4e14bc5f348fc744149ca84c54f6a17e53950d69f4fb6",
+      "log_sha256": "6ecefbd22f0cac2e08705fb822b810032c114ad17b745e3b75590f7306f7fb15",
+      "run_sha256": "7b5211099f8ae80ff7f21d414b8796decad8139a7e0a9a906d7e03d99f8d7207",
+      "source_input_count": 418,
+      "started_at": "2026-10-26T00:47:44.504564+00:00"
+    },
+    "a002-int4-grouped-activation-upgate-resource": {
+      "command": [
+        "docker",
+        "exec",
+        "--user",
+        "moa",
+        "--workdir",
+        "/round2/int4-grouped-activation-projection",
+        "--env",
+        "CARGO_TARGET_DIR=/round2/ffn-k256/target",
+        "--env",
+        "CARGO_INCREMENTAL=0",
+        "--env",
+        "CARGO_PROFILE_DEV_DEBUG=0",
+        "--env",
+        "CARGO_NET_OFFLINE=true",
+        "--env",
+        "FURIOSA_OPT_OUT_DIR=/round2/int4-grouped-activation-projection/experiments/int4-grouped-activation-projection/kernel-out-a002-upgate",
+        "moa2026-round2",
+        "cargo",
+        "furiosa-opt",
+        "compile",
+        "--exact",
+        "ops_int4_grouped_activation_projection::project_upgate",
+        "--dump-schedule",
+        "experiments/int4-grouped-activation-projection/upgate-schedule.json"
+      ],
+      "commit": "71cdf45071a90cfc55be8f4376d4974ea0882fa6",
+      "exit_code": 0,
+      "finished_at": "2026-10-26T00:48:43.535416+00:00",
+      "input_hashes_sha256": "dfff31b68b9a7505b8a4e14bc5f348fc744149ca84c54f6a17e53950d69f4fb6",
+      "log_sha256": "290b7718d7a1248f8d8178b1caea230ab927c7b2b10594424bd05d9f5d1d725a",
+      "run_sha256": "bb9770158ec4dbe6b6239642e9924b95b4dfd66aa53e25414ce0a6817ff697c1",
+      "source_input_count": 418,
+      "started_at": "2026-10-26T00:48:06.156684+00:00"
+    },
+    "a003-int4-grouped-activation-down-resource": {
+      "command": [
+        "docker",
+        "exec",
+        "--user",
+        "moa",
+        "--workdir",
+        "/round2/int4-grouped-activation-projection",
+        "--env",
+        "CARGO_TARGET_DIR=/round2/ffn-k256/target",
+        "--env",
+        "CARGO_INCREMENTAL=0",
+        "--env",
+        "CARGO_PROFILE_DEV_DEBUG=0",
+        "--env",
+        "CARGO_NET_OFFLINE=true",
+        "--env",
+        "FURIOSA_OPT_OUT_DIR=/round2/int4-grouped-activation-projection/experiments/int4-grouped-activation-projection/kernel-out-a003-down",
+        "moa2026-round2",
+        "cargo",
+        "furiosa-opt",
+        "compile",
+        "--exact",
+        "ops_int4_grouped_activation_projection::project_down",
+        "--dump-schedule",
+        "experiments/int4-grouped-activation-projection/down-schedule.json"
+      ],
+      "commit": "71cdf45071a90cfc55be8f4376d4974ea0882fa6",
+      "exit_code": 0,
+      "finished_at": "2026-10-26T00:49:04.935064+00:00",
+      "input_hashes_sha256": "dfff31b68b9a7505b8a4e14bc5f348fc744149ca84c54f6a17e53950d69f4fb6",
+      "log_sha256": "c26df94454d9aa4385927fe47af8ce3506c8d192d4b69b4c2f2333b3f87afed4",
+      "run_sha256": "7e3b0f34d983e32b98262216b9e2bc76c598a374313175e171f4314af25aa0a5",
+      "source_input_count": 418,
+      "started_at": "2026-10-26T00:48:49.627114+00:00"
+    }
+  },
+  "scope": "Compiler schedules only; no standalone ELF, device run, production speed or model-quality result.",
+  "source_commit": "71cdf450",
+  "source_review": "e2e_evidence independent read-only PASS; no host/resource claim by reviewer",
+  "storage": {
+    "new_scale_owner_bytes": {
+      "H": 8192,
+      "L": 32768
+    },
+    "old_scale_owner_bytes_each": 2048,
+    "packed_input_output_weight_owners": "unchanged; group scales alone change the raw input extent",
+    "removed_f32_column_note": "Each scheduled reduced-column tensor occupied62914560B padded SRAM. Four UP and two DOWN instances are different lifetimes, not simultaneously freed memory.",
+    "retained": "BF16 column result/transpose/output, input/weight/scales/TRF, and separate DOWN BF16-global-BF16 pass. No hidden DramStack.",
+    "scale_live_delivery_bytes": {
+      "down_grouped": 524288,
+      "down_old": 32768,
+      "upgate_grouped": 1048576,
+      "upgate_old": 262144
+    },
+    "scale_vrf_per_chunk_padded_allocation_bytes": 262144
+  },
+  "sum_of_separate_endpoint_reductions_cycles": 44034
+}
