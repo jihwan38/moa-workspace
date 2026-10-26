@@ -1,0 +1,2607 @@
+{
+  "attribution": {
+    "H4": "Two16B-per-slice compact metadata stores cost17823 estimated cycles each; explicit LUT gather7886; input4783; real alignedH16 packed move1826/store1240.",
+    "L16": "Two64B-per-slice compact metadata stores cost8457 each; full Record8 gather28521; input15950; natural16row packed store3679 and no packed DM join.",
+    "comparison_limit": "The prior whole-row quantizer computes different code/scales. Its static schedule is a cost context, not a numerical reference or calibrated runtime baseline.",
+    "memory": "HBM offsets are explicit DramIO scratch8192B H/32768B L. No DramStack or equivalent large SPM list; full compiler allocation records retained."
+  },
+  "base": "a4152dba16b6b3de27b3cc474f1a890cfdb5d0a9",
+  "decision": "CHECKPOINT_ONLY; source and host/resource compile pass; resource cost increases. No repair, standalone ELF, device execution or serving activation authorized at checkpoint.",
+  "dependency_hashes": {
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+    "rust-toolchain.toml": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+  },
+  "plan_sha256": "def7da99fa8159c934cd75c7a269a09a16531d94f0d087df53afa02de5eeb4b8",
+  "recorded_runs": [
+    {
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/round2/int4-grouped-activation-quant",
+        "-e",
+        "CARGO_TARGET_DIR=/round2/tail256-model/target",
+        "-e",
+        "CARGO_INCREMENTAL=0",
+        "-e",
+        "CARGO_PROFILE_DEV_DEBUG=0",
+        "-e",
+        "CARGO_NET_OFFLINE=true",
+        "-e",
+        "FURIOSA_OPT_OUT_DIR=/round2/int4-grouped-activation-quant/experiments/int4-grouped-activation-quant/kernel-out-a001",
+        "moa2026-round2",
+        "cargo",
+        "check",
+        "--bin",
+        "test_int4_grouped_activation_quant"
+      ],
+      "commit": "55a55affabad9ab69ada2fafcef62fc1272edbe0",
+      "exit_code": 0,
+      "finished_at": "2026-10-26T00:44:17.692130+00:00",
+      "name": "a001-grouped-activation-quant-check",
+      "recorded_files": {
+        "output.log": "94329391644d585b66ea4fcbaba9764436ad444a63d4a005b9312238c7b76fb5",
+        "run.json": "14b47f3ddbe2b6df5439c7d761d54a0816da2671f66381964dc5a59cb044a511",
+        "source-hashes.json": "073a82fdf40bf01864148f03ecd3eb2be4afba36f4b7e853495d37d56815cd32",
+        "source.diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "started_at": "2026-10-26T00:44:06.864435+00:00",
+      "verified_source_inputs": 416
+    },
+    {
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/round2/int4-grouped-activation-quant",
+        "-e",
+        "CARGO_TARGET_DIR=/round2/tail256-model/target",
+        "-e",
+        "CARGO_INCREMENTAL=0",
+        "-e",
+        "CARGO_PROFILE_DEV_DEBUG=0",
+        "-e",
+        "CARGO_NET_OFFLINE=true",
+        "-e",
+        "FURIOSA_OPT_OUT_DIR=/round2/int4-grouped-activation-quant/experiments/int4-grouped-activation-quant/kernel-out-a002",
+        "moa2026-round2",
+        "cargo",
+        "furiosa-opt",
+        "compile",
+        "--exact",
+        "ops_int4_grouped_activation_quant::quantize_pack_input",
+        "--dump-schedule",
+        "experiments/int4-grouped-activation-quant/input-schedule.json"
+      ],
+      "commit": "55a55affabad9ab69ada2fafcef62fc1272edbe0",
+      "exit_code": 0,
+      "finished_at": "2026-10-26T00:44:39.237753+00:00",
+      "name": "a002-grouped-activation-input-resource",
+      "recorded_files": {
+        "output.log": "bf164f52e6ea617f0c69d25bbf328b397a7604fa8125bb95073dcfdc64ed293e",
+        "run.json": "c30536a951ddfcf12b8780a9e5cf21c8f6189be692284a32c0743fc9834ff6e0",
+        "source-hashes.json": "073a82fdf40bf01864148f03ecd3eb2be4afba36f4b7e853495d37d56815cd32",
+        "source.diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "started_at": "2026-10-26T00:44:24.337636+00:00",
+      "verified_source_inputs": 416
+    },
+    {
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/round2/int4-grouped-activation-quant",
+        "-e",
+        "CARGO_TARGET_DIR=/round2/tail256-model/target",
+        "-e",
+        "CARGO_INCREMENTAL=0",
+        "-e",
+        "CARGO_PROFILE_DEV_DEBUG=0",
+        "-e",
+        "CARGO_NET_OFFLINE=true",
+        "-e",
+        "FURIOSA_OPT_OUT_DIR=/round2/int4-grouped-activation-quant/experiments/int4-grouped-activation-quant/kernel-out-a003",
+        "moa2026-round2",
+        "cargo",
+        "furiosa-opt",
+        "compile",
+        "--exact",
+        "ops_int4_grouped_activation_quant::quantize_pack_hidden",
+        "--dump-schedule",
+        "experiments/int4-grouped-activation-quant/hidden-schedule.json"
+      ],
+      "commit": "55a55affabad9ab69ada2fafcef62fc1272edbe0",
+      "exit_code": 0,
+      "finished_at": "2026-10-26T00:45:07.786542+00:00",
+      "name": "a003-grouped-activation-hidden-resource",
+      "recorded_files": {
+        "output.log": "9ee2927b73c3e065315077107636d027657f878e10ad70afbe1b382c65ab1122",
+        "run.json": "fef7bf9d3b260e45f9b1c649514254a7ebb9fde0d389f82cf95d00a66b447571",
+        "source-hashes.json": "073a82fdf40bf01864148f03ecd3eb2be4afba36f4b7e853495d37d56815cd32",
+        "source.diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "started_at": "2026-10-26T00:44:52.987978+00:00",
+      "verified_source_inputs": 416
+    }
+  ],
+  "resource_images": {
+    "experiments/int4-grouped-activation-quant/resource-images/hidden.bin": {
+      "bytes": 64000,
+      "sha256": "69de7f36d28abfd03955f09869dcf25296e46b205e4e79a217762991ad7a54b4"
+    },
+    "experiments/int4-grouped-activation-quant/resource-images/hidden.edf": {
+      "bytes": 80565,
+      "sha256": "eab2eaf7de32eb641489d6906dc1699cd45ac66b6d948768e0e0090492cda965"
+    },
+    "experiments/int4-grouped-activation-quant/resource-images/hidden.hash": {
+      "bytes": 6885,
+      "sha256": "2b76d380c6560b91231384519c1189ad2ad69af61848a06bcb18c0a8e2ab2dc1"
+    },
+    "experiments/int4-grouped-activation-quant/resource-images/input.bin": {
+      "bytes": 65024,
+      "sha256": "38fd601d2bddc79d43502a53bc809e3998a661e799d50bfbf33229891dba8b22"
+    },
+    "experiments/int4-grouped-activation-quant/resource-images/input.edf": {
+      "bytes": 81961,
+      "sha256": "fc18d72aebd9c3e0cfd61603bd825120f72b9a987a20eb26a4b0383f712e8ab9"
+    },
+    "experiments/int4-grouped-activation-quant/resource-images/input.hash": {
+      "bytes": 6929,
+      "sha256": "1e9164cae8f9b46da202a5e0c2cdc52b08bce70eeb78d2c16e392f1cfa7a3379"
+    }
+  },
+  "results": {
+    "hidden_L16": {
+      "all_movement_and_TU_instances": [
+        {
+          "begin": 62116,
+          "cycles": 4121,
+          "end": 66237,
+          "id": "@66",
+          "inputs": [
+            "%T6",
+            "%T21"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T22"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:193:83"
+        },
+        {
+          "begin": 61766,
+          "cycles": 344,
+          "end": 62110,
+          "id": "@60",
+          "inputs": [
+            "%T7",
+            "%T20"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T21"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:185:87"
+        },
+        {
+          "begin": 21652,
+          "cycles": 297,
+          "end": 21949,
+          "id": "@26",
+          "inputs": [
+            "%T7"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T8"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:156:81"
+        },
+        {
+          "begin": 61239,
+          "cycles": 327,
+          "end": 61566,
+          "id": "@55",
+          "inputs": [
+            "%T19"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.sto_vrf",
+          "outputs": [
+            "%T20"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:181:83"
+        },
+        {
+          "begin": 70357,
+          "cycles": 3679,
+          "end": 74036,
+          "id": "@78",
+          "inputs": [
+            "%T28",
+            "%T3"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T30"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:206:5"
+        },
+        {
+          "begin": 16953,
+          "cycles": 5708,
+          "end": 22661,
+          "id": "@11",
+          "inputs": [
+            "%T2"
+          ],
+          "iteration": null,
+          "kind": "dma.dto_s",
+          "outputs": [
+            "%T24"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:31:65"
+        },
+        {
+          "begin": 61239,
+          "cycles": 8457,
+          "end": 69696,
+          "id": "@50",
+          "inputs": [
+            "%T31",
+            "%T4"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T33"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:210:5"
+        },
+        {
+          "begin": 21074,
+          "cycles": 297,
+          "end": 21371,
+          "id": "@16",
+          "inputs": [
+            "%T7"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T9"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:162:89"
+        },
+        {
+          "begin": 16953,
+          "cycles": 4121,
+          "end": 21074,
+          "id": "@10",
+          "inputs": [
+            "%T6"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T7"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:145:80"
+        },
+        {
+          "begin": 22661,
+          "cycles": 267,
+          "end": 22928,
+          "id": "@37",
+          "inputs": [
+            "%T25"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.sto_vrf",
+          "outputs": [
+            "%T26"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:34:68"
+        },
+        {
+          "begin": 22661,
+          "cycles": 8457,
+          "end": 31118,
+          "id": "@38",
+          "inputs": [
+            "%T10",
+            "%T5"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T12"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:174:5"
+        },
+        {
+          "begin": 1003,
+          "cycles": 15950,
+          "end": 16953,
+          "id": "@3",
+          "inputs": [
+            "%T0"
+          ],
+          "iteration": null,
+          "kind": "dma.dto_s",
+          "outputs": [
+            "%T6"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:144:80"
+        },
+        {
+          "begin": 21371,
+          "cycles": 281,
+          "end": 21652,
+          "id": "@21",
+          "inputs": [
+            "%T9"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T10"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:171:82"
+        },
+        {
+          "begin": 32718,
+          "cycles": 28521,
+          "end": 61239,
+          "id": "@48",
+          "inputs": [
+            "%T15",
+            "%T16"
+          ],
+          "iteration": null,
+          "kind": "dma_command_gather",
+          "outputs": [
+            "%T17"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:177:85"
+        },
+        {
+          "begin": 66237,
+          "cycles": 4120,
+          "end": 70357,
+          "id": "@72",
+          "inputs": [
+            "%T23",
+            "%T26"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T27"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:36:80"
+        },
+        {
+          "begin": 21949,
+          "cycles": 281,
+          "end": 22230,
+          "id": "@31",
+          "inputs": [
+            "%T8"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T31"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:207:80"
+        }
+      ],
+      "compiler_sram_allocations": [
+        {
+          "address": 15990784,
+          "buffer_type": "Sram",
+          "id": "%T14",
+          "iteration": null,
+          "lifetime": {
+            "begin": 61239,
+            "end": 61245
+          },
+          "name": "vISA(T55)_101",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, Record)]",
+          "size": 262144
+        },
+        {
+          "address": 12582912,
+          "buffer_type": "Sram",
+          "id": "%T27",
+          "iteration": null,
+          "lifetime": {
+            "begin": 66237,
+            "end": 70357
+          },
+          "name": "packed",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, GroupWords)]",
+          "size": 3932160
+        },
+        {
+          "address": null,
+          "buffer_type": "Sram",
+          "id": "%T19",
+          "iteration": null,
+          "lifetime": {
+            "begin": 61239,
+            "end": 61566
+          },
+          "name": "vISA(T56)_99",
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, Record = 1 # 8)]",
+          "size": 262144
+        },
+        {
+          "address": 16384000,
+          "buffer_type": "Sram",
+          "id": "%T24",
+          "iteration": null,
+          "lifetime": {
+            "begin": 16953,
+            "end": 22661
+          },
+          "name": "shifts",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: L % 8]",
+          "size": 16384
+        },
+        {
+          "address": 15728640,
+          "buffer_type": "Sram",
+          "id": "%T7",
+          "iteration": null,
+          "lifetime": {
+            "begin": 16953,
+            "end": 62110
+          },
+          "name": "vISA(T58)_117",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, 1 # 8)]",
+          "size": 262144
+        },
+        {
+          "address": 16515072,
+          "buffer_type": "Sram",
+          "id": "%T31",
+          "iteration": null,
+          "lifetime": {
+            "begin": 21949,
+            "end": 69696
+          },
+          "name": "vISA(T75)_171",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: P512 % 16]",
+          "size": 32768
+        },
+        {
+          "address": 16384000,
+          "buffer_type": "Sram",
+          "id": "%T25",
+          "iteration": null,
+          "lifetime": {
+            "begin": 22661,
+            "end": 22928
+          },
+          "name": "vISA(T65)_i0_pack_groups_18",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: Nibbles]",
+          "size": 16384
+        },
+        {
+          "address": 15990784,
+          "buffer_type": "Sram",
+          "id": "%T9",
+          "iteration": null,
+          "lifetime": {
+            "begin": 21074,
+            "end": 21652
+          },
+          "name": "vISA(T49)_78",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, 1 # 8)]",
+          "size": 262144
+        },
+        {
+          "address": 15990784,
+          "buffer_type": "Sram",
+          "id": "%T8",
+          "iteration": null,
+          "lifetime": {
+            "begin": 21652,
+            "end": 22230
+          },
+          "name": "vISA(T73)_168",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, 1 # 8)]",
+          "size": 262144
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T6",
+          "iteration": null,
+          "lifetime": {
+            "begin": 1003,
+            "end": 66237
+          },
+          "name": "vISA(T60)_142",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, L % 960)]",
+          "size": 15728640
+        },
+        {
+          "address": 16777216,
+          "buffer_type": "Sram",
+          "id": "%T23",
+          "iteration": null,
+          "lifetime": {
+            "begin": 66237,
+            "end": 70357
+          },
+          "name": "vISA(T67)_i0_pack_groups_35",
+          "physical_pages": [
+            1,
+            2
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, GroupWords, Nibbles)]",
+          "size": 31457280
+        },
+        {
+          "address": 16252928,
+          "buffer_type": "Sram",
+          "id": "%T10",
+          "iteration": null,
+          "lifetime": {
+            "begin": 21371,
+            "end": 31118
+          },
+          "name": "vISA(T51)_81",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: P512 % 16]",
+          "size": 32768
+        },
+        {
+          "address": 15990784,
+          "buffer_type": "Sram",
+          "id": "%T17",
+          "iteration": null,
+          "lifetime": {
+            "begin": 32718,
+            "end": 61239
+          },
+          "name": "",
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "size": 262144
+        },
+        {
+          "address": 16777216,
+          "buffer_type": "Sram",
+          "id": "%T22",
+          "iteration": null,
+          "lifetime": {
+            "begin": 62116,
+            "end": 66237
+          },
+          "name": "codes",
+          "physical_pages": [
+            1,
+            2
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, L % 960)]",
+          "size": 31457280
+        },
+        {
+          "address": 12582912,
+          "buffer_type": "Sram",
+          "id": "%T28",
+          "iteration": null,
+          "lifetime": {
+            "begin": 70357,
+            "end": 74036
+          },
+          "name": "vISA(T70)_155",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, L % 960 / 8)]",
+          "size": 3932160
+        }
+      ],
+      "complete_unfolded_schedule_cycles": 74636,
+      "has_dram_stack": false,
+      "lir_caveat": "Loop-local endpoints are not a whole-task duration. Unfolded span includes SDK scheduling/start offsets and is not measured device time.",
+      "live_sram_record_sum_upper_bound_bytes": 47218688,
+      "max_local_lir_endpoint": 74233,
+      "max_physical_sram_tensor_bytes": 31457280,
+      "memory_caveat": "The SDK leaves addresses null for loop-local/aliased records. Placed union is not a certified whole-graph peak; the live-record sum is a conservative alias-counting upper bound. Preserve the exact allocation records.",
+      "placed_live_address_union_peak_bytes": 47218688,
+      "resource_kinds": {
+        "dma.dto_s": {
+          "instances": 2,
+          "summed_cycles": 21658,
+          "union_cycles": 21658
+        },
+        "dma.sto_d": {
+          "instances": 3,
+          "summed_cycles": 20593,
+          "union_cycles": 20593
+        },
+        "dma_command_gather": {
+          "instances": 1,
+          "summed_cycles": 28521,
+          "union_cycles": 28521
+        },
+        "rngd_cmd.sto_vrf": {
+          "instances": 2,
+          "summed_cycles": 594,
+          "union_cycles": 594
+        },
+        "rngd_cmd.tu_exec": {
+          "instances": 8,
+          "summed_cycles": 13862,
+          "union_cycles": 13862
+        }
+      },
+      "schedule_sha256": "269bf85e9a6266e99519aebc3dede66e02d23837600745753fd90d0b97d68b46",
+      "timeline_begin": 0,
+      "timeline_end": 74636,
+      "unplaced_sram_records": 1
+    },
+    "input_H4": {
+      "all_movement_and_TU_instances": [
+        {
+          "begin": 40819,
+          "cycles": 1240,
+          "end": 42059,
+          "id": "@71",
+          "inputs": [
+            "%T23",
+            "%T26"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T27"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:36:80"
+        },
+        {
+          "begin": 39282,
+          "cycles": 296,
+          "end": 39578,
+          "id": "@60",
+          "inputs": [
+            "%T7",
+            "%T20"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T21"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:104:85"
+        },
+        {
+          "begin": 7581,
+          "cycles": 285,
+          "end": 7866,
+          "id": "@26",
+          "inputs": [
+            "%T7"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T8"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:75:79"
+        },
+        {
+          "begin": 38803,
+          "cycles": 279,
+          "end": 39082,
+          "id": "@55",
+          "inputs": [
+            "%T19"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.sto_vrf",
+          "outputs": [
+            "%T20"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:100:81"
+        },
+        {
+          "begin": 58452,
+          "cycles": 1240,
+          "end": 59692,
+          "id": "@79",
+          "inputs": [
+            "%T29",
+            "%T3"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T31"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:126:5"
+        },
+        {
+          "begin": 5786,
+          "cycles": 5708,
+          "end": 11494,
+          "id": "@11",
+          "inputs": [
+            "%T2"
+          ],
+          "iteration": null,
+          "kind": "dma.dto_s",
+          "outputs": [
+            "%T24"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:31:65"
+        },
+        {
+          "begin": 38803,
+          "cycles": 17823,
+          "end": 56626,
+          "id": "@50",
+          "inputs": [
+            "%T32",
+            "%T4"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T34"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:130:5"
+        },
+        {
+          "begin": 7027,
+          "cycles": 285,
+          "end": 7312,
+          "id": "@16",
+          "inputs": [
+            "%T7"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T9"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:81:87"
+        },
+        {
+          "begin": 5786,
+          "cycles": 1241,
+          "end": 7027,
+          "id": "@10",
+          "inputs": [
+            "%T6"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T7"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:64:78"
+        },
+        {
+          "begin": 56626,
+          "cycles": 1826,
+          "end": 58452,
+          "id": "@75",
+          "inputs": [
+            "%T28"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_s",
+          "outputs": [
+            "%T29"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:125:76"
+        },
+        {
+          "begin": 11494,
+          "cycles": 267,
+          "end": 11761,
+          "id": "@37",
+          "inputs": [
+            "%T25"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.sto_vrf",
+          "outputs": [
+            "%T26"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:34:68"
+        },
+        {
+          "begin": 11494,
+          "cycles": 17823,
+          "end": 29317,
+          "id": "@38",
+          "inputs": [
+            "%T10",
+            "%T5"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T12"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:93:5"
+        },
+        {
+          "begin": 39578,
+          "cycles": 1241,
+          "end": 40819,
+          "id": "@65",
+          "inputs": [
+            "%T6",
+            "%T21"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T22"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:112:81"
+        },
+        {
+          "begin": 1003,
+          "cycles": 4783,
+          "end": 5786,
+          "id": "@3",
+          "inputs": [
+            "%T0"
+          ],
+          "iteration": null,
+          "kind": "dma.dto_s",
+          "outputs": [
+            "%T6"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:63:78"
+        },
+        {
+          "begin": 7312,
+          "cycles": 269,
+          "end": 7581,
+          "id": "@21",
+          "inputs": [
+            "%T9"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T10"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:90:80"
+        },
+        {
+          "begin": 30917,
+          "cycles": 7886,
+          "end": 38803,
+          "id": "@48",
+          "inputs": [
+            "%T15",
+            "%T16"
+          ],
+          "iteration": null,
+          "kind": "dma_command_gather",
+          "outputs": [
+            "%T17"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:96:83"
+        },
+        {
+          "begin": 7866,
+          "cycles": 269,
+          "end": 8135,
+          "id": "@31",
+          "inputs": [
+            "%T8"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T32"
+          ],
+          "source": "--> src/ops_int4_grouped_activation_quant.rs:127:78"
+        }
+      ],
+      "compiler_sram_allocations": [
+        {
+          "address": 4063232,
+          "buffer_type": "Sram",
+          "id": "%T14",
+          "iteration": null,
+          "lifetime": {
+            "begin": 38803,
+            "end": 38809
+          },
+          "name": "vISA(T56)_101",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, Record)]",
+          "size": 65536
+        },
+        {
+          "address": 12451840,
+          "buffer_type": "Sram",
+          "id": "%T27",
+          "iteration": null,
+          "lifetime": {
+            "begin": 40819,
+            "end": 42059
+          },
+          "name": "packed",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, GroupWords)]",
+          "size": 983040
+        },
+        {
+          "address": null,
+          "buffer_type": "Sram",
+          "id": "%T19",
+          "iteration": null,
+          "lifetime": {
+            "begin": 38803,
+            "end": 39082
+          },
+          "name": "vISA(T57)_99",
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, Record = 1 # 8)]",
+          "size": 65536
+        },
+        {
+          "address": 4325376,
+          "buffer_type": "Sram",
+          "id": "%T24",
+          "iteration": null,
+          "lifetime": {
+            "begin": 5786,
+            "end": 11494
+          },
+          "name": "shifts",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: H % 8]",
+          "size": 16384
+        },
+        {
+          "address": 3932160,
+          "buffer_type": "Sram",
+          "id": "%T7",
+          "iteration": null,
+          "lifetime": {
+            "begin": 5786,
+            "end": 39578
+          },
+          "name": "vISA(T59)_117",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, 1 # 8)]",
+          "size": 65536
+        },
+        {
+          "address": 4456448,
+          "buffer_type": "Sram",
+          "id": "%T32",
+          "iteration": null,
+          "lifetime": {
+            "begin": 7866,
+            "end": 56626
+          },
+          "name": "vISA(T77)_175",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: P512 % 4]",
+          "size": 8192
+        },
+        {
+          "address": 4325376,
+          "buffer_type": "Sram",
+          "id": "%T25",
+          "iteration": null,
+          "lifetime": {
+            "begin": 11494,
+            "end": 11761
+          },
+          "name": "vISA(T66)_i0_pack_groups_18",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: Nibbles]",
+          "size": 16384
+        },
+        {
+          "address": 4063232,
+          "buffer_type": "Sram",
+          "id": "%T9",
+          "iteration": null,
+          "lifetime": {
+            "begin": 7027,
+            "end": 7581
+          },
+          "name": "vISA(T50)_78",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, 1 # 8)]",
+          "size": 65536
+        },
+        {
+          "address": 4063232,
+          "buffer_type": "Sram",
+          "id": "%T8",
+          "iteration": null,
+          "lifetime": {
+            "begin": 7581,
+            "end": 8135
+          },
+          "name": "vISA(T75)_172",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, 1 # 8)]",
+          "size": 65536
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T6",
+          "iteration": null,
+          "lifetime": {
+            "begin": 1003,
+            "end": 40819
+          },
+          "name": "vISA(T61)_142",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, H % 960)]",
+          "size": 3932160
+        },
+        {
+          "address": 4587520,
+          "buffer_type": "Sram",
+          "id": "%T23",
+          "iteration": null,
+          "lifetime": {
+            "begin": 40819,
+            "end": 42059
+          },
+          "name": "vISA(T68)_i0_pack_groups_35",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, GroupWords, Nibbles)]",
+          "size": 7864320
+        },
+        {
+          "address": 4194304,
+          "buffer_type": "Sram",
+          "id": "%T10",
+          "iteration": null,
+          "lifetime": {
+            "begin": 7312,
+            "end": 29317
+          },
+          "name": "vISA(T52)_81",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: P512 % 4]",
+          "size": 8192
+        },
+        {
+          "address": 4063232,
+          "buffer_type": "Sram",
+          "id": "%T17",
+          "iteration": null,
+          "lifetime": {
+            "begin": 30917,
+            "end": 38803
+          },
+          "name": "",
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "size": 65536
+        },
+        {
+          "address": 4587520,
+          "buffer_type": "Sram",
+          "id": "%T22",
+          "iteration": null,
+          "lifetime": {
+            "begin": 39578,
+            "end": 40819
+          },
+          "name": "codes",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, H % 960)]",
+          "size": 7864320
+        },
+        {
+          "address": 12451840,
+          "buffer_type": "Sram",
+          "id": "%T28",
+          "iteration": null,
+          "lifetime": {
+            "begin": 42059,
+            "end": 58452
+          },
+          "name": "vISA(T70)_i0_pack_groups_0",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 4), Element: (P512 % 4, H % 960 / 8)]",
+          "size": 983040
+        },
+        {
+          "address": 8519680,
+          "buffer_type": "Sram",
+          "id": "%T29",
+          "iteration": null,
+          "lifetime": {
+            "begin": 56626,
+            "end": 59692
+          },
+          "name": "vISA(T72)_159",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 16, 1 # 4), Element: (P512 % 16, H % 960 / 8)]",
+          "size": 3932160
+        }
+      ],
+      "complete_unfolded_schedule_cycles": 60292,
+      "has_dram_stack": false,
+      "lir_caveat": "Loop-local endpoints are not a whole-task duration. Unfolded span includes SDK scheduling/start offsets and is not measured device time.",
+      "live_sram_record_sum_upper_bound_bytes": 11804672,
+      "max_local_lir_endpoint": 60089,
+      "max_physical_sram_tensor_bytes": 7864320,
+      "memory_caveat": "The SDK leaves addresses null for loop-local/aliased records. Placed union is not a certified whole-graph peak; the live-record sum is a conservative alias-counting upper bound. Preserve the exact allocation records.",
+      "placed_live_address_union_peak_bytes": 11804672,
+      "resource_kinds": {
+        "dma.dto_s": {
+          "instances": 2,
+          "summed_cycles": 10491,
+          "union_cycles": 10491
+        },
+        "dma.sto_d": {
+          "instances": 3,
+          "summed_cycles": 36886,
+          "union_cycles": 36886
+        },
+        "dma.sto_s": {
+          "instances": 1,
+          "summed_cycles": 1826,
+          "union_cycles": 1826
+        },
+        "dma_command_gather": {
+          "instances": 1,
+          "summed_cycles": 7886,
+          "union_cycles": 7886
+        },
+        "rngd_cmd.sto_vrf": {
+          "instances": 2,
+          "summed_cycles": 546,
+          "union_cycles": 546
+        },
+        "rngd_cmd.tu_exec": {
+          "instances": 8,
+          "summed_cycles": 5126,
+          "union_cycles": 5126
+        }
+      },
+      "schedule_sha256": "d9c5f5f9d0515dd5234f2a7e7afca8af3c51f9b0c6f7662ff062001d8eb071ec",
+      "timeline_begin": 0,
+      "timeline_end": 60292,
+      "unplaced_sram_records": 1
+    },
+    "prior_wholerow_H": {
+      "all_movement_and_TU_instances": [
+        {
+          "begin": 13728,
+          "cycles": 659,
+          "end": 14387,
+          "id": "@46",
+          "inputs": [
+            "%T15",
+            "%T16"
+          ],
+          "iteration": null,
+          "kind": "dma_command_gather",
+          "outputs": [
+            "%T20"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:54:68"
+        },
+        {
+          "begin": 6315,
+          "cycles": 282,
+          "end": 6597,
+          "id": "@20",
+          "inputs": [
+            "%T6"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T7"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:30:64"
+        },
+        {
+          "begin": 13728,
+          "cycles": 267,
+          "end": 13995,
+          "id": "@45",
+          "inputs": [
+            "%T28"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.sto_vrf",
+          "outputs": [
+            "%T29"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:116:68"
+        },
+        {
+          "begin": 15800,
+          "cycles": 1241,
+          "end": 17041,
+          "id": "@67",
+          "inputs": [
+            "%T5",
+            "%T24"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T25"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:70:60"
+        },
+        {
+          "begin": 15513,
+          "cycles": 284,
+          "end": 15797,
+          "id": "@61",
+          "inputs": [
+            "%T6",
+            "%T23"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T24"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:62:70"
+        },
+        {
+          "begin": 15046,
+          "cycles": 716,
+          "end": 15762,
+          "id": "@52",
+          "inputs": [
+            "%T7"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_s",
+          "outputs": [
+            "%T35"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:154:9"
+        },
+        {
+          "begin": 17562,
+          "cycles": 1240,
+          "end": 18802,
+          "id": "@79",
+          "inputs": [
+            "%T26",
+            "%T29"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T30"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:124:61"
+        },
+        {
+          "begin": 17041,
+          "cycles": 521,
+          "end": 17562,
+          "id": "@74",
+          "inputs": [
+            "%T35"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T36"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:155:82"
+        },
+        {
+          "begin": 17562,
+          "cycles": 418,
+          "end": 17980,
+          "id": "@80",
+          "inputs": [
+            "%T36",
+            "%T4"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T38"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:158:5"
+        },
+        {
+          "begin": 14387,
+          "cycles": 659,
+          "end": 15046,
+          "id": "@50",
+          "inputs": [
+            "%T15",
+            "%T16",
+            "%T20"
+          ],
+          "iteration": null,
+          "kind": "dma_command_gather",
+          "outputs": [
+            "%T17"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:54:68"
+        },
+        {
+          "begin": 4792,
+          "cycles": 1241,
+          "end": 6033,
+          "id": "@10",
+          "inputs": [
+            "%T5"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T6"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:19:63"
+        },
+        {
+          "begin": 22078,
+          "cycles": 1240,
+          "end": 23318,
+          "id": "@91",
+          "inputs": [
+            "%T32",
+            "%T3"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T34"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:227:5"
+        },
+        {
+          "begin": 15046,
+          "cycles": 267,
+          "end": 15313,
+          "id": "@56",
+          "inputs": [
+            "%T22"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.sto_vrf",
+          "outputs": [
+            "%T23"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:58:66"
+        },
+        {
+          "begin": 6315,
+          "cycles": 716,
+          "end": 7031,
+          "id": "@21",
+          "inputs": [
+            "%T8"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_s",
+          "outputs": [
+            "%T9"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:49:9"
+        },
+        {
+          "begin": 1003,
+          "cycles": 3789,
+          "end": 4792,
+          "id": "@3",
+          "inputs": [
+            "%T0"
+          ],
+          "iteration": null,
+          "kind": "dma.dto_s",
+          "outputs": [
+            "%T5"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:18:57"
+        },
+        {
+          "begin": 8020,
+          "cycles": 5708,
+          "end": 13728,
+          "id": "@31",
+          "inputs": [
+            "%T2"
+          ],
+          "iteration": null,
+          "kind": "dma.dto_s",
+          "outputs": [
+            "%T27"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:112:65"
+        },
+        {
+          "begin": 18802,
+          "cycles": 3276,
+          "end": 22078,
+          "id": "@86",
+          "inputs": [
+            "%T31"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_s",
+          "outputs": [
+            "%T32"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:226:9"
+        },
+        {
+          "begin": 6033,
+          "cycles": 282,
+          "end": 6315,
+          "id": "@15",
+          "inputs": [
+            "%T6"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T8"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:37:66"
+        },
+        {
+          "begin": 7031,
+          "cycles": 521,
+          "end": 7552,
+          "id": "@27",
+          "inputs": [
+            "%T9"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T10"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:50:77"
+        },
+        {
+          "begin": 7552,
+          "cycles": 468,
+          "end": 8020,
+          "id": "@30",
+          "inputs": [
+            "%T10"
+          ],
+          "iteration": null,
+          "kind": "dma_command",
+          "outputs": [
+            "%T11"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:53:79"
+        }
+      ],
+      "compiler_sram_allocations": [
+        {
+          "address": 4194304,
+          "buffer_type": "Sram",
+          "id": "%T14",
+          "iteration": null,
+          "lifetime": {
+            "begin": 15046,
+            "end": 15052
+          },
+          "name": "vISA(T54)_i0_quantize_codes_97",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: Record]",
+          "size": 16384
+        },
+        {
+          "address": 4063232,
+          "buffer_type": "Sram",
+          "id": "%T27",
+          "iteration": null,
+          "lifetime": {
+            "begin": 8020,
+            "end": 13728
+          },
+          "name": "shifts",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: H % 8]",
+          "size": 16384
+        },
+        {
+          "address": 3801088,
+          "buffer_type": "Sram",
+          "id": "%T36",
+          "iteration": null,
+          "lifetime": {
+            "begin": 17041,
+            "end": 17980
+          },
+          "name": "vISA(T76)_i2_store_scales_18",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: 1 # 256, Element: P512 % 256]",
+          "size": 524288
+        },
+        {
+          "address": 8912896,
+          "buffer_type": "Sram",
+          "id": "%T7",
+          "iteration": null,
+          "lifetime": {
+            "begin": 6315,
+            "end": 15762
+          },
+          "name": "scale",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: 1 # 8]",
+          "size": 16384
+        },
+        {
+          "address": 3801088,
+          "buffer_type": "Sram",
+          "id": "%T32",
+          "iteration": null,
+          "lifetime": {
+            "begin": 18802,
+            "end": 23318
+          },
+          "name": "vISA(T70)_22",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (H / 960, P512 % 256 / 16, 1 # 4), Element: (P512 % 16, H % 960 / 8)]",
+          "size": 3932160
+        },
+        {
+          "address": 2752512,
+          "buffer_type": "Sram",
+          "id": "%T31",
+          "iteration": null,
+          "lifetime": {
+            "begin": 18802,
+            "end": 22078
+          },
+          "name": "vISA(T68)_i1_pack_codes_0",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: H / 8]",
+          "size": 983040
+        },
+        {
+          "address": 16777216,
+          "buffer_type": "Sram",
+          "id": "%T25",
+          "iteration": null,
+          "lifetime": {
+            "begin": 15800,
+            "end": 17041
+          },
+          "name": "codes",
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: H]",
+          "size": 7864320
+        },
+        {
+          "address": 16777216,
+          "buffer_type": "Sram",
+          "id": "%T26",
+          "iteration": null,
+          "lifetime": {
+            "begin": 17041,
+            "end": 18802
+          },
+          "name": "vISA(T66)_i1_pack_codes_35",
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: (InputWords, Nibbles)]",
+          "size": 7864320
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T5",
+          "iteration": null,
+          "lifetime": {
+            "begin": 1003,
+            "end": 17041
+          },
+          "name": "vISA(T59)_i0_quantize_codes_138",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: H]",
+          "size": 3932160
+        },
+        {
+          "address": 2752512,
+          "buffer_type": "Sram",
+          "id": "%T30",
+          "iteration": null,
+          "lifetime": {
+            "begin": 17562,
+            "end": 18802
+          },
+          "name": "packed",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: InputWords]",
+          "size": 983040
+        },
+        {
+          "address": 4194304,
+          "buffer_type": "Sram",
+          "id": "%T9",
+          "iteration": null,
+          "lifetime": {
+            "begin": 6315,
+            "end": 7552
+          },
+          "name": "vISA(T50)_i0_quantize_codes_76",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: 1 # 256, Element: (P512 % 256, 1 # 8)]",
+          "size": 4194304
+        },
+        {
+          "address": 4063232,
+          "buffer_type": "Sram",
+          "id": "%T8",
+          "iteration": null,
+          "lifetime": {
+            "begin": 6033,
+            "end": 7031
+          },
+          "name": "indices",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: 1 # 8]",
+          "size": 16384
+        },
+        {
+          "address": 3932160,
+          "buffer_type": "Sram",
+          "id": "%T6",
+          "iteration": null,
+          "lifetime": {
+            "begin": 4792,
+            "end": 15797
+          },
+          "name": "vISA(T57)_i0_quantize_codes_113",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: 1 # 8]",
+          "size": 16384
+        },
+        {
+          "address": 8388608,
+          "buffer_type": "Sram",
+          "id": "%T10",
+          "iteration": null,
+          "lifetime": {
+            "begin": 7031,
+            "end": 8020
+          },
+          "name": "packed",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: 1 # 256, Element: P512 % 256]",
+          "size": 524288
+        },
+        {
+          "address": 4325376,
+          "buffer_type": "Sram",
+          "id": "%T35",
+          "iteration": null,
+          "lifetime": {
+            "begin": 15046,
+            "end": 17562
+          },
+          "name": "vISA(T74)_i2_store_scales_15",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: 1 # 256, Element: (P512 % 256, 1 # 8)]",
+          "size": 4194304
+        },
+        {
+          "address": null,
+          "buffer_type": "Sram",
+          "id": "%T22",
+          "iteration": null,
+          "lifetime": {
+            "begin": 15046,
+            "end": 15313
+          },
+          "name": "vISA(T55)_i0_quantize_codes_95",
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: Record = 1 # 8]",
+          "size": 16384
+        },
+        {
+          "address": 4063232,
+          "buffer_type": "Sram",
+          "id": "%T28",
+          "iteration": null,
+          "lifetime": {
+            "begin": 13728,
+            "end": 13995
+          },
+          "name": "vISA(T64)_i1_pack_codes_18",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: Nibbles]",
+          "size": 16384
+        },
+        {
+          "address": 4194304,
+          "buffer_type": "Sram",
+          "id": "%T17",
+          "iteration": null,
+          "lifetime": {
+            "begin": 14387,
+            "end": 15046
+          },
+          "name": "",
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "size": 16384
+        },
+        {
+          "address": 4194304,
+          "buffer_type": "Sram",
+          "id": "%T20",
+          "iteration": null,
+          "lifetime": {
+            "begin": 13728,
+            "end": 15046
+          },
+          "name": "",
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "size": 16384
+        }
+      ],
+      "complete_unfolded_schedule_cycles": 23918,
+      "has_dram_stack": false,
+      "lir_caveat": "Loop-local endpoints are not a whole-task duration. Unfolded span includes SDK scheduling/start offsets and is not measured device time.",
+      "live_sram_record_sum_upper_bound_bytes": 15990784,
+      "max_local_lir_endpoint": 23618,
+      "max_physical_sram_tensor_bytes": 7864320,
+      "memory_caveat": "The SDK leaves addresses null for loop-local/aliased records. Placed union is not a certified whole-graph peak; the live-record sum is a conservative alias-counting upper bound. Preserve the exact allocation records.",
+      "placed_live_address_union_peak_bytes": 15990784,
+      "resource_kinds": {
+        "dma.dto_s": {
+          "instances": 2,
+          "summed_cycles": 9497,
+          "union_cycles": 9497
+        },
+        "dma.sto_d": {
+          "instances": 2,
+          "summed_cycles": 1658,
+          "union_cycles": 1658
+        },
+        "dma.sto_s": {
+          "instances": 3,
+          "summed_cycles": 4708,
+          "union_cycles": 4708
+        },
+        "dma_command": {
+          "instances": 1,
+          "summed_cycles": 468,
+          "union_cycles": 468
+        },
+        "dma_command_gather": {
+          "instances": 2,
+          "summed_cycles": 1318,
+          "union_cycles": 1318
+        },
+        "rngd_cmd.sto_vrf": {
+          "instances": 2,
+          "summed_cycles": 534,
+          "union_cycles": 534
+        },
+        "rngd_cmd.tu_exec": {
+          "instances": 8,
+          "summed_cycles": 5612,
+          "union_cycles": 5612
+        }
+      },
+      "schedule_sha256": "ffc3dc5dd55cd71cfe073298edddbd3f03559200a2adefa79922131e00f24109",
+      "timeline_begin": 0,
+      "timeline_end": 23918,
+      "unplaced_sram_records": 1
+    },
+    "prior_wholerow_L": {
+      "all_movement_and_TU_instances": [
+        {
+          "begin": 24353,
+          "cycles": 4121,
+          "end": 28474,
+          "id": "@71",
+          "inputs": [
+            "%T5",
+            "%T24"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T25"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:70:60"
+        },
+        {
+          "begin": 20626,
+          "cycles": 716,
+          "end": 21342,
+          "id": "@33",
+          "inputs": [
+            "%T7"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_s",
+          "outputs": [
+            "%T35"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:154:9"
+        },
+        {
+          "begin": 18918,
+          "cycles": 282,
+          "end": 19200,
+          "id": "@20",
+          "inputs": [
+            "%T6"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T7"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:30:64"
+        },
+        {
+          "begin": 22940,
+          "cycles": 659,
+          "end": 23599,
+          "id": "@52",
+          "inputs": [
+            "%T15",
+            "%T16",
+            "%T20"
+          ],
+          "iteration": null,
+          "kind": "dma_command_gather",
+          "outputs": [
+            "%T17"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:54:68"
+        },
+        {
+          "begin": 23599,
+          "cycles": 267,
+          "end": 23866,
+          "id": "@58",
+          "inputs": [
+            "%T22"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.sto_vrf",
+          "outputs": [
+            "%T23"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:58:66"
+        },
+        {
+          "begin": 23599,
+          "cycles": 5708,
+          "end": 29307,
+          "id": "@54",
+          "inputs": [
+            "%T2"
+          ],
+          "iteration": null,
+          "kind": "dma.dto_s",
+          "outputs": [
+            "%T27"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:112:65"
+        },
+        {
+          "begin": 19637,
+          "cycles": 521,
+          "end": 20158,
+          "id": "@28",
+          "inputs": [
+            "%T9"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T10"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:50:77"
+        },
+        {
+          "begin": 29307,
+          "cycles": 267,
+          "end": 29574,
+          "id": "@78",
+          "inputs": [
+            "%T28"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.sto_vrf",
+          "outputs": [
+            "%T29"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:116:68"
+        },
+        {
+          "begin": 22281,
+          "cycles": 659,
+          "end": 22940,
+          "id": "@50",
+          "inputs": [
+            "%T15",
+            "%T16"
+          ],
+          "iteration": null,
+          "kind": "dma_command_gather",
+          "outputs": [
+            "%T20"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:54:68"
+        },
+        {
+          "begin": 29574,
+          "cycles": 4120,
+          "end": 33694,
+          "id": "@83",
+          "inputs": [
+            "%T26",
+            "%T29"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T30"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:124:61"
+        },
+        {
+          "begin": 14515,
+          "cycles": 4121,
+          "end": 18636,
+          "id": "@10",
+          "inputs": [
+            "%T5"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T6"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:19:63"
+        },
+        {
+          "begin": 21342,
+          "cycles": 521,
+          "end": 21863,
+          "id": "@40",
+          "inputs": [
+            "%T35"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T36"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:155:82"
+        },
+        {
+          "begin": 24066,
+          "cycles": 284,
+          "end": 24350,
+          "id": "@65",
+          "inputs": [
+            "%T6",
+            "%T23"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T24"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:62:70"
+        },
+        {
+          "begin": 41466,
+          "cycles": 3679,
+          "end": 45145,
+          "id": "@92",
+          "inputs": [
+            "%T32",
+            "%T3"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T34"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:192:5"
+        },
+        {
+          "begin": 1003,
+          "cycles": 13512,
+          "end": 14515,
+          "id": "@3",
+          "inputs": [
+            "%T0"
+          ],
+          "iteration": null,
+          "kind": "dma.dto_s",
+          "outputs": [
+            "%T5"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:18:57"
+        },
+        {
+          "begin": 18921,
+          "cycles": 716,
+          "end": 19637,
+          "id": "@22",
+          "inputs": [
+            "%T8"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_s",
+          "outputs": [
+            "%T9"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:49:9"
+        },
+        {
+          "begin": 20158,
+          "cycles": 468,
+          "end": 20626,
+          "id": "@31",
+          "inputs": [
+            "%T10"
+          ],
+          "iteration": null,
+          "kind": "dma_command",
+          "outputs": [
+            "%T11"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:53:79"
+        },
+        {
+          "begin": 18636,
+          "cycles": 282,
+          "end": 18918,
+          "id": "@15",
+          "inputs": [
+            "%T6"
+          ],
+          "iteration": null,
+          "kind": "rngd_cmd.tu_exec",
+          "outputs": [
+            "%T8"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:37:66"
+        },
+        {
+          "begin": 21863,
+          "cycles": 418,
+          "end": 22281,
+          "id": "@43",
+          "inputs": [
+            "%T36",
+            "%T4"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_d",
+          "outputs": [
+            "%T38"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:158:5"
+        },
+        {
+          "begin": 33694,
+          "cycles": 7772,
+          "end": 41466,
+          "id": "@87",
+          "inputs": [
+            "%T31"
+          ],
+          "iteration": null,
+          "kind": "dma.sto_s",
+          "outputs": [
+            "%T32"
+          ],
+          "source": "--> src/ops_int4_rational_fused_pack.rs:191:9"
+        }
+      ],
+      "compiler_sram_allocations": [
+        {
+          "address": 15859712,
+          "buffer_type": "Sram",
+          "id": "%T14",
+          "iteration": null,
+          "lifetime": {
+            "begin": 23599,
+            "end": 23605
+          },
+          "name": "vISA(T54)_i0_quantize_codes_97",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: Record]",
+          "size": 16384
+        },
+        {
+          "address": 16515072,
+          "buffer_type": "Sram",
+          "id": "%T27",
+          "iteration": null,
+          "lifetime": {
+            "begin": 23599,
+            "end": 29307
+          },
+          "name": "shifts",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: L % 8]",
+          "size": 16384
+        },
+        {
+          "address": 15990784,
+          "buffer_type": "Sram",
+          "id": "%T36",
+          "iteration": null,
+          "lifetime": {
+            "begin": 21342,
+            "end": 22281
+          },
+          "name": "vISA(T76)_i2_store_scales_18",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: 1 # 256, Element: P512 % 256]",
+          "size": 524288
+        },
+        {
+          "address": 16384000,
+          "buffer_type": "Sram",
+          "id": "%T7",
+          "iteration": null,
+          "lifetime": {
+            "begin": 18918,
+            "end": 21342
+          },
+          "name": "scale",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: 1 # 8]",
+          "size": 16384
+        },
+        {
+          "address": 3932160,
+          "buffer_type": "Sram",
+          "id": "%T32",
+          "iteration": null,
+          "lifetime": {
+            "begin": 33694,
+            "end": 45145
+          },
+          "name": "vISA(T70)_22",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: (L / 960, P512 % 256 / 16), Element: (P512 % 16, L % 960 / 8)]",
+          "size": 3932160
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T31",
+          "iteration": null,
+          "lifetime": {
+            "begin": 33694,
+            "end": 41466
+          },
+          "name": "vISA(T68)_i1_pack_codes_0",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: L / 8]",
+          "size": 3932160
+        },
+        {
+          "address": 16777216,
+          "buffer_type": "Sram",
+          "id": "%T25",
+          "iteration": null,
+          "lifetime": {
+            "begin": 24353,
+            "end": 28474
+          },
+          "name": "codes",
+          "physical_pages": [
+            1,
+            2
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: L]",
+          "size": 31457280
+        },
+        {
+          "address": 16777216,
+          "buffer_type": "Sram",
+          "id": "%T26",
+          "iteration": null,
+          "lifetime": {
+            "begin": 28474,
+            "end": 33694
+          },
+          "name": "vISA(T66)_i1_pack_codes_35",
+          "physical_pages": [
+            1,
+            2
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: (HiddenWords, Nibbles)]",
+          "size": 31457280
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T5",
+          "iteration": null,
+          "lifetime": {
+            "begin": 1003,
+            "end": 28474
+          },
+          "name": "vISA(T59)_i0_quantize_codes_138",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: L]",
+          "size": 15728640
+        },
+        {
+          "address": 0,
+          "buffer_type": "Sram",
+          "id": "%T30",
+          "iteration": null,
+          "lifetime": {
+            "begin": 29574,
+            "end": 33694
+          },
+          "name": "packed",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: HiddenWords]",
+          "size": 3932160
+        },
+        {
+          "address": 16777216,
+          "buffer_type": "Sram",
+          "id": "%T9",
+          "iteration": null,
+          "lifetime": {
+            "begin": 18921,
+            "end": 20158
+          },
+          "name": "vISA(T50)_i0_quantize_codes_76",
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: 1 # 256, Element: (P512 % 256, 1 # 8)]",
+          "size": 4194304
+        },
+        {
+          "address": 15859712,
+          "buffer_type": "Sram",
+          "id": "%T8",
+          "iteration": null,
+          "lifetime": {
+            "begin": 18636,
+            "end": 19637
+          },
+          "name": "indices",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: 1 # 8]",
+          "size": 16384
+        },
+        {
+          "address": 15728640,
+          "buffer_type": "Sram",
+          "id": "%T6",
+          "iteration": null,
+          "lifetime": {
+            "begin": 14515,
+            "end": 24350
+          },
+          "name": "vISA(T57)_i0_quantize_codes_113",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: 1 # 8]",
+          "size": 16384
+        },
+        {
+          "address": 15859712,
+          "buffer_type": "Sram",
+          "id": "%T10",
+          "iteration": null,
+          "lifetime": {
+            "begin": 19637,
+            "end": 20626
+          },
+          "name": "packed",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: 1 # 256, Element: P512 % 256]",
+          "size": 524288
+        },
+        {
+          "address": 16777216,
+          "buffer_type": "Sram",
+          "id": "%T35",
+          "iteration": null,
+          "lifetime": {
+            "begin": 20626,
+            "end": 21863
+          },
+          "name": "vISA(T74)_i2_store_scales_15",
+          "physical_pages": [
+            1
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: 1 # 256, Element: (P512 % 256, 1 # 8)]",
+          "size": 4194304
+        },
+        {
+          "address": null,
+          "buffer_type": "Sram",
+          "id": "%T22",
+          "iteration": null,
+          "lifetime": {
+            "begin": 23599,
+            "end": 23866
+          },
+          "name": "vISA(T55)_i0_quantize_codes_95",
+          "physical_pages": [],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: Record = 1 # 8]",
+          "size": 16384
+        },
+        {
+          "address": 16515072,
+          "buffer_type": "Sram",
+          "id": "%T28",
+          "iteration": null,
+          "lifetime": {
+            "begin": 29307,
+            "end": 29574
+          },
+          "name": "vISA(T64)_i1_pack_codes_18",
+          "physical_pages": [
+            0
+          ],
+          "shape": "MappingShape[Chip: 1, Cluster: P512 / 256, Slice: P512 % 256, Element: Nibbles]",
+          "size": 16384
+        },
+        {
+          "address": 15859712,
+          "buffer_type": "Sram",
+          "id": "%T17",
+          "iteration": null,
+          "lifetime": {
+            "begin": 22940,
+            "end": 23599
+          },
+          "name": "",
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "size": 16384
+        },
+        {
+          "address": 15859712,
+          "buffer_type": "Sram",
+          "id": "%T20",
+          "iteration": null,
+          "lifetime": {
+            "begin": 22281,
+            "end": 23599
+          },
+          "name": "",
+          "physical_pages": [
+            0
+          ],
+          "shape": "",
+          "size": 16384
+        }
+      ],
+      "complete_unfolded_schedule_cycles": 45745,
+      "has_dram_stack": false,
+      "lir_caveat": "Loop-local endpoints are not a whole-task duration. Unfolded span includes SDK scheduling/start offsets and is not measured device time.",
+      "live_sram_record_sum_upper_bound_bytes": 47202304,
+      "max_local_lir_endpoint": 46334,
+      "max_physical_sram_tensor_bytes": 31457280,
+      "memory_caveat": "The SDK leaves addresses null for loop-local/aliased records. Placed union is not a certified whole-graph peak; the live-record sum is a conservative alias-counting upper bound. Preserve the exact allocation records.",
+      "placed_live_address_union_peak_bytes": 47202304,
+      "resource_kinds": {
+        "dma.dto_s": {
+          "instances": 2,
+          "summed_cycles": 19220,
+          "union_cycles": 19220
+        },
+        "dma.sto_d": {
+          "instances": 2,
+          "summed_cycles": 4097,
+          "union_cycles": 4097
+        },
+        "dma.sto_s": {
+          "instances": 3,
+          "summed_cycles": 9204,
+          "union_cycles": 9204
+        },
+        "dma_command": {
+          "instances": 1,
+          "summed_cycles": 468,
+          "union_cycles": 468
+        },
+        "dma_command_gather": {
+          "instances": 2,
+          "summed_cycles": 1318,
+          "union_cycles": 1318
+        },
+        "rngd_cmd.sto_vrf": {
+          "instances": 2,
+          "summed_cycles": 534,
+          "union_cycles": 534
+        },
+        "rngd_cmd.tu_exec": {
+          "instances": 8,
+          "summed_cycles": 14252,
+          "union_cycles": 14252
+        }
+      },
+      "schedule_sha256": "e15d005b06539e0e37a9d6b2c77b2995d4026affaeb4c97fa756b2a990c75a10",
+      "timeline_begin": 0,
+      "timeline_end": 45745,
+      "unplaced_sram_records": 1
+    }
+  },
+  "scope_limits": [
+    "Probe source typechecked but was never executed.",
+    "No actual grouped code/scale/offset/pack equality proof.",
+    "No speed, quantization-error, complete-FFN or model-quality claim.",
+    "Original complete FFN323067 correctness PASS/performance HOLD and large synthetic matched-input drift remain unchanged.",
+    "Whole timeline, operation unions and source descriptions are static compiler evidence; overlapping durations are not additive wall savings."
+  ],
+  "source_commit": "55a55affabad9ab69ada2fafcef62fc1272edbe0",
+  "source_review": {
+    "agent": "/root/e2e_evidence",
+    "commit": "55a55affabad9ab69ada2fafcef62fc1272edbe0",
+    "result": "PASS",
+    "scope": "Source/fixture/probe only; resource values not independently reviewed; runtime untested."
+  },
+  "unchanged_original_source_hashes": {
+    "src/bin/support/rational_a4_oracle.rs": "1b2beeb44d58c1ce98c9c4b04363a14792ac39df67a58c7b87fe6cae336bfec1",
+    "src/ops_int4_group960_projection.rs": "6cd9db8a48ddbdd22dfdec35f38ceb7aae037449a7e023c1deb23fe0e36d8e05",
+    "src/ops_int4_pack_p512.rs": "bb8712628ee65de06d694ec63fa17e056a0b75fe9c68f02b477e066dcc00cad4",
+    "src/ops_int4_rational_fused_pack.rs": "266fe5f94d3f866d6aae0d9aa2e0eac6afce0dbde47d5d3973b2644a34d38e1a"
+  }
+}
