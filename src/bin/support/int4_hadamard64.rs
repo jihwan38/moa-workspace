@@ -311,7 +311,14 @@ impl Error {
     }
 }
 pub fn decision(errors: &[Error; 9]) -> bool {
-    errors[2].relative_l2() <= 0.01 && errors[4].relative_l2() <= 0.75 * errors[3].relative_l2()
+    errors.iter().all(|e| {
+        e.samples > 0
+            && e.reference_ss > 0.0
+            && e.reference_ss.is_finite()
+            && e.sse.is_finite()
+            && e.relative_l2().is_finite()
+    }) && errors[2].relative_l2() <= 0.01
+        && errors[4].relative_l2() <= 0.75 * errors[3].relative_l2()
 }
 
 #[cfg(test)]
@@ -382,6 +389,25 @@ mod tests {
         assert!(!decision(&e));
         e[2].sse = 0.0;
         e[4].sse = 0.091;
+        assert!(!decision(&e));
+    }
+    #[test]
+    fn zero_reference_and_nonfinite_ratios_never_pass() {
+        let mut e: [Error; 9] = std::array::from_fn(|_| Error {
+            samples: 512,
+            ..Error::default()
+        });
+        e[3].sse = 1.0;
+        e[4].sse = 1.0;
+        assert!(e[3].relative_l2().is_infinite());
+        assert!(
+            !decision(&e),
+            "infinity<=0.75*infinity is not an improvement"
+        );
+        for x in &mut e {
+            x.reference_ss = 1.0;
+        }
+        e[3].sse = f64::INFINITY;
         assert!(!decision(&e));
     }
 }

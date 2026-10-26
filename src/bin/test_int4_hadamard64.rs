@@ -276,6 +276,16 @@ fn analyze(weights: &SampledWeights, input: &[u8], round: usize, step: usize) ->
         max_identity = max_identity.max(s.identity_error);
         max_bound = max_bound.max(s.identity_bound);
     }
+    if errors.iter().any(|e| {
+        e.reference_ss <= 0.0
+            || !e.reference_ss.is_finite()
+            || !e.sse.is_finite()
+            || !e.relative_l2().is_finite()
+    }) {
+        return Err(
+            "zero/nonfinite sampled reference or ratio is outside the fixed relative gate".into(),
+        );
+    }
     let passed = rotation::decision(&errors);
     let values = TOKENS * weights.cols;
     let arms: serde_json::Map<String, serde_json::Value> = rotation::ARM_NAMES
