@@ -1,0 +1,24 @@
+{
+  "name": "a001-int4-h64-cpu-proof",
+  "purpose": "Fixed root vectors byte parity, independent direct/inverse and range/cancellation gates; pure std only, no NPU",
+  "started_at": "2026-10-26T02:45:16.464610+00:00",
+  "worktree": "/home/jihwan38/moa-worktrees/round2/int4-hadamard64-diagnostic",
+  "commit": "62878a85f484aebf4d72648a88b96212f18c98ef",
+  "status": "",
+  "command": [
+    "docker",
+    "exec",
+    "--user",
+    "moa",
+    "--workdir",
+    "/round2/int4-hadamard64-diagnostic",
+    "moa2026-round2",
+    "python3",
+    "-c",
+    "from pathlib import Path\nimport subprocess\nout=Path('/round2/prefill-head-attn-commit/target/int4-h64-cpu-a001')\nout.mkdir(exist_ok=False)\ncommands=[['rustc', '--edition=2021', '-O', '--test', 'src/bin/support/int4_hadamard64.rs', '-o', '/round2/prefill-head-attn-commit/target/int4-h64-cpu-a001/helper-tests'], ['/round2/prefill-head-attn-commit/target/int4-h64-cpu-a001/helper-tests', '--nocapture'], ['rustc', '--edition=2021', '-O', 'experiments/int4-hadamard64-diagnostic/cpu_driver.rs', '-o', '/round2/prefill-head-attn-commit/target/int4-h64-cpu-a001/cpu-driver'], ['python3', 'experiments/int4-hadamard64-diagnostic/verify_cpu.py', '/round2/prefill-head-attn-commit/target/int4-h64-cpu-a001/cpu-driver']]\nfor c in commands: subprocess.run(c,check=True)\n"
+  ],
+  "result": "command_succeeded",
+  "exit_code": 0,
+  "pid": 194881,
+  "finished_at": "2026-10-26T02:45:17.047001+00:00"
+}

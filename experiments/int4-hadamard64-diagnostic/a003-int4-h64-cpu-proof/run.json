@@ -1,0 +1,24 @@
+{
+  "name": "a003-int4-h64-cpu-proof",
+  "purpose": "Eight pure-std tests including undefined-ratio failstop regression and unchanged frozen16 vector parity; no device",
+  "started_at": "2026-10-26T02:47:40.544084+00:00",
+  "worktree": "/home/jihwan38/moa-worktrees/round2/int4-hadamard64-diagnostic",
+  "commit": "afec8a0554c3ffd9fb0dd7c9fac38b15270c8a3f",
+  "status": "",
+  "command": [
+    "docker",
+    "exec",
+    "--user",
+    "moa",
+    "--workdir",
+    "/round2/int4-hadamard64-diagnostic",
+    "moa2026-round2",
+    "python3",
+    "-c",
+    "from pathlib import Path\nimport subprocess\nout=Path('/round2/prefill-head-attn-commit/target/int4-h64-cpu-a003')\nout.mkdir(exist_ok=False)\ncommands=[['rustc', '--edition=2021', '-O', '--test', 'src/bin/support/int4_hadamard64.rs', '-o', '/round2/prefill-head-attn-commit/target/int4-h64-cpu-a003/helper-tests'], ['/round2/prefill-head-attn-commit/target/int4-h64-cpu-a003/helper-tests', '--nocapture'], ['rustc', '--edition=2021', '-O', 'experiments/int4-hadamard64-diagnostic/cpu_driver.rs', '-o', '/round2/prefill-head-attn-commit/target/int4-h64-cpu-a003/cpu-driver'], ['python3', 'experiments/int4-hadamard64-diagnostic/verify_cpu.py', '/round2/prefill-head-attn-commit/target/int4-h64-cpu-a003/cpu-driver']]\nfor c in commands: subprocess.run(c,check=True)\n"
+  ],
+  "result": "command_succeeded",
+  "exit_code": 0,
+  "pid": 196240,
+  "finished_at": "2026-10-26T02:47:41.114576+00:00"
+}
