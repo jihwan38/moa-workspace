@@ -59,6 +59,18 @@ pub fn quantize_pack_input(
     scales: &mut HbmTensor<f32, Chip, InputScales>,
     offsets: &mut HbmTensor<i32, Chip, InputScales>,
 ) {
+    quantize_pack_input_stage(device, input, table, shifts, output, scales, offsets);
+}
+
+pub(crate) fn quantize_pack_input_stage(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![P512, H]>,
+    table: &HbmTensor<i32, Chip, m![Mantissa, Record]>,
+    shifts: &HbmTensor<i32, Chip, m![H % 8]>,
+    output: &mut HbmTensor<i32, Chip, PackedInput>,
+    scales: &mut HbmTensor<f32, Chip, InputScales>,
+    offsets: &mut HbmTensor<i32, Chip, InputScales>,
+) {
     // c,g,r,j,u -> p=256c+4*r+j, k=960g+u. All256 slices percluster live.
     let x: DmTensor<bf16, Chip, Cluster, InputRows, m![P512 % 4, H % 960]> = input.to_dm(&mut device.tdma);
     let amax: DmTensor<f32, Chip, Cluster, InputRows, m![P512 % 4, 1 # 8]> = device.main.begin(x.view())
@@ -137,6 +149,18 @@ pub fn quantize_pack_input(
 
 #[device(chip = 1)]
 pub fn quantize_pack_hidden(
+    device: &mut Device,
+    input: &HbmTensor<bf16, Chip, m![P512, L]>,
+    table: &HbmTensor<i32, Chip, m![Mantissa, Record]>,
+    shifts: &HbmTensor<i32, Chip, m![L % 8]>,
+    output: &mut HbmTensor<i32, Chip, PackedHidden>,
+    scales: &mut HbmTensor<f32, Chip, HiddenScales>,
+    offsets: &mut HbmTensor<i32, Chip, HiddenScales>,
+) {
+    quantize_pack_hidden_stage(device, input, table, shifts, output, scales, offsets);
+}
+
+pub(crate) fn quantize_pack_hidden_stage(
     device: &mut Device,
     input: &HbmTensor<bf16, Chip, m![P512, L]>,
     table: &HbmTensor<i32, Chip, m![Mantissa, Record]>,

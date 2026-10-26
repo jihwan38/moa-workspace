@@ -29,6 +29,17 @@ pub fn project_upgate(
     block_scale: &HbmTensor<f32,Chip,JoinedBlockScale>,
     output: &mut HbmTensor<bf16,Chip,JoinedOutput>,
 ) {
+    project_upgate_stage(device, input, xscale, weight, block_scale, output);
+}
+
+pub(crate) fn project_upgate_stage(
+    device: &mut Device,
+    input: &HbmTensor<i4,Chip,P512H960>,
+    xscale: &HbmTensor<f32,Chip,InputScale>,
+    weight: &HbmTensor<i4,Chip,JoinedWeight>,
+    block_scale: &HbmTensor<f32,Chip,JoinedBlockScale>,
+    output: &mut HbmTensor<bf16,Chip,JoinedOutput>,
+) {
     let weight: DmTensor<i4,Chip,ProjectionCluster,UpParts,m![L%240,H%960]> = weight.to_dm(&mut device.tdma);
     let block: DmTensor<f32,Chip,ProjectionCluster,UpParts,m![L%240]> = block_scale.to_dm(&mut device.tdma);
     let block: VrfTensor<f32,Chip,ProjectionCluster,UpParts,m![L%240]> = device.sub.begin(block.view())
@@ -79,6 +90,18 @@ pub fn project_upgate(
 
 #[device(chip=1)]
 pub fn project_down(
+    device: &mut Device,
+    input: &HbmTensor<i4,Chip,P512L960>,
+    xscale: &HbmTensor<f32,Chip,HiddenScale>,
+    weight: &HbmTensor<i4,Chip,DownWeight>,
+    block_scale: &HbmTensor<f32,Chip,DownBlockScale>,
+    global_scale: &HbmTensor<f32,Chip,m![1]>,
+    output: &mut HbmTensor<bf16,Chip,Output>,
+) {
+    project_down_stage(device, input, xscale, weight, block_scale, global_scale, output);
+}
+
+pub(crate) fn project_down_stage(
     device: &mut Device,
     input: &HbmTensor<i4,Chip,P512L960>,
     xscale: &HbmTensor<f32,Chip,HiddenScale>,

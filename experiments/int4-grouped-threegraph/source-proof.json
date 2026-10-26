@@ -1,0 +1,118 @@
+{
+  "base": "d21224649eef82f5c3bb293aac44b2d1c28b58e8",
+  "exact_extracted_bodies": [
+    {
+      "file": "src/ops_int4_ffn_bridges.rs",
+      "function": "prefix_sliding_bf16",
+      "helper": "prefix_sliding_bf16_stage",
+      "body_sha256": "6aecd949aedb2939f36ecb46db08a69ab628a7d7e1d92112315a86e6107fa107",
+      "arguments": [
+        "device",
+        "a",
+        "b",
+        "c",
+        "d",
+        "post",
+        "pre",
+        "residual",
+        "output"
+      ]
+    },
+    {
+      "file": "src/ops_int4_ffn_bridges.rs",
+      "function": "geglu_bf16",
+      "helper": "geglu_bf16_stage",
+      "body_sha256": "c8e7e8cc65fbf1b9aba62a2b0e10eb4a9f9295d07adc6491aa8dbe1374d4efd0",
+      "arguments": [
+        "device",
+        "joined",
+        "up_global",
+        "gate_global",
+        "output"
+      ]
+    },
+    {
+      "file": "src/ops_int4_grouped_activation_store.rs",
+      "function": "quantize_pack_input",
+      "helper": "quantize_pack_input_stage",
+      "body_sha256": "2f3d20a7c1a5afa3f153d4ac6ce0833dd17cb6595a8223bacbceaf174a774f04",
+      "arguments": [
+        "device",
+        "input",
+        "table",
+        "shifts",
+        "output",
+        "scales",
+        "offsets"
+      ]
+    },
+    {
+      "file": "src/ops_int4_grouped_activation_store.rs",
+      "function": "quantize_pack_hidden",
+      "helper": "quantize_pack_hidden_stage",
+      "body_sha256": "1575f686e09b06edfbaf2dfa7289401c137603c8bbbc256f2d219fe3ad314c0e",
+      "arguments": [
+        "device",
+        "input",
+        "table",
+        "shifts",
+        "output",
+        "scales",
+        "offsets"
+      ]
+    },
+    {
+      "file": "src/ops_int4_grouped_activation_projection.rs",
+      "function": "project_upgate",
+      "helper": "project_upgate_stage",
+      "body_sha256": "f914552e78eefe28282a3ac33cbf5d5a324903083deba2960233fc694e00586a",
+      "arguments": [
+        "device",
+        "input",
+        "xscale",
+        "weight",
+        "block_scale",
+        "output"
+      ]
+    },
+    {
+      "file": "src/ops_int4_grouped_activation_projection.rs",
+      "function": "project_down",
+      "helper": "project_down_stage",
+      "body_sha256": "545972f78457f122d2d94be61295f2ffaef9d2d30d83f39da1e6c7c1da0b60cc",
+      "arguments": [
+        "device",
+        "input",
+        "xscale",
+        "weight",
+        "block_scale",
+        "global_scale",
+        "output"
+      ]
+    }
+  ],
+  "unchanged": [
+    "src/ops_norm_blocked_residual.rs",
+    "src/ops_group_ffn_projection_storegroup.rs",
+    "src/bin/test_int4_grouped_complete_ffn.rs",
+    "src/bin/support/int4_grouped_complete_fixture.rs",
+    "src/bin/support/int4_grouped_activation_fixture.rs",
+    "src/host/int4_complete_ffn_weights.rs",
+    "src/ops_int4_grouped_activation_reference.rs",
+    "src/i4_grouped_activation_raw_adapter.rs",
+    "Cargo.toml"
+  ],
+  "unchanged_probe_functions": [
+    "candidate_prefix",
+    "candidate_rest",
+    "candidate_chain",
+    "candidate_clocked",
+    "production_chain",
+    "intended_step"
+  ],
+  "all11_snapshot_bytes": 63979520,
+  "three_vs_seven_equality_bytes": 255918080,
+  "three_raw_vs_typed_equality_bytes": 255918080,
+  "prelaunch_negative_checks": 190,
+  "scope": "source identity only; no compiler or runtime parity implied"
+}

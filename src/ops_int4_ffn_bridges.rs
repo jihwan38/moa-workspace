@@ -69,6 +69,20 @@ pub fn prefix_sliding_bf16(
     residual: &mut HbmTensor<bf16, Chip, Residual>,
     output: &mut HbmTensor<bf16, Chip, InputBf16>,
 ) {
+    prefix_sliding_bf16_stage(device, a, b, c, d, post, pre, residual, output);
+}
+
+pub(crate) fn prefix_sliding_bf16_stage(
+    device: &mut Device,
+    a: &HbmTensor<bf16, Chip, Output>,
+    b: &HbmTensor<bf16, Chip, Output>,
+    c: &HbmTensor<bf16, Chip, Output>,
+    d: &HbmTensor<bf16, Chip, Output>,
+    post: &HbmTensor<bf16, Chip, m![H]>,
+    pre: &HbmTensor<bf16, Chip, m![H]>,
+    residual: &mut HbmTensor<bf16, Chip, Residual>,
+    output: &mut HbmTensor<bf16, Chip, InputBf16>,
+) {
     let mut input: DmTensor<
         bf16,
         Chip,
@@ -111,6 +125,16 @@ pub fn prefix_full_bf16(
 /// weight dequantization policy as the producer. No extra row scale is added.
 #[device(chip = 1)]
 pub fn geglu_bf16(
+    device: &mut Device,
+    joined: &HbmTensor<bf16, Chip, JoinedOutput>,
+    up_global: &HbmTensor<f32, Chip, m![1]>,
+    gate_global: &HbmTensor<f32, Chip, m![1]>,
+    output: &mut HbmTensor<bf16, Chip, HiddenBf16>,
+) {
+    geglu_bf16_stage(device, joined, up_global, gate_global, output);
+}
+
+pub(crate) fn geglu_bf16_stage(
     device: &mut Device,
     joined: &HbmTensor<bf16, Chip, JoinedOutput>,
     up_global: &HbmTensor<f32, Chip, m![1]>,
