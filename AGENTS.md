@@ -1,10 +1,10 @@
 # Ownership and scope
 
-Owned by `/root/round2_path`; isolated from d2122464.
-Root authorizes source, host checks and exact resource compilation only.
-Compose the validated seven-call path into three retained-HBM device graphs;
-keep all old bodies and standalone wrappers, original Cargo files, q020 control,
-independent oracles and failed whole-chain gates. No serving/model changes.
-I32/I4 raw binding occurs only between launches; no same-graph aliases.
-Use exclusively `/round2/ffn-k256/target`, CARGO_INCREMENTAL=0 and a new empty
-FURIOSA_OPT_OUT_DIR. Root alone authorizes standalone ELF and Arena execution.
+Owned by `/root/e2e_evidence`; isolated from ef53a3b3.
+Root authorizes fixed provided-weight MSE host helper/diagnostic, meaningful pure CPU
+proof tests and plain hostcheck only. Candidate0 retains original rational codes
+and scale; exact i128 SSE selects only among the preregistered25 additional scales.
+No calibration data, gamma/activation changes, tuning, device-function edits, new
+dependencies, serving/model activation, device ELF or Arena. Original controls,
+fixtures, device images and failed gates remain unchanged. Use only the owned
+`/round2/prefill-head-attn-commit/target` after checking it is idle.
