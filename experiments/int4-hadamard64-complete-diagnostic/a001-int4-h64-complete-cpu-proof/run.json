@@ -1,0 +1,24 @@
+{
+  "name": "a001-int4-h64-complete-cpu-proof",
+  "purpose": "Independent fullrow transform/permutation/range CPU tests plus16 root vectors; no device",
+  "started_at": "2026-10-26T03:09:51.785644+00:00",
+  "worktree": "/home/jihwan38/moa-worktrees/round2/int4-hadamard64-complete-diagnostic",
+  "commit": "eb53c35b150f306979dbc8b43bd6d9e2124f6f13",
+  "status": "",
+  "command": [
+    "docker",
+    "exec",
+    "--user",
+    "moa",
+    "--workdir",
+    "/round2/int4-hadamard64-complete-diagnostic",
+    "moa2026-round2",
+    "python3",
+    "-c",
+    "from pathlib import Path\nimport subprocess\nPath('/round2/prefill-head-attn-commit/target/int4-h64-complete-cpu-a001').mkdir(exist_ok=False)\ncommands=[['rustc', '--edition=2021', '-O', '--test', 'src/bin/support/int4_hadamard64_transform.rs', '-o', '/round2/prefill-head-attn-commit/target/int4-h64-complete-cpu-a001/tests'], ['/round2/prefill-head-attn-commit/target/int4-h64-complete-cpu-a001/tests', '--nocapture'], ['rustc', '--edition=2021', '-O', 'experiments/int4-hadamard64-complete-diagnostic/cpu_driver.rs', '-o', '/round2/prefill-head-attn-commit/target/int4-h64-complete-cpu-a001/driver'], ['python3', 'experiments/int4-hadamard64-complete-diagnostic/verify_cpu.py', '/round2/prefill-head-attn-commit/target/int4-h64-complete-cpu-a001/driver']]\nfor c in commands:subprocess.run(c,check=True)\n"
+  ],
+  "result": "command_succeeded",
+  "exit_code": 0,
+  "pid": 207109,
+  "finished_at": "2026-10-26T03:09:52.567687+00:00"
+}

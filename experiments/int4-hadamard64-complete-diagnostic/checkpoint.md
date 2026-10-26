@@ -1,0 +1,9 @@
+Complete fixed-H64 FFN diagnostic source checkpoint
+
+Plan33e06e2f; functional70812693; audit-only eb53c35b. All429 prior source/config inputs and dependencies remain unchanged; three new host files make432 inputs. q020/prefix launch bodies match the donor after whitespace and optional trailing-comma normalization. Initial format-only audit false failure is preserved.
+
+CPU a001 passed11 tests and both implementations match all1024 BF16 bits in16 frozen root vectors. Host a002 passed11.16s. Batch independently reviewed all-row provided decode, stage coordinates/RNE, blocked packing, globals and per-row memory. Main/intended-oracle peer review pending.
+
+Candidate uses its OWN GeGLU hidden, then an explicit CPU rotation/readback/upload; production hidden is only a drift reference. Original grouped and q020 arms share each incoming state, and only q020 residual advances step1. Independent P128 boundaries, alternate CPU transform, exact quotient/packing, denseE4-code/typed/raw parity and F64 samples remain strict. All13 scratch states are retained and checked for permutation/reuse; counters use physical owner bytes rather than mixed helper return units.
+
+Original-grouped matched drift anchors fromactual323322 are retained in original-grouped-anchor.json. Future fixed gate: residualL2<=.75original and joined/DOWN no worse, bothorders/steps, positivefinite references. This is complete-FFN numerical progress only; no timing, task-quality or model adoption claim. CPU roundtrips are diagnostic overhead. No device build/Arena has begun.
