@@ -286,3 +286,7 @@ pub mod ops_int4_pack_p512;
 
 pub mod ops_int4_rational_fused_pack;
 pub mod ops_int4_complete_reference;
+
+pub mod ops_int4_grouped_activation_projection;
+pub mod ops_int4_grouped_activation_reference;
+pub mod i4_grouped_activation_raw_adapter;
