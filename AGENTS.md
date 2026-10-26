@@ -1,13 +1,9 @@
 # Ownership and scope
 
-Owned by `/root/round2_path`, base `0ce71c72`.
-Assemble a disconnected layer0 complete-FFN diagnostic using the validated
-fused rational A4 pack, checked public raw projection bindings, and coordinated
-BF16 bridges. Production E4 complete graph is the performance control;
-integer-coded E4 projections are only an intended-code correctness oracle.
-
-Current authorization is plan, source assembly and host cargo check only.
-No device build, resource compile, Arena, production/Worker activation, dependency
-change, or numerical guard relaxation. Reuse exclusive `/round2/ffn-k256/target`,
-original frozen Cargo.lock and CARGO_INCREMENTAL=0. Preserve DOWN resource
-HOLD (245684 > 240000) independently of numerical correctness.
+Owned by `/root/e2e_evidence`, based on `1a835e18`.
+Disconnected source/hostcheck-only attribution diagnostic for actual job323067.
+Reuse existing device functions; preserve the complete-FFN probe and all device
+math. No calibration, balancing, clipping, model changes, device build or Arena.
+Use original dependencies and exclusive `/round2/prefill-head-attn-commit/target`
+for the authorized plain host check, with CARGO_INCREMENTAL=0. Root alone may
+authorize a captured device artifact and execution after independent review.
