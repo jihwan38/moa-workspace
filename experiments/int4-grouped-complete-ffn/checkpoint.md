@@ -33,3 +33,14 @@ own BF16/quantized state. Step0 output drift is matched-input; step1 is divergen
 feedback. All activations remain synthetic and provided weights/norms are only
 layer0. This source/check checkpoint establishes no full FFN speed, model
 quality, all48-layer capacity, startup or serving claim.
+
+## Fresh build follow-up
+
+Root and round2 source review passed. Fresh captured build `a002` completed in
+55.88s from `dc3524a3`; all421 input hashes and all19 prior actual device images
+match, including the unchanged q020 production whole-graph control. The13 old
+complete entries,2 grouped quantizers and4 grouped projection/reference entries
+are individually recorded in `a002-image-audit.json`; `audit_build.py` replays
+all comparisons without compiling or running a device. The earlier source-only
+checkpoint above remains historical. Root alone owns the pending hardware run;
+no complete speed or quality claim follows from this build.
