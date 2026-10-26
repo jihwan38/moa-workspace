@@ -1,0 +1,41 @@
+{
+  "name": "a005-grouped-activation-input-store-resource",
+  "purpose": "Compile complete H4 quant-pack with only group-leader offset and scale DM store regroup",
+  "started_at": "2026-10-26T00:50:06.566094+00:00",
+  "worktree": "/home/jihwan38/moa-worktrees/round2/int4-grouped-activation-quant",
+  "commit": "f6ad9c8356ec4ed6eb9e75215f3cc9da8cb0fd35",
+  "status": "",
+  "command": [
+    "docker",
+    "exec",
+    "-w",
+    "/round2/int4-grouped-activation-quant",
+    "-e",
+    "CARGO_TARGET_DIR=/round2/tail256-model/target",
+    "-e",
+    "CARGO_INCREMENTAL=0",
+    "-e",
+    "CARGO_PROFILE_DEV_DEBUG=0",
+    "-e",
+    "CARGO_NET_OFFLINE=true",
+    "-e",
+    "FURIOSA_OPT_OUT_DIR=/round2/int4-grouped-activation-quant/experiments/int4-grouped-activation-quant/kernel-out-a005",
+    "moa2026-round2",
+    "cargo",
+    "furiosa-opt",
+    "compile",
+    "--exact",
+    "ops_int4_grouped_activation_store::quantize_pack_input",
+    "--dump-schedule",
+    "experiments/int4-grouped-activation-quant/input-store-schedule.json"
+  ],
+  "result": "command_succeeded",
+  "exit_code": 0,
+  "fresh_package": {
+    "refreshed_files": 418,
+    "contents_changed": false,
+    "target_exclusivity": "caller must coordinate"
+  },
+  "pid": 113965,
+  "finished_at": "2026-10-26T00:50:21.503915+00:00"
+}

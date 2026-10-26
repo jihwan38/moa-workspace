@@ -1,0 +1,30 @@
+{
+  "authorization": "Root authorized one fresh standalone build after source/resource review; root alone Arena",
+  "bin": "test_int4_grouped_activation_store",
+  "functional_source": "f6ad9c83",
+  "entry_images": [
+    "ops_int4_grouped_activation_store::quantize_pack_input",
+    "ops_int4_grouped_activation_store::quantize_pack_hidden"
+  ],
+  "cases": "5 per width:3 generated base fixtures,2 true row/group/within-group permutations of cases0/1. Not5 independent distributions.",
+  "declared_unique_check_counts": {
+    "codes": 49152000,
+    "packed_bytes": 24576000,
+    "F32_group_scales": 51200,
+    "I32_relative_offsets": 51200
+  },
+  "checks_per_case": "Initial full outputs then posttiming/profile full outputs, plus complete immutable input/LUT/shifts; outputs reused acrosscases.",
+  "actual_bytes_compared_twice": 49971200,
+  "explicit_permutation_nibble_checks": 19660800,
+  "immutable_reads_bytes_including_one_initial_LUT": 98349376,
+  "kernel_calls": {
+    "per_width": 106,
+    "total": 212,
+    "derivation": "Eachcase1initial+20timed; case0adds1profile.5cases*21+1=106."
+  },
+  "timing": "Two completed10call repetitions percase; includes groupedamax, explicitoffsetHBMwrite/read, Record8gather, exactquantization, pack, H16movementifH, groupedscales. Excludesuploads/readbacks/CPUoracle. No comparisonorcurrentproduction speedclaim.",
+  "future_root_run_limit_seconds": 70,
+  "required_gate": "Every intended packedbyte/scalebit/offset, permutation, reuse and immutability mustpass before timing is interpreted.",
+  "build": "Originaldependencies, ownedtailtarget, freshpackage, newemptyOUT_DIR, captureELF immediately and compare its2 embedded images with frozen resourceimages read-only. No objcopy.",
+  "no_claim": "No GEMM/fullFFN/modelquality or servingactivation."
+}
