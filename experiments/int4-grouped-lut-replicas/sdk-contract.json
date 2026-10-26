@@ -1,0 +1,60 @@
+{
+  "sources": [
+    {
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory.rs",
+      "sha256": "dbddaf3683d70903dcbaa7030096846b546a8455bc146ce9942141b3b418117e",
+      "bytes": 74632,
+      "excerpts": [
+        {
+          "first_line": 332,
+          "last_line": 348,
+          "text": "332: // ANCHOR: dma_impl\n333: impl<D: Scalar, Chip: M, Element: M, B: Backend> HbmTensor<D, Chip, Element, B> {\n334:     /// Converts to data memory tensor.\n335:     #[primitive(HbmTensor::to_dm)]\n336:     pub fn to_dm<Cluster: M, Slice: M, Element2: M>(\n337:         &self,\n338:         _dma: &mut DmaContext<{ Dma::Tensor }, B>,\n339:     ) -> DmTensor<D, Chip, Cluster, Slice, Element2, B> {\n340:         assert_dma_layout::<\n341:             D,\n342:             m![{ Chip }, { Element }],\n343:             Element,\n344:             m![{ Chip }, { Cluster }, { Slice }, { Element2 }],\n345:             Element2,\n346:         >(DM_WRITE_ALIGN_BYTES);\n347:         DmTensor::from_parts(self.inner.transpose(true))\n348:     }"
+        }
+      ]
+    },
+    {
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/storage/buf.rs",
+      "sha256": "ec6e3368f8e5874872e413b2c0f84973f6260042773d25054271e567cf9bf1c3",
+      "bytes": 68688,
+      "excerpts": [
+        {
+          "first_line": 269,
+          "last_line": 308,
+          "text": "269:     /// [`crate::backend::Backend::transpose`].\n270:     #[allow(clippy::too_many_arguments)]\n271:     pub(crate) fn transpose<Src: M, Dst: M>(\n272:         &mut self,\n273:         src: &BufStorage<D, B>,\n274:         src_offset: &Index,\n275:         dst_offset: &Index,\n276:         src_map: &Mapping,\n277:         dst_map: &Mapping,\n278:         allow_broadcast: bool,\n279:     ) where\n280:         B: Sync,\n281:     {\n282:         // Structural check (also asserts `Src` is contained in `Dst`); `!allow_broadcast`\n283:         // rejects a non-padding leftover.\n284:         let _ = transpose_broadcast::<Src, Dst>(allow_broadcast);\n285:         let src_view = &Src::to_value();\n286:         let dst_view = &Dst::to_value();\n287:         // Relayout: sequence the `Src` buffer (memory) against the `Dst` layout (stream)\n288:         // under `Carve`. Each dst buffer position reads one Src element; a broadcast axis (in dst, not Src)\n289:         // gets `memory_stride` 0, so one Src element feeds the whole broadcast run. `Carve` (not `Read`)\n290:         // tolerates a `Bottom` pad in the dst stream, a `view_mut().tile()` write hole, read as a `Top`\n291:         // don't-care, which the dst liveness walk then gates out of the write below.\n292:         let config = &sequence(&[src_view], &[dst_view], SequencerMode::Carve)\n293:             .expect(\"transpose: Src must be covered by the dst stream\")[0];\n294:         // The src window's physical base and the dst window's base. Both default to 0 for an empty\n295:         // (whole-tensor) offset. The base resolves the offset against the *base* (live-axis) map, where\n296:         // a tiled offset axis the view carries as padding is still a live `Symbol` (the view shares the\n297:         // base's wire layout, so the wire position carries over).\n298:         let src_base = window_base(src_map, src_offset);\n299:         let dst_base = window_base(dst_map, dst_offset);\n300:         // Walk the dst window, zipping three position-aligned streams of the dst layout: the dst elements\n301:         // (each position writes its own, `dst_base + pos`), the src offset to read (`config`, splits via\n302:         // seek), and the dst liveness (`iter_positions()` yields `None` for a padding / write-hole cell), so\n303:         // liveness is read inline, not materialized into a mask. A live position reads `src`'s element and\n304:         // writes its own dst element; the stream's trailing `Bottom`-pad positions, which would address past\n305:         // the window, are clamped away below. The write is range-partitioned on the dst (each rayon job\n306:         // owns a byte-aligned element range), so the scatter is safe for every width, no branch on packing.\n307:         // The per-chunk position range is bounded by both stream lengths so a seek never runs past either.\n308:         let stream = config.stream_size().min(dst_view.iter_positions().len());"
+        }
+      ]
+    },
+    {
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-lower-0.9.0/src/verify/gather.rs",
+      "sha256": "e1eae7ab71d5a2af220a14851ef0d311fd90951ad5c8540cda2437d4913b3e6b",
+      "bytes": 9079,
+      "excerpts": [
+        {
+          "first_line": 61,
+          "last_line": 116,
+          "text": "61: pub fn gather_payload(table: &Mapping, indexed_axis: &Mapping) -> Result<GatherPayload, GatherMappingError> {\n62:     // `find_axis` decides the only rule: the region is consecutive. How many axes name it does not\n63:     // matter, and an axis the table does not hold at all fails the same call.\n64:     let indexed_axis_stride =\n65:         table\n66:             .find_axis(indexed_axis)\n67:             .map_err(|error| GatherMappingError::IndexedAxisNotConsecutive {\n68:                 table: table.clone(),\n69:                 indexed_axis: indexed_axis.clone(),\n70:                 error,\n71:             })?;\n72:     // A located axis may still be inseparable from its surrounding mapping.\n73:     let payload = table\n74:         .remove_axis(indexed_axis)\n75:         .map_err(|error| GatherMappingError::IndexedAxisNotRemovable {\n76:             table: table.clone(),\n77:             indexed_axis: indexed_axis.clone(),\n78:             error,\n79:         })?;\n80:     Ok(GatherPayload {\n81:         payload: payload.normalize(),\n82:         indexed_axis_stride,\n83:     })\n84: }\n85: \n86: /// Checks the payload a kernel declared against the one its table and indexed axis determine.\n87: pub fn validate_gather_payload(\n88:     table: &Mapping,\n89:     indexed_axis: &Mapping,\n90:     declared: &Mapping,\n91: ) -> Result<GatherPayload, GatherMappingError> {\n92:     let derived = gather_payload(table, indexed_axis)?;\n93:     let declared_normal = declared.clone().normalize();\n94:     if derived.payload != declared_normal {\n95:         return Err(GatherMappingError::PayloadMismatch {\n96:             table: Box::new(table.clone()),\n97:             indexed_axis: Box::new(indexed_axis.clone()),\n98:             expected: Box::new(derived.payload),\n99:             declared: Box::new(declared_normal),\n100:         });\n101:     }\n102:     Ok(derived)\n103: }\n104: \n105: /// Checks that the output holds the payload once per domain entry.\n106: pub fn validate_gather_output(\n107:     payload: &Mapping,\n108:     domain: &Mapping,\n109:     output: DmPlacement<'_>,\n110: ) -> Result<(), GatherValidationError> {\n111:     let output = output.to_mapping();\n112:     let stream = payload.clone().pair(domain.clone()).normalize();\n113:     sequence(&[&output], &[&stream], SequencerMode::Write).map_err(|error| GatherValidationError::OutputPlacement {\n114:         payload: Box::new(payload.clone()),\n115:         domain: Box::new(domain.clone()),\n116:         output: Box::new(output),"
+        }
+      ]
+    },
+    {
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory/gather.rs",
+      "sha256": "4a2c16a37abb22898703cdfb85eb404a17fc03ee6dfe118677e3f37ca05e45e4",
+      "bytes": 13571,
+      "excerpts": [
+        {
+          "first_line": 139,
+          "last_line": 173,
+          "text": "139: pub trait GatherByteOffsets<'l, D: Scalar, Chip: M, TableAxes: M, IndexedAxis: M, IdxChip: M, B: Backend> {\n140:     /// Supplies byte offsets into the table, with `Domain` inferred from the index mapping.\n141:     ///\n142:     /// The index chip axis must match the table's chip axis or broadcast across it.\n143:     #[furiosa_opt::primitive = \"GatherPlan::by_byte_offsets\"]\n144:     fn by_byte_offsets<Domain: M>(\n145:         self,\n146:         index: &'l HbmTensor<i32, IdxChip, Domain, B>,\n147:     ) -> GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, IndexedByteOffsets<IdxChip, Domain>, B>;\n148: }\n149: \n150: impl<'l, D: Scalar, Chip: M, TableAxes: M, IndexedAxis: M, IdxChip: M, B: Backend>\n151:     GatherByteOffsets<'l, D, Chip, TableAxes, IndexedAxis, IdxChip, B>\n152:     for GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, Begin, B>\n153: {\n154:     #[furiosa_opt::primitive = \"GatherPlan::by_byte_offsets\"]\n155:     fn by_byte_offsets<Domain: M>(\n156:         self,\n157:         index: &'l HbmTensor<i32, IdxChip, Domain, B>,\n158:     ) -> GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, IndexedByteOffsets<IdxChip, Domain>, B> {\n159:         validate_index_chip(&IdxChip::to_value(), &Chip::to_value()).unwrap_or_else(|error| panic!(\"{error}\"));\n160:         let unit = IndexUnit::Bytes(indexed_axis_stride::<D>(&self.payload));\n161:         let domain = IndexMapping::ByteOffsets(&Domain::to_value())\n162:             .domain()\n163:             .unwrap_or_else(|error| panic!(\"{error}\"));\n164:         GatherPlan {\n165:             table: self.table,\n166:             payload: self.payload,\n167:             index: GatherIndexTensor {\n168:                 tensor: index.inner.clone(),\n169:                 domain,\n170:                 unit,\n171:             },\n172:             prefix: (),\n173:             _marker: PhantomData,"
+        },
+        {
+          "first_line": 270,
+          "last_line": 287,
+          "text": "270:     fn materialize<Cluster: M, Slice: M, Element: M>(\n271:         self,\n272:         prefix: Option<usize>,\n273:     ) -> DmTensor<D, Chip, Cluster, Slice, Element, B>\n274:     where\n275:         D: MaterializableScalar,\n276:     {\n277:         validate_placement::<Cluster, Slice, Element>(&self.payload, &self.index.domain);\n278:         let mut output = DmTensor::from_parts(Tensor::zeroed());\n279:         self.table.inner.gather::<IndexedAxis, _, _>(\n280:             &mut output.inner,\n281:             &self.index.tensor,\n282:             &self.index.domain,\n283:             &Chip::to_value(),\n284:             prefix,\n285:             self.index.unit,\n286:         );\n287:         output"
+        }
+      ]
+    }
+  ],
+  "public_revision": "5ec376347e108689096928bc4be2c0e4176fd7c9",
+  "correction": "plan.json placement_source shorthand mapped.rs is not an installed file; actual HbmTensor::to_dm is memory.rs332-348, and public CPU transpose mapping is storage/buf.rs269-308. These exact paths/hashes supersede that shorthand. No code/layout change.",
+  "contract": "HBM to_dm checks DMA layout then transpose(true). Public CPU transpose sequences source against destination with absent axes stride0; P%16 remains a real named subset of full token coordinate. Gather indexes the complete consecutive [Mantissa,Replica] region, payloadRecord8 and independent fulltoken/group domain. Compilation validates constraints, not actual data values."
+}
