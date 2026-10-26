@@ -13,3 +13,5 @@ Build preparation: root independently reviewed the complete main/intended flow w
 Final round2 main/oracle review PASS at functional70812693/main58b6a85e. Root authorizes one fresh device build after all source gates. Numerical decision remains separate from intended correctness/exit0.
 
 Fresh a003 build PASS54.82s from9c5038a3, capturedELF96ce0228ce20f0afda25206d2bc4ec1e181eb45d9a77e48da759be4d430ce34d (5,686,792B). All432 inputs and original429 preserved.19 images exactly equal both actual323213/323322 and fresh compiler output; q020 image exact. Actual numerical result remains missing; root owns any Arena run.
+
+Actual323462 PASS32.994208248s: intended471,859,200 BF16/12,288 samples, all4 fixed numerical gates PASS. ResidualL2 step0 .423880819→.192335810, step1 .374812605→.186208608; original16 anchors reproduced. Strict91-record analyzer/artifact replay PASS; root and round2 independent raw reviews PASS. Complete-FFN numerical progress only; no task/serving-speed result or promotion. Three replay owners reallocate as documented.
