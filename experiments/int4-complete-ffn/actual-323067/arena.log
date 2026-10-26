@@ -1,0 +1,49 @@
+I4_COMPLETE_STARTUP cpu_provided_BF16_per960_encode_audit_ms=5860.101283 values=176947200 no_native_E4_row_dequant=true
+I4_COMPLETE_WEIGHT projection=UP packed_fnv=8685575aa3aefe97 dense_fnv=abd52a2fd1b81b2b scales_fnv=b0de524358b14529 reciprocal_global_bits=38da740e source=[("model.language_model.layers.0.mlp.up_proj.weight_packed", 9886868363823218465), ("model.language_model.layers.0.mlp.up_proj.weight_scale", 321997979617746019), ("model.language_model.layers.0.mlp.up_proj.weight_global_scale", 5572448622982133541)]
+I4_COMPLETE_WEIGHT projection=GATE packed_fnv=c5aa7e643138641c dense_fnv=f921ae431f09d901 scales_fnv=4b03e62c99e29f90 reciprocal_global_bits=38da740e source=[("model.language_model.layers.0.mlp.gate_proj.weight_packed", 15756058159052314875), ("model.language_model.layers.0.mlp.gate_proj.weight_scale", 8965716121425364873), ("model.language_model.layers.0.mlp.gate_proj.weight_global_scale", 5572448622982133541)]
+I4_COMPLETE_WEIGHT projection=DOWN packed_fnv=a1cc56b2badccd61 dense_fnv=51fa0168f0d2fc9f scales_fnv=4282e4470cf69dfa reciprocal_global_bits=38a237c3 source=[("model.language_model.layers.0.mlp.down_proj.weight_packed", 4287788473646207664), ("model.language_model.layers.0.mlp.down_proj.weight_scale", 17365308076031056051), ("model.language_model.layers.0.mlp.down_proj.weight_global_scale", 5491946779626931865)]
+I4_COMPLETE_STARTUP original_production_load_prepack_join_ms=62.686140 path=unchanged_load_mlp_nativeFP8_projection_join layer=0
+I4_COMPLETE_STARTUP candidate_and_intended_reference_upload_ms=221.836340 includes_reference_E4_copies=true
+I4_COMPLETE_WORKING_SET production_retained_weight_bytes=394728988 candidate_weight_bytes=89210884 intended_reference_weight_bytes=177085440 candidate_scratch_bytes=63901696 production_scratch_bytes=49156096 excludes=temporary_oracle_buffers_CPU_copies_allocator_overhead no_model_capacity_claim=true
+I4_COMPLETE_F64 round=0 step=0 projection=UP samples=512 max_preBF16_radius=2.076613853461e-1 oracle=i64_local_F64_envelope
+I4_COMPLETE_F64 round=0 step=0 projection=GATE samples=512 max_preBF16_radius=1.452845950045e-1 oracle=i64_local_F64_envelope
+I4_COMPLETE_F64 round=0 step=0 projection=DOWN samples=512 max_preBF16_radius=1.240615781317e1 oracle=i64_local_F64_envelope
+I4_COMPLETE_DRIFT round=0 step=0 stage=joined bf16_values=15728640 changed=15687354 relative_l2=5.744822058e-1 maxabs=6.893440000e5 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_DRIFT round=0 step=0 stage=down bf16_values=1966080 changed=1962247 relative_l2=7.928396554e-1 maxabs=9.840000000e2 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_DRIFT round=0 step=0 stage=final_residual bf16_values=1966080 changed=1949142 relative_l2=8.466086464e-1 maxabs=3.156250000e1 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_EXACT round=0 step=0 intended_bf16_values=49152000 independent_i64_F64_samples=1536 input_codes=1966080 hidden_codes=7864320 scale_bits=1024 all_packed_bytes=true tail_included=true
+I4_COMPLETE_F64 round=0 step=1 projection=UP samples=512 max_preBF16_radius=2.592719267835e-1 oracle=i64_local_F64_envelope
+I4_COMPLETE_F64 round=0 step=1 projection=GATE samples=512 max_preBF16_radius=1.694742798934e-1 oracle=i64_local_F64_envelope
+I4_COMPLETE_F64 round=0 step=1 projection=DOWN samples=512 max_preBF16_radius=1.340527096271e1 oracle=i64_local_F64_envelope
+I4_COMPLETE_DRIFT round=0 step=1 stage=joined bf16_values=15728640 changed=15686912 relative_l2=5.632260639e-1 maxabs=6.778880000e5 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_DRIFT round=0 step=1 stage=down bf16_values=1966080 changed=1961642 relative_l2=7.285004532e-1 maxabs=1.080000000e3 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_DRIFT round=0 step=1 stage=final_residual bf16_values=1966080 changed=1953088 relative_l2=6.774843554e-1 maxabs=2.900000000e1 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_EXACT round=0 step=1 intended_bf16_values=49152000 independent_i64_F64_samples=1536 input_codes=1966080 hidden_codes=7864320 scale_bits=1024 all_packed_bytes=true tail_included=true
+I4_COMPLETE_TIME round=0 block=0 candidate=true samples=8 complete_us=1110.446125 control=current_production_E4_grouped_norm_store_graph scope=postattention_norm_residual_preFFN_quant_pack_UP_GATE_globals_GeGLU_hiddenquant_pack_DOWN_postnorm_residual_layergate excludes=reset_upload_download_startup_oracle
+I4_COMPLETE_TIME round=0 block=1 candidate=false samples=8 complete_us=1068.004750 control=current_production_E4_grouped_norm_store_graph scope=postattention_norm_residual_preFFN_quant_pack_UP_GATE_globals_GeGLU_hiddenquant_pack_DOWN_postnorm_residual_layergate excludes=reset_upload_download_startup_oracle
+I4_COMPLETE_TIME round=0 block=2 candidate=false samples=8 complete_us=1061.300625 control=current_production_E4_grouped_norm_store_graph scope=postattention_norm_residual_preFFN_quant_pack_UP_GATE_globals_GeGLU_hiddenquant_pack_DOWN_postnorm_residual_layergate excludes=reset_upload_download_startup_oracle
+I4_COMPLETE_TIME round=0 block=3 candidate=true samples=8 complete_us=1106.591125 control=current_production_E4_grouped_norm_store_graph scope=postattention_norm_residual_preFFN_quant_pack_UP_GATE_globals_GeGLU_hiddenquant_pack_DOWN_postnorm_residual_layergate excludes=reset_upload_download_startup_oracle
+PROFILE_I4_COMPLETE candidate=false
+PROFILE_I4_COMPLETE candidate=true
+I4_COMPLETE_GATE round=0 control_us=1064.652687 candidate_us=1108.518625 gain_percent=-4.120211 threshold_percent=10 passed=false down_resource_HOLD_preserved=true no_model_quality_claim=true
+I4_COMPLETE_F64 round=1 step=0 projection=UP samples=512 max_preBF16_radius=2.174986291366e-1 oracle=i64_local_F64_envelope
+I4_COMPLETE_F64 round=1 step=0 projection=GATE samples=512 max_preBF16_radius=1.023122936667e-1 oracle=i64_local_F64_envelope
+I4_COMPLETE_F64 round=1 step=0 projection=DOWN samples=512 max_preBF16_radius=1.297595908328e1 oracle=i64_local_F64_envelope
+I4_COMPLETE_DRIFT round=1 step=0 stage=joined bf16_values=15728640 changed=15687354 relative_l2=5.744822058e-1 maxabs=6.893440000e5 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_DRIFT round=1 step=0 stage=down bf16_values=1966080 changed=1962247 relative_l2=7.928396554e-1 maxabs=9.840000000e2 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_DRIFT round=1 step=0 stage=final_residual bf16_values=1966080 changed=1949142 relative_l2=8.466086464e-1 maxabs=3.156250000e1 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_EXACT round=1 step=0 intended_bf16_values=49152000 independent_i64_F64_samples=1536 input_codes=1966080 hidden_codes=7864320 scale_bits=1024 all_packed_bytes=true tail_included=true
+I4_COMPLETE_F64 round=1 step=1 projection=UP samples=512 max_preBF16_radius=2.710710401115e-1 oracle=i64_local_F64_envelope
+I4_COMPLETE_F64 round=1 step=1 projection=GATE samples=512 max_preBF16_radius=1.134927785534e-1 oracle=i64_local_F64_envelope
+I4_COMPLETE_F64 round=1 step=1 projection=DOWN samples=512 max_preBF16_radius=1.503761719979e1 oracle=i64_local_F64_envelope
+I4_COMPLETE_DRIFT round=1 step=1 stage=joined bf16_values=15728640 changed=15686912 relative_l2=5.632260639e-1 maxabs=6.778880000e5 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_DRIFT round=1 step=1 stage=down bf16_values=1966080 changed=1961642 relative_l2=7.285004532e-1 maxabs=1.080000000e3 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_DRIFT round=1 step=1 stage=final_residual bf16_values=1966080 changed=1953088 relative_l2=6.774843554e-1 maxabs=2.900000000e1 comparator=current_production_E4 no_model_quality_claim=true
+I4_COMPLETE_EXACT round=1 step=1 intended_bf16_values=49152000 independent_i64_F64_samples=1536 input_codes=1966080 hidden_codes=7864320 scale_bits=1024 all_packed_bytes=true tail_included=true
+I4_COMPLETE_TIME round=1 block=0 candidate=true samples=8 complete_us=1108.866125 control=current_production_E4_grouped_norm_store_graph scope=postattention_norm_residual_preFFN_quant_pack_UP_GATE_globals_GeGLU_hiddenquant_pack_DOWN_postnorm_residual_layergate excludes=reset_upload_download_startup_oracle
+I4_COMPLETE_TIME round=1 block=1 candidate=false samples=8 complete_us=1070.124625 control=current_production_E4_grouped_norm_store_graph scope=postattention_norm_residual_preFFN_quant_pack_UP_GATE_globals_GeGLU_hiddenquant_pack_DOWN_postnorm_residual_layergate excludes=reset_upload_download_startup_oracle
+I4_COMPLETE_TIME round=1 block=2 candidate=false samples=8 complete_us=1069.593125 control=current_production_E4_grouped_norm_store_graph scope=postattention_norm_residual_preFFN_quant_pack_UP_GATE_globals_GeGLU_hiddenquant_pack_DOWN_postnorm_residual_layergate excludes=reset_upload_download_startup_oracle
+I4_COMPLETE_TIME round=1 block=3 candidate=true samples=8 complete_us=1106.356625 control=current_production_E4_grouped_norm_store_graph scope=postattention_norm_residual_preFFN_quant_pack_UP_GATE_globals_GeGLU_hiddenquant_pack_DOWN_postnorm_residual_layergate excludes=reset_upload_download_startup_oracle
+I4_COMPLETE_GATE round=1 control_us=1069.858875 candidate_us=1107.611375 gain_percent=-3.528736 threshold_percent=10 passed=false down_resource_HOLD_preserved=true no_model_quality_claim=true
+PASS_I4_COMPLETE_CORRECTNESS layer=0 intended_bf16_values=196608000 independent_i64_F64_samples=6144 permutation_values=78645248 candidate_input_scale_bits=4096 candidate_packed_bytes=19660800 immutable_bytes_compared=599464072 production_immutable_fingerprint_bytes=394728988 post_reuse_bytes=226115584 current_model_drift_informational=true no_model_quality_claim=true
+I4_COMPLETE_FINAL performance_gate_passed=false both_row_orders_required=true DOWN_resource_HOLD=true model_quality_gate_pending=true
