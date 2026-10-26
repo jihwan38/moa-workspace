@@ -1,0 +1,102 @@
+{
+  "base": "8afe741d0e9056f3205d7507e2e2fff365ec6a69",
+  "authorization": "Root authorizes source, plain hostcheck and exact H/L resources only; no standalone ELF/Arena/model/activation.",
+  "hypothesis": "Actual323173 case2 has A=14*2^shift and all old offsets3072, H60.09-60.25us/L182.06-182.18us vs other cases faster. No spans were emitted; contention is not established. Adjacent replicas may change address concentration; no gain is assumed or combined with 7-to-3 graph results.",
+  "prior_evidence": {
+    "retained_axis_no_go": "experiments/int4-grouped-activation-quant/replicated-table-audit.json",
+    "actual": "experiments/int4-grouped-activation-quant/actual-result.json",
+    "baseline_module": "src/ops_int4_grouped_activation_store.rs",
+    "baseline_module_sha256": "1542ea5d0d13e7514409023f73da0d6607dfd93192c9b427fc7932bf544b2ccb",
+    "baseline_resources": {
+      "H": "input-store-schedule.json endpoint29069",
+      "L": "hidden-store-schedule.json endpoint67271"
+    }
+  },
+  "one_fixed_mapping": {
+    "table": "I32[Mantissa128,Replica16,Record8],65536B; all16 lane0 values per mantissa identical; all record lanes initialized.",
+    "gather_indexed_axes": "[Mantissa,Replica] is one consecutive/removable2048-entry region; payload=Record8; domain unchanged [P512/256,K/960,P512%256].",
+    "new_relative_offset_ABI": "offset=512*m+32*(p%16); m=(clampedA_BF16bits&127); 0<=offset<=65504, offset%32=0 and last32B record ends65536. Old offset ABI remains32*m; candidate scratch type/extent unchanged but contents intentionally differ.",
+    "replica_owner": "I32[P512%16,Record8],512B. Host initializes lane0=32*r for r0..15 and7 distinct canary words per record, once outside complete-call timing. Entire owner readback/immutability required.",
+    "replica_path": "real HBM to_dm onto unchanged Rows/localTokens/Record, typed Record lane0 selection into VRF, integer Add in the existing mantissa index pass; all movement and additional VRF lifetime charged. No position/SPM fabrication or retained-axis zip.",
+    "H_coordinate_proof": "c0..1,g0..3,r0..63,j0..3: p=256c+4r+j. P%16=(4r+j)%16=(4*(r%4)+j). Source P%16 spans the lower2 bits of slice r and both local j bits. Missing c/g/upperr source coordinates broadcast; never alias token values.",
+    "L_coordinate_proof": "c0..1,g0..15,r0..15,j0..15: p=256c+16r+j so P%16=j; c/g/r broadcast.",
+    "invariants": "All original amax/floor/p20 multiplier/scaleRN32/round/pack math and H16/L store mappings unchanged. Only index transform, LUT extent and explicit base load differ."
+  },
+  "public_sdk": {
+    "revision": "5ec376347e108689096928bc4be2c0e4176fd7c9",
+    "sources": [
+      {
+        "bytes": 9079,
+        "excerpts": [
+          {
+            "first_line": 61,
+            "last_line": 116,
+            "text": "61: pub fn gather_payload(table: &Mapping, indexed_axis: &Mapping) -> Result<GatherPayload, GatherMappingError> {\n62:     // `find_axis` decides the only rule: the region is consecutive. How many axes name it does not\n63:     // matter, and an axis the table does not hold at all fails the same call.\n64:     let indexed_axis_stride =\n65:         table\n66:             .find_axis(indexed_axis)\n67:             .map_err(|error| GatherMappingError::IndexedAxisNotConsecutive {\n68:                 table: table.clone(),\n69:                 indexed_axis: indexed_axis.clone(),\n70:                 error,\n71:             })?;\n72:     // A located axis may still be inseparable from its surrounding mapping.\n73:     let payload = table\n74:         .remove_axis(indexed_axis)\n75:         .map_err(|error| GatherMappingError::IndexedAxisNotRemovable {\n76:             table: table.clone(),\n77:             indexed_axis: indexed_axis.clone(),\n78:             error,\n79:         })?;\n80:     Ok(GatherPayload {\n81:         payload: payload.normalize(),\n82:         indexed_axis_stride,\n83:     })\n84: }\n85: \n86: /// Checks the payload a kernel declared against the one its table and indexed axis determine.\n87: pub fn validate_gather_payload(\n88:     table: &Mapping,\n89:     indexed_axis: &Mapping,\n90:     declared: &Mapping,\n91: ) -> Result<GatherPayload, GatherMappingError> {\n92:     let derived = gather_payload(table, indexed_axis)?;\n93:     let declared_normal = declared.clone().normalize();\n94:     if derived.payload != declared_normal {\n95:         return Err(GatherMappingError::PayloadMismatch {\n96:             table: Box::new(table.clone()),\n97:             indexed_axis: Box::new(indexed_axis.clone()),\n98:             expected: Box::new(derived.payload),\n99:             declared: Box::new(declared_normal),\n100:         });\n101:     }\n102:     Ok(derived)\n103: }\n104: \n105: /// Checks that the output holds the payload once per domain entry.\n106: pub fn validate_gather_output(\n107:     payload: &Mapping,\n108:     domain: &Mapping,\n109:     output: DmPlacement<'_>,\n110: ) -> Result<(), GatherValidationError> {\n111:     let output = output.to_mapping();\n112:     let stream = payload.clone().pair(domain.clone()).normalize();\n113:     sequence(&[&output], &[&stream], SequencerMode::Write).map_err(|error| GatherValidationError::OutputPlacement {\n114:         payload: Box::new(payload.clone()),\n115:         domain: Box::new(domain.clone()),\n116:         output: Box::new(output),"
+          }
+        ],
+        "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-lower-0.9.0/src/verify/gather.rs",
+        "sha256": "e1eae7ab71d5a2af220a14851ef0d311fd90951ad5c8540cda2437d4913b3e6b"
+      },
+      {
+        "bytes": 13571,
+        "excerpts": [
+          {
+            "first_line": 139,
+            "last_line": 173,
+            "text": "139: pub trait GatherByteOffsets<'l, D: Scalar, Chip: M, TableAxes: M, IndexedAxis: M, IdxChip: M, B: Backend> {\n140:     /// Supplies byte offsets into the table, with `Domain` inferred from the index mapping.\n141:     ///\n142:     /// The index chip axis must match the table's chip axis or broadcast across it.\n143:     #[furiosa_opt::primitive = \"GatherPlan::by_byte_offsets\"]\n144:     fn by_byte_offsets<Domain: M>(\n145:         self,\n146:         index: &'l HbmTensor<i32, IdxChip, Domain, B>,\n147:     ) -> GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, IndexedByteOffsets<IdxChip, Domain>, B>;\n148: }\n149: \n150: impl<'l, D: Scalar, Chip: M, TableAxes: M, IndexedAxis: M, IdxChip: M, B: Backend>\n151:     GatherByteOffsets<'l, D, Chip, TableAxes, IndexedAxis, IdxChip, B>\n152:     for GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, Begin, B>\n153: {\n154:     #[furiosa_opt::primitive = \"GatherPlan::by_byte_offsets\"]\n155:     fn by_byte_offsets<Domain: M>(\n156:         self,\n157:         index: &'l HbmTensor<i32, IdxChip, Domain, B>,\n158:     ) -> GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, IndexedByteOffsets<IdxChip, Domain>, B> {\n159:         validate_index_chip(&IdxChip::to_value(), &Chip::to_value()).unwrap_or_else(|error| panic!(\"{error}\"));\n160:         let unit = IndexUnit::Bytes(indexed_axis_stride::<D>(&self.payload));\n161:         let domain = IndexMapping::ByteOffsets(&Domain::to_value())\n162:             .domain()\n163:             .unwrap_or_else(|error| panic!(\"{error}\"));\n164:         GatherPlan {\n165:             table: self.table,\n166:             payload: self.payload,\n167:             index: GatherIndexTensor {\n168:                 tensor: index.inner.clone(),\n169:                 domain,\n170:                 unit,\n171:             },\n172:             prefix: (),\n173:             _marker: PhantomData,"
+          },
+          {
+            "first_line": 270,
+            "last_line": 297,
+            "text": "270:     fn materialize<Cluster: M, Slice: M, Element: M>(\n271:         self,\n272:         prefix: Option<usize>,\n273:     ) -> DmTensor<D, Chip, Cluster, Slice, Element, B>\n274:     where\n275:         D: MaterializableScalar,\n276:     {\n277:         validate_placement::<Cluster, Slice, Element>(&self.payload, &self.index.domain);\n278:         let mut output = DmTensor::from_parts(Tensor::zeroed());\n279:         self.table.inner.gather::<IndexedAxis, _, _>(\n280:             &mut output.inner,\n281:             &self.index.tensor,\n282:             &self.index.domain,\n283:             &Chip::to_value(),\n284:             prefix,\n285:             self.index.unit,\n286:         );\n287:         output\n288:     }\n289: }\n290: \n291: // Separate inherent impls avoid overlap with prefixed plans; primitive attributes cannot be shared\n292: // through `macro_rules!`.\n293: impl<'l, D: Scalar, Chip: M, TableAxes: M, IndexedAxis: M, IdxChip: M, Domain: M, B: Backend>\n294:     GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, IndexedByteOffsets<IdxChip, Domain>, B>\n295: {\n296:     /// Materializes the gather in the requested data-memory shape.\n297:     #[primitive(GatherPlan::to_dm)]"
+          }
+        ],
+        "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory/gather.rs",
+        "sha256": "4a2c16a37abb22898703cdfb85eb404a17fc03ee6dfe118677e3f37ca05e45e4"
+      }
+    ],
+    "placement_source": "furiosa-opt-std tensor/memory/mapped.rs public to_dm/transfer mapping plus installed mapping sequencer; actual compilation and independent CPU fullcoordinate enumeration are separate gates.",
+    "retained_no_go_preserved": true
+  },
+  "costs": {
+    "old_table_B": 4096,
+    "new_table_B": 65536,
+    "new_immutable_replica_base_B": 512,
+    "additional_owned_HBM_B": 61952,
+    "H_replica_live_delivery_B": 65536,
+    "L_replica_live_delivery_B": 262144,
+    "H_replica_VRF_B_per_slice": 128,
+    "L_replica_VRF_B_per_slice": 512,
+    "H_explicit_offset_write_and_reread_B": 16384,
+    "L_explicit_offset_write_and_reread_B": 65536,
+    "H_gather_record_payload_B": 65536,
+    "L_gather_record_payload_B": 262144,
+    "additional_work": "Replica HBM\u2192DM\u2192VRF (full32B records); existing index TU shift5\u21929 plus integer Add; unchanged compact offset store, reread, fullrecord gather and scale stores. Table/base upload and retained bytes separately reported, not hidden in complete-call timing. Actual allocation/padding and overlap from resource schedule, not inferred from live bytes."
+  },
+  "correctness": [
+    "Keep original fixture and rational quotient/scale/packing oracle byte-identical. New wrapper transforms only expected offsets, independently enumerating physical [c,g,p%256] slots and inverse m/replica decomposition.",
+    "Enumerate all512rows\u00d7H4/L16 groups across chip/cluster/slice/local maps; prove every slot once, H splitP%16 mapping and all16replicas, every table index/range/lane0 value.",
+    "Future standalone source checks all fivecases/twowidths with two true permutations, candidatefirst poisoned independent outputs, oldbaseline packed/scalebits equality, newoffsetabi separately, complete old/new ABBA and postreuse immutable input/table/base/shifts.",
+    "Permutation offset mantissa must follow source row/group while replica component follows DESTINATION row; require this distinction explicitly.",
+    "Code/scalebits and table lane0 remain exact; no approximate quantizer change."
+  ],
+  "resource_gate": {
+    "no_DramStack": true,
+    "allowed_DramIO": [
+      "input",
+      "table64KiB",
+      "replica_base512B",
+      "shifts32B",
+      "packedoutput",
+      "groupedscale",
+      "explicitoffsetscratch"
+    ],
+    "record": "All tensor allocation/lifetime, full endpoint and op-kind/count/duration plus replica/index/gather/movement source attribution. Compare frozen samebody original H29069/L67271; no runtime estimate conversion or win assertion.",
+    "stop": "Public mapping/ABI/VRF/resource failure is preserved; no layout sweep, no ELF unless root separately approves."
+  },
+  "dependencies": {
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "rust-toolchain.toml": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+  }
+}

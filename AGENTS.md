@@ -1,9 +1,9 @@
 # Ownership and scope
 
-Owned by `/root/batch_kernels`, base `a4152dba16b6b3de27b3cc474f1a890cfdb5d0a9`.
-Implement only disconnected per960 activation rational quantization and packing
-for P512 H3840/L15360. Preserve the original whole-row implementations and
-failed complete-FFN evidence. New group scales are explicit; no quality claim.
-Original dependencies, exclusive `/round2/tail256-model/target`, fresh package
-and new empty `FURIOSA_OPT_OUT_DIR` per resource build. Source, host check and
-exact resource compilation only. No standalone ELF, Arena or production changes.
+Owned by `/root/batch_kernels`, base `8afe741d`.
+One explicit adjacent-replica LUT hypothesis, preserving grouped rational codes,
+scale bits, packed layout and current controls. Source, plain hostcheck and exact
+resource compilation only. No ELF, Arena, production or policy change.
+Use original dependency files, exclusive `/round2/tail256-model/target`,
+CARGO_INCREMENTAL=0, package debug0 and a new empty FURIOSA_OPT_OUT_DIR.
+Preserve all prior NO-GO, actual slow-case correlation and resource evidence.
