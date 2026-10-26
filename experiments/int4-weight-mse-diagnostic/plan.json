@@ -12,7 +12,8 @@
   "domain_and_bounds": {
     "domain": "First enumerate all16 F4 codes times all254 finite E4 codes, verify product is exact BF16, and verify238 distinct nonnegative magnitudes including zero. Reject values outside this provided-weight domain.",
     "grid": "Nonzero-domain source and all candidate stored F32 scales must be exact integer multiples of2^-38, verified from exponent/mantissa bits; zero-group floor scale is a preserved special case.",
-    "overflow": "Conservative per-error magnitude <=8192*2^38=2^51, group SSE <=960*(2^51)^2<2^112. Independently bound prefix counts/sums/sumsq and each intermediate of ss-2*q*s*sum+n*(q*s)^2; checked i128 arithmetic rejects overflow. Root owns separate Fraction proof."
+    "overflow": "Conservative per-error magnitude <=8192*2^38=2^51, group SSE <=960*(2^51)^2<2^112. Independently bound prefix counts/sums/sumsq and each intermediate of ss-2*q*s*sum+n*(q*s)^2; checked i128 arithmetic rejects overflow. Root owns separate Fraction proof.",
+    "per_projection_aggregate": "Each source and same-sign reconstruction is nonnegative in magnitude; x<=2688 and7*max_stored_scale=7*(12582913/32768)<4096. Thus every absolute source/error<4096*2^38=2^50. Each projection has58,982,400<2^26 values, so source norm and exact baseline/selected SSE sums<2^126, within signed i128. Checked additions still fail closed. This tighter aggregate bound is separate from the conservative per-group2^112 bound and does not modify the frozen Fraction vectors."
   },
   "algorithm": "Build immutable domain/max-specific tables once. For each960 group, histogram finite magnitudes and prefix count/sum/sumsq. Each scale uses eight contiguous nearest-code buckets and SSE=ss-2*level*sum+count*level^2. Never scan26x238 candidates for every group. Final chosen signed codes are packed by the unchanged physical weight-group mapping.",
   "cpu_gates": [
