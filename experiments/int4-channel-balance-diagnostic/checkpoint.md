@@ -1,0 +1,11 @@
+Source/host checkpoint only. No device ELF, Arena execution or production changes.
+
+Plan `23be3300`; initial source `7c715a7d`; final functional source `52d821e2`. The two plain release host checks passed (22.71 seconds and 0.49 seconds). Peer source review by `/root/e2e_evidence` passed at `52d821e2`; numerical range/inverse success remains unexecuted.
+
+The diagnostic derives one positive dyadic channel scale solely from the provided layer0 pre-FFN gamma. It retains the original gamma and q020 production graph, independently uploads transformed gamma and re-encoded UP/GATE weights, and leaves DOWN/globals/hidden scaling unchanged. Every transformed supplied UP/GATE value must pass finite normal-or-zero BF16 exact representation and inverse checks. Every actual 512-row prefix must satisfy exact inverse compensation before any changed-code projection is interpreted. Sampled unquantized products must be identical in F64 and finite normal-or-zero/bit-equal in F32. Failures terminate; no channel is silently omitted.
+
+Balanced, unbalanced grouped and current-production paths receive the same incoming residual at both steps. The next common residual comes from original production. Both row orders are checked, including a true permutation, independent intended-code references, complete source/weight/norm immutability and post-balanced-replay checks of all control scratch. The local drift reporter names the actual comparison and matched feedback correctly. There is no timing gate or task-quality claim.
+
+All 418 existing source files are byte-identical to base `d2122464`. Replay `PYTHONDONTWRITEBYTECODE=1 python3 experiments/int4-channel-balance-diagnostic/audit_source.py` to verify both host-check input manifests, unchanged source and reused candidate/reference/control bodies. Original dependency files are retained. The a002 status records only untracked a001 evidence; the replay explicitly allows those two exact document paths and still verifies every input against its frozen source.
+
+Additional diagnostic storage includes a convenience unchanged DOWN copy in the balanced weight bundle: 88,473,600 bytes packed weights +176,947,200 bytes dense-code reference +737,280 bytes group scales +4-byte global +7,680-byte gamma. This is a layer0 diagnostic allocation, not serving storage or a 48-layer capacity proof.

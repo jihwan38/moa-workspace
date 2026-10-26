@@ -57,7 +57,14 @@ def main():
         run = json.loads((d / "run.json").read_text())
         hashes = json.loads((d / "source-hashes.json").read_text())
         assert run["exit_code"] == 0 and run["result"] == "command_succeeded"
-        assert run["status"] == "" and (d / "source.diff").read_bytes() == b""
+        # a002 was run with only a001 evidence snapshots still untracked.
+        # Do not mistake those recorded documents for a source mutation.
+        allowed_evidence = {
+            "?? experiments/int4-channel-balance-diagnostic/a001-hostcheck/",
+            "?? experiments/int4-channel-balance-diagnostic/source-hostcheck.json",
+        }
+        assert set(run["status"].splitlines()) <= allowed_evidence
+        assert (d / "source.diff").read_bytes() == b""
         assert "check" in run["command"] and "furiosa-opt" not in run["command"]
         for path, digest in hashes.items():
             data = (ROOT / path).read_bytes() if path == "Cargo.lock" else subprocess.check_output(["git", "show", f"{run['commit']}:{path}"], cwd=ROOT)
