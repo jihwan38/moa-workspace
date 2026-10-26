@@ -1,0 +1,66 @@
+{
+  "root_in_container": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f",
+  "revision": "5ec376347e108689096928bc4be2c0e4176fd7c9",
+  "files": {
+    "furiosa-opt-std-0.9.0/src/engine/transpose.rs": {
+      "sha256": "546fbf6108d6451535cd0e88c57b727edb282effc2f16ac3710d6c1eb1250e9d",
+      "ranges": [
+        {
+          "first": 51,
+          "last": 86,
+          "source": "51: // ANCHOR: transpose_impl\n52: // `D: MaterializableScalar` (see its doc) excludes i5/i9 stagings from transpose.\n53: impl<\n54:     'l,\n55:     const T: Tu,\n56:     P: CanApplyTranspose,\n57:     D: MaterializableScalar,\n58:     Chip: M,\n59:     Cluster: M,\n60:     Slice: M,\n61:     Time: M,\n62:     Packet: M,\n63:     B: Backend,\n64: > TuTensor<'l, T, P, D, Chip, Cluster, Slice, Time, Packet, B>\n65: {\n66:     /// Performs the transpose operation.\n67:     #[primitive(TuTensor::transpose)]\n68:     pub fn transpose<OutTime: M, OutPacket: M>(\n69:         self,\n70:     ) -> TransposeTensor<'l, T, D, Chip, Cluster, Slice, OutTime, OutPacket, B> {\n71:         verify_transpose::<D, Time, Packet, OutTime, OutPacket>();\n72:         TransposeTensor::new(self.device, self.inner.transpose(false))\n73:     }\n74: }\n75: // ANCHOR_END: transpose_impl\n76: \n77: /// Verifies that the transpose engine can produce `(OutTime, OutPacket)`.\n78: pub(crate) fn verify_transpose<D: Scalar, Time: M, Packet: M, OutTime: M, OutPacket: M>() {\n79:     config_transpose(TransposeInput {\n80:         in_time: Time::to_value(),\n81:         in_packet: Packet::to_value(),\n82:         out_time: OutTime::to_value(),\n83:         out_packet: OutPacket::to_value(),\n84:         element_bits: D::BITS,\n85:     })\n86:     .unwrap_or_else(|message| panic!(\"{message}\"));"
+        },
+        {
+          "first": 121,
+          "last": 143,
+          "source": "121:         #[test]\n122:         fn transpose_basic() {\n123:             verify_transpose::<i8, m![C, F], m![E # 32], m![C, E], m![F # 32]>();\n124:         }\n125: \n126:         #[test]\n127:         fn transpose_small() {\n128:             verify_transpose::<i8, m![A], m![B # 32], m![B], m![A # 32]>();\n129:         }\n130: \n131:         #[test]\n132:         fn transpose_small_no_slicing() {\n133:             verify_transpose::<i8, m![A], m![B # 32], m![B # 8], m![A # 32]>();\n134:         }\n135: \n136:         #[test]\n137:         fn transpose_large_col() {\n138:             verify_transpose::<i8, m![B, C, D], m![E # 32], m![B, D, E], m![C # 32]>();\n139:         }\n140: \n141:         #[test]\n142:         fn transpose_bf16() {\n143:             verify_transpose::<bf16, m![C, D], m![E # 16], m![C, E], m![D # 16]>();"
+        },
+        {
+          "first": 189,
+          "last": 196,
+          "source": "189:         #[test]\n190:         fn transpose_f32_basic() {\n191:             verify_transpose::<f32, m![B], m![C # 8], m![C], m![B # 8]>();\n192:         }\n193: \n194:         #[test]\n195:         fn transpose_split_symbol_packets_per_col_4() {\n196:             verify_transpose::<i8, m![C, D, Esplit32 / 8], m![Esplit32 % 8 # 32], m![C, Esplit32], m![D # 32]>();"
+        }
+      ]
+    },
+    "furiosa-opt-std-0.9.0/src/context.rs": {
+      "sha256": "775a00a8ecbb4360b4605c1c93618ed71bd72747b68a627ab86e10398a74e8c4",
+      "ranges": [
+        {
+          "first": 95,
+          "last": 111,
+          "source": "95:     /// Begin a tensor unit operation in this context with interleaved tensors.\n96:     #[primitive(TuContext::begin_interleaved)]\n97:     pub fn begin_interleaved<'l, I: AxisName, D: Scalar, Chip: M, Cluster: M, Slice: M, Element: M>(\n98:         &'l mut self,\n99:         lhs: DmTensorView<'l, D, Chip, Cluster, Slice, Element>,\n100:         rhs: DmTensorView<'l, D, Chip, Cluster, Slice, Element>,\n101:     ) -> BeginTensor<'l, { T }, D, Chip, Cluster, Slice, Symbol<I>, Element> {\n102:         let mut output = Tensor::<D, m![{ Chip }, { Cluster }, { Slice }, { Symbol<I> }, { Element }]>::zeroed();\n103: \n104:         for (i, input) in [lhs, rhs].into_iter().enumerate() {\n105:             output\n106:                 .view_mut()\n107:                 .tile_derived::<Symbol<I>, 1>(i)\n108:                 .transpose(input.inner, false);\n109:         }\n110: \n111:         BeginTensor::new(self, output)"
+        }
+      ]
+    },
+    "furiosa-opt-std-0.9.0/src/engine/vector/tensor/vector_tensor.rs": {
+      "sha256": "ca66ccc0cce6f71593e342bfac806870e62c3bf4eaf70e406abad1537e18d151",
+      "ranges": [
+        {
+          "first": 575,
+          "last": 584,
+          "source": "575:     /// Enters VE intra-slice pipeline (two-group / unzip).\n576:     // ANCHOR: vector_intra_slice_unzip\n577:     #[primitive(VectorInitTensor::vector_intra_slice_unzip)]\n578:     pub fn vector_intra_slice_unzip<I: AxisName, SplitTime: M>(\n579:         self,\n580:     ) -> VectorTensorPair<'l, T, D, stage::Tag, Chip, Cluster, Slice, SplitTime, Packet> {\n581:         // ANCHOR_END: vector_intra_slice_unzip\n582:         verify_vector_intra_slice_unzip::<I, Time, SplitTime, Packet>();\n583:         VectorTensorPair::new::<I, Time>(self.device, self.inner)\n584:     }"
+        }
+      ]
+    },
+    "furiosa-opt-lower-0.9.0/src/verify/engine/vector/tensor.rs": {
+      "sha256": "1a592f0d8a1d79f7a52aa583be568af857d3870bed6db9cec20b2869d8b825f2",
+      "ranges": [
+        {
+          "first": 335,
+          "last": 362,
+          "source": "335: /// `vector_intra_slice_unzip`: the elements inside `group_axis`, which is the branch group size.\n336: ///\n337: /// Group 0 waits in the VE register-file cache while group 1 streams in, so one group must fit it.\n338: pub fn config_vector_intra_slice_unzip(input: VectorIntraSliceUnzipInput) -> Result<usize, VectorError> {\n339:     let VectorIntraSliceUnzipInput {\n340:         group_axis,\n341:         in_time,\n342:         in_packet,\n343:     } = input;\n344:     let stream = in_time.pair(in_packet);\n345:     let mut group_volume = 1;\n346:     for axis in axis_leaves(&stream) {\n347:         if axis.idents().contains(&group_axis) {\n348:             let max_volume = length_from_bytes(VE_ELEMENT_BITS, VRF_CACHE_BYTES)\n349:                 .expect(\"the fixed VRF cache size contains whole VE elements\");\n350:             if group_volume > max_volume {\n351:                 return Err(VectorError::UnzipGroupTooLarge {\n352:                     group_axis,\n353:                     volume: group_volume,\n354:                     max_volume,\n355:                 });\n356:             }\n357:             return Ok(group_volume);\n358:         }\n359:         // Padded extents: the stream walks the padding cells too.\n360:         group_volume *= axis.size();\n361:     }\n362:     Err(VectorError::UnzipGroupAxisMissing { group_axis, stream })"
+        }
+      ]
+    },
+    "furiosa-opt-lower-0.9.0/src/lowering/mod.rs": {
+      "sha256": "e92d11bfb4444c6687df353bb3327c83cee4a20419df3f32370f60507a6a301f",
+      "ranges": [
+        {
+          "first": 110,
+          "last": 123,
+          "source": "110: /// Resolves transpose-engine hardware parameters.\n111: pub fn config_transpose(input: TransposeInput) -> Result<TransposeConfig, TransposeError> {\n112:     unsafe {\n113:         sys::config_transpose(\n114:             &input.in_time,\n115:             &input.in_packet,\n116:             &input.out_time,\n117:             &input.out_packet,\n118:             input.element_bits,\n119:         )\n120:     }\n121:     .into_result()\n122: }\n123: "
+        }
+      ]
+    }
+  }
+}
