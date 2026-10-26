@@ -1,0 +1,717 @@
+{
+  "decision": "ACTUAL_EXACT_PASS_WITH_MIXED_FIXTURE_TIMING; NO_POLICY_SELECTION_OR_FULL_FFN_PROMOTION",
+  "declared_candidate_counts": {
+    "codes": 49152000,
+    "offsets": 51200,
+    "packed_bytes": 24576000,
+    "scales": 51200
+  },
+  "fixtures": {
+    "case2": "A=14*2^shift =>normalizedmantissa224,index96. Old everyoffset3072; candidate adjacent16offsets49152+32*(p%16),49152..49632. This is a source-backed address correlation, not proof of memory-bank/cache contention.",
+    "mapping": "source row=(73p+17)%512, group=(3g+1)%G, channel=(73k+127)%960; candidate replica uses destinationp%16",
+    "per_width": 5,
+    "permutations": {
+      "3": 0,
+      "4": 1
+    }
+  },
+  "limits": [
+    "Exact codes/scales and both old/new offset ABIs passed on the fixed finite fixtures, including signed ties, extremes, permutations, reuse and all immutable bytes. No quantization rule changed.",
+    "Runtime changes vary by fixture: Hcases0/3 regress, Hcase2 improves, Lallfive improve in this one ABBA run. No selective fixture/input dispatch policy is introduced or authorized.",
+    "No model activation distribution, GEMM, complete FFN, logits/task quality or serving throughput was measured.",
+    "Do not sum or multiply these gains with seven-to-three graph composition or infer contention cause. No model/default policy changes."
+  ],
+  "marker_counts": {
+    "exact": 10,
+    "lines": 53,
+    "pass": 1,
+    "profile": 2,
+    "timings": 40
+  },
+  "mean_regressions": [
+    {
+      "case": 0,
+      "mean_gain_percent": -2.9439627003783997,
+      "width": 3840
+    },
+    {
+      "case": 3,
+      "mean_gain_percent": -2.3492368685707143,
+      "width": 3840
+    }
+  ],
+  "memory": {
+    "extra_retained_bytes": 61952,
+    "new_table_bytes": 65536,
+    "old_table_bytes": 4096,
+    "replica_base_bytes": 512
+  },
+  "preserved_history": {
+    "baseline_actual323173": "Earlier unmatched timing unchanged; use current same-job ABBA for comparisons.",
+    "original_resource_H_L": [
+      29069,
+      67271
+    ],
+    "replica_resource_H_L": [
+      29115,
+      67239
+    ],
+    "resource_scope": "Compiler spans only, no proportional latency or actual contention inference.",
+    "retained_axis_no_go": "8afe741d remains; this candidate uses an explicit complete indexed region and real replica input."
+  },
+  "profile": {
+    "NPU_SPAN_count": 0,
+    "arena_records": [],
+    "markers": [
+      3840,
+      15360
+    ],
+    "scope": "No operation spans emitted; cannot attribute measured savings/regressions to gather versus DMA/VRF/scheduling."
+  },
+  "provenance": {
+    "build_commit": "0488a75a9dc911097a2ba3450546172a2fbf3108",
+    "build_replay_result_sha256": "63a1c6fb2a9ad87f3d11537adfb833581480776e6d8dbd6ec399a82c2ad058cf",
+    "four_image_bindings": [
+      {
+        "baseline_actual323173_equal": true,
+        "bytes": 66048,
+        "fresh_build_equal": true,
+        "path": "furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_hidden",
+        "sha256": "36ee20d481e9705ee2f41916604c35b974bc541d52f560922874a52c1d5bc065"
+      },
+      {
+        "baseline_actual323173_equal": true,
+        "bytes": 65792,
+        "fresh_build_equal": true,
+        "path": "furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_input",
+        "sha256": "876a404ca7c6093b753766d8b0b3d13374c4bb5c019e35d6a2856bebc7ba5d2e"
+      },
+      {
+        "bytes": 69376,
+        "candidate_frozen_resource_equal": true,
+        "fresh_build_equal": true,
+        "path": "furiosa_opt_gemma4::ops_int4_grouped_lut_replicas::quantize_pack_hidden",
+        "sha256": "4ea288cf58511d9059e09793e18bdfefba2fcfe14372885f4b71d6fa9ae294e8"
+      },
+      {
+        "bytes": 67840,
+        "candidate_frozen_resource_equal": true,
+        "fresh_build_equal": true,
+        "path": "furiosa_opt_gemma4::ops_int4_grouped_lut_replicas::quantize_pack_input",
+        "sha256": "d2cec65e09d1b337ade1243186786c26b6ab8e145fcf87b7853073fc50b30311"
+      }
+    ],
+    "functional_source": "78054937",
+    "raw_manifest": {
+      "files": {
+        "arena-records.json": {
+          "bytes": 3,
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        },
+        "arena-status.json": {
+          "bytes": 326,
+          "sha256": "e8411474d516b1fab0018f2455865e4e97aed3f22e5ee5a652c502c739e3246e"
+        },
+        "arena.log": {
+          "bytes": 7745,
+          "sha256": "e689c6f1ba277a6b0008860b4796be8af89b2ba10d01cf9c3d1e00df460e113b"
+        },
+        "output.log": {
+          "bytes": 62,
+          "sha256": "9928fbab4143531da144e7114dc7954d911e4c2f0dd45dbba070891f7f7dac12"
+        },
+        "run.json": {
+          "bytes": 2037,
+          "sha256": "269752ccc477e8b83c86e6985ea18d08422d1590dcf46b830503844e6499d456"
+        },
+        "source-hashes.json": {
+          "bytes": 43591,
+          "sha256": "45ff545e08b569ea1f76b907dee7dc51f26e6df773994e777445f2b5698152ca"
+        },
+        "source.diff": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "job": 323310
+    },
+    "raw_manifest_sha256": "cbc3cc131e4d718f6f1aead1f48c3c796bbfbcfafb46e64e8a8f854db91da2fe",
+    "run_record": {
+      "command": [
+        "docker",
+        "exec",
+        "--workdir",
+        "/round2/int4-grouped-lut-replicas",
+        "moa2026-round2",
+        "furiosa-arena",
+        "submit",
+        "/round2/runs/int4-lut-replicas-actual-20261026/submitted/test_int4_grouped_lut_replicas",
+        "--timeout",
+        "70",
+        "--name",
+        "beef-int4-lut-replicas-actual-20261026"
+      ],
+      "commit": "0488a75a9dc911097a2ba3450546172a2fbf3108",
+      "exit_code": 0,
+      "finished_at": "2026-10-26T01:58:03.377448+00:00",
+      "name": "int4-lut-replicas-actual-20261026",
+      "pid": 168674,
+      "purpose": "Fixed adjacent16-replica rational LUT: same-job original2kernel controls, 5fixtures/width, exact packed/scales and new relativeoffset oracle, complete ABBA including real512B base DM/VRF load. Root421inputs/prior2+resource2+fresh4images verified. No GEMM, model or contention-causality claim.",
+      "requested_command": [
+        "docker",
+        "exec",
+        "--workdir",
+        "/round2/int4-grouped-lut-replicas",
+        "moa2026-round2",
+        "furiosa-arena",
+        "submit",
+        "/round2/runs/a004-int4-lut-replicas-device-build/built/target/release/test_int4_grouped_lut_replicas",
+        "--timeout",
+        "70",
+        "--name",
+        "beef-int4-lut-replicas-actual-20261026"
+      ],
+      "result": "command_succeeded",
+      "started_at": "2026-10-26T01:58:02.760509+00:00",
+      "status": "?? experiments/int4-grouped-lut-replicas/audit_build.py\n?? experiments/int4-grouped-lut-replicas/build-result.json\n?? experiments/int4-grouped-lut-replicas/device-build/\n?? experiments/int4-grouped-lut-replicas/kernel-out-a004/\n",
+      "submitted_artifact": {
+        "path": "/home/jihwan38/moa-worktrees/round2/runs/int4-lut-replicas-actual-20261026/submitted/test_int4_grouped_lut_replicas",
+        "sha256": "1d292a33f7172a5d8c96c7aa411817473c68f98e6c5828c50e53efa6df17a3c6",
+        "size": 3210264,
+        "source_path": "/home/jihwan38/moa-worktrees/round2/runs/a004-int4-lut-replicas-device-build/built/target/release/test_int4_grouped_lut_replicas"
+      },
+      "worktree": "/home/jihwan38/moa-worktrees/round2/int4-grouped-lut-replicas"
+    },
+    "source_inputs": 421,
+    "source_manifest_sha256": "45ff545e08b569ea1f76b907dee7dc51f26e6df773994e777445f2b5698152ca",
+    "submitted_artifact": {
+      "path": "/home/jihwan38/moa-worktrees/round2/runs/int4-lut-replicas-actual-20261026/submitted/test_int4_grouped_lut_replicas",
+      "sha256": "1d292a33f7172a5d8c96c7aa411817473c68f98e6c5828c50e53efa6df17a3c6",
+      "size": 3210264,
+      "source_path": "/home/jihwan38/moa-worktrees/round2/runs/a004-int4-lut-replicas-device-build/built/target/release/test_int4_grouped_lut_replicas"
+    }
+  },
+  "source_bound_additional_checks": {
+    "baseline_calls": 210,
+    "candidate_calls": 212,
+    "completed_kernel_calls": 422,
+    "explicit_permutation_nibbles": 19660800,
+    "explicit_permutation_scales_and_offsets_each": 20480,
+    "immutable_read_bytes": 99075904,
+    "output_comparison_bytes_both_arms_initial_and_post": 99942400,
+    "scope": "Frozen assertions reached before each EXACT/PASS marker; declared candidate counts are not doubled for baseline, repeated reads or permutations. No raw tensor dump is retained.",
+    "timed_calls": 400
+  },
+  "terminal_status": {
+    "created_at": "2026-10-26T01:58:03Z",
+    "device_id": null,
+    "duration_sec": 1.554078326,
+    "exit_code": 0,
+    "finished_at": "2026-10-26T01:58:05Z",
+    "id": 323310,
+    "mine": true,
+    "name": "beef-int4-lut-replicas-actual-20261026",
+    "owner": "jihwan38",
+    "started_at": "2026-10-26T01:58:03Z",
+    "status": "SUCCEEDED"
+  },
+  "timing_scope": {
+    "block_order": [
+      0,
+      1,
+      1,
+      0
+    ],
+    "each_value": "mean of10 awaited complete calls, two block means per arm; individual-call distribution/confidence unavailable",
+    "excludes": "host CPU oracle, input/table/base/shifts upload, readbacks; no GEMM, complete FFN or serving",
+    "includes": "complete_group_quant_replica_load_offset_write_read_pack_scale_no_GEMM",
+    "no_aggregate_score": "Five artificial fixtures are not a workload distribution; do not average them into a serving prediction.",
+    "unit": "microseconds",
+    "variants": {
+      "0": "unchanged grouped-store original actual323173 kernel",
+      "1": "adjacent16-replica lookup, explicit512B base load"
+    }
+  },
+  "timings": [
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 36.1756,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 37.6938,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 37.2877,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 36.6616,
+          "variant": 0
+        }
+      ],
+      "case": 0,
+      "conservative_gain_percent": -4.196751401497134,
+      "mean_direction": "slower",
+      "mean_gain_percent": -2.9439627003783997,
+      "mean_saved_us": -1.0721500000000077,
+      "observed_gain_extremes_percent": [
+        -4.196751401497134,
+        -1.7077814388897439
+      ],
+      "original_mean_us": 36.4186,
+      "original_two_block_means_us": [
+        36.1756,
+        36.6616
+      ],
+      "replicated_mean_us": 37.490750000000006,
+      "replicated_two_block_means_us": [
+        37.6938,
+        37.2877
+      ],
+      "width": 3840
+    },
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 40.7387,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 38.0387,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 37.7588,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 41.1107,
+          "variant": 0
+        }
+      ],
+      "case": 1,
+      "conservative_gain_percent": 6.627604710017754,
+      "mean_direction": "faster",
+      "mean_gain_percent": 7.393945465696761,
+      "mean_saved_us": 3.0259500000000017,
+      "observed_gain_extremes_percent": [
+        6.627604710017754,
+        8.153351803788311
+      ],
+      "original_mean_us": 40.9247,
+      "original_two_block_means_us": [
+        40.7387,
+        41.1107
+      ],
+      "replicated_mean_us": 37.89875,
+      "replicated_two_block_means_us": [
+        38.0387,
+        37.7588
+      ],
+      "width": 3840
+    },
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 60.4501,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 48.0729,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 46.3798,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 61.1571,
+          "variant": 0
+        }
+      ],
+      "case": 2,
+      "conservative_gain_percent": 20.47506952014968,
+      "mean_direction": "faster",
+      "mean_gain_percent": 22.329681137301094,
+      "mean_saved_us": 13.577250000000006,
+      "observed_gain_extremes_percent": [
+        20.47506952014968,
+        24.162852718654083
+      ],
+      "original_mean_us": 60.8036,
+      "original_two_block_means_us": [
+        60.4501,
+        61.1571
+      ],
+      "replicated_mean_us": 47.22635,
+      "replicated_two_block_means_us": [
+        48.0729,
+        46.3798
+      ],
+      "width": 3840
+    },
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 35.4577,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 37.0546,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 36.8307,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 36.7317,
+          "variant": 0
+        }
+      ],
+      "case": 3,
+      "conservative_gain_percent": -4.503676211372976,
+      "mean_direction": "slower",
+      "mean_gain_percent": -2.3492368685707143,
+      "mean_saved_us": -0.8479499999999973,
+      "observed_gain_extremes_percent": [
+        -4.503676211372976,
+        -0.2695219660402426
+      ],
+      "original_mean_us": 36.0947,
+      "original_two_block_means_us": [
+        35.4577,
+        36.7317
+      ],
+      "replicated_mean_us": 36.94265,
+      "replicated_two_block_means_us": [
+        37.0546,
+        36.8307
+      ],
+      "width": 3840
+    },
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 40.6717,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 39.3677,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 36.7028,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 41.8818,
+          "variant": 0
+        }
+      ],
+      "case": 4,
+      "conservative_gain_percent": 3.2061605489812406,
+      "mean_direction": "faster",
+      "mean_gain_percent": 7.853089208816089,
+      "mean_saved_us": 3.241499999999995,
+      "observed_gain_extremes_percent": [
+        3.2061605489812406,
+        12.365753143370139
+      ],
+      "original_mean_us": 41.27675,
+      "original_two_block_means_us": [
+        40.6717,
+        41.8818
+      ],
+      "replicated_mean_us": 38.035250000000005,
+      "replicated_two_block_means_us": [
+        39.3677,
+        36.7028
+      ],
+      "width": 3840
+    },
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 80.2406,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 79.9934,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 77.9654,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 81.4476,
+          "variant": 0
+        }
+      ],
+      "case": 0,
+      "conservative_gain_percent": 0.3080734690418696,
+      "mean_direction": "faster",
+      "mean_gain_percent": 2.3065381394560602,
+      "mean_saved_us": 1.8646999999999991,
+      "observed_gain_extremes_percent": [
+        0.3080734690418696,
+        4.275386874505804
+      ],
+      "original_mean_us": 80.8441,
+      "original_two_block_means_us": [
+        80.2406,
+        81.4476
+      ],
+      "replicated_mean_us": 78.9794,
+      "replicated_two_block_means_us": [
+        79.9934,
+        77.9654
+      ],
+      "width": 15360
+    },
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 102.7208,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 94.3748,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 93.1618,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 102.5599,
+          "variant": 0
+        }
+      ],
+      "case": 1,
+      "conservative_gain_percent": 7.980799513260061,
+      "mean_direction": "faster",
+      "mean_gain_percent": 8.643822824064806,
+      "mean_saved_us": 8.872050000000002,
+      "observed_gain_extremes_percent": [
+        7.980799513260061,
+        9.305807587168324
+      ],
+      "original_mean_us": 102.64035,
+      "original_two_block_means_us": [
+        102.7208,
+        102.5599
+      ],
+      "replicated_mean_us": 93.7683,
+      "replicated_two_block_means_us": [
+        94.3748,
+        93.1618
+      ],
+      "width": 15360
+    },
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 181.9444,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 170.0691,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 169.536,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 181.4584,
+          "variant": 0
+        }
+      ],
+      "case": 2,
+      "conservative_gain_percent": 6.276535007472795,
+      "mean_direction": "faster",
+      "mean_gain_percent": 6.548573648854661,
+      "mean_saved_us": 11.89885000000001,
+      "observed_gain_extremes_percent": [
+        6.276535007472795,
+        6.819885635391909
+      ],
+      "original_mean_us": 181.7014,
+      "original_two_block_means_us": [
+        181.9444,
+        181.4584
+      ],
+      "replicated_mean_us": 169.80255,
+      "replicated_two_block_means_us": [
+        170.0691,
+        169.536
+      ],
+      "width": 15360
+    },
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 80.7024,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 79.7416,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 78.4824,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 81.3525,
+          "variant": 0
+        }
+      ],
+      "case": 3,
+      "conservative_gain_percent": 1.19054699736314,
+      "mean_direction": "faster",
+      "mean_gain_percent": 2.363951969363476,
+      "mean_saved_us": 1.915450000000007,
+      "observed_gain_extremes_percent": [
+        1.19054699736314,
+        3.527980086659921
+      ],
+      "original_mean_us": 81.02745,
+      "original_two_block_means_us": [
+        80.7024,
+        81.3525
+      ],
+      "replicated_mean_us": 79.112,
+      "replicated_two_block_means_us": [
+        79.7416,
+        78.4824
+      ],
+      "width": 15360
+    },
+    {
+      "blocks": [
+        {
+          "block": 0,
+          "samples": 10,
+          "us": 100.7027,
+          "variant": 0
+        },
+        {
+          "block": 1,
+          "samples": 10,
+          "us": 94.9108,
+          "variant": 1
+        },
+        {
+          "block": 2,
+          "samples": 10,
+          "us": 91.9806,
+          "variant": 1
+        },
+        {
+          "block": 3,
+          "samples": 10,
+          "us": 103.0918,
+          "variant": 0
+        }
+      ],
+      "case": 4,
+      "conservative_gain_percent": 5.751484319685574,
+      "mean_direction": "faster",
+      "mean_gain_percent": 8.29418850852207,
+      "mean_saved_us": 8.451550000000012,
+      "observed_gain_extremes_percent": [
+        5.751484319685574,
+        10.777966821803487
+      ],
+      "original_mean_us": 101.89725,
+      "original_two_block_means_us": [
+        100.7027,
+        103.0918
+      ],
+      "replicated_mean_us": 93.44569999999999,
+      "replicated_two_block_means_us": [
+        94.9108,
+        91.9806
+      ],
+      "width": 15360
+    }
+  ]
+}
