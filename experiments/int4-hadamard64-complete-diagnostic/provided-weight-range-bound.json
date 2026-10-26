@@ -1,0 +1,28 @@
+{
+  "result": "PASS_FORMAT_ENUMERATION_AND_INDUCTIVE_RANGE_BOUND",
+  "source_pairs": 4064,
+  "nonnegative_magnitudes": 238,
+  "provided_product_exact_BF16": true,
+  "min_nonzero_source": "2^-10",
+  "max_abs_source": 2688,
+  "six_stage_max_abs": [
+    2688,
+    5376,
+    10752,
+    21504,
+    43008,
+    86016,
+    172032
+  ],
+  "max_abs_after_div8": 21504,
+  "min_nonzero_after_div8": "2^-13",
+  "derivation": [
+    "Each supplied finiteF4*finiteE4 product is exactly BF16 and an integer multiple of2^-10. Sign multiplication preserves this grid and magnitude.",
+    "Inductively, at stage s the exact sum/difference magnitude is<=2688*2^s. This bound is representableF32, so nearest-even rounding cannot exceed it.",
+    "A F32 rounding of a multiple of2^-10 remains on that grid: when the F32 spacing is finer the input is exactly representable; when it is coarser the rounded result is still a multiple.",
+    "After6stages values are zero or magnitude>=2^-10, <=172032. Scalingby1/8 is exactnormal, yielding zero or magnitude>=2^-13 and <=21504.",
+    "Final BF16 nearest-even rounding cannot overflow/underflow for this range. This is a range proof for provided-format WEIGHTS, not a proof of exactF32 rotation or of arbitrary activations."
+  ],
+  "scope": "No full-weight output enumeration, taskquality, speed, deviceFTZ or activation-range claim. ExistingRowchecks remain required.",
+  "source_reference": "int4-hadamard64-diagnostic/src/bin/test_int4_hadamard64.rs::SampledWeights::load and fixed root H64 transform contract"
+}
