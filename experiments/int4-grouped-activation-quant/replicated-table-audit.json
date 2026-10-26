@@ -1,0 +1,141 @@
+{
+  "actual_result_sha256": "34d4ece05d1b679cea5aa446a42a694873779ab9101a4021ef4be7ef57159201",
+  "contract_findings": [
+    "validate_gather_payload requires exactly table minus IndexedAxis. Keeping P%16 requires Payload=[P%16,Record], 512B; Payload=[Record] mismatches the declared table.",
+    "validate_gather_output constructs payload.pair(domain), then sequences that full stream against the output. The public contract has no zipped/diagonal shared-axis selector.",
+    "CPU BufStorage::gather factors table into payload x indexed_axis and output into payload x domain, loops every payload row over every domain index, and rejects any destination slot written twice. Merely repeating the named P%16 axis in payload and fullP domain cannot authorize selecting one replica pertoken.",
+    "Mapping::pair constructs a Pair except identity simplification; size is left.size*right.size. The exact sequencing/normalization implementation is prebuilt; no specific compiler error or runtime behavior has been measured here.",
+    "Dropping P%16 from domain to avoid overlap would require one shared dynamic mantissa per16 tokens and would violate independently varying per-token maxima. Materializing all16 replicas with a separate axis increases logical record payload16x and needs an explicit later selection."
+  ],
+  "current_actual_evidence_commit": "2fc01d8314283ce024e439100e35d93d5342f2e6",
+  "decision": "SOURCE_CONTRACT_NO_GO for retained replica axis with full token/group index domain; no implementation or compilation performed",
+  "explicit_supported_alternative": {
+    "cost_obligation": "The replica coordinate must be explicitly encoded into each index. A separate immutable per-row base owner adds a real input/load; any alternative generation must use supported APIs. No fabricated device/SPM address or free retained-axis selection.",
+    "indexed_axis": "[Replica16,Mantissa128], one consecutive removable region",
+    "last_payload_end_bytes": 65536,
+    "logical_record_payload_bytes": {
+      "H4": 65536,
+      "L16": 262144
+    },
+    "offset_bounds": [
+      0,
+      65504
+    ],
+    "offset_owner_bytes": {
+      "H4": 8192,
+      "L16": 32768
+    },
+    "payload": "Record8 (32B)",
+    "prior_table_bytes": 4096,
+    "relative_byte_offset": "4096*replica + 32*mantissa_index",
+    "scope": "Public declaration/relative-offset contract only. Allocation, actual lowerer, bandwidth distribution, startup cost and runtime gain are not validated.",
+    "table": "I32[Replica16,Mantissa128,Record8]",
+    "table_bytes": 65536
+  },
+  "next_gate": "Wait for complete grouped-FFN measured phase breakdown before deciding whether a separately preregistered replica-index repair is worthwhile. No replica build authorized.",
+  "observed_fixture_correlation": {
+    "H_two_repeat_ranges_us": [
+      60.086,
+      60.2481
+    ],
+    "L_two_repeat_ranges_us": [
+      182.0561,
+      182.1771
+    ],
+    "case2_max": "14*2^shift",
+    "cause": "Not established. Actual run emitted no NPU_SPAN records; complete-FFN phase data is still needed.",
+    "normalized_mantissa": 224,
+    "relative_LUT_offset_bytes": 3072
+  },
+  "requested_form": {
+    "domain": "[P512/256,K/960,P512%256]",
+    "indexed_axis": "Mantissa128",
+    "table": "I32[P512%16,Mantissa128,Record8]",
+    "wanted": "One32B record at replica=p%16 and mantissa=index for each token/group; no explicit replica base in index"
+  },
+  "sdk_public_revision": "5ec376347e108689096928bc4be2c0e4176fd7c9",
+  "sources": [
+    {
+      "bytes": 9079,
+      "excerpts": [
+        {
+          "first_line": 61,
+          "last_line": 116,
+          "text": "61: pub fn gather_payload(table: &Mapping, indexed_axis: &Mapping) -> Result<GatherPayload, GatherMappingError> {\n62:     // `find_axis` decides the only rule: the region is consecutive. How many axes name it does not\n63:     // matter, and an axis the table does not hold at all fails the same call.\n64:     let indexed_axis_stride =\n65:         table\n66:             .find_axis(indexed_axis)\n67:             .map_err(|error| GatherMappingError::IndexedAxisNotConsecutive {\n68:                 table: table.clone(),\n69:                 indexed_axis: indexed_axis.clone(),\n70:                 error,\n71:             })?;\n72:     // A located axis may still be inseparable from its surrounding mapping.\n73:     let payload = table\n74:         .remove_axis(indexed_axis)\n75:         .map_err(|error| GatherMappingError::IndexedAxisNotRemovable {\n76:             table: table.clone(),\n77:             indexed_axis: indexed_axis.clone(),\n78:             error,\n79:         })?;\n80:     Ok(GatherPayload {\n81:         payload: payload.normalize(),\n82:         indexed_axis_stride,\n83:     })\n84: }\n85: \n86: /// Checks the payload a kernel declared against the one its table and indexed axis determine.\n87: pub fn validate_gather_payload(\n88:     table: &Mapping,\n89:     indexed_axis: &Mapping,\n90:     declared: &Mapping,\n91: ) -> Result<GatherPayload, GatherMappingError> {\n92:     let derived = gather_payload(table, indexed_axis)?;\n93:     let declared_normal = declared.clone().normalize();\n94:     if derived.payload != declared_normal {\n95:         return Err(GatherMappingError::PayloadMismatch {\n96:             table: Box::new(table.clone()),\n97:             indexed_axis: Box::new(indexed_axis.clone()),\n98:             expected: Box::new(derived.payload),\n99:             declared: Box::new(declared_normal),\n100:         });\n101:     }\n102:     Ok(derived)\n103: }\n104: \n105: /// Checks that the output holds the payload once per domain entry.\n106: pub fn validate_gather_output(\n107:     payload: &Mapping,\n108:     domain: &Mapping,\n109:     output: DmPlacement<'_>,\n110: ) -> Result<(), GatherValidationError> {\n111:     let output = output.to_mapping();\n112:     let stream = payload.clone().pair(domain.clone()).normalize();\n113:     sequence(&[&output], &[&stream], SequencerMode::Write).map_err(|error| GatherValidationError::OutputPlacement {\n114:         payload: Box::new(payload.clone()),\n115:         domain: Box::new(domain.clone()),\n116:         output: Box::new(output),"
+        }
+      ],
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-lower-0.9.0/src/verify/gather.rs",
+      "sha256": "e1eae7ab71d5a2af220a14851ef0d311fd90951ad5c8540cda2437d4913b3e6b"
+    },
+    {
+      "bytes": 13571,
+      "excerpts": [
+        {
+          "first_line": 139,
+          "last_line": 173,
+          "text": "139: pub trait GatherByteOffsets<'l, D: Scalar, Chip: M, TableAxes: M, IndexedAxis: M, IdxChip: M, B: Backend> {\n140:     /// Supplies byte offsets into the table, with `Domain` inferred from the index mapping.\n141:     ///\n142:     /// The index chip axis must match the table's chip axis or broadcast across it.\n143:     #[furiosa_opt::primitive = \"GatherPlan::by_byte_offsets\"]\n144:     fn by_byte_offsets<Domain: M>(\n145:         self,\n146:         index: &'l HbmTensor<i32, IdxChip, Domain, B>,\n147:     ) -> GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, IndexedByteOffsets<IdxChip, Domain>, B>;\n148: }\n149: \n150: impl<'l, D: Scalar, Chip: M, TableAxes: M, IndexedAxis: M, IdxChip: M, B: Backend>\n151:     GatherByteOffsets<'l, D, Chip, TableAxes, IndexedAxis, IdxChip, B>\n152:     for GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, Begin, B>\n153: {\n154:     #[furiosa_opt::primitive = \"GatherPlan::by_byte_offsets\"]\n155:     fn by_byte_offsets<Domain: M>(\n156:         self,\n157:         index: &'l HbmTensor<i32, IdxChip, Domain, B>,\n158:     ) -> GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, IndexedByteOffsets<IdxChip, Domain>, B> {\n159:         validate_index_chip(&IdxChip::to_value(), &Chip::to_value()).unwrap_or_else(|error| panic!(\"{error}\"));\n160:         let unit = IndexUnit::Bytes(indexed_axis_stride::<D>(&self.payload));\n161:         let domain = IndexMapping::ByteOffsets(&Domain::to_value())\n162:             .domain()\n163:             .unwrap_or_else(|error| panic!(\"{error}\"));\n164:         GatherPlan {\n165:             table: self.table,\n166:             payload: self.payload,\n167:             index: GatherIndexTensor {\n168:                 tensor: index.inner.clone(),\n169:                 domain,\n170:                 unit,\n171:             },\n172:             prefix: (),\n173:             _marker: PhantomData,"
+        },
+        {
+          "first_line": 270,
+          "last_line": 297,
+          "text": "270:     fn materialize<Cluster: M, Slice: M, Element: M>(\n271:         self,\n272:         prefix: Option<usize>,\n273:     ) -> DmTensor<D, Chip, Cluster, Slice, Element, B>\n274:     where\n275:         D: MaterializableScalar,\n276:     {\n277:         validate_placement::<Cluster, Slice, Element>(&self.payload, &self.index.domain);\n278:         let mut output = DmTensor::from_parts(Tensor::zeroed());\n279:         self.table.inner.gather::<IndexedAxis, _, _>(\n280:             &mut output.inner,\n281:             &self.index.tensor,\n282:             &self.index.domain,\n283:             &Chip::to_value(),\n284:             prefix,\n285:             self.index.unit,\n286:         );\n287:         output\n288:     }\n289: }\n290: \n291: // Separate inherent impls avoid overlap with prefixed plans; primitive attributes cannot be shared\n292: // through `macro_rules!`.\n293: impl<'l, D: Scalar, Chip: M, TableAxes: M, IndexedAxis: M, IdxChip: M, Domain: M, B: Backend>\n294:     GatherPlan<'l, D, Chip, TableAxes, IndexedAxis, IndexedByteOffsets<IdxChip, Domain>, B>\n295: {\n296:     /// Materializes the gather in the requested data-memory shape.\n297:     #[primitive(GatherPlan::to_dm)]"
+        }
+      ],
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/tensor/memory/gather.rs",
+      "sha256": "4a2c16a37abb22898703cdfb85eb404a17fc03ee6dfe118677e3f37ca05e45e4"
+    },
+    {
+      "bytes": 68688,
+      "excerpts": [
+        {
+          "first_line": 561,
+          "last_line": 630,
+          "text": "561:     pub(crate) fn gather<Src: M, IndexedAxis: M, Dst: M, Idx: M>(\n562:         &self,\n563:         dst: &mut BufStorage<D, B>,\n564:         index: &BufStorage<i32, B>,\n565:         domain: &Mapping,\n566:         chip: &Mapping,\n567:         prefix: Option<usize>,\n568:         unit: IndexUnit,\n569:     ) where\n570:         D: MaterializableScalar,\n571:         B: Sync,\n572:     {\n573:         let table = in_chip_elements(&Src::to_value(), chip);\n574:         let output = in_chip_elements(&Dst::to_value(), chip);\n575:         let indexed_axis = IndexedAxis::to_value();\n576: \n577:         let domain_size = domain.iter_positions().flatten().count();\n578:         let indexed_axis_size = indexed_axis.iter_positions().flatten().count();\n579:         // DMA may execute past the prefix, so every index value must be valid.\n580:         let index_positions =\n581:             axis_positions_by_chip(index, &Idx::to_value(), chip, unit, indexed_axis_size, domain_size);\n582: \n583:         let source_by_output = {\n584:             let payload = table\n585:                 .remove_axis(&indexed_axis)\n586:                 .unwrap_or_else(|error| {\n587:                     panic!(\"gather table {table} does not hold {indexed_axis} as one region: {error}\")\n588:                 })\n589:                 .normalize();\n590:             let table_offsets = live_offsets_by(\n591:                 &table,\n592:                 &payload,\n593:                 &indexed_axis,\n594:                 \"gather: table factors into payload x indexed axis\",\n595:             );\n596:             let output_offsets = live_offsets_by(\n597:                 &output,\n598:                 &payload,\n599:                 domain,\n600:                 \"gather: output factors into payload x domain\",\n601:             );\n602:             let requested = prefix.unwrap_or(domain_size).min(domain_size);\n603:             let mut source_by_output = vec![None; dst.len()];\n604:             for (physical_chip, positions) in index_positions.iter().enumerate() {\n605:                 let Some(positions) = positions else { continue };\n606:                 let table_base = physical_chip * table.size();\n607:                 let output_base = physical_chip * output.size();\n608:                 // Matching rows retain the payload coordinate while replacing the indexed axis with domain.\n609:                 for (table_row, output_row) in table_offsets\n610:                     .chunks_exact(indexed_axis_size)\n611:                     .zip(output_offsets.chunks_exact(domain_size))\n612:                 {\n613:                     for (domain_position, &output_offset) in output_row.iter().take(requested).enumerate() {\n614:                         let indexed_position = positions[domain_position];\n615:                         let table_offset = table_base + table_row[indexed_position];\n616:                         let output_offset = output_base + output_offset;\n617:                         assert!(\n618:                             source_by_output[output_offset].is_none(),\n619:                             \"destination slot {output_offset} is written by two stream positions\"\n620:                         );\n621:                         source_by_output[output_offset] = Some(table_offset);\n622:                     }\n623:                 }\n624:             }\n625:             source_by_output\n626:         };\n627: \n628:         // Byte-aligned chunks keep packed sub-byte writes disjoint across workers.\n629:         dst.par_chunks_mut(min_cells_per_job(domain_size).saturating_mul(domain_size))\n630:             .in_pool(&BUF_POOL)"
+        },
+        {
+          "first_line": 911,
+          "last_line": 920,
+          "text": "911: fn live_offsets_by(mapping: &Mapping, payload: &Mapping, axis: &Mapping, what: &str) -> Vec<usize> {\n912:     let stream = payload.clone().pair(axis.clone());\n913:     // The sequencer includes padded stream positions; keep only their live cells.\n914:     sequence(&[mapping], &[&stream], SequencerMode::Read).expect(what)[0]\n915:         .iter()\n916:         .zip(stream.iter_positions())\n917:         .filter_map(|(offset, live)| live.map(|_| offset))\n918:         .collect()\n919: }\n920: "
+        }
+      ],
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/storage/buf.rs",
+      "sha256": "ec6e3368f8e5874872e413b2c0f84973f6260042773d25054271e567cf9bf1c3"
+    },
+    {
+      "bytes": 2154,
+      "excerpts": [
+        {
+          "first_line": 50,
+          "last_line": 59,
+          "text": "50:         if offset % stride.get() != 0 {\n51:             return Err(IndexValueError::OffBoundary {\n52:                 cell,\n53:                 raw,\n54:                 stride: stride.get(),\n55:             });\n56:         }\n57:         Ok(offset / stride.get())\n58:     }\n59: }"
+        }
+      ],
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-std-0.9.0/src/backend/indirect.rs",
+      "sha256": "a1cec6598cbecfd3f91403589c114a79bb3f0ae9179adb2cab17b3f8f8860484"
+    },
+    {
+      "bytes": 7284,
+      "excerpts": [
+        {
+          "first_line": 37,
+          "last_line": 67,
+          "text": "37: pub enum IndexMapping<'a> {\n38:     /// Byte offsets held in an HBM tensor, whose element mapping is the index domain.\n39:     ByteOffsets(&'a Mapping),\n40:     /// Unscaled positions held in an SPM tensor, whose live axes are the index domain.\n41:     SpmPositions(SpmPlacement<'a>),\n42: }\n43: \n44: impl IndexMapping<'_> {\n45:     /// The domain the index carries: the list, with the cluster in front where each cluster holds\n46:     /// its own.\n47:     ///\n48:     /// A cluster that holds one copy names nothing, the way the PE placement never does. Every\n49:     /// other cluster gives each of its positions a list, and joins the domain as it is written.\n50:     pub fn domain(self) -> Result<Mapping, IndexPaddingError> {\n51:         match self {\n52:             Self::ByteOffsets(offsets) => {\n53:                 ensure_unpadded(offsets)?;\n54:                 Ok(offsets.clone().normalize())\n55:             }\n56:             Self::SpmPositions(index) => {\n57:                 ensure_unpadded(index.element)?;\n58:                 let list = index.element.clone().normalize();\n59:                 if holds_one_copy(index.cluster) {\n60:                     return Ok(list);\n61:                 }\n62:                 Ok(index.cluster.clone().pair(list).normalize())\n63:             }\n64:         }\n65:     }\n66: }\n67: "
+        }
+      ],
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-opt-lower-0.9.0/src/verify/indirect.rs",
+      "sha256": "df6af9de58cb693221603d2788e0e808b4328d595038488a4f1d08515c26755b"
+    },
+    {
+      "bytes": 63911,
+      "excerpts": [
+        {
+          "first_line": 213,
+          "last_line": 242,
+          "text": "213:     /// Pairs two mappings, dropping an identity operand rather than nesting it (`[1, X] == X`).\n214:     /// The single source of truth shared by `MappingExt::pair` (above the FFI) and the impl\n215:     /// crate's `mapping_pair` (the factorize path), so the two cannot diverge.\n216:     pub fn pair(self, other: Self) -> Self {\n217:         if self == Self::identity() {\n218:             other\n219:         } else if other == Self::identity() {\n220:             self\n221:         } else {\n222:             Self::Pair {\n223:                 left: RBox::new(self),\n224:                 right: RBox::new(other),\n225:             }\n226:         }\n227:     }\n228: \n229:     /// The cell count this mapping reads. Tolerates a ragged `Stride` / `Modulo` (one whose\n230:     /// divisor does not divide the inner size), which the matcher emits as a valid OUTPUT\n231:     /// even though it is not a valid `from_mapping` INPUT.\n232:     pub fn size(&self) -> usize {\n233:         match self {\n234:             Self::Symbol { size, .. } => *size,\n235:             Self::Stride { inner, stride } => inner.size() / stride,\n236:             Self::Modulo { modulo, .. } => *modulo,\n237:             Self::Resize { resize, .. } => *resize,\n238:             Self::Padding { padding, .. } => *padding,\n239:             Self::Pair { left, right } => left.size() * right.size(),\n240:             Self::Broadcast { size } => *size,\n241:         }\n242:     }"
+        }
+      ],
+      "installed_path": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/furiosa-mapping-types-0.9.0/src/lib.rs",
+      "sha256": "1336ec6763366209bcd9f3014b841ad52fe2fb0885b580ff3ef67925b6502e3b"
+    }
+  ]
+}
