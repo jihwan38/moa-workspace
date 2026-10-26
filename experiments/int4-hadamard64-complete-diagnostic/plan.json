@@ -1,0 +1,37 @@
+{
+  "base": "3f4b4141e83851c52346de7694181242b4b67a87",
+  "owner": "/root/e2e_evidence",
+  "phase": "Source, meaningful CPU tests and plain hostcheck only; no device build/Arena until root review; no model activation.",
+  "policy": "Same frozen R=D H64/8, absolute-channel SplitMix signs, six RN32 butterfly stages, exactnormal1/8 and one BF16 RN-even. Same rational per960 quotient oracle/stored scale. No MSE/calibration/tuning.",
+  "weights": "Encode ALL supplied layer0 UP/GATE/DOWN rows, direct F4 low/high nibble times per16 finiteE4 roundedBF16; no nativeE4 row-dequant. Per-row scratch only, no full idealF64 matrices. Same output-row/column/group960 mapping, packed/dense/scales ABI and original inverse-global values. Independently out-of-place F32 butterfly/SDK BF16 result checks every transformed weight row before encoding; all sample-code maps retained for existing i64/F64 bounds.",
+  "candidate": "Original prefix/mid unchanged; D2H prefix -> CPU fixedrotation -> H2D separate rotatedprefix owner -> unchanged grouped quant+raw UP/GATE -> original GeGLU BF16 into rawhidden -> D2H CANDIDATE OWN hidden -> CPU fixedrotation -> H2D rotatedhidden owner -> unchanged grouped quant+raw DOWN -> original tail. These explicit CPU/HBM roundtrips are diagnostic-only, no timing.",
+  "controls": "Unchanged current q020 whole-graph and original grouped rational A4W4. Two512row orders x two steps. ALL three arms receive the same original-production incoming residual; only q020 feedback advances nextstep. UP/GATE/DOWN globals remain at original BF16 boundaries; no online output inverse rotation.",
+  "intended_oracle": "Independent original P128 prefix/mid; out-of-place stage-coordinate CPU rotation versus candidate in-place fixedhelper; unchanged independent per960 u128 quotient and two packing inverses; existing denseE4 integer-code projections + typed/raw parity and i64/F64 samples; original perP128 GeGLU produces candidate-intended own hidden before independent CPUrotation; original P128 tail. Preserve raw/rotated prefix+hidden, all13scratch owners, table/shifts/weight/source immutability and full postreuse. True row permutation compares every field with canonical owner; no source or device-function changes.",
+  "fixed_decision": "Each order/step requires positivefinite q020 reference denominators, rotated final residual relativeL2<=0.75*original grouped residual relativeL2; joined and DOWN relativeL2 each<=original grouped arm. Any failure HOLD without tuning. Hidden drift reported separately. Only full-FFN numerical progress, not task quality or performance.",
+  "counts_plan": {
+    "orders": 2,
+    "steps": 2,
+    "arms_intended": 2,
+    "f64_samples": 12288,
+    "expected_intended_bf16_values": 471859200,
+    "weight_values_per_encoding": 176947200,
+    "weight_groups_per_encoding": 184320,
+    "candidate_scratch_fields": 13
+  },
+  "ranges": "Original normal-or-zero BF16/F32 policy failstops on FTZ/underflow/overflow outside the proven scope. No universal BF16 rotation equivalence claim. Previous sampled ideal proof and actual323407 are preserved; full-chain hidden dependence is new.",
+  "budget": "Future proposed70s single execution after review. Prior sampled981ms only rough planning; full weight decode/rotate/encode+independent audit times recorded separately, not runtime or all48startup estimate. No redundant all-weight idealF64 copies. Full CPU/HBM movement explicit; no performance clock or gate.",
+  "preservation": "Original429source/config inputs including dependency lock unchanged. Three new host files allowed; all original device kernels/reference/currentcontrol remain byte-identical. Expected19 old images if later device-built, no new device function.",
+  "donor_hashes": {
+    "src/bin/test_int4_weight_mse.rs": "ba1fc7f6d6d59f9eeabc8bbc32647c8da9403280ee0a6139f53ff178b4877182",
+    "src/bin/support/int4_hadamard64.rs": "dc838d4c180cef19a0b3f3532854679f2c3912d7c9e79ee9315eb4c730213f15",
+    "src/bin/support/rational_a4_oracle.rs": "1b2beeb44d58c1ce98c9c4b04363a14792ac39df67a58c7b87fe6cae336bfec1",
+    "src/bin/support/int4_grouped_activation_fixture.rs": "064f71b1084b2fc245b52756b47acc8e896497e8935b30b94aae9cd9f40e6abc",
+    "src/bin/support/int4_grouped_complete_fixture.rs": "33f120fb161ed1eb61ebfe2dc5ac50f952949410de8829476fec53761db6800e",
+    "src/host/int4_complete_ffn_weights.rs": "2e008abe350e56c04a6e63e4fde22f63441ebdc8b8cb4c59cefb7b47653a7675"
+  },
+  "dependencies": {
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "rust-toolchain.toml": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+  }
+}
