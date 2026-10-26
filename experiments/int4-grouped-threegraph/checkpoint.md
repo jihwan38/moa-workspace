@@ -1,3 +1,7 @@
+Historical resource checkpoint below: subsequently root authorized fresh ELF
+build a012 after source reviews passed. See [build-result.md](build-result.md)
+and [a012-image-audit.json](a012-image-audit.json). Actual execution remains pending.
+
 # Source and resource checkpoint; actual execution pending
 
 Functional source **d5e70b98**, preregistration **3a051632**, base **d2122464**.
