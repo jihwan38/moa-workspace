@@ -200,7 +200,10 @@ mod tests {
         for mi in 1..d.bits.len(){let t=d.maximum[mi].as_ref().unwrap();
             for c in &t.choices {for i in 0..=mi {
                 let x=d.units[i];let q=((2*x+c.units)/(2*c.units)).min(7) as u8;
-                assert_eq!(c.codes[i],q);ties+=usize::from((2*x)% (2*c.units)==c.units);pairs+=1;
+                assert_eq!(c.codes[i],q);
+                // Count decision ties only below the saturated code7 interval,
+                // matching the independent Fraction proof's t<7 definition.
+                ties+=usize::from(x<7*c.units && (2*x)%(2*c.units)==c.units);pairs+=1;
             }}
         }assert_eq!(pairs,711000);assert_eq!(ties,1508);
     }
