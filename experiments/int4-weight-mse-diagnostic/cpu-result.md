@@ -1,0 +1,5 @@
+Pure-std CPU helper gate passes at ac69cc26. a002 completed in0.763 seconds: six tests, all238 provided-format magnitudes,711000 permitted scalar candidate decisions and1508 unsaturated half ties, independent direct scalar-versus-histogram SSE, true within-group permutation, signedzero, baseline/code/scale rejection and packing inverse. Root independent Fraction vectors SHA315c55a62ff5826a3778b5441c9175e05f1ad18ba806500fd154e4b3c3aabdfc match all16 fixtures,15360 selected codes,7680 packed bytes, chosen scale bits/index and exact SSE strings.
+
+a001 failure is preserved: the diagnostic tie counter also counted saturated7.5-and-higher half-integers (1751 versus the preregistered1508 unsaturated decision ties). ac69cc26 changes only that counter to t<7, not fitting arithmetic. The failing run stopped before the Fraction driver.
+
+These are synthetic/provided-format CPU proofs; supplied model execution, startup throughput, device parity, FFN quality and serving results are untested. No device ELF or Arena was run.

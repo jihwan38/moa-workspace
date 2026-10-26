@@ -1,0 +1,24 @@
+{
+  "name": "a002-int4-weight-mse-cpu-proof",
+  "purpose": "Repeat pure-std CPU proof after tie-count-only correction; preserve a001 failure and unchanged fitting math; compare frozen Fraction selected codes/scales/SSE",
+  "started_at": "2026-10-26T02:00:11.288109+00:00",
+  "worktree": "/home/jihwan38/moa-worktrees/round2/int4-weight-mse-diagnostic",
+  "commit": "ac69cc26d198cde4530db200687d10951d693b11",
+  "status": "",
+  "command": [
+    "docker",
+    "exec",
+    "--user",
+    "moa",
+    "--workdir",
+    "/round2/int4-weight-mse-diagnostic",
+    "moa2026-round2",
+    "python3",
+    "-c",
+    "from pathlib import Path\nimport subprocess\nout=Path('/round2/prefill-head-attn-commit/target/int4-weight-mse-cpu-a002')\nout.mkdir(exist_ok=False)\ncommands=[\n['rustc','--edition=2021','-O','--test','src/bin/support/int4_weight_mse.rs','-o',str(out/'helper-tests')],\n[str(out/'helper-tests'),'--nocapture'],\n['rustc','--edition=2021','-O','experiments/int4-weight-mse-diagnostic/cpu_driver.rs','-o',str(out/'cpu-driver')],\n['python3','experiments/int4-weight-mse-diagnostic/verify_cpu.py',str(out/'cpu-driver')]]\nfor command in commands: subprocess.run(command,check=True)\n"
+  ],
+  "result": "command_succeeded",
+  "exit_code": 0,
+  "pid": 169610,
+  "finished_at": "2026-10-26T02:00:12.134895+00:00"
+}
