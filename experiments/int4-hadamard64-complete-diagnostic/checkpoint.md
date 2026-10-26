@@ -11,3 +11,5 @@ Original-grouped matched drift anchors fromactual323322 are retained in original
 Build preparation: root independently reviewed the complete main/intended flow without a blocker. One fresh build is conditional on the pending round2 main/oracle PASS. Build input and 19-image comparison audit is prepared. Replay compares all13 field values; residual, rotated_prefix and rotated_hidden are reallocated, so those3 are not a same-allocation reuse claim. No source change was needed for this reporting distinction.
 
 Final round2 main/oracle review PASS at functional70812693/main58b6a85e. Root authorizes one fresh device build after all source gates. Numerical decision remains separate from intended correctness/exit0.
+
+Fresh a003 build PASS54.82s from9c5038a3, capturedELF96ce0228ce20f0afda25206d2bc4ec1e181eb45d9a77e48da759be4d430ce34d (5,686,792B). All432 inputs and original429 preserved.19 images exactly equal both actual323213/323322 and fresh compiler output; q020 image exact. Actual numerical result remains missing; root owns any Arena run.

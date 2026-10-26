@@ -1,0 +1,377 @@
+   Compiling furiosa-opt-gemma4 v0.1.0 (/round2/int4-hadamard64-complete-diagnostic)
+warning: unused import: `ops_batch`
+  --> src/host/prefill.rs:12:40
+   |
+12 |     Chip, axes::*, ops, ops_attention, ops_batch, ops_batch_io, ops_prefill as ep,
+   |                                        ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ops_batch_r64 as linear`
+  --> src/host/decode_r64.rs:12:20
+   |
+12 |     Chip, axes::*, ops_batch_r64 as linear, ops_commit_r64 as commit, ops_norm_r64 as norm,
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Replicated`
+ --> src/device_e154/sliding/projection.rs:5:43
+  |
+5 | use crate::device_e154::layout::{Cluster, Replicated};
+  |                                           ^^^^^^^^^^
+
+warning: unused import: `crate::device_e154::layout::Slice`
+   --> src/device_e154/sliding/projection.rs:304:5
+    |
+304 | use crate::device_e154::layout::Slice;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_keyrings_h64.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: unused imports: `Df`, `Gf`, and `Qf`
+ --> src/ops_output_p128_h64_blocked.rs:7:35
+  |
+7 | use crate::{Chip,axes::{P128,H,Qs,Qf,Ns,Gs,Ds,Gf,Df}};
+  |                                   ^^          ^^ ^^
+
+warning: method `prepare_prompt384128` is never used
+   --> src/host/prefill_group.rs:608:25
+    |
+426 | impl GroupPrefill {
+    | ----------------- method in this implementation
+...
+608 |     pub(crate) async fn prepare_prompt384128(
+    |                         ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `prompt384128_chunks` is never used
+    --> src/host/prefill_group.rs:1366:4
+     |
+1366 | fn prompt384128_chunks<'a>(sequences: &[Sequence<'a>]) -> Vec<Sequence<'a>> {
+     |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `broadcast_sliding_heads` is never used
+  --> src/device/layout.rs:27:15
+   |
+27 | pub(crate) fn broadcast_sliding_heads(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `project_output` is never used
+   --> src/device/sliding/projection.rs:178:15
+    |
+178 | pub(crate) fn project_output(
+    |               ^^^^^^^^^^^^^^
+
+warning: type alias `HiddenRows` is never used
+   --> src/device/sliding/projection.rs:198:6
+    |
+198 | type HiddenRows = m![H / 120, 1 # 8];
+    |      ^^^^^^^^^^
+
+warning: function `output_partial` is never used
+   --> src/device/sliding/projection.rs:200:4
+    |
+200 | fn output_partial(
+    |    ^^^^^^^^^^^^^^
+
+warning: function `add_partials` is never used
+   --> src/device/sliding/projection.rs:241:4
+    |
+241 | fn add_partials(
+    |    ^^^^^^^^^^^^
+
+warning: function `apply_output_channel_scale` is never used
+   --> src/device/sliding/projection.rs:268:4
+    |
+268 | fn apply_output_channel_scale(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `feedforward` is never used
+   --> src/device_e154/shared/mlp.rs:537:15
+    |
+537 | pub(crate) fn feedforward(
+    |               ^^^^^^^^^^^
+
+warning: function `prepare_ffn_fp8_split` is never used
+   --> src/device_e154/shared/mlp.rs:629:15
+    |
+629 | pub(crate) fn prepare_ffn_fp8_split(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `scale_by_layer_gate` is never used
+  --> src/device_e154/shared/residual.rs:55:15
+   |
+55 | pub(crate) fn scale_by_layer_gate(
+   |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_vision` is never used
+  --> src/device_e154/shared/residual.rs:86:15
+   |
+86 | pub(crate) fn add_vision<Cluster: M, Slice: M>(
+   |               ^^^^^^^^^^
+
+warning: function `add_and_scale_parallel` is never used
+   --> src/device_e154/shared/residual.rs:126:15
+    |
+126 | pub(crate) fn add_and_scale_parallel(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_r64_sharded.rs:47:4
+   |
+47 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_sharded.rs:48:4
+   |
+48 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_local_reuse.rs:48:4
+   |
+48 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn` is never used
+  --> src/ops_native_fp8_r64_local_reuse.rs:47:4
+   |
+47 | fn quantize_ffn(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^
+
+warning: function `quantize_ffn_dm` is never used
+  --> src/ops_native_fp8_r64_staged_fused.rs:52:4
+   |
+52 | fn quantize_ffn_dm(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^^^^
+
+warning: function `quantize_ffn_dm` is never used
+  --> src/ops_decode32_ffn.rs:53:4
+   |
+53 | fn quantize_ffn_dm(device:&mut Device,x:&DmTensor<bf16,Chip,Cluster,QuantRows,m![L]>)
+   |    ^^^^^^^^^^^^^^^
+
+warning: `furiosa-opt-gemma4` (lib) generated 25 warnings (run `cargo fix --lib -p furiosa-opt-gemma4` to apply 6 suggestions)
+warning: unused import: `TOKENS`
+  --> src/bin/test_int4_hadamard64_complete.rs:23:58
+   |
+23 | use cpu::{InputCpu, Result, WeightCpu, EXPANDED, HIDDEN, TOKENS};
+   |                                                          ^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `reset` is never used
+   --> src/bin/test_int4_hadamard64_complete.rs:410:14
+    |
+398 | impl ProductionScratch {
+    | ---------------------- method in this implementation
+...
+410 |     async fn reset(&mut self, d: &mut Device, r: &[u8]) -> Result<()> {
+    |              ^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `mix` is never used
+  --> src/bin/support/int4_grouped_activation_fixture.rs:15:4
+   |
+15 | fn mix(mut x: u64) -> u64 {
+   |    ^^^
+
+warning: associated function `new` is never used
+   --> src/bin/support/int4_grouped_activation_fixture.rs:127:12
+    |
+126 | impl InputCpu {
+    | ------------- associated function in this implementation
+127 |     pub fn new(cols:usize,permuted:bool)->Self {
+    |            ^^^
+
+warning: constant `WIDTH` is never used
+ --> src/bin/support/rational_a4_oracle.rs:2:11
+  |
+2 | pub const WIDTH: usize = 3840;
+  |           ^^^^^
+
+warning: constant `ROWS` is never used
+ --> src/bin/support/rational_a4_oracle.rs:3:11
+  |
+3 | pub const ROWS: usize = 16;
+  |           ^^^^
+
+warning: constant `CASES` is never used
+  --> src/bin/support/rational_a4_oracle.rs:35:11
+   |
+35 | pub const CASES: usize = 13;
+   |           ^^^^^
+
+warning: function `fixture` is never used
+  --> src/bin/support/rational_a4_oracle.rs:36:8
+   |
+36 | pub fn fixture(case: usize) -> Vec<u16> {
+   |        ^^^^^^^
+
+warning: function `floats` is never used
+ --> src/bin/support/int4_grouped_complete_fixture.rs:6:8
+  |
+6 | pub fn floats(v:&[f32])->Vec<u8>{v.iter().flat_map(|v|v.to_le_bytes()).collect()}
+  |        ^^^^^^
+
+warning: function `production_zero_fraction` is never used
+   --> src/bin/support/int4_grouped_complete_fixture.rs:134:8
+    |
+134 | pub fn production_zero_fraction(bytes:&[u8],round:usize,step:usize,label:&str){
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `drift` is never used
+   --> src/bin/support/int4_grouped_complete_fixture.rs:139:8
+    |
+139 | pub fn drift(got:&[u8],reference:&[u8],label:&str,round:usize,step:usize){
+    |        ^^^^^
+
+warning: constant `GROUP` is never used
+ --> src/bin/support/int4_hadamard64.rs:7:11
+  |
+7 | pub const GROUP: usize = 960;
+  |           ^^^^^
+
+warning: constant `ARM_NAMES` is never used
+ --> src/bin/support/int4_hadamard64.rs:8:11
+  |
+8 | pub const ARM_NAMES: [&str; 9] = [
+  |           ^^^^^^^^^
+
+warning: function `normal64` is never used
+  --> src/bin/support/int4_hadamard64.rs:49:4
+   |
+49 | fn normal64(x: f64) -> Result<(), String> {
+   |    ^^^^^^^^
+
+warning: function `normal_bf` is never used
+  --> src/bin/support/int4_hadamard64.rs:59:4
+   |
+59 | fn normal_bf(bits: u16) -> Result<(), String> {
+   |    ^^^^^^^^^
+
+warning: function `forward64` is never used
+  --> src/bin/support/int4_hadamard64.rs:99:8
+   |
+99 | pub fn forward64(input: &[f64; BLOCK], base: usize) -> Result<[f64; BLOCK], String> {
+   |        ^^^^^^^^^
+
+warning: function `hadamard64` is never used
+   --> src/bin/support/int4_hadamard64.rs:108:4
+    |
+108 | fn hadamard64(a: &mut [f64; BLOCK]) -> Result<(), String> {
+    |    ^^^^^^^^^^
+
+warning: function `inverse64` is never used
+   --> src/bin/support/int4_hadamard64.rs:128:8
+    |
+128 | pub fn inverse64(input: &[f64; BLOCK], base: usize) -> Result<[f64; BLOCK], String> {
+    |        ^^^^^^^^^
+
+warning: struct `Quantized` is never constructed
+   --> src/bin/support/int4_hadamard64.rs:137:12
+    |
+137 | pub struct Quantized {
+    |            ^^^^^^^^^
+
+warning: function `quantize` is never used
+   --> src/bin/support/int4_hadamard64.rs:141:4
+    |
+141 | fn quantize(bits: &[u16]) -> Quantized {
+    |    ^^^^^^^^
+
+warning: methods `value` and `zeros` are never used
+   --> src/bin/support/int4_hadamard64.rs:157:8
+    |
+156 | impl Quantized {
+    | -------------- methods in this implementation
+157 |     fn value(&self, k: usize) -> f64 {
+    |        ^^^^^
+...
+161 |     pub fn zeros(&self) -> usize {
+    |            ^^^^^
+
+warning: struct `Row` is never constructed
+   --> src/bin/support/int4_hadamard64.rs:165:12
+    |
+165 | pub struct Row {
+    |            ^^^
+
+warning: associated function `new` is never used
+   --> src/bin/support/int4_hadamard64.rs:173:12
+    |
+172 | impl Row {
+    | -------- associated function in this implementation
+173 |     pub fn new(bits: &[u16]) -> Result<Self, String> {
+    |            ^^^
+
+warning: struct `Sample` is never constructed
+   --> src/bin/support/int4_hadamard64.rs:210:12
+    |
+210 | pub struct Sample {
+    |            ^^^^^^
+
+warning: method `bits` is never used
+   --> src/bin/support/int4_hadamard64.rs:216:12
+    |
+215 | impl Sample {
+    | ----------- method in this implementation
+216 |     pub fn bits(&self) -> [u64; 11] {
+    |            ^^^^
+
+warning: function `compare` is never used
+   --> src/bin/support/int4_hadamard64.rs:228:8
+    |
+228 | pub fn compare(x: &Row, w: &Row) -> Result<Sample, String> {
+    |        ^^^^^^^
+
+warning: struct `Error` is never constructed
+   --> src/bin/support/int4_hadamard64.rs:287:12
+    |
+287 | pub struct Error {
+    |            ^^^^^
+
+warning: methods `add` and `relative_l2` are never used
+   --> src/bin/support/int4_hadamard64.rs:294:12
+    |
+293 | impl Error {
+    | ---------- methods in this implementation
+294 |     pub fn add(&mut self, value: f64, reference: f64) {
+    |            ^^^
+...
+301 |     pub fn relative_l2(&self) -> f64 {
+    |            ^^^^^^^^^^^
+
+warning: function `decision` is never used
+   --> src/bin/support/int4_hadamard64.rs:313:8
+    |
+313 | pub fn decision(errors: &[Error; 9]) -> bool {
+    |        ^^^^^^^^
+
+   Compiling furiosa_opt_gemma4::ops_prepack_alloc::prepack_up
+   Compiling furiosa_opt_gemma4::ops_prepack_alloc::reblock_up
+   Compiling furiosa_opt_gemma4::ops_prepack_alloc::prepack_down
+   Compiling furiosa_opt_gemma4::ops_prepack_alloc::reblock_down
+   Compiling furiosa_opt_gemma4::ops_ffn_projection_join::join
+   Compiling furiosa_opt_gemma4::ops_int4_ffn_bridges::prefix_sliding_bf16
+   Compiling furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_input
+   Compiling furiosa_opt_gemma4::ops_int4_ffn_bridges::geglu_bf16
+   Compiling furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_hidden
+   Compiling furiosa_opt_gemma4::ops_norm_blocked_residual::post_feedforward
+   Compiling furiosa_opt_gemma4::ops_norm_wide::post_attention_p128
+   Compiling furiosa_opt_gemma4::ops_norm_wide::rmsnorm_p128
+   Compiling furiosa_opt_gemma4::ops_int4_grouped_activation_projection::project_upgate
+   Compiling furiosa_opt_gemma4::ops_int4_grouped_activation_reference::project_upgate
+   Compiling furiosa_opt_gemma4::ops_int4_complete_reference::geglu_p128
+   Compiling furiosa_opt_gemma4::ops_int4_grouped_activation_projection::project_down
+   Compiling furiosa_opt_gemma4::ops_int4_grouped_activation_reference::project_down
+   Compiling furiosa_opt_gemma4::ops_norm_wide::post_feedforward_p128
+   Compiling furiosa_opt_gemma4::ops_group_ffn_projection_storegroup::sliding_projection_owned
+warning: `furiosa-opt-gemma4` (bin "test_int4_hadamard64_complete") generated 29 warnings (run `cargo fix --bin "test_int4_hadamard64_complete" -p furiosa-opt-gemma4` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 54.82s
