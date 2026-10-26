@@ -1,0 +1,69 @@
+{
+  "base": "3f4b4141e83851c52346de7694181242b4b67a87",
+  "owner": "/root/batch_kernels",
+  "phase": "source/plaincheck and ONE H3840 exact resource compile; no ELF, Arena, quantizer fusion or serving",
+  "numerical_reference": {
+    "source": "src/bin/support/int4_hadamard64.rs::forward32",
+    "actual": 323407,
+    "rule": "static absolute-channel SplitMix sign before strides1,2,4,8,16,32; each F32 sum and difference rounds separately; final exactnormal multiply0.125 and ONE BF16 RNE cast",
+    "domain": "finite normal-or-zero input/intermediates as prior diagnostic; no widened FTZ/overflow claim"
+  },
+  "scope": {
+    "input": "BF16 canonical[P512,H3840]",
+    "output": "BF16 canonical[P512,H3840]",
+    "sign_mask": "immutable I32[H3840], each0 or0x80000000; startup generated from existing fixed sign()",
+    "placement": "Cluster=P512/256; Slice=[H/960,P512%256/4]; Local=[P512%4,H%960]",
+    "row_channel": "p=256*c+4*r+j; h=960*g+u,15whole64blocks ineachlocal960",
+    "all512": "2clusters*4channelgroups*64rowgroups*4localrows*960=512*3840"
+  },
+  "implementation": {
+    "first_stage": "real inputHBM\u2192BF16DM; signmaskHBM\u2192DM\u2192VRF; originalBF16 fetchcastF32, XOR signbit, materialize F32DM",
+    "butterfly": "two derived same-owner read-onlyhalfviews selected by H/stride%2; begin_interleaved introduces actual pair stream; public unzip cache group kept atone8F32packet; narrow toWay4 then AddF orSubF, widen and commit into disjoint halves of a NEW full F32DM owner. Both prior halves stayalive untilbothwrites. No in-place overwrite or implicitXORpermutation. Strides1/2/4 use explicit noncontiguous named fetch packets; legality and fullfetchcost are the selected resource question. Preserve failure ifunsupported.",
+    "packet_maps": {
+      "1": "H/2%8",
+      "2": "[H/4%4,H%2]",
+      "4": "[H/8%2,H%4]",
+      "8,16,32": "H%8"
+    },
+    "final": "laststageF32\u2192multiply0.125\u2192BF16 DM; real canonical outputHBM store. No quantizer, no weights transformed ondevice."
+  },
+  "public_sdk": {
+    "root_in_container": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f",
+    "revision": "5ec376347e108689096928bc4be2c0e4176fd7c9",
+    "refs": [
+      "furiosa-opt-std-0.9.0/src/context.rs:95-111",
+      "furiosa-opt-std-0.9.0/src/engine/vector/tensor/vector_tensor.rs:575-584",
+      "furiosa-opt-std-0.9.0/src/engine/vector/tensor/vector_tensor_pair.rs:1229-1284",
+      "furiosa-opt-lower-0.9.0/src/verify/engine/vector/tensor.rs:335-362",
+      "furiosa-opt-std-0.9.0/src/engine/vector/op/mod.rs:219-235",
+      "furiosa-opt-std-0.9.0/src/engine/vector/stage/state.rs:29-33"
+    ]
+  },
+  "source_cost": {
+    "Hvalues": 1966080,
+    "F32_butterfly_results": 11796480,
+    "F32_final_scale_results": 1966080,
+    "F32_sixstage_pair_stream_DM_bytes": 141557760,
+    "sign_HBM_unique_bytes": 15360,
+    "sign_DM_live_bytes_all512PE": 1966080,
+    "sign_VRF_perPE_bytes": 3840,
+    "two_F32_owners_perPE_bytes": 30720,
+    "input_BF16_perPE_bytes": 7680,
+    "HBM_input_plus_output_bytes": 7864320,
+    "note": "additional sign/init/final and physicalpadding/partnerfetch schedules mustbe charged. Counts are logicalmovement, no runtime bound."
+  },
+  "gates": {
+    "plaincheck": "original dependencies and package-only debug0, incremental0",
+    "resource": "ONE sameH3840graph; report allTU/DMA/SRAMlifetime/stack/timeline, exactimagehash. No automatic repair/sweep ifmapping fails. No standaloneELF.",
+    "decision": "A legal result only enables rootreview. Existing3graph is59-63us shortof10percent beforeaddedrotation; no\u00b5s conversionfromrawcycles or speedclaim. Reject thisroute if structuralcost isclearlytoo high."
+  },
+  "prior_cost_state": {
+    "path": "/home/jihwan38/moa-worktrees/round2/state/hadamard64-runtime-cost-feasibility-20261026.json",
+    "sha256": "197e475f541521d035b9276a3e04a185b2fbf21c1d0e1f7adada1a14d82cc9ef"
+  },
+  "dependencies": {
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "rust-toolchain.toml": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+  }
+}

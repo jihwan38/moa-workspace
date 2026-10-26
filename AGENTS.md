@@ -1,5 +1,7 @@
 # Ownership and scope
-
-Owned by `/root/e2e_evidence`; isolated from5e3ee883. Root authorizes fixed block64 signed Hadamard CPU helper/sample-dot diagnostic and plain hostcheck only. Fixed policy/gates are in experiments/int4-hadamard64-diagnostic/plan.json. No tuning, device-function/source changes, new dependencies, device ELF, Arena, serving/model activation or official changes. Use only the idle owned prefill-head-attn-commit target. Preserve all original inputs and controls.
-
-After source reviews and a003CPU/a004hostcheck passed, root authorized one fresh captured test_int4_hadamard64 build. a005 and its8-image audit passed. Root alone owns Arena; no serving activation or new policy authorized.
+Owned by `/root/batch_kernels`, base `3f4b4141`.
+Fixed signed H64 six-RN32-stage local device-layout feasibility only.
+Source/plain hostcheck and ONE exact H3840 resource compile; no ELF/Arena.
+Original dependencies, exclusive `/round2/tail256-model/target`, incremental0,
+package debug0 and new empty FURIOSA_OPT_OUT_DIR. No quantizer fusion or policy change.
+Preserve failures; actual CPU sampled numerical success is not device parity or speed.
