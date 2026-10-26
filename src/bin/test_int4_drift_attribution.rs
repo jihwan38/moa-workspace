@@ -336,6 +336,10 @@ async fn main()->Result<()>{
             perm+=got.permutation(bc);for i in 0..4{perm+=cpu::compare_permutation(&joins[i],&bj[i],EXPANDED,2);perm+=fixture::compare_rows(&hidden[i],&bh[i],EXPANDED,2,"factor hidden");perm+=cpu::compare_permutation(&downs[i],&bd[i],HIDDEN,1);perm+=fixture::compare_rows(&fixture::canonical_residual(&tails[i]),&fixture::canonical_residual(&bt[i]),HIDDEN,2,"factor tail");}
             perm+=cpu::compare_permutation(&old[3],&bo[3],EXPANDED,2);perm+=cpu::compare_permutation(&old[6],&bo[6],HIDDEN,1);
         }else{base=Some((got.clone(),old.clone(),joins,hidden,downs,tails));}
+        // Check factor inputs before the timed original graph overwrites its
+        // scratch. A later recomputation must not hide an input mutation.
+        for(a,b)in production.snapshot(&mut d).await?.iter().zip(&old){assert_eq!(a,b,"factor input/current production scratch immutable before recomputation");immutable+=a.len();}
+        immutable+=c.snapshot(&mut d).await?.equal(&got,"candidate prefix/scratch immutable before recomputation");
         // Four restored-input runs per arm, ABBA blocks with two runs each.
         // No intermediate downloads/validation in either timed execution path.
         for(block,is_candidate)in[true,false,false,true].into_iter().enumerate(){for repeat in 0..2{
@@ -347,6 +351,7 @@ async fn main()->Result<()>{
         immutable+=xg.immutable(&mut d,&qi).await?+hg.immutable(&mut d,&hi).await?+x.immutable(&mut d).await?+q.immutable(&mut d).await?+w.immutable(&mut d,&up,&gate,&down).await?;
         assert_eq!(read(&mut d,&eq).await?,old[1]);assert_eq!(read(&mut d,&es).await?,old[2]);assert_eq!(read(&mut d,&hq).await?,old[4]);assert_eq!(read(&mut d,&hs).await?,old[5]);assert_eq!(read(&mut d,&hb_gpu).await?,hb);
         assert_eq!(read(&mut d,&up_ones).await?,floats(&ub));assert_eq!(read(&mut d,&down_ones).await?,floats(&db));
+        immutable+=old[1].len()+old[2].len()+old[4].len()+old[5].len()+hb.len()+(ub.len()+db.len())*4;
         up.verify_source(&tensors)?;gate.verify_source(&tensors)?;down.verify_source(&tensors)?;
     }
     assert_eq!(p.fingerprints(&mut d).await?,before,"all original production owners immutable");
