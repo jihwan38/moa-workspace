@@ -1,0 +1,123 @@
+{
+  "captured_artifact": {
+    "path": "/home/jihwan38/moa-worktrees/round2/runs/a007-grouped-activation-store-device/built/target/release/test_int4_grouped_activation_store",
+    "sha256": "b71c05511a3217c8d6a3758360996203232df88d6bd5dfb6ae3d429edd37bfb3",
+    "size": 2973256,
+    "source_path": "/home/jihwan38/moa-worktrees/round2/int4-grouped-activation-quant/target/release/test_int4_grouped_activation_store"
+  },
+  "command": [
+    "docker",
+    "exec",
+    "-w",
+    "/round2/int4-grouped-activation-quant",
+    "-e",
+    "CARGO_TARGET_DIR=/round2/tail256-model/target",
+    "-e",
+    "CARGO_INCREMENTAL=0",
+    "-e",
+    "CARGO_PROFILE_RELEASE_DEBUG=0",
+    "-e",
+    "CARGO_NET_OFFLINE=true",
+    "-e",
+    "FURIOSA_OPT_OUT_DIR=/round2/int4-grouped-activation-quant/experiments/int4-grouped-activation-quant/kernel-out-a007",
+    "moa2026-round2",
+    "cargo",
+    "furiosa-opt",
+    "build",
+    "--release",
+    "--bin",
+    "test_int4_grouped_activation_store"
+  ],
+  "files": {
+    "output.log": "49c4bd7140d25cd36a01d6c241cf242f3e8af851ffe965c0f7c0f9ae59011694",
+    "run.json": "6f9b49fcba2e5f4a598d467d14ab8500c96e1b472edb56045008d0f7ff05e80a",
+    "source-hashes.json": "0259851fda39818e56f23a4d1a621871e3504d7a37509547c49b8e909c2cefe1",
+    "source.diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fresh_package": {
+    "contents_changed": false,
+    "refreshed_files": 418,
+    "target_exclusivity": "caller must coordinate"
+  },
+  "functional_source": "f6ad9c83",
+  "original_dependencies": {
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+    "rust-toolchain.toml": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+  },
+  "probe_scope": {
+    "actual_bytes_compared_twice": 49971200,
+    "authorization": "Root authorized one fresh standalone build after source/resource review; root alone Arena",
+    "bin": "test_int4_grouped_activation_store",
+    "build": "Originaldependencies, ownedtailtarget, freshpackage, newemptyOUT_DIR, captureELF immediately and compare its2 embedded images with frozen resourceimages read-only. No objcopy.",
+    "cases": "5 per width:3 generated base fixtures,2 true row/group/within-group permutations of cases0/1. Not5 independent distributions.",
+    "checks_per_case": "Initial full outputs then posttiming/profile full outputs, plus complete immutable input/LUT/shifts; outputs reused acrosscases.",
+    "declared_unique_check_counts": {
+      "F32_group_scales": 51200,
+      "I32_relative_offsets": 51200,
+      "codes": 49152000,
+      "packed_bytes": 24576000
+    },
+    "entry_images": [
+      "ops_int4_grouped_activation_store::quantize_pack_input",
+      "ops_int4_grouped_activation_store::quantize_pack_hidden"
+    ],
+    "explicit_permutation_nibble_checks": 19660800,
+    "functional_source": "f6ad9c83",
+    "future_root_run_limit_seconds": 70,
+    "immutable_reads_bytes_including_one_initial_LUT": 98349376,
+    "kernel_calls": {
+      "derivation": "Eachcase1initial+20timed; case0adds1profile.5cases*21+1=106.",
+      "per_width": 106,
+      "total": 212
+    },
+    "no_claim": "No GEMM/fullFFN/modelquality or servingactivation.",
+    "required_gate": "Every intended packedbyte/scalebit/offset, permutation, reuse and immutability mustpass before timing is interpreted.",
+    "timing": "Two completed10call repetitions percase; includes groupedamax, explicitoffsetHBMwrite/read, Record8gather, exactquantization, pack, H16movementifH, groupedscales. Excludesuploads/readbacks/CPUoracle. No comparisonorcurrentproduction speedclaim."
+  },
+  "registry": {
+    "elf": "/home/jihwan38/moa-worktrees/round2/runs/a007-grouped-activation-store-device/built/target/release/test_int4_grouped_activation_store",
+    "elf_sha256": "b71c05511a3217c8d6a3758360996203232df88d6bd5dfb6ae3d429edd37bfb3",
+    "record_count": 2,
+    "records": [
+      {
+        "bytes": 66048,
+        "key": [],
+        "path": "furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_hidden",
+        "sha256": "36ee20d481e9705ee2f41916604c35b974bc541d52f560922874a52c1d5bc065"
+      },
+      {
+        "bytes": 65792,
+        "key": [],
+        "path": "furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_input",
+        "sha256": "876a404ca7c6093b753766d8b0b3d13374c4bb5c019e35d6a2856bebc7ba5d2e"
+      }
+    ],
+    "section_bytes": 132045,
+    "section_sha256": "fb1e3b70a1f2b44a3b91805ad3117b7fe5080908f62feab5b5cb0fa6d92ad879"
+  },
+  "resource_image_parity": [
+    {
+      "bytes": 66048,
+      "exact": true,
+      "fresh_build_image": "experiments/int4-grouped-activation-quant/kernel-out-a007/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_hidden.bin",
+      "key": [],
+      "path": "furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_hidden",
+      "resource_image": "experiments/int4-grouped-activation-quant/metadata-resource-images/hidden.bin",
+      "sha256": "36ee20d481e9705ee2f41916604c35b974bc541d52f560922874a52c1d5bc065"
+    },
+    {
+      "bytes": 65792,
+      "exact": true,
+      "fresh_build_image": "experiments/int4-grouped-activation-quant/kernel-out-a007/furiosa-opt-gemma4/furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_input.bin",
+      "key": [],
+      "path": "furiosa_opt_gemma4::ops_int4_grouped_activation_store::quantize_pack_input",
+      "resource_image": "experiments/int4-grouped-activation-quant/metadata-resource-images/input.bin",
+      "sha256": "876a404ca7c6093b753766d8b0b3d13374c4bb5c019e35d6a2856bebc7ba5d2e"
+    }
+  ],
+  "source_commit": "ff51c81255ea272086daccc2318320dc8b568df2",
+  "source_inputs": 418,
+  "source_inputs_unchanged": true,
+  "status": "BUILD_CAPTURE_BINDING_PASS; device correctness and all timing/quality remain unexecuted; root owns Arena."
+}
