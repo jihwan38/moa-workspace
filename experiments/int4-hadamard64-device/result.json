@@ -1,0 +1,103 @@
+{
+  "decision": "HOLD_DIRECT_HALF_FETCH_REJECTED",
+  "functional_source": "18e50b57",
+  "plan": "1a38fbcf",
+  "hostcheck": "PASS11.44seconds",
+  "source_coordinate_proof": {
+    "source_sha256": "d6eb545ab2a6ba951a23f1527fde51a1965c8adfb95f737883add2da4761ed79",
+    "stages": [
+      {
+        "stride": 1,
+        "pairs_per_token_per960": 480,
+        "full_coverage": true,
+        "unzip_group_f32_elements": 8
+      },
+      {
+        "stride": 2,
+        "pairs_per_token_per960": 480,
+        "full_coverage": true,
+        "unzip_group_f32_elements": 8
+      },
+      {
+        "stride": 4,
+        "pairs_per_token_per960": 480,
+        "full_coverage": true,
+        "unzip_group_f32_elements": 8
+      },
+      {
+        "stride": 8,
+        "pairs_per_token_per960": 480,
+        "full_coverage": true,
+        "unzip_group_f32_elements": 8
+      },
+      {
+        "stride": 16,
+        "pairs_per_token_per960": 480,
+        "full_coverage": true,
+        "unzip_group_f32_elements": 8
+      },
+      {
+        "stride": 32,
+        "pairs_per_token_per960": 480,
+        "full_coverage": true,
+        "unzip_group_f32_elements": 8
+      }
+    ],
+    "mapped_input_values": 1966080,
+    "frozen_vectors": 16,
+    "vector_file_sha256": "994a071a81a0be51e6a1807bd2945c8fd228034654219a6c5569f3eeeab106e0",
+    "scope": "CPU logical coordinate/sign/RN32 comparison only; not SDK lowering/device execution"
+  },
+  "resource": {
+    "attempts": 1,
+    "result": "FAIL",
+    "layer": "VISA TensorUnit FetchArgs::fetch_projection fetchsequencer",
+    "first_failed_mapping": "stride1 lowhalf packetH/2%8, actualDMstride2",
+    "exact_error": "Fetch: the packet's innermost axis must be contiguous in DM, but H / 2 % 8 has memory stride 2; use the DM's innermost axis as the packet, or transpose after the fetch",
+    "schedule_produced": false,
+    "image_produced": false,
+    "SRAM_allocation_known": false,
+    "cycles_known": false,
+    "future_required_cost": "A realpost-fetchtranspose or explicitpartnerDM staging isneeded beforeclaiminglegalfullsixstage route. Notimplemented orcompiled inthischeckpoint."
+  },
+  "runs": [
+    {
+      "run": "a001-int4-h64-device-hostcheck",
+      "run_path": "/home/jihwan38/moa-worktrees/round2/runs/a001-int4-h64-device-hostcheck",
+      "source_commit": "18e50b57a89717cf1c7a542ce8dbeccfd79b80a0",
+      "exit_code": 0,
+      "source_count": 430,
+      "source_unchanged": true,
+      "files": {
+        "run.json": "a84bcc700a01321a61e8fca01433ed0a25ab792893b00942d4856aad870bfdf9",
+        "source-hashes.json": "a992b34494d342226ce574065ead91472eea8159cd84624454982f04b5b960d1",
+        "source.diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "output.log": "66734b27e4f84a507e526bc046f5230b1ec5f92ba61cf10e7623c0de1febdfa1"
+      }
+    },
+    {
+      "run": "a002-int4-h64-device-resource",
+      "run_path": "/home/jihwan38/moa-worktrees/round2/runs/a002-int4-h64-device-resource",
+      "source_commit": "18e50b57a89717cf1c7a542ce8dbeccfd79b80a0",
+      "exit_code": 1,
+      "source_count": 430,
+      "source_unchanged": true,
+      "files": {
+        "run.json": "d162d7c625865f5570f6bc64e0ee62a5f2c8f801bacb5fe76fb5e89d013a4aed",
+        "source-hashes.json": "a992b34494d342226ce574065ead91472eea8159cd84624454982f04b5b960d1",
+        "source.diff": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "output.log": "c7cd714754f434002160eaf27a07f708a0bc20aa37d7552d4940f91008023b49"
+      }
+    }
+  ],
+  "scope": {
+    "H3840_only": true,
+    "device_execution": false,
+    "standalone_ELF": false,
+    "quantizer_fusion": false,
+    "HplusL_cost_verified": false,
+    "fullFFN_or_quality_or_speed_claim": false,
+    "prior_actual323407": "CPU sampled numericalgate only, unchanged",
+    "official_q020": "unchanged"
+  }
+}
