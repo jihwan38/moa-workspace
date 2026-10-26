@@ -64,10 +64,13 @@ representation error.
 
 Use original row order and its existing true512-row permutation. Check all
 factor output permutations, reuse with separate poisoned outputs, and all
-inputs/scales/weights for immutability. No timing comparisons: readbacks and
-canonical BF16 conversions are diagnostic work. Existing current-production
-graph remains the only performance reference; no new performance gate or
-optimization is introduced.
+inputs/scales/weights for immutability. Readbacks and canonical BF16 conversions
+are untimed diagnostic work. Per root's follow-up scope, collect four restored
+executions per arm/order in two-sample ABBA blocks: seven candidate completed-
+await stage durations plus enclosing total and their nonnegative clock gaps;
+separately measure the unchanged one-call production graph. There are no
+intermediate downloads/validation in either timed path. This clock-instrumented
+phase wall time is not device per-op attribution; no promotion gate is added.
 
 Device images are reused, with no new #[device] function. A later fresh build
 must bind every embedded callable to its existing actual/resource image or
