@@ -1,10 +1,9 @@
 # Ownership and scope
 
-Owned by `/root/e2e_evidence`, based on `1a835e18`.
-Disconnected attribution diagnostic for actual job323067.
-Reuse existing device functions; preserve the complete-FFN probe and all device
-math. No calibration, balancing, clipping, model changes or Arena.
-Use original dependencies and exclusive `/round2/prefill-head-attn-commit/target`
-with CARGO_INCREMENTAL=0. Root authorized one fresh captured standalone device
-build after the source reviews and latest host check passed. Root alone may
-authorize and execute the actual device diagnostic. See build-plan.md.
+Owned by `/root/batch_kernels`, base `a4152dba16b6b3de27b3cc474f1a890cfdb5d0a9`.
+Implement only disconnected per960 activation rational quantization and packing
+for P512 H3840/L15360. Preserve the original whole-row implementations and
+failed complete-FFN evidence. New group scales are explicit; no quality claim.
+Original dependencies, exclusive `/round2/tail256-model/target`, fresh package
+and new empty `FURIOSA_OPT_OUT_DIR` per resource build. Source, host check and
+exact resource compilation only. No standalone ELF, Arena or production changes.

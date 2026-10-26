@@ -1,0 +1,108 @@
+{
+  "base": "a4152dba16b6b3de27b3cc474f1a890cfdb5d0a9",
+  "scope": "source, host check, exact resource only; no standalone ELF/Arena/model",
+  "hypothesis": "Per960 activation range avoids whole-row activation range loss identified by matched attribution; no improvement in error or runtime is assumed.",
+  "control": "Frozen ops_int4_rational_fused_pack::quantize_pack_input_aligned/quantize_pack_hidden; resource snapshots in int4-rational-fused-pack. Original full FFN323067 slower and numerical drift remain HOLD.",
+  "math": "For each finite BF16 group960 after FTZ: A=max(2^-112,maxabs); q=sign(x)*roundaway(7abs(x)/A), reconstruction s=RN32(A*RN32(1/7)). Same proved p20 table multiplier, no floating DivF or changed table values.",
+  "mapping": {
+    "G": "K/960, concretely4 forH and16 forL",
+    "cluster": "P512/256",
+    "slice": "[K/960,P512%256/G]",
+    "local": "[P512%G,K%960]",
+    "proof": "s=g*(256/G)+r; p=256*c+G*r+j; k=960*g+u. All256 slices/cluster live; every(p,k) appears once. Local scans are G independent960 streams, not G rescans of the full row.",
+    "packed_wire": "I32[P512/256,K/960,P512%256,K%960/8], word offset (((c*G+g)*256+G*r+j)*120+w), low nibble first",
+    "scale_and_offset_wire": "[P512/256,K/960,P512%256] F32/I32",
+    "H_store": "Retain real H16 aligned staging [H/960,P%256/16,1#4] x [P%16,H%960/8]; failedH4 excluded",
+    "L_store": "Natural grouped packed DM already equals validated [L/960,P%256/16] x [P%16,L%960/8]; omit only the now-identical old DM join"
+  },
+  "gather": {
+    "api": "HbmTensor<i32,Chip,[Mantissa128,Record8]>.gather<[Mantissa],[Record]>().by_byte_offsets(&offsets).to_dm()",
+    "relative_offset": "32*((A_bits>>16)&127); index0..127 =>offset0..4064;32-byte payload stays within4096-byte table; never a device address",
+    "scratch": "Explicit caller-owned I32 HBM offsets,8192B H /32768B L. Fully initialized by this call, awaited graph dependencies; no host readback, no hidden SPM position list.",
+    "domain": "[P512/256,K/960,P512%256], unpadded; selected DM keeps local token and all8 record words, then typed lane0 VRF view",
+    "public_sources": [
+      "furiosa-opt-std-0.9.0/src/tensor/memory/gather.rs:139-173,270-305,379-398",
+      "furiosa-opt-std-0.9.0/src/backend/indirect.rs:6-15,50-64",
+      "furiosa-opt-std-0.9.0/src/storage/buf.rs:561-630",
+      "furiosa-opt-lower-0.9.0/src/verify/gather.rs:93-139"
+    ],
+    "installed_sdk_root": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f",
+    "sdk_public_revision": "5ec376347e108689096928bc4be2c0e4176fd7c9",
+    "frozen_resource_example": "b16-fixed-e4-kv/experiments/b16-fixed-e4-kv/candidate-schedule.json @40.37: dma_command_gather(pool %T40, HBM offset %T41); %T41 is32B DramStack, not SPM. This proves existing byte-offset path, not this new size/performance.",
+    "spm_caveat": "verify/indirect.rs:121 requires PE0 only; verify/mod.rs:103 caps4096B/PE. H4 needs4096B exactly, L16 needs16384B. Existing quant-pack resource also retains64B SPM scratch at0 and index allocationat512, so H4 type-cap equality is not an allocation proof. HBM offsets avoid this public SPM contract; hidden compiler resource behavior remains to be checked."
+  },
+  "costs": {
+    "input_HBM_bytes": {
+      "H": 3932160,
+      "L": 15728640
+    },
+    "packed_HBM_write_bytes": {
+      "H": 983040,
+      "L": 3932160
+    },
+    "scales_HBM_write_bytes": {
+      "H": 8192,
+      "L": 32768
+    },
+    "offset_HBM_write_plus_read_bytes": {
+      "H": 16384,
+      "L": 65536
+    },
+    "table_gather_record_payload_bytes": {
+      "H": 65536,
+      "L": 262144
+    },
+    "i32_code_DM_bytes": {
+      "H": 7864320,
+      "L": 31457280
+    },
+    "per_slice_BF16_I32_bytes": {
+      "H": [
+        7680,
+        15360
+      ],
+      "L": [
+        30720,
+        61440
+      ]
+    },
+    "record_DM_each_bytes": {
+      "H": 65536,
+      "L": 262144
+    },
+    "multiplier_VRF_bytes_per_slice": {
+      "H": 128,
+      "L": 512
+    },
+    "H_staging_physical_bytes": 3932160,
+    "risks": [
+      "Canonical input becomes1920B contiguous segments with whole-K row strides; same bytes does not imply same DMA time.",
+      "Metadata TU compaction emits16/64B fragments; actual store cost must be measured.",
+      "Each table lookup reads all32B and carries a dependent HBM offset roundtrip; no free cache assumption.",
+      "New projection consumer must apply token-group scales before interslice reduction and update checked raw scale extents; outside this tree.",
+      "Allocator padding/lifetimes and exact gather lowering must be reported, not inferred from tensor sums."
+    ]
+  },
+  "correctness_plan": [
+    "Independent i64 quotient/remainder oracle for every group, not table-multiplier reuse.",
+    "Check every packed byte/nibble/row/group, every F32 scale bit and every relative offset after candidate first.",
+    "Group/row-distinguishable finite BF16 fixtures, zero/FTZ/ties/extreme rows, group maxima on edges; all512row bits matter.",
+    "True row permutation plus within-group permutation preserves group membership; separate group permutation remaps scales consistently.",
+    "Distinct poisoned output/scales/offset owners, repeat/reuse, immutable input/table/shifts after complete calls.",
+    "Full Record8 table includes nonzero lane canaries; onlylane0 may feed multiplier.",
+    "No production/accuracy inference from exact code oracle."
+  ],
+  "resource_gate": {
+    "no_DramStack": true,
+    "allowed_DramIO": "BF16 input,4096B table,32B shifts,packed output,grouped scales,explicit offsets scratch only",
+    "report": "Whole unfolded timeline, every DMA/TU/source attribution, per-tensor allocation/liveness and physical highwater. Preserve failures. No numeric speed gate before this changed-precision quality foundation is established.",
+    "no_gain_claim": true
+  },
+  "build": {
+    "target": "/round2/tail256-model/target",
+    "new_empty_OUT_DIR": true,
+    "original_dependencies": true,
+    "disk_free_before": "5.8GiB; no deletions",
+    "standalone_ELF": false
+  }
+}
