@@ -44,3 +44,11 @@ are individually recorded in `a002-image-audit.json`; `audit_build.py` replays
 all comparisons without compiling or running a device. The earlier source-only
 checkpoint above remains historical. Root alone owns the pending hardware run;
 no complete speed or quality claim follows from this build.
+
+## Actual complete result
+
+Root job323213 passed all intended-code/ownership checks but failed both
+preregistered10% whole-chain performance gates (about2.1% slower than current
+production). `actual-result.json` and `analyze_actual.py` preserve every ABBA
+and phase sample, independent counts, source/image binding and synthetic drift
+scope. HOLD: no model integration, quality or serving promotion.
