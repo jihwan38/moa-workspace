@@ -290,3 +290,5 @@ pub mod ops_int4_complete_reference;
 pub mod ops_int4_grouped_activation_projection;
 pub mod ops_int4_grouped_activation_reference;
 pub mod i4_grouped_activation_raw_adapter;
+
+pub mod ops_int4_grouped_activation_store;
