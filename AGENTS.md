@@ -1,10 +1,10 @@
 # Ownership and scope
 
-Owned by `/root/round2_path`, isolated from `a4152dba`.
-Per-token/per960 activation scales and existing per960 weight scales both apply
-to each local I32 dot before the original F32 inter-slice sum and BF16 boundary.
-Only new diagnostic device modules, checked raw adapter, CPU fixture and probe.
-No serving, model, original control, SDK or dependency changes. Source/hostcheck
-and resource compilation are authorized; no standalone ELF or Arena.
-Use exclusive `/round2/ffn-k256/target`, CARGO_INCREMENTAL=0, original SDK0.9
-Cargo files and a new empty FURIOSA_OPT_OUT_DIR. Preserve every failed screen.
+Owned by `/root/e2e_evidence`, isolated from frozen projection `71cdf450`.
+Source and plain hostcheck only: assemble the seven-awaited-stage grouped A4
+complete FFN diagnostic using immutable donor kernels. No resource compilation,
+standalone device ELF, Arena, model/Worker activation, dependency change, or
+three-graph fusion is authorized. Root owns actual execution and promotion.
+Preserve the original complete FFN323067 probe and current production control.
+Use only the idle `/round2/prefill-head-attn-commit/target`, CARGO_INCREMENTAL=0,
+original Cargo files/lock, and recorded source hashes for the plain hostcheck.
