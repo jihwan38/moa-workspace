@@ -1,0 +1,35 @@
+{
+  "actual_call_path": "ProductionWeights::load_layer0 retains original load_mlp/native E4 weights and original pre_ffn. Separate BF16 gammaPrime owner enters existing bridge::prefix_sliding_bf16; same grouped fused A4pack, checked raw grouped projections, original GeGLU and tail kernels follow. Q020 production one-launch control is untouched. Separate unbalanced grouped chain uses original gamma and weights.",
+  "base": "d2122464",
+  "choice": "ONE deterministic parameter-free channel transform. For normal finite nonzero BF16 gamma[k], S[k]=2^(exponent(gamma)-127); otherwise S=1 for zero/subnormal. Nonfinite gamma rejects. GammaPrime=gamma/S, UPPrime[:,k]=UP[:,k]*S, GATEPrime[:,k]=GATE[:,k]*S. DOWN, hidden quantization, globals, residual and layer gate unchanged.",
+  "dependencies": {
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+    "rust-toolchain.toml": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+  },
+  "failure_policy": "Emit mismatch counts/examples and range classifications then reject before reporting quantized drift; do not silently skip difficult channels or change S.",
+  "fixtures": "Existing synthetic attention/residual fixture from prior gate, all512 row tags and true bijective row permutation; provided layer0 weights/norms only. Both step arms receive common original-production feedback so comparison is matched; no autoregressive/model/task quality claim.",
+  "hostcheck": "Recorded cargo check --release --bin test_int4_channel_balance; CARGO_INCREMENTAL=0,CARGO_PROFILE_RELEASE_DEBUG=0,CARGO_NET_OFFLINE=true; target tail256-model, no device compilation.",
+  "memory": "Separate original q020+unbalanced grouped+balanced shadow owners and scratch. No shared mutable aliases; layer0 only. Additional balanced UP/GATE packed59MB+dense118MB+group scales491520B plus gamma7680B; no48-layer capacity claim.",
+  "performance": "No preregistered speed win. Source-only diagnostic initially omits ABBA timing to keep numerical prerequisites primary. Startup CPU encoding/upload and extra control/oracle work are not serving throughput.",
+  "prerequisites": [
+    "Gamma bits give an exact power2 without log2 library rounding. GammaPrime and inverse must preserve signed BF16 bits; normal values normalize into signed[1,2). Zero/subnormal gamma remain identical.",
+    "Decode every supplied UP/GATE value from original packed F4 low/high nibble times per16 E4 scale then original BF16 rounding; do not transform native E4. Transform by S using exact F64 exponent shift, require finite normal-or-zero result with no FTZ/subnormal loss, exact BF16 representability and inverse bit equality for ALL values. Signed zero retained. Fail before any quantized conclusions if violated.",
+    "For each common incoming residual in both512-row orders and two controlled feedback steps, separately launch original-gamma and gammaPrime prefix into independently poisoned outputs. Persisted residuals must match bitwise. Require every normalized BF16 prefix to equal original/S exactly in F64 and inverse-scale back to original bits, with explicit finite/normal/zero/FTZ checks. No global bitexactness is assumed from algebra.",
+    "Before quantized interpretation, sample512 deterministic output rows/tokens per UP/GATE and compute original and transformed unquantized F64 products in identical k order from independently reconstructed supplied BF16. Every product must match exactly (BF16 operands imply<=16 significant product bits), then sums match; original globals remain equal and outside this proof.",
+    "Re-encode transformed BF16 weights with unchanged independent rational per960 rule; same blocked code/scales layout and dense-E4 integer reference. Use existing independent P128 norm/GeGLU/tail, dense-code projection and F64-envelope oracle for balanced chain.",
+    "Report activation and weight scalar reconstruction errors separately in transformed coordinates and after compensation to original coordinates: RN32(code*scale) with F64 SSE, not exact dot decomposition. Report full grouped-chain joined/hidden/down/residual drift vs unchanged q020 and unbalanced grouped outputs on MATCHED incoming residuals.",
+    "Original device source, original probe and its helpers unchanged. New host-only support functions and new cloned diagnostic bin only. Original gamma owner never mutated. Full source/weight/norm and balanced packed/scales/gamma immutability after reuse."
+  ],
+  "preserved_holds": "d2122464 grouped completeFFN correctness passed but actual speed gates failed; original whole-row A4 numerical and timing HOLDs unchanged.",
+  "scope": "Source and plain hostcheck only; provided layer0; unchanged device functions, no ELF/Arena/model activation",
+  "source_sha256": {
+    "src/bin/support/int4_grouped_activation_fixture.rs": "064f71b1084b2fc245b52756b47acc8e896497e8935b30b94aae9cd9f40e6abc",
+    "src/bin/support/int4_grouped_complete_fixture.rs": "33f120fb161ed1eb61ebfe2dc5ac50f952949410de8829476fec53761db6800e",
+    "src/bin/test_int4_grouped_complete_ffn.rs": "4617db01bbb869e8ae7754c58a9bb7d02140f658df5d7815873e2d78751a3228",
+    "src/host/int4_complete_ffn_weights.rs": "2e008abe350e56c04a6e63e4fde22f63441ebdc8b8cb4c59cefb7b47653a7675",
+    "src/ops_group_ffn_projection_storegroup.rs": "3b553c2215486c485248bf6c10ae3827e23e3bd837c08675b6d12df34f0f36f9",
+    "src/ops_int4_ffn_bridges.rs": "2c27586429cba3e9bcd930f28a8728e9edd52e30230359434b706bc0f1dfb227",
+    "src/ops_norm_quarters.rs": "1c84b784514e2282e208fb608a7c3a7bc67d7e36ca44346e6a892dc7b76ad218"
+  }
+}

@@ -1,10 +1,1 @@
-# Ownership and scope
-
-Owned by `/root/e2e_evidence`, isolated from frozen projection `71cdf450`.
-Source and plain hostcheck only: assemble the seven-awaited-stage grouped A4
-complete FFN diagnostic using immutable donor kernels. No resource compilation,
-standalone device ELF, Arena, model/Worker activation, dependency change, or
-three-graph fusion is authorized. Root owns actual execution and promotion.
-Preserve the original complete FFN323067 probe and current production control.
-Use only the idle `/round2/prefill-head-attn-commit/target`, CARGO_INCREMENTAL=0,
-original Cargo files/lock, and recorded source hashes for the plain hostcheck.
+Owned by /root/batch_kernels. Isolated provided-layer0 gamma power-of-two compensation diagnostic from d2122464. Original device functions, q020 E4 and unbalanced grouped controls remain unchanged. Source and plain hostcheck only on exclusive tail256 target, original dependencies. No ELF, Arena, serving or model-quality claim. Root owns subsequent gates.
