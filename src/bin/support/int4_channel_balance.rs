@@ -106,3 +106,14 @@ pub fn products(t:&safetensors::SafeTensors<'_>,b:&Balance,old:&[u8],new:&[u8],r
         println!("I4_BALANCE_PRODUCT_PROOF round={round} step={step} projection={name} dots={sums} products={} exact_term_and_same_order_F64_sum=true normal_or_zero_F32_products=true",SAMPLES*HIDDEN);
     }Ok(checked)
 }
+
+/// All three arms receive the same incoming original-production residual at
+/// BOTH steps. This local reporter does not inherit the old diverged-feedback label.
+pub fn drift(got:&[u8],reference:&[u8],label:&str,round:usize,step:usize){
+    assert_eq!(got.len(),reference.len());assert_eq!(got.len()%2,0);
+    let(mut e,mut den,mut max,mut changed)=(0f64,0f64,0f64,0usize);
+    for i in 0..got.len()/2{let a=bf(got,i);let b=bf(reference,i);let x=value(a);let y=value(b);
+        assert!(x.is_finite()&&y.is_finite(),"nonfinite drift {label}");
+        e+=(x-y).powi(2);den+=y*y;max=max.max((x-y).abs());changed+=usize::from(a!=b);}
+    println!("I4_BALANCE_DRIFT {}",serde_json::json!({"comparison":label,"round":round,"step":step,"bf16_values":got.len()/2,"changed":changed,"relative_l2":(e/den.max(1e-300)).sqrt(),"maxabs":max,"matched_incoming_inputs":true,"common_feedback":"original production residual","no_model_quality_claim":true}));
+}

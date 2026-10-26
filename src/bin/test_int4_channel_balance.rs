@@ -282,15 +282,18 @@ async fn main()->Result<()>{
             launch(bridge::geglu_bf16,(&mut d,&production.joined,p.ug(),p.gg(),&mut production_hidden)).await?;
             let ph=read(&mut d,&production_hidden).await?;
             for(label,bal,unbal,prod)in[("joined",&got.joined,&old.joined,&current[3]),("hidden",&got.hidden,&old.hidden,&ph),("down",&got.down,&old.down,&current[6]),("residual",&got.residual,&old.residual,&current[0])]{
-                fixture::drift(bal,prod,&format!("balanced_vs_q020_{label}"),round,step);
-                fixture::drift(unbal,prod,&format!("unbalanced_vs_q020_{label}"),round,step);
-                fixture::drift(bal,unbal,&format!("balanced_vs_unbalanced_{label}"),round,step);
+                balance::drift(bal,prod,&format!("balanced_vs_q020_{label}"),round,step);
+                balance::drift(unbal,prod,&format!("unbalanced_vs_q020_{label}"),round,step);
+                balance::drift(bal,unbal,&format!("balanced_vs_unbalanced_{label}"),round,step);
             }
             if round==0{baseline.push(got.clone());base_unbalanced.push(old.clone());}
             else{permutation+=got.permutation(&baseline[step])+old.permutation(&base_unbalanced[step]);}
             balanced.reset(&mut d,&rb).await?;
             candidate_prefix(&mut d,&p,&gamma_prime,&x,&mut balanced).await?;candidate_rest(&mut d,&p,&bw,&q,&mut balanced).await?;
             reuse+=balanced.snapshot(&mut d).await?.equal(&got,"balanced full reuse");
+            reuse+=unbalanced.snapshot(&mut d).await?.equal(&old,"unbalanced scratch unchanged by balanced replay");
+            for(a,b)in production.snapshot(&mut d).await?.iter().zip(&current){assert_eq!(a,b,"production scratch unchanged by balanced replay");reuse+=a.len();}
+            assert_eq!(read(&mut d,&production_hidden).await?,ph,"independent production GeGLU output unchanged");reuse+=ph.len();
             // Common incoming state for the next step is the original-production
             // residual, never one candidate's state supplied only to its control.
             incoming=fixture::canonical_residual(&current[0]);
