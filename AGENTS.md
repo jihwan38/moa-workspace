@@ -1,10 +1,10 @@
 # Ownership and scope
 
-Owned by `/root/e2e_evidence`, isolated from frozen projection `71cdf450`.
-Source and plain hostcheck only: assemble the seven-awaited-stage grouped A4
-complete FFN diagnostic using immutable donor kernels. No resource compilation,
-standalone device ELF, Arena, model/Worker activation, dependency change, or
-three-graph fusion is authorized. Root owns actual execution and promotion.
-Preserve the original complete FFN323067 probe and current production control.
-Use only the idle `/round2/prefill-head-attn-commit/target`, CARGO_INCREMENTAL=0,
-original Cargo files/lock, and recorded source hashes for the plain hostcheck.
+Owned by `/root/round2_path`; isolated from d2122464.
+Root authorizes source, host checks and exact resource compilation only.
+Compose the validated seven-call path into three retained-HBM device graphs;
+keep all old bodies and standalone wrappers, original Cargo files, q020 control,
+independent oracles and failed whole-chain gates. No serving/model changes.
+I32/I4 raw binding occurs only between launches; no same-graph aliases.
+Use exclusively `/round2/ffn-k256/target`, CARGO_INCREMENTAL=0 and a new empty
+FURIOSA_OPT_OUT_DIR. Root alone authorizes standalone ELF and Arena execution.
