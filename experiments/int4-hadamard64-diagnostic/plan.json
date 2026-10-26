@@ -1,0 +1,58 @@
+{
+  "base": "5e3ee88365cd30ccf4919d60726d68751d4992a6",
+  "owner": "/root/e2e_evidence",
+  "phase": "Source, meaningful CPU vector/proof checks, plain cargo check only. No device ELF, Arena, model activation or speed claim.",
+  "fixed_policy": {
+    "matrix": "row x and row w both use R=D H64/8 independently in each contiguous64-channel block; 15 blocks per unchanged960 group",
+    "sign": "SplitMix64(absolute_channel XOR0x243F6A8885A308D3), including standard SplitMix increment; high bit selects minus; identical across tokens/output rows",
+    "forward": "sign first; six separately rounded F32 add/sub butterfly stages strides1,2,4,8,16,32; exactnormal multiplication0.125; one nearest-even BF16 round",
+    "inverse": "R transpose: H64/8 first, signs last, not the same forward transform",
+    "quantization": "unchanged independent u128 quotient/remainder rational per960 oracle on original/rotated BF16; scale RN32(A*RN32(1/7)), never MSE/1-over-rotation-scale"
+  },
+  "inputs": "Provided layer0 direct low/high F4 times per16 finiteE4 rounded BF16; no nativeE4 row dequant. Existing production loader retained. prefix_sliding_bf16 exports after raw gamma and original BF16 cut. Unchanged q020 sliding_projection_owned supplies original feedback; geglu_bf16 on its joined output supplies fixed production hidden. Gamma/norm/residual/GeGLU arithmetic is untouched.",
+  "minimal_sampling": {
+    "pairs_per_projection": 512,
+    "projections": [
+      "UP",
+      "GATE",
+      "DOWN"
+    ],
+    "orders": 2,
+    "steps": 2,
+    "pairs_total": 6144,
+    "terms_per_order_step": 11796480,
+    "terms_total": 47185920,
+    "pair": "current row p maps canonical owner p or (73*p+127)%512; weight output row=(317*owner+19)%projection_rows. Both orders compare identical pairs sorted by owner. Both steps use original q020 residual feedback. UP/GATE share prefix; DOWN uses current production hidden, never an approximate chain hidden.",
+    "weight_loading": "Decode only512 preregistered output rows per projection from immutable full safetensors. Rotate/quantize them once on CPU; no full shadow model or extra GPU weight owner."
+  },
+  "arms": [
+    "provided-BF16 original F64 dot",
+    "ideal forward F64 Hadamard dot (finite precision evaluation of exact-real identity, with explicit absolute rounding bound)",
+    "F32+singleBF16 rotated unquantized dot",
+    "original per960 A4W4 reconstructed dot",
+    "rotated per960 A4W4 reconstructed dot",
+    "original/rotated activation-only quantized dot",
+    "original/rotated weight-only quantized dot"
+  ],
+  "proof_and_ranges": "Immutable root Fraction proof/vectors retained. dense_exact_f64 field is rounded display and NOT an exact oracle. Rust checks input/sign/rotatedF32/BF16 bits byte-exact; independent direct dense matrix tests check butterfly/inverse. Actual rows fail-stop unless inputs, F32 intermediates, exactnormal /8 and rounded BF16 are finite normal-or-zero; no unsupported FTZ/overflow claim. F64 ideal identity uses an absolute bound scaled by input norm product and channel count, independent of cancellation. Final BF16 rounding error is separately measured.",
+  "decision": "For every UP/GATE/DOWN step in each order: rotation-only sampled relativeL2<=0.01 AND rotatedA4W4 sampled relativeL2<=0.75*originalA4W4. Every owner-associated per-pair output agrees across roworders. Any failed gate => HOLD, no tuning. Correctness/identity pass does not imply quality gate pass.",
+  "metrics": "All dots are pre-global projections, with original global reported but not applied. No BF16 GeGLU/DOWN boundary or whole-FFN output approximation claim. F64 sum of dequantized code*storedscale products differs from device localF32 weightMul/activationMul/reduction. Report sampled error SSE/referenceSS/maxabs, zero fractions and rotation-only error separately; no additive decomposition.",
+  "integrity": "Freeze all original src/config hashes. Three unchanged runtime entries plus five unchanged production startup entries expected if later built; no new device function. Independent CPU sample code tests, full source tensor fingerprints, full production retained-byte fingerprints, full immutable activation readbacks after CPU analysis, all512 row permutation of prefix/hidden/production states. No hidden references to other owners or mutation.",
+  "cost_scope": {
+    "activation_elements": 9830400,
+    "sixstage_F32_add_sub_results": 58982400,
+    "additional_materialized_BF16_read_write_bytes_if_unfused": 39321600,
+    "scope": "PerP512FFN count only; no SDK mapping/resource/latency proof. Host-only sampled weights avoid all48 startup; no inference to full model. Extra CPU original/F64/rounded representations are diagnostic-only."
+  },
+  "proof_hashes": {
+    "prove.py": "e76e4c1985ca94cc1ccfbeb70b59132a876f4adbb76cc5ee728fad476075abaa",
+    "proof-record.json": "32269d4ca3b4cdb684a79e262e75add2570267d384a622bb07972a5ea714d78f",
+    "vectors.json": "994a071a81a0be51e6a1807bd2945c8fd228034654219a6c5569f3eeeab106e0"
+  },
+  "dependencies": {
+    "Cargo.toml": "a4154d908d25a512d031dea859b1b013794f821a47deb739334332bd0e4fdf85",
+    "Cargo.lock": "a99652661c588fe5c3a8b23278f2390d8cd2e99f2b33bcab6f52e97dbba04e2e",
+    "rust-toolchain.toml": "1e6c9fed0427862faf47f5993fca93848e1b5d62127b38a058fd20ef6a03cc6d"
+  },
+  "prior_failures": "Preserve rational whole-row/grouped FFN, gamma-only balancing and fixedMSE HOLDs. Official q020/final unchanged."
+}

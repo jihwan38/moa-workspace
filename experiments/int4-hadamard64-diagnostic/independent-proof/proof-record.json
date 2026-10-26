@@ -1,0 +1,23 @@
+{
+  "result": "PASS",
+  "gram_entries": 4096,
+  "vector_count": 16,
+  "vector_sha256": "994a071a81a0be51e6a1807bd2945c8fd228034654219a6c5569f3eeeab106e0",
+  "proof_sha256": "e76e4c1985ca94cc1ccfbeb70b59132a876f4adbb76cc5ee728fad476075abaa",
+  "independent_review": {
+    "reviewer": "round2_path",
+    "result": "PASS within fixed-vector scope",
+    "verified": [
+      "4096 Gram entries",
+      "same sign and F32 butterfly bits",
+      "Fraction dot/norm/inverse",
+      "gamma6 bound",
+      "BF16 nearest-even"
+    ]
+  },
+  "scope_clarifications": [
+    "vectors.json dense_exact_f64 is a rounded F64 display of Fraction values; it is not an exact oracle. The internal Fraction identity assertions are exact.",
+    "The gamma6 error bound excludes final BF16 rounding and assumes no overflow/underflow/FTZ during six RN32 stages and exactnormal division by8.",
+    "Fixed examples have nonzero inputs at least2^-30 and at most2^30. They do not verify the full finite-BF16 domain, device FTZ, full Gemma equivalence, quantization quality, or speed."
+  ]
+}
