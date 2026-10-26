@@ -1,0 +1,75 @@
+{
+  "owner": "/root/batch_kernels",
+  "base": "305b16740fc9b8a456e903ecbd4e09f9fa250b6e",
+  "phase": "source, CPU mapping/numerical proof, plain hostcheck; root approval required before ONE exact resource compile; no ELF/Arena/model/fusion",
+  "prior_failure": {
+    "module": "src/ops_int4_hadamard64.rs",
+    "module_sha256": "d6eb545ab2a6ba951a23f1527fde51a1965c8adfb95f737883add2da4761ed79",
+    "evidence": "experiments/int4-hadamard64-device/result.json",
+    "reason": "stride1 direct half fetch packet H/2%8 has DM memory stride2; packet innermost must be contiguous",
+    "preservation": "original module, source proof, hostcheck and resource failure remain unchanged"
+  },
+  "contract": {
+    "shape": "BF16 canonical [P512,H3840] input and output, separate owners",
+    "ownership": "Cluster=P/256, Slice=[H/960,P%256/4], local=[P%4,H%960]; p=256c+4r+j,h=960g+u",
+    "arithmetic": "absolute-channel SplitMix sign before strides1,2,4,8,16,32, each AddF/SubF RN32; final exactnormal multiply1/8 followed by ONE BF16 RNE cut",
+    "scope": "finite normal-or-zero inputs and all intermediate results; preserve prior FTZ/overflow exclusions; no changed stage ordering or algebraic reassociation"
+  },
+  "routing": {
+    "sign": "unchanged HBM BF16 -> local DM -> F32 sign-XOR -> canonical local F32 owner; immutable signs HBM->DM->VRF charged",
+    "forward_transpose": "actual public collect.transpose.commit from Time[P%4,H/64%15,H/8%8],Packet[H%8] to Time[P%4,H/64%15,H%8],Packet[H/8%8]",
+    "staged_local": "[P%4,H/64%15,H%8,H/8%8]; physical offset ((j*15+b)*8+low3)*8+high3, preserving logical h=960g+64b+8high3+low3",
+    "stride1": "pair bit0 of H%8 in Time, fetch Packet[H/8%8] contiguous; Time[P%4,H/64%15,H/2%4]",
+    "stride2": "pair bit1 in Time, Packet[H/8%8]; Time[P%4,H/64%15,H/4%2,H%2]",
+    "stride4": "pair bit2 in Time, Packet[H/8%8]; Time[P%4,H/64%15,H%4]",
+    "half_rule": "each stage performs two real paired reads and AddF/SubF into distinct halves of one NEW staged F32 owner; both old halves live until both writes complete; existing unzip/narrow/widen order retained",
+    "inverse_transpose": "actual public transpose back to Time[P%4,H/64%15,H/8%8],Packet[H%8] after stride4, before stride8",
+    "stride8_16_32": "byte-identical original helper bodies and ordinary contiguous H%8 packets",
+    "finish": "unchanged final multiply/cast/canonical HBM store",
+    "not_assumed": "No alias/reshape substitutes for either transpose. No free XOR partner routing. Public typecheck does not prove backend lowering or runtime values."
+  },
+  "public_sdk": {
+    "root_in_container": "/home/moa/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f",
+    "revision": "5ec376347e108689096928bc4be2c0e4176fd7c9",
+    "refs": [
+      "furiosa-opt-std-0.9.0/src/engine/transpose.rs:51-86 public post-collect transpose and verifier",
+      "furiosa-opt-std-0.9.0/src/engine/transpose.rs:121-143,190 F32/whole-time-axis transpose examples",
+      "furiosa-opt-std-0.9.0/src/context.rs:95-111 begin_interleaved",
+      "furiosa-opt-std-0.9.0/src/engine/vector/tensor/vector_tensor.rs:575-584 Time-axis unzip",
+      "furiosa-opt-lower-0.9.0/src/verify/engine/vector/tensor.rs:335-362 bounded unzip cache"
+    ],
+    "limitation": "config_transpose calls a prebuilt public FFI verifier; the complete generated fetch/commit constraints still require the separately approved resource gate"
+  },
+  "source_cost": {
+    "H_elements": 1966080,
+    "F32_add_sub_results": 11796480,
+    "F32_final_scale_results": 1966080,
+    "sixstage_pair_DM_read_bytes": 94371840,
+    "sixstage_pair_DM_write_bytes": 47185920,
+    "new_transpose_passes": 2,
+    "new_transpose_read_bytes": 15728640,
+    "new_transpose_write_bytes": 15728640,
+    "init_and_final_DM_bytes_excluding_masks": 23592960,
+    "total_logical_DM_bytes_excluding_masks": 196608000,
+    "sign_HBM_unique_bytes": 15360,
+    "sign_DM_live_all_slices_bytes": 1966080,
+    "sign_VRF_per_slice_bytes": 3840,
+    "HBM_input_plus_output_bytes": 7864320,
+    "note": "All counts are source-level traffic, not runtime estimates. One half emits N/2 but reads N; each full stage reads2N and writesN. Added transposes each readN/writeN. Extra padding, fetch overhead and schedule lifetimes must be reported from resource."
+  },
+  "liveness": {
+    "one_F32_owner_per_slice_bytes": 15360,
+    "two_F32_owners_per_slice_bytes": 30720,
+    "source_BF16_owner_per_slice_bytes": 7680,
+    "staged_and_canonical_axes_live_and_physical_elements": 3840,
+    "source_owner_rule": "Forward/inverse transpose retain source and independent destination until commit. Each butterfly retains old and new F32 owner. Sign VRF last use is before forward transpose; actual allocator reuse is not assumed.",
+    "compiler_requirement": "report actual physical SRAM/VRF lifetimes and DramStack; preserve failure, no automatic geometry sweep"
+  },
+  "proof_and_gates": {
+    "CPU": "all 512x3840 coordinates, forward/inverse bijection, packet contiguity and all six pair maps; independent staged simulation versus direct six-stage reference and frozen root16 F32/BF16 vectors",
+    "source": "original module and high-stage/helper bodies byte equality; SDK/dependency hashes; real transpose source and no unsafe reinterpreted layout",
+    "hostcheck": "original Cargo.toml/Cargo.lock/toolchain, incremental0/package debug0, exclusive tail256-model target",
+    "resource": "root reviews frozen plan/source first; one fresh empty FURIOSA_OPT_OUT_DIR, exact rotate_input H3840 only; preserve any rejection",
+    "decision": "Legality only. Existing threegraph still needs59-63us additional saving for10percent complete gate before adding rotation. Do not convert cycles to microseconds without clock evidence or infer complete speed from bytes removed."
+  }
+}
