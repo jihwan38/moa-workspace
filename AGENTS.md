@@ -1,10 +1,10 @@
 # Ownership and scope
 
-Owned by `/root/e2e_evidence`, based on `1a835e18`.
-Disconnected attribution diagnostic for actual job323067.
-Reuse existing device functions; preserve the complete-FFN probe and all device
-math. No calibration, balancing, clipping, model changes or Arena.
-Use original dependencies and exclusive `/round2/prefill-head-attn-commit/target`
-with CARGO_INCREMENTAL=0. Root authorized one fresh captured standalone device
-build after the source reviews and latest host check passed. Root alone may
-authorize and execute the actual device diagnostic. See build-plan.md.
+Owned by `/root/round2_path`, isolated from `a4152dba`.
+Per-token/per960 activation scales and existing per960 weight scales both apply
+to each local I32 dot before the original F32 inter-slice sum and BF16 boundary.
+Only new diagnostic device modules, checked raw adapter, CPU fixture and probe.
+No serving, model, original control, SDK or dependency changes. Source/hostcheck
+and resource compilation are authorized; no standalone ELF or Arena.
+Use exclusive `/round2/ffn-k256/target`, CARGO_INCREMENTAL=0, original SDK0.9
+Cargo files and a new empty FURIOSA_OPT_OUT_DIR. Preserve every failed screen.
